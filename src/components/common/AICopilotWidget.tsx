@@ -1025,12 +1025,8 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
             className="group flex items-center gap-2 px-3.5 py-2 bg-[#ffffff] border border-[#e0e0e0] rounded-full hover:bg-[#f3f3f3] hover:border-[#141414] shadow-md transition-all cursor-pointer"
             title={`التحدث مع ${persona === 'noura' ? 'نُورة' : 'فارس'}`}
           >
-            <div className="relative w-7 h-7 flex-shrink-0 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] p-0.5">
-              <img
-                src={persona === 'noura' ? '/noura.png' : '/mascot.png'}
-                alt={persona === 'noura' ? 'نُورة' : 'فارس'}
-                className="w-full h-full object-contain"
-              />
+            <div className="relative w-7 h-7 flex-shrink-0 rounded-full bg-[#141414] text-[#ffffff] flex items-center justify-center">
+              <Sparkles className="w-3.5 h-3.5" />
               <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#0066ff] border-2 border-[#ffffff]" />
             </div>
 
@@ -1147,48 +1143,24 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
             </div>
           )}
 
-          {/* The Frameless 3D Mascot Character */}
-          <div
+          {/* Clean Institutional AI Launcher Badge (No Human Mascot Image) */}
+          <button
+            type="button"
             onClick={() => {
               setIsOpen(true);
               setShowTooltip(false);
             }}
-            className="relative cursor-pointer select-none flex flex-col items-center"
+            className="relative cursor-pointer select-none flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] border border-[#141414] shadow-lg transition-all"
             title={persona === 'noura' ? 'انقري للتحدث مع نُورة' : 'انقر للتحدث مع فارس'}
           >
-            <div className="mascot-float relative transition-all duration-300 group-hover:scale-105">
-              <img
-                src={persona === 'noura' ? '/noura.png' : '/mascot.png'}
-                alt={persona === 'noura' ? 'نُورة - المستشارة المؤسسية' : 'فارس - المستشار التنفيذي'}
-                className="w-auto h-32 sm:h-36 object-contain pointer-events-auto"
-                style={{
-                  filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.12))',
-                }}
-                loading="eager"
-              />
-
-              <span
-                style={{
-                  position: 'absolute',
-                  bottom: '14px',
-                  right: '12px',
-                  width: '12px',
-                  height: '12px',
-                  borderRadius: '50%',
-                  backgroundColor: '#0066ff',
-                  border: '2px solid #ffffff',
-                }}
-                title="متصل بالخدمة"
-              />
+            <div className="w-7 h-7 rounded-full bg-[#262626] flex items-center justify-center text-[#ffffff] relative">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#0066ff] border-2 border-[#141414]" />
             </div>
-
-            <div
-              className="mascot-shadow w-24 h-3.5 rounded-full pointer-events-none -mt-1"
-              style={{
-                background: 'radial-gradient(ellipse at center, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.05) 55%, transparent 75%)',
-              }}
-            />
-          </div>
+            <span className="text-xs font-bold">
+              {persona === 'noura' ? 'نُورة AI' : 'فارس AI'}
+            </span>
+          </button>
         </div>
       )}
 
@@ -1207,15 +1179,9 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
             <div className="flex items-center justify-between gap-3">
               {/* Avatar & Title */}
               <div className="flex items-center gap-3 min-w-0">
-                <div className="relative w-11 h-11 rounded-[14px] p-0.5 shrink-0 bg-[#f3f3f3] border border-[#e0e0e0]">
-                  <div className="w-full h-full rounded-[12px] bg-[#ffffff] flex items-center justify-center overflow-hidden">
-                    <img
-                      src={persona === 'noura' ? '/noura.png' : '/mascot.png'}
-                      alt={persona === 'noura' ? 'نُورة' : 'فارس'}
-                      className="w-full h-full object-contain p-0.5"
-                    />
-                  </div>
-                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#0066ff] border-2 border-[#ffffff]" />
+                <div className="relative w-10 h-10 rounded-[12px] shrink-0 bg-[#141414] text-[#ffffff] flex items-center justify-center">
+                  <Sparkles className="w-4 h-4" />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#0066ff] border-2 border-[#ffffff]" />
                 </div>
 
                 <div className="min-w-0">
@@ -1494,14 +1460,10 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                   msg.sender === 'user' ? 'self-start flex-row-reverse' : 'self-end'
                 }`}
               >
-                {/* Advisor Avatar */}
+                {/* Advisor Geometric Badge (No Human Avatar) */}
                 {msg.sender === 'ai' && (
-                  <div className="w-7 h-7 rounded-[10px] bg-[#f3f3f3] border border-[#e0e0e0] p-0.5 shrink-0 overflow-hidden mt-1">
-                    <img
-                      src={persona === 'noura' ? '/noura.png' : '/mascot.png'}
-                      alt={persona === 'noura' ? 'نُورة' : 'فارس'}
-                      className="w-full h-full object-contain"
-                    />
+                  <div className="w-7 h-7 rounded-[10px] bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center shrink-0 mt-1">
+                    <Sparkles className="w-3.5 h-3.5" />
                   </div>
                 )}
 

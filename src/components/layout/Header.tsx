@@ -37,6 +37,7 @@ import {
   Lock,
   UploadCloud,
   Activity,
+  Sparkles,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -393,7 +394,9 @@ export const Header: React.FC<HeaderProps> = ({
             title="رادار مراقبة وتشخيص الأخطاء المباشر ومحرك الإصلاح الذاتي"
           >
             <Activity className="w-3.5 h-3.5 text-[#141414] shrink-0" />
-            <span className="hidden xl:inline">الأخطاء</span>
+            <span className="hidden xl:inline">
+              {openErrorCount > 0 ? 'الأخطاء' : 'سلامة النظام'}
+            </span>
             <span className="mobbin-badge-popular">
               {openErrorCount > 0 ? openErrorCount : '100%'}
             </span>
@@ -419,7 +422,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer whitespace-nowrap"
             title="استدعاء المستشار المؤسسي الصوتي والنصي (فارس / نُورة)"
           >
-            <User className="w-3.5 h-3.5 text-[#141414] shrink-0" />
+            <Sparkles className="w-3.5 h-3.5 text-[#141414] shrink-0" />
             <span className="hidden 2xl:inline">فارس ونُورة</span>
           </button>
 
@@ -569,21 +572,13 @@ export const Header: React.FC<HeaderProps> = ({
                 setShowNotifDropdown(false);
                 setShowLangDropdown(false);
               }}
-              className="flex items-center gap-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] rounded-full p-1 pl-2.5 transition-colors shrink-0 cursor-pointer"
+              className="flex items-center gap-2 bg-[#f3f3f3] hover:bg-[#e0e0e0] rounded-full px-3 py-1.5 transition-colors shrink-0 cursor-pointer"
             >
-              <CorporateAvatar
-                name={displayName}
-                email={displayEmail}
-                role={effectiveProfile?.role}
-                departmentId={resolvedScope.departmentId}
-                size="xs"
-                status="online"
-              />
-              <div className="hidden sm:block text-right">
-                <div className="text-[11px] font-semibold text-[#141414] leading-tight truncate max-w-[160px]">
+              <div className="text-right">
+                <div className="text-[11px] font-semibold text-[#141414] leading-tight truncate max-w-[110px] sm:max-w-[160px]">
                   {displayName}
                 </div>
-                <div className="text-[10px] text-[#707070] font-medium truncate max-w-[160px]">
+                <div className="hidden sm:block text-[10px] text-[#707070] font-medium truncate max-w-[160px]">
                   {departmentDef.badgeText}
                 </div>
               </div>

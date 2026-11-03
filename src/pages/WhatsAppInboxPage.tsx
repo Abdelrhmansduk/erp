@@ -184,7 +184,7 @@ export const WhatsAppInboxPage: React.FC = () => {
             <span>+ محادثة جديدة مع عميل</span>
           </button>
           <button
-            onClick={() => exportData('clients', chats, 'excel', 'سجل محادثات الواتساب')}
+            onClick={() => exportData('whatsapp_inbox', chats, 'excel', 'سجل محادثات الواتساب')}
             className="button-outline-on-dark"
             style={{ fontSize: '12px', padding: '6px 14px', minHeight: '38px' }}
           >
@@ -192,7 +192,7 @@ export const WhatsAppInboxPage: React.FC = () => {
             <span>Excel</span>
           </button>
           <button
-            onClick={() => exportData('clients', chats, 'pdf', 'سجل محادثات الواتساب')}
+            onClick={() => exportData('whatsapp_inbox', chats, 'pdf', 'سجل محادثات الواتساب')}
             className="button-outline-on-dark"
             style={{ fontSize: '12px', padding: '6px 14px', minHeight: '38px' }}
           >

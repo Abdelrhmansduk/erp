@@ -640,10 +640,10 @@ export const SmaccModulesPage: React.FC = () => {
             </button>
             <button
               onClick={() => {
-                if (activeModuleTab === 'ecommerce-stores') exportData('finance', storeOrders, 'excel');
-                else if (activeModuleTab === 'fixed-assets') exportData('finance', fixedAssets, 'excel');
-                else if (activeModuleTab === 'inventory') exportData('finance', inventoryItems, 'excel');
-                else exportData('finance', salesReps, 'excel');
+                if (activeModuleTab === 'ecommerce-stores') exportData('smacc_ecommerce_orders', storeOrders, 'excel');
+                else if (activeModuleTab === 'fixed-assets') exportData('smacc_fixed_assets', fixedAssets, 'excel');
+                else if (activeModuleTab === 'inventory') exportData('inventory', inventoryItems, 'excel');
+                else exportData('smacc_sales_reps', salesReps, 'excel');
               }}
               className="button-white-pill"
               style={{ fontSize: '12px', padding: '6px 16px', minHeight: '38px' }}
@@ -945,7 +945,7 @@ export const SmaccModulesPage: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  exportData('finance', inventoryItems, 'excel');
+                  exportData('inventory', inventoryItems, 'excel');
                   addNotification({
                     title: 'تصدير الجرد',
                     message: 'تم تصدير تقرير جرد المخزون والأصناف بنجاح إلى ملف Excel.',

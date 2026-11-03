@@ -293,18 +293,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
 
                       {/* Worker & Original Office */}
                       <td className="p-3.5">
-                        <div className="flex items-center gap-2.5">
-                          {worker?.photoUrl ? (
-                            <img 
-                              src={worker.photoUrl} 
-                              alt={worker.fullNameAr} 
-                              className="w-9 h-9 rounded-xl object-cover border border-white/10 shrink-0" 
-                            />
-                          ) : (
-                            <div className="w-9 h-9 rounded-xl bg-black/60 border border-white/10 text-amber-300 flex items-center justify-center font-bold text-xs shrink-0">
-                              {(worker?.fullNameAr || 'ع').slice(0, 2)}
-                            </div>
-                          )}
+                        <div className="flex items-center gap-2">
                           <div className="min-w-0">
                             <button
                               type="button"

@@ -204,8 +204,6 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
       desc: 'مصنف محاسبي (ورقتا عمل: البيانات التفصيلية + ملخص الاعتماد والتفقيط)',
       icon: FileSpreadsheet,
       badge: 'ورقتا عمل RTL',
-      bgColor:
-        'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
     },
     {
       id: 'pdf' as ExportFormat,
@@ -213,8 +211,6 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
       desc: 'وثيقة رسمية (300 DPI) بهيدر القابضة والكيان والختم الرقمي والتفقيط',
       icon: FileText,
       badge: 'معتمد رسمياً',
-      bgColor:
-        'bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-400 border-sky-200 dark:border-sky-800',
     },
     {
       id: 'word' as ExportFormat,
@@ -222,8 +218,6 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
       desc: 'مستند مكتبي رسمي قابل للتحرير المباشر مع ترويسة الشركة والجداول',
       icon: FileEdit,
       badge: 'قابل للتحرير',
-      bgColor:
-        'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400 border-blue-200 dark:border-blue-800',
     },
     {
       id: 'print' as ExportFormat,
@@ -231,8 +225,6 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
       desc: 'نافذة معاينة وطباعة فورية مع رمز ZATCA QR ومصفوفة التواقيع الثلاثية',
       icon: Printer,
       badge: 'طباعة فورية',
-      bgColor:
-        'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-200 dark:border-amber-800',
     },
     {
       id: 'html' as ExportFormat,
@@ -240,8 +232,6 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
       desc: 'صفحة تقرير أوفلاين مزودة بشريط بحث فوري وفرز تفاعلي للأعمدة',
       icon: Globe,
       badge: 'بحث وفرز حي',
-      bgColor:
-        'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-200 dark:border-amber-800',
     },
     {
       id: 'png' as ExportFormat,
@@ -249,8 +239,6 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
       desc: 'صورة رسمية (Retina 2x) جاهزة للإرسال الفوري للإدارة العليا عبر واتساب',
       icon: ImageIcon,
       badge: 'صورة 2x HD',
-      bgColor:
-        'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
     },
   ];
 
@@ -261,8 +249,6 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
       desc: 'ملف صرف الرواتب والأجور القياسي المتوافق مع البنك المركزي SAMA ومنصة مدد',
       icon: Landmark,
       badge: 'SAMA / مدد WPS',
-      bgColor:
-        'bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-400 border-teal-200 dark:border-teal-800',
     },
     {
       id: 'xml' as ExportFormat,
@@ -270,8 +256,6 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
       desc: 'ترميز XML قياسي مطابق لمحددات التبادل المؤسسي وهيئة الزكاة UBL 2.1',
       icon: Code,
       badge: 'ZATCA UBL 2.1',
-      bgColor:
-        'bg-orange-50 text-orange-700 dark:bg-orange-950/60 dark:text-orange-400 border-orange-200 dark:border-orange-800',
     },
     {
       id: 'csv' as ExportFormat,
@@ -279,8 +263,6 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
       desc: 'متوافق تماماً مع Microsoft Excel والبرامج المحاسبية مع ترويسة الحوكمة',
       icon: FileCode,
       badge: 'توافق شامل',
-      bgColor:
-        'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-200 dark:border-amber-800',
     },
     {
       id: 'tsv' as ExportFormat,
@@ -288,8 +270,6 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
       desc: 'مفصول بعلامة الجدولة للربط مع ملفات مساند والبنوك السعودية',
       icon: Layers,
       badge: 'مساند / البنوك',
-      bgColor:
-        'bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-400 border-teal-200 dark:border-teal-800',
     },
     {
       id: 'json' as ExportFormat,
@@ -297,8 +277,6 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
       desc: 'كائنات البيانات متضمنة الترويسة المؤسسية وبصمة التحقق الرقمية SHA-256',
       icon: FileJson,
       badge: 'API & Audit',
-      bgColor:
-        'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700',
     },
     {
       id: 'markdown' as ExportFormat,
@@ -306,8 +284,6 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
       desc: 'تقرير Markdown مهيكل مع ملخص التفقيط وجدول المجاميع للأرشفة',
       icon: Database,
       badge: 'توثيق ذكي',
-      bgColor:
-        'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border-rose-200 dark:border-rose-800',
     },
   ];
 
@@ -341,13 +317,13 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
         />
       </button>
 
-      {/* Luxury Dropdown Menu rendered via Portal */}
+      {/* Mobbin Light Mode Dropdown Menu rendered via Portal */}
       {isOpen &&
         typeof document !== 'undefined' &&
         createPortal(
           <>
             <div
-              className="fixed inset-0 z-[99998] bg-black/25 backdrop-blur-[1px] transition-opacity"
+              className="fixed inset-0 z-[99998] bg-[#141414]/20 backdrop-blur-[1px] transition-opacity"
               onClick={(e) => {
                 e.stopPropagation();
                 setIsOpen(false);
@@ -365,43 +341,43 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
                 maxHeight: '85vh',
                 zIndex: 99999,
               }}
-              className="bg-white dark:bg-zinc-900 border-2 border-[#CFA64A]/60 rounded-3xl shadow-2xl p-2.5 animate-in fade-in zoom-in-95 duration-150 overflow-y-auto font-sans text-right"
+              className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] shadow-2xl p-3 animate-in fade-in zoom-in-95 duration-150 overflow-y-auto font-sans text-right"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header Info */}
-              <div className="px-3.5 py-2.5 border-b border-zinc-100 dark:border-zinc-800/80 mb-2 flex items-center justify-between sticky top-0 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm z-10">
+              <div className="px-3 py-2.5 border-b border-[#e5e5e5] mb-2.5 flex items-center justify-between sticky top-0 bg-[#ffffff]/95 backdrop-blur-sm z-10">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#CFA64A]" />
-                  <span className="text-xs font-black text-slate-900 dark:text-white">
+                  <Sparkles className="w-4 h-4 text-[#141414]" />
+                  <span className="text-xs font-extrabold text-[#141414]">
                     منظومة التصدير المؤسسي الموحدة (12 صيغة)
                   </span>
                 </div>
-                <span className="text-[11px] font-mono text-emerald-700 dark:text-emerald-400 font-black bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full">
+                <span className="text-[10.5px] font-mono text-[#141414] font-bold bg-[#f3f3f3] border border-[#e0e0e0] px-2.5 py-0.5 rounded-full">
                   {resolvedRows.length} سجل جاهز
                 </span>
               </div>
 
               {/* Featured Live Document Studio & Customization Button */}
-              <div className="px-1.5 mb-2.5">
+              <div className="px-1 mb-2.5">
                 <button
                   type="button"
                   onClick={handleOpenPreview}
-                  className="w-full p-3 rounded-2xl bg-[#1D2428] hover:bg-[#262f34] text-white border border-[#CFA64A] shadow-md transition-all flex items-center justify-between gap-3 group cursor-pointer"
+                  className="w-full p-3 rounded-[18px] bg-[#141414] hover:bg-[#262626] text-[#ffffff] border border-[#141414] transition-all flex items-center justify-between gap-3 group cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-[#CFA64A]/20 border border-[#CFA64A]/50 flex items-center justify-center text-[#CFA64A] shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="w-9 h-9 rounded-[12px] bg-[#262626] border border-[#3f3f46] flex items-center justify-center text-[#ffffff] shrink-0 group-hover:scale-105 transition-transform">
                       <Eye className="w-4 h-4" />
                     </div>
                     <div className="text-right min-w-0">
-                      <div className="text-xs font-black text-[#CFA64A] flex items-center gap-1.5">
+                      <div className="text-xs font-extrabold text-[#ffffff] flex items-center gap-1.5">
                         <span>معاينة وتخصيص الوثيقة قبل التصدير</span>
                       </div>
-                      <p className="text-[10.5px] text-zinc-300 mt-0.5 truncate">
+                      <p className="text-[10.5px] text-[#a1a1aa] mt-0.5 truncate">
                         اختيار الأعمدة، إضافة مذكرة تنفيذية، التحكم بالتفقيط والختم ومعاينة A4
                       </p>
                     </div>
                   </div>
-                  <span className="px-2.5 py-1 rounded-xl bg-[#CFA64A] text-[#1D2428] text-[10px] font-black shrink-0 inline-flex items-center gap-1">
+                  <span className="px-2.5 py-1 rounded-full bg-[#ffffff] text-[#141414] text-[10px] font-extrabold shrink-0 inline-flex items-center gap-1">
                     <SlidersHorizontal className="w-3 h-3" />
                     <span>تخصيص</span>
                   </span>
@@ -410,7 +386,7 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
 
               {/* Section 1: Executive & Office Documents (6 Formats) */}
               <div className="mb-2">
-                <div className="px-3 py-1 text-[10px] font-black text-zinc-400 uppercase tracking-wider">
+                <div className="px-3 py-1 text-[10px] font-extrabold text-[#707070] uppercase tracking-wider">
                   المستندات التنفيذية والتقارير المعتمدة (6 صيغ)
                 </div>
                 <div className="space-y-1 mt-1">
@@ -421,26 +397,24 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
                         key={fmt.id}
                         type="button"
                         onClick={() => handleExport(fmt.id)}
-                        className="w-full text-right p-2.5 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-800/80 border border-transparent hover:border-zinc-200/60 dark:hover:border-zinc-700/60 transition-all flex items-start gap-3 group cursor-pointer"
+                        className="w-full text-right p-2.5 rounded-[16px] hover:bg-[#f3f3f3] border border-transparent hover:border-[#e0e0e0] transition-all flex items-start gap-3 group cursor-pointer"
                       >
-                        <div
-                          className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${fmt.bgColor} group-hover:scale-105 transition-transform`}
-                        >
+                        <div className="w-8 h-8 rounded-[10px] bg-[#f3f3f3] group-hover:bg-[#141414] text-[#141414] group-hover:text-[#ffffff] border border-[#e0e0e0] group-hover:border-[#141414] flex items-center justify-center shrink-0 transition-colors">
                           <Icon className="w-4 h-4" />
                         </div>
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-1">
-                            <span className="text-xs font-black text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                            <span className="text-xs font-extrabold text-[#141414] transition-colors">
                               {fmt.title}
                             </span>
                             {fmt.badge && (
-                              <span className="text-[9px] px-2 py-0.5 rounded-full font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 shrink-0">
+                              <span className="text-[9.5px] px-2 py-0.5 rounded-full font-bold bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] shrink-0">
                                 {fmt.badge}
                               </span>
                             )}
                           </div>
-                          <p className="text-[10.5px] text-zinc-500 dark:text-zinc-400 mt-0.5 leading-tight line-clamp-1 font-normal">
+                          <p className="text-[10.5px] text-[#707070] mt-0.5 leading-tight line-clamp-1 font-normal">
                             {fmt.desc}
                           </p>
                         </div>
@@ -451,8 +425,8 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
               </div>
 
               {/* Section 2: Data Interchange & Integration (6 Formats) */}
-              <div className="mb-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
-                <div className="px-3 py-1 text-[10px] font-black text-zinc-400 uppercase tracking-wider">
+              <div className="mb-2 pt-2 border-t border-[#e5e5e5]">
+                <div className="px-3 py-1 text-[10px] font-extrabold text-[#707070] uppercase tracking-wider">
                   تكامل البيانات والأنظمة المحاسبية والبنكية (6 صيغ)
                 </div>
                 <div className="space-y-1 mt-1">
@@ -463,26 +437,24 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
                         key={fmt.id}
                         type="button"
                         onClick={() => handleExport(fmt.id)}
-                        className="w-full text-right p-2.5 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-800/80 border border-transparent hover:border-zinc-200/60 dark:hover:border-zinc-700/60 transition-all flex items-start gap-3 group cursor-pointer"
+                        className="w-full text-right p-2.5 rounded-[16px] hover:bg-[#f3f3f3] border border-transparent hover:border-[#e0e0e0] transition-all flex items-start gap-3 group cursor-pointer"
                       >
-                        <div
-                          className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${fmt.bgColor} group-hover:scale-105 transition-transform`}
-                        >
+                        <div className="w-8 h-8 rounded-[10px] bg-[#f3f3f3] group-hover:bg-[#141414] text-[#141414] group-hover:text-[#ffffff] border border-[#e0e0e0] group-hover:border-[#141414] flex items-center justify-center shrink-0 transition-colors">
                           <Icon className="w-4 h-4" />
                         </div>
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-1">
-                            <span className="text-xs font-black text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                            <span className="text-xs font-extrabold text-[#141414] transition-colors">
                               {fmt.title}
                             </span>
                             {fmt.badge && (
-                              <span className="text-[9px] px-2 py-0.5 rounded-full font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 shrink-0">
+                              <span className="text-[9.5px] px-2 py-0.5 rounded-full font-bold bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] shrink-0">
                                 {fmt.badge}
                               </span>
                             )}
                           </div>
-                          <p className="text-[10.5px] text-zinc-500 dark:text-zinc-400 mt-0.5 leading-tight line-clamp-1 font-normal">
+                          <p className="text-[10.5px] text-[#707070] mt-0.5 leading-tight line-clamp-1 font-normal">
                             {fmt.desc}
                           </p>
                         </div>
@@ -493,8 +465,8 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
               </div>
 
               {/* Footer Note */}
-              <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80 px-3 py-1.5 flex items-center justify-between text-[10px] text-zinc-400 font-medium">
-                <span>تفقيط عربي رسمي + ختم التوثيق</span>
+              <div className="mt-2 pt-2 border-t border-[#e5e5e5] px-3 py-1.5 flex items-center justify-between text-[10px] text-[#707070] font-semibold">
+                <span>تفقيط عربي رسمي + رمز الريال (⃁)</span>
                 <span>ZATCA UBL 2.1 & SAMA WPS</span>
               </div>
             </div>

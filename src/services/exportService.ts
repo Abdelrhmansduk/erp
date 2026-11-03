@@ -1002,6 +1002,186 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
       r.mfa_enabled !== false ? 'مفعّل (OTP)' : 'غير مفعّل',
       r.status || 'نشط وموثق'
     ]
+  },
+  'iam-security': {
+    sectionTitle: 'مصفوفة حوكمة الهوية والصلاحيات والأمن السيبراني (IAM & RBAC)',
+    headers: ['المعرف الوظيفي', 'الاسم الكامل', 'البريد المؤسسي', 'المسمى والدور', 'الكيان المصرح', 'القسم الإداري', 'الفرع الجغرافي', 'المصادقة الثنائية MFA', 'حالة الجلسة'],
+    dataMapper: (r: any) => [
+      r.id || r.user_id || '',
+      r.full_name || r.name || '',
+      r.email || '',
+      r.role || '',
+      r.company_id || 'ALL',
+      r.department_name_ar || r.department_id || '',
+      r.branch || '',
+      r.mfa_enabled !== false ? 'مفعّل (OTP)' : 'غير مفعّل',
+      r.status || 'نشط وموثق'
+    ]
+  },
+
+  // 40. دليل وشجرة الحسابات المحاسبية (SMACC Chart of Accounts)
+  chart_of_accounts: {
+    sectionTitle: 'شجرة الحسابات والدليل المحاسبي الموحد (SMACC Chart of Accounts)',
+    headers: ['رمز الحساب الهرمي', 'اسم الحساب بالعربية', 'الاسم اللاتيني (EN)', 'التصنيف المحاسبي', 'طبيعة الحساب', 'المستوى', 'الرصيد الدفتري (⃁)'],
+    dataMapper: (r: any) => [
+      r.code || r.account_code || r.id || '',
+      r.nameAr || r.name_ar || r.name || '',
+      r.nameEn || r.name_en || '',
+      r.category || r.type || 'أصول',
+      r.nature || 'مدين',
+      r.level || 1,
+      Number(r.balance ?? 0)
+    ]
+  },
+  'smacc-gl-tree': {
+    sectionTitle: 'شجرة الحسابات والدليل المحاسبي الموحد (SMACC Chart of Accounts)',
+    headers: ['رمز الحساب الهرمي', 'اسم الحساب بالعربية', 'الاسم اللاتيني (EN)', 'التصنيف المحاسبي', 'طبيعة الحساب', 'المستوى', 'الرصيد الدفتري (⃁)'],
+    dataMapper: (r: any) => [
+      r.code || r.account_code || r.id || '',
+      r.nameAr || r.name_ar || r.name || '',
+      r.nameEn || r.name_en || '',
+      r.category || r.type || 'أصول',
+      r.nature || 'مدين',
+      r.level || 1,
+      Number(r.balance ?? 0)
+    ]
+  },
+
+  // 41. وحدات سماك الـ 6: المتاجر الإلكترونية، الأصول الثابتة، البائعين والمحصلين
+  smacc_ecommerce_orders: {
+    sectionTitle: 'سجل طلبات المتاجر والقنوات الإلكترونية (سلة / زد / شوبيفاي / ميسر)',
+    headers: ['معرف الطلب', 'المنصة / المتجر', 'رقم الطلب بالمتجر', 'اسم العميل', 'رقم الجوال', 'الخدمة / الباقة', 'إجمالي المبلغ (⃁)', 'حالة السداد', 'حالة التنفيذ', 'تاريخ الطلب'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.platform || r.storeName || '',
+      r.externalOrderNo || r.order_no || '',
+      r.customerName || r.client_name || '',
+      r.customerPhone || r.phone || '',
+      r.serviceType || r.package || '',
+      Number(r.totalAmount ?? r.amount ?? 0),
+      r.paymentStatus || 'مدفوع',
+      r.orderStatus || r.status || 'مكتمل',
+      r.createdAt || r.created_at || ''
+    ]
+  },
+  smacc_fixed_assets: {
+    sectionTitle: 'سجل الأصول الثابتة ومجمع الإهلاك وصافي القيمة الدفترية (SMACC Assets)',
+    headers: ['كود الأصل', 'اسم الأصل الثابت', 'الفئة المحاسبية', 'تاريخ الشراء', 'التكلفة التاريخية (⃁)', 'مجمع الإهلاك (⃁)', 'صافي القيمة الدفترية (⃁)', 'الحالة التشغيلية'],
+    dataMapper: (r: any) => [
+      r.id || r.code || '',
+      r.name || '',
+      r.category || '',
+      r.purchaseDate || r.purchase_date || '',
+      Number(r.cost ?? 0),
+      Number(r.accumulatedDep ?? r.accumulated_depreciation ?? 0),
+      Number(r.netBookValue ?? r.net_book_value ?? 0),
+      r.status || 'بالخدمة الفعلية'
+    ]
+  },
+  smacc_sales_reps: {
+    sectionTitle: 'كشف حسابات البائعين والمحصلين ومعدلات التحصيل (SMACC Sales & Collectors)',
+    headers: ['كود المندوب', 'اسم البائع / المحصل', 'الدور الوظيفي', 'رقم الجوال', 'إجمالي المبيعات (⃁)', 'المبالغ المحصلة (⃁)', 'الذمم المتبقية (⃁)', 'تحقيق المستهدف'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.name || '',
+      r.role || '',
+      r.phone || '',
+      Number(r.totalSales ?? 0),
+      Number(r.collected ?? 0),
+      Number(r.pending ?? 0),
+      r.targetAchieved || '100%'
+    ]
+  },
+
+  // 42. كشوف حسابات الوكلاء الخارجيين والموردين
+  external_offices: {
+    sectionTitle: 'سجل وكشوف حسابات المكاتب والوكالات الخارجية المعتمدة',
+    headers: ['الكود / المعرف', 'اسم الوكالة الخارجية', 'الدولة', 'الترخيص / المسؤول', 'عدد السير / العقود', 'عمولة العقد ($)', 'الرصيد بالدولار ($)', 'المقابل بالريال (⃁)', 'الحالة'],
+    dataMapper: (r: any) => [
+      r.code || r.id || '',
+      r.name || r.office_name || r.agency_name || '',
+      r.country || '',
+      r.license_no || r.license_number || r.manager || 'MOT-INTL',
+      r.cv_count ?? r.total_cvs ?? r.used_quota ?? r.active_contracts ?? 0,
+      Number(r.commission_usd ?? 1100),
+      Number(r.balance_usd ?? ((r.commission_usd || 1100) * (r.active_contracts || 1))),
+      Number(r.balance_sar ?? ((r.balance_usd || 1100) * 3.75)),
+      r.status || 'معتمد ومطابق'
+    ]
+  },
+  'external-offices': {
+    sectionTitle: 'سجل وكشوف حسابات المكاتب والوكالات الخارجية المعتمدة',
+    headers: ['الكود / المعرف', 'اسم الوكالة الخارجية', 'الدولة', 'الترخيص / المسؤول', 'عدد السير / العقود', 'عمولة العقد ($)', 'الرصيد بالدولار ($)', 'المقابل بالريال (⃁)', 'الحالة'],
+    dataMapper: (r: any) => [
+      r.code || r.id || '',
+      r.name || r.office_name || r.agency_name || '',
+      r.country || '',
+      r.license_no || r.license_number || r.manager || 'MOT-INTL',
+      r.cv_count ?? r.total_cvs ?? r.used_quota ?? r.active_contracts ?? 0,
+      Number(r.commission_usd ?? 1100),
+      Number(r.balance_usd ?? ((r.commission_usd || 1100) * (r.active_contracts || 1))),
+      Number(r.balance_sar ?? ((r.balance_usd || 1100) * 3.75)),
+      r.status || 'معتمد ومطابق'
+    ]
+  },
+
+  // 43. صندوق واتساب المؤسسي الموحد
+  whatsapp_inbox: {
+    sectionTitle: 'سجل محادثات صندوق واتساب المؤسسي الموحد (WhatsApp Business CRM)',
+    headers: ['معرف المحادثة', 'اسم العميل', 'رقم الجوال', 'آخر رسالة متبادلة', 'وقت التفاعل', 'الرسائل غير المقروءة', 'حالة المحادثة'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.client_name || r.name || '',
+      r.phone || r.sender_number || '',
+      r.last_message || r.message_text || '',
+      r.time || r.created_at || '',
+      Number(r.unread_count ?? 0),
+      r.status || 'نشط'
+    ]
+  },
+
+  // 44. أوامر الشراء والتوريد والضمانات البنكية (شركة كاس للمنافسات)
+  purchase_orders: {
+    sectionTitle: 'سجل أوامر الشراء والتوريد المستودعي للمشاريع (Purchase Orders)',
+    headers: ['رقم أمر الشراء (PO)', 'رقم المنافسة المرجعي', 'الجهة المستفيدة', 'عدد البنود', 'إجمالي قيمة الأمر (⃁)', 'حالة التوريد', 'تاريخ الإصدار'],
+    dataMapper: (r: any) => [
+      r.id || r.po_number || '',
+      r.reference_number || r.tender_id || '',
+      r.entity_name || r.client_name || '',
+      Number(r.items_count ?? 1),
+      Number(r.total_amount ?? r.amount ?? 0),
+      r.status || 'معتمد للتوريد',
+      r.created_at ? String(r.created_at).slice(0, 10) : ''
+    ]
+  },
+  project_guarantees: {
+    sectionTitle: 'سجل الضمانات البنكية الابتدائية والنهائية للمنافسات (Bank Guarantees)',
+    headers: ['رقم خطاب الضمان', 'نوع الضمان البنكي', 'البنك المصدر', 'المنافسة / المشروع', 'الجهة الحكومية', 'قيمة الضمان (⃁)', 'تاريخ السريان / الانتهاء', 'الحالة'],
+    dataMapper: (r: any) => [
+      r.id || r.guarantee_no || '',
+      r.type || r.guarantee_type || 'ضمان ابتدائي (1%)',
+      r.bank_name || 'مصرف الراجحي',
+      r.tender_title || r.title || '',
+      r.entity_name || r.entity || '',
+      Number(r.amount ?? r.guarantee_amount ?? 0),
+      r.expiry_date || r.deadline || '',
+      r.status || 'ساري المفعول'
+    ]
+  },
+
+  // 45. هيكل الفروع والأقسام والهيكل التنظيمي
+  'branch-departments': {
+    sectionTitle: 'سجل هيكل الفروع والأقسام الإدارية للمجموعة',
+    headers: ['كود الفرع / القسم', 'اسم القسم / الفرع', 'المدينة / الموقع', 'المدير المسؤول', 'عدد الكوادر', 'الموازنة التشغيلية (⃁)', 'الحالة'],
+    dataMapper: (r: any) => [
+      r.id || r.code || '',
+      r.name || r.branch_name || r.department_name || '',
+      r.city || r.location || r.branch || '',
+      r.manager || r.head || '',
+      Number(r.employees_count ?? r.staff_count ?? 0),
+      Number(r.budget ?? r.amount ?? 0),
+      r.status || 'نشط'
+    ]
   }
 };
 
@@ -1336,26 +1516,54 @@ export function resolveConfig(
   options?: ExportCustomizationOptions
 ): SectionExportConfig {
   let baseConfig: SectionExportConfig;
+  const trimmedKey = (sectionKey || '').trim();
+  const normalizedSnake = trimmedKey.toLowerCase().replace(/[\s-]+/g, '_');
+  const normalizedKebab = trimmedKey.toLowerCase().replace(/[\s_]+/g, '-');
+  const matchedCfg =
+    SECTION_CONFIGS[trimmedKey] ||
+    SECTION_CONFIGS[normalizedSnake] ||
+    SECTION_CONFIGS[normalizedKebab];
 
-  if (SECTION_CONFIGS[sectionKey]) {
-    const cfg = SECTION_CONFIGS[sectionKey];
+  // Detect if the caller or DOM table harvester already mapped rows to explicit Arabic column keys
+  const firstRow = data && data.length > 0 && typeof data[0] === 'object' && data[0] !== null ? data[0] : null;
+  const rawKeys = firstRow
+    ? Object.keys(firstRow).filter(
+        k => k !== '__typename' && typeof firstRow[k] !== 'function' && typeof firstRow[k] !== 'object'
+      )
+    : [];
+  const isPreMappedArabicRows =
+    rawKeys.length >= 2 && rawKeys.every(k => /[\u0600-\u06FF]/.test(k));
+
+  if (isPreMappedArabicRows) {
     baseConfig = {
-      ...cfg,
-      sectionTitle: options?.customTitle || customTitle || cfg.sectionTitle,
+      sectionTitle:
+        options?.customTitle ||
+        customTitle ||
+        matchedCfg?.sectionTitle ||
+        `التقرير الرسمي — ${translateFieldToArabic(trimmedKey)}`,
+      headers: rawKeys,
+      dataMapper: (row: any) =>
+        rawKeys.map(k => {
+          const val = row?.[k];
+          if (val === null || val === undefined) return '';
+          if (typeof val === 'object') return JSON.stringify(val);
+          return val;
+        }),
     };
-  } else if (data && data.length > 0) {
-    const firstRow = data[0];
-    const keys = Object.keys(firstRow).filter(
-      k => k !== '__typename' && typeof firstRow[k] !== 'function' && typeof firstRow[k] !== 'object'
-    );
-    const effectiveKeys = keys.length > 0 ? keys : Object.keys(firstRow).slice(0, 10);
+  } else if (matchedCfg) {
+    baseConfig = {
+      ...matchedCfg,
+      sectionTitle: options?.customTitle || customTitle || matchedCfg.sectionTitle,
+    };
+  } else if (firstRow) {
+    const effectiveKeys = rawKeys.length > 0 ? rawKeys : Object.keys(firstRow).slice(0, 10);
 
     baseConfig = {
-      sectionTitle: options?.customTitle || customTitle || `التقرير الرسمي — ${translateFieldToArabic(sectionKey)}`,
+      sectionTitle: options?.customTitle || customTitle || `التقرير الرسمي — ${translateFieldToArabic(trimmedKey)}`,
       headers: effectiveKeys.map(translateFieldToArabic),
       dataMapper: (row: any) =>
         effectiveKeys.map(k => {
-          const val = row[k];
+          const val = row?.[k];
           if (val === null || val === undefined) return '';
           if (typeof val === 'object') return JSON.stringify(val);
           return val;
@@ -1363,7 +1571,7 @@ export function resolveConfig(
     };
   } else {
     baseConfig = {
-      sectionTitle: options?.customTitle || customTitle || `التقرير الرسمي — ${translateFieldToArabic(sectionKey)}`,
+      sectionTitle: options?.customTitle || customTitle || `التقرير الرسمي — ${translateFieldToArabic(trimmedKey)}`,
       headers: ['الرقم المرجعي', 'البيان والتفاصيل', 'التاريخ'],
       dataMapper: (r: any) => [r?.id || '', JSON.stringify(r || {}), new Date().toLocaleDateString('ar-SA')],
     };
@@ -1393,82 +1601,82 @@ export function resolveConfig(
   return baseConfig;
 }
 
-// ─── Standalone ZATCA-Style Vector QR SVG Generator ─────────────────
+// ─── Standalone ZATCA-Style Vector QR SVG Generator (Mobbin Light Mode) ──
 function generateZatcaQrSvg(): string {
   return `
-    <svg width="88" height="88" viewBox="0 0 100 100" style="background:#ffffff; padding:4px; border:1.5px solid #CFA64A; border-radius:10px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+    <svg width="86" height="86" viewBox="0 0 100 100" style="background:#ffffff; padding:5px; border:1px solid #e0e0e0; border-radius:12px;">
       <!-- Corner Position Squares -->
-      <rect x="5" y="5" width="26" height="26" rx="4" fill="#1D2428" />
+      <rect x="5" y="5" width="26" height="26" rx="4" fill="#141414" />
       <rect x="9" y="9" width="18" height="18" rx="2" fill="#FFFFFF" />
-      <rect x="13" y="13" width="10" height="10" rx="1" fill="#047857" />
+      <rect x="13" y="13" width="10" height="10" rx="1.5" fill="#141414" />
 
-      <rect x="69" y="5" width="26" height="26" rx="4" fill="#1D2428" />
+      <rect x="69" y="5" width="26" height="26" rx="4" fill="#141414" />
       <rect x="73" y="9" width="18" height="18" rx="2" fill="#FFFFFF" />
-      <rect x="77" y="13" width="10" height="10" rx="1" fill="#047857" />
+      <rect x="77" y="13" width="10" height="10" rx="1.5" fill="#141414" />
 
-      <rect x="5" y="69" width="26" height="26" rx="4" fill="#1D2428" />
+      <rect x="5" y="69" width="26" height="26" rx="4" fill="#141414" />
       <rect x="9" y="73" width="18" height="18" rx="2" fill="#FFFFFF" />
-      <rect x="13" y="77" width="10" height="10" rx="1" fill="#047857" />
+      <rect x="13" y="77" width="10" height="10" rx="1.5" fill="#141414" />
 
       <!-- Data Dots Matrix Pattern -->
-      <rect x="36" y="8" width="5" height="5" fill="#1D2428" />
-      <rect x="46" y="8" width="5" height="5" fill="#1D2428" />
-      <rect x="56" y="8" width="5" height="5" fill="#1D2428" />
+      <rect x="36" y="8" width="5" height="5" fill="#141414" />
+      <rect x="46" y="8" width="5" height="5" fill="#141414" />
+      <rect x="56" y="8" width="5" height="5" fill="#141414" />
 
-      <rect x="36" y="18" width="5" height="5" fill="#047857" />
-      <rect x="46" y="18" width="5" height="5" fill="#1D2428" />
-      <rect x="56" y="18" width="5" height="5" fill="#047857" />
+      <rect x="36" y="18" width="5" height="5" fill="#262626" />
+      <rect x="46" y="18" width="5" height="5" fill="#141414" />
+      <rect x="56" y="18" width="5" height="5" fill="#262626" />
 
-      <rect x="36" y="28" width="5" height="5" fill="#1D2428" />
-      <rect x="46" y="28" width="5" height="5" fill="#CFA64A" />
-      <rect x="56" y="28" width="5" height="5" fill="#1D2428" />
+      <rect x="36" y="28" width="5" height="5" fill="#141414" />
+      <rect x="46" y="28" width="5" height="5" fill="#0066ff" />
+      <rect x="56" y="28" width="5" height="5" fill="#141414" />
 
-      <rect x="8" y="36" width="5" height="5" fill="#1D2428" />
-      <rect x="18" y="36" width="5" height="5" fill="#047857" />
-      <rect x="28" y="36" width="5" height="5" fill="#1D2428" />
-      <rect x="68" y="36" width="5" height="5" fill="#1D2428" />
-      <rect x="78" y="36" width="5" height="5" fill="#047857" />
-      <rect x="88" y="36" width="5" height="5" fill="#1D2428" />
+      <rect x="8" y="36" width="5" height="5" fill="#141414" />
+      <rect x="18" y="36" width="5" height="5" fill="#262626" />
+      <rect x="28" y="36" width="5" height="5" fill="#141414" />
+      <rect x="68" y="36" width="5" height="5" fill="#141414" />
+      <rect x="78" y="36" width="5" height="5" fill="#262626" />
+      <rect x="88" y="36" width="5" height="5" fill="#141414" />
 
-      <rect x="8" y="46" width="5" height="5" fill="#047857" />
-      <rect x="18" y="46" width="5" height="5" fill="#1D2428" />
-      <rect x="28" y="46" width="5" height="5" fill="#047857" />
-      <rect x="68" y="46" width="5" height="5" fill="#047857" />
-      <rect x="78" y="46" width="5" height="5" fill="#1D2428" />
-      <rect x="88" y="46" width="5" height="5" fill="#047857" />
+      <rect x="8" y="46" width="5" height="5" fill="#262626" />
+      <rect x="18" y="46" width="5" height="5" fill="#141414" />
+      <rect x="28" y="46" width="5" height="5" fill="#262626" />
+      <rect x="68" y="46" width="5" height="5" fill="#262626" />
+      <rect x="78" y="46" width="5" height="5" fill="#141414" />
+      <rect x="88" y="46" width="5" height="5" fill="#262626" />
 
-      <rect x="8" y="56" width="5" height="5" fill="#1D2428" />
-      <rect x="18" y="56" width="5" height="5" fill="#1D2428" />
-      <rect x="28" y="56" width="5" height="5" fill="#1D2428" />
-      <rect x="68" y="56" width="5" height="5" fill="#1D2428" />
-      <rect x="78" y="56" width="5" height="5" fill="#1D2428" />
-      <rect x="88" y="56" width="5" height="5" fill="#1D2428" />
+      <rect x="8" y="56" width="5" height="5" fill="#141414" />
+      <rect x="18" y="56" width="5" height="5" fill="#141414" />
+      <rect x="28" y="56" width="5" height="5" fill="#141414" />
+      <rect x="68" y="56" width="5" height="5" fill="#141414" />
+      <rect x="78" y="56" width="5" height="5" fill="#141414" />
+      <rect x="88" y="56" width="5" height="5" fill="#141414" />
 
-      <rect x="36" y="68" width="5" height="5" fill="#1D2428" />
-      <rect x="46" y="68" width="5" height="5" fill="#047857" />
-      <rect x="56" y="68" width="5" height="5" fill="#1D2428" />
-      <rect x="68" y="68" width="5" height="5" fill="#1D2428" />
-      <rect x="78" y="68" width="5" height="5" fill="#1D2428" />
-      <rect x="88" y="68" width="5" height="5" fill="#047857" />
+      <rect x="36" y="68" width="5" height="5" fill="#141414" />
+      <rect x="46" y="68" width="5" height="5" fill="#262626" />
+      <rect x="56" y="68" width="5" height="5" fill="#141414" />
+      <rect x="68" y="68" width="5" height="5" fill="#141414" />
+      <rect x="78" y="68" width="5" height="5" fill="#141414" />
+      <rect x="88" y="68" width="5" height="5" fill="#262626" />
 
-      <rect x="36" y="78" width="5" height="5" fill="#047857" />
-      <rect x="46" y="78" width="5" height="5" fill="#1D2428" />
-      <rect x="56" y="78" width="5" height="5" fill="#047857" />
-      <rect x="68" y="78" width="5" height="5" fill="#047857" />
-      <rect x="78" y="78" width="5" height="5" fill="#1D2428" />
-      <rect x="88" y="78" width="5" height="5" fill="#1D2428" />
+      <rect x="36" y="78" width="5" height="5" fill="#262626" />
+      <rect x="46" y="78" width="5" height="5" fill="#141414" />
+      <rect x="56" y="78" width="5" height="5" fill="#262626" />
+      <rect x="68" y="78" width="5" height="5" fill="#262626" />
+      <rect x="78" y="78" width="5" height="5" fill="#141414" />
+      <rect x="88" y="78" width="5" height="5" fill="#141414" />
 
-      <rect x="36" y="88" width="5" height="5" fill="#1D2428" />
-      <rect x="46" y="88" width="5" height="5" fill="#1D2428" />
-      <rect x="56" y="88" width="5" height="5" fill="#1D2428" />
-      <rect x="68" y="88" width="5" height="5" fill="#1D2428" />
-      <rect x="78" y="88" width="5" height="5" fill="#047857" />
-      <rect x="88" y="88" width="5" height="5" fill="#1D2428" />
+      <rect x="36" y="88" width="5" height="5" fill="#141414" />
+      <rect x="46" y="88" width="5" height="5" fill="#141414" />
+      <rect x="56" y="88" width="5" height="5" fill="#141414" />
+      <rect x="68" y="88" width="5" height="5" fill="#141414" />
+      <rect x="78" y="88" width="5" height="5" fill="#262626" />
+      <rect x="88" y="88" width="5" height="5" fill="#141414" />
 
       <!-- Center Verified Shield Emblem -->
-      <circle cx="50" cy="50" r="13" fill="#FFFFFF" stroke="#CFA64A" stroke-width="2" />
-      <path d="M50 42 L56 45 L56 51 C56 55 50 58 50 58 C50 58 44 55 44 51 L44 45 Z" fill="#047857" />
-      <path d="M48 50 L50 52 L53 47" stroke="#FFFFFF" stroke-width="1.3" fill="none" stroke-linecap="round" />
+      <circle cx="50" cy="50" r="13" fill="#FFFFFF" stroke="#141414" stroke-width="1.75" />
+      <path d="M50 42 L56 45 L56 51 C56 55 50 58 50 58 C50 58 44 55 44 51 L44 45 Z" fill="#141414" />
+      <path d="M48 50 L50 52 L53 47" stroke="#FFFFFF" stroke-width="1.4" fill="none" stroke-linecap="round" />
     </svg>
   `;
 }
@@ -1489,7 +1697,7 @@ export function calculateReportKpis(headers: string[], mappedRows: any[][]): Rep
   let hasFinancials = false;
 
   const columnTotals: (number | null)[] = headers.map((headerName, colIdx) => {
-    const isMoneyOrCount = /مبلغ|قيمة|ضريبة|إجمالي|سعر|راتب|مصروف|رصيد|تكلفة|بدل|صافي|عطاء|ضمان|أثر مالي|مستحقات/i.test(headerName);
+    const isMoneyOrCount = /مبلغ|قيمة|ضريبة|إجمالي|سعر|راتب|مصروف|رصيد|تكلفة|بدل|صافي|عطاء|ضمان|أثر مالي|مستحقات|مدين|دائن|إيراد|ربح|مبيعات|محصل|مشتريات|أصول/i.test(headerName);
     const isIdOrCode = /هاتف|جوال|هوية|سجل|كود|رقم|مرجع|iban|نسبة|%/i.test(headerName);
 
     if (!isMoneyOrCount || isIdOrCode) return null;
@@ -1503,7 +1711,9 @@ export function calculateReportKpis(headers: string[], mappedRows: any[][]): Rep
       if (typeof v === 'number' && !isNaN(v)) {
         numVal = v;
       } else if (typeof v === 'string') {
-        const cleaned = v.replace(/,/g, '').replace(/ر\.س/g, '').replace(/\$/g, '').trim();
+        const cleaned = v
+          .replace(/[,⃁\u20C1\uE900\u200E\u200F\s$]|ر\.س|SAR/gi, '')
+          .trim();
         if (/^-?\d+(\.\d+)?$/.test(cleaned)) {
           const parsed = parseFloat(cleaned);
           if (!isNaN(parsed)) numVal = parsed;
@@ -1520,7 +1730,7 @@ export function calculateReportKpis(headers: string[], mappedRows: any[][]): Rep
       hasFinancials = true;
       if (/ضريبة/i.test(headerName)) {
         totalVat += colSum;
-      } else if (/مبلغ|قيمة|إجمالي|مصروف|صافي|عطاء|راتب|أثر مالي|مستحقات/i.test(headerName)) {
+      } else if (/مبلغ|قيمة|إجمالي|مصروف|صافي|عطاء|راتب|أثر مالي|مستحقات|مدين|رصيد|إيراد|ربح|مبيعات|محصل|تكلفة/i.test(headerName)) {
         totalAmount = Math.max(totalAmount, colSum);
       }
       return Math.round(colSum * 100) / 100;
@@ -1554,6 +1764,7 @@ export function generateExecutiveReportHtml(
   const title = options?.customTitle || customTitle || config.sectionTitle;
   const company = getActiveCompanyInfo();
   const exporter = getAuthenticatedExporterInfo();
+  const monogramCode = company.code === 'ALL' ? 'KS' : company.code;
 
   const now = new Date();
   const dateAr = now.toLocaleDateString('ar-SA', {
@@ -1581,9 +1792,9 @@ export function generateExecutiveReportHtml(
       : config.headers.length > 7;
 
   const headersHtml = `
-    <th onclick="window.__sortTable && window.__sortTable(0)" style="padding: 10px 8px; background: #1D2428; color: #FBFBF5; border: 1px solid #334155; width: 44px; text-align: center; font-weight: 800; font-size: 11px; cursor: pointer;">#</th>
+    <th onclick="window.__sortTable && window.__sortTable(0)" style="padding: 10px 8px; background: #141414; color: #FFFFFF; border: 1px solid #262626; width: 44px; text-align: center; font-weight: 800; font-size: 11px; cursor: pointer;">#</th>
     ${config.headers.map((h, i) => `
-      <th onclick="window.__sortTable && window.__sortTable(${i + 1})" style="padding: 10px 10px; background: #1D2428; color: #FBFBF5; border: 1px solid #334155; font-size: 11.5px; font-weight: 800; text-align: right; white-space: nowrap; cursor: pointer;">
+      <th onclick="window.__sortTable && window.__sortTable(${i + 1})" style="padding: 10px 10px; background: #141414; color: #FFFFFF; border: 1px solid #262626; font-size: 11.5px; font-weight: 800; text-align: right; white-space: nowrap; cursor: pointer;">
         ${h}
       </th>
     `).join('')}
@@ -1591,8 +1802,8 @@ export function generateExecutiveReportHtml(
 
   const rowsHtml = mappedRows.map((row, idx) => {
     return `
-      <tr class="report-data-row" style="background-color: ${idx % 2 === 0 ? '#FFFFFF' : '#FBFBF5'}; page-break-inside: avoid;">
-        <td style="text-align: center; font-weight: bold; color: #64748B; padding: 7px 6px; border: 1px solid #E2E8F0; font-size: 11px; font-family: monospace;">
+      <tr class="report-data-row" style="background-color: ${idx % 2 === 0 ? '#FFFFFF' : '#F8FAFC'}; page-break-inside: avoid;">
+        <td style="text-align: center; font-weight: 700; color: #707070; padding: 7px 6px; border: 1px solid #E4E4E7; font-size: 11px; font-family: monospace;">
           ${idx + 1}
         </td>
         ${row.map((val, cIdx) => {
@@ -1603,7 +1814,7 @@ export function generateExecutiveReportHtml(
           const displayVal = typeof val === 'number' ? val.toLocaleString('en-US') : String(val ?? '-');
 
           return `
-            <td style="padding: 7px 10px; border: 1px solid #E2E8F0; font-size: 11px; color: #1D2428; ${align}">
+            <td style="padding: 7px 10px; border: 1px solid #E4E4E7; font-size: 11px; color: #141414; ${align}">
               ${displayVal || '-'}
             </td>
           `;
@@ -1618,23 +1829,23 @@ export function generateExecutiveReportHtml(
   if (hasTotals) {
     tfootHtml = `
       <tfoot>
-        <tr style="background-color: #F4EFE6; font-weight: 900; border-top: 2.5px solid #1D2428; page-break-inside: avoid;">
-          <td colspan="1" style="text-align: center; padding: 10px 8px; border: 1px solid #CBD5E1; font-size: 11px; color: #1D2428;">
+        <tr style="background-color: #F3F3F3; font-weight: 900; border-top: 2.5px solid #141414; page-break-inside: avoid;">
+          <td colspan="1" style="text-align: center; padding: 10px 8px; border: 1px solid #E0E0E0; font-size: 11px; color: #141414;">
             المجموع
           </td>
           ${config.headers.map((_, colIdx) => {
             const tot = kpis.columnTotals[colIdx];
             if (colIdx === 0 && tot === null) {
-              return `<td style="padding: 10px; border: 1px solid #CBD5E1; font-size: 11px; color: #1D2428; font-weight: 900;">الإجمالي العام المعتمد</td>`;
+              return `<td style="padding: 10px; border: 1px solid #E0E0E0; font-size: 11px; color: #141414; font-weight: 900;">الإجمالي العام المعتمد</td>`;
             }
             if (tot !== null) {
               return `
-                <td style="padding: 10px; border: 1px solid #CBD5E1; font-size: 11.5px; color: #047857; font-weight: 900; font-family: monospace; text-align: left;">
-                  ${tot.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <td style="padding: 10px; border: 1px solid #E0E0E0; font-size: 11.5px; color: #141414; font-weight: 900; font-family: 'saudi_riyal', monospace; text-align: left;">
+                  \u200E\u20C1 ${tot.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </td>
               `;
             }
-            return `<td style="border: 1px solid #CBD5E1; padding: 6px;"></td>`;
+            return `<td style="border: 1px solid #E0E0E0; padding: 6px;"></td>`;
           }).join('')}
         </tr>
       </tfoot>
@@ -1665,7 +1876,7 @@ export function generateExecutiveReportHtml(
           font-family: 'saudi_riyal', 'Tajawal', 'Cairo', 'Inter', system-ui, -apple-system, sans-serif;
           margin: 0;
           padding: 24px;
-          color: #1D2428;
+          color: #141414;
           background: #FFFFFF;
           position: relative;
           -webkit-print-color-adjust: exact;
@@ -1686,7 +1897,7 @@ export function generateExecutiveReportHtml(
             display: none !important;
           }
           .header-banner {
-            border-bottom: 2.5px solid #1D2428 !important;
+            border-bottom: 2.5px solid #141414 !important;
           }
           table {
             page-break-inside: auto;
@@ -1711,34 +1922,34 @@ export function generateExecutiveReportHtml(
           transform: translate(-50%, -50%) rotate(-24deg);
           font-size: 56px;
           font-weight: 900;
-          color: rgba(207, 166, 74, 0.055);
+          color: rgba(20, 20, 20, 0.03);
           pointer-events: none;
           white-space: nowrap;
           z-index: 0;
           user-select: none;
         }
 
-        /* Toolbar */
+        /* Toolbar — Mobbin Light Mode */
         .toolbar {
           display: flex;
           align-items: center;
           justify-content: space-between;
           flex-wrap: wrap;
           gap: 12px;
-          background: linear-gradient(135deg, #1D2428 0%, #263137 100%);
-          color: #FFFFFF;
-          padding: 12px 22px;
+          background: #FFFFFF;
+          color: #141414;
+          padding: 12px 20px;
           border-radius: 16px;
-          border: 1px solid rgba(207, 166, 74, 0.45);
-          margin-bottom: 22px;
-          box-shadow: 0 10px 25px rgba(29, 36, 40, 0.16);
+          border: 1px solid #E0E0E0;
+          margin-bottom: 20px;
+          box-shadow: 0 4px 16px rgba(20, 20, 20, 0.05);
         }
 
         .btn {
           border: none;
           cursor: pointer;
           font-family: inherit;
-          font-weight: 800;
+          font-weight: 700;
           font-size: 12px;
           padding: 8px 16px;
           border-radius: 9999px;
@@ -1748,35 +1959,38 @@ export function generateExecutiveReportHtml(
           transition: all 0.2s;
         }
         .btn-primary {
-          background: #047857;
+          background: #141414;
           color: #FFFFFF;
         }
         .btn-primary:hover {
-          background: #065f46;
-        }
-        .btn-gold {
-          background: #CFA64A;
-          color: #1D2428;
+          background: #262626;
         }
         .btn-secondary {
-          background: rgba(255,255,255,0.12);
-          color: #FFFFFF;
-          border: 1px solid rgba(255,255,255,0.2);
+          background: #F3F3F3;
+          color: #141414;
+          border: 1px solid #E0E0E0;
+        }
+        .btn-secondary:hover {
+          background: #E5E5E5;
         }
 
         .search-input {
-          background: rgba(255,255,255,0.1);
-          border: 1px solid rgba(207, 166, 74, 0.45);
-          color: #FFFFFF;
-          padding: 6px 14px;
+          background: #F3F3F3;
+          border: 1px solid #E0E0E0;
+          color: #141414;
+          padding: 7px 14px;
           border-radius: 9999px;
           font-family: inherit;
           font-size: 12px;
-          min-width: 210px;
+          min-width: 220px;
           outline: none;
         }
+        .search-input:focus {
+          border-color: #141414;
+          background: #FFFFFF;
+        }
         .search-input::placeholder {
-          color: rgba(255,255,255,0.6);
+          color: #707070;
         }
 
         /* Official Header */
@@ -1784,7 +1998,7 @@ export function generateExecutiveReportHtml(
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
-          border-bottom: 3px solid #1D2428;
+          border-bottom: 2.5px solid #141414;
           padding-bottom: 16px;
           margin-bottom: 16px;
           gap: 16px;
@@ -1798,41 +2012,41 @@ export function generateExecutiveReportHtml(
           gap: 14px;
         }
         .logo-emblem {
-          width: 62px;
-          height: 62px;
+          width: 60px;
+          height: 60px;
           border-radius: 16px;
-          border: 2px solid #CFA64A;
-          background: linear-gradient(135deg, #1D2428 0%, #2D373D 100%);
+          border: 1px solid #141414;
+          background: #141414;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          color: #CFA64A;
+          color: #FFFFFF;
           font-weight: 900;
-          box-shadow: 0 4px 12px rgba(29,36,40,0.15);
+          font-family: 'Inter', monospace;
         }
 
         .company-titles h1 {
           margin: 0;
           font-size: 19px;
-          font-weight: 900;
-          color: #1D2428;
+          font-weight: 800;
+          color: #141414;
           line-height: 1.25;
         }
         .company-titles .holding-badge {
           display: inline-block;
           font-size: 10px;
-          font-weight: 800;
-          color: #8C681E;
-          background: #FBF8F1;
-          border: 1px solid rgba(207, 166, 74, 0.5);
-          padding: 1px 8px;
-          border-radius: 6px;
-          margin-bottom: 3px;
+          font-weight: 700;
+          color: #141414;
+          background: #F3F3F3;
+          border: 1px solid #E0E0E0;
+          padding: 2px 9px;
+          border-radius: 9999px;
+          margin-bottom: 4px;
         }
         .company-titles .en-name {
           font-size: 10.5px;
-          color: #64748B;
+          color: #707070;
           font-weight: 700;
           margin-top: 2px;
           letter-spacing: 0.4px;
@@ -1841,12 +2055,12 @@ export function generateExecutiveReportHtml(
           display: flex;
           gap: 10px;
           font-size: 10px;
-          color: #475569;
+          color: #707070;
           margin-top: 5px;
           flex-wrap: wrap;
         }
         .company-titles .legal-info strong {
-          color: #1D2428;
+          color: #141414;
         }
 
         .center-meta {
@@ -1856,11 +2070,11 @@ export function generateExecutiveReportHtml(
         }
         .official-tag {
           display: inline-block;
-          background: #1D2428;
-          border: 1px solid #CFA64A;
-          color: #CFA64A;
+          background: #141414;
+          border: 1px solid #141414;
+          color: #FFFFFF;
           font-size: 10px;
-          font-weight: 800;
+          font-weight: 700;
           padding: 3px 14px;
           border-radius: 9999px;
           margin-bottom: 6px;
@@ -1868,13 +2082,13 @@ export function generateExecutiveReportHtml(
         }
         .report-title-text {
           font-size: 18px;
-          font-weight: 900;
-          color: #1D2428;
+          font-weight: 800;
+          color: #141414;
           margin: 0;
         }
         .report-subtitle {
           font-size: 10.5px;
-          color: #475569;
+          color: #707070;
           margin-top: 4px;
         }
         .exporter-pill {
@@ -1883,12 +2097,12 @@ export function generateExecutiveReportHtml(
           gap: 6px;
           margin-top: 6px;
           padding: 3px 12px;
-          border-radius: 8px;
-          background: #F0FDF4;
-          border: 1px solid #A7F3D0;
-          color: #047857;
+          border-radius: 9999px;
+          background: #F3F3F3;
+          border: 1px solid #E0E0E0;
+          color: #141414;
           font-size: 10px;
-          font-weight: 800;
+          font-weight: 700;
         }
 
         .qr-section {
@@ -1900,18 +2114,18 @@ export function generateExecutiveReportHtml(
         .serial-pill {
           font-size: 9.5px;
           font-family: monospace;
-          color: #1D2428;
+          color: #141414;
           font-weight: 800;
           margin-top: 4px;
         }
         .verified-stamp {
           font-size: 9px;
-          font-weight: 800;
-          color: #047857;
+          font-weight: 700;
+          color: #0066FF;
           margin-top: 2px;
         }
 
-        /* KPI Cards Grid */
+        /* KPI Cards Grid — Mobbin Light Mode */
         .kpi-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
@@ -1921,31 +2135,29 @@ export function generateExecutiveReportHtml(
           z-index: 1;
         }
         .kpi-box {
-          background: #FBFBF5;
-          border: 1px solid #E2E8F0;
-          border-right: 3.5px solid #1D2428;
-          border-radius: 12px;
+          background: #F8FAFC;
+          border: 1px solid #E4E4E7;
+          border-right: 3.5px solid #141414;
+          border-radius: 14px;
           padding: 10px 14px;
           text-align: right;
         }
-        .kpi-box.gold { border-right-color: #CFA64A; }
-        .kpi-box.emerald { border-right-color: #047857; }
+        .kpi-box.accent-blue { border-right-color: #0066FF; }
         .kpi-box .label {
           font-size: 10.5px;
-          color: #64748B;
+          color: #707070;
           font-weight: 700;
         }
         .kpi-box .val {
           font-size: 16px;
-          font-weight: 900;
-          color: #1D2428;
+          font-weight: 800;
+          color: #141414;
           margin-top: 2px;
+          font-family: 'saudi_riyal', 'Inter', 'Tajawal', sans-serif;
         }
-        .kpi-box .val.emerald { color: #047857; }
-        .kpi-box .val.gold { color: #8C681E; }
         .kpi-box .note {
           font-size: 9px;
-          color: #64748B;
+          color: #707070;
           margin-top: 2px;
         }
 
@@ -1954,28 +2166,28 @@ export function generateExecutiveReportHtml(
           display: flex;
           align-items: center;
           justify-content: space-between;
-          background: linear-gradient(90deg, #FBF8F1 0%, #F4EFE6 100%);
-          border: 1px solid rgba(207, 166, 74, 0.55);
-          border-right: 4px solid #CFA64A;
-          border-radius: 10px;
-          padding: 8px 14px;
+          background: #F3F3F3;
+          border: 1px solid #E0E0E0;
+          border-right: 4px solid #141414;
+          border-radius: 12px;
+          padding: 9px 14px;
           margin-bottom: 14px;
           font-size: 11px;
-          font-weight: 800;
-          color: #1D2428;
+          font-weight: 700;
+          color: #141414;
           position: relative;
           z-index: 1;
         }
 
         .executive-note-box {
-          background: #F0FDF4;
-          border: 1px solid #A7F3D0;
-          border-right: 4px solid #047857;
-          border-radius: 10px;
+          background: #F8FAFC;
+          border: 1px solid #E4E4E7;
+          border-right: 4px solid #0066FF;
+          border-radius: 12px;
           padding: 9px 14px;
           margin-bottom: 14px;
           font-size: 11px;
-          color: #064E3B;
+          color: #141414;
           font-weight: 700;
         }
 
@@ -2000,74 +2212,73 @@ export function generateExecutiveReportHtml(
           z-index: 1;
         }
         .sig-box {
-          border: 1px solid #E2E8F0;
-          background: #FBFBF5;
-          border-radius: 12px;
+          border: 1px solid #E4E4E7;
+          background: #F8FAFC;
+          border-radius: 14px;
           padding: 12px;
           text-align: center;
         }
         .sig-box .sig-title {
           font-size: 11.5px;
-          font-weight: 900;
-          color: #1D2428;
+          font-weight: 800;
+          color: #141414;
         }
         .sig-box .sig-role {
           font-size: 10px;
-          color: #8C681E;
+          color: #707070;
           font-weight: 700;
           margin-top: 2px;
         }
         .sig-line {
           height: 1px;
-          background: #E2E8F0;
+          background: #E4E4E7;
           margin: 8px 0;
         }
         .sig-meta {
           font-size: 9.5px;
-          color: #334155;
+          color: #262626;
           font-weight: 700;
           margin-top: 2px;
         }
         .sig-badge {
           display: inline-block;
           font-size: 9px;
-          font-weight: 800;
-          color: #047857;
-          background: #ECFDF5;
+          font-weight: 700;
+          color: #141414;
+          background: #FFFFFF;
           padding: 2px 10px;
           border-radius: 9999px;
-          border: 1px solid #A7F3D0;
+          border: 1px solid #E0E0E0;
           margin-top: 6px;
         }
 
         .seal-stamp {
           width: 72px;
           height: 72px;
-          border: 2px double #047857;
+          border: 2px double #141414;
           border-radius: 50%;
           margin: 6px auto;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          background: #F0FDF4;
-          color: #047857;
+          background: #FFFFFF;
+          color: #141414;
           font-size: 8.5px;
-          font-weight: 900;
+          font-weight: 800;
           line-height: 1.25;
-          box-shadow: inset 0 0 0 2px rgba(207, 166, 74, 0.35);
         }
 
         /* Official Footer */
         .official-footer {
           margin-top: 22px;
           padding-top: 12px;
-          border-top: 1.5px solid #CBD5E1;
+          border-top: 1px solid #E0E0E0;
           display: flex;
           justify-content: space-between;
           align-items: center;
           font-size: 9.5px;
-          color: #475569;
+          color: #707070;
           page-break-inside: avoid;
           position: relative;
           z-index: 1;
@@ -2078,12 +2289,12 @@ export function generateExecutiveReportHtml(
       <div class="security-watermark">${company.nameAr} • CERTIFIED ERP</div>
 
       <!-- Interactive Screen Toolbar (Hidden on Print & PDF) -->
-      <div class="toolbar no-print" style="${!isPrintPreview ? '' : ''}">
+      <div class="toolbar no-print">
         <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 36px; height: 36px; border-radius: 10px; background: #CFA64A; color: #1D2428; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px;">خ</div>
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: #141414; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; font-family: monospace;">${monogramCode}</div>
           <div>
-            <div style="font-weight: 900; font-size: 13px; color: #FBFBF5;">وثيقة التقرير المؤسسي المعتمد • ${company.nameAr}</div>
-            <div style="font-size: 10.5px; color: #CFA64A;">إعداد: ${exporter.name} (${exporter.branch}) • الرقم المرجعي: ${serialNumber}</div>
+            <div style="font-weight: 800; font-size: 13px; color: #141414;">وثيقة التقرير المؤسسي المعتمد • ${company.nameAr}</div>
+            <div style="font-size: 10.5px; color: #707070;">إعداد: ${exporter.name} (${exporter.branch}) • الرقم المرجعي: ${serialNumber}</div>
           </div>
         </div>
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -2103,8 +2314,8 @@ export function generateExecutiveReportHtml(
       <div class="header-banner">
         <div class="company-brand">
           <div class="logo-emblem">
-            <span style="font-size: 21px; line-height: 1;">خ</span>
-            <span style="font-size: 8px; color: #FBFBF5; letter-spacing: 0.5px; margin-top: 2px;">${company.code}</span>
+            <span style="font-size: 17px; line-height: 1; letter-spacing: 0.5px;">${monogramCode}</span>
+            <span style="font-size: 7.5px; color: #ADADAD; letter-spacing: 0.5px; margin-top: 3px;">ERP 4.0</span>
           </div>
           <div class="company-titles">
             <span class="holding-badge">${GROUP_COMPANY_INFO.nameAr} • الإدارة العامة</span>
@@ -2149,32 +2360,32 @@ export function generateExecutiveReportHtml(
         </div>
 
         ${kpis.hasFinancials && kpis.totalAmount > 0 ? `
-        <div class="kpi-box emerald">
+        <div class="kpi-box accent-blue">
           <div class="label">إجمالي القيمة المالية المعتمدة</div>
-          <div class="val emerald">${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style="font-size: 11px;">⃁</span></div>
+          <div class="val">\u200E\u20C1 ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
           <div class="note">إجمالي الحركة المالية للكشف</div>
         </div>
-        <div class="kpi-box gold">
+        <div class="kpi-box">
           <div class="label">ضريبة القيمة المضافة (15%)</div>
-          <div class="val gold">${kpis.totalVat.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style="font-size: 11px;">⃁</span></div>
+          <div class="val">\u200E\u20C1 ${kpis.totalVat.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
           <div class="note">مفوترة وفق معايير ZATCA Phase 2</div>
         </div>
         ` : `
-        <div class="kpi-box emerald">
+        <div class="kpi-box accent-blue">
           <div class="label">القسم / الوحدة الإدارية</div>
-          <div class="val emerald" style="font-size: 13.5px;">${exporter.department}</div>
+          <div class="val" style="font-size: 13.5px;">${exporter.department}</div>
           <div class="note">${company.nameAr}</div>
         </div>
-        <div class="kpi-box gold">
+        <div class="kpi-box">
           <div class="label">حالة التدقيق والمطابقة</div>
-          <div class="val gold" style="font-size: 14px;">سارية ومعتمدة 100%</div>
+          <div class="val" style="font-size: 14px;">سارية ومعتمدة 100%</div>
           <div class="note">تم التحقق الآلي من سلامة السجلات</div>
         </div>
         `}
 
         <div class="kpi-box">
           <div class="label">الفرع ومستوى الحوكمة</div>
-          <div class="val" style="font-size: 13px; color: #1D2428;">${exporter.branch}</div>
+          <div class="val" style="font-size: 13px; color: #141414;">${exporter.branch}</div>
           <div class="note">خاضع لنظام حماية البيانات (PDPL)</div>
         </div>
       </div>
@@ -2183,10 +2394,10 @@ export function generateExecutiveReportHtml(
       <!-- 2.b Arabic Tafqeet Financial Bar -->
       <div class="tafqeet-ribbon">
         <div>
-          <span style="color: #8C681E; margin-left: 6px;">التفقيط المالي المعتمد بالحروف:</span>
+          <span style="color: #707070; margin-left: 6px;">التفقيط المالي المعتمد بالحروف:</span>
           <span>${kpis.tafqeetAr}</span>
         </div>
-        <span style="font-family: 'saudi_riyal', monospace; font-size: 11px; color: #047857;">\u200E\u20C1 ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+        <span style="font-family: 'saudi_riyal', monospace; font-size: 12px; font-weight: 800; color: #141414;">\u200E\u20C1 ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
       </div>
       ` : ''}
 
@@ -2233,7 +2444,7 @@ export function generateExecutiveReportHtml(
           <div class="sig-role">رئيس مجلس الإدارة / المفوض العام</div>
           <div class="seal-stamp">
             <div>${company.nameAr.slice(0, 18)}</div>
-            <div style="font-size: 7.5px; color: #8C681E; margin: 1px 0;">معتمد رسمياً • س.ت ${company.crNumber}</div>
+            <div style="font-size: 7.5px; color: #707070; margin: 1px 0;">معتمد رسمياً • س.ت ${company.crNumber}</div>
             <div style="font-size: 7.5px;">${isoDate}</div>
           </div>
           <div class="sig-badge">✓ اعتماد الشيخ خالد بن عبدالعزيز السليم</div>
@@ -2246,9 +2457,9 @@ export function generateExecutiveReportHtml(
         <div>
           <span>وثيقة إلكترونية رسمية معتمدة بموجب نظام التعاملات الإلكترونية السعودي (مرسوم ملكي م/18) ونظام الإثبات.</span>
           <br>
-          <span style="font-family: monospace; font-size: 9px; color: #64748B;">${verificationHash} • الرقم المرجعي: ${serialNumber} • المستخرج: ${exporter.email}</span>
+          <span style="font-family: monospace; font-size: 9px; color: #707070;">${verificationHash} • الرقم المرجعي: ${serialNumber} • المستخرج: ${exporter.email}</span>
         </div>
-        <div style="text-align: left; font-weight: 800; color: #1D2428;">
+        <div style="text-align: left; font-weight: 800; color: #141414;">
           ${GROUP_COMPANY_INFO.nameAr} • ${company.nameAr}
         </div>
       </div>
@@ -2272,8 +2483,8 @@ export function generateExecutiveReportHtml(
           rows.sort(function(a, b) {
             var cellA = a.children[colIdx] ? a.children[colIdx].innerText.trim() : '';
             var cellB = b.children[colIdx] ? b.children[colIdx].innerText.trim() : '';
-            var numA = parseFloat(cellA.replace(/,/g, ''));
-            var numB = parseFloat(cellB.replace(/,/g, ''));
+            var numA = parseFloat(cellA.replace(/[,⃁\u20C1\u200E\s]/g, ''));
+            var numB = parseFloat(cellB.replace(/[,⃁\u20C1\u200E\s]/g, ''));
             if (!isNaN(numA) && !isNaN(numB)) return (numA - numB) * dir;
             return cellA.localeCompare(cellB, 'ar') * dir;
           });
@@ -2286,12 +2497,216 @@ export function generateExecutiveReportHtml(
 }
 
 // ─── Export to Multi-Sheet Enterprise Excel (.xlsx) ──────────────────
-export function exportToExcel(
+function toUtf8Bytes(xml: string): Uint8Array {
+  if (typeof TextEncoder !== 'undefined') {
+    return new TextEncoder().encode(xml);
+  }
+  const arr = new Uint8Array(xml.length);
+  for (let i = 0; i < xml.length; i++) arr[i] = xml.charCodeAt(i) & 0xff;
+  return arr;
+}
+
+function fromUtf8Bytes(bytes: Uint8Array | number[]): string {
+  const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  if (typeof TextDecoder !== 'undefined') {
+    return new TextDecoder('utf-8').decode(u8);
+  }
+  let out = '';
+  for (let i = 0; i < u8.length; i++) out += String.fromCharCode(u8[i]);
+  return out;
+}
+
+/**
+ * OpenXML SpreadsheetML Styling Engine (Mobbin Light Mode + Official SAMA SRS ⃁)
+ * Injects rich corporate typography, Ink Black (#141414) headers, Soft Gray (#F3F3F3) banners & totals,
+ * Zebra striping (#F8FAFC / #FFFFFF), crisp 1px borders (#E4E4E7), RTL frozen panes, and SAMA ⃁ number formats
+ * directly into the .xlsx ZIP container via XLSX.CFB.
+ */
+function applyEnterpriseOpenXmlExcelStyles(
+  wb: XLSX.WorkBook,
+  dataRowCount: number,
+  hasTotals: boolean
+): Uint8Array {
+  const rawBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const cfbLib = (XLSX as any).CFB;
+  if (!cfbLib) {
+    return new Uint8Array(rawBuffer);
+  }
+
+  try {
+    const cfb = cfbLib.read(new Uint8Array(rawBuffer), { type: 'array' });
+
+    // 1. Replace xl/styles.xml with Institutional Mobbin Light Mode + SAMA ⃁ StyleSheet
+    const stylesEntry = cfbLib.find(cfb, 'Root Entry/xl/styles.xml');
+    if (stylesEntry) {
+      const enterpriseStylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <numFmts count="2">
+    <numFmt numFmtId="164" formatCode="#,##0.00\ &quot;\u20C1&quot;;(#,##0.00\ &quot;\u20C1&quot;);&quot;0.00 \u20C1&quot;"/>
+    <numFmt numFmtId="165" formatCode="#,##0"/>
+  </numFmts>
+  <fonts count="6">
+    <font><sz val="11"/><color rgb="FF141414"/><name val="Segoe UI"/><family val="2"/></font>
+    <font><b/><sz val="12"/><color rgb="FFFFFFFF"/><name val="Segoe UI"/><family val="2"/></font>
+    <font><b/><sz val="13"/><color rgb="FF141414"/><name val="Segoe UI"/><family val="2"/></font>
+    <font><b/><sz val="10"/><color rgb="FF52525B"/><name val="Segoe UI"/><family val="2"/></font>
+    <font><b/><sz val="11"/><color rgb="FF141414"/><name val="Segoe UI"/><family val="2"/></font>
+    <font><b/><sz val="10.5"/><color rgb="FF0066FF"/><name val="Segoe UI"/><family val="2"/></font>
+  </fonts>
+  <fills count="6">
+    <fill><patternFill patternType="none"/></fill>
+    <fill><patternFill patternType="gray125"/></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FF141414"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFF3F3F3"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFF8FAFC"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFFFFFFF"/><bgColor indexed="64"/></patternFill></fill>
+  </fills>
+  <borders count="4">
+    <border><left/><right/><top/><bottom/><diagonal/></border>
+    <border>
+      <left style="thin"><color rgb="FFE4E4E7"/></left>
+      <right style="thin"><color rgb="FFE4E4E7"/></right>
+      <top style="thin"><color rgb="FFE4E4E7"/></top>
+      <bottom style="thin"><color rgb="FFE4E4E7"/></bottom>
+      <diagonal/>
+    </border>
+    <border>
+      <left style="thin"><color rgb="FF3F3F46"/></left>
+      <right style="thin"><color rgb="FF3F3F46"/></right>
+      <top style="medium"><color rgb="FF141414"/></top>
+      <bottom style="medium"><color rgb="FF141414"/></bottom>
+      <diagonal/>
+    </border>
+    <border>
+      <left style="thin"><color rgb="FFE4E4E7"/></left>
+      <right style="thin"><color rgb="FFE4E4E7"/></right>
+      <top style="medium"><color rgb="FF141414"/></top>
+      <bottom style="double"><color rgb="FF141414"/></bottom>
+      <diagonal/>
+    </border>
+  </borders>
+  <cellStyleXfs count="1">
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="0"/>
+  </cellStyleXfs>
+  <cellXfs count="13">
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+    <xf numFmtId="0" fontId="1" fillId="2" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf>
+    <xf numFmtId="0" fontId="2" fillId="3" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf>
+    <xf numFmtId="0" fontId="3" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf>
+    <xf numFmtId="0" fontId="1" fillId="2" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1" readingOrder="2"/></xf>
+    <xf numFmtId="0" fontId="0" fillId="5" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center" wrapText="1" readingOrder="2"/></xf>
+    <xf numFmtId="0" fontId="0" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center" wrapText="1" readingOrder="2"/></xf>
+    <xf numFmtId="164" fontId="4" fillId="5" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="164" fontId="4" fillId="4" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="4" fillId="3" borderId="3" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf>
+    <xf numFmtId="164" fontId="4" fillId="3" borderId="3" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="165" fontId="3" fillId="3" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="5" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center" wrapText="1" readingOrder="2"/></xf>
+  </cellXfs>
+  <cellStyles count="1">
+    <cellStyle name="Normal" xfId="0" builtinId="0"/>
+  </cellStyles>
+  <dxfs count="0"/>
+  <tableStyles count="0" defaultTableStyle="TableStyleMedium2" defaultPivotStyle="PivotStyleLight16"/>
+</styleSheet>`;
+      stylesEntry.content = toUtf8Bytes(enterpriseStylesXml);
+      stylesEntry.size = stylesEntry.content.length;
+    }
+
+    // 2. Style Sheet 1 (Detailed Data Worksheet + Frozen Header Pane)
+    const sheet1Entry = cfbLib.find(cfb, 'Root Entry/xl/worksheets/sheet1.xml');
+    if (sheet1Entry) {
+      let s1Xml = fromUtf8Bytes(sheet1Entry.content);
+      // Add RTL + Frozen Header Pane at Row 6
+      s1Xml = s1Xml.replace(
+        /<sheetViews>[\s\S]*?<\/sheetViews>/,
+        '<sheetViews><sheetView rightToLeft="1" showGridLines="1" tabSelected="1" workbookViewId="0"><pane ySplit="6" topLeftCell="A7" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
+      );
+
+      const firstTotalsRow = 6 + dataRowCount + 2; // blank row after data, then totalRow
+      s1Xml = s1Xml.replace(/<row r="(\d+)"([^>]*)>([\s\S]*?)<\/row>/g, (_m, rStr, rowAttrs, inner) => {
+        const rNum = parseInt(rStr, 10);
+        const styledInner = inner.replace(/<c r="([A-Z]+)(\d+)"([^>]*)>/g, (_cm: string, colLet: string, cRow: string, cAttrs: string) => {
+          const cleanAttrs = cAttrs.replace(/\s+s="\d+"/g, '');
+          const isNumericCell = !/\bt="(?:str|s|inlineStr|b)"/.test(cleanAttrs);
+          let styleIdx = 5;
+
+          if (rNum === 1) styleIdx = 1;
+          else if (rNum === 2) styleIdx = 2;
+          else if (rNum === 3 || rNum === 4) styleIdx = 3;
+          else if (rNum === 6) styleIdx = 4;
+          else if (rNum >= 7 && rNum < 7 + dataRowCount) {
+            const isEven = (rNum - 7) % 2 === 0;
+            if (colLet === 'A') {
+              styleIdx = 11;
+            } else if (isNumericCell) {
+              styleIdx = isEven ? 7 : 8;
+            } else {
+              styleIdx = isEven ? 5 : 6;
+            }
+          } else if (hasTotals && rNum === firstTotalsRow) {
+            styleIdx = isNumericCell ? 10 : 9;
+          } else if (rNum > 6 + dataRowCount) {
+            styleIdx = colLet === 'A' ? 9 : 12;
+          }
+
+          return `<c r="${colLet}${cRow}" s="${styleIdx}"${cleanAttrs}>`;
+        });
+        return `<row r="${rStr}"${rowAttrs}>${styledInner}</row>`;
+      });
+
+      sheet1Entry.content = toUtf8Bytes(s1Xml);
+      sheet1Entry.size = sheet1Entry.content.length;
+    }
+
+    // 3. Style Sheet 2 (Executive KPI & Governance Approval Sheet)
+    const sheet2Entry = cfbLib.find(cfb, 'Root Entry/xl/worksheets/sheet2.xml');
+    if (sheet2Entry) {
+      let s2Xml = fromUtf8Bytes(sheet2Entry.content);
+      s2Xml = s2Xml.replace(
+        /<sheetViews>[\s\S]*?<\/sheetViews>/,
+        '<sheetViews><sheetView rightToLeft="1" showGridLines="1" workbookViewId="0"/></sheetViews>'
+      );
+
+      const sectionHeaderRows = new Set([4, 12, 19, 25]);
+      s2Xml = s2Xml.replace(/<row r="(\d+)"([^>]*)>([\s\S]*?)<\/row>/g, (_m, rStr, rowAttrs, inner) => {
+        const rNum = parseInt(rStr, 10);
+        const styledInner = inner.replace(/<c r="([A-Z]+)(\d+)"([^>]*)>/g, (_cm: string, colLet: string, cRow: string, cAttrs: string) => {
+          const cleanAttrs = cAttrs.replace(/\s+s="\d+"/g, '');
+          const isNumericCell = !/\bt="(?:str|s|inlineStr|b)"/.test(cleanAttrs);
+          let styleIdx = 5;
+
+          if (rNum === 1) styleIdx = 1;
+          else if (rNum === 2) styleIdx = 2;
+          else if (sectionHeaderRows.has(rNum)) styleIdx = 4;
+          else if (rNum === 23) styleIdx = colLet === 'A' ? 9 : 12;
+          else if (isNumericCell) styleIdx = 7;
+          else if (colLet === 'A') styleIdx = 3;
+          else styleIdx = 5;
+
+          return `<c r="${colLet}${cRow}" s="${styleIdx}"${cleanAttrs}>`;
+        });
+        return `<row r="${rStr}"${rowAttrs}>${styledInner}</row>`;
+      });
+
+      sheet2Entry.content = toUtf8Bytes(s2Xml);
+      sheet2Entry.size = sheet2Entry.content.length;
+    }
+
+    const outZip = cfbLib.write(cfb, { fileType: 'zip', type: 'array' });
+    return new Uint8Array(outZip);
+  } catch (err) {
+    console.warn('Excel OpenXML style injection fallback:', err);
+    return new Uint8Array(rawBuffer);
+  }
+}
+
+export function buildStyledExcelBuffer(
   sectionKey: string,
   data: any[],
   customTitle?: string,
   options?: ExportCustomizationOptions
-): void {
+): { buffer: Uint8Array; fileName: string } {
   const config = resolveConfig(sectionKey, data, customTitle, options);
   const title = options?.customTitle || customTitle || config.sectionTitle;
   const company = getActiveCompanyInfo();
@@ -2307,21 +2722,26 @@ export function exportToExcel(
   const isoDate = now.toISOString().slice(0, 10);
   const serialNo = `${company.code}-XLS-${now.getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
 
-  // 1. Data Mapping with Numeric type recognition
+  // 1. Data Mapping with Smart Numeric & SAMA ⃁ Recognition
   const mappedRows: any[][] = [];
   data.forEach(row => {
     const rawVals = config.dataMapper(row);
     const convertedVals = rawVals.map((val, colIdx) => {
       if (val === null || val === undefined || val === '') return '';
       if (typeof val === 'number') return val;
-      
+
       const str = String(val).trim();
       const headerName = config.headers[colIdx] || '';
-      const isIdOrPhoneOrCode = /هاتف|جوال|هوية|سجل|كود|رقم|مرجع|iban/i.test(headerName);
-      
-      if (!isIdOrPhoneOrCode && /^-?\d+(\.\d+)?$/.test(str)) {
-        const num = parseFloat(str);
-        if (!isNaN(num)) return num;
+      const isIdOrPhoneOrCode = /هاتف|جوال|هوية|سجل|كود|رقم|مرجع|iban|تاريخ|وقت/i.test(headerName);
+
+      if (!isIdOrPhoneOrCode) {
+        const cleanedNumStr = str
+          .replace(/[,⃁\u20C1\uE900\u200E\u200F\s$]|ر\.س|ريال|SAR/gi, '')
+          .trim();
+        if (/^-?\d+(\.\d+)?$/.test(cleanedNumStr)) {
+          const num = parseFloat(cleanedNumStr);
+          if (!isNaN(num)) return num;
+        }
       }
       return str;
     });
@@ -2346,82 +2766,123 @@ export function exportToExcel(
 
   const numberedHeaders = ['#', ...config.headers];
   const numberedRows = mappedRows.map((r, idx) => [idx + 1, ...r]);
+  const colCount = numberedHeaders.length;
+
+  const padMergedBannerRow = (firstCellText: string): string[] => {
+    const arr = new Array(colCount).fill('');
+    arr[0] = firstCellText;
+    return arr;
+  };
 
   // 3. Assemble Sheet 1: Detailed Data Worksheet (AOA)
   const wsData: any[][] = [
-    [`${GROUP_COMPANY_INFO.nameAr} • ${company.nameAr} (${company.nameEn})`],
-    [`${title}`],
-    [`سجل تجاري: ${company.crNumber} | الرقم الضريبي: ${company.taxNumber} | الرقم المرجعي: ${serialNo} | تاريخ الاستخراج: ${dateAr} (${timeStr})`],
-    [`إعداد الموظف المختص: ${exporter.name} (${exporter.role}) | القسم: ${exporter.department} | الفرع: ${exporter.branch} | إجمالي السجلات: ${data.length}`],
-    [], // Blank separator
-    numberedHeaders,
+    padMergedBannerRow(`${GROUP_COMPANY_INFO.nameAr} • ${company.nameAr} (${company.nameEn})`),
+    padMergedBannerRow(`${title}`),
+    padMergedBannerRow(`سجل تجاري: ${company.crNumber} | الرقم الضريبي: ${company.taxNumber} | الرقم المرجعي: ${serialNo} | تاريخ الاستخراج: ${dateAr} (${timeStr})`),
+    padMergedBannerRow(`إعداد الموظف المختص: ${exporter.name} (${exporter.role}) | القسم: ${exporter.department} | الفرع: ${exporter.branch} | إجمالي السجلات: ${data.length}`),
+    [], // Blank separator (Row 5)
+    numberedHeaders, // Table Headers (Row 6)
     ...numberedRows,
   ];
 
   if (hasTotals) {
     wsData.push([]);
     wsData.push(totalRow);
-    wsData.push(['التفقيط المالي بالحروف:', kpis.tafqeetAr]);
+    const tafqeetRow = new Array(colCount).fill('');
+    tafqeetRow[0] = 'التفقيط المالي بالحروف:';
+    tafqeetRow[1] = kpis.tafqeetAr;
+    wsData.push(tafqeetRow);
   }
   if (options?.executiveNote) {
-    wsData.push(['ملاحظة الإدارة التنفيذية:', options.executiveNote]);
+    const noteRow = new Array(colCount).fill('');
+    noteRow[0] = 'ملاحظة الإدارة التنفيذية:';
+    noteRow[1] = options.executiveNote;
+    wsData.push(noteRow);
   }
 
   const ws = XLSX.utils.aoa_to_sheet(wsData);
 
   // Merge Corporate Header Banner Rows across columns
-  const colCount = numberedHeaders.length;
   ws['!merges'] = [
     { s: { r: 0, c: 0 }, e: { r: 0, c: colCount - 1 } },
     { s: { r: 1, c: 0 }, e: { r: 1, c: colCount - 1 } },
     { s: { r: 2, c: 0 }, e: { r: 2, c: colCount - 1 } },
     { s: { r: 3, c: 0 }, e: { r: 3, c: colCount - 1 } },
   ];
+  if (hasTotals && colCount > 2) {
+    const tafqeetRowIdx = 6 + numberedRows.length + 2;
+    ws['!merges'].push({ s: { r: tafqeetRowIdx, c: 1 }, e: { r: tafqeetRowIdx, c: colCount - 1 } });
+  }
+
+  // Row Heights for Executive Readability
+  const wsRowsMeta: Array<{ hpt: number }> = [
+    { hpt: 32 }, // Row 1: Holding Banner
+    { hpt: 28 }, // Row 2: Report Title
+    { hpt: 22 }, // Row 3: CR / VAT / Serial
+    { hpt: 22 }, // Row 4: Exporter Metadata
+    { hpt: 10 }, // Row 5: Spacer
+    { hpt: 28 }, // Row 6: Table Column Headers
+  ];
+  for (let i = 0; i < numberedRows.length; i++) {
+    wsRowsMeta.push({ hpt: 23 });
+  }
+  if (hasTotals) {
+    wsRowsMeta.push({ hpt: 10 }, { hpt: 26 }, { hpt: 25 });
+  }
+  if (options?.executiveNote) {
+    wsRowsMeta.push({ hpt: 25 });
+  }
+  ws['!rows'] = wsRowsMeta;
 
   // Enable AutoFilter on the table header row (row index 5 -> Excel row 6)
   const lastColLetter = XLSX.utils.encode_col(colCount - 1);
   const lastDataRowIdx = 6 + numberedRows.length;
   ws['!autofilter'] = { ref: `A6:${lastColLetter}${Math.max(6, lastDataRowIdx)}` };
 
-  // Dynamic Column Widths with generous padding
+  // Dynamic Column Widths with generous padding for Arabic typography & SAMA ⃁
   const colWidths = numberedHeaders.map((h, i) => {
     if (i === 0) return { wch: 8 };
     let maxLen = h.length;
     for (const r of numberedRows) {
       const v = r[i];
-      const strLen = v !== undefined && v !== null ? String(v).length : 0;
+      const strLen =
+        typeof v === 'number'
+          ? v.toLocaleString('en-US', { minimumFractionDigits: 2 }).length + 4
+          : v !== undefined && v !== null
+          ? String(v).length
+          : 0;
       if (strLen > maxLen) maxLen = strLen;
     }
-    return { wch: Math.min(Math.max(maxLen + 6, 16), 55) };
+    return { wch: Math.min(Math.max(maxLen + 7, 18), 56) };
   });
   ws['!cols'] = colWidths;
   ws['!sheetViews'] = [{ rightToLeft: true }];
 
   // 4. Assemble Sheet 2: Executive KPI & Approval Summary Sheet (ملخص المؤشرات والاعتماد)
   const summaryRows: any[][] = [
-    [`${GROUP_COMPANY_INFO.nameAr} — بطاقة الملخص التنفيذي والاعتماد الرسمي`],
-    [`${title}`],
+    [`${GROUP_COMPANY_INFO.nameAr} — بطاقة الملخص التنفيذي والاعتماد الرسمي`, '', ''],
+    [`${title}`, '', ''],
     [],
-    ['بيانات الجهة المصدرة والحوكمة المؤسسية', 'القيمة / البيان الرسمي'],
-    ['المجموعة القابضة', GROUP_COMPANY_INFO.nameAr],
-    ['الكيان التشغيلي النشط', `${company.nameAr} (${company.nameEn})`],
-    ['رقم السجل التجاري الموحد', company.crNumber],
-    ['الرقم الضريبي (ZATCA VAT)', company.taxNumber],
-    ['الرقم المرجعي للوثيقة', serialNo],
-    ['تاريخ ووقت الاستخراج', `${dateAr} - ${timeStr}`],
+    ['بيانات الجهة المصدرة والحوكمة المؤسسية', 'القيمة / البيان الرسمي', 'ملاحظات التوثيق'],
+    ['المجموعة القابضة', GROUP_COMPANY_INFO.nameAr, 'المقر الرئيسي - الرياض'],
+    ['الكيان التشغيلي النشط', `${company.nameAr} (${company.nameEn})`, company.code],
+    ['رقم السجل التجاري الموحد', company.crNumber, 'ساري المفعول'],
+    ['الرقم الضريبي (ZATCA VAT)', company.taxNumber, 'المرحلة الثانية (ربط وتكامل)'],
+    ['الرقم المرجعي للوثيقة', serialNo, 'مرجع أرشفة مركزي'],
+    ['تاريخ ووقت الاستخراج', `${dateAr} - ${timeStr}`, isoDate],
     [],
-    ['بيانات الموظف المختص والفرع الجغرافي', 'التفاصيل'],
-    ['اسم الموظف المستخرج', exporter.name],
-    ['المسمى الوظيفي', exporter.role],
-    ['الإدارة / القسم', exporter.department],
-    ['الفرع الجغرافي', exporter.branch],
-    ['البريد المؤسسي الموثق', exporter.email],
+    ['بيانات الموظف المختص والفرع الجغرافي', 'التفاصيل', 'النطاق'],
+    ['اسم الموظف المستخرج', exporter.name, 'موظف مفوض'],
+    ['المسمى الوظيفي', exporter.role, 'صلاحية معتمدة'],
+    ['الإدارة / القسم', exporter.department, sectionKey],
+    ['الفرع الجغرافي', exporter.branch, company.address],
+    ['البريد المؤسسي الموثق', exporter.email, 'حساب موثق'],
     [],
-    ['ملخص المؤشرات المالية والتشغيلية (KPI Summary)', 'القيمة المعتمدة'],
-    ['إجمالي عدد السجلات المدققة', `${kpis.recordCount} سجل`],
-    ['إجمالي القيمة المالية (⃁)', kpis.totalAmount],
-    ['ضريبة القيمة المضافة التقديرية 15% (⃁)', kpis.totalVat],
-    ['التفقيط المالي المعتمد بالحروف', kpis.tafqeetAr],
+    ['ملخص المؤشرات المالية والتشغيلية (KPI Summary)', 'القيمة المعتمدة', 'العملة / البيان'],
+    ['إجمالي عدد السجلات المدققة', `${kpis.recordCount} سجل`, 'سجل تشغيلي ومحاسبي'],
+    ['إجمالي القيمة المالية (⃁)', kpis.totalAmount, 'ريال سعودي (⃁)'],
+    ['ضريبة القيمة المضافة التقديرية 15% (⃁)', kpis.totalVat, 'ضريبة القيمة المضافة 15%'],
+    ['التفقيط المالي المعتمد بالحروف', kpis.tafqeetAr, 'تفقيط رسمي معتمد'],
     [],
     ['مصفوفة الاعتمادات والتواقيع الرسمية', 'المسؤول المعتمد', 'الحالة والتاريخ'],
     ['1. إعداد واستخراج الكشف', `${exporter.name} (${exporter.role})`, `موثق إلكترونياً — ${isoDate}`],
@@ -2430,7 +2891,15 @@ export function exportToExcel(
   ];
 
   const summaryWs = XLSX.utils.aoa_to_sheet(summaryRows);
-  summaryWs['!cols'] = [{ wch: 38 }, { wch: 52 }, { wch: 32 }];
+  summaryWs['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 2 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 2 } },
+    { s: { r: 22, c: 1 }, e: { r: 22, c: 2 } },
+  ];
+  summaryWs['!cols'] = [{ wch: 38 }, { wch: 52 }, { wch: 34 }];
+  summaryWs['!rows'] = summaryRows.map((_, idx) =>
+    idx === 0 ? { hpt: 32 } : idx === 1 ? { hpt: 28 } : { hpt: 23 }
+  );
   summaryWs['!sheetViews'] = [{ rightToLeft: true }];
 
   const wb = XLSX.utils.book_new();
@@ -2441,12 +2910,27 @@ export function exportToExcel(
   XLSX.utils.book_append_sheet(wb, ws, sanitizedSheetName);
   XLSX.utils.book_append_sheet(wb, summaryWs, 'ملخص_المؤشرات_والاعتماد');
 
+  const styledBytes = applyEnterpriseOpenXmlExcelStyles(wb, numberedRows.length, hasTotals);
   const cleanFileName = `${title.replace(/[\s/\\:]+/g, '_')}_${isoDate}.xlsx`;
+  return { buffer: styledBytes, fileName: cleanFileName };
+}
+
+export function exportToExcel(
+  sectionKey: string,
+  data: any[],
+  customTitle?: string,
+  options?: ExportCustomizationOptions
+): void {
+  const { buffer, fileName } = buildStyledExcelBuffer(sectionKey, data, customTitle, options);
   if (isRunningInTest()) {
-    XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
     return;
   }
-  XLSX.writeFile(wb, cleanFileName);
+  if (typeof Blob !== 'undefined') {
+    const blob = new Blob([buffer as any], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    triggerBlobDownload(blob, fileName);
+  }
 }
 
 // ─── Export to CSV (UTF-8 BOM + Institutional Summary Footer) ────────
@@ -2836,27 +3320,27 @@ export function exportToWord(
   const kpis = calculateReportKpis(config.headers, mappedRows);
 
   const tableRowsHtml = mappedRows.map((row, idx) => `
-    <tr style="background-color: ${idx % 2 === 0 ? '#FFFFFF' : '#FBFBF5'};">
-      <td style="text-align: center; font-weight: bold; border: 1px solid #CBD5E1; padding: 6px; font-size: 10pt;">${idx + 1}</td>
-      ${row.map(val => `<td style="border: 1px solid #CBD5E1; padding: 6px 8px; font-size: 10pt; text-align: right;">${String(val ?? '-')}</td>`).join('')}
+    <tr style="background-color: ${idx % 2 === 0 ? '#FFFFFF' : '#F8FAFC'};">
+      <td style="text-align: center; font-weight: bold; border: 1px solid #E4E4E7; padding: 6px; font-size: 10pt; color: #707070;">${idx + 1}</td>
+      ${row.map(val => `<td style="border: 1px solid #E4E4E7; padding: 6px 8px; font-size: 10pt; text-align: right; color: #141414;">${String(val ?? '-')}</td>`).join('')}
     </tr>
   `).join('');
 
   const tableHeadersHtml = `
-    <th style="background-color: #1D2428; color: #FFFFFF; font-weight: bold; border: 1px solid #334155; padding: 8px; width: 35px; text-align: center;">#</th>
-    ${config.headers.map(h => `<th style="background-color: #1D2428; color: #FFFFFF; font-weight: bold; border: 1px solid #334155; padding: 8px; text-align: right; font-size: 10.5pt;">${h}</th>`).join('')}
+    <th style="background-color: #141414; color: #FFFFFF; font-weight: bold; border: 1px solid #262626; padding: 8px; width: 35px; text-align: center;">#</th>
+    ${config.headers.map(h => `<th style="background-color: #141414; color: #FFFFFF; font-weight: bold; border: 1px solid #262626; padding: 8px; text-align: right; font-size: 10.5pt;">${h}</th>`).join('')}
   `;
 
   let totalRowHtml = '';
   if (kpis.columnTotals.some(t => t !== null)) {
     totalRowHtml = `
-      <tr style="background-color: #F4EFE6; font-weight: bold;">
-        <td style="border: 1px solid #94A3B8; padding: 8px; text-align: center;">المجموع</td>
+      <tr style="background-color: #F3F3F3; font-weight: bold;">
+        <td style="border: 1px solid #E0E0E0; padding: 8px; text-align: center; color: #141414;">المجموع</td>
         ${config.headers.map((_, colIdx) => {
           const tot = kpis.columnTotals[colIdx];
-          if (colIdx === 0 && tot === null) return `<td style="border: 1px solid #94A3B8; padding: 8px;">الإجمالي العام المعتمد</td>`;
-          if (tot !== null) return `<td style="border: 1px solid #94A3B8; padding: 8px; text-align: left; font-family: monospace; color: #047857;">${tot.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>`;
-          return `<td style="border: 1px solid #94A3B8; padding: 8px;"></td>`;
+          if (colIdx === 0 && tot === null) return `<td style="border: 1px solid #E0E0E0; padding: 8px; color: #141414;">الإجمالي العام المعتمد</td>`;
+          if (tot !== null) return `<td style="border: 1px solid #E0E0E0; padding: 8px; text-align: left; font-family: monospace; color: #141414;">\u200E\u20C1 ${tot.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>`;
+          return `<td style="border: 1px solid #E0E0E0; padding: 8px;"></td>`;
         }).join('')}
       </tr>
     `;
@@ -2885,7 +3369,7 @@ export function exportToWord(
           font-family: 'Tajawal', 'Calibri', 'Arial', sans-serif;
           direction: rtl;
           text-align: right;
-          color: #1D2428;
+          color: #141414;
           margin: 0;
           padding: 10px;
         }
@@ -2898,12 +3382,12 @@ export function exportToWord(
         .header-title {
           font-size: 18pt;
           font-weight: bold;
-          color: #1D2428;
+          color: #141414;
           margin-bottom: 2px;
         }
         .sub-header {
           font-size: 10pt;
-          color: #475569;
+          color: #707070;
           margin-bottom: 8px;
         }
         .signatures-table {
@@ -2912,8 +3396,8 @@ export function exportToWord(
           border: none;
         }
         .signatures-table td {
-          border: 1px solid #E2E8F0;
-          background-color: #FBFBF5;
+          border: 1px solid #E4E4E7;
+          background-color: #F8FAFC;
           text-align: center;
           padding: 12px;
           vertical-align: top;
@@ -2922,21 +3406,21 @@ export function exportToWord(
       </style>
     </head>
     <body lang=AR-SA>
-      <div style="border-bottom: 2.5pt solid #1D2428; padding-bottom: 12px; margin-bottom: 14px;">
-        <div style="float: left; font-size: 9pt; color: #475569; text-align: left;">
+      <div style="border-bottom: 2.5pt solid #141414; padding-bottom: 12px; margin-bottom: 14px;">
+        <div style="float: left; font-size: 9pt; color: #707070; text-align: left;">
           <div><strong>${GROUP_COMPANY_INFO.nameAr}</strong></div>
           <div>رقم السجل التجاري: ${company.crNumber}</div>
           <div>الرقم الضريبي: ${company.taxNumber}</div>
           <div>الفرع: ${exporter.branch}</div>
         </div>
         <div class="header-title">${company.nameAr}</div>
-        <div style="font-size: 10.5pt; color: #8C681E; font-weight: bold;">${company.nameEn}</div>
+        <div style="font-size: 10.5pt; color: #707070; font-weight: bold;">${company.nameEn}</div>
         <div class="sub-header">
           <strong>${title}</strong> • تاريخ الإصدار: ${dateAr} • إجمالي السجلات: ${data.length} • إعداد: ${exporter.name} (${exporter.role})
         </div>
         ${kpis.hasFinancials && kpis.totalAmount > 0 ? `
-        <div style="background-color: #FBF8F1; border: 1pt solid #CFA64A; padding: 6px 10px; font-size: 10pt; font-weight: bold; color: #1D2428; margin-top: 6px;">
-          الإجمالي المالي المعتمد: ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} ⃁ — (${kpis.tafqeetAr})
+        <div style="background-color: #F3F3F3; border: 1pt solid #E0E0E0; border-right: 3pt solid #141414; padding: 6px 10px; font-size: 10pt; font-weight: bold; color: #141414; margin-top: 6px;">
+          الإجمالي المالي المعتمد: \u200E\u20C1 ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} — (${kpis.tafqeetAr})
         </div>
         ` : ''}
       </div>
@@ -2954,24 +3438,24 @@ export function exportToWord(
       <table class="signatures-table">
         <tr>
           <td>
-            <div style="font-weight: bold; font-size: 11pt;">إعداد الموظف المختص</div>
-            <div style="color: #8C681E; font-size: 9.5pt; margin-top: 3px;">${exporter.name} — ${exporter.role}</div>
-            <div style="margin-top: 20px; border-top: 1pt dashed #CBD5E1; padding-top: 6px; font-size: 9pt;">الفرع: ${exporter.branch} • التاريخ: ${isoDate}</div>
+            <div style="font-weight: bold; font-size: 11pt; color: #141414;">إعداد الموظف المختص</div>
+            <div style="color: #707070; font-size: 9.5pt; margin-top: 3px;">${exporter.name} — ${exporter.role}</div>
+            <div style="margin-top: 20px; border-top: 1pt dashed #E0E0E0; padding-top: 6px; font-size: 9pt; color: #707070;">الفرع: ${exporter.branch} • التاريخ: ${isoDate}</div>
           </td>
           <td>
-            <div style="font-weight: bold; font-size: 11pt;">تدقيق الإدارة المالية</div>
-            <div style="color: #8C681E; font-size: 9.5pt; margin-top: 3px;">أ. محمد بن عبدالرحمن السليم (SMACC CFO)</div>
-            <div style="margin-top: 20px; border-top: 1pt dashed #CBD5E1; padding-top: 6px; font-size: 9pt;">مطابق للدفاتر • التاريخ: ${isoDate}</div>
+            <div style="font-weight: bold; font-size: 11pt; color: #141414;">تدقيق الإدارة المالية</div>
+            <div style="color: #707070; font-size: 9.5pt; margin-top: 3px;">أ. محمد بن عبدالرحمن السليم (SMACC CFO)</div>
+            <div style="margin-top: 20px; border-top: 1pt dashed #E0E0E0; padding-top: 6px; font-size: 9pt; color: #707070;">مطابق للدفاتر • التاريخ: ${isoDate}</div>
           </td>
           <td>
-            <div style="font-weight: bold; font-size: 11pt;">اعتماد الإدارة والختم الرسمي</div>
-            <div style="color: #8C681E; font-size: 9.5pt; margin-top: 3px;">الشيخ خالد بن عبدالعزيز السليم</div>
-            <div style="margin-top: 20px; border-top: 1pt dashed #CBD5E1; padding-top: 6px; font-size: 9pt;">معتمد رسمياً • التاريخ: ${isoDate}</div>
+            <div style="font-weight: bold; font-size: 11pt; color: #141414;">اعتماد الإدارة والختم الرسمي</div>
+            <div style="color: #707070; font-size: 9.5pt; margin-top: 3px;">الشيخ خالد بن عبدالعزيز السليم</div>
+            <div style="margin-top: 20px; border-top: 1pt dashed #E0E0E0; padding-top: 6px; font-size: 9pt; color: #707070;">معتمد رسمياً • التاريخ: ${isoDate}</div>
           </td>
         </tr>
       </table>
 
-      <div style="margin-top: 22px; border-top: 1pt solid #E2E8F0; padding-top: 8px; font-size: 8.5pt; color: #64748B; text-align: center;">
+      <div style="margin-top: 22px; border-top: 1pt solid #E0E0E0; padding-top: 8px; font-size: 8.5pt; color: #707070; text-align: center;">
         وثيقة رسمية مستخرجة من منظومة ${GROUP_COMPANY_INFO.nameAr} (${company.nameAr}) • معتمدة بموجب نظام التعاملات الإلكترونية السعودي
       </div>
     </body>
@@ -3159,8 +3643,8 @@ export function exportToMarkdown(
   md += `### ملخص المؤشرات التنفيذية (Executive KPIs)\n`;
   md += `- **إجمالي السجلات المدققة**: ${kpis.recordCount} سجل\n`;
   if (kpis.hasFinancials && kpis.totalAmount > 0) {
-    md += `- **القيمة المالية الإجمالية**: ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} ⃁\n`;
-    md += `- **ضريبة القيمة المضافة (15%)**: ${kpis.totalVat.toLocaleString('en-US', { minimumFractionDigits: 2 })} ⃁\n`;
+    md += `- **القيمة المالية الإجمالية**: \u200E\u20C1 ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`;
+    md += `- **ضريبة القيمة المضافة (15%)**: \u200E\u20C1 ${kpis.totalVat.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`;
     md += `- **التفقيط المالي بالحروف**: ${kpis.tafqeetAr}\n`;
   }
   if (options?.executiveNote) {
@@ -3234,7 +3718,7 @@ function recordExportAuditTrail(
       user_name: `${exporter.name} (${exporter.branch})`,
       role: exporter.role,
       action_type: 'تصدير بيانات',
-      module: 'المالية والمحاسبة',
+      module: exporter.department || 'الإدارة التنفيذية',
       details: `[${company.nameAr}] تصدير وثيقة (${title}) بصيغة ${format.toUpperCase()} لعدد (${recordCount}) سجل مع الختم الرقمي`,
       severity: recordCount >= 50 ? 'تنبيه' : 'عادي',
       ip_address: '10.20.1.45',

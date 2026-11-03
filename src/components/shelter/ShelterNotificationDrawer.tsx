@@ -324,18 +324,6 @@ export const ShelterNotificationDrawer: React.FC<ShelterNotificationDrawerProps>
 
                   {/* Worker & Client Dossier Mini-Card */}
                   <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-zinc-50 border border-zinc-200/70 mb-3">
-                    {alert.photoUrl ? (
-                      <img
-                        src={alert.photoUrl}
-                        alt={alert.workerName}
-                        className="w-12 h-12 rounded-xl object-cover border border-white shadow-sm"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
-                        <User className="w-6 h-6" />
-                      </div>
-                    )}
-
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <h4 className="text-sm font-bold text-zinc-900 truncate">

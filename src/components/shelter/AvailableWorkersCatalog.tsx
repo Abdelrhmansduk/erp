@@ -267,24 +267,8 @@ export const AvailableWorkersCatalog: React.FC<AvailableWorkersCatalogProps> = (
 
                 {/* Card Body */}
                 <div className="p-5 flex-1 flex flex-col space-y-3.5">
-                  {/* Worker Header with Avatar and Basic Info */}
-                  <div className="flex items-start gap-3.5">
-                    {/* Worker Avatar / Photo */}
-                    <div className="relative shrink-0">
-                      {worker.photoUrl ? (
-                        <img 
-                          src={worker.photoUrl} 
-                          alt={worker.fullNameAr} 
-                          className="w-14 h-14 rounded-xl object-cover border border-white/10 shadow-sm group-hover:scale-105 transition-transform"
-                        />
-                      ) : (
-                        <div className="w-14 h-14 rounded-xl bg-black/60 border border-white/10 text-amber-300 flex items-center justify-center font-bold text-base shadow-sm group-hover:scale-105 transition-transform">
-                          {(worker.fullNameAr || 'ع').slice(0, 2)}
-                        </div>
-                      )}
-                      <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#14181c]" title="متاحة فورا" />
-                    </div>
-
+                  {/* Worker Header with Basic Info (No Human Avatar) */}
+                  <div className="flex items-start gap-3">
                     {/* Name & Origin */}
                     <div className="flex-1 min-w-0">
                       <h3 className="text-sm font-bold text-white truncate font-display m-0">

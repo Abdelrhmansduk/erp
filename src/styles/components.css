@@ -1423,8 +1423,8 @@ button[data-dyn-state="completed"] {
 .content-body div[style*="207, 166, 74"] .text-amber-200,
 .content-body div[style*="#091725"] .text-amber-200\/80,
 .content-body div[class*="from-[#1D2428]"] strong,
-.content-body div[class*="from-[#1D2428]"] .text-[#CFA64A],
-.content-body div[class*="from-[#1D2428]"] .text-[#E6D3A7] {
+.content-body div[class*="from-[#1D2428]"] [class*="text-[#CFA64A]"],
+.content-body div[class*="from-[#1D2428]"] [class*="text-[#E6D3A7]"] {
   color: #141414 !important;
 }
 

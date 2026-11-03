@@ -144,7 +144,7 @@ export const GroupDispatchPage: React.FC = () => {
   };
 
   const handlePrintMemo = (memo: GroupDispatchMemo) => {
-    exportData('finance', [{
+    exportData('group_dispatch', [{
       'رقم المعاملة': memo.dispatch_no,
       'الجهة المرسلة': memo.source_entity,
       'الجهة المستلمة': memo.target_entity,

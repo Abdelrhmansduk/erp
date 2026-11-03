@@ -1578,7 +1578,7 @@ export const FinancePage: React.FC = () => {
 
             <div className="flex items-center gap-2">
               <button
-                onClick={() => exportData('trial-balance', chartOfAccountsService.getAccountsByCompany(activeCompany.id as any), 'excel', `دليل_الحسابات_${activeCompany.name}`)}
+                onClick={() => exportData('chart_of_accounts', chartOfAccountsService.getAccountsByCompany(activeCompany.id as any), 'excel', `دليل_الحسابات_${activeCompany.name}`)}
                 className="button-outline-on-light"
                 style={{ padding: '6px 14px', fontSize: '11.5px', minHeight: '34px' }}
               >

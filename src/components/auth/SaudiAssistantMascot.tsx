@@ -285,34 +285,15 @@ export const SaudiAssistantMascot: React.FC<SaudiAssistantMascotProps> = ({
         </div>
       </div>
 
-      {/* 3D Mascot Character with Smooth Float and Ground Shadow */}
-      <div 
-        className="relative z-20 flex flex-col items-center cursor-pointer group"
+      {/* Clean Institutional AI Trigger Button (No Human Mascot Image) */}
+      <button
+        type="button"
+        className="relative z-20 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold cursor-pointer transition-all"
         onClick={handleOpenChat}
         title={persona === 'noura' ? 'انقر للتحدث مع نُورة' : 'انقر للتحدث مع فارس'}
       >
-        <div className="mascot-float relative transition-transform group-hover:scale-105">
-          <img
-            src={persona === 'noura' ? '/noura.png' : '/mascot.png'}
-            alt={persona === 'noura' ? 'نُورة - المرشدة الرقمية الذكية لمجموعة خالد السليم' : 'فارس - المرشد الرقمي الذكي لمجموعة خالد السليم'}
-            className="w-auto h-[360px] sm:h-[400px] lg:h-[430px] object-contain drop-shadow-xl"
-            loading="eager"
-            decoding="async"
-            style={{
-              filter: 'drop-shadow(0 14px 24px rgba(0,0,0,0.18))',
-              transform: isRtl ? 'none' : 'scaleX(-1)'
-            }}
-          />
-        </div>
-
-        {/* Soft Ambient Ground Shadow */}
-        <div 
-          className="mascot-shadow w-44 h-4 rounded-full -mt-2.5"
-          style={{
-            background: 'radial-gradient(ellipse at center, rgba(15, 23, 42, 0.35) 0%, rgba(15, 23, 42, 0.08) 55%, transparent 75%)'
-          }}
-        />
-      </div>
+        <span>{persona === 'noura' ? 'نُورة • المستشارة الرقمية' : 'فارس • المستشار الرقمي'}</span>
+      </button>
     </div>
   );
 };

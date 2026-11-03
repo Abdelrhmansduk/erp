@@ -454,48 +454,49 @@ export const DepartmentModuleBanner: React.FC<DepartmentModuleBannerProps> = ({
   const tabExportTarget = React.useMemo(() => {
     const t = (activeTab || '').toLowerCase();
     if (t.includes('zatca')) return { sectionKey: 'zatca_invoices', storeTable: 'zatca_invoices' };
-    if (t.includes('journal')) return { sectionKey: 'journals', storeTable: 'journal_entries' };
+    if (t.includes('trial-balance')) return { sectionKey: 'trial_balance', storeTable: '' };
+    if (t.includes('income-statement') || t.includes('balance-sheet'))
+      return { sectionKey: 'income_statement', storeTable: '' };
+    if (t.includes('smacc-gl-tree') || t.includes('chart-of-account'))
+      return { sectionKey: 'chart_of_accounts', storeTable: '' };
+    if (t.includes('journal') || t.includes('smacc-voucher') || t.includes('smacc-journal'))
+      return { sectionKey: 'journals', storeTable: 'journal_entries' };
     if (t.includes('financial-request'))
       return { sectionKey: 'financial_requests', storeTable: 'financial_requests' };
     if (t.includes('cost-center')) return { sectionKey: 'cost_centers', storeTable: 'cost_centers' };
-    if (t.includes('custod') || t.includes('inventory'))
-      return { sectionKey: 'custodies', storeTable: 'custodies' };
-    if (
-      t.includes('invoice') ||
-      t.includes('finance') ||
-      t.includes('smacc') ||
-      t.includes('trial-balance') ||
-      t.includes('income-statement')
-    )
+    if (t.includes('inventory')) return { sectionKey: 'inventory', storeTable: '' };
+    if (t.includes('custod')) return { sectionKey: 'custodies', storeTable: 'custodies' };
+    if (t.includes('invoice') || t.includes('finance') || t.includes('smacc'))
       return { sectionKey: 'invoices', storeTable: 'invoices' };
-    if (t.includes('recruitment-contract') || t.includes('musaned'))
+    if (t.includes('recruitment-contract') || t.includes('musaned') || t.includes('create-contract'))
       return { sectionKey: 'recruitment_contracts', storeTable: 'recruitment_contracts' };
     if (t.includes('rent') || t.includes('rental'))
       return { sectionKey: 'rent_contracts', storeTable: 'rent_contracts' };
-    if (t.includes('order')) return { sectionKey: 'orders', storeTable: 'orders' };
+    if (t.includes('order') && !t.includes('purchase'))
+      return { sectionKey: 'orders', storeTable: 'orders' };
     if (t.includes('ingaz')) return { sectionKey: 'ingaz', storeTable: 'ingaz_records' };
-    if (t.includes('travel') || t.includes('dispatch'))
-      return { sectionKey: 'travel', storeTable: 'travel_flights' };
+    if (t.includes('dispatch')) return { sectionKey: 'group_dispatch', storeTable: '' };
+    if (t.includes('travel')) return { sectionKey: 'travel', storeTable: 'travel_flights' };
     if (t.includes('transfer') || t.includes('probation'))
       return { sectionKey: 'sponsorship_transfer', storeTable: 'sponsorship_transfers' };
     if (t.includes('cv') || t.includes('ats') || t.includes('agent-import') || t.includes('foreign'))
       return { sectionKey: 'cvs_recruitment', storeTable: 'cvs' };
+    if (t.includes('external-office'))
+      return { sectionKey: 'external_offices', storeTable: 'offices' };
     if (t.includes('office') || t.includes('agent-account'))
       return { sectionKey: 'offices', storeTable: 'offices' };
     if (t.includes('attendance')) return { sectionKey: 'attendances', storeTable: 'attendances' };
     if (t.includes('monitoring'))
       return { sectionKey: 'employee_monitoring', storeTable: 'attendances' };
-    if (t.includes('employee') || t.includes('branch-department'))
-      return { sectionKey: 'employees', storeTable: 'employees' };
+    if (t.includes('branch-department'))
+      return { sectionKey: 'branch_departments', storeTable: '' };
+    if (t.includes('employee')) return { sectionKey: 'employees', storeTable: 'employees' };
     if (t.includes('complaint')) return { sectionKey: 'complaints', storeTable: 'complaints' };
-    if (
-      t.includes('client') ||
-      t.includes('visitor') ||
-      t.includes('whatsapp') ||
-      t.includes('communication') ||
-      t.includes('message')
-    )
-      return { sectionKey: 'clients', storeTable: 'clients' };
+    if (t.includes('whatsapp')) return { sectionKey: 'whatsapp_inbox', storeTable: '' };
+    if (t.includes('visitor')) return { sectionKey: 'website_visitors', storeTable: '' };
+    if (t.includes('communication') || t.includes('message'))
+      return { sectionKey: 'sent_messages', storeTable: '' };
+    if (t.includes('client')) return { sectionKey: 'clients', storeTable: 'clients' };
     if (
       t.includes('shelter') ||
       t.includes('room-management') ||
@@ -503,14 +504,16 @@ export const DepartmentModuleBanner: React.FC<DepartmentModuleBannerProps> = ({
       t.includes('deportation')
     )
       return { sectionKey: 'shelter_workers', storeTable: 'shelter_workers' };
-    if (
-      t.includes('kas') ||
-      t.includes('tender') ||
-      t.includes('purchase-order') ||
-      t.includes('guarantee')
-    )
+    if (t.includes('purchase-order'))
+      return { sectionKey: 'purchase_orders', storeTable: '' };
+    if (t.includes('guarantee'))
+      return { sectionKey: 'project_guarantees', storeTable: '' };
+    if (t.includes('kas') || t.includes('tender'))
       return { sectionKey: 'tenders_boq', storeTable: 'tenders' };
-    if (t.includes('user') || t.includes('iam')) return { sectionKey: 'users', storeTable: 'users' };
+    if (t.includes('legal')) return { sectionKey: 'legal_compliance', storeTable: '' };
+    if (t.includes('report')) return { sectionKey: 'reports', storeTable: '' };
+    if (t.includes('iam')) return { sectionKey: 'iam-security', storeTable: 'users' };
+    if (t.includes('user')) return { sectionKey: 'users', storeTable: 'users' };
     if (t.includes('activity-log'))
       return { sectionKey: 'activity_logs', storeTable: 'activity_log' };
     return { sectionKey: 'employee_executed_ops', storeTable: '' };

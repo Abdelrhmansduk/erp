@@ -190,17 +190,6 @@ export const TransferBookingModal: React.FC<TransferBookingModalProps> = ({
         <div className="p-5 sm:p-6 bg-[#f3f3f3] border-b border-[#e5e5e5]">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-3">
-              {worker.photoUrl ? (
-                <img 
-                  src={worker.photoUrl} 
-                  alt={worker.fullNameAr} 
-                  className="w-12 h-12 rounded-[14px] object-cover border border-[#e0e0e0]"
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-[14px] bg-[#ffffff] text-[#141414] border border-[#e0e0e0] flex items-center justify-center font-bold text-sm">
-                  {(worker.fullNameAr || 'ع').slice(0, 2)}
-                </div>
-              )}
               <div>
                 <div className="font-bold text-[#141414] text-base">{worker.fullNameAr}</div>
                 <div className="text-xs text-[#707070] flex items-center gap-2 mt-0.5">

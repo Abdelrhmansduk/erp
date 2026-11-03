@@ -73,22 +73,6 @@ export const WorkerProfileDetailModal: React.FC<WorkerProfileDetailModalProps> =
           </button>
 
           <div className="flex items-start gap-5 flex-wrap">
-            {/* Worker Photo */}
-            <div className="relative shrink-0">
-              {worker.photoUrl ? (
-                <img 
-                  src={worker.photoUrl} 
-                  alt={worker.fullNameAr} 
-                  className="w-20 h-20 rounded-[18px] object-cover border border-[#e0e0e0]"
-                />
-              ) : (
-                <div className="w-20 h-20 rounded-[18px] bg-[#f3f3f3] text-[#141414] flex items-center justify-center font-bold text-2xl border border-[#e0e0e0]">
-                  {(worker.fullNameAr || 'ع').slice(0, 2)}
-                </div>
-              )}
-              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#0066ff] border-2 border-[#ffffff]" />
-            </div>
-
             {/* Main Info */}
             <div className="flex-1 min-w-[240px]">
               <div className="flex items-center gap-2 flex-wrap">

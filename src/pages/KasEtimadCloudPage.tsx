@@ -2627,10 +2627,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                 className="p-5 rounded-2xl bg-card border border-border shadow-sm space-y-3 hover:border-emerald-500/50 cursor-pointer transition-all hover:scale-[1.01]"
               >
                 <div className="flex items-start justify-between">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold text-sm">
-                    {client.company.slice(0, 2)}
-                  </div>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]">
                     نشط
                   </span>
                 </div>
@@ -2730,12 +2727,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                       <tr key={st.id} className="hover:bg-secondary/40 transition-colors">
                         <td className="p-3.5 text-center font-mono text-muted-foreground">{idx + 1}</td>
                         <td className="p-3.5 font-bold text-foreground">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-black text-[11px] border border-emerald-500/30">
-                              {st.name.slice(0, 2)}
-                            </div>
-                            <span>{st.name}</span>
-                          </div>
+                          <span>{st.name}</span>
                         </td>
                         <td className="p-3.5 font-mono text-muted-foreground">
                           <a href={`mailto:${st.email}`} className="hover:text-emerald-600 transition-colors">
@@ -4569,9 +4561,6 @@ export const KasEtimadCloudPage: React.FC = () => {
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-border pb-4">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center font-bold text-xl shadow-lg">
-                  {selectedClientProfile.company.slice(0, 2)}
-                </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-lg font-bold text-foreground">{selectedClientProfile.company}</h3>

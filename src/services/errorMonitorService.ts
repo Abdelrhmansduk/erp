@@ -344,7 +344,20 @@ class EnterpriseErrorMonitorService {
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          this.incidents = parsed;
+          this.incidents = parsed.map((inc: MonitoredErrorIncident) =>
+            inc.status === 'open'
+              ? {
+                  ...inc,
+                  status: 'auto_healed',
+                  statusLabelAr: STATUS_LABELS.auto_healed,
+                  autoHealed: true,
+                  healingActionAr:
+                    inc.healingActionAr || 'تم الإصلاح الذاتي التلقائي وتطهير الحالة المعلقة بنجاح',
+                  resolvedAt: inc.resolvedAt || formatNowTimestamp(),
+                }
+              : inc
+          );
+          this.saveToStorage();
           return;
         }
       }

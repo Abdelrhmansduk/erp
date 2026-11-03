@@ -481,12 +481,12 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                 {kpis.hasFinancials && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold">
                     <span>الإجمالي المالي:</span>
-                    <span>
+                    <span dir="ltr" className="font-mono font-bold">
+                      {'\u200E\u20C1'}{' '}
                       {kpis.totalAmount.toLocaleString('en-US', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
-                      })}{' '}
-                      ⃁
+                      })}
                     </span>
                   </span>
                 )}
