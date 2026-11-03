@@ -4,6 +4,8 @@
  * Handles End-to-End Recruitment Workflow, Official Musaned Stages, Legal Refund Calculators, and Webhooks.
  */
 
+import { domainEventBus } from './domainEventBus';
+
 export type MusanedContractStage =
   | 'new_order'                 // طلب استقدام جديد
   | 'candidate_selected'        // تم اختيار السيرة الذاتية
@@ -299,11 +301,24 @@ class MusanedLifecycleEngine {
     if (!check.allowed) {
       throw new Error(check.reasonAr);
     }
+    const transitionedAt = new Date().toISOString();
+    void domainEventBus.publishDomainEvent({
+      companyId: 'SAF',
+      aggregateType: 'MUSANED_CONTRACT',
+      aggregateId: params.contractId,
+      eventType: 'CONTRACT_STAGE_CHANGED',
+      payload: {
+        previousStage: params.currentStage,
+        currentStage: params.targetStage,
+        actorId: params.actorId,
+        transitionedAt,
+      },
+    });
     return {
       contractId: params.contractId,
       previousStage: params.currentStage,
       currentStage: params.targetStage,
-      transitionedAt: new Date().toISOString(),
+      transitionedAt,
       actorId: params.actorId,
       reasonAr: check.reasonAr,
     };

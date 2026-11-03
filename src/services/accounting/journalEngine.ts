@@ -1,5 +1,6 @@
 import { CompanyId } from '../../types';
 import { normalizeCompanyId } from '../../contexts/CompanyContext';
+import { domainEventBus } from '../domainEventBus';
 
 export type JournalEntryType =
   | 'MANUAL'
@@ -232,6 +233,22 @@ export const journalEngine = {
 
     CURRENT_MAP[targetCompany].unshift(newEntry);
     savePersistedJournals(CURRENT_MAP);
+
+    if (isPosted) {
+      void domainEventBus.publishDomainEvent({
+        companyId: targetCompany,
+        aggregateType: 'JOURNAL_ENTRY',
+        aggregateId: newEntry.id,
+        eventType: 'JOURNAL_ENTRY_POSTED',
+        payload: {
+          entryNumber: newEntry.entryNumber,
+          totalDebit: newEntry.totalDebit,
+          totalCredit: newEntry.totalCredit,
+          sourceModule: newEntry.sourceModule,
+        },
+      });
+    }
+
     return { entry: newEntry, error: null };
   },
 
@@ -258,6 +275,20 @@ export const journalEngine = {
     entry.postedAt = new Date().toISOString();
 
     savePersistedJournals(CURRENT_MAP);
+
+    void domainEventBus.publishDomainEvent({
+      companyId: targetCompany,
+      aggregateType: 'JOURNAL_ENTRY',
+      aggregateId: entry.id,
+      eventType: 'JOURNAL_ENTRY_POSTED',
+      payload: {
+        entryNumber: entry.entryNumber,
+        totalDebit: entry.totalDebit,
+        totalCredit: entry.totalCredit,
+        approvedBy,
+      },
+    });
+
     return { success: true, error: null };
   },
 
@@ -387,6 +418,20 @@ export const journalEngine = {
     const updatedOriginal = (CURRENT_MAP[targetCompany] || []).find((j) => j.id === originalEntryId) || original;
     updatedOriginal.status = 'REVERSED';
     savePersistedJournals(CURRENT_MAP);
+
+    void domainEventBus.publishDomainEvent({
+      companyId: targetCompany,
+      aggregateType: 'JOURNAL_ENTRY',
+      aggregateId: originalEntryId,
+      eventType: 'JOURNAL_ENTRY_REVERSED',
+      payload: {
+        originalEntryNumber: original.entryNumber,
+        reversalEntryId: created.entry.id,
+        reversalEntryNumber: created.entry.entryNumber,
+        reason,
+        reversedBy,
+      },
+    });
 
     return {
       reversalEntry: created.entry,

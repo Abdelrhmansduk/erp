@@ -177,9 +177,9 @@ export const SIDEBAR_MENU: NavItem[] = [
     icon: 'Briefcase',
     href: 'kas-suite',
     children: [
-      { id: 'kas-suite', title: 'منظومة شركة كاس للمنافسات (KAS Suite)', icon: 'Briefcase', href: 'kas-suite', badge: 'KAS', badgeType: 'success' },
-      { id: 'tenders-boq', title: 'منافسات اعتماد وجداول الكميات (BOQ)', icon: 'Scale', href: 'tenders-boq' },
-      { id: 'kas-etmad', title: 'إدارة الضمانات البنكية والعطاءات (اعتماد)', icon: 'ShieldCheck', href: 'kas-etmad' },
+      { id: 'kas-suite', title: 'منظومة شركة كاس للمنافسات (KAS Suite)', icon: 'Briefcase', href: 'kas-suite', badge: 'KAS', badgeType: 'success', exclusiveToCompany: 'KAS' },
+      { id: 'tenders-boq', title: 'منافسات اعتماد وجداول الكميات (BOQ)', icon: 'Scale', href: 'tenders-boq', exclusiveToCompany: 'KAS' },
+      { id: 'kas-etmad', title: 'إدارة الضمانات البنكية والعطاءات (اعتماد)', icon: 'ShieldCheck', href: 'kas-etmad', exclusiveToCompany: 'KAS' },
     ],
   },
 ];
