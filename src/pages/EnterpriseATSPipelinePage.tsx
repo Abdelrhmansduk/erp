@@ -344,7 +344,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
                 <div><strong>الجنسية والخبرة:</strong> {cnd.nationality} ({cnd.experienceYears} سنوات خبرة)</div>
                 <div><strong>المؤهل العلمي:</strong> {cnd.education}</div>
                 <div><strong>المكتب المصدر:</strong> {cnd.externalOfficeName || 'وكالة دولية معتمدة'}</div>
-                <div><strong>الراتب المتوقع:</strong> <span className="font-mono font-bold text-black">{cnd.expectedSalary.toLocaleString()}</span> ر.س</div>
+                <div><strong>الراتب المتوقع:</strong> <span className="font-mono font-bold text-black">{cnd.expectedSalary.toLocaleString()}</span> ⃁</div>
               </div>
 
               <div className="flex items-center justify-between mb-4">
@@ -585,7 +585,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">الراتب الشهري المتوقع (ر.س)</label>
+                  <label className="text-xs font-semibold text-zinc-700 block mb-1">الراتب الشهري المتوقع (⃁)</label>
                   <input
                     type="number"
                     value={newCandidateForm.expectedSalary}

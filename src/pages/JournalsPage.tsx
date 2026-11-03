@@ -324,7 +324,7 @@ export const JournalsPage: React.FC = () => {
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
           <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>إجمالي حركات المدين (Debit)</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#000000', marginTop: '6px', letterSpacing: '-0.02em' }}>
-            {journals.reduce((acc, j) => acc + (j.total_debit || 0), 0).toLocaleString()} ر.س
+            {journals.reduce((acc, j) => acc + (j.total_debit || 0), 0).toLocaleString()} ⃁
           </div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>مجموع المدين</span>
         </div>
@@ -332,7 +332,7 @@ export const JournalsPage: React.FC = () => {
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#000000', color: '#ffffff' }}>
           <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>إجمالي حركات الدائن (Credit)</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>
-            {journals.reduce((acc, j) => acc + (j.total_credit || 0), 0).toLocaleString()} ر.س
+            {journals.reduce((acc, j) => acc + (j.total_credit || 0), 0).toLocaleString()} ⃁
           </div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>مجموع الدائن</span>
         </div>
@@ -342,7 +342,7 @@ export const JournalsPage: React.FC = () => {
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#000000', marginTop: '6px', letterSpacing: '-0.02em' }}>
             متوازن تماماً
           </div>
-          <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>فارق = 0.00 ر.س</span>
+          <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>فارق = 0.00 ⃁</span>
         </div>
       </div>
 
@@ -412,8 +412,8 @@ export const JournalsPage: React.FC = () => {
                     <td className="p-3.5 font-semibold text-black max-w-xs truncate" title={j.description}>
                       {j.description}
                     </td>
-                    <td className="p-3.5 font-mono font-bold text-black">{j.total_debit.toLocaleString()} ر.س</td>
-                    <td className="p-3.5 font-mono font-bold text-rose-700">{j.total_credit.toLocaleString()} ر.س</td>
+                    <td className="p-3.5 font-mono font-bold text-black">{j.total_debit.toLocaleString()} ⃁</td>
+                    <td className="p-3.5 font-mono font-bold text-rose-700">{j.total_credit.toLocaleString()} ⃁</td>
                     <td className="p-3.5 text-zinc-600">
                       <div>{j.branch_name}</div>
                       {j.cost_center_code && (
@@ -630,13 +630,13 @@ export const JournalsPage: React.FC = () => {
                         {isBalanced ? 'القيد المحاسبي متوازن وصالح للترحيل' : 'القيد غير متوازن! يجب أن يتساوى المدين مع الدائن.'}
                       </div>
                       <div className="text-[11px] opacity-80 font-mono">
-                        إجمالي المدين: {totalDebit.toLocaleString()} ر.س | إجمالي الدائن: {totalCredit.toLocaleString()} ر.س
+                        إجمالي المدين: {totalDebit.toLocaleString()} ⃁ | إجمالي الدائن: {totalCredit.toLocaleString()} ⃁
                       </div>
                     </div>
                   </div>
 
                   <div className="text-end font-mono font-bold text-xs">
-                    الفارق: {difference.toFixed(2)} ر.س
+                    الفارق: {difference.toFixed(2)} ⃁
                   </div>
                 </div>
               </div>
@@ -734,20 +734,20 @@ export const JournalsPage: React.FC = () => {
                       <td className="p-3 font-bold text-black">11010</td>
                       <td className="p-3 font-sans font-semibold text-black">الصندوق الرئيسي - الخزينة</td>
                       <td className="p-3 font-sans text-zinc-500">{selectedJournal.cost_center_code || 'CC-OPS-01'}</td>
-                      <td className="p-3 font-bold text-black">{selectedJournal.total_debit.toLocaleString()} ر.س</td>
-                      <td className="p-3 text-zinc-400">0.00 ر.س</td>
+                      <td className="p-3 font-bold text-black">{selectedJournal.total_debit.toLocaleString()} ⃁</td>
+                      <td className="p-3 text-zinc-400">0.00 ⃁</td>
                     </tr>
                     <tr>
                       <td className="p-3 font-bold text-black">41100</td>
                       <td className="p-3 font-sans font-semibold text-black">إيرادات وساطة عقود الاستقدام</td>
                       <td className="p-3 font-sans text-zinc-500">{selectedJournal.cost_center_code || 'CC-OPS-01'}</td>
-                      <td className="p-3 text-zinc-400">0.00 ر.س</td>
-                      <td className="p-3 font-bold text-rose-700">{selectedJournal.total_credit.toLocaleString()} ر.س</td>
+                      <td className="p-3 text-zinc-400">0.00 ⃁</td>
+                      <td className="p-3 font-bold text-rose-700">{selectedJournal.total_credit.toLocaleString()} ⃁</td>
                     </tr>
                     <tr className="bg-zinc-50 font-bold border-t-2 border-black text-xs font-sans">
                       <td colSpan={3} className="p-3 text-left pl-4">الإجمالي المتوازن:</td>
-                      <td className="p-3 text-black font-mono font-extrabold">{selectedJournal.total_debit.toLocaleString()} ر.س</td>
-                      <td className="p-3 text-rose-700 font-mono font-extrabold">{selectedJournal.total_credit.toLocaleString()} ر.س</td>
+                      <td className="p-3 text-black font-mono font-extrabold">{selectedJournal.total_debit.toLocaleString()} ⃁</td>
+                      <td className="p-3 text-rose-700 font-mono font-extrabold">{selectedJournal.total_credit.toLocaleString()} ⃁</td>
                     </tr>
                   </tbody>
                 </table>

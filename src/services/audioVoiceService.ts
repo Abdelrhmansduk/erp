@@ -296,7 +296,7 @@ function cleanSpeechText(text: string): string {
     .replace(/\bSLA\b/gi, 'اتفاقية مستوى الخدمة')
     .replace(/\bVIP\b/gi, 'كبار العملاء')
     .replace(/\bB2B\b/gi, 'قطاع الأعمال')
-    .replace(/ر\.س|SAR/gi, 'ريال سعودي')
+    .replace(/[\u20C1\uE900]|ر\.س|SAR/gi, 'ريال سعودي')
     .replace(/[*_#`~]/g, '')
     .replace(/•/g, '، ')
     .replace(/\|/g, '، ')

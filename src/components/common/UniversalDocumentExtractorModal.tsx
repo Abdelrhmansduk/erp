@@ -445,7 +445,7 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
                       جدول المعاينة والتوجيه التلقائي ({stagedRecords.length} مستند / فاتورة جاهزة للإدراج)
                     </span>
                     <span className="block text-[10px] text-[#707070]">
-                      إجمالي القيم المستخلصة: {totalStagedAmount.toLocaleString()} ر.س • ضريبة القيمة المضافة المستخلصة: {totalStagedVat.toLocaleString()} ر.س • الشركة المعزولة: {targetCompanyObj.name}
+                      إجمالي القيم المستخلصة: {totalStagedAmount.toLocaleString()} ⃁ • ضريبة القيمة المضافة المستخلصة: {totalStagedVat.toLocaleString()} ⃁ • الشركة المعزولة: {targetCompanyObj.name}
                     </span>
                   </div>
                 </div>
@@ -484,7 +484,7 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
                       <th className="py-2.5 px-3">الصيغة والنظام المصدر</th>
                       <th className="py-2.5 px-3">القسم المعني المكتشف تلقائياً</th>
                       <th className="py-2.5 px-3">الشركة المعزولة</th>
-                      <th className="py-2.5 px-3">الإجمالي (ر.س)</th>
+                      <th className="py-2.5 px-3">الإجمالي (⃁)</th>
                       <th className="py-2.5 px-3">معاينة</th>
                     </tr>
                   </thead>
@@ -536,7 +536,7 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
                           </span>
                         </td>
                         <td className="py-2 px-3 font-mono font-bold text-[#141414]">
-                          {rec.amountOrValue.toLocaleString()} ر.س
+                          {rec.amountOrValue.toLocaleString()} ⃁
                         </td>
                         <td className="py-2 px-3">
                           <button
@@ -637,7 +637,7 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
                 <div>
                   <span className="text-[#707070] block text-[10px]">الإجمالي المستخلص</span>
                   <strong className="font-mono text-[#141414]">
-                    {previewRecord.amountOrValue.toLocaleString()} ر.س
+                    {previewRecord.amountOrValue.toLocaleString()} ⃁
                   </strong>
                 </div>
                 <div>

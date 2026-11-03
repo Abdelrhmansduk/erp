@@ -203,7 +203,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
           'الرقم المرجعي': t.referenceNumber,
           'عنوان المنافسة': t.title,
           'الجهة الحكومية': t.entity,
-          'الميزانية التقديرية (ر.س)': t.budget,
+          'الميزانية التقديرية (⃁)': t.budget,
           'الموعد النهائي': t.deadline,
           'الحالة': t.status,
           'القطاع': t.category,
@@ -215,7 +215,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
           'الهاتف': s.phone,
           'التقييم': s.rating,
           'المشاريع النشطة': s.activeProjects,
-          'إجمالي التعاملات (ر.س)': s.totalVolume,
+          'إجمالي التعاملات (⃁)': s.totalVolume,
         }));
       case 'purchase-orders':
         return purchaseOrders.map(p => ({
@@ -367,7 +367,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
               <DollarSign className="w-4 h-4 text-[#141414]" />
             </div>
           </div>
-          <div className="display-sm">106,006 ر.س</div>
+          <div className="display-sm">106,006 ⃁</div>
           <div className="pill-tag-mint mt-2">فواتير ZATCA المرحلة الثانية</div>
         </div>
 
@@ -468,7 +468,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                             {t.title}
                           </div>
                           <div className="text-[10.5px] text-zinc-400 mt-0.5">
-                            الميزانية: <strong className="text-emerald-400 font-mono">{t.budget.toLocaleString()} ر.س</strong> • الموعد: {t.deadline}
+                            الميزانية: <strong className="text-emerald-400 font-mono">{t.budget.toLocaleString()} ⃁</strong> • الموعد: {t.deadline}
                           </div>
                         </div>
 
@@ -508,7 +508,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                             <span className="text-xs font-bold text-white">{inv.client}</span>
                           </div>
                           <div className="text-[10.5px] text-zinc-400 mt-1 font-mono">
-                            الإجمالي: <strong className="text-white">{inv.total.toLocaleString()} ر.س</strong> (شامل الضريبة 15%: {inv.vat.toLocaleString()} ر.س)
+                            الإجمالي: <strong className="text-white">{inv.total.toLocaleString()} ⃁</strong> (شامل الضريبة 15%: {inv.vat.toLocaleString()} ⃁)
                           </div>
                         </div>
 
@@ -587,7 +587,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                             <td className="p-3.5 font-mono font-bold text-amber-400">{t.referenceNumber}</td>
                             <td className="p-3.5 font-bold text-white max-w-xs truncate">{t.title}</td>
                             <td className="p-3.5 text-zinc-300">{t.entity}</td>
-                            <td className="p-3.5 font-mono font-bold text-emerald-400">{t.budget.toLocaleString()} ر.س</td>
+                            <td className="p-3.5 font-mono font-bold text-emerald-400">{t.budget.toLocaleString()} ⃁</td>
                             <td className="p-3.5 text-zinc-400">{t.deadline}</td>
                             <td className="p-3.5 text-zinc-400">{t.itemsCount} صنف</td>
                             <td className="p-3.5">
@@ -646,11 +646,11 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                 <div className="flex items-center gap-3">
                   <div className="px-4 py-2 rounded-xl bg-black/40 border border-white/10 text-center">
                     <div className="text-[10px] text-zinc-400 font-bold">الإجمالي قبل الضريبة</div>
-                    <div className="text-base font-black text-white font-mono">245,000 ر.س</div>
+                    <div className="text-base font-black text-white font-mono">245,000 ⃁</div>
                   </div>
                   <div className="px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-center">
                     <div className="text-[10px] text-emerald-400 font-bold">الإجمالي شامل الضريبة 15%</div>
-                    <div className="text-base font-black text-emerald-300 font-mono">281,750 ر.س</div>
+                    <div className="text-base font-black text-emerald-300 font-mono">281,750 ⃁</div>
                   </div>
                 </div>
               </div>
@@ -687,30 +687,30 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                         <td className="p-3 font-bold text-white font-sans">أطقم ضيافة فاخرة متكاملة للصالات الرسمية</td>
                         <td className="p-3 text-zinc-400 font-sans">طقم</td>
                         <td className="p-3 text-white">40</td>
-                        <td className="p-3 text-zinc-400">1,800 ر.س</td>
-                        <td className="p-3 text-amber-300 font-bold">2,600 ر.س</td>
+                        <td className="p-3 text-zinc-400">1,800 ⃁</td>
+                        <td className="p-3 text-amber-300 font-bold">2,600 ⃁</td>
                         <td className="p-3 text-emerald-400 font-bold">+44.4%</td>
-                        <td className="p-3 text-emerald-300 font-bold">119,600 ر.س</td>
+                        <td className="p-3 text-emerald-300 font-bold">119,600 ⃁</td>
                       </tr>
                       <tr className="hover:bg-white/5">
                         <td className="p-3 text-zinc-500 font-sans">2</td>
                         <td className="p-3 font-bold text-white font-sans">تجهيز بوفيهات إعاشة وخدمة ضيافة VIP يومية</td>
                         <td className="p-3 text-zinc-400 font-sans">يوم</td>
                         <td className="p-3 text-white">5</td>
-                        <td className="p-3 text-zinc-400">12,000 ر.س</td>
-                        <td className="p-3 text-amber-300 font-bold">18,500 ر.س</td>
+                        <td className="p-3 text-zinc-400">12,000 ⃁</td>
+                        <td className="p-3 text-amber-300 font-bold">18,500 ⃁</td>
                         <td className="p-3 text-emerald-400 font-bold">+54.1%</td>
-                        <td className="p-3 text-emerald-300 font-bold">106,375 ر.س</td>
+                        <td className="p-3 text-emerald-300 font-bold">106,375 ⃁</td>
                       </tr>
                       <tr className="hover:bg-white/5">
                         <td className="p-3 text-zinc-500 font-sans">3</td>
                         <td className="p-3 font-bold text-white font-sans">شاشات عرض تفاعلية ونظم صوتية للمنصة الرئيسية</td>
                         <td className="p-3 text-zinc-400 font-sans">باقة</td>
                         <td className="p-3 text-white">2</td>
-                        <td className="p-3 text-zinc-400">18,000 ر.س</td>
-                        <td className="p-3 text-amber-300 font-bold">24,250 ر.س</td>
+                        <td className="p-3 text-zinc-400">18,000 ⃁</td>
+                        <td className="p-3 text-amber-300 font-bold">24,250 ⃁</td>
                         <td className="p-3 text-emerald-400 font-bold">+34.7%</td>
-                        <td className="p-3 text-emerald-300 font-bold">55,775 ر.س</td>
+                        <td className="p-3 text-emerald-300 font-bold">55,775 ⃁</td>
                       </tr>
                     </tbody>
                   </table>
@@ -753,7 +753,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                       </div>
                       <div className="flex items-center justify-between text-zinc-400">
                         <span>إجمالي التعاملات:</span>
-                        <span className="text-white font-mono font-bold">{sup.totalVolume.toLocaleString()} ر.س</span>
+                        <span className="text-white font-mono font-bold">{sup.totalVolume.toLocaleString()} ⃁</span>
                       </div>
                     </div>
 
@@ -798,7 +798,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                           <td className="p-3.5 font-mono font-bold text-amber-400">{po.poNumber}</td>
                           <td className="p-3.5 font-bold text-white">{po.supplierName}</td>
                           <td className="p-3.5 text-zinc-300">{po.project}</td>
-                          <td className="p-3.5 font-mono font-bold text-emerald-400">{po.amount.toLocaleString()} ر.س</td>
+                          <td className="p-3.5 font-mono font-bold text-emerald-400">{po.amount.toLocaleString()} ⃁</td>
                           <td className="p-3.5 text-zinc-400">{po.date}</td>
                           <td className="p-3.5">
                             <span className="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
@@ -828,7 +828,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                     <span className="text-xs text-zinc-400 font-mono">CNT-KAS-2026-01</span>
                   </div>
                   <h3 className="text-sm font-bold text-white">مشروع توريدات احتفالات اليوم الوطني 96 لميناء جدة</h3>
-                  <p className="text-xs text-zinc-400">الجهة المتعاقدة: الهيئة العامة للموانئ • القيمة: 95,018.75 ر.س</p>
+                  <p className="text-xs text-zinc-400">الجهة المتعاقدة: الهيئة العامة للموانئ • القيمة: 95,018.75 ⃁</p>
                   
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-xs text-zinc-400">
@@ -849,7 +849,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                     <span className="text-xs text-zinc-400 font-mono">CNT-KAS-2026-02</span>
                   </div>
                   <h3 className="text-sm font-bold text-white">عقد تأمين أجهزة وتقنيات المقرات الإدارية التابعة</h3>
-                  <p className="text-xs text-zinc-400">الجهة المتعاقدة: أمانة منطقة الرياض • القيمة: 340,000 ر.س</p>
+                  <p className="text-xs text-zinc-400">الجهة المتعاقدة: أمانة منطقة الرياض • القيمة: 340,000 ⃁</p>
                   
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-xs text-zinc-400">
@@ -890,9 +890,9 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                         <tr key={inv.id} className="hover:bg-white/5">
                           <td className="p-3.5 font-bold text-emerald-400">{inv.number}</td>
                           <td className="p-3.5 font-sans font-bold text-white">{inv.client}</td>
-                          <td className="p-3.5 text-zinc-300">{inv.amount.toLocaleString()} ر.س</td>
-                          <td className="p-3.5 text-amber-300">{inv.vat.toLocaleString()} ر.س</td>
-                          <td className="p-3.5 text-emerald-300 font-bold">{inv.total.toLocaleString()} ر.س</td>
+                          <td className="p-3.5 text-zinc-300">{inv.amount.toLocaleString()} ⃁</td>
+                          <td className="p-3.5 text-amber-300">{inv.vat.toLocaleString()} ⃁</td>
+                          <td className="p-3.5 text-emerald-300 font-bold">{inv.total.toLocaleString()} ⃁</td>
                           <td className="p-3.5 text-zinc-400 font-sans">{inv.date}</td>
                           <td className="p-3.5 text-center">
                             {inv.qr ? (
@@ -1038,7 +1038,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-300 mb-1 font-bold">الميزانية التقديرية (ر.س):</label>
+                  <label className="block text-zinc-300 mb-1 font-bold">الميزانية التقديرية (⃁):</label>
                   <input
                     type="number"
                     required
@@ -1211,7 +1211,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-300 mb-1 font-bold">المبلغ (ر.س):</label>
+                  <label className="block text-zinc-300 mb-1 font-bold">المبلغ (⃁):</label>
                   <input
                     type="number"
                     required
@@ -1293,7 +1293,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-300 mb-1 font-bold">المبلغ الخاضع للضريبة (ر.س):</label>
+                  <label className="block text-zinc-300 mb-1 font-bold">المبلغ الخاضع للضريبة (⃁):</label>
                   <input
                     type="number"
                     required
@@ -1316,11 +1316,11 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
               <div className="p-3 rounded-xl bg-black/40 border border-white/5 space-y-1 text-zinc-300">
                 <div className="flex items-center justify-between">
                   <span>قيمة الضريبة المضافة (15%):</span>
-                  <span className="font-mono text-amber-300 font-bold">{(Number(newInvoice.amount) * 0.15).toLocaleString()} ر.س</span>
+                  <span className="font-mono text-amber-300 font-bold">{(Number(newInvoice.amount) * 0.15).toLocaleString()} ⃁</span>
                 </div>
                 <div className="flex items-center justify-between text-sm font-bold pt-1 border-t border-white/5">
                   <span className="text-white">الإجمالي النهائي المطلوب:</span>
-                  <span className="font-mono text-emerald-400">{(Number(newInvoice.amount) * 1.15).toLocaleString()} ر.س</span>
+                  <span className="font-mono text-emerald-400">{(Number(newInvoice.amount) * 1.15).toLocaleString()} ⃁</span>
                 </div>
               </div>
 

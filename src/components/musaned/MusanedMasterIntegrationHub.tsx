@@ -151,10 +151,10 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
         <div className="card-pricing" style={{ padding: '20px', borderRadius: '16px', background: '#ffffff' }}>
           <span style={{ fontSize: '12.5px', fontWeight: 550, color: '#71717a' }}>التسويات المالية اليومية</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#000000', marginTop: '4px' }}>
-            284,500 ر.س
+            284,500 ⃁
           </div>
           <span className="pill-tag-shade" style={{ fontSize: '10.5px', marginTop: '8px' }}>
-            فرق المطابقة: 0.00 ر.س (Zero Variance)
+            فرق المطابقة: 0.00 ⃁ (Zero Variance)
           </span>
         </div>
 
@@ -616,7 +616,7 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                 <h3 className="text-sm font-bold text-black m-0">سجل دفعات وتسويات مساند والمطابقة البنكية (Daily Settlement Batches)</h3>
                 <p className="text-xs text-zinc-400 mt-0.5">مطابقة المبالغ المحصلة عبر مساند مع حسابات البنك الوسيط (Clearing Account) وحسابات ضريبة القيمة المضافة</p>
               </div>
-              <span className="pill-tag-mint" style={{ fontSize: '11px' }}>إجمالي التسويات: 590,400 ر.س</span>
+              <span className="pill-tag-mint" style={{ fontSize: '11px' }}>إجمالي التسويات: 590,400 ⃁</span>
             </div>
 
             <div className="overflow-x-auto">
@@ -643,10 +643,10 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                     <tr key={row.id} className="hover:bg-zinc-50">
                       <td className="p-3.5 font-mono font-bold text-black">{row.id}</td>
                       <td className="p-3.5 font-mono text-zinc-600">{row.date}</td>
-                      <td className="p-3.5 font-mono font-bold text-black">{row.gross.toLocaleString()} ر.س</td>
-                      <td className="p-3.5 font-mono text-rose-700">-{row.fee.toLocaleString()} ر.س</td>
-                      <td className="p-3.5 font-mono text-zinc-500">-{row.vat.toLocaleString()} ر.س</td>
-                      <td className="p-3.5 font-mono font-bold text-emerald-700">{row.net.toLocaleString()} ر.س</td>
+                      <td className="p-3.5 font-mono font-bold text-black">{row.gross.toLocaleString()} ⃁</td>
+                      <td className="p-3.5 font-mono text-rose-700">‎- ⃁</td>
+                      <td className="p-3.5 font-mono text-zinc-500">‎- ⃁</td>
+                      <td className="p-3.5 font-mono font-bold text-emerald-700">{row.net.toLocaleString()} ⃁</td>
                       <td className="p-3.5 font-mono">{row.count} عقود</td>
                       <td className="p-3.5"><Badge text={row.status} type="success" /></td>
                     </tr>

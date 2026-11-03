@@ -137,7 +137,7 @@ export const ForeignAgencyPortalPage: React.FC = () => {
 
     addNotification({
       title: 'سداد عمولة وكالة خارجية',
-      message: `تم سداد عمولة (${cand.maidName}) بمبلغ $${cand.commissionUsd} (${(cand.commissionUsd * 3.75).toLocaleString()} ر.س) وتوليد سند الصرف بنجاح.`,
+      message: `تم سداد عمولة (${cand.maidName}) بمبلغ $${cand.commissionUsd} (${(cand.commissionUsd * 3.75).toLocaleString()} ⃁) وتوليد سند الصرف بنجاح.`,
       type: 'success',
     });
   };
@@ -215,7 +215,7 @@ export const ForeignAgencyPortalPage: React.FC = () => {
     setShowBatchPayoutModal(false);
     addNotification({
       title: 'سداد مجمع للعمولات الدولية',
-      message: `تم سداد مستحقات ${unpaid.length} مرشحة بإجمالي $${totalUsd.toLocaleString()} (${totalSar.toLocaleString()} ر.س) وإصدار سند الصرف الموحد.`,
+      message: `تم سداد مستحقات ${unpaid.length} مرشحة بإجمالي $${totalUsd.toLocaleString()} (${totalSar.toLocaleString()} ⃁) وإصدار سند الصرف الموحد.`,
       type: 'success',
     });
   };
@@ -349,14 +349,14 @@ export const ForeignAgencyPortalPage: React.FC = () => {
         <KasKpiCard
           title="العمولات المستحقة للوكالة"
           value={`$${totalUsdBalance.toLocaleString()}`}
-          subtitle={`${(totalUsdBalance * 3.75).toLocaleString()} ر.س معلق`}
+          subtitle={`${(totalUsdBalance * 3.75).toLocaleString()} ⃁ معلق`}
           icon={Clock}
           variant="gold"
         />
         <KasKpiCard
           title="إجمالي العمولات المسددة"
           value={`$${totalPaidUsd.toLocaleString()}`}
-          subtitle={`${(totalPaidUsd * 3.75).toLocaleString()} ر.س محول`}
+          subtitle={`${(totalPaidUsd * 3.75).toLocaleString()} ⃁ محول`}
           icon={DollarSign}
           variant="purple"
         />
@@ -511,7 +511,7 @@ export const ForeignAgencyPortalPage: React.FC = () => {
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-zinc-600 dark:text-zinc-400">المعادل بالريال السعودي (3.75):</span>
-                <span className="font-extrabold text-sm text-emerald-600">{(totalUsdBalance * 3.75).toLocaleString()} ر.س</span>
+                <span className="font-extrabold text-sm text-emerald-600">{(totalUsdBalance * 3.75).toLocaleString()} ⃁</span>
               </div>
             </div>
 

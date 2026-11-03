@@ -633,7 +633,7 @@ async function executeCreateInvoice(
 
   return {
     success: true,
-    message: `تم إنشاء وحفظ الفاتورة الضريبية في دفتر (${companyId}) بنجاح:\n• رقم الفاتورة: ${invoiceNumber}\n• العميل: ${customerName}\n• المبلغ قبل الضريبة: ${subtotal.toLocaleString('en-US')} ر.س\n• ضريبة القيمة المضافة (15%): ${vatAmount.toLocaleString('en-US')} ر.س\n• الإجمالي الشامل: ${total.toLocaleString('en-US')} ر.س\n• حالة ZATCA: معتمدة ومشفرة (Cleared)`,
+    message: `تم إنشاء وحفظ الفاتورة الضريبية في دفتر (${companyId}) بنجاح:\n• رقم الفاتورة: ${invoiceNumber}\n• العميل: ${customerName}\n• المبلغ قبل الضريبة: ${subtotal.toLocaleString('en-US')} ⃁\n• ضريبة القيمة المضافة (15%): ${vatAmount.toLocaleString('en-US')} ⃁\n• الإجمالي الشامل: ${total.toLocaleString('en-US')} ⃁\n• حالة ZATCA: معتمدة ومشفرة (Cleared)`,
     spokenSummary: `تم إنشاء وحفظ الفاتورة الضريبية للعميل ${customerName} بمبلغ إجمالي ${total.toLocaleString('ar-SA')} ريال سعودي وتوثيقها في بوابة زاتكا.`,
     data: newInvoice,
   };
@@ -676,7 +676,7 @@ async function executeCreateJournalEntry(
 
   return {
     success: true,
-    message: `تم تسجيل وترحيل قيد اليومية المزدوج في نظام سماك (${companyId}):\n• رقم القيد: ${entryNumber}\n• من حـ/ (مدين): ${debitAccount} — ${amount.toLocaleString('en-US')} ر.س\n• إلى حـ/ (دائن): ${creditAccount} — ${amount.toLocaleString('en-US')} ر.س\n• البيان: ${description}\n• الحالة: مرحّل ومتوازن 100%`,
+    message: `تم تسجيل وترحيل قيد اليومية المزدوج في نظام سماك (${companyId}):\n• رقم القيد: ${entryNumber}\n• من حـ/ (مدين): ${debitAccount} — ${amount.toLocaleString('en-US')} ⃁\n• إلى حـ/ (دائن): ${creditAccount} — ${amount.toLocaleString('en-US')} ⃁\n• البيان: ${description}\n• الحالة: مرحّل ومتوازن 100%`,
     spokenSummary: `تم تسجيل وترحيل قيد اليومية المزدوج رقم ${entryNumber} بمبلغ ${amount.toLocaleString('ar-SA')} ريال سعودي في دفتر سماك بنجاح.`,
     data: newEntry,
   };
@@ -718,7 +718,7 @@ async function executeCreateVoucher(
 
   return {
     success: true,
-    message: `تم إصدار وحفظ ${voucherType} رقم (${voucherNumber}) في (${companyId}):\n• الطرف المستفيد/العميل: ${partyName}\n• المبلغ: ${amount.toLocaleString('en-US')} ر.س\n• البيان: ${description}\n• الحالة: معتمد ومرحّل مالياً`,
+    message: `تم إصدار وحفظ ${voucherType} رقم (${voucherNumber}) في (${companyId}):\n• الطرف المستفيد/العميل: ${partyName}\n• المبلغ: ${amount.toLocaleString('en-US')} ⃁\n• البيان: ${description}\n• الحالة: معتمد ومرحّل مالياً`,
     spokenSummary: `تم إصدار وحفظ ${voucherType} لصالح ${partyName} بمبلغ ${amount.toLocaleString('ar-SA')} ريال سعودي.`,
     data: newVoucher,
   };
@@ -778,11 +778,11 @@ function executeGetCashBalance(
     : companyBalances;
 
   const total = filtered.reduce((sum, b) => sum + b.balance, 0);
-  const lines = filtered.map((b) => `  • ${b.bank}: ${b.balance.toLocaleString('en-US')} ر.س`).join('\n');
+  const lines = filtered.map((b) => `  • ${b.bank}: ${b.balance.toLocaleString('en-US')} ⃁`).join('\n');
 
   return {
     success: true,
-    message: `رصيد السيولة النقدية في البنوك (${companyId}):\n${lines}\n\n• إجمالي الأرصدة المتاحة: ${total.toLocaleString('en-US')} ر.س`,
+    message: `رصيد السيولة النقدية في البنوك (${companyId}):\n${lines}\n\n• إجمالي الأرصدة المتاحة: ${total.toLocaleString('en-US')} ⃁`,
     spokenSummary: `إجمالي السيولة النقدية المتاحة في الحسابات البنكية يبلغ ${total.toLocaleString('ar-SA')} ريال سعودي.`,
     data: { balances: filtered, total },
   };
@@ -818,7 +818,7 @@ async function executeCreateRecruitmentContract(
 
   return {
     success: true,
-    message: `تم تسجيل وتوثيق عقد استقدام مساند جديد (${contractNo}) بنجاح:\n• العميل: ${clientName}\n• الجنسية والمهنة: ${profession} (${nationality})\n• القيمة الإجمالية شاملة الضريبة: ${amount.toLocaleString('en-US')} ر.س\n• تم توليد القيد المحاسبي والفاتورة الضريبية آلياً في نظام سماك.`,
+    message: `تم تسجيل وتوثيق عقد استقدام مساند جديد (${contractNo}) بنجاح:\n• العميل: ${clientName}\n• الجنسية والمهنة: ${profession} (${nationality})\n• القيمة الإجمالية شاملة الضريبة: ${amount.toLocaleString('en-US')} ⃁\n• تم توليد القيد المحاسبي والفاتورة الضريبية آلياً في نظام سماك.`,
     spokenSummary: `تم تسجيل عقد استقدام مساند للعميل ${clientName} بقيمة ${amount.toLocaleString('ar-SA')} ريال وتوليد قيده المحاسبي تلقائياً.`,
     data: newContract,
   };
@@ -853,7 +853,7 @@ async function executeCreateRentContract(
 
   return {
     success: true,
-    message: `تم إنشاء عقد التأجير والتشغيل المرن (${contractNo}) بنجاح:\n• العميل: ${clientName}\n• نوع الباقة: ${packageType}\n• الكادر المخصص: ${workerName}\n• القيمة: ${monthlyRate.toLocaleString('en-US')} ر.س\n• تم ترحيل القيد والفاتورة الضريبية في نظام سماك.`,
+    message: `تم إنشاء عقد التأجير والتشغيل المرن (${contractNo}) بنجاح:\n• العميل: ${clientName}\n• نوع الباقة: ${packageType}\n• الكادر المخصص: ${workerName}\n• القيمة: ${monthlyRate.toLocaleString('en-US')} ⃁\n• تم ترحيل القيد والفاتورة الضريبية في نظام سماك.`,
     spokenSummary: `تم إنشاء عقد التأجير للعميل ${clientName} ضمن ${packageType} بقيمة ${monthlyRate.toLocaleString('ar-SA')} ريال سعودي.`,
     data: newRent,
   };
@@ -888,7 +888,7 @@ async function executeCreateCandidateCv(
 
   return {
     success: true,
-    message: `تم إدراج السيرة الذاتية في بنك المرشحين (ATS) برقم (${cvId}):\n• الاسم: ${candidateName}\n• الجنسية والمهنة: ${profession} — ${nationality}\n• الراتب الشهري: ${salary.toLocaleString('en-US')} ر.س\n• الحالة: متاح للتعاقد الفوري`,
+    message: `تم إدراج السيرة الذاتية في بنك المرشحين (ATS) برقم (${cvId}):\n• الاسم: ${candidateName}\n• الجنسية والمهنة: ${profession} — ${nationality}\n• الراتب الشهري: ${salary.toLocaleString('en-US')} ⃁\n• الحالة: متاح للتعاقد الفوري`,
     spokenSummary: `تم إضافة السيرة الذاتية للمرشحة ${candidateName} في بنك السير الذاتية وهي متاحة الآن للتعاقد.`,
     data: newCv,
   };
@@ -917,7 +917,7 @@ function executeCalculateEosBenefits(params: Record<string, unknown>): ToolExecu
 
   return {
     success: true,
-    message: `نتيجة حاسبة مستحقات نهاية الخدمة (وفق نظام العمل السعودي - المادتان 84 و85):\n• الراتب الشهري المعتمد: ${salary.toLocaleString('en-US')} ر.س\n• مدة الخدمة: ${years} سنوات\n• سبب الإنهاء: ${reason}\n• الاستحقاق الكامل الأساسي: ${baseAward.toLocaleString('en-US')} ر.س\n• نسبة الاستحقاق النظامية: ${Math.round(factor * 100)}%\n• صافي مكافأة نهاية الخدمة المستحقة: ${netAward.toLocaleString('en-US')} ر.س`,
+    message: `نتيجة حاسبة مستحقات نهاية الخدمة (وفق نظام العمل السعودي - المادتان 84 و85):\n• الراتب الشهري المعتمد: ${salary.toLocaleString('en-US')} ⃁\n• مدة الخدمة: ${years} سنوات\n• سبب الإنهاء: ${reason}\n• الاستحقاق الكامل الأساسي: ${baseAward.toLocaleString('en-US')} ⃁\n• نسبة الاستحقاق النظامية: ${Math.round(factor * 100)}%\n• صافي مكافأة نهاية الخدمة المستحقة: ${netAward.toLocaleString('en-US')} ⃁`,
     spokenSummary: `صافي مكافأة نهاية الخدمة المستحقة للموظف يبلغ ${netAward.toLocaleString('ar-SA')} ريال سعودي عن خدمة مدتها ${years} سنوات.`,
     data: { salary, years, reason, baseAward, netAward },
   };
@@ -1043,7 +1043,7 @@ function executeGenerateBoqPricing(
 
   return {
     success: true,
-    message: `تم تسعير البند في جدول الكميات (BOQ):\n• البند: ${item}\n• الكمية: ${qty.toLocaleString('en-US')} ${unit}\n• سعر الوحدة: ${unitPrice.toLocaleString('en-US')} ر.س\n• الإجمالي قبل الضريبة: ${subtotal.toLocaleString('en-US')} ر.س\n• ضريبة القيمة المضافة 15%: ${vat.toLocaleString('en-US')} ر.س\n• الإجمالي شامل الضريبة: ${total.toLocaleString('en-US')} ر.س`,
+    message: `تم تسعير البند في جدول الكميات (BOQ):\n• البند: ${item}\n• الكمية: ${qty.toLocaleString('en-US')} ${unit}\n• سعر الوحدة: ${unitPrice.toLocaleString('en-US')} ⃁\n• الإجمالي قبل الضريبة: ${subtotal.toLocaleString('en-US')} ⃁\n• ضريبة القيمة المضافة 15%: ${vat.toLocaleString('en-US')} ⃁\n• الإجمالي شامل الضريبة: ${total.toLocaleString('en-US')} ⃁`,
     spokenSummary: `تم تسعير بند ${item} في جدول الكميات بإجمالي ${total.toLocaleString('ar-SA')} ريال شامل الضريبة.`,
     data: { item, qty, unitPrice, subtotal, vat, total },
   };
@@ -1218,7 +1218,7 @@ function executeSearchEtmadTenders(params: Record<string, unknown>): ToolExecuti
   const matched = tenders.filter((t) => t.name.includes(query) || t.authority.includes(query) || t.id.includes(query));
   const list = matched.length > 0 ? matched : tenders;
   const lines = list
-    .map((t) => `  • [${t.id}] ${t.name}\n    الجهة: ${t.authority} | الميزانية التقديرية: ${t.budget.toLocaleString()} ر.س | الحالة: ${t.status}`)
+    .map((t) => `  • [${t.id}] ${t.name}\n    الجهة: ${t.authority} | الميزانية التقديرية: ${t.budget.toLocaleString()} ⃁ | الحالة: ${t.status}`)
     .join('\n\n');
 
   return {
@@ -1261,11 +1261,11 @@ function executeCalculateSponsorshipTransfer(params: Record<string, unknown>): T
     success: true,
     message:
       `التصفية المالية المعتمدة لنقل الخدمات:\n` +
-      `• التكلفة الأصلية للاستقدام: ${totalCost.toLocaleString()} ر.س\n` +
+      `• التكلفة الأصلية للاستقدام: ${totalCost.toLocaleString()} ⃁\n` +
       `• المدة المنقضية من العقد: ${monthsWorked} شهراً من أصل 24 شهراً (${Math.round(consumedRatio * 100)}% مستهلك)\n` +
-      `• المبلغ المستحق استرداده للكفيل السابق: ${refundToFirstSponsor.toLocaleString()} ر.س (صافي المسترد)\n` +
-      `• رسوم الإجراءات والخدمات والوساطة: ${platformFee.toLocaleString()} ر.س\n` +
-      `• عربون فترة التجربة للعميل الجديد: ${newClientDeposit.toLocaleString()} ر.س (فترة التجربة 15 يوماً).`,
+      `• المبلغ المستحق استرداده للكفيل السابق: ${refundToFirstSponsor.toLocaleString()} ⃁ (صافي المسترد)\n` +
+      `• رسوم الإجراءات والخدمات والوساطة: ${platformFee.toLocaleString()} ⃁\n` +
+      `• عربون فترة التجربة للعميل الجديد: ${newClientDeposit.toLocaleString()} ⃁ (فترة التجربة 15 يوماً).`,
     spokenSummary: `التصفية المالية لنقل الخدمات: المبلغ المستحق استرداده للكفيل السابق ${refundToFirstSponsor.toLocaleString('ar-SA')} ريال بعد احتساب استهلاك العقد.`,
     data: { totalCost, monthsWorked, refundToFirstSponsor, platformFee, newClientDeposit },
   };

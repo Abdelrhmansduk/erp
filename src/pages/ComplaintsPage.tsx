@@ -277,7 +277,7 @@ export const ComplaintsPage: React.FC = () => {
     await realErpDataStore.addRecord('payment_vouchers', newVoucher);
     addNotification({
       title: 'توليد سند صرف تسوية مالية',
-      message: `تم توليد سند الصرف رقم #${newVoucher.voucher_no} بمبلغ (1,500 ر.س) للعميل (${ticket.client_name}) وترحيله لمحاسبة SMACC.`,
+      message: `تم توليد سند الصرف رقم #${newVoucher.voucher_no} بمبلغ (1,500 ⃁) للعميل (${ticket.client_name}) وترحيله لمحاسبة SMACC.`,
       type: 'success',
     });
     setSelectedTicket(null);
@@ -470,7 +470,7 @@ export const ComplaintsPage: React.FC = () => {
                     </td>
                     <td className="p-3.5 font-mono text-zinc-600">{c.ref}</td>
                     <td className="p-3.5 text-zinc-700">{c.reason}</td>
-                    <td className="p-3.5 font-mono font-bold text-emerald-700">{c.amount.toLocaleString()} ر.س</td>
+                    <td className="p-3.5 font-mono font-bold text-emerald-700">{c.amount.toLocaleString()} ⃁</td>
                     <td className="p-3.5 font-mono text-[11px] text-zinc-600">{c.iban}</td>
                     <td className="p-3.5"><Badge text={c.status} type={c.status.includes('تم') ? 'success' : 'warning'} /></td>
                     <td className="p-3.5 text-center">
@@ -495,7 +495,7 @@ export const ComplaintsPage: React.FC = () => {
                           });
                           addNotification({
                             title: 'اعتماد الحوالة البنكية وسند الصرف',
-                            message: `تم إصدار أمر التحويل البنكي وسند الصرف للمطالبة #${c.id} بمبلغ ${c.amount.toLocaleString()} ر.س بنجاح.`,
+                            message: `تم إصدار أمر التحويل البنكي وسند الصرف للمطالبة #${c.id} بمبلغ ${c.amount.toLocaleString()} ⃁ بنجاح.`,
                             type: 'success',
                           });
                         }}
@@ -595,7 +595,7 @@ export const ComplaintsPage: React.FC = () => {
                       <div className="text-[11px] text-zinc-500">{disp.details}</div>
                     </td>
                     <td className="p-3.5 font-mono font-bold text-rose-700">
-                      {(disp.amount_claimed ?? 0) > 0 ? `${(disp.amount_claimed ?? 0).toLocaleString()} ر.س` : 'غير مالي'}
+                      {(disp.amount_claimed ?? 0) > 0 ? `${(disp.amount_claimed ?? 0).toLocaleString()} ⃁` : 'غير مالي'}
                     </td>
                     <td className="p-3.5"><Badge text={disp.priority} type={disp.priority.includes('VIP') ? 'danger' : 'warning'} /></td>
                     <td className="p-3.5">
@@ -923,7 +923,7 @@ export const ComplaintsPage: React.FC = () => {
                   <label className="block text-xs font-semibold text-zinc-700 mb-1">المبلغ المطالب به</label>
                   <input
                     type="number"
-                    placeholder="0.00 ر.س"
+                    placeholder="0.00 ⃁"
                     value={disputeForm.amount_claimed}
                     onChange={e => setDisputeForm({ ...disputeForm, amount_claimed: e.target.value })}
                     className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs font-mono text-black focus:border-black focus:outline-none"

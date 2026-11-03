@@ -194,13 +194,13 @@ export const ReportsPage: React.FC = () => {
       <div className="stat-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         <div className="card-pistachio-band" style={{ padding: '24px', borderRadius: '16px' }}>
           <span style={{ fontSize: '13px', fontWeight: 550, color: '#000000' }}>إجمالي الإيرادات المحققة</span>
-          <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#000000', marginTop: '6px', letterSpacing: '-0.02em' }}>{totalRevenue.toLocaleString()} ر.س</div>
+          <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#000000', marginTop: '6px', letterSpacing: '-0.02em' }}>{totalRevenue.toLocaleString()} ⃁</div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>نمو شهري +14.8%</span>
         </div>
 
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#000000', color: '#ffffff' }}>
           <span style={{ fontSize: '13px', fontWeight: 550, color: '#a1a1aa' }}>صافي الأرباح التشغيلية</span>
-          <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>{totalNetProfit.toLocaleString()} ر.س</div>
+          <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>{totalNetProfit.toLocaleString()} ⃁</div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>هامش ربح مجمع 57.6%</span>
         </div>
 
@@ -334,9 +334,9 @@ export const ReportsPage: React.FC = () => {
                     <td className="p-3.5 font-bold text-black">{row.name}</td>
                     <td className="p-3.5 font-mono">{row.recruitment_contracts} عقد</td>
                     <td className="p-3.5 font-mono">{row.rent_contracts} عقد</td>
-                    <td className="p-3.5 font-mono font-bold text-black">{(row.total_revenue ?? 0).toLocaleString()} ر.س</td>
-                    <td className="p-3.5 font-mono text-zinc-500">{(row.expenses ?? 0).toLocaleString()} ر.س</td>
-                    <td className="p-3.5 font-mono font-bold text-champagne-dark">{(row.net_profit ?? 0).toLocaleString()} ر.س</td>
+                    <td className="p-3.5 font-mono font-bold text-black">{(row.total_revenue ?? 0).toLocaleString()} ⃁</td>
+                    <td className="p-3.5 font-mono text-zinc-500">{(row.expenses ?? 0).toLocaleString()} ⃁</td>
+                    <td className="p-3.5 font-mono font-bold text-champagne-dark">{(row.net_profit ?? 0).toLocaleString()} ⃁</td>
                     <td className="p-3.5">
                       <Badge text={row.margin} type="success" />
                     </td>
@@ -348,9 +348,9 @@ export const ReportsPage: React.FC = () => {
                   <td className="p-3.5">الإجمالي المجمع للمجموعة</td>
                   <td className="p-3.5 font-mono">{totalRecruitment} عقد</td>
                   <td className="p-3.5 font-mono">{totalRent} عقد</td>
-                  <td className="p-3.5 font-mono">{(totalRevenue ?? 0).toLocaleString()} ر.س</td>
-                  <td className="p-3.5 font-mono">{(totalExpenses ?? 0).toLocaleString()} ر.س</td>
-                  <td className="p-3.5 font-mono text-champagne-dark">{(totalNetProfit ?? 0).toLocaleString()} ر.س</td>
+                  <td className="p-3.5 font-mono">{(totalRevenue ?? 0).toLocaleString()} ⃁</td>
+                  <td className="p-3.5 font-mono">{(totalExpenses ?? 0).toLocaleString()} ⃁</td>
+                  <td className="p-3.5 font-mono text-champagne-dark">{(totalNetProfit ?? 0).toLocaleString()} ⃁</td>
                   <td className="p-3.5"><Badge text="57.6%" type="purple" /></td>
                 </tr>
               </tfoot>
@@ -365,7 +365,7 @@ export const ReportsPage: React.FC = () => {
           <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-2">
             <div>
               <h3 className="text-sm font-bold text-black m-0">تقرير المبيعات والتعاقدات حسب القنوات وفروع المجموعة</h3>
-              <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '4px', display: 'inline-block' }}>إجمالي المبيعات: 590,400 ر.س</span>
+              <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '4px', display: 'inline-block' }}>إجمالي المبيعات: 590,400 ⃁</span>
             </div>
             <ExportDropdown
               sectionKey="sales-reports"
@@ -392,8 +392,8 @@ export const ReportsPage: React.FC = () => {
                   <tr key={idx} className="hover:bg-zinc-50">
                     <td className="p-3.5 font-bold text-black">{s.channel}</td>
                     <td className="p-3.5 font-mono">{s.count} عقد</td>
-                    <td className="p-3.5 font-mono">{s.avg.toLocaleString()} ر.س</td>
-                    <td className="p-3.5 font-mono font-bold text-champagne-dark">{s.total.toLocaleString()} ر.س</td>
+                    <td className="p-3.5 font-mono">{s.avg.toLocaleString()} ⃁</td>
+                    <td className="p-3.5 font-mono font-bold text-champagne-dark">{s.total.toLocaleString()} ⃁</td>
                     <td className="p-3.5 font-bold text-black">{s.share}</td>
                     <td className="p-3.5"><Badge text={s.conv} type="success" /></td>
                   </tr>
@@ -455,7 +455,7 @@ export const ReportsPage: React.FC = () => {
           <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-2">
             <div>
               <h3 className="text-sm font-bold text-black m-0">التقرير المالي التفصيلي وتكاليف التشغيل وهوامش الأرباح</h3>
-              <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '4px', display: 'inline-block' }}>صافي الأرباح: 340,400 ر.س</span>
+              <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '4px', display: 'inline-block' }}>صافي الأرباح: 340,400 ⃁</span>
             </div>
             <ExportDropdown
               sectionKey="financial-reports"
@@ -482,11 +482,11 @@ export const ReportsPage: React.FC = () => {
                 {financialReportData.map((row, idx) => (
                   <tr key={idx} className="hover:bg-zinc-50">
                     <td className="p-3.5 font-bold text-black">{row.item}</td>
-                    <td className="p-3.5 font-mono font-bold text-black">{row.total.toLocaleString()} ر.س</td>
-                    <td className="p-3.5 font-mono text-zinc-500">{row.vat.toLocaleString()} ر.س</td>
-                    <td className="p-3.5 font-mono text-rose-700">{row.direct.toLocaleString()} ر.س</td>
-                    <td className="p-3.5 font-mono text-zinc-600">{row.admin.toLocaleString()} ر.س</td>
-                    <td className="p-3.5 font-mono font-bold text-champagne-dark">{row.net.toLocaleString()} ر.س</td>
+                    <td className="p-3.5 font-mono font-bold text-black">{row.total.toLocaleString()} ⃁</td>
+                    <td className="p-3.5 font-mono text-zinc-500">{row.vat.toLocaleString()} ⃁</td>
+                    <td className="p-3.5 font-mono text-rose-700">{row.direct.toLocaleString()} ⃁</td>
+                    <td className="p-3.5 font-mono text-zinc-600">{row.admin.toLocaleString()} ⃁</td>
+                    <td className="p-3.5 font-mono font-bold text-champagne-dark">{row.net.toLocaleString()} ⃁</td>
                     <td className="p-3.5"><Badge text={row.status} type="success" /></td>
                   </tr>
                 ))}

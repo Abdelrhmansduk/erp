@@ -57,7 +57,7 @@ const MOCK_MESSAGES: MessageLog[] = [
     phone: '+966501234567',
     channel: 'WhatsApp',
     template: 'إشعار الفاتورة الإلكترونية ZATCA',
-    content: 'مرحباً عبدالله، تم إصدار الفاتورة الضريبية رقم SAF-INV-2026-0001 بمبلغ 13,800 ر.س معتمدة من هيئة الزكاة. رابط الفاتورة: https://alsulaim.sa/inv/9001',
+    content: 'مرحباً عبدالله، تم إصدار الفاتورة الضريبية رقم SAF-INV-2026-0001 بمبلغ 13,800 ⃁ معتمدة من هيئة الزكاة. رابط الفاتورة: https://alsulaim.sa/inv/9001',
     status: 'تم التسليم',
     cost_sar: 0.15,
     sent_at: '2026-08-17 11:20'
@@ -108,7 +108,7 @@ const MOCK_TEMPLATES: MessageTemplate[] = [
     title: 'إشعار فاتورة ZATCA Phase 2 وسند القبض',
     channel: 'كلاهما',
     category: 'مالية وفواتير',
-    text: 'تم إصدار الفاتورة الضريبية المعتمدة رقم {{invoice_no}} بمبلغ {{amount_sar}} ر.س. شكراً لتعاملكم مع مجموعة السليم.',
+    text: 'تم إصدار الفاتورة الضريبية المعتمدة رقم {{invoice_no}} بمبلغ {{amount_sar}} ⃁. شكراً لتعاملكم مع مجموعة السليم.',
     variables: ['invoice_no', 'amount_sar']
   },
   {
@@ -277,7 +277,7 @@ export const SentMessagesPage: React.FC = () => {
 
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
           <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>متوسط تكلفة الرسالة</span>
-          <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#000000', marginTop: '6px', letterSpacing: '-0.02em' }}>0.13 ر.س</div>
+          <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#000000', marginTop: '6px', letterSpacing: '-0.02em' }}>0.13 ⃁</div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>وفر 35% عبر واتساب</span>
         </div>
       </div>
@@ -415,7 +415,7 @@ export const SentMessagesPage: React.FC = () => {
                     </td>
                     <td className="p-3.5 font-semibold text-black">{row.template}</td>
                     <td className="p-3.5 max-w-xs truncate text-zinc-600" title={row.content}>{row.content}</td>
-                    <td className="p-3.5 font-mono font-bold text-champagne-dark">{(row.cost_sar ?? 0.12).toFixed(2)} ر.س</td>
+                    <td className="p-3.5 font-mono font-bold text-champagne-dark">{(row.cost_sar ?? 0.12).toFixed(2)} ⃁</td>
                     <td className="p-3.5 font-mono text-zinc-400 text-[11px]">{row.sent_at}</td>
                     <td className="p-3.5">
                       <Badge

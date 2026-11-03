@@ -95,7 +95,7 @@ export const GroupCommandCenterPage: React.FC = () => {
       <div className="stat-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         <div className="card-pistachio-band" style={{ padding: '24px', borderRadius: '16px' }}>
           <div style={{ fontSize: '13px', color: '#000000', fontWeight: 550 }}>إجمالي إيرادات المجموعة YTD</div>
-          <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#000000', marginTop: '6px', letterSpacing: '-0.02em' }}>28,500,000 ر.س</div>
+          <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#000000', marginTop: '6px', letterSpacing: '-0.02em' }}>28,500,000 ⃁</div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>+14.2% مقارنة بالعام الماضي</span>
         </div>
 
@@ -153,7 +153,7 @@ export const GroupCommandCenterPage: React.FC = () => {
                   <td className="p-3.5 font-bold text-zinc-800">{c.employeesCount} موظف</td>
                   <td className="p-3.5 font-mono">{c.activeOrdersCount} طلب</td>
                   <td className="p-3.5 font-mono font-bold text-emerald-700">
-                    {c.revenueYTD.toLocaleString('ar-SA')} ر.س
+                    {c.revenueYTD.toLocaleString('ar-SA')} ⃁
                   </td>
                   <td className="p-3.5">
                     <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-full text-[10px] font-bold">

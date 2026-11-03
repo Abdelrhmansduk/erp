@@ -263,7 +263,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5 pt-4 border-t border-white/10 text-xs">
           <div>
             <span className="text-zinc-400">إجمالي مقبوضات المجموعة</span>
-            <div className="text-base font-bold text-champagne-light font-mono mt-0.5">5,820,470 ر.س</div>
+            <div className="text-base font-bold text-champagne-light font-mono mt-0.5">5,820,470 ⃁</div>
           </div>
           <div>
             <span className="text-zinc-400">العقود السارية</span>

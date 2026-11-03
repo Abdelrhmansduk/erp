@@ -186,7 +186,7 @@ export const WorkerProfileDetailModal: React.FC<WorkerProfileDetailModalProps> =
                 <div className="bg-black/40 p-3.5 rounded-xl border border-white/5">
                   <div className="text-[11px] text-zinc-400 font-bold">الراتب الشهري</div>
                   <div className="text-base font-black text-emerald-400 mt-1 font-mono">
-                    {worker.requestedSalary?.toLocaleString('ar-SA')} ر.س
+                    {worker.requestedSalary?.toLocaleString('ar-SA')} ⃁
                   </div>
                 </div>
 
@@ -309,7 +309,7 @@ export const WorkerProfileDetailModal: React.FC<WorkerProfileDetailModalProps> =
                     <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-2">
                       <div className="text-xs font-bold text-zinc-400">التفاصيل المالية للكفيل الأول:</div>
                       <div className="text-xs text-zinc-300">
-                        المبلغ المستحق له: <strong className="text-emerald-400 font-mono">{firstSponsor.financialClaimAmount ? `${firstSponsor.financialClaimAmount.toLocaleString('ar-SA')} ر.س` : 'لا توجد مطالبات'}</strong>
+                        المبلغ المستحق له: <strong className="text-emerald-400 font-mono">{firstSponsor.financialClaimAmount ? `${firstSponsor.financialClaimAmount.toLocaleString('ar-SA')} ⃁` : 'لا توجد مطالبات'}</strong>
                       </div>
                       <div className="text-xs text-zinc-300">
                         سبب الإعادة / التنازل: <strong>{firstSponsor.returnReason || 'غير محدد'}</strong>
@@ -401,7 +401,7 @@ export const WorkerProfileDetailModal: React.FC<WorkerProfileDetailModalProps> =
 
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-zinc-300">
                           <div>المكتب المنفذ: <strong className="text-white">{execOffice?.name || t.executingOfficeId}</strong></div>
-                          <div>التكلفة المتفق عليها: <strong className="text-emerald-400 font-mono">{t.transferFee.toLocaleString('ar-SA')} ر.س</strong></div>
+                          <div>التكلفة المتفق عليها: <strong className="text-emerald-400 font-mono">{t.transferFee.toLocaleString('ar-SA')} ⃁</strong></div>
                           <div>مدة التجربة: <strong className="text-white">{t.followupDaysDuration} أيام</strong></div>
                           <div>القرار: <strong className="text-amber-300">{t.clientDecision}</strong></div>
                         </div>

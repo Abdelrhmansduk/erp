@@ -506,7 +506,7 @@ export const RecruitmentContractsPage: React.FC = () => {
 
     addNotification({
       title: 'إتمام التسوية وصرف الاسترداد',
-      message: `تم اعتماد استرجاع العقد #${ret.contract_number} وتوليد سند صرف مالي بقيمة ${refundAmt.toLocaleString()} ر.س في المحاسبة.`,
+      message: `تم اعتماد استرجاع العقد #${ret.contract_number} وتوليد سند صرف مالي بقيمة ${refundAmt.toLocaleString()} ⃁ في المحاسبة.`,
       type: 'success',
     });
   };
@@ -919,7 +919,7 @@ export const RecruitmentContractsPage: React.FC = () => {
             </div>
           </div>
           <div className="text-3xl sm:text-4xl font-extrabold text-amber-300 mt-2.5 tracking-tight font-display">
-            {((contracts.reduce((sum, c) => sum + (c.total_amount || c.amount || 0), 0) || 1610000) / 1000000).toFixed(2)}M <span className="text-base font-bold text-amber-200/80">ر.س</span>
+            {((contracts.reduce((sum, c) => sum + (c.total_amount || c.amount || 0), 0) || 1610000) / 1000000).toFixed(2)}M <span className="text-base font-bold text-amber-200/80">⃁</span>
           </div>
           <div className="mt-3.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-400/20 text-amber-200 border border-amber-400/30">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
@@ -1047,7 +1047,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                       <td className="p-3.5 font-bold text-emerald-800">{pol.company}</td>
                       <td className="p-3.5 text-zinc-600">{pol.coverage}</td>
                       <td className="p-3.5 font-mono text-zinc-500">{pol.start_date} إلى {pol.end_date}</td>
-                      <td className="p-3.5 font-mono font-bold text-black">{pol.premium_sar} ر.س</td>
+                      <td className="p-3.5 font-mono font-bold text-black">{pol.premium_sar} ⃁</td>
                       <td className="p-3.5">
                         <Badge 
                           text={pol.status} 
@@ -1402,7 +1402,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                         <div className="font-bold text-black">{c.nationality}</div>
                         <div className="text-zinc-500 text-[11px]">{c.external_office || 'مكتب خارجي معتمد'}</div>
                       </td>
-                      <td className="p-3.5 font-mono font-bold text-emerald-700">{(c.amount ?? 0).toLocaleString()} ر.س</td>
+                      <td className="p-3.5 font-mono font-bold text-emerald-700">{(c.amount ?? 0).toLocaleString()} ⃁</td>
                       <td className="p-3.5"><Badge text={c.stage} type="primary" /></td>
                       <td className="p-3.5"><Badge text={c.warranty_status} type="success" /></td>
                       <td className="p-3.5 text-center">
@@ -1443,7 +1443,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                     <h4 className="font-bold text-black text-sm mb-1">{c.client_name}</h4>
                     <p className="text-xs text-zinc-600 mb-3">{c.maid_name} - {c.nationality}</p>
                     <div className="py-2 px-3 bg-white rounded-xl text-xs font-mono font-bold text-emerald-700 mb-3 border border-zinc-200">
-                      {(c.amount ?? 0).toLocaleString()} ر.س
+                      {(c.amount ?? 0).toLocaleString()} ⃁
                     </div>
                   </div>
                   <div className="flex gap-2 pt-2 border-t border-zinc-200">
@@ -1577,7 +1577,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">مبلغ الاستقدام (ر.س)</label>
+                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">مبلغ الاستقدام (⃁)</label>
                   <input
                     type="number"
                     value={amountInput}
@@ -1692,7 +1692,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                     <div><span className="text-zinc-500 block">الجنسية:</span><strong className="text-black">{selectedContractForPrint.nationality}</strong></div>
                     <div><span className="text-zinc-500 block">المهنة:</span><strong className="text-black">عاملة منزلية شاملة</strong></div>
                     <div><span className="text-zinc-500 block">رقم جواز السفر:</span><span className="font-mono font-bold text-black">{selectedContractForPrint.maid_passport || 'EP889201'}</span></div>
-                    <div><span className="text-zinc-500 block">الراتب الشهري:</span><strong className="font-mono text-black">1,500 ر.س</strong></div>
+                    <div><span className="text-zinc-500 block">الراتب الشهري:</span><strong className="font-mono text-black">1,500 ⃁</strong></div>
                     <div><span className="text-zinc-500 block">المكتب الخارجي:</span><strong className="text-black">{selectedContractForPrint.external_office || 'وكالة إرساليات معتمدة'}</strong></div>
                     <div><span className="text-zinc-500 block">مدة الضمان النظامية:</span><strong className="text-emerald-700 font-bold">{selectedContractForPrint.warranty_status || '90 يوماً'}</strong></div>
                     <div><span className="text-zinc-500 block">التأمين على العقد:</span><strong className="text-emerald-700 font-bold">ساري لمدة 24 شهراً</strong></div>
@@ -1722,9 +1722,9 @@ export const RecruitmentContractsPage: React.FC = () => {
                     <tbody className="bg-white divide-y divide-zinc-100 font-mono">
                       <tr>
                         <td className="p-2.5 font-sans font-medium text-black">خدمات التوسط والاستقدام الشاملة</td>
-                        <td className="p-2.5 text-center">{(selectedContractForPrint.amount ?? 14500).toLocaleString()} ر.س</td>
-                        <td className="p-2.5 text-center">{((selectedContractForPrint.amount ?? 14500) * 0.15).toLocaleString()} ر.س</td>
-                        <td className="p-2.5 text-left font-bold text-emerald-700">{((selectedContractForPrint.amount ?? 14500) * 1.15).toLocaleString()} ر.س</td>
+                        <td className="p-2.5 text-center">{(selectedContractForPrint.amount ?? 14500).toLocaleString()} ⃁</td>
+                        <td className="p-2.5 text-center">{((selectedContractForPrint.amount ?? 14500) * 0.15).toLocaleString()} ⃁</td>
+                        <td className="p-2.5 text-left font-bold text-emerald-700">{((selectedContractForPrint.amount ?? 14500) * 1.15).toLocaleString()} ⃁</td>
                       </tr>
                     </tbody>
                   </table>
@@ -2034,7 +2034,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-zinc-600 font-bold">مبلغ الاسترداد التقديري (ر.س)</label>
+                    <label className="block text-zinc-600 font-bold">مبلغ الاسترداد التقديري (⃁)</label>
                     <button
                       type="button"
                       onClick={() => {
@@ -2061,7 +2061,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                         setReturnForm({
                           ...returnForm,
                           refund_amount: String(calc.netRefundAmount),
-                          notes: `${calc.legalReasonAr} [استقطاع إداري: ${calc.adminFeeDeduction} ر.س | النسبة: ${calc.refundPercentage}%]`,
+                          notes: `${calc.legalReasonAr} [استقطاع إداري: ${calc.adminFeeDeduction} ⃁ | النسبة: ${calc.refundPercentage}%]`,
                         });
                       }}
                       className="text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1 transition-all"
@@ -2198,7 +2198,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">قسط التأمين الإلزامي (ر.س)</label>
+                  <label className="block text-zinc-600 font-bold mb-1">قسط التأمين الإلزامي (⃁)</label>
                   <input
                     type="number"
                     value={insuranceForm.premium_sar}

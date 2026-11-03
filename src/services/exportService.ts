@@ -66,7 +66,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 3. عقود الاستقدام مساند
   'recruitment-contracts': {
     sectionTitle: 'سجل عقود الاستقدام المباشرة (Musaned Contracts)',
-    headers: ['رقم العقد', 'رقم مساند', 'اسم العميل', 'جوال العميل', 'اسم العاملة', 'الجنسية', 'رقم الجواز', 'المكتب الخارجي', 'المرحلة التشغيلية', 'حالة الضمان', 'حالة الدفع', 'قيمة العقد (ر.س)', 'الضريبة (15%)', 'الإجمالي (ر.س)', 'الفرع'],
+    headers: ['رقم العقد', 'رقم مساند', 'اسم العميل', 'جوال العميل', 'اسم العاملة', 'الجنسية', 'رقم الجواز', 'المكتب الخارجي', 'المرحلة التشغيلية', 'حالة الضمان', 'حالة الدفع', 'قيمة العقد (⃁)', 'الضريبة (15%)', 'الإجمالي (⃁)', 'الفرع'],
     dataMapper: (r: any) => [
       r.contract_number || r.id || '',
       r.musaned_number || '',
@@ -87,7 +87,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   },
   recruitment_contracts: {
     sectionTitle: 'سجل عقود الاستقدام المباشرة (Musaned Contracts)',
-    headers: ['رقم العقد', 'رقم مساند', 'اسم العميل', 'جوال العميل', 'اسم العاملة', 'الجنسية', 'رقم الجواز', 'المكتب الخارجي', 'المرحلة التشغيلية', 'حالة الضمان', 'حالة الدفع', 'المبلغ الأساسي (ر.س)', 'الضريبة (15%)', 'الإجمالي (ر.س)', 'الفرع'],
+    headers: ['رقم العقد', 'رقم مساند', 'اسم العميل', 'جوال العميل', 'اسم العاملة', 'الجنسية', 'رقم الجواز', 'المكتب الخارجي', 'المرحلة التشغيلية', 'حالة الضمان', 'حالة الدفع', 'المبلغ الأساسي (⃁)', 'الضريبة (15%)', 'الإجمالي (⃁)', 'الفرع'],
     dataMapper: (r: any) => [
       r.contract_number || r.id || '',
       r.musaned_number || '',
@@ -110,7 +110,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 4. عقود التأجير والتشغيل
   'rent-contracts': {
     sectionTitle: 'سجل عقود التأجير والخدمات التشغيلية',
-    headers: ['رقم عقد التأجير', 'اسم العميل', 'جوال العميل', 'العاملة المؤجرة', 'الجنسية', 'تاريخ البدء', 'تاريخ الانتهاء', 'المدة (أشهر)', 'القيمة الشهرية (ر.س)', 'الإجمالي (ر.س)', 'حالة العقد', 'حالة الدفع', 'المسوق', 'الفرع'],
+    headers: ['رقم عقد التأجير', 'اسم العميل', 'جوال العميل', 'العاملة المؤجرة', 'الجنسية', 'تاريخ البدء', 'تاريخ الانتهاء', 'المدة (أشهر)', 'القيمة الشهرية (⃁)', 'الإجمالي (⃁)', 'حالة العقد', 'حالة الدفع', 'المسوق', 'الفرع'],
     dataMapper: (r: any) => [
       r.contract_number || r.id || '',
       r.client_name || '',
@@ -130,7 +130,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   },
   rent_contracts: {
     sectionTitle: 'سجل عقود التأجير والخدمات التشغيلية',
-    headers: ['رقم عقد التأجير', 'اسم العميل', 'جوال العميل', 'العاملة المؤجرة', 'الجنسية', 'تاريخ البدء', 'تاريخ الانتهاء', 'المدة (أشهر)', 'القيمة الشهرية (ر.س)', 'الإجمالي (ر.س)', 'حالة العقد', 'حالة الدفع', 'المسوق', 'الفرع'],
+    headers: ['رقم عقد التأجير', 'اسم العميل', 'جوال العميل', 'العاملة المؤجرة', 'الجنسية', 'تاريخ البدء', 'تاريخ الانتهاء', 'المدة (أشهر)', 'القيمة الشهرية (⃁)', 'الإجمالي (⃁)', 'حالة العقد', 'حالة الدفع', 'المسوق', 'الفرع'],
     dataMapper: (r: any) => [
       r.contract_number || r.id || '',
       r.client_name || '',
@@ -188,7 +188,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 6. الفوترة الإلكترونية ZATCA
   zatca: {
     sectionTitle: 'سجل الفواتير الضريبية المعتمدة (ZATCA Phase 2)',
-    headers: ['رقم الفاتورة', 'نوع الفاتورة', 'تاريخ الإصدار', 'اسم العميل / المنشأة', 'الرقم الضريبي / الهوية', 'المبلغ قبل الضريبة (ر.س)', 'ضريبة القيمة المضافة 15% (ر.س)', 'الإجمالي شامل الضريبة (ر.س)', 'حالة الربط بهيئة الزكاة', 'رمز التحقق UUID', 'مرجع المعاملة'],
+    headers: ['رقم الفاتورة', 'نوع الفاتورة', 'تاريخ الإصدار', 'اسم العميل / المنشأة', 'الرقم الضريبي / الهوية', 'المبلغ قبل الضريبة (⃁)', 'ضريبة القيمة المضافة 15% (⃁)', 'الإجمالي شامل الضريبة (⃁)', 'حالة الربط بهيئة الزكاة', 'رمز التحقق UUID', 'مرجع المعاملة'],
     dataMapper: (r: any) => [
       r.invoice_number || r.id || '',
       r.invoice_type === 'STANDARD' ? 'ضريبية قياسية (B2B)' : r.invoice_type === 'SIMPLIFIED' ? 'ضريبية مبسطة (B2C)' : (r.invoice_type || 'مبسطة'),
@@ -205,7 +205,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   },
   zatca_invoices: {
     sectionTitle: 'سجل الفواتير الضريبية المعتمدة (ZATCA Phase 2)',
-    headers: ['رقم الفاتورة', 'نوع الفاتورة', 'تاريخ الإصدار', 'اسم العميل / المنشأة', 'الرقم الضريبي / الهوية', 'المبلغ قبل الضريبة (ر.س)', 'ضريبة القيمة المضافة 15% (ر.س)', 'الإجمالي شامل الضريبة (ر.س)', 'حالة الربط بهيئة الزكاة', 'رمز التحقق UUID', 'مرجع المعاملة'],
+    headers: ['رقم الفاتورة', 'نوع الفاتورة', 'تاريخ الإصدار', 'اسم العميل / المنشأة', 'الرقم الضريبي / الهوية', 'المبلغ قبل الضريبة (⃁)', 'ضريبة القيمة المضافة 15% (⃁)', 'الإجمالي شامل الضريبة (⃁)', 'حالة الربط بهيئة الزكاة', 'رمز التحقق UUID', 'مرجع المعاملة'],
     dataMapper: (r: any) => [
       r.invoice_number || r.id || '',
       r.invoice_type === 'STANDARD' ? 'ضريبية قياسية (B2B)' : r.invoice_type === 'SIMPLIFIED' ? 'ضريبية مبسطة (B2C)' : (r.invoice_type || 'مبسطة'),
@@ -224,7 +224,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 7. مراكز التكلفة
   cost_centers: {
     sectionTitle: 'تقرير مراكز التكلفة والمحاسبة التحليلية',
-    headers: ['كود المركز', 'اسم مركز التكلفة', 'المسؤول / المدير', 'الميزانية المعتمدة (ر.س)', 'المنصرف الفعلي (ر.س)', 'المتبقي من الميزانية (ر.س)', 'نسبة الاستهلاك %'],
+    headers: ['كود المركز', 'اسم مركز التكلفة', 'المسؤول / المدير', 'الميزانية المعتمدة (⃁)', 'المنصرف الفعلي (⃁)', 'المتبقي من الميزانية (⃁)', 'نسبة الاستهلاك %'],
     dataMapper: (r: any) => {
       const budget = r.budget || r.budget_limit || 0;
       const spent = r.actual_spent || r.total_expenses || 0;
@@ -243,7 +243,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   },
   'cost-centers': {
     sectionTitle: 'تقرير مراكز التكلفة والمحاسبة التحليلية',
-    headers: ['كود المركز', 'اسم مركز التكلفة', 'المسؤول / المدير', 'الميزانية المعتمدة (ر.س)', 'المنصرف الفعلي (ر.س)', 'المتبقي من الميزانية (ر.س)', 'نسبة الاستهلاك %'],
+    headers: ['كود المركز', 'اسم مركز التكلفة', 'المسؤول / المدير', 'الميزانية المعتمدة (⃁)', 'المنصرف الفعلي (⃁)', 'المتبقي من الميزانية (⃁)', 'نسبة الاستهلاك %'],
     dataMapper: (r: any) => {
       const budget = r.budget || r.budget_limit || 0;
       const spent = r.actual_spent || r.total_expenses || 0;
@@ -264,7 +264,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 8. الموارد البشرية والرواتب
   employees: {
     sectionTitle: 'سجل الموظفين والكوادر الوظيفية',
-    headers: ['الرقم الوظيفي', 'اسم الموظف', 'رقم الهوية / الإقامة', 'المسمى الوظيفي', 'القسم / الإدارة', 'الفرع', 'تاريخ التعيين', 'الراتب الأساسي', 'بدل السكن', 'بدل النقل', 'إجمالي الراتب (ر.س)', 'الحالة'],
+    headers: ['الرقم الوظيفي', 'اسم الموظف', 'رقم الهوية / الإقامة', 'المسمى الوظيفي', 'القسم / الإدارة', 'الفرع', 'تاريخ التعيين', 'الراتب الأساسي', 'بدل السكن', 'بدل النقل', 'إجمالي الراتب (⃁)', 'الحالة'],
     dataMapper: (r: any) => {
       const sal = r.salary || 0;
       const basic = r.basic_salary || (sal * 0.7);
@@ -290,7 +290,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 9. مسير الرواتب المعتمد لحماية الأجور WPS
   payroll: {
     sectionTitle: 'مسير الرواتب المعتمد لحماية الأجور (WPS Payroll)',
-    headers: ['رقم الهوية / الإقامة', 'اسم الموظف', 'اسم البنك', 'رقم الآيبان (IBAN)', 'الراتب الأساسي', 'بدل السكن', 'بدل النقل', 'استقطاع التأمينات (GOSI 9.75%)', 'صافي الراتب المحول (ر.س)', 'حالة الصرف'],
+    headers: ['رقم الهوية / الإقامة', 'اسم الموظف', 'اسم البنك', 'رقم الآيبان (IBAN)', 'الراتب الأساسي', 'بدل السكن', 'بدل النقل', 'استقطاع التأمينات (GOSI 9.75%)', 'صافي الراتب المحول (⃁)', 'حالة الصرف'],
     dataMapper: (r: any) => {
       const sal = r.salary || 0;
       const basic = sal * 0.7;
@@ -316,7 +316,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 10. القيود اليومية المحاسبية
   journals: {
     sectionTitle: 'تقرير القيود المحاسبية اليومية المعتمدة',
-    headers: ['رقم القيد', 'تاريخ القيد', 'البيان والشرح', 'المبلغ (ر.س)', 'حالة القيد', 'الفرع', 'الطرف المدين', 'الطرف الدائن'],
+    headers: ['رقم القيد', 'تاريخ القيد', 'البيان والشرح', 'المبلغ (⃁)', 'حالة القيد', 'الفرع', 'الطرف المدين', 'الطرف الدائن'],
     dataMapper: (r: any) => [
       r.ref_no || r.entry_number || r.id || '',
       r.date || r.entry_date || '',
@@ -330,7 +330,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   },
   company_journal_entries: {
     sectionTitle: 'تقرير القيود المحاسبية اليومية المعتمدة',
-    headers: ['رقم القيد', 'تاريخ القيد', 'البيان والشرح', 'المبلغ (ر.س)', 'حالة القيد', 'الفرع'],
+    headers: ['رقم القيد', 'تاريخ القيد', 'البيان والشرح', 'المبلغ (⃁)', 'حالة القيد', 'الفرع'],
     dataMapper: (r: any) => [
       r.ref_no || r.entry_number || r.id || '',
       r.date || r.entry_date || '',
@@ -344,7 +344,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 11. السندات المحاسبية (قبض وصرف)
   vouchers: {
     sectionTitle: 'سجل السندات المالية (سندات القبض وسندات الصرف)',
-    headers: ['رقم السند', 'نوع السند', 'المستفيد / العميل', 'المبلغ (ر.س)', 'طريقة الدفع', 'البيان المحاسبي', 'تاريخ الإصدار', 'الفرع'],
+    headers: ['رقم السند', 'نوع السند', 'المستفيد / العميل', 'المبلغ (⃁)', 'طريقة الدفع', 'البيان المحاسبي', 'تاريخ الإصدار', 'الفرع'],
     dataMapper: (r: any) => [
       r.voucher_number || r.voucher_no || r.id || '',
       r.type || '',
@@ -360,7 +360,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 12. التحويلات البنكية والنقدية
   transfers: {
     sectionTitle: 'تقرير التحويلات النقدية والبنكية بين الحسابات',
-    headers: ['رقم التحويل', 'تاريخ التحويل', 'من حساب', 'إلى حساب', 'المبلغ المحول (ر.س)', 'المرجع البنكي', 'الحالة'],
+    headers: ['رقم التحويل', 'تاريخ التحويل', 'من حساب', 'إلى حساب', 'المبلغ المحول (⃁)', 'المرجع البنكي', 'الحالة'],
     dataMapper: (r: any) => [
       r.transfer_no || r.id || '',
       r.date || '',
@@ -375,7 +375,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 13. ميزان المراجعة (Trial Balance)
   'trial-balance': {
     sectionTitle: 'ميزان المراجعة بالأرصدة والمجاميع (Trial Balance)',
-    headers: ['رمز الحساب', 'اسم الحساب المحاسبي', 'نوع الحساب', 'الرصيد الافتتاحي (مدين)', 'الرصيد الافتتاحي (دائن)', 'حركة الفترة (مدين)', 'حركة الفترة (دائن)', 'الرصيد النهائي (ر.س)'],
+    headers: ['رمز الحساب', 'اسم الحساب المحاسبي', 'نوع الحساب', 'الرصيد الافتتاحي (مدين)', 'الرصيد الافتتاحي (دائن)', 'حركة الفترة (مدين)', 'حركة الفترة (دائن)', 'الرصيد النهائي (⃁)'],
     dataMapper: (r: any) => [
       r.code || r.account_code || '',
       r.name || r.account_name || '',
@@ -391,7 +391,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 14. قائمة المركز المالي (Balance Sheet)
   'balance-sheet': {
     sectionTitle: 'قائمة المركز المالي الموحدة (Statement of Financial Position)',
-    headers: ['البند الرئيسي', 'الحساب الفرعي', 'القيمة المقارنة (ر.س)', 'القيمة الحالية (ر.س)', 'نسبة الإجمالي %'],
+    headers: ['البند الرئيسي', 'الحساب الفرعي', 'القيمة المقارنة (⃁)', 'القيمة الحالية (⃁)', 'نسبة الإجمالي %'],
     dataMapper: (r: any) => [
       r.main_category || r.type || '',
       r.item_name || r.name || '',
@@ -404,7 +404,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 15. قائمة الدخل والأرباح (Income Statement)
   'income-statement': {
     sectionTitle: 'قائمة الدخل والأرباح والخسائر (Income Statement)',
-    headers: ['البند المالي', 'التصنيف', 'إجمالي الفترة (ر.س)', 'الموازنة التقديرية (ر.س)', 'نسبة الانحراف %'],
+    headers: ['البند المالي', 'التصنيف', 'إجمالي الفترة (⃁)', 'الموازنة التقديرية (⃁)', 'نسبة الانحراف %'],
     dataMapper: (r: any) => [
       r.title || r.name || '',
       r.category || r.type || '',
@@ -645,7 +645,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 29. عقود الاستقدام المباشرة
   contracts: {
     sectionTitle: 'سجل عقود الاستقدام المباشرة (Musaned Contracts)',
-    headers: ['رقم العقد', 'رقم مساند', 'اسم العميل', 'جوال العميل', 'اسم العاملة', 'الجنسية', 'المكتب الخارجي', 'المرحلة التشغيلية', 'قيمة العقد (ر.س)', 'الضريبة (15%)', 'الإجمالي (ر.س)', 'الفرع'],
+    headers: ['رقم العقد', 'رقم مساند', 'اسم العميل', 'جوال العميل', 'اسم العاملة', 'الجنسية', 'المكتب الخارجي', 'المرحلة التشغيلية', 'قيمة العقد (⃁)', 'الضريبة (15%)', 'الإجمالي (⃁)', 'الفرع'],
     dataMapper: (r: any) => [
       r.contract_number || r.id || '',
       r.musaned_number || '',
@@ -665,7 +665,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 30. تقارير الأداء التنفيذي الموحد
   'executive-reports': {
     sectionTitle: 'تقرير الأداء المالي والتشغيلي المقارن لشركات المجموعة',
-    headers: ['الشركة / الكيان', 'عقود الاستقدام', 'عقود التأجير', 'إجمالي الإيرادات (ر.س)', 'المصروفات والتكاليف (ر.س)', 'صافي الأرباح (ر.س)', 'هامش الربح'],
+    headers: ['الشركة / الكيان', 'عقود الاستقدام', 'عقود التأجير', 'إجمالي الإيرادات (⃁)', 'المصروفات والتكاليف (⃁)', 'صافي الأرباح (⃁)', 'هامش الربح'],
     dataMapper: (r: any) => [
       r.name || '',
       r.recruitment_contracts || 0,
@@ -678,7 +678,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   },
   executive_reports: {
     sectionTitle: 'تقرير الأداء المالي والتشغيلي المقارن لشركات المجموعة',
-    headers: ['الشركة / الكيان', 'عقود الاستقدام', 'عقود التأجير', 'إجمالي الإيرادات (ر.س)', 'المصروفات والتكاليف (ر.س)', 'صافي الأرباح (ر.س)', 'هامش الربح'],
+    headers: ['الشركة / الكيان', 'عقود الاستقدام', 'عقود التأجير', 'إجمالي الإيرادات (⃁)', 'المصروفات والتكاليف (⃁)', 'صافي الأرباح (⃁)', 'هامش الربح'],
     dataMapper: (r: any) => [
       r.name || '',
       r.recruitment_contracts || 0,
@@ -693,7 +693,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 31. تقارير المبيعات والتعاقدات
   'sales-reports': {
     sectionTitle: 'تقرير المبيعات والتعاقدات حسب القنوات وفروع المجموعة',
-    headers: ['قناة البيع / الفرع', 'عدد العقود', 'متوسط قيمة العقد (ر.س)', 'إجمالي المبيعات (ر.س)', 'نسبة المساهمة', 'معدل التحويل'],
+    headers: ['قناة البيع / الفرع', 'عدد العقود', 'متوسط قيمة العقد (⃁)', 'إجمالي المبيعات (⃁)', 'نسبة المساهمة', 'معدل التحويل'],
     dataMapper: (r: any) => [
       r.channel || '',
       r.count || 0,
@@ -705,7 +705,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   },
   sales_reports: {
     sectionTitle: 'تقرير المبيعات والتعاقدات حسب القنوات وفروع المجموعة',
-    headers: ['قناة البيع / الفرع', 'عدد العقود', 'متوسط قيمة العقد (ر.س)', 'إجمالي المبيعات (ر.س)', 'نسبة المساهمة', 'معدل التحويل'],
+    headers: ['قناة البيع / الفرع', 'عدد العقود', 'متوسط قيمة العقد (⃁)', 'إجمالي المبيعات (⃁)', 'نسبة المساهمة', 'معدل التحويل'],
     dataMapper: (r: any) => [
       r.channel || '',
       r.count || 0,
@@ -745,7 +745,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 33. التقارير المالية وهوامش الأرباح
   'financial-reports': {
     sectionTitle: 'التقرير المالي التفصيلي وتكاليف التشغيل وهوامش الأرباح',
-    headers: ['بند الإيراد / التكلفة', 'المبلغ الإجمالي (ر.س)', 'الضريبة 15% (ر.س)', 'التكلفة المباشرة للوكالات (ر.س)', 'المصروفات الإدارية (ر.س)', 'صافي العائد (ر.س)', 'الحالة المحاسبية'],
+    headers: ['بند الإيراد / التكلفة', 'المبلغ الإجمالي (⃁)', 'الضريبة 15% (⃁)', 'التكلفة المباشرة للوكالات (⃁)', 'المصروفات الإدارية (⃁)', 'صافي العائد (⃁)', 'الحالة المحاسبية'],
     dataMapper: (r: any) => [
       r.item || '',
       r.total || 0,
@@ -758,7 +758,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   },
   financial_reports: {
     sectionTitle: 'التقرير المالي التفصيلي وتكاليف التشغيل وهوامش الأرباح',
-    headers: ['بند الإيراد / التكلفة', 'المبلغ الإجمالي (ر.س)', 'الضريبة 15% (ر.س)', 'التكلفة المباشرة للوكالات (ر.س)', 'المصروفات الإدارية (ر.س)', 'صافي العائد (ر.س)', 'الحالة المحاسبية'],
+    headers: ['بند الإيراد / التكلفة', 'المبلغ الإجمالي (⃁)', 'الضريبة 15% (⃁)', 'التكلفة المباشرة للوكالات (⃁)', 'المصروفات الإدارية (⃁)', 'صافي العائد (⃁)', 'الحالة المحاسبية'],
     dataMapper: (r: any) => [
       r.item || '',
       r.total || 0,
@@ -782,7 +782,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   },
   cvs: {
     sectionTitle: 'سجل بنك السير الذاتية المعتمدة (استقدام وتأجير)',
-    headers: ['كود السيرة', 'اسم العاملة (إنجليزي)', 'اسم العاملة (عربي)', 'الجنسية', 'المهنة', 'النوع', 'العمر', 'الديانة', 'الراتب (ر.س)', 'المكتب الخارجي', 'رقم الجواز', 'الحالة'],
+    headers: ['كود السيرة', 'اسم العاملة (إنجليزي)', 'اسم العاملة (عربي)', 'الجنسية', 'المهنة', 'النوع', 'العمر', 'الديانة', 'الراتب (⃁)', 'المكتب الخارجي', 'رقم الجواز', 'الحالة'],
     dataMapper: (r: any) => [
       r.cv_code || r.code || r.id || '',
       r.maid_name || r.name || r.full_name_en || '',
@@ -800,7 +800,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   },
   agency_candidates: {
     sectionTitle: 'سجل مرشحي الوكالات الخارجية وسير الاستقدام',
-    headers: ['كود السيرة', 'اسم المرشحة', 'رقم الجواز', 'الجنسية', 'المهنة', 'العمر', 'الوكالة المصدرة', 'حالة التأشيرة', 'حالة الطيران', 'العمولة ($)', 'المقابل بالريال (ر.س)', 'حالة السداد'],
+    headers: ['كود السيرة', 'اسم المرشحة', 'رقم الجواز', 'الجنسية', 'المهنة', 'العمر', 'الوكالة المصدرة', 'حالة التأشيرة', 'حالة الطيران', 'العمولة ($)', 'المقابل بالريال (⃁)', 'حالة السداد'],
     dataMapper: (r: any) => [
       r.id || '',
       r.maidName || r.maid_name || '',
@@ -818,7 +818,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   },
   inventory_assets: {
     sectionTitle: 'سجل الأصول والمستودعات والمخزون',
-    headers: ['كود الصنف / الأصل', 'اسم الصنف', 'التصنيف', 'الكمية المتوفرة', 'سعر الوحدة (ر.س)', 'القيمة الإجمالية (ر.س)', 'المستودع / الموقع', 'الحالة'],
+    headers: ['كود الصنف / الأصل', 'اسم الصنف', 'التصنيف', 'الكمية المتوفرة', 'سعر الوحدة (⃁)', 'القيمة الإجمالية (⃁)', 'المستودع / الموقع', 'الحالة'],
     dataMapper: (r: any) => [
       r.code || r.item_code || r.id || '',
       r.name || r.item_name || '',
@@ -832,7 +832,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   },
   financial_requests: {
     sectionTitle: 'سجل الطلبات المالية وسندات الصرف والقبض',
-    headers: ['رقم الطلب', 'نوع السند', 'المستفيد', 'المبلغ (ر.س)', 'طريقة الدفع', 'البيان والتفاصيل', 'الحالة', 'تاريخ الإنشاء'],
+    headers: ['رقم الطلب', 'نوع السند', 'المستفيد', 'المبلغ (⃁)', 'طريقة الدفع', 'البيان والتفاصيل', 'الحالة', 'تاريخ الإنشاء'],
     dataMapper: (r: any) => [
       r.voucher_number || r.id || '',
       r.voucher_type || r.type || 'سند صرف',
@@ -846,7 +846,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   },
   sponsorship_transfers: {
     sectionTitle: 'سجل طلبات نقل الكفالة والتنازل',
-    headers: ['رقم الطلب', 'اسم العاملة', 'الجنسية', 'الكفيل الحالي', 'الكفيل الجديد', 'المبلغ المطلوب (ر.س)', 'حالة التنازل', 'تاريخ الطلب'],
+    headers: ['رقم الطلب', 'اسم العاملة', 'الجنسية', 'الكفيل الحالي', 'الكفيل الجديد', 'المبلغ المطلوب (⃁)', 'حالة التنازل', 'تاريخ الطلب'],
     dataMapper: (r: any) => [
       r.id || r.transfer_number || '',
       r.maid_name || r.worker_name || '',
@@ -860,7 +860,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   },
   'sponsorship-transfer': {
     sectionTitle: 'سجل طلبات نقل الكفالة والتنازل',
-    headers: ['رقم الطلب', 'اسم العاملة', 'الجنسية', 'الكفيل الحالي', 'الكفيل الجديد', 'المبلغ المطلوب (ر.س)', 'حالة التنازل', 'تاريخ الطلب'],
+    headers: ['رقم الطلب', 'اسم العاملة', 'الجنسية', 'الكفيل الحالي', 'الكفيل الجديد', 'المبلغ المطلوب (⃁)', 'حالة التنازل', 'تاريخ الطلب'],
     dataMapper: (r: any) => [
       r.id || r.transfer_number || '',
       r.maid_name || r.worker_name || '',
@@ -876,7 +876,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 34. سجل العمليات الحية المنفذة للموظفين (28 موظفاً)
   employee_executed_ops: {
     sectionTitle: 'سجل العمليات الحية المنفذة لموظفي المجموعة والفروع',
-    headers: ['الرقم المرجعي', 'اسم الموظف', 'المسمى الوظيفي', 'الشركة / الكيان', 'القسم الإداري', 'الفرع الجغرافي', 'العملية المنفذة', 'الأثر المالي (ر.س)', 'حالة الاعتماد', 'توقيت التنفيذ'],
+    headers: ['الرقم المرجعي', 'اسم الموظف', 'المسمى الوظيفي', 'الشركة / الكيان', 'القسم الإداري', 'الفرع الجغرافي', 'العملية المنفذة', 'الأثر المالي (⃁)', 'حالة الاعتماد', 'توقيت التنفيذ'],
     dataMapper: (r: any) => [
       r.reference_no || r.id || '',
       r.staff_name || r.user_name || '',
@@ -913,7 +913,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 36. المنافسات الحكومية وجداول الكميات (شركة كاس - اعتماد)
   tenders_boq: {
     sectionTitle: 'كشف المنافسات الحكومية وجداول الكميات والتسعير (منصة اعتماد - كاس)',
-    headers: ['رقم المنافسة / الكراسة', 'اسم المشروع / المنافسة', 'الجهة الحكومية', 'قيمة العطاء (ر.س)', 'الضريبة 15% (ر.س)', 'الإجمالي شامل الضريبة (ر.س)', 'قيمة الضمان الابتدائي (ر.س)', 'نسبة الإنجاز / الترسية', 'المهندس المسؤول', 'الحالة'],
+    headers: ['رقم المنافسة / الكراسة', 'اسم المشروع / المنافسة', 'الجهة الحكومية', 'قيمة العطاء (⃁)', 'الضريبة 15% (⃁)', 'الإجمالي شامل الضريبة (⃁)', 'قيمة الضمان الابتدائي (⃁)', 'نسبة الإنجاز / الترسية', 'المهندس المسؤول', 'الحالة'],
     dataMapper: (r: any) => {
       const val = Number(r.total_value || r.amount || r.bid_amount || r.budget || 0);
       const vat = Number(r.vat_amount || Math.round(val * 0.15));
@@ -933,7 +933,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   },
   'tenders-boq': {
     sectionTitle: 'كشف المنافسات الحكومية وجداول الكميات والتسعير (منصة اعتماد - كاس)',
-    headers: ['رقم المنافسة / الكراسة', 'اسم المشروع / المنافسة', 'الجهة الحكومية', 'قيمة العطاء (ر.س)', 'الضريبة 15% (ر.س)', 'الإجمالي شامل الضريبة (ر.س)', 'قيمة الضمان الابتدائي (ر.س)', 'نسبة الإنجاز / الترسية', 'المهندس المسؤول', 'الحالة'],
+    headers: ['رقم المنافسة / الكراسة', 'اسم المشروع / المنافسة', 'الجهة الحكومية', 'قيمة العطاء (⃁)', 'الضريبة 15% (⃁)', 'الإجمالي شامل الضريبة (⃁)', 'قيمة الضمان الابتدائي (⃁)', 'نسبة الإنجاز / الترسية', 'المهندس المسؤول', 'الحالة'],
     dataMapper: (r: any) => {
       const val = Number(r.total_value || r.amount || r.bid_amount || r.budget || 0);
       const vat = Number(r.vat_amount || Math.round(val * 0.15));
@@ -955,7 +955,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 37. المكاتب والوكالات الخارجية الدولية
   offices: {
     sectionTitle: 'سجل المكاتب والوكالات الخارجية الدولية وكشوف حساباتها',
-    headers: ['كود المكتب', 'اسم الوكالة الخارجية', 'الدولة', 'المدير المسؤول / الوكيل', 'رقم الترخيص الدولي', 'عدد السير المرسلة', 'العقود النشطة', 'عمولة العقد ($)', 'إجمالي المستحقات (ر.س)', 'الحالة'],
+    headers: ['كود المكتب', 'اسم الوكالة الخارجية', 'الدولة', 'المدير المسؤول / الوكيل', 'رقم الترخيص الدولي', 'عدد السير المرسلة', 'العقود النشطة', 'عمولة العقد ($)', 'إجمالي المستحقات (⃁)', 'الحالة'],
     dataMapper: (r: any) => [
       r.code || r.id || '',
       r.name || r.office_name || r.agency_name || '',
@@ -973,7 +973,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 38. الشؤون القانونية والحوكمة والامتثال
   legal_compliance: {
     sectionTitle: 'سجل القضايا واللوائح القانونية والامتثال المؤسسي',
-    headers: ['رقم الملف القانوني', 'عنوان القضية / اللائحة', 'الجهة القضائية / الرقابية', 'الأطراف المعنية', 'قيمة المطالبة (ر.س)', 'المحامي / المستشار المكلف', 'موعد الجلسة / المراجعة', 'مستوى الأولوية', 'الحالة'],
+    headers: ['رقم الملف القانوني', 'عنوان القضية / اللائحة', 'الجهة القضائية / الرقابية', 'الأطراف المعنية', 'قيمة المطالبة (⃁)', 'المحامي / المستشار المكلف', 'موعد الجلسة / المراجعة', 'مستوى الأولوية', 'الحالة'],
     dataMapper: (r: any) => [
       r.case_number || r.id || '',
       r.title || r.subject || '',
@@ -1027,33 +1027,33 @@ export const ARABIC_FIELD_DICTIONARY: Record<string, string> = {
   category: 'الفئة',
   priority: 'الأولوية',
   severity: 'مستوى الأهمية',
-  amount: 'المبلغ (ر.س)',
-  amount_sar: 'المبلغ المالي (ر.س)',
-  subtotal: 'المبلغ قبل الضريبة (ر.س)',
-  vat: 'ضريبة القيمة المضافة 15% (ر.س)',
-  vat_amount: 'ضريبة القيمة المضافة 15% (ر.س)',
-  tax_amount: 'قيمة الضريبة 15% (ر.س)',
-  total: 'الإجمالي العام (ر.س)',
-  total_amount: 'الإجمالي شامل الضريبة (ر.س)',
-  total_cost: 'التكلفة الإجمالية (ر.س)',
-  total_debit: 'إجمالي المدين (ر.س)',
-  total_credit: 'إجمالي الدائن (ر.س)',
-  debit: 'مدين (ر.س)',
-  credit: 'دائن (ر.س)',
-  balance: 'الرصيد (ر.س)',
-  salary: 'الراتب الإجمالي (ر.س)',
-  basic_salary: 'الراتب الأساسي (ر.س)',
-  housing: 'بدل السكن (ر.س)',
-  transport: 'بدل النقل (ر.س)',
-  allowances: 'البدلات (ر.س)',
-  deductions: 'الاستقطاعات (ر.س)',
-  net_salary: 'صافي الراتب (ر.س)',
-  monthly_cost: 'القيمة الشهرية (ر.س)',
-  budget: 'الموازنة المعتمدة (ر.س)',
-  actual_spent: 'المنصرف الفعلي (ر.س)',
-  price: 'السعر (ر.س)',
-  unit_price: 'سعر الوحدة (ر.س)',
-  cost: 'التكلفة (ر.س)',
+  amount: 'المبلغ (⃁)',
+  amount_sar: 'المبلغ المالي (⃁)',
+  subtotal: 'المبلغ قبل الضريبة (⃁)',
+  vat: 'ضريبة القيمة المضافة 15% (⃁)',
+  vat_amount: 'ضريبة القيمة المضافة 15% (⃁)',
+  tax_amount: 'قيمة الضريبة 15% (⃁)',
+  total: 'الإجمالي العام (⃁)',
+  total_amount: 'الإجمالي شامل الضريبة (⃁)',
+  total_cost: 'التكلفة الإجمالية (⃁)',
+  total_debit: 'إجمالي المدين (⃁)',
+  total_credit: 'إجمالي الدائن (⃁)',
+  debit: 'مدين (⃁)',
+  credit: 'دائن (⃁)',
+  balance: 'الرصيد (⃁)',
+  salary: 'الراتب الإجمالي (⃁)',
+  basic_salary: 'الراتب الأساسي (⃁)',
+  housing: 'بدل السكن (⃁)',
+  transport: 'بدل النقل (⃁)',
+  allowances: 'البدلات (⃁)',
+  deductions: 'الاستقطاعات (⃁)',
+  net_salary: 'صافي الراتب (⃁)',
+  monthly_cost: 'القيمة الشهرية (⃁)',
+  budget: 'الموازنة المعتمدة (⃁)',
+  actual_spent: 'المنصرف الفعلي (⃁)',
+  price: 'السعر (⃁)',
+  unit_price: 'سعر الوحدة (⃁)',
+  cost: 'التكلفة (⃁)',
   client_name: 'اسم العميل',
   client_phone: 'جوال العميل',
   client_national_id: 'هوية العميل',
@@ -1653,9 +1653,16 @@ export function generateExecutiveReportHtml(
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
       <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
       <style>
+        @font-face {
+          font-family: 'saudi_riyal';
+          src: url('data:font/woff2;base64,d09GMgABAAAAAAT0AA0AAAAAC2QAAASeAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP0ZGVE0cGhgGYACCZhEICocEhXcLGgABNgIkAzAEIAWHLgeBBRvVCSCOwnEvSojJ5ORhKiWep9/bPPc32mdnUaW+wXeJKlVIJCg8CIfcQWViVHSETJeZqNqErgZPp/28VaAy13pTkXvNQZv4IHCbHD9In+dyevP5Cfy7K+slmC3ybGwuLx2T18L1PKA2pnPbFCvQCdbLLSJq0N0AB31thACv29f9APD1k6ZUJ0tAD4aoQDO8bhmyFC1UI+oCuAO15AO2Q8G5MwSqDefwClCi9Be6wX9nQPsMEKAeA1AQUIMaLCGACzQCljAqQE+OwoCjcu0D6kv8/x/sl6sfkIpP/3/9/WpgdgoEQAeYoIR0QACkAlSghuJ31w3LAXyr/P+vAvSAOTCAzAK5B6CBQzRNhcGgGoYLL+dYrlnFKgu9iOcEj646uXaI2W3sJ9lTI4EetCRQAgulmH6SYMZBziQb1xBipCaQaS6l0vWRWr1q1aFDnTA52r1fr8fUTpXKWvLQ4KnSwb0+PppFHxtVC1at2uXrO9JOSIUWTzV+QWdXLT0K2uhG0jpJEiZs6WjSR9KuG9Zv1u+P2q1UujpcsT1L3dNzqhQszNevVtPHSYnHKlXoGEWtDpi6yX/duUgVJGGvzwIypcpt/Ni4Jly1atcq32n6zc+V4+ld7k6gz53h7vgOHLKN10L3KkUS7kouYUcPhGVony1zOi//ctkTdm/3kAqubk+P0MptoSFlXH1d5ZyIwuAyWX7+z+picypWzAjs1xCbVaGJLgqt5qqbqg/Y6ntEjm76aneF9Yjvano5HXrdrjSkllfHmVOk+o/IY8O89mBNc9Lbwcoe28z7DRmFzSmN4wbrT5X+B/E2SdMQn2S1PFaUu1OkJfIXKxVt+w1pFa2xjdll47yrvsvczl7/4ETotcmj56Zkzxs3b+7w0ZMNx9wX7srQ8rIsghhH+yj839cG7rwS/FVUQnWXgYUdjUP+HL5C8fybvBJ6ZQRWMKOhfsi7ZqHZEz4e3TZxMtEqXR8kGN0n/5/a9jk9IKKiFlmPtlWvYKy8rF34efCtxR9snP0uNWnu7Jj8kj9HHV1INdJDNT2jhozoFXwqYPLE+VjfWDBpsq7FUrJmU3brXPVwppI6gm8PCAjcX9RU3FdX8KtcJcczkIBc+4K9C8ZdxNPL/LtD9KcF19fLgOpBtODVPMNO+5d0/C2p2BEBPefddskgYA8Aa9mMABgKQwChUg9RkbGjprcJDW9v0SJ+QccrQRhDkk6Os7mYoEtPTCIZQk6xo9ALyCFMI3lIDtjnGFLlm9EzZJUcNNIoAAUACL10ULSMoCUYAkaUk2BRfgAnwm+QoZJMytlMKIQkH0pUBpAqdhjUMjIGGlTuklr2MTzoI92UJ23+wONVGmQ40WC8UgM5iCwsRBYopXLQcHEwXzrQIVosogW4IRrFwqmv4ZzGEQ2Em8tRFmff4c5x4kDgmpXdKAOJhsMnRWOAIg8/SVZ+YGXZ5ee18vMkZYbYopod2PHxMh22lbggxy4aiTp8UzunkRxGMUliNsQgyayTKk8k+l05RzpGmT7YjNb5FSWKKTxHRVTCPj0ISoRIUaJDEZowhCWctufXnHPwkJG/e0pZDQA=') format('woff2');
+          font-weight: 100 900;
+          font-style: normal;
+          unicode-range: U+20C1, U+E900;
+        }
         * { box-sizing: border-box; }
         body {
-          font-family: 'Tajawal', 'Cairo', 'Inter', system-ui, -apple-system, sans-serif;
+          font-family: 'saudi_riyal', 'Tajawal', 'Cairo', 'Inter', system-ui, -apple-system, sans-serif;
           margin: 0;
           padding: 24px;
           color: #1D2428;
@@ -2144,12 +2151,12 @@ export function generateExecutiveReportHtml(
         ${kpis.hasFinancials && kpis.totalAmount > 0 ? `
         <div class="kpi-box emerald">
           <div class="label">إجمالي القيمة المالية المعتمدة</div>
-          <div class="val emerald">${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style="font-size: 11px;">ر.س</span></div>
+          <div class="val emerald">${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style="font-size: 11px;">⃁</span></div>
           <div class="note">إجمالي الحركة المالية للكشف</div>
         </div>
         <div class="kpi-box gold">
           <div class="label">ضريبة القيمة المضافة (15%)</div>
-          <div class="val gold">${kpis.totalVat.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style="font-size: 11px;">ر.س</span></div>
+          <div class="val gold">${kpis.totalVat.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style="font-size: 11px;">⃁</span></div>
           <div class="note">مفوترة وفق معايير ZATCA Phase 2</div>
         </div>
         ` : `
@@ -2179,7 +2186,7 @@ export function generateExecutiveReportHtml(
           <span style="color: #8C681E; margin-left: 6px;">التفقيط المالي المعتمد بالحروف:</span>
           <span>${kpis.tafqeetAr}</span>
         </div>
-        <span style="font-family: monospace; font-size: 11px; color: #047857;">SAR ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+        <span style="font-family: 'saudi_riyal', monospace; font-size: 11px; color: #047857;">\u200E\u20C1 ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
       </div>
       ` : ''}
 
@@ -2412,8 +2419,8 @@ export function exportToExcel(
     [],
     ['ملخص المؤشرات المالية والتشغيلية (KPI Summary)', 'القيمة المعتمدة'],
     ['إجمالي عدد السجلات المدققة', `${kpis.recordCount} سجل`],
-    ['إجمالي القيمة المالية (ر.س)', kpis.totalAmount],
-    ['ضريبة القيمة المضافة التقديرية 15% (ر.س)', kpis.totalVat],
+    ['إجمالي القيمة المالية (⃁)', kpis.totalAmount],
+    ['ضريبة القيمة المضافة التقديرية 15% (⃁)', kpis.totalVat],
     ['التفقيط المالي المعتمد بالحروف', kpis.tafqeetAr],
     [],
     ['مصفوفة الاعتمادات والتواقيع الرسمية', 'المسؤول المعتمد', 'الحالة والتاريخ'],
@@ -2929,7 +2936,7 @@ export function exportToWord(
         </div>
         ${kpis.hasFinancials && kpis.totalAmount > 0 ? `
         <div style="background-color: #FBF8F1; border: 1pt solid #CFA64A; padding: 6px 10px; font-size: 10pt; font-weight: bold; color: #1D2428; margin-top: 6px;">
-          الإجمالي المالي المعتمد: ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} ر.س — (${kpis.tafqeetAr})
+          الإجمالي المالي المعتمد: ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} ⃁ — (${kpis.tafqeetAr})
         </div>
         ` : ''}
       </div>
@@ -3152,8 +3159,8 @@ export function exportToMarkdown(
   md += `### ملخص المؤشرات التنفيذية (Executive KPIs)\n`;
   md += `- **إجمالي السجلات المدققة**: ${kpis.recordCount} سجل\n`;
   if (kpis.hasFinancials && kpis.totalAmount > 0) {
-    md += `- **القيمة المالية الإجمالية**: ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} ر.س\n`;
-    md += `- **ضريبة القيمة المضافة (15%)**: ${kpis.totalVat.toLocaleString('en-US', { minimumFractionDigits: 2 })} ر.س\n`;
+    md += `- **القيمة المالية الإجمالية**: ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} ⃁\n`;
+    md += `- **ضريبة القيمة المضافة (15%)**: ${kpis.totalVat.toLocaleString('en-US', { minimumFractionDigits: 2 })} ⃁\n`;
     md += `- **التفقيط المالي بالحروف**: ${kpis.tafqeetAr}\n`;
   }
   if (options?.executiveNote) {

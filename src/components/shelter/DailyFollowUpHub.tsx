@@ -345,10 +345,10 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
                             {execOffice?.name || transfer.executingOfficeId}
                           </span>
                           <span className="font-bold text-emerald-400 font-mono text-[11px] mt-0.5">
-                            {transfer.transferFee.toLocaleString()} ر.س
+                            {transfer.transferFee.toLocaleString()} ⃁
                           </span>
                           <span className="text-[10px] text-zinc-400">
-                            مسدد: {transfer.downPayment.toLocaleString()} ر.س
+                            مسدد: {transfer.downPayment.toLocaleString()} ⃁
                           </span>
                         </div>
                       </td>
@@ -569,7 +569,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
               <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/30 text-emerald-300">
                 <p className="font-bold m-0">العميل: {selectedTransfer.newClientName}</p>
                 <p className="m-0 text-[11px] mt-1">
-                  إجمالي قيمة نقل الخدمات: <strong className="font-mono text-emerald-400">{selectedTransfer.transferFee.toLocaleString()} ر.س</strong>
+                  إجمالي قيمة نقل الخدمات: <strong className="font-mono text-emerald-400">{selectedTransfer.transferFee.toLocaleString()} ⃁</strong>
                 </p>
               </div>
 
@@ -666,7 +666,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-zinc-300 mb-1">مبلغ الخصم (ر.س):</label>
+                  <label className="block font-bold text-zinc-300 mb-1">مبلغ الخصم (⃁):</label>
                   <input
                     type="number"
                     value={deductionAmount}
@@ -675,7 +675,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-zinc-300 mb-1">مبلغ الاسترداد (ر.س):</label>
+                  <label className="block font-bold text-zinc-300 mb-1">مبلغ الاسترداد (⃁):</label>
                   <input
                     type="number"
                     value={refundAmount}

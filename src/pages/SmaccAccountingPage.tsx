@@ -463,7 +463,7 @@ export const SmaccAccountingPage: React.FC = () => {
     if (!isJournalBalanced) {
       addNotification({
         title: 'خطأ في توازن القيد',
-        message: `يجب أن يتساوى إجمالي المدين (${totalDebit} ر.س) مع إجمالي الدائن (${totalCredit} ر.س) لاعتماد القيد.`,
+        message: `يجب أن يتساوى إجمالي المدين (${totalDebit} ⃁) مع إجمالي الدائن (${totalCredit} ⃁) لاعتماد القيد.`,
         type: 'error',
       });
       return;
@@ -497,7 +497,7 @@ export const SmaccAccountingPage: React.FC = () => {
     setIsJournalModalOpen(false);
     addNotification({
       title: 'ترحيل قيد اليومية',
-      message: `تم ترحيل قيد اليومية (${newJv.ref_no}) بإجمالي متوازن ${totalDebit.toLocaleString()} ر.س بنجاح.`,
+      message: `تم ترحيل قيد اليومية (${newJv.ref_no}) بإجمالي متوازن ${totalDebit.toLocaleString()} ⃁ بنجاح.`,
       type: 'success',
     });
 
@@ -566,7 +566,7 @@ export const SmaccAccountingPage: React.FC = () => {
     setIsVoucherModalOpen(false);
     addNotification({
       title: `اعتماد سند ${voucherType}`,
-      message: `تم اعتماد سند ${voucherType} رقم (${newVou.voucher_no}) بقيمة ${amountNum.toLocaleString()} ر.س وتوليد القيد المحاسبي آلياً.`,
+      message: `تم اعتماد سند ${voucherType} رقم (${newVou.voucher_no}) بقيمة ${amountNum.toLocaleString()} ⃁ وتوليد القيد المحاسبي آلياً.`,
       type: 'success',
     });
 
@@ -691,7 +691,7 @@ export const SmaccAccountingPage: React.FC = () => {
           </td>
           <td className="p-3 font-mono font-bold text-xs text-left pl-4">
             <span className={node.balance >= 0 ? 'text-black' : 'text-rose-700'}>
-              {node.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ر.س
+              {node.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ⃁
             </span>
           </td>
           <td className="p-3 text-center">
@@ -1055,8 +1055,8 @@ export const SmaccAccountingPage: React.FC = () => {
                     <td className="p-3 font-mono text-zinc-500">{j.date}</td>
                     <td className="p-3 text-zinc-700">{j.branch}</td>
                     <td className="p-3 font-semibold text-black max-w-xs truncate">{j.description}</td>
-                    <td className="p-3 font-mono font-bold text-black">{j.total_debit.toLocaleString()} ر.س</td>
-                    <td className="p-3 font-mono font-bold text-rose-700">{j.total_credit.toLocaleString()} ر.س</td>
+                    <td className="p-3 font-mono font-bold text-black">{j.total_debit.toLocaleString()} ⃁</td>
+                    <td className="p-3 font-mono font-bold text-rose-700">{j.total_credit.toLocaleString()} ⃁</td>
                     <td className="p-3">
                       <span className="pill-tag-mint text-[10.5px]">{j.status}</span>
                     </td>
@@ -1154,7 +1154,7 @@ export const SmaccAccountingPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="p-3 text-zinc-700">{v.treasury}</td>
-                    <td className="p-3 font-mono font-bold text-emerald-700">{v.amount.toLocaleString()} ر.س</td>
+                    <td className="p-3 font-mono font-bold text-emerald-700">{v.amount.toLocaleString()} ⃁</td>
                     <td className="p-3 text-zinc-600 max-w-xs truncate">{v.notes}</td>
                     <td className="p-3 text-center">
                       <button
@@ -1242,9 +1242,9 @@ export const SmaccAccountingPage: React.FC = () => {
                     <td className="p-3 font-mono text-zinc-500">{row.date}</td>
                     <td className="p-3 font-mono font-bold text-black">{row.refNo}</td>
                     <td className="p-3 font-medium text-black">{row.desc}</td>
-                    <td className="p-3 font-mono font-bold text-black">{row.debit > 0 ? `${row.debit.toLocaleString()} ر.س` : '-'}</td>
-                    <td className="p-3 font-mono font-bold text-rose-700">{row.credit > 0 ? `${row.credit.toLocaleString()} ر.س` : '-'}</td>
-                    <td className="p-3 font-mono font-extrabold text-black text-left pl-4">{row.cumulative.toLocaleString()} ر.س</td>
+                    <td className="p-3 font-mono font-bold text-black">{row.debit > 0 ? `${row.debit.toLocaleString()} ⃁` : '-'}</td>
+                    <td className="p-3 font-mono font-bold text-rose-700">{row.credit > 0 ? `${row.credit.toLocaleString()} ⃁` : '-'}</td>
+                    <td className="p-3 font-mono font-extrabold text-black text-left pl-4">{row.cumulative.toLocaleString()} ⃁</td>
                   </tr>
                 ))}
               </tbody>
@@ -1298,8 +1298,8 @@ export const SmaccAccountingPage: React.FC = () => {
                     <td className="p-3 font-mono font-bold text-black">{a.code}</td>
                     <td className="p-3 font-semibold text-black">{a.nameAr}</td>
                     <td className="p-3"><span className="pill-tag-shade text-[10px]">{a.category}</span></td>
-                    <td className="p-3 font-mono font-bold text-black">{a.nature === 'مدين' ? `${(a.balance || 0).toLocaleString()} ر.س` : '-'}</td>
-                    <td className="p-3 font-mono font-bold text-rose-700">{a.nature === 'دائن' ? `${(a.balance || 0).toLocaleString()} ر.س` : '-'}</td>
+                    <td className="p-3 font-mono font-bold text-black">{a.nature === 'مدين' ? `${(a.balance || 0).toLocaleString()} ⃁` : '-'}</td>
+                    <td className="p-3 font-mono font-bold text-rose-700">{a.nature === 'دائن' ? `${(a.balance || 0).toLocaleString()} ⃁` : '-'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1329,16 +1329,16 @@ export const SmaccAccountingPage: React.FC = () => {
           <div className="card-pricing p-6 bg-white rounded-2xl space-y-4 border border-zinc-200">
             <div className="flex justify-between items-center pb-3 border-b border-zinc-100">
               <span className="font-bold text-sm text-black">إجمالي الإيرادات التشغيلية المكتسبة</span>
-              <span className="font-mono font-bold text-emerald-700 text-sm">+{totalRevenues.toLocaleString()} ر.س</span>
+              <span className="font-mono font-bold text-emerald-700 text-sm">+{totalRevenues.toLocaleString()} ⃁</span>
             </div>
             <div className="flex justify-between items-center pb-3 border-b border-zinc-100">
               <span className="font-bold text-sm text-black">خصم: تكلفة التشغيل والمصروفات العمومية</span>
-              <span className="font-mono font-bold text-rose-700 text-sm">-{totalExpenses.toLocaleString()} ر.س</span>
+              <span className="font-mono font-bold text-rose-700 text-sm">‎- ⃁</span>
             </div>
             <div className="flex justify-between items-center p-4 bg-black text-white rounded-2xl">
               <span className="font-bold text-base">صافي أرباح الفترة التشغيلية (Net Profit):</span>
               <span className="font-mono font-extrabold text-emerald-400 text-lg">
-                {netProfit.toLocaleString()} ر.س
+                {netProfit.toLocaleString()} ⃁
               </span>
             </div>
           </div>
@@ -1369,11 +1369,11 @@ export const SmaccAccountingPage: React.FC = () => {
               <div className="mt-4 space-y-3 text-xs">
                 <div className="flex justify-between">
                   <span className="text-zinc-600">الأصول المتداولة (البنوك، الخزائن، الأمانات)</span>
-                  <span className="font-mono font-bold text-black">{totalAssets.toLocaleString()} ر.س</span>
+                  <span className="font-mono font-bold text-black">{totalAssets.toLocaleString()} ⃁</span>
                 </div>
                 <div className="pt-3 border-t border-zinc-100 flex justify-between font-bold text-sm text-black">
                   <span>إجمالي الأصول:</span>
-                  <span className="font-mono text-emerald-700">{totalAssets.toLocaleString()} ر.س</span>
+                  <span className="font-mono text-emerald-700">{totalAssets.toLocaleString()} ⃁</span>
                 </div>
               </div>
             </div>
@@ -1383,19 +1383,19 @@ export const SmaccAccountingPage: React.FC = () => {
               <div className="mt-4 space-y-3 text-xs">
                 <div className="flex justify-between">
                   <span className="text-zinc-600">الالتزامات والخصوم المتداولة</span>
-                  <span className="font-mono font-bold text-black">{totalLiabilities.toLocaleString()} ر.س</span>
+                  <span className="font-mono font-bold text-black">{totalLiabilities.toLocaleString()} ⃁</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-600">رأس المال وحقوق الملكية</span>
-                  <span className="font-mono font-bold text-black">{totalEquity.toLocaleString()} ر.س</span>
+                  <span className="font-mono font-bold text-black">{totalEquity.toLocaleString()} ⃁</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-600">أرباح الفترة التشغيلية</span>
-                  <span className="font-mono font-bold text-emerald-700">{netProfit.toLocaleString()} ر.س</span>
+                  <span className="font-mono font-bold text-emerald-700">{netProfit.toLocaleString()} ⃁</span>
                 </div>
                 <div className="pt-3 border-t border-zinc-100 flex justify-between font-bold text-sm text-black">
                   <span>إجمالي الخصوم وحقوق الملكية:</span>
-                  <span className="font-mono text-amber-700">{(totalLiabilities + totalEquity + netProfit).toLocaleString()} ر.س</span>
+                  <span className="font-mono text-amber-700">{(totalLiabilities + totalEquity + netProfit).toLocaleString()} ⃁</span>
                 </div>
               </div>
             </div>
@@ -1425,15 +1425,15 @@ export const SmaccAccountingPage: React.FC = () => {
                 <div className="mt-3 space-y-1.5 text-xs text-zinc-600">
                   <div className="flex justify-between">
                     <span>الميزانية المرصودة:</span>
-                    <span className="font-mono font-bold text-black">{cc.budget.toLocaleString()} ر.س</span>
+                    <span className="font-mono font-bold text-black">{cc.budget.toLocaleString()} ⃁</span>
                   </div>
                   <div className="flex justify-between">
                     <span>المنصرف الفعلي:</span>
-                    <span className="font-mono font-bold text-rose-700">{cc.actual.toLocaleString()} ر.س</span>
+                    <span className="font-mono font-bold text-rose-700">{cc.actual.toLocaleString()} ⃁</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t border-zinc-100 font-bold text-emerald-700">
                     <span>الوفر المتبقي:</span>
-                    <span className="font-mono">{(cc.budget - cc.actual).toLocaleString()} ر.س</span>
+                    <span className="font-mono">{(cc.budget - cc.actual).toLocaleString()} ⃁</span>
                   </div>
                 </div>
               </div>
@@ -1462,7 +1462,7 @@ export const SmaccAccountingPage: React.FC = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-zinc-600">صافي الربح المعد للترحيل:</span>
-              <span className="font-mono font-bold text-emerald-700">{netProfit.toLocaleString()} ر.س</span>
+              <span className="font-mono font-bold text-emerald-700">{netProfit.toLocaleString()} ⃁</span>
             </div>
             <div className="flex justify-between">
               <span className="text-zinc-600">حساب الإقفال المرحل إليه:</span>
@@ -1475,7 +1475,7 @@ export const SmaccAccountingPage: React.FC = () => {
               if (window.confirm('هل أنت متأكد من تنفيذ إجراء الإقفال المحاسبي للسنة؟ سيتم قفل التعديل على قيود الفترة.')) {
                 addNotification({
                   title: 'إقفال السنة المالية',
-                  message: `تم إقفال السنة المالية بنجاح وترحيل صافي الربح (${netProfit.toLocaleString()} ر.س) إلى الأرباح المبقاة.`,
+                  message: `تم إقفال السنة المالية بنجاح وترحيل صافي الربح (${netProfit.toLocaleString()} ⃁) إلى الأرباح المبقاة.`,
                   type: 'success'
                 });
               }
@@ -1559,7 +1559,7 @@ export const SmaccAccountingPage: React.FC = () => {
             </select>
           </div>
           <div>
-            <label className="text-xs text-zinc-700 block mb-1 font-semibold">الرصيد الافتتاحي (ر.س)</label>
+            <label className="text-xs text-zinc-700 block mb-1 font-semibold">الرصيد الافتتاحي (⃁)</label>
             <input
               type="number"
               value={newAccount.openingBalance}
@@ -1710,8 +1710,8 @@ export const SmaccAccountingPage: React.FC = () => {
                 + إضافة سطر قيد جديد
               </button>
               <div className="flex items-center gap-4 text-xs font-bold">
-                <span>إجمالي المدين: <strong className="text-black font-mono">{totalDebit.toFixed(2)} ر.س</strong></span>
-                <span>إجمالي الدائن: <strong className="text-rose-700 font-mono">{totalCredit.toFixed(2)} ر.س</strong></span>
+                <span>إجمالي المدين: <strong className="text-black font-mono">{totalDebit.toFixed(2)} ⃁</strong></span>
+                <span>إجمالي الدائن: <strong className="text-rose-700 font-mono">{totalCredit.toFixed(2)} ⃁</strong></span>
                 <span className={`pill-tag-${isJournalBalanced ? 'mint' : 'shade'}`}>
                   {isJournalBalanced ? '✓ القيد متوازن' : '✕ غير متوازن'}
                 </span>
@@ -1772,7 +1772,7 @@ export const SmaccAccountingPage: React.FC = () => {
             </select>
           </div>
           <div>
-            <label className="text-xs text-zinc-700 block mb-1 font-semibold">المبلغ (ر.س) *</label>
+            <label className="text-xs text-zinc-700 block mb-1 font-semibold">المبلغ (⃁) *</label>
             <input
               type="number"
               required
@@ -1863,14 +1863,14 @@ export const SmaccAccountingPage: React.FC = () => {
                       <tr key={i}>
                         <td className="p-2 font-bold">{l.accountCode}</td>
                         <td className="p-2 font-sans font-medium">{l.accountName}</td>
-                        <td className="p-2 font-bold text-black">{l.debit > 0 ? `${l.debit.toLocaleString()} ر.س` : '-'}</td>
-                        <td className="p-2 font-bold text-rose-700">{l.credit > 0 ? `${l.credit.toLocaleString()} ر.س` : '-'}</td>
+                        <td className="p-2 font-bold text-black">{l.debit > 0 ? `${l.debit.toLocaleString()} ⃁` : '-'}</td>
+                        <td className="p-2 font-bold text-rose-700">{l.credit > 0 ? `${l.credit.toLocaleString()} ⃁` : '-'}</td>
                       </tr>
                     ))}
                     <tr className="bg-zinc-50 font-bold border-t-2 border-black">
                       <td colSpan={2} className="p-2 font-sans text-left pl-4">الإجمالي المتوازن:</td>
-                      <td className="p-2 font-extrabold text-black">{selectedJournalForPreview.total_debit.toLocaleString()} ر.س</td>
-                      <td className="p-2 font-extrabold text-rose-700">{selectedJournalForPreview.total_credit.toLocaleString()} ر.س</td>
+                      <td className="p-2 font-extrabold text-black">{selectedJournalForPreview.total_debit.toLocaleString()} ⃁</td>
+                      <td className="p-2 font-extrabold text-rose-700">{selectedJournalForPreview.total_credit.toLocaleString()} ⃁</td>
                     </tr>
                   </tbody>
                 </table>
@@ -1930,7 +1930,7 @@ export const SmaccAccountingPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3 text-xs bg-zinc-50 p-3 rounded-xl">
                 <div><span className="text-zinc-500">المستفيد / المستلم منه:</span> <strong className="text-black block">{selectedVoucherForPreview.payee}</strong></div>
-                <div><span className="text-zinc-500">المبلغ بالأرقام:</span> <strong className="text-black font-mono text-sm block">{selectedVoucherForPreview.amount.toLocaleString()} ر.س</strong></div>
+                <div><span className="text-zinc-500">المبلغ بالأرقام:</span> <strong className="text-black font-mono text-sm block">{selectedVoucherForPreview.amount.toLocaleString()} ⃁</strong></div>
                 <div><span className="text-zinc-500">الخزينة / الحساب:</span> <span className="font-semibold block">{selectedVoucherForPreview.treasury}</span></div>
                 <div><span className="text-zinc-500">مركز التكلفة:</span> <span className="font-semibold block">{selectedVoucherForPreview.cost_center}</span></div>
               </div>

@@ -263,7 +263,7 @@ export const KasEtimadCloudPage: React.FC = () => {
     });
     addNotification({
       title: 'تم إنشاء الفاتورة',
-      message: `تم إصدار الفاتورة للعميل ${formData.clientName} بقيمة ${totalWithTax.toLocaleString()} ر.س شاملة الضريبة.`,
+      message: `تم إصدار الفاتورة للعميل ${formData.clientName} بقيمة ${totalWithTax.toLocaleString()} ⃁ شاملة الضريبة.`,
       type: 'success'
     });
     setShowAddInvoiceModal(false);
@@ -688,7 +688,7 @@ export const KasEtimadCloudPage: React.FC = () => {
     });
     addNotification({
       title: 'تم إنشاء إشعار الائتمان',
-      message: `تم قيد إشعار الائتمان بمبلغ ${tot.toLocaleString()} ر.س.`,
+      message: `تم قيد إشعار الائتمان بمبلغ ${tot.toLocaleString()} ⃁.`,
       type: 'success'
     });
     setShowAddCreditNoteModal(false);
@@ -985,9 +985,9 @@ export const KasEtimadCloudPage: React.FC = () => {
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#000000', color: '#ffffff' }}>
           <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>إجمالي المبيعات والفواتير</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>
-            {(stats.totalInvoicesAmount / 1000).toFixed(0)}k ر.س
+            {(stats.totalInvoicesAmount / 1000).toFixed(0)}k ⃁
           </div>
-          <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>المحصل: {(stats.paidAmount / 1000).toFixed(0)}k ر.س</span>
+          <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>المحصل: {(stats.paidAmount / 1000).toFixed(0)}k ⃁</span>
         </div>
 
         {/* Card 4: White Card - ZATCA & Security Compliance */}
@@ -1111,7 +1111,7 @@ export const KasEtimadCloudPage: React.FC = () => {
               <div className="display-sm" style={{ fontSize: '26px', fontWeight: 330, color: '#000000', marginTop: '6px', letterSpacing: '-0.02em' }}>
                 {(stats.totalInvoicesAmount / 1000).toFixed(0)}k
               </div>
-              <span className="pill-tag-mint" style={{ fontSize: '10px', marginTop: '6px' }}>مبيعات كاس (ر.س)</span>
+              <span className="pill-tag-mint" style={{ fontSize: '10px', marginTop: '6px' }}>مبيعات كاس (⃁)</span>
             </div>
 
             <div
@@ -1126,7 +1126,7 @@ export const KasEtimadCloudPage: React.FC = () => {
               <div className="display-sm" style={{ fontSize: '26px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>
                 {(stats.paidAmount / 1000).toFixed(0)}k
               </div>
-              <span className="pill-tag-mint" style={{ fontSize: '10px', marginTop: '6px' }}>في الحسابات (ر.س)</span>
+              <span className="pill-tag-mint" style={{ fontSize: '10px', marginTop: '6px' }}>في الحسابات (⃁)</span>
             </div>
 
             <div
@@ -1247,8 +1247,8 @@ export const KasEtimadCloudPage: React.FC = () => {
                   return (
                     <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group cursor-pointer">
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-black text-white text-[10px] font-mono px-2 py-1 rounded-lg pointer-events-none mb-1 shadow-lg text-center z-10">
-                        <div>صادر: {item.invoiced.toLocaleString()} ر.س</div>
-                        <div className="text-emerald-400">محصل: {item.collected.toLocaleString()} ر.س</div>
+                        <div>صادر: {item.invoiced.toLocaleString()} ⃁</div>
+                        <div className="text-emerald-400">محصل: {item.collected.toLocaleString()} ⃁</div>
                       </div>
                       <div className="w-full flex items-end justify-center gap-1 h-36">
                         <div 
@@ -1526,7 +1526,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                       <td className="p-3 text-foreground">{comp.governmentEntity}</td>
                       <td className="p-3 font-mono text-muted-foreground">{comp.createdAt}</td>
                       <td className="p-3 text-left font-mono font-bold text-foreground">
-                        {comp.totalItemsValue.toLocaleString()} ر.س
+                        {comp.totalItemsValue.toLocaleString()} ⃁
                       </td>
                       <td className="p-3">{getStatusPill(comp.status)}</td>
                       <td className="p-3 text-center">
@@ -1666,8 +1666,8 @@ export const KasEtimadCloudPage: React.FC = () => {
                   {invoices.map(inv => (
                     <tr key={inv.id} className="hover:bg-emerald-500/5">
                       <td className="p-3 font-mono font-bold text-emerald-600">{inv.invoiceNumber}</td>
-                      <td className="p-3 text-left font-mono font-bold text-foreground">{inv.amount.toLocaleString()} ر.س</td>
-                      <td className="p-3 text-left font-mono text-muted-foreground">{inv.taxAmount.toLocaleString()} ر.س</td>
+                      <td className="p-3 text-left font-mono font-bold text-foreground">{inv.amount.toLocaleString()} ⃁</td>
+                      <td className="p-3 text-left font-mono text-muted-foreground">{inv.taxAmount.toLocaleString()} ⃁</td>
                       <td className="p-3 font-mono text-muted-foreground">{inv.date}</td>
                       <td className="p-3 font-semibold text-foreground">{inv.clientName}</td>
                       <td className="p-3 text-muted-foreground">{inv.project || '-'}</td>
@@ -1761,8 +1761,8 @@ export const KasEtimadCloudPage: React.FC = () => {
                 {estimates.map(est => (
                   <tr key={est.id} className="hover:bg-emerald-500/5">
                     <td className="p-3 font-mono font-bold text-emerald-600">{est.estimateNumber}</td>
-                    <td className="p-3 text-left font-mono font-bold text-foreground">{est.totalAmount.toLocaleString()} ر.س</td>
-                    <td className="p-3 text-left font-mono text-muted-foreground">{est.taxAmount.toLocaleString()} ر.س</td>
+                    <td className="p-3 text-left font-mono font-bold text-foreground">{est.totalAmount.toLocaleString()} ⃁</td>
+                    <td className="p-3 text-left font-mono text-muted-foreground">{est.taxAmount.toLocaleString()} ⃁</td>
                     <td className="p-3 font-semibold text-foreground">{est.clientName}</td>
                     <td className="p-3 text-muted-foreground">{est.project || '-'}</td>
                     <td className="p-3 font-mono text-muted-foreground">{est.date}</td>
@@ -1837,7 +1837,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                     <td className="p-3 font-semibold text-foreground">{pay.clientName}</td>
                     <td className="p-3">{pay.paymentMode}</td>
                     <td className="p-3 font-mono text-muted-foreground">{pay.transactionId}</td>
-                    <td className="p-3 text-left font-mono font-bold text-emerald-600">{pay.amount.toLocaleString()} ر.س</td>
+                    <td className="p-3 text-left font-mono font-bold text-emerald-600">{pay.amount.toLocaleString()} ⃁</td>
                     <td className="p-3 font-mono text-muted-foreground">{pay.date}</td>
                     <td className="p-3 text-muted-foreground">{pay.notes || '-'}</td>
                   </tr>
@@ -1896,7 +1896,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                   <th className="p-3">الوصف التفصيلي</th>
                   <th className="p-3">المجموعة</th>
                   <th className="p-3">الوحدة</th>
-                  <th className="p-3 text-left">السعر (ر.س)</th>
+                  <th className="p-3 text-left">السعر (⃁)</th>
                   <th className="p-3 text-center">الضريبة</th>
                 </tr>
               </thead>
@@ -1907,7 +1907,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                     <td className="p-3 text-muted-foreground">{item.longDescription || '-'}</td>
                     <td className="p-3 font-medium text-emerald-600">{item.group}</td>
                     <td className="p-3">{item.unit}</td>
-                    <td className="p-3 text-left font-mono font-bold text-foreground">{item.rate.toLocaleString()} ر.س</td>
+                    <td className="p-3 text-left font-mono font-bold text-foreground">{item.rate.toLocaleString()} ⃁</td>
                     <td className="p-3 text-center font-mono">{item.taxPct}%</td>
                   </tr>
                 ))}
@@ -1951,7 +1951,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                 </div>
                 <div className="p-3 bg-secondary/40 rounded-xl flex justify-between items-center text-xs">
                   <span className="text-muted-foreground">قيمة الفرصة المتوقعة:</span>
-                  <span className="font-mono font-bold text-emerald-600">{lead.opportunityValue.toLocaleString()} ر.س</span>
+                  <span className="font-mono font-bold text-emerald-600">{lead.opportunityValue.toLocaleString()} ⃁</span>
                 </div>
                 <div className="text-[11px] text-muted-foreground font-mono flex justify-between pt-1">
                   <span>{lead.phone}</span>
@@ -2006,7 +2006,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                 <div className="grid grid-cols-2 gap-2 text-xs bg-secondary/30 p-3 rounded-xl">
                   <div>
                     <span className="text-muted-foreground block text-[11px]">الميزانية المرصودة:</span>
-                    <span className="font-bold font-mono text-emerald-600">{proj.budget.toLocaleString()} ر.س</span>
+                    <span className="font-bold font-mono text-emerald-600">{proj.budget.toLocaleString()} ⃁</span>
                   </div>
                   <div>
                     <span className="text-muted-foreground block text-[11px]">الموعد النهائي:</span>
@@ -2120,7 +2120,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                     <td className="p-3 font-bold text-foreground">{cnt.subject}</td>
                     <td className="p-3 font-semibold">{cnt.clientName}</td>
                     <td className="p-3">{cnt.contractType}</td>
-                    <td className="p-3 text-left font-mono font-bold text-emerald-600">{cnt.contractValue.toLocaleString()} ر.س</td>
+                    <td className="p-3 text-left font-mono font-bold text-emerald-600">{cnt.contractValue.toLocaleString()} ⃁</td>
                     <td className="p-3 font-mono text-muted-foreground">{cnt.startDate}</td>
                     <td className="p-3 font-mono text-muted-foreground">{cnt.endDate}</td>
                     <td className="p-3">{getStatusPill(cnt.status)}</td>
@@ -2169,8 +2169,8 @@ export const KasEtimadCloudPage: React.FC = () => {
                   <tr key={exp.id} className="hover:bg-emerald-500/5">
                     <td className="p-3 font-bold text-foreground">{exp.expenseName}</td>
                     <td className="p-3 text-emerald-600 font-medium">{exp.category}</td>
-                    <td className="p-3 text-left font-mono font-bold text-foreground">{exp.amount.toLocaleString()} ر.س</td>
-                    <td className="p-3 text-left font-mono text-muted-foreground">{exp.taxAmount.toLocaleString()} ر.س</td>
+                    <td className="p-3 text-left font-mono font-bold text-foreground">{exp.amount.toLocaleString()} ⃁</td>
+                    <td className="p-3 text-left font-mono text-muted-foreground">{exp.taxAmount.toLocaleString()} ⃁</td>
                     <td className="p-3 text-muted-foreground">{exp.project || '-'}</td>
                     <td className="p-3">{exp.paymentMode}</td>
                     <td className="p-3 font-mono text-muted-foreground">{exp.date}</td>
@@ -2449,7 +2449,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                     <span>استحقاق سداد فاتورة</span>
                     <span className="text-[10px] bg-sky-500/20 px-2 py-0.5 rounded-full">ZATCA</span>
                   </div>
-                  <div className="font-semibold text-foreground">فاتورة رقم INV-000001 (قيمة: 106,006 ر.س)</div>
+                  <div className="font-semibold text-foreground">فاتورة رقم INV-000001 (قيمة: 106,006 ⃁)</div>
                   <div className="text-[11px] text-muted-foreground">العميل: مؤسسة خالد السليم للتجارة</div>
                 </div>
 
@@ -2523,25 +2523,25 @@ export const KasEtimadCloudPage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-5 rounded-2xl bg-card border border-border shadow-sm space-y-2">
               <span className="text-xs text-muted-foreground font-semibold">إجمالي المبيعات والفواتير</span>
-              <div className="text-2xl font-bold font-mono text-emerald-600">{stats.totalInvoicesAmount.toLocaleString()} ر.س</div>
-              <div className="text-xs text-muted-foreground">ضريبة القيمة المضافة 15%: {(stats.totalInvoicesAmount * 0.15).toLocaleString()} ر.س</div>
+              <div className="text-2xl font-bold font-mono text-emerald-600">{stats.totalInvoicesAmount.toLocaleString()} ⃁</div>
+              <div className="text-xs text-muted-foreground">ضريبة القيمة المضافة 15%: {(stats.totalInvoicesAmount * 0.15).toLocaleString()} ⃁</div>
             </div>
 
             <div className="p-5 rounded-2xl bg-card border border-border shadow-sm space-y-2">
               <span className="text-xs text-muted-foreground font-semibold">المبالغ المحصلة فعلياً</span>
-              <div className="text-2xl font-bold font-mono text-sky-600">{stats.paidAmount.toLocaleString()} ر.س</div>
+              <div className="text-2xl font-bold font-mono text-sky-600">{stats.paidAmount.toLocaleString()} ⃁</div>
               <div className="text-xs text-sky-600 font-semibold">{Math.round((stats.paidAmount / (stats.totalInvoicesAmount || 1)) * 100)}% من إجمالي المستحقات</div>
             </div>
 
             <div className="p-5 rounded-2xl bg-card border border-border shadow-sm space-y-2">
               <span className="text-xs text-muted-foreground font-semibold">تكاليف التشغيل والمصروفات</span>
-              <div className="text-2xl font-bold font-mono text-rose-600">{stats.totalExpenses.toLocaleString()} ر.س</div>
-              <div className="text-xs text-muted-foreground">ضريبة المدخلات المستردة: {(stats.totalExpenses * 0.15).toLocaleString()} ر.س</div>
+              <div className="text-2xl font-bold font-mono text-rose-600">{stats.totalExpenses.toLocaleString()} ⃁</div>
+              <div className="text-xs text-muted-foreground">ضريبة المدخلات المستردة: {(stats.totalExpenses * 0.15).toLocaleString()} ⃁</div>
             </div>
 
             <div className="p-5 rounded-2xl bg-card border border-border shadow-sm space-y-2">
               <span className="text-xs text-muted-foreground font-semibold">صافي الربح التشغيلي</span>
-              <div className="text-2xl font-bold font-mono text-foreground">{(stats.totalInvoicesAmount - stats.totalExpenses).toLocaleString()} ر.س</div>
+              <div className="text-2xl font-bold font-mono text-foreground">{(stats.totalInvoicesAmount - stats.totalExpenses).toLocaleString()} ⃁</div>
               <div className="text-xs text-emerald-600 font-bold">هامش ربح تقديري: {Math.round(((stats.totalInvoicesAmount - stats.totalExpenses) / (stats.totalInvoicesAmount || 1)) * 100)}%</div>
             </div>
           </div>
@@ -2565,9 +2565,9 @@ export const KasEtimadCloudPage: React.FC = () => {
                 <thead className="bg-secondary text-foreground font-bold border-b border-border">
                   <tr>
                     <th className="p-3">البند الضريبي</th>
-                    <th className="p-3 text-left">المبلغ الخاضع (ر.س)</th>
+                    <th className="p-3 text-left">المبلغ الخاضع (⃁)</th>
                     <th className="p-3 text-left">نسبة الضريبة</th>
-                    <th className="p-3 text-left">مبلغ الضريبة (ر.س)</th>
+                    <th className="p-3 text-left">مبلغ الضريبة (⃁)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/40 font-mono">
@@ -2587,7 +2587,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                     <td className="p-3 text-sm">صافي ضريبة القيمة المضافة المستحقة للسداد للهيئة (1 - 2)</td>
                     <td className="p-3 text-left">{(stats.totalInvoicesAmount - stats.totalExpenses).toLocaleString()}</td>
                     <td className="p-3 text-left">15%</td>
-                    <td className="p-3 text-left text-sm text-emerald-600">{((stats.totalInvoicesAmount - stats.totalExpenses) * 0.15).toLocaleString(undefined, { minimumFractionDigits: 2 })} ر.س</td>
+                    <td className="p-3 text-left text-sm text-emerald-600">{((stats.totalInvoicesAmount - stats.totalExpenses) * 0.15).toLocaleString(undefined, { minimumFractionDigits: 2 })} ⃁</td>
                   </tr>
                 </tbody>
               </table>
@@ -2997,7 +2997,7 @@ export const KasEtimadCloudPage: React.FC = () => {
               <div>
                 <span className="text-xs text-muted-foreground block font-medium">إجمالي القيمة التقديرية</span>
                 <span className="text-xl font-bold font-mono text-sky-600 block mt-1 truncate">
-                  {proposals.reduce((sum, p) => sum + (p.totalAmount || 0), 0).toLocaleString()} ر.س
+                  {proposals.reduce((sum, p) => sum + (p.totalAmount || 0), 0).toLocaleString()} ⃁
                 </span>
                 <span className="text-[10px] text-muted-foreground">قيمة العروض الجارية</span>
               </div>
@@ -3106,7 +3106,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                             </span>
                           </td>
                           <td className="px-4 py-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                            {p.totalAmount.toLocaleString()} ر.س
+                            {p.totalAmount.toLocaleString()} ⃁
                           </td>
                           <td className="px-4 py-3 font-mono text-muted-foreground">
                             {p.date}
@@ -3184,7 +3184,7 @@ export const KasEtimadCloudPage: React.FC = () => {
               <div>
                 <span className="text-xs text-muted-foreground block font-medium">المبالغ الدائنة المتبقية</span>
                 <span className="text-xl font-bold font-mono text-amber-600 block mt-1 truncate">
-                  {creditNotes.reduce((sum, cn) => sum + (cn.remainingAmount || 0), 0).toLocaleString()} ر.س
+                  {creditNotes.reduce((sum, cn) => sum + (cn.remainingAmount || 0), 0).toLocaleString()} ⃁
                 </span>
                 <span className="text-[10px] text-amber-600 font-medium">رصيد دائن للعملاء</span>
               </div>
@@ -3197,7 +3197,7 @@ export const KasEtimadCloudPage: React.FC = () => {
               <div>
                 <span className="text-xs text-muted-foreground block font-medium">إجمالي المبالغ المقيدة</span>
                 <span className="text-xl font-bold font-mono text-emerald-600 block mt-1 truncate">
-                  {creditNotes.reduce((sum, cn) => sum + (cn.totalAmount || 0), 0).toLocaleString()} ر.س
+                  {creditNotes.reduce((sum, cn) => sum + (cn.totalAmount || 0), 0).toLocaleString()} ⃁
                 </span>
                 <span className="text-[10px] text-muted-foreground">إجمالي قيود الخصم</span>
               </div>
@@ -3290,10 +3290,10 @@ export const KasEtimadCloudPage: React.FC = () => {
                           )}
                         </td>
                         <td className="px-4 py-3 font-mono font-bold text-amber-600 dark:text-amber-400">
-                          {cn.remainingAmount.toLocaleString()} ر.س
+                          {cn.remainingAmount.toLocaleString()} ⃁
                         </td>
                         <td className="px-4 py-3 font-mono font-bold text-foreground">
-                          {cn.totalAmount.toLocaleString()} ر.س
+                          {cn.totalAmount.toLocaleString()} ⃁
                         </td>
                         <td className="px-4 py-3">
                           {getStatusPill(cn.status)}
@@ -3345,7 +3345,7 @@ export const KasEtimadCloudPage: React.FC = () => {
               <div>
                 <span className="text-xs text-muted-foreground block font-medium">الإيراد المتكرر (MRR)</span>
                 <span className="text-xl font-bold font-mono text-emerald-600 block mt-1 truncate">
-                  {subscriptions.filter(s => s.status === 'نشط').reduce((sum, s) => sum + s.amount, 0).toLocaleString()} ر.س
+                  {subscriptions.filter(s => s.status === 'نشط').reduce((sum, s) => sum + s.amount, 0).toLocaleString()} ⃁
                 </span>
                 <span className="text-[10px] text-emerald-600 font-medium">فوترة دورية شهرية</span>
               </div>
@@ -3358,7 +3358,7 @@ export const KasEtimadCloudPage: React.FC = () => {
               <div>
                 <span className="text-xs text-muted-foreground block font-medium">الإيراد السنوي التقديري (ARR)</span>
                 <span className="text-xl font-bold font-mono text-sky-600 block mt-1 truncate">
-                  {(subscriptions.filter(s => s.status === 'نشط').reduce((sum, s) => sum + s.amount, 0) * 12).toLocaleString()} ر.س
+                  {(subscriptions.filter(s => s.status === 'نشط').reduce((sum, s) => sum + s.amount, 0) * 12).toLocaleString()} ⃁
                 </span>
                 <span className="text-[10px] text-muted-foreground">توقع التدفقات السنوية</span>
               </div>
@@ -3438,7 +3438,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                     <div className="p-2.5 rounded-2xl bg-secondary/50 border border-border/40">
                       <span className="text-[11px] text-muted-foreground block">المبلغ الدوري</span>
                       <span className="font-bold font-mono text-sm text-foreground block mt-0.5">
-                        {sub.amount.toLocaleString()} ر.س
+                        {sub.amount.toLocaleString()} ⃁
                       </span>
                     </div>
 
@@ -3798,18 +3798,18 @@ export const KasEtimadCloudPage: React.FC = () => {
                   <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-2.5">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">المبلغ الأساسي:</span>
-                      <span className="font-bold font-mono">{parseFloat(formData.vatAmount).toLocaleString()} ر.س</span>
+                      <span className="font-bold font-mono">{parseFloat(formData.vatAmount).toLocaleString()} ⃁</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">ضريبة 15%:</span>
                       <span className="font-bold font-mono text-emerald-600">
-                        {(parseFloat(formData.vatAmount) * 0.15).toLocaleString(undefined, { minimumFractionDigits: 2 })} ر.س
+                        {(parseFloat(formData.vatAmount) * 0.15).toLocaleString(undefined, { minimumFractionDigits: 2 })} ⃁
                       </span>
                     </div>
                     <div className="flex justify-between text-sm border-t border-emerald-500/20 pt-2 font-bold">
                       <span className="text-emerald-700 dark:text-emerald-400">الإجمالي النهائي:</span>
                       <span className="font-mono text-emerald-700 dark:text-emerald-400">
-                        {(parseFloat(formData.vatAmount) * 1.15).toLocaleString(undefined, { minimumFractionDigits: 2 })} ر.س
+                        {(parseFloat(formData.vatAmount) * 1.15).toLocaleString(undefined, { minimumFractionDigits: 2 })} ⃁
                       </span>
                     </div>
                     <div className="text-[10px] text-muted-foreground pt-1 border-t border-emerald-500/10 leading-relaxed">
@@ -3849,19 +3849,19 @@ export const KasEtimadCloudPage: React.FC = () => {
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">أصل المبلغ (قبل الضريبة):</span>
                       <span className="font-bold font-mono">
-                        {(parseFloat(formData.reverseVat) / 1.15).toLocaleString(undefined, { minimumFractionDigits: 2 })} ر.س
+                        {(parseFloat(formData.reverseVat) / 1.15).toLocaleString(undefined, { minimumFractionDigits: 2 })} ⃁
                       </span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">قيمة الضريبة المقتطعة:</span>
                       <span className="font-bold font-mono text-sky-600">
-                        {(parseFloat(formData.reverseVat) - parseFloat(formData.reverseVat) / 1.15).toLocaleString(undefined, { minimumFractionDigits: 2 })} ر.س
+                        {(parseFloat(formData.reverseVat) - parseFloat(formData.reverseVat) / 1.15).toLocaleString(undefined, { minimumFractionDigits: 2 })} ⃁
                       </span>
                     </div>
                     <div className="flex justify-between text-sm border-t border-sky-500/20 pt-2 font-bold">
                       <span className="text-sky-700 dark:text-sky-400">الإجمالي المدخل:</span>
                       <span className="font-mono text-sky-700 dark:text-sky-400">
-                        {parseFloat(formData.reverseVat).toLocaleString(undefined, { minimumFractionDigits: 2 })} ر.س
+                        {parseFloat(formData.reverseVat).toLocaleString(undefined, { minimumFractionDigits: 2 })} ⃁
                       </span>
                     </div>
                   </div>
@@ -3968,8 +3968,8 @@ export const KasEtimadCloudPage: React.FC = () => {
                   <tr key={i}>
                     <td className="p-2 font-medium">{it.description}</td>
                     <td className="p-2 font-mono">{it.qty}</td>
-                    <td className="p-2 font-mono">{it.rate?.toLocaleString()} ر.س</td>
-                    <td className="p-2 text-left font-mono font-bold">{(it.qty * it.rate)?.toLocaleString()} ر.س</td>
+                    <td className="p-2 font-mono">{it.rate?.toLocaleString()} ⃁</td>
+                    <td className="p-2 text-left font-mono font-bold">{(it.qty * it.rate)?.toLocaleString()} ⃁</td>
                   </tr>
                 ))}
               </tbody>
@@ -3978,15 +3978,15 @@ export const KasEtimadCloudPage: React.FC = () => {
             <div className="bg-slate-50 p-4 rounded-xl space-y-1.5 text-xs">
               <div className="flex justify-between font-mono">
                 <span>المبلغ الخاضع للضريبة:</span>
-                <span className="font-bold">{(selectedDetail.amount || selectedDetail.totalItemsValue || selectedDetail.totalAmount || 0).toLocaleString()} ر.س</span>
+                <span className="font-bold">{(selectedDetail.amount || selectedDetail.totalItemsValue || selectedDetail.totalAmount || 0).toLocaleString()} ⃁</span>
               </div>
               <div className="flex justify-between font-mono text-emerald-700 font-bold">
                 <span>ضريبة القيمة المضافة (15%):</span>
-                <span>{(selectedDetail.taxAmount || ((selectedDetail.amount || selectedDetail.totalItemsValue || 0) * 0.15)).toLocaleString()} ر.س</span>
+                <span>{(selectedDetail.taxAmount || ((selectedDetail.amount || selectedDetail.totalItemsValue || 0) * 0.15)).toLocaleString()} ⃁</span>
               </div>
               <div className="flex justify-between font-mono font-extrabold text-sm border-t pt-2 text-slate-900">
                 <span>المبلغ الإجمالي المستحق:</span>
-                <span>{((selectedDetail.amount || selectedDetail.totalItemsValue || selectedDetail.totalAmount || 0) * 1.15).toLocaleString()} ر.س</span>
+                <span>{((selectedDetail.amount || selectedDetail.totalItemsValue || selectedDetail.totalAmount || 0) * 1.15).toLocaleString()} ⃁</span>
               </div>
               <div className="text-[11px] text-slate-600 pt-1 font-semibold">
                 التفقيط: {tafqeet((selectedDetail.amount || selectedDetail.totalItemsValue || selectedDetail.totalAmount || 0) * 1.15)}
@@ -4095,7 +4095,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                     <tr>
                       <th className="p-2">الوصف</th>
                       <th className="p-2 w-20">الكمية</th>
-                      <th className="p-2 w-28">السعر (ر.س)</th>
+                      <th className="p-2 w-28">السعر (⃁)</th>
                       <th className="p-2 w-28 text-left">الإجمالي</th>
                       <th className="p-2 w-10 text-center">×</th>
                     </tr>
@@ -4141,7 +4141,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                             className="w-full px-2 py-1 bg-transparent border rounded font-mono"
                           />
                         </td>
-                        <td className="p-2 text-left font-mono font-bold">{it.total.toLocaleString()} ر.س</td>
+                        <td className="p-2 text-left font-mono font-bold">{it.total.toLocaleString()} ⃁</td>
                         <td className="p-2 text-center">
                           <button
                             type="button"
@@ -4161,15 +4161,15 @@ export const KasEtimadCloudPage: React.FC = () => {
               <div className="p-3 bg-secondary/40 rounded-xl space-y-1 text-xs">
                 <div className="flex justify-between font-mono">
                   <span>المبلغ قبل الضريبة:</span>
-                  <span className="font-bold">{itemLines.reduce((s, it) => s + (it.qty * it.rate), 0).toLocaleString()} ر.س</span>
+                  <span className="font-bold">{itemLines.reduce((s, it) => s + (it.qty * it.rate), 0).toLocaleString()} ⃁</span>
                 </div>
                 <div className="flex justify-between font-mono text-emerald-600">
                   <span>ضريبة القيمة المضافة (15%):</span>
-                  <span className="font-bold">{(itemLines.reduce((s, it) => s + (it.qty * it.rate), 0) * 0.15).toLocaleString()} ر.س</span>
+                  <span className="font-bold">{(itemLines.reduce((s, it) => s + (it.qty * it.rate), 0) * 0.15).toLocaleString()} ⃁</span>
                 </div>
                 <div className="flex justify-between font-mono font-bold text-sm border-t pt-1 text-foreground">
                   <span>الإجمالي النهائي:</span>
-                  <span>{(itemLines.reduce((s, it) => s + (it.qty * it.rate), 0) * 1.15).toLocaleString()} ر.س</span>
+                  <span>{(itemLines.reduce((s, it) => s + (it.qty * it.rate), 0) * 1.15).toLocaleString()} ⃁</span>
                 </div>
                 <div className="text-[11px] text-muted-foreground pt-1">
                   التفقيط: <span className="font-semibold text-foreground">{tafqeet(itemLines.reduce((s, it) => s + (it.qty * it.rate), 0) * 1.15)}</span>
@@ -4247,7 +4247,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block font-medium mb-1">المبلغ المحصل (ر.س) *</label>
+                <label className="block font-medium mb-1">المبلغ المحصل (⃁) *</label>
                 <input
                   type="number"
                   placeholder="50000"
@@ -4300,7 +4300,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block font-medium mb-1">السعر الإفرادي (ر.س) *</label>
+                <label className="block font-medium mb-1">السعر الإفرادي (⃁) *</label>
                 <input
                   type="number"
                   placeholder="150"
@@ -4597,19 +4597,19 @@ export const KasEtimadCloudPage: React.FC = () => {
               <div className="p-3.5 rounded-2xl bg-secondary/50 border border-border">
                 <span className="text-[11px] text-muted-foreground block">إجمالي التعاملات</span>
                 <span className="text-base font-bold font-mono text-foreground mt-0.5 block">
-                  {invoices.filter(i => i.clientName.includes(selectedClientProfile.company) || selectedClientProfile.company.includes(i.clientName)).reduce((s, i) => s + i.amount, 0).toLocaleString()} ر.س
+                  {invoices.filter(i => i.clientName.includes(selectedClientProfile.company) || selectedClientProfile.company.includes(i.clientName)).reduce((s, i) => s + i.amount, 0).toLocaleString()} ⃁
                 </span>
               </div>
               <div className="p-3.5 rounded-2xl bg-secondary/50 border border-border">
                 <span className="text-[11px] text-muted-foreground block">المسدد</span>
                 <span className="text-base font-bold font-mono text-emerald-600 mt-0.5 block">
-                  {invoices.filter(i => i.clientName.includes(selectedClientProfile.company) || selectedClientProfile.company.includes(i.clientName)).reduce((s, i) => s + (i.paidAmount || 0), 0).toLocaleString()} ر.س
+                  {invoices.filter(i => i.clientName.includes(selectedClientProfile.company) || selectedClientProfile.company.includes(i.clientName)).reduce((s, i) => s + (i.paidAmount || 0), 0).toLocaleString()} ⃁
                 </span>
               </div>
               <div className="p-3.5 rounded-2xl bg-secondary/50 border border-border">
                 <span className="text-[11px] text-muted-foreground block">المتبقي</span>
                 <span className="text-base font-bold font-mono text-rose-500 mt-0.5 block">
-                  {(invoices.filter(i => i.clientName.includes(selectedClientProfile.company) || selectedClientProfile.company.includes(i.clientName)).reduce((s, i) => s + i.amount, 0) - invoices.filter(i => i.clientName.includes(selectedClientProfile.company) || selectedClientProfile.company.includes(i.clientName)).reduce((s, i) => s + (i.paidAmount || 0), 0)).toLocaleString()} ر.س
+                  {(invoices.filter(i => i.clientName.includes(selectedClientProfile.company) || selectedClientProfile.company.includes(i.clientName)).reduce((s, i) => s + i.amount, 0) - invoices.filter(i => i.clientName.includes(selectedClientProfile.company) || selectedClientProfile.company.includes(i.clientName)).reduce((s, i) => s + (i.paidAmount || 0), 0)).toLocaleString()} ⃁
                 </span>
               </div>
               <div className="p-3.5 rounded-2xl bg-secondary/50 border border-border">
@@ -4689,7 +4689,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                     {invoices.filter(i => i.clientName.includes(selectedClientProfile.company) || selectedClientProfile.company.includes(i.clientName)).map(inv => (
                       <tr key={inv.id} className="hover:bg-emerald-500/5">
                         <td className="p-3 font-mono font-bold text-emerald-600">{inv.invoiceNumber}</td>
-                        <td className="p-3 text-left font-mono font-bold">{inv.amount.toLocaleString()} ر.س</td>
+                        <td className="p-3 text-left font-mono font-bold">{inv.amount.toLocaleString()} ⃁</td>
                         <td className="p-3 font-mono text-muted-foreground">{inv.date}</td>
                         <td className="p-3 font-mono text-muted-foreground">{inv.dueDate}</td>
                         <td className="p-3">{getStatusPill(inv.status)}</td>
@@ -4709,7 +4709,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                       <div className="text-muted-foreground mt-0.5 font-mono">{cnt.startDate} إلى {cnt.endDate} • {cnt.contractType}</div>
                     </div>
                     <div className="text-left font-mono font-bold text-emerald-600">
-                      {cnt.contractValue.toLocaleString()} ر.س
+                      {cnt.contractValue.toLocaleString()} ⃁
                     </div>
                   </div>
                 ))}
@@ -4783,12 +4783,12 @@ export const KasEtimadCloudPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">المبلغ المستحق:</span>
-                  <span className="font-mono font-bold text-rose-500">{(quickPayInvoice.amount - (quickPayInvoice.paidAmount || 0)).toLocaleString()} ر.س</span>
+                  <span className="font-mono font-bold text-rose-500">{(quickPayInvoice.amount - (quickPayInvoice.paidAmount || 0)).toLocaleString()} ⃁</span>
                 </div>
               </div>
 
               <div>
-                <label className="block font-medium mb-1">مبلغ السداد المدفوع (ر.س) *</label>
+                <label className="block font-medium mb-1">مبلغ السداد المدفوع (⃁) *</label>
                 <input
                   type="number"
                   placeholder="المبلغ..."
@@ -4849,7 +4849,7 @@ export const KasEtimadCloudPage: React.FC = () => {
 
                   addNotification({
                     title: 'تم تسجيل السداد بنجاح',
-                    message: `تم قيد دفعة بمبلغ ${amt.toLocaleString()} ر.س للفاتورة ${quickPayInvoice.invoiceNumber}`,
+                    message: `تم قيد دفعة بمبلغ ${amt.toLocaleString()} ⃁ للفاتورة ${quickPayInvoice.invoiceNumber}`,
                     type: 'success'
                   });
 
@@ -4901,7 +4901,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block font-medium mb-1">إجمالي قيمة العرض (ر.س) *</label>
+                <label className="block font-medium mb-1">إجمالي قيمة العرض (⃁) *</label>
                 <input
                   type="number"
                   placeholder="المبلغ..."
@@ -4999,7 +4999,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block font-medium mb-1">مبلغ الإشعار (ر.س) *</label>
+                <label className="block font-medium mb-1">مبلغ الإشعار (⃁) *</label>
                 <input
                   type="number"
                   placeholder="المبلغ..."
@@ -5066,7 +5066,7 @@ export const KasEtimadCloudPage: React.FC = () => {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium mb-1">المبلغ الدوري (ر.س) *</label>
+                  <label className="block font-medium mb-1">المبلغ الدوري (⃁) *</label>
                   <input
                     type="number"
                     placeholder="المبلغ..."

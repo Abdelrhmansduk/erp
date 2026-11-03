@@ -476,7 +476,7 @@ export const FinancePage: React.FC = () => {
           <div className="space-y-1.5">
             {[
               { id: 'musaned-escrow', label: 'أمانات مساند (90 يوماً)', icon: ShieldCheck },
-              { id: 'suppliers-agents', label: 'حسابات الوكلاء (SAR / $)', icon: Globe },
+              { id: 'suppliers-agents', label: 'حسابات الوكلاء (⃁ / $)', icon: Globe },
               { id: 'aging', label: 'أعمار الذمم والتقادم (Aging)', icon: Clock },
               { id: 'eosb-zakat', label: 'نهاية الخدمة والزكاة', icon: Calculator },
             ].map(t => {
@@ -545,7 +545,7 @@ export const FinancePage: React.FC = () => {
                   <TrendingUp className="w-4 h-4" />
                 </div>
               </div>
-              <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#000000', letterSpacing: '-0.02em' }}>525,471.20 ر.س</div>
+              <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#000000', letterSpacing: '-0.02em' }}>525,471.20 ⃁</div>
               <div className="flex items-center justify-between mt-3">
                 <span className="pill-tag-mint">نمو شهري +14.8%</span>
                 <span className="text-[11px] text-zinc-600">عقود استقدام وتأجير</span>
@@ -559,7 +559,7 @@ export const FinancePage: React.FC = () => {
                   <TrendingDown className="w-4 h-4" />
                 </div>
               </div>
-              <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#000000', letterSpacing: '-0.02em' }}>220,500.00 ر.س</div>
+              <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#000000', letterSpacing: '-0.02em' }}>220,500.00 ⃁</div>
               <div className="flex items-center justify-between mt-3">
                 <span className="pill-tag-shade">مصاريف الفترة</span>
                 <span className="text-[11px] text-zinc-500">تأشيرات، رواتب، إعاشة</span>
@@ -573,7 +573,7 @@ export const FinancePage: React.FC = () => {
                   <Coins className="w-4 h-4" />
                 </div>
               </div>
-              <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', letterSpacing: '-0.02em' }}>304,971.20 ر.س</div>
+              <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', letterSpacing: '-0.02em' }}>304,971.20 ⃁</div>
               <div className="flex items-center justify-between mt-3">
                 <span className="pill-tag-mint">هامش ربح 58%</span>
                 <span className="text-[11px] text-zinc-400">أداء مالي قياسي</span>
@@ -587,7 +587,7 @@ export const FinancePage: React.FC = () => {
                   <ShieldCheck className="w-4 h-4" />
                 </div>
               </div>
-              <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#000000', letterSpacing: '-0.02em' }}>184,500.00 ر.س</div>
+              <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#000000', letterSpacing: '-0.02em' }}>184,500.00 ⃁</div>
               <div className="flex items-center justify-between mt-3">
                 <span className="pill-tag-shade">فترة الضمان</span>
                 <span className="text-[11px] text-zinc-500">حساب وسيط محمي</span>
@@ -714,26 +714,26 @@ export const FinancePage: React.FC = () => {
             <div className="p-5 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-3">
               <div className="flex justify-between items-center font-bold text-black border-b border-zinc-200 pb-2 text-sm">
                 <span>1. الأصول (Assets)</span>
-                <span className="font-mono">2,132,971.20 ر.س</span>
+                <span className="font-mono">2,132,971.20 ⃁</span>
               </div>
               <div className="space-y-2 text-xs">
                 <div className="font-bold text-zinc-700">الأصول المتداولة:</div>
                 <div className="flex justify-between py-1 border-b border-zinc-200/60 text-zinc-600">
                   <span>النقدية والصناديق والبنوك:</span>
-                  <span className="font-bold font-mono text-black">850,000.00 ر.س</span>
+                  <span className="font-bold font-mono text-black">850,000.00 ⃁</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-zinc-200/60 text-zinc-600">
                   <span>أمانات مساند المعلقة (90 يوماً):</span>
-                  <span className="font-bold font-mono text-black">184,500.00 ر.س</span>
+                  <span className="font-bold font-mono text-black">184,500.00 ⃁</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-zinc-200/60 text-zinc-600">
                   <span>المدينون وأرصدة العملاء:</span>
-                  <span className="font-bold font-mono text-black">215,971.20 ر.س</span>
+                  <span className="font-bold font-mono text-black">215,971.20 ⃁</span>
                 </div>
                 <div className="font-bold text-zinc-700 pt-2">الأصول غير المتداولة:</div>
                 <div className="flex justify-between py-1 text-zinc-600">
                   <span>صافي الأصول الثابتة:</span>
-                  <span className="font-bold font-mono text-black">882,500.00 ر.س</span>
+                  <span className="font-bold font-mono text-black">882,500.00 ⃁</span>
                 </div>
               </div>
             </div>
@@ -741,30 +741,30 @@ export const FinancePage: React.FC = () => {
             <div className="p-5 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-3">
               <div className="flex justify-between items-center font-bold text-black border-b border-zinc-200 pb-2 text-sm">
                 <span>2. الخصوم وحقوق الملكية (Liabilities & Equity)</span>
-                <span className="font-mono">2,132,971.20 ر.س</span>
+                <span className="font-mono">2,132,971.20 ⃁</span>
               </div>
               <div className="space-y-2 text-xs">
                 <div className="font-bold text-zinc-700">الخصوم المتداولة:</div>
                 <div className="flex justify-between py-1 border-b border-zinc-200/60 text-zinc-600">
                   <span>مستحقات الموردين والوكلاء:</span>
-                  <span className="font-bold font-mono text-black">189,375.00 ر.س</span>
+                  <span className="font-bold font-mono text-black">189,375.00 ⃁</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-zinc-200/60 text-zinc-600">
                   <span>مخصص مكافأة نهاية الخدمة:</span>
-                  <span className="font-bold font-mono text-black">94,200.00 ر.س</span>
+                  <span className="font-bold font-mono text-black">94,200.00 ⃁</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-zinc-200/60 text-zinc-600">
                   <span>ضريبة القيمة المضافة ZATCA 15%:</span>
-                  <span className="font-bold font-mono text-black">124,000.00 ر.س</span>
+                  <span className="font-bold font-mono text-black">124,000.00 ⃁</span>
                 </div>
                 <div className="font-bold text-zinc-700 pt-2">حقوق الملكية:</div>
                 <div className="flex justify-between py-1 border-b border-zinc-200/60 text-zinc-600">
                   <span>رأس المال المدفوع:</span>
-                  <span className="font-bold font-mono text-black">1,205,000.00 ر.س</span>
+                  <span className="font-bold font-mono text-black">1,205,000.00 ⃁</span>
                 </div>
                 <div className="flex justify-between py-1 text-zinc-600">
                   <span>الأرباح الصافية المرحلة:</span>
-                  <span className="font-bold font-mono text-emerald-700">520,396.20 ر.س</span>
+                  <span className="font-bold font-mono text-emerald-700">520,396.20 ⃁</span>
                 </div>
               </div>
             </div>
@@ -807,35 +807,35 @@ export const FinancePage: React.FC = () => {
           <div className="max-w-2xl mx-auto p-6 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-3 text-xs">
             <div className="flex justify-between py-2 border-b border-zinc-200 font-bold text-zinc-900">
               <span>إيرادات خدمات التوسط في الاستقدام (مساند):</span>
-              <span className="font-mono">410,000.00 ر.س</span>
+              <span className="font-mono">410,000.00 ⃁</span>
             </div>
             <div className="flex justify-between py-2 border-b border-zinc-200 font-bold text-zinc-900">
               <span>إيرادات عقود التأجير والتشغيل:</span>
-              <span className="font-mono">115,471.20 ر.س</span>
+              <span className="font-mono">115,471.20 ⃁</span>
             </div>
             <div className="flex justify-between py-2.5 bg-emerald-50 px-3 rounded-xl font-black text-emerald-900 border border-emerald-200">
               <span>إجمالي الإيرادات التشغيلية:</span>
-              <span className="font-mono">525,471.20 ر.س</span>
+              <span className="font-mono">525,471.20 ⃁</span>
             </div>
 
             <div className="pt-2 text-rose-700 space-y-1">
               <div className="flex justify-between py-1.5 border-b border-zinc-200">
                 <span>تكلفة المكاتب الخارجية والتأشيرات:</span>
-                <span className="font-mono">-65,000.00 ر.س</span>
+                <span className="font-mono">‎- ⃁</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-zinc-200">
                 <span>مصاريف الإعاشة والإيواء والفحص:</span>
-                <span className="font-mono">-25,000.00 ر.س</span>
+                <span className="font-mono">‎- ⃁</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-zinc-200">
                 <span>الرواتب والأجور والمكافآت:</span>
-                <span className="font-mono">-130,500.00 ر.س</span>
+                <span className="font-mono">‎- ⃁</span>
               </div>
             </div>
 
             <div className="flex justify-between py-3.5 bg-black text-white px-5 rounded-2xl font-bold text-sm">
               <span>صافي الربح للفترة (Net Income):</span>
-              <span className="font-mono text-emerald-400">304,971.20 ر.س</span>
+              <span className="font-mono text-emerald-400">304,971.20 ⃁</span>
             </div>
           </div>
         </div>
@@ -857,7 +857,7 @@ export const FinancePage: React.FC = () => {
 
             <div className="flex items-center gap-2">
               <span className="pill-tag-mint text-xs font-bold">
-                صافي التغير النقدي: +155,000.00 ر.س
+                صافي التغير النقدي: +155,000.00 ⃁
               </span>
             </div>
           </div>
@@ -865,19 +865,19 @@ export const FinancePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200">
               <div className="text-xs font-bold text-emerald-900 mb-1">صافي التدفقات التشغيلية</div>
-              <div className="text-xl font-bold font-mono text-emerald-950">+200,000.00 ر.س</div>
+              <div className="text-xl font-bold font-mono text-emerald-950">+200,000.00 ⃁</div>
               <div className="text-[10px] text-emerald-700 mt-1">مقبوضات العقود ناقص الرواتب والتشغيل</div>
             </div>
 
             <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200">
               <div className="text-xs font-bold text-zinc-800 mb-1">صافي التدفقات الاستثمارية</div>
-              <div className="text-xl font-bold font-mono text-rose-700">-45,000.00 ر.س</div>
+              <div className="text-xl font-bold font-mono text-rose-700">‎- ⃁</div>
               <div className="text-[10px] text-zinc-500 mt-1">تجهيزات ومعدات إيواء وسيارات</div>
             </div>
 
             <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200">
               <div className="text-xs font-bold text-zinc-800 mb-1">صافي التدفقات التمويلية</div>
-              <div className="text-xl font-bold font-mono text-zinc-700">0.00 ر.س</div>
+              <div className="text-xl font-bold font-mono text-zinc-700">0.00 ⃁</div>
               <div className="text-[10px] text-zinc-500 mt-1">لا توجد قروض أو توزيعات نقدية</div>
             </div>
           </div>
@@ -889,23 +889,23 @@ export const FinancePage: React.FC = () => {
               <div className="space-y-2 pt-2">
                 <div className="flex justify-between text-zinc-700">
                   <span>صافي الربح للفترة:</span>
-                  <span className="font-mono font-bold">304,971.20 ر.س</span>
+                  <span className="font-mono font-bold">304,971.20 ⃁</span>
                 </div>
                 <div className="flex justify-between text-zinc-700">
                   <span>(+) استهلاك الأصول الثابتة (غير نقدي):</span>
-                  <span className="font-mono font-bold">+12,500.00 ر.س</span>
+                  <span className="font-mono font-bold">+12,500.00 ⃁</span>
                 </div>
                 <div className="flex justify-between text-zinc-700">
                   <span>(-) الزيادة في المدينين وحسابات مساند المعلقة:</span>
-                  <span className="font-mono font-bold text-rose-600">-62,471.20 ر.س</span>
+                  <span className="font-mono font-bold text-rose-600">‎- ⃁</span>
                 </div>
                 <div className="flex justify-between text-zinc-700">
                   <span>(-) سداد مستحقات الوكلاء الخارجيين:</span>
-                  <span className="font-mono font-bold text-rose-600">-55,000.00 ر.س</span>
+                  <span className="font-mono font-bold text-rose-600">‎- ⃁</span>
                 </div>
                 <div className="flex justify-between bg-emerald-100/60 p-2 rounded-lg font-bold text-emerald-950">
                   <span>صافي النقد المتوفر من الأنشطة التشغيلية:</span>
-                  <span className="font-mono">200,000.00 ر.س</span>
+                  <span className="font-mono">200,000.00 ⃁</span>
                 </div>
               </div>
             </div>
@@ -915,11 +915,11 @@ export const FinancePage: React.FC = () => {
               <div className="space-y-2 pt-2">
                 <div className="flex justify-between text-zinc-700">
                   <span>شراء أصول ثابتة وتجهيزات فروع:</span>
-                  <span className="font-mono font-bold text-rose-600">-45,000.00 ر.س</span>
+                  <span className="font-mono font-bold text-rose-600">‎- ⃁</span>
                 </div>
                 <div className="flex justify-between bg-zinc-200/60 p-2 rounded-lg font-bold text-zinc-900">
                   <span>صافي النقد المستخدم في الأنشطة الاستثمارية:</span>
-                  <span className="font-mono">-45,000.00 ر.س</span>
+                  <span className="font-mono">‎- ⃁</span>
                 </div>
               </div>
             </div>
@@ -927,15 +927,15 @@ export const FinancePage: React.FC = () => {
             <div className="border-t-2 border-zinc-300 pt-3 space-y-2">
               <div className="flex justify-between text-zinc-800 font-bold">
                 <span>رصيد النقدية وما في حكمها في بداية الفترة:</span>
-                <span className="font-mono">750,000.00 ر.س</span>
+                <span className="font-mono">750,000.00 ⃁</span>
               </div>
               <div className="flex justify-between text-emerald-700 font-bold">
                 <span>صافي الزيادة في النقدية خلال الفترة:</span>
-                <span className="font-mono">+155,000.00 ر.س</span>
+                <span className="font-mono">+155,000.00 ⃁</span>
               </div>
               <div className="flex justify-between bg-black text-white p-4 rounded-xl font-bold text-sm">
                 <span>رصيد النقدية وما في حكمها في نهاية الفترة (البنوك والصناديق):</span>
-                <span className="font-mono text-emerald-400">905,000.00 ر.س</span>
+                <span className="font-mono text-emerald-400">905,000.00 ⃁</span>
               </div>
             </div>
           </div>
@@ -993,7 +993,7 @@ export const FinancePage: React.FC = () => {
                     <td className="p-3 text-zinc-500 font-mono">{j.date}</td>
                     <td className="p-3 font-bold text-black">{j.branch}</td>
                     <td className="p-3 text-zinc-700">{j.description}</td>
-                    <td className="p-3 font-mono font-bold text-black">{j.amount.toLocaleString()} ر.س</td>
+                    <td className="p-3 font-mono font-bold text-black">{j.amount.toLocaleString()} ⃁</td>
                     <td className="p-3">
                       <Badge text={j.status} type="success" />
                     </td>
@@ -1152,7 +1152,7 @@ export const FinancePage: React.FC = () => {
                 <div>
                   <div className="text-[11px] font-bold text-emerald-800">إجمالي المقبوضات (سندات القبض)</div>
                   <div className="text-base font-mono font-bold text-emerald-900 mt-0.5">
-                    {totalReceipts.toLocaleString()} <span className="text-[10px] font-sans">ر.س</span>
+                    {totalReceipts.toLocaleString()} <span className="text-[10px] font-sans">⃁</span>
                   </div>
                   <div className="text-[10px] text-emerald-600 mt-0.5">{receiptCount} سند قبض مسجل</div>
                 </div>
@@ -1165,7 +1165,7 @@ export const FinancePage: React.FC = () => {
                 <div>
                   <div className="text-[11px] font-bold text-rose-800">إجمالي المصروفات (سندات الصرف)</div>
                   <div className="text-base font-mono font-bold text-rose-900 mt-0.5">
-                    {totalPayments.toLocaleString()} <span className="text-[10px] font-sans">ر.س</span>
+                    {totalPayments.toLocaleString()} <span className="text-[10px] font-sans">⃁</span>
                   </div>
                   <div className="text-[10px] text-rose-600 mt-0.5">{paymentCount} سند صرف مسجل</div>
                 </div>
@@ -1182,7 +1182,7 @@ export const FinancePage: React.FC = () => {
                       netCashFlow >= 0 ? 'text-zinc-900' : 'text-rose-600'
                     }`}
                   >
-                    {netCashFlow.toLocaleString()} <span className="text-[10px] font-sans">ر.س</span>
+                    {netCashFlow.toLocaleString()} <span className="text-[10px] font-sans">⃁</span>
                   </div>
                   <div className="text-[10px] text-zinc-500 mt-0.5">الفرق بين المقبوضات والمدفوعات</div>
                 </div>
@@ -1298,7 +1298,7 @@ export const FinancePage: React.FC = () => {
                           </div>
                         </td>
                         <td className="p-3 text-zinc-600">{v.treasury}</td>
-                        <td className="p-3 font-mono font-bold text-black">{v.amount.toLocaleString()} ر.س</td>
+                        <td className="p-3 font-mono font-bold text-black">{v.amount.toLocaleString()} ⃁</td>
                         <td className="p-3">
                           <Badge text={v.status} type="success" />
                         </td>
@@ -1335,7 +1335,7 @@ export const FinancePage: React.FC = () => {
       {activeTab === 'suppliers-agents' && (
         <div className="card-pricing p-6 bg-white rounded-3xl border border-zinc-200 space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-zinc-100">
-            <h3 className="text-sm font-bold text-black m-0">كشوفات حسابات الموردين والوكلاء الخارجيين بالدولار ($/SAR)</h3>
+            <h3 className="text-sm font-bold text-black m-0">كشوفات حسابات الموردين والوكلاء الخارجيين بالدولار ($ / ⃁)</h3>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => exportData('external-offices', SUPPLIERS_ACCOUNTS, 'excel', `حسابات الوكلاء الخارجيين - ${activeCompany.name}`)}
@@ -1356,7 +1356,7 @@ export const FinancePage: React.FC = () => {
                   <th className="p-3">الدولة والمدينة</th>
                   <th className="p-3">السير الذاتية</th>
                   <th className="p-3 font-mono">الرصيد بالدولار ($)</th>
-                  <th className="p-3 font-mono">المقابل بالريال (SAR)</th>
+                  <th className="p-3 font-mono">المقابل بالريال (⃁)</th>
                   <th className="p-3">حالة المطابقة</th>
                 </tr>
               </thead>
@@ -1372,7 +1372,7 @@ export const FinancePage: React.FC = () => {
                     <td className="p-3 text-zinc-600">{s.country}</td>
                     <td className="p-3 font-bold text-black">{s.cv_count} سيرة ذاتية</td>
                     <td className="p-3 font-mono font-bold text-rose-700">${s.balance_usd.toLocaleString()}</td>
-                    <td className="p-3 font-mono font-bold text-emerald-700">{s.balance_sar.toLocaleString()} ر.س</td>
+                    <td className="p-3 font-mono font-bold text-emerald-700">{s.balance_sar.toLocaleString()} ⃁</td>
                     <td className="p-3">
                       <Badge text={s.status} type="success" />
                     </td>
@@ -1396,7 +1396,7 @@ export const FinancePage: React.FC = () => {
             <div className="p-5 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-4">
               <h4 className="font-bold text-xs text-zinc-800">بيانات احتساب مكافأة الموظف:</h4>
               <div>
-                <label className="block text-xs font-bold text-zinc-600 mb-1">الراتب الأساسي الأخير (ر.س)</label>
+                <label className="block text-xs font-bold text-zinc-600 mb-1">الراتب الأساسي الأخير (⃁)</label>
                 <input
                   type="number"
                   value={eosbCalc.salary}
@@ -1432,7 +1432,7 @@ export const FinancePage: React.FC = () => {
             <div className="bg-black text-white p-6 rounded-2xl space-y-3">
               <h4 className="text-xs font-bold text-zinc-400">النتيجة النظامية المعتمدة:</h4>
               <div className="text-3xl font-light font-mono text-emerald-400">
-                {calculateEOSBResult().toLocaleString()} ر.س
+                {calculateEOSBResult().toLocaleString()} ⃁
               </div>
               <p className="text-[11px] text-zinc-400 leading-relaxed">
                 تم الاحتساب وفقاً للمادتين 84 و 85 من نظام العمل السعودي المعتمد من وزارة الموارد البشرية والتنمية الاجتماعية.
@@ -1458,7 +1458,7 @@ export const FinancePage: React.FC = () => {
 
             <div className="flex items-center gap-2">
               <span className="pill-tag-mint text-xs font-bold">
-                إجمالي الذمم المدينة: 149,550.00 ر.س
+                إجمالي الذمم المدينة: 149,550.00 ⃁
               </span>
             </div>
           </div>
@@ -1467,25 +1467,25 @@ export const FinancePage: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-center">
               <div className="text-[11px] font-bold text-emerald-800 mb-1">0 - 30 يوماً (ساري)</div>
-              <div className="text-lg font-bold font-mono text-emerald-950">13,800.00 ر.س</div>
+              <div className="text-lg font-bold font-mono text-emerald-950">13,800.00 ⃁</div>
               <div className="text-[10px] text-emerald-600 mt-0.5">عميل واحد (تحصيل ممتاز)</div>
             </div>
 
             <div className="p-4 rounded-2xl bg-sky-50/70 border border-sky-200 text-center">
               <div className="text-[11px] font-bold text-sky-800 mb-1">31 - 60 يوماً (مستحق)</div>
-              <div className="text-lg font-bold font-mono text-sky-950">28,750.00 ر.س</div>
+              <div className="text-lg font-bold font-mono text-sky-950">28,750.00 ⃁</div>
               <div className="text-[10px] text-sky-600 mt-0.5">عميل واحد (ضمن فترة السماح)</div>
             </div>
 
             <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 text-center">
               <div className="text-[11px] font-bold text-amber-800 mb-1">61 - 90 يوماً (تنبيه متأخر)</div>
-              <div className="text-lg font-bold font-mono text-amber-950">42,000.00 ر.س</div>
+              <div className="text-lg font-bold font-mono text-amber-950">42,000.00 ⃁</div>
               <div className="text-[10px] text-amber-700 mt-0.5">عميل واحد (يتطلب متابعة فورية)</div>
             </div>
 
             <div className="p-4 rounded-2xl bg-red-50/70 border border-red-200 text-center">
               <div className="text-[11px] font-bold text-red-800 mb-1">+90 يوماً (حرج / ديون مشكوك فيها)</div>
-              <div className="text-lg font-bold font-mono text-red-950">65,000.00 ر.س</div>
+              <div className="text-lg font-bold font-mono text-red-950">65,000.00 ⃁</div>
               <div className="text-[10px] text-red-700 mt-0.5">عميل واحد (تحت الإجراء القانوني)</div>
             </div>
           </div>
@@ -1887,7 +1887,7 @@ export const FinancePage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-zinc-700 mb-1.5">الرصيد الفعلي بكشف الحساب البنكي (ر.س) *</label>
+              <label className="block text-xs font-bold text-zinc-700 mb-1.5">الرصيد الفعلي بكشف الحساب البنكي (⃁) *</label>
               <input
                 type="number"
                 step="0.01"
@@ -1948,7 +1948,7 @@ export const FinancePage: React.FC = () => {
                         </div>
                       </div>
                       <div className="text-left font-mono">
-                        <span className="font-bold text-xs text-rose-700 block">{item.amount.toLocaleString()} ر.س</span>
+                        <span className="font-bold text-xs text-rose-700 block">{item.amount.toLocaleString()} ⃁</span>
                         <span className="text-[9.5px] text-zinc-400">{isCleared ? 'تمت المطابقة' : 'معلقة بالطريق'}</span>
                       </div>
                     </div>
@@ -2004,7 +2004,7 @@ export const FinancePage: React.FC = () => {
                         </div>
                       </div>
                       <div className="text-left font-mono">
-                        <span className="font-bold text-xs text-emerald-700 block">+{item.amount.toLocaleString()} ر.س</span>
+                        <span className="font-bold text-xs text-emerald-700 block">+{item.amount.toLocaleString()} ⃁</span>
                         <span className="text-[9.5px] text-zinc-400">{isCleared ? 'تمت المطابقة' : 'قيد المقاصة'}</span>
                       </div>
                     </div>
@@ -2029,19 +2029,19 @@ export const FinancePage: React.FC = () => {
                 <div className="text-zinc-400 font-bold mb-2">جانب البنك (Bank Statement):</div>
                 <div className="flex justify-between text-zinc-300">
                   <span>الرصيد بموجب كشف الحساب البنكي:</span>
-                  <span className="font-mono font-bold text-white">{parseFloat(bankStatementBalance || '0').toLocaleString()} ر.س</span>
+                  <span className="font-mono font-bold text-white">{parseFloat(bankStatementBalance || '0').toLocaleString()} ⃁</span>
                 </div>
                 <div className="flex justify-between text-emerald-400">
                   <span>(+) إيداعات قيد التحصيل (غير مقاصة):</span>
-                  <span className="font-mono font-bold">+12,700.00 ر.س</span>
+                  <span className="font-mono font-bold">+12,700.00 ⃁</span>
                 </div>
                 <div className="flex justify-between text-rose-400">
                   <span>(-) شيكات وحوالات صادرة لم تصرف:</span>
-                  <span className="font-mono font-bold">-3,583.00 ر.س</span>
+                  <span className="font-mono font-bold">‎- ⃁</span>
                 </div>
                 <div className="border-t border-zinc-700 pt-2 flex justify-between font-bold text-white text-sm">
                   <span>الرصيد البنكي المعدل (Adjusted Bank):</span>
-                  <span className="font-mono text-emerald-400">429,617.00 ر.س</span>
+                  <span className="font-mono text-emerald-400">429,617.00 ⃁</span>
                 </div>
               </div>
 
@@ -2049,19 +2049,19 @@ export const FinancePage: React.FC = () => {
                 <div className="text-zinc-400 font-bold mb-2">جانب الدفاتر (General Ledger):</div>
                 <div className="flex justify-between text-zinc-300">
                   <span>الرصيد الدفتري في ميزان المراجعة:</span>
-                  <span className="font-mono font-bold text-white">429,674.50 ر.س</span>
+                  <span className="font-mono font-bold text-white">429,674.50 ⃁</span>
                 </div>
                 <div className="flex justify-between text-rose-400">
                   <span>(-) المصاريف والرسوم البنكية غير المسجلة:</span>
-                  <span className="font-mono font-bold">-57.50 ر.س</span>
+                  <span className="font-mono font-bold">‎- ⃁</span>
                 </div>
                 <div className="flex justify-between text-zinc-400">
                   <span>(+) أرباح وإيداعات مباشرة بالبنك:</span>
-                  <span className="font-mono font-bold">0.00 ر.س</span>
+                  <span className="font-mono font-bold">0.00 ⃁</span>
                 </div>
                 <div className="border-t border-zinc-700 pt-2 flex justify-between font-bold text-white text-sm">
                   <span>الرصيد الدفتري المعدل (Adjusted Books):</span>
-                  <span className="font-mono text-emerald-400">429,617.00 ر.س</span>
+                  <span className="font-mono text-emerald-400">429,617.00 ⃁</span>
                 </div>
               </div>
             </div>
@@ -2070,7 +2070,7 @@ export const FinancePage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
                 <span className="text-xs font-bold text-emerald-200">
-                  حالة التوازن: الرصيد البنكي المعدل يطابق تماماً الرصيد الدفتري المعدل (الفارق = 0.00 ر.س).
+                  حالة التوازن: الرصيد البنكي المعدل يطابق تماماً الرصيد الدفتري المعدل (الفارق = 0.00 ⃁).
                 </span>
               </div>
               <button
@@ -2196,32 +2196,32 @@ export const FinancePage: React.FC = () => {
             <div className="bg-white rounded-2xl border border-zinc-200 p-5 space-y-3">
               <h4 className="font-bold text-xs text-black pb-2 border-b border-zinc-100 flex items-center justify-between">
                 <span>1. ضريبة المخرجات على المبيعات والخدمات (Output VAT)</span>
-                <span className="pill-tag-mint text-[10.5px]">المجموع: 96,820.68 ر.س</span>
+                <span className="pill-tag-mint text-[10.5px]">المجموع: 96,820.68 ⃁</span>
               </h4>
 
               <div className="space-y-2">
                 <div className="p-3 bg-zinc-50 rounded-xl flex items-center justify-between">
                   <div>
                     <span className="font-bold text-black block">عقود التأجير وعمولات الاستقدام (15%)</span>
-                    <span className="text-[10px] text-zinc-500 font-mono">المبلغ الخاضع: 525,471.20 ر.س</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">المبلغ الخاضع: 525,471.20 ⃁</span>
                   </div>
-                  <span className="font-mono font-bold text-black text-xs">78,820.68 ر.س</span>
+                  <span className="font-mono font-bold text-black text-xs">78,820.68 ⃁</span>
                 </div>
 
                 <div className="p-3 bg-zinc-50 rounded-xl flex items-center justify-between">
                   <div>
                     <span className="font-bold text-black block">مبيعات الشركات والجهات الخاضعة (15%)</span>
-                    <span className="text-[10px] text-zinc-500 font-mono">المبلغ الخاضع: 120,000.00 ر.س</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">المبلغ الخاضع: 120,000.00 ⃁</span>
                   </div>
-                  <span className="font-mono font-bold text-black text-xs">18,000.00 ر.س</span>
+                  <span className="font-mono font-bold text-black text-xs">18,000.00 ⃁</span>
                 </div>
 
                 <div className="p-3 bg-zinc-50 rounded-xl flex items-center justify-between">
                   <div>
                     <span className="font-bold text-black block">خدمات وصادرات معفاة / بنسبة الصفر (0%)</span>
-                    <span className="text-[10px] text-zinc-500 font-mono">المبلغ: 65,000.00 ر.س</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">المبلغ: 65,000.00 ⃁</span>
                   </div>
-                  <span className="font-mono font-bold text-zinc-400 text-xs">0.00 ر.س</span>
+                  <span className="font-mono font-bold text-zinc-400 text-xs">0.00 ⃁</span>
                 </div>
               </div>
             </div>
@@ -2230,24 +2230,24 @@ export const FinancePage: React.FC = () => {
             <div className="bg-white rounded-2xl border border-zinc-200 p-5 space-y-3">
               <h4 className="font-bold text-xs text-black pb-2 border-b border-zinc-100 flex items-center justify-between">
                 <span>2. ضريبة المدخلات على المشتريات والمصروفات (Input VAT)</span>
-                <span className="pill-tag-shade text-[10.5px]">المجموع: 45,825.00 ر.س</span>
+                <span className="pill-tag-shade text-[10.5px]">المجموع: 45,825.00 ⃁</span>
               </h4>
 
               <div className="space-y-2">
                 <div className="p-3 bg-zinc-50 rounded-xl flex items-center justify-between">
                   <div>
                     <span className="font-bold text-black block">مشتريات تشغيلية ومراكز إيواء وضيافة (15%)</span>
-                    <span className="text-[10px] text-zinc-500 font-mono">المبلغ الخاضع: 220,500.00 ر.س</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">المبلغ الخاضع: 220,500.00 ⃁</span>
                   </div>
-                  <span className="font-mono font-bold text-rose-700 text-xs">33,075.00 ر.س</span>
+                  <span className="font-mono font-bold text-rose-700 text-xs">33,075.00 ⃁</span>
                 </div>
 
                 <div className="p-3 bg-zinc-50 rounded-xl flex items-center justify-between">
                   <div>
                     <span className="font-bold text-black block">رسوم استيراد وتأشيرات خاضعة بالجمارك (15%)</span>
-                    <span className="text-[10px] text-zinc-500 font-mono">المبلغ الخاضع: 85,000.00 ر.س</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">المبلغ الخاضع: 85,000.00 ⃁</span>
                   </div>
-                  <span className="font-mono font-bold text-rose-700 text-xs">12,750.00 ر.س</span>
+                  <span className="font-mono font-bold text-rose-700 text-xs">12,750.00 ⃁</span>
                 </div>
 
                 <div className="p-3 bg-zinc-50 rounded-xl flex items-center justify-between">
@@ -2255,7 +2255,7 @@ export const FinancePage: React.FC = () => {
                     <span className="font-bold text-black block">مصروفات معفاة من الخصم الضريبي</span>
                     <span className="text-[10px] text-zinc-500 font-mono">رواتب وكوادر إدارية</span>
                   </div>
-                  <span className="font-mono font-bold text-zinc-400 text-xs">0.00 ر.س</span>
+                  <span className="font-mono font-bold text-zinc-400 text-xs">0.00 ⃁</span>
                 </div>
               </div>
             </div>
@@ -2266,10 +2266,10 @@ export const FinancePage: React.FC = () => {
             <div>
               <span className="text-xs text-zinc-400 font-semibold block">صافي ضريبة القيمة المضافة المستحقة للسداد لهيئة الزكاة (Net Tax Due):</span>
               <div className="text-3xl font-light font-mono text-emerald-400 mt-1">
-                50,995.68 ر.س
+                50,995.68 ⃁
               </div>
               <p className="text-[11px] text-zinc-400 mt-1">
-                ضريبة المخرجات (96,820.68 ر.س) - ضريبة المدخلات (45,825.00 ر.س) = 50,995.68 ر.س
+                ضريبة المخرجات (96,820.68 ⃁) - ضريبة المدخلات (45,825.00 ⃁) = 50,995.68 ⃁
               </p>
             </div>
 
@@ -2289,7 +2289,7 @@ export const FinancePage: React.FC = () => {
                 setVouchers(updatedV);
                 addNotification({
                   title: 'إرسال الإقرار للهيئة وإصدار سند سداد',
-                  message: `تم إرسال إقرار ${vatPeriod} إلكترونياً إلى بوابة ZATCA وإصدار سند الصرف (${newV.voucher_no}) لسداد فاتورة سداد #9928192 بمبلغ 50,995.68 ر.س.`,
+                  message: `تم إرسال إقرار ${vatPeriod} إلكترونياً إلى بوابة ZATCA وإصدار سند الصرف (${newV.voucher_no}) لسداد فاتورة سداد #9928192 بمبلغ 50,995.68 ⃁.`,
                   type: 'success',
                 });
               }}
@@ -2334,7 +2334,7 @@ export const FinancePage: React.FC = () => {
                 <div>
                   <span className="text-zinc-400 block font-bold">الرصيد التراكمي:</span>
                   <span className="font-mono font-bold text-emerald-700">
-                    {Number(selectedAccountForDrilldown.balance || 0).toLocaleString()} ر.س
+                    {Number(selectedAccountForDrilldown.balance || 0).toLocaleString()} ⃁
                   </span>
                 </div>
               </div>
@@ -2349,7 +2349,7 @@ export const FinancePage: React.FC = () => {
                         <p className="text-[11px] text-zinc-500 mt-0.5">{j.description}</p>
                       </div>
                       <div className="text-left font-mono">
-                        <span className="font-bold text-black block">{j.amount.toLocaleString()} ر.س</span>
+                        <span className="font-bold text-black block">{j.amount.toLocaleString()} ⃁</span>
                         <span className="text-[10px] text-zinc-400">{j.date}</span>
                       </div>
                     </div>
@@ -2504,7 +2504,7 @@ export const FinancePage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-zinc-700 mb-1.5">المبلغ الإجمالي للقيد (ر.س) *</label>
+                <label className="block text-xs font-bold text-zinc-700 mb-1.5">المبلغ الإجمالي للقيد (⃁) *</label>
                 <input
                   type="number"
                   step="0.01"
@@ -2685,7 +2685,7 @@ export const FinancePage: React.FC = () => {
                 <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 flex justify-between items-center">
                   <span className="font-bold text-zinc-700">المبلغ وقدره:</span>
                   <span className="font-mono font-extrabold text-base text-emerald-800">
-                    {selectedVoucherForPrint.amount.toLocaleString()} ر.س
+                    {selectedVoucherForPrint.amount.toLocaleString()} ⃁
                   </span>
                 </div>
 
@@ -2793,19 +2793,19 @@ export const FinancePage: React.FC = () => {
                     <tr>
                       <td className="p-2.5 font-bold">1102</td>
                       <td className="p-2.5 font-sans">بنك الرياض - حساب الاستقدام</td>
-                      <td className="p-2.5 font-bold text-black">{selectedJournalForPrint.amount.toLocaleString()} ر.س</td>
+                      <td className="p-2.5 font-bold text-black">{selectedJournalForPrint.amount.toLocaleString()} ⃁</td>
                       <td className="p-2.5 text-zinc-400">0.00</td>
                     </tr>
                     <tr>
                       <td className="p-2.5 font-bold">4101</td>
                       <td className="p-2.5 font-sans">إيرادات وساطة عقود الاستقدام</td>
                       <td className="p-2.5 text-zinc-400">0.00</td>
-                      <td className="p-2.5 font-bold text-rose-700">{selectedJournalForPrint.amount.toLocaleString()} ر.س</td>
+                      <td className="p-2.5 font-bold text-rose-700">{selectedJournalForPrint.amount.toLocaleString()} ⃁</td>
                     </tr>
                     <tr className="bg-zinc-50 font-bold border-t-2 border-black">
                       <td colSpan={2} className="p-2.5 font-sans text-left pl-4">الإجمالي المتوازن:</td>
-                      <td className="p-2.5 text-black">{selectedJournalForPrint.amount.toLocaleString()} ر.س</td>
-                      <td className="p-2.5 text-rose-700">{selectedJournalForPrint.amount.toLocaleString()} ر.س</td>
+                      <td className="p-2.5 text-black">{selectedJournalForPrint.amount.toLocaleString()} ⃁</td>
+                      <td className="p-2.5 text-rose-700">{selectedJournalForPrint.amount.toLocaleString()} ⃁</td>
                     </tr>
                   </tbody>
                 </table>

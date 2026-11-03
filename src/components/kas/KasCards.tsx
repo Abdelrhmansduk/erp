@@ -239,7 +239,7 @@ export const KasTenderCard: React.FC<KasTenderCardProps> = ({
         <div className="flex items-baseline justify-between">
           <span className="text-zinc-500 dark:text-zinc-400">القيمة شاملة الضريبة:</span>
           <span className="text-lg font-black font-mono text-emerald-600 dark:text-emerald-400">
-            {tender.grandTotal.toLocaleString()} <span className="text-xs font-sans">ر.س</span>
+            {tender.grandTotal.toLocaleString()} <span className="text-xs font-sans">⃁</span>
           </span>
         </div>
         <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-1 border-t border-zinc-200/60 dark:border-zinc-700/60">
@@ -486,11 +486,11 @@ export const KasInvoiceCard: React.FC<KasInvoiceCardProps> = ({
         <div className="flex items-baseline justify-between">
           <span className="text-zinc-500 dark:text-zinc-400">الإجمالي شامل الضريبة:</span>
           <span className="text-lg font-black font-mono text-emerald-600 dark:text-emerald-400">
-            {grandTotal.toLocaleString()} <span className="text-xs font-sans">ر.س</span>
+            {grandTotal.toLocaleString()} <span className="text-xs font-sans">⃁</span>
           </span>
         </div>
         <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-1 border-t border-zinc-200/60 dark:border-zinc-700/60">
-          <span>الضريبة (15%): <strong className="text-zinc-600 dark:text-zinc-300 font-mono">{invoice.taxAmount.toLocaleString()} ر.س</strong></span>
+          <span>الضريبة (15%): <strong className="text-zinc-600 dark:text-zinc-300 font-mono">{invoice.taxAmount.toLocaleString()} ⃁</strong></span>
           <span className="flex items-center gap-1 font-mono">
             <Clock className="w-3 h-3 text-zinc-400" />
             استحقاق: {invoice.dueDate}

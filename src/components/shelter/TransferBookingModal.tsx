@@ -208,7 +208,7 @@ export const TransferBookingModal: React.FC<TransferBookingModalProps> = ({
                   <span>•</span>
                   <span>جواز: <span className="font-mono text-[#141414]">{worker.passportNumber}</span></span>
                   <span>•</span>
-                  <span>الراتب: <span className="font-mono text-[#141414] font-bold">{worker.requestedSalary} ر.س</span></span>
+                  <span>الراتب: <span className="font-mono text-[#141414] font-bold">{worker.requestedSalary} ⃁</span></span>
                 </div>
               </div>
             </div>
@@ -344,7 +344,7 @@ export const TransferBookingModal: React.FC<TransferBookingModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="text-[11px] font-bold text-zinc-300 block mb-1">
-                  إجمالي تكلفة نقل الخدمات (ر.س) *
+                  إجمالي تكلفة نقل الخدمات (⃁) *
                 </label>
                 <input
                   type="number"
@@ -358,7 +358,7 @@ export const TransferBookingModal: React.FC<TransferBookingModalProps> = ({
 
               <div>
                 <label className="text-[11px] font-bold text-zinc-300 block mb-1">
-                  العربون / الدفعة الأولى المستلمة (ر.س) *
+                  العربون / الدفعة الأولى المستلمة (⃁) *
                 </label>
                 <input
                   type="number"
@@ -372,10 +372,10 @@ export const TransferBookingModal: React.FC<TransferBookingModalProps> = ({
 
               <div>
                 <label className="text-[11px] font-bold text-zinc-300 block mb-1">
-                  المبلغ المتبقي بعد التجربة (ر.س)
+                  المبلغ المتبقي بعد التجربة (⃁)
                 </label>
                 <div className="px-3 py-2 rounded-xl text-xs font-black bg-black/40 border border-white/10 text-white">
-                  {remainingAmount.toLocaleString('ar-SA')} ر.س
+                  {remainingAmount.toLocaleString('ar-SA')} ⃁
                   <span className={`mr-2 text-[10px] px-2 py-0.5 rounded-full ${
                     paymentStatus === 'مسدد بالكامل' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                   }`}>

@@ -223,7 +223,7 @@ export const CustodiesPage: React.FC = () => {
                   <td className="p-3.5">
                     <Badge text={row.location} type="purple" />
                   </td>
-                  <td className="p-3.5 font-mono font-bold text-black">{(row.estimated_value ?? 0).toLocaleString()} ر.س</td>
+                  <td className="p-3.5 font-mono font-bold text-black">{(row.estimated_value ?? 0).toLocaleString()} ⃁</td>
                   <td className="p-3.5 font-mono text-zinc-500">{row.received_date}</td>
                   <td className="p-3.5">
                     <Badge text={row.status} type={row.status === 'في حوزة الموظف' ? 'success' : row.status === 'تم الاسترجاع' ? 'purple' : 'warning'} />
@@ -315,7 +315,7 @@ export const CustodiesPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">القيمة التقديرية (ر.س)</label>
+                  <label className="block text-xs font-semibold text-zinc-700 mb-1">القيمة التقديرية (⃁)</label>
                   <input
                     type="number"
                     placeholder="0.00"
@@ -378,7 +378,7 @@ export const CustodiesPage: React.FC = () => {
                 <div><strong>اسم الأصل:</strong> {selectedCustodyForDoc.item_name}</div>
                 <div><strong>الرقم التسلسلي:</strong> <span className="font-mono">{selectedCustodyForDoc.serial_number}</span></div>
                 <div><strong>تاريخ الاستلام:</strong> <span className="font-mono">{selectedCustodyForDoc.received_date}</span></div>
-                <div><strong>القيمة التقديرية:</strong> <span className="font-mono font-bold text-emerald-700">{(selectedCustodyForDoc.estimated_value ?? 0).toLocaleString()} ر.س</span></div>
+                <div><strong>القيمة التقديرية:</strong> <span className="font-mono font-bold text-emerald-700">{(selectedCustodyForDoc.estimated_value ?? 0).toLocaleString()} ⃁</span></div>
               </div>
 
               <div className="flex justify-between pt-4 border-t border-dashed border-zinc-200 text-xs text-zinc-600">

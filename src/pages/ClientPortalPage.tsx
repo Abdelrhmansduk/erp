@@ -192,7 +192,7 @@ export const ClientPortalPage: React.FC = () => {
 
     addNotification({
       title: 'سداد ناجح وإصدار سند القبض',
-      message: `تم سداد مبلغ ${remaining.toLocaleString()} ر.س بنجاح عبر ${payMethod} وتوليد سند القبض الإلكتروني.`,
+      message: `تم سداد مبلغ ${remaining.toLocaleString()} ⃁ بنجاح عبر ${payMethod} وتوليد سند القبض الإلكتروني.`,
       type: 'success',
     });
   };
@@ -312,7 +312,7 @@ export const ClientPortalPage: React.FC = () => {
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#000000', color: '#ffffff' }}>
           <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>إجمالي المدفوعات الموثقة</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>
-            33,000 ر.س
+            33,000 ⃁
           </div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>فواتير ZATCA معتمدة</span>
         </div>
@@ -380,7 +380,7 @@ export const ClientPortalPage: React.FC = () => {
                       style={{ minHeight: '34px', padding: '6px 14px', background: '#10b981' }}
                     >
                       <CreditCard className="w-3.5 h-3.5" />
-                      <span>سداد الرصيد ({(contract.amount - contract.paidAmount).toLocaleString()} ر.س)</span>
+                      <span>سداد الرصيد ({(contract.amount - contract.paidAmount).toLocaleString()} ⃁)</span>
                     </button>
                   )}
                   <button 
@@ -429,11 +429,11 @@ export const ClientPortalPage: React.FC = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs text-slate-600 dark:text-slate-400">
                 <div>
                   <span className="text-slate-400 block text-[11px]">قيمة العقد الإجمالية</span>
-                  <strong className="text-slate-900 dark:text-white font-bold">{contract.amount.toLocaleString()} ر.س</strong>
+                  <strong className="text-slate-900 dark:text-white font-bold">{contract.amount.toLocaleString()} ⃁</strong>
                 </div>
                 <div>
                   <span className="text-slate-400 block text-[11px]">المبلغ المسدد</span>
-                  <strong className="text-emerald-600 font-bold">{contract.paidAmount.toLocaleString()} ر.س</strong>
+                  <strong className="text-emerald-600 font-bold">{contract.paidAmount.toLocaleString()} ⃁</strong>
                 </div>
                 <div>
                   <span className="text-slate-400 block text-[11px]">الوكيل الخارجي</span>
@@ -699,16 +699,16 @@ export const ClientPortalPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-600 dark:text-zinc-400">إجمالي قيمة العقد:</span>
-                  <span className="font-mono font-bold text-slate-900 dark:text-white">{payingContract.amount.toLocaleString()} ر.س</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-white">{payingContract.amount.toLocaleString()} ⃁</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-600 dark:text-zinc-400">المسدد مسبقاً:</span>
-                  <span className="font-mono font-bold text-zinc-700 dark:text-zinc-300">{payingContract.paidAmount.toLocaleString()} ر.س</span>
+                  <span className="font-mono font-bold text-zinc-700 dark:text-zinc-300">{payingContract.paidAmount.toLocaleString()} ⃁</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-emerald-200 dark:border-emerald-800">
                   <span className="text-emerald-900 dark:text-emerald-300 font-bold">المبلغ المطلوب سداده الآن:</span>
                   <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
-                    {(payingContract.amount - payingContract.paidAmount).toLocaleString()} ر.س
+                    {(payingContract.amount - payingContract.paidAmount).toLocaleString()} ⃁
                   </span>
                 </div>
               </div>

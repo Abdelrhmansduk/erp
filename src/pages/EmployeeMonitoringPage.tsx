@@ -127,7 +127,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
       const totalSar = results.reduce((s, r) => s + (r.amount_sar || 0), 0);
       addNotification({
         title: `تم تنفيذ (${results.length}) عملية حية لجميع الموظفين`,
-        message: `تم تحديث عدادات النقرات والمعاملات المنجزة لجميع الـ 28 موظفاً في كافة الأقسام والفروع بإجمالي أثر مالي ${totalSar.toLocaleString('ar-SA')} ر.س.`,
+        message: `تم تحديث عدادات النقرات والمعاملات المنجزة لجميع الـ 28 موظفاً في كافة الأقسام والفروع بإجمالي أثر مالي ${totalSar.toLocaleString('ar-SA')} ⃁.`,
         type: 'success',
       });
     } finally {

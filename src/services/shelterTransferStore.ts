@@ -419,10 +419,10 @@ const SEED_TRANSFERS: TransferCase[] = [
     returnDateTime: '2026-08-22T17:00:00Z',
     returnReason: 'تحسس العاملة من قطط العائلة بالمنزل',
     actualTrialDays: 3,
-    deductionAmount: 450, // خصم 150 ر.س يومياً
+    deductionAmount: 450, // خصم 150 ⃁ يومياً
     refundAmount: 4550,   // استرداد باقي الدفعة الأولى
     settlementStatus: 'تمت التسوية',
-    notes: 'تمت التسوية مع العميل ماجد وإرجاع 4550 ر.س لحسابه البنكي وإعادة العاملة للسكن',
+    notes: 'تمت التسوية مع العميل ماجد وإرجاع 4550 ⃁ لحسابه البنكي وإعادة العاملة للسكن',
     createdAt: '2026-08-18T11:00:00Z',
     updatedAt: new Date().toISOString(),
   },
@@ -1164,14 +1164,14 @@ class ShelterTransferStore {
       toStatus: 'محجوزة',
       actorEmployee: params.responsibleEmployee,
       officeId: params.executingOfficeId,
-      description: `حجز العاملة للعميل ${params.clientName} بقيمة ${params.transferFee.toLocaleString()} ر.س (منفذ بواسطة: ${params.executingOfficeId})`,
+      description: `حجز العاملة للعميل ${params.clientName} بقيمة ${params.transferFee.toLocaleString()} ⃁ (منفذ بواسطة: ${params.executingOfficeId})`,
     });
 
     this.saveAll();
 
     triggerNotification({
       title: 'حجز عاملة لنقل الخدمات',
-      body: `تم حجز العاملة ${worker.fullNameAr} للعميل ${params.clientName} بسعر ${params.transferFee} ر.س.`,
+      body: `تم حجز العاملة ${worker.fullNameAr} للعميل ${params.clientName} بسعر ${params.transferFee} ⃁.`,
       type: 'sponsorship',
     });
 
@@ -1426,7 +1426,7 @@ class ShelterTransferStore {
       toStatus: params.nextAction,
       actorEmployee: params.actorEmployee,
       officeId: transfer.executingOfficeId,
-      description: `إرجاع العاملة للسكن بعد تجربة ${params.actualTrialDays} أيام لدى العميل ${transfer.newClientName}. سبب الإرجاع: ${params.returnReason}. عداد التجارب الآن: ${worker.clientTrialsCount}. تسوية المستحقات: خصم ${params.deductionAmount} ر.س واسترداد ${params.refundAmount} ر.س (${params.settlementStatus}).`,
+      description: `إرجاع العاملة للسكن بعد تجربة ${params.actualTrialDays} أيام لدى العميل ${transfer.newClientName}. سبب الإرجاع: ${params.returnReason}. عداد التجارب الآن: ${worker.clientTrialsCount}. تسوية المستحقات: خصم ${params.deductionAmount} ⃁ واسترداد ${params.refundAmount} ⃁ (${params.settlementStatus}).`,
     });
 
     this.saveAll();

@@ -103,19 +103,19 @@ export const SmaccDashboardWidget: React.FC = () => {
           <div className="grid grid-cols-2 gap-3 pt-1">
             <div style={{ background: '#fafafa', padding: '12px', borderRadius: '12px', border: '1px solid #e4e4e7' }}>
               <span style={{ fontSize: '11px', color: '#71717a', display: 'block' }}>إجمالي الدفعات</span>
-              <span style={{ fontSize: '15px', fontWeight: 550, color: '#000000', marginTop: '2px', display: 'block' }}>0.00 ر.س</span>
+              <span style={{ fontSize: '15px', fontWeight: 550, color: '#000000', marginTop: '2px', display: 'block' }}>0.00 ⃁</span>
             </div>
             <div style={{ background: '#fafafa', padding: '12px', borderRadius: '12px', border: '1px solid #e4e4e7' }}>
               <span style={{ fontSize: '11px', color: '#71717a', display: 'block' }}>المدفوعات النقدية</span>
-              <span style={{ fontSize: '15px', fontWeight: 550, color: '#000000', marginTop: '2px', display: 'block' }}>0.00 ر.س</span>
+              <span style={{ fontSize: '15px', fontWeight: 550, color: '#000000', marginTop: '2px', display: 'block' }}>0.00 ⃁</span>
             </div>
             <div style={{ background: '#fafafa', padding: '12px', borderRadius: '12px', border: '1px solid #e4e4e7' }}>
               <span style={{ fontSize: '11px', color: '#71717a', display: 'block' }}>مدفوعات الشيك</span>
-              <span style={{ fontSize: '15px', fontWeight: 550, color: '#000000', marginTop: '2px', display: 'block' }}>0.00 ر.س</span>
+              <span style={{ fontSize: '15px', fontWeight: 550, color: '#000000', marginTop: '2px', display: 'block' }}>0.00 ⃁</span>
             </div>
             <div style={{ background: '#fafafa', padding: '12px', borderRadius: '12px', border: '1px solid #e4e4e7' }}>
               <span style={{ fontSize: '11px', color: '#71717a', display: 'block' }}>الدفعات المحولة</span>
-              <span style={{ fontSize: '15px', fontWeight: 550, color: '#000000', marginTop: '2px', display: 'block' }}>0.00 ر.س</span>
+              <span style={{ fontSize: '15px', fontWeight: 550, color: '#000000', marginTop: '2px', display: 'block' }}>0.00 ⃁</span>
             </div>
           </div>
 
@@ -139,19 +139,19 @@ export const SmaccDashboardWidget: React.FC = () => {
           <div className="grid grid-cols-2 gap-3 pt-1">
             <div style={{ background: '#fafafa', padding: '12px', borderRadius: '12px', border: '1px solid #e4e4e7' }}>
               <span style={{ fontSize: '11px', color: '#71717a', display: 'block' }}>إجمالي الايصالات</span>
-              <span style={{ fontSize: '15px', fontWeight: 550, color: '#000000', marginTop: '2px', display: 'block' }}>0.00 ر.س</span>
+              <span style={{ fontSize: '15px', fontWeight: 550, color: '#000000', marginTop: '2px', display: 'block' }}>0.00 ⃁</span>
             </div>
             <div style={{ background: '#fafafa', padding: '12px', borderRadius: '12px', border: '1px solid #e4e4e7' }}>
               <span style={{ fontSize: '11px', color: '#71717a', display: 'block' }}>سند استلام نقدي</span>
-              <span style={{ fontSize: '15px', fontWeight: 550, color: '#000000', marginTop: '2px', display: 'block' }}>0.00 ر.س</span>
+              <span style={{ fontSize: '15px', fontWeight: 550, color: '#000000', marginTop: '2px', display: 'block' }}>0.00 ⃁</span>
             </div>
             <div style={{ background: '#fafafa', padding: '12px', borderRadius: '12px', border: '1px solid #e4e4e7' }}>
               <span style={{ fontSize: '11px', color: '#71717a', display: 'block' }}>ايصالات الشيك</span>
-              <span style={{ fontSize: '15px', fontWeight: 550, color: '#000000', marginTop: '2px', display: 'block' }}>0.00 ر.س</span>
+              <span style={{ fontSize: '15px', fontWeight: 550, color: '#000000', marginTop: '2px', display: 'block' }}>0.00 ⃁</span>
             </div>
             <div style={{ background: '#fafafa', padding: '12px', borderRadius: '12px', border: '1px solid #e4e4e7' }}>
               <span style={{ fontSize: '11px', color: '#71717a', display: 'block' }}>الايصالات المحولة</span>
-              <span style={{ fontSize: '15px', fontWeight: 550, color: '#000000', marginTop: '2px', display: 'block' }}>0.00 ر.س</span>
+              <span style={{ fontSize: '15px', fontWeight: 550, color: '#000000', marginTop: '2px', display: 'block' }}>0.00 ⃁</span>
             </div>
           </div>
 
@@ -203,7 +203,7 @@ export const SmaccDashboardWidget: React.FC = () => {
 
           <div style={{ background: '#fafafa', padding: '16px', borderRadius: '12px', textAlign: 'center', border: '1px solid #e4e4e7' }}>
             <span style={{ fontSize: '11px', color: '#71717a', display: 'block' }}>إجمالي قيمة فواتير الشراء</span>
-            <span className="display-sm" style={{ fontSize: '24px', fontWeight: 330, color: '#000000', marginTop: '4px', display: 'block' }}>0.00 ر.س</span>
+            <span className="display-sm" style={{ fontSize: '24px', fontWeight: 330, color: '#000000', marginTop: '4px', display: 'block' }}>0.00 ⃁</span>
           </div>
 
           <div style={{ padding: '10px', background: '#fafafa', borderRadius: '10px', textAlign: 'center', fontSize: '11px', color: '#71717a', marginTop: '12px', border: '1px solid #e4e4e7' }}>
@@ -220,7 +220,7 @@ export const SmaccDashboardWidget: React.FC = () => {
 
           <div style={{ background: '#fafafa', padding: '16px', borderRadius: '12px', textAlign: 'center', border: '1px solid #e4e4e7' }}>
             <span style={{ fontSize: '11px', color: '#71717a', display: 'block' }}>إجمالي أوامر الشراء المعتمدة</span>
-            <span className="display-sm" style={{ fontSize: '24px', fontWeight: 330, color: '#000000', marginTop: '4px', display: 'block' }}>0.00 ر.س</span>
+            <span className="display-sm" style={{ fontSize: '24px', fontWeight: 330, color: '#000000', marginTop: '4px', display: 'block' }}>0.00 ⃁</span>
           </div>
 
           <div style={{ padding: '10px', background: '#fafafa', borderRadius: '10px', textAlign: 'center', fontSize: '11px', color: '#71717a', marginTop: '12px', border: '1px solid #e4e4e7' }}>

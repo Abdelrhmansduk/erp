@@ -98,3 +98,5 @@ CREATE INDEX idx_boq_items_gin ON tenders_boq_items USING GIN (specifications js
 - **أزمنة الاستجابة (Latency SLOs)**: `p50 < 80ms`، `p95 < 250ms`، `p99 < 500ms`.
 - **الاستشفاء الذاتي اللحظي ([`src/services/errorMonitorService.ts`](src/services/errorMonitorService.ts))**:
   - رصد وتصنيف أخطاء `React Fiber DOM`, `Chunk Load`, `Network/Supabase Timeout`, `IAM/RBAC`, و`ZATCA/Musaned Validation` مع تفعيل إجراءات الإصلاح التلقائي (`autoHealed`) بمتوسط زمن استعادة أقل من `50ms`.
+- **اعتماد رمز الريال السعودي الرسمي (SAMA SRS Guidelines)**:
+  - توحيد عرض العملة الوطنية عبر [`src/utils/saudiRiyal.ts`](src/utils/saudiRiyal.ts) و[`src/components/common/SaudiRiyalSymbol.tsx`](src/components/common/SaudiRiyalSymbol.tsx) وخط `saudi_riyal` المدمج (`U+20C1` `⃁`) على يسار القيمة العددية مع مسافة فاصلة في كافة الشاشات والمستندات.

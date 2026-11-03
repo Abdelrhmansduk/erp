@@ -55,11 +55,11 @@ export default {
         }
       },
       fontFamily: {
-        display: ['"NeueHaasGrotesk Display"', '"Inter Display"', '"Plus Jakarta Sans"', 'Helvetica', 'Arial', 'sans-serif'],
-        sans: ['"Inter Variable"', 'Inter', 'Tajawal', 'Cairo', 'sans-serif'],
-        heading: ['Cairo', '"NeueHaasGrotesk Display"', '"Inter Display"', 'sans-serif'],
-        body: ['"Inter Variable"', 'Inter', 'Tajawal', 'sans-serif'],
-        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+        display: ['"saudi_riyal"', '"NeueHaasGrotesk Display"', '"Inter Display"', '"Plus Jakarta Sans"', 'Helvetica', 'Arial', 'sans-serif'],
+        sans: ['"saudi_riyal"', '"Inter Variable"', 'Inter', 'Tajawal', 'Cairo', 'sans-serif'],
+        heading: ['"saudi_riyal"', 'Cairo', '"NeueHaasGrotesk Display"', '"Inter Display"', 'sans-serif'],
+        body: ['"saudi_riyal"', '"Inter Variable"', 'Inter', 'Tajawal', 'sans-serif'],
+        mono: ['"saudi_riyal"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
       },
       fontWeight: {
         330: '330',
@@ -95,4 +95,3 @@ export default {
   },
   plugins: [],
 }
-

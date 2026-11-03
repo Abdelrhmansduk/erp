@@ -1030,7 +1030,7 @@ export const ShelterSuitePortalPage: React.FC = () => {
                           <td className="p-3 font-semibold text-zinc-200">{row.meal}</td>
                           <td className="p-3 font-mono font-bold text-amber-300">{row.count} وجبة</td>
                           <td className="p-3 text-zinc-400">{row.vendor}</td>
-                          <td className="p-3 font-mono font-bold text-emerald-400">{row.cost.toLocaleString()} ر.س</td>
+                          <td className="p-3 font-mono font-bold text-emerald-400">{row.cost.toLocaleString()} ⃁</td>
                           <td className="p-3 text-zinc-300">{row.sup}</td>
                           <td className="p-3">
                             <Badge text={row.status} type="success" />
@@ -1699,7 +1699,7 @@ export const ShelterSuitePortalPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-zinc-300 mb-1">التكلفة (ر.س)</label>
+                  <label className="block text-xs font-bold text-zinc-300 mb-1">التكلفة (⃁)</label>
                   <input
                     type="number"
                     value={mealForm.cost}

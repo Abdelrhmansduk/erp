@@ -217,7 +217,7 @@ export const RentPackagesPage: React.FC = () => {
   const handleCreateContract = (pkg: RentPackage) => {
     addNotification({
       title: 'إنشاء عقد تأجير',
-      message: `تم فتح مسودة عقد تأجير جديد مبني على (${pkg.name}) بقيمة ${pkg.monthly_rate} ر.س/شهر.`,
+      message: `تم فتح مسودة عقد تأجير جديد مبني على (${pkg.name}) بقيمة ${pkg.monthly_rate} ⃁/شهر.`,
       type: 'success'
     });
   };
@@ -337,7 +337,7 @@ export const RentPackagesPage: React.FC = () => {
                   <div className="py-3 px-4 bg-zinc-50 rounded-2xl mb-4 border border-zinc-100 flex justify-between items-baseline">
                     <div>
                       <span className="text-2xl font-mono font-bold text-black">{monthlyRate.toLocaleString()}</span>
-                      <span className="text-xs text-zinc-500 mr-1">ر.س / شهر</span>
+                      <span className="text-xs text-zinc-500 mr-1">⃁ / شهر</span>
                     </div>
                     {discountPct > 0 && (
                       <span className="pill-tag-mint" style={{ fontSize: '10.5px' }}>خصم {discountPct}%</span>
@@ -422,7 +422,7 @@ export const RentPackagesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">السعر الشهري الأساسي للعاملة (ر.س):</label>
+                <label className="text-xs font-semibold text-zinc-700 block mb-1">السعر الشهري الأساسي للعاملة (⃁):</label>
                 <input
                   type="number"
                   value={calcBaseRate}
@@ -438,24 +438,24 @@ export const RentPackagesPage: React.FC = () => {
                 <div className="space-y-2 text-xs text-zinc-600">
                   <div className="flex justify-between">
                     <span>المبلغ الإجمالي الأساسي:</span>
-                    <span className="font-mono font-bold text-black">{calcSubtotal.toLocaleString()} ر.س</span>
+                    <span className="font-mono font-bold text-black">{calcSubtotal.toLocaleString()} ⃁</span>
                   </div>
                   <div className="flex justify-between text-champagne-dark font-bold">
                     <span>الخصم المطبق ({calcDuration >= 12 ? '20%' : calcDuration >= 3 ? '10%' : '0%'}):</span>
-                    <span className="font-mono font-bold">- {calcDiscount.toLocaleString()} ر.س</span>
+                    <span className="font-mono font-bold">‎- ⃁</span>
                   </div>
                   <div className="flex justify-between">
                     <span>المبلغ الخاضع للضريبة:</span>
-                    <span className="font-mono font-bold text-black">{calcTotalAfterDiscount.toLocaleString()} ر.س</span>
+                    <span className="font-mono font-bold text-black">{calcTotalAfterDiscount.toLocaleString()} ⃁</span>
                   </div>
                   <div className="flex justify-between">
                     <span>ضريبة القيمة المضافة (15% ZATCA):</span>
-                    <span className="font-mono font-bold text-black">{calcVat.toLocaleString()} ر.س</span>
+                    <span className="font-mono font-bold text-black">{calcVat.toLocaleString()} ⃁</span>
                   </div>
 
                   <div className="flex justify-between text-base py-3 font-bold text-black mt-2">
                     <span>الإجمالي النهائي شامل الضريبة:</span>
-                    <span className="font-mono text-champagne-dark text-lg font-black">{calcGrandTotal.toLocaleString()} ر.س</span>
+                    <span className="font-mono text-champagne-dark text-lg font-black">{calcGrandTotal.toLocaleString()} ⃁</span>
                   </div>
                 </div>
 
@@ -475,7 +475,7 @@ export const RentPackagesPage: React.FC = () => {
                     exportData(quoteRecord, 'عرض_سعر_ايجار_عمالة', 'csv');
                     addNotification({
                       title: 'تصدير عرض السعر',
-                      message: `تم تصدير عرض السعر الرسمي بقيمة ${calcGrandTotal.toLocaleString()} ر.س بنجاح.`,
+                      message: `تم تصدير عرض السعر الرسمي بقيمة ${calcGrandTotal.toLocaleString()} ⃁ بنجاح.`,
                       type: 'success'
                     });
                   }}
@@ -582,7 +582,7 @@ export const RentPackagesPage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">السعر الشهري (ر.س)</label>
+                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">السعر الشهري (⃁)</label>
                   <input
                     type="number"
                     value={formData.monthly_rate}

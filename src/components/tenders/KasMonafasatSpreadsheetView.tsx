@@ -472,9 +472,9 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#000000', color: '#ffffff' }}>
           <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>إجمالي قيمة العروض المقدمة</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>
-            {kpis.totalBidValue > 1000000 ? `${(kpis.totalBidValue / 1000000).toFixed(2)}M` : `${(kpis.totalBidValue / 1000).toFixed(0)}k`} ر.س
+            {kpis.totalBidValue > 1000000 ? `${(kpis.totalBidValue / 1000000).toFixed(2)}M` : `${(kpis.totalBidValue / 1000).toFixed(0)}k`} ⃁
           </div>
-          <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>قيمة الترسيات: {kpis.totalWinningValue > 1000000 ? `${(kpis.totalWinningValue / 1000000).toFixed(2)}M` : `${(kpis.totalWinningValue / 1000).toFixed(0)}k`} ر.س</span>
+          <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>قيمة الترسيات: {kpis.totalWinningValue > 1000000 ? `${(kpis.totalWinningValue / 1000000).toFixed(2)}M` : `${(kpis.totalWinningValue / 1000).toFixed(0)}k`} ⃁</span>
         </div>
 
         {/* Card 4: White Card */}
@@ -775,8 +775,8 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                   {visibleColumns.manager && <th className="p-3.5 w-36">المسؤول / التواصل</th>}
                   {visibleColumns.deadlineDate && <th className="p-3.5 w-28 font-mono">انتهاء التقديم</th>}
                   {visibleColumns.duration && <th className="p-3.5 w-24">مدة التنفيذ</th>}
-                  {visibleColumns.bidValue && <th className="p-3.5 w-32 text-left font-mono">قيمة العرض (ر.س)</th>}
-                  {visibleColumns.winningBidValue && <th className="p-3.5 w-36 text-left font-mono">المبلغ الفائز (ر.س)</th>}
+                  {visibleColumns.bidValue && <th className="p-3.5 w-32 text-left font-mono">قيمة العرض (⃁)</th>}
+                  {visibleColumns.winningBidValue && <th className="p-3.5 w-36 text-left font-mono">المبلغ الفائز (⃁)</th>}
                   {visibleColumns.notes && <th className="p-3.5 w-44">الحالة (الملاحظات)</th>}
                   {visibleColumns.rejectionReason && <th className="p-3.5 w-44">سبب الترسية / الاستبعاد</th>}
                   {visibleColumns.boqStatus && <th className="p-3.5 w-24 text-center">جدول الكميات</th>}
@@ -874,7 +874,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
 
                         {visibleColumns.bidValue && (
                           <td className="p-3 text-left font-mono font-black text-slate-900 dark:text-white whitespace-nowrap">
-                            {bid > 0 ? `${bid.toLocaleString()} ر.س` : '-'}
+                            {bid > 0 ? `${bid.toLocaleString()} ⃁` : '-'}
                           </td>
                         )}
 
@@ -882,7 +882,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                           <td className="p-3 text-left font-mono text-emerald-600 dark:text-emerald-400 font-black whitespace-nowrap">
                             {win > 0 ? (
                               <div className="flex flex-col items-start gap-0.5">
-                                <span>{win.toLocaleString()} ر.س</span>
+                                <span>{win.toLocaleString()} ⃁</span>
                                 {gapPercent && Number(gapPercent) > 0 && (
                                   <span className="text-[10px] text-amber-700 bg-amber-50 dark:bg-amber-950/80 px-1 rounded-sm border border-amber-200 dark:border-amber-800">
                                     +{gapPercent}% فارق
@@ -1106,13 +1106,13 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
               <div>
                 <span className="text-slate-500 dark:text-slate-400 font-bold block mb-1">قيمة العرض المقدم (كاس):</span>
                 <span className="text-lg font-black font-mono text-slate-900 dark:text-white block">
-                  {selectedItem.bidValue ? `${selectedItem.bidValue.toLocaleString()} ر.س` : 'غير محدد'}
+                  {selectedItem.bidValue ? `${selectedItem.bidValue.toLocaleString()} ⃁` : 'غير محدد'}
                 </span>
               </div>
               <div>
                 <span className="text-slate-500 dark:text-slate-400 font-bold block mb-1">المبلغ الحاصل على المنافسة:</span>
                 <span className="text-lg font-black font-mono text-emerald-600 dark:text-emerald-400 block">
-                  {selectedItem.winningBidValue ? `${selectedItem.winningBidValue.toLocaleString()} ر.س` : 'غير محدد'}
+                  {selectedItem.winningBidValue ? `${selectedItem.winningBidValue.toLocaleString()} ⃁` : 'غير محدد'}
                 </span>
               </div>
               <div>
@@ -1276,7 +1276,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">قيمة عرض كاس (ر.س)</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">قيمة عرض كاس (⃁)</label>
                 <input
                   type="number"
                   value={formData.bidValue || ''}
@@ -1287,7 +1287,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">المبلغ الفائز (ر.س)</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">المبلغ الفائز (⃁)</label>
                 <input
                   type="number"
                   value={formData.winningBidValue || ''}
@@ -1465,7 +1465,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
               </div>
               <div>
                 <span className="text-slate-500 block">قيمة العروض:</span>
-                <span className="font-bold text-slate-900 font-mono text-sm">{kpis.totalBidValue.toLocaleString()} ر.س</span>
+                <span className="font-bold text-slate-900 font-mono text-sm">{kpis.totalBidValue.toLocaleString()} ⃁</span>
               </div>
               <div>
                 <span className="text-slate-500 block">الترسيات المعتمدة:</span>
@@ -1497,8 +1497,8 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                     <td className="p-2 border border-slate-200 font-mono text-slate-700">{t.tenderCode || t.referenceNumber || '-'}</td>
                     <td className="p-2 border border-slate-200 font-medium text-slate-900">{t.title}</td>
                     <td className="p-2 border border-slate-200 text-slate-700">{t.entity || '-'}</td>
-                    <td className="p-2 border border-slate-200 text-left font-mono">{t.bidValue ? `${t.bidValue.toLocaleString()} ر.س` : '-'}</td>
-                    <td className="p-2 border border-slate-200 text-left font-mono text-emerald-700 font-semibold">{t.winningBidValue ? `${t.winningBidValue.toLocaleString()} ر.س` : '-'}</td>
+                    <td className="p-2 border border-slate-200 text-left font-mono">{t.bidValue ? `${t.bidValue.toLocaleString()} ⃁` : '-'}</td>
+                    <td className="p-2 border border-slate-200 text-left font-mono text-emerald-700 font-semibold">{t.winningBidValue ? `${t.winningBidValue.toLocaleString()} ⃁` : '-'}</td>
                     <td className="p-2 border border-slate-200 text-slate-700 text-[11px]">{t.notes || t.rejectionReason || '-'}</td>
                   </tr>
                 ))}

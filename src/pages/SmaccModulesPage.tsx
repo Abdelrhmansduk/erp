@@ -377,7 +377,7 @@ export const SmaccModulesPage: React.FC = () => {
 
     addNotification({
       title: 'إضافة أصل جديد',
-      message: `تم إضافة الأصل الثابت (${newRecord.name}) بقيمة (${cost.toLocaleString()} ر.س) بنجاح.`,
+      message: `تم إضافة الأصل الثابت (${newRecord.name}) بقيمة (${cost.toLocaleString()} ⃁) بنجاح.`,
       type: 'success'
     });
   };
@@ -482,7 +482,7 @@ export const SmaccModulesPage: React.FC = () => {
 
     addNotification({
       title: 'تسجيل عملية تحصيل',
-      message: `تم قيد التحصيل بمبلغ (${collAmount.toLocaleString()} ر.س) لحساب المندوب (${rep.name}) وتوليد سند القبض رقم (${jv.journal_number}) بنجاح.`,
+      message: `تم قيد التحصيل بمبلغ (${collAmount.toLocaleString()} ⃁) لحساب المندوب (${rep.name}) وتوليد سند القبض رقم (${jv.journal_number}) بنجاح.`,
       type: 'success'
     });
   };
@@ -567,7 +567,7 @@ export const SmaccModulesPage: React.FC = () => {
 
     addNotification({
       title: 'احتساب الإهلاك الدوري',
-      message: `تم احتساب الإهلاك بقيمة (${totalMonthlyDep.toLocaleString()} ر.س) وتوليد قيد اليومية رقم (${jv.journal_number}) في دفتر القيود بنجاح.`,
+      message: `تم احتساب الإهلاك بقيمة (${totalMonthlyDep.toLocaleString()} ⃁) وتوليد قيد اليومية رقم (${jv.journal_number}) في دفتر القيود بنجاح.`,
       type: 'success',
     });
   };
@@ -795,7 +795,7 @@ export const SmaccModulesPage: React.FC = () => {
                       </td>
                       <td className="p-3.5 font-mono text-zinc-600">{order.customerPhone}</td>
                       <td className="p-3.5 text-zinc-700">{order.serviceType}</td>
-                      <td className="p-3.5 font-mono font-bold text-champagne-dark">{order.totalAmount.toLocaleString()} ر.س</td>
+                      <td className="p-3.5 font-mono font-bold text-champagne-dark">{order.totalAmount.toLocaleString()} ⃁</td>
                       <td className="p-3.5">
                         <span className="pill-tag-mint" style={{ fontSize: '10px' }}>✓ {order.paymentStatus}</span>
                       </td>
@@ -831,19 +831,19 @@ export const SmaccModulesPage: React.FC = () => {
             <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff' }}>
               <span className="text-xs text-zinc-500 font-semibold">إجمالي تكلفة الأصول</span>
               <p className="text-xl font-mono font-bold text-black mt-1">
-                {fixedAssets.reduce((sum, a) => sum + a.cost, 0).toLocaleString()} ر.س
+                {fixedAssets.reduce((sum, a) => sum + a.cost, 0).toLocaleString()} ⃁
               </p>
             </div>
             <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff' }}>
               <span className="text-xs text-zinc-500 font-semibold">مجمع الإهلاك التراكمي</span>
               <p className="text-xl font-mono font-bold text-black mt-1">
-                {fixedAssets.reduce((sum, a) => sum + a.accumulatedDep, 0).toLocaleString()} ر.س
+                {fixedAssets.reduce((sum, a) => sum + a.accumulatedDep, 0).toLocaleString()} ⃁
               </p>
             </div>
             <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff' }}>
               <span className="text-xs text-zinc-500 font-semibold">صافي القيمة الدفترية</span>
               <p className="text-xl font-mono font-bold text-champagne-dark mt-1">
-                {fixedAssets.reduce((sum, a) => sum + a.netBookValue, 0).toLocaleString()} ر.س
+                {fixedAssets.reduce((sum, a) => sum + a.netBookValue, 0).toLocaleString()} ⃁
               </p>
             </div>
             <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff' }}>
@@ -905,9 +905,9 @@ export const SmaccModulesPage: React.FC = () => {
                       <td className="p-3.5 font-bold text-black">{asset.name}</td>
                       <td className="p-3.5 text-zinc-600">{asset.category}</td>
                       <td className="p-3.5 text-zinc-500 font-mono">{asset.purchaseDate}</td>
-                      <td className="p-3.5 font-mono font-bold text-black">{asset.cost.toLocaleString()} ر.س</td>
-                      <td className="p-3.5 font-mono text-zinc-600">{asset.accumulatedDep.toLocaleString()} ر.س</td>
-                      <td className="p-3.5 font-bold font-mono text-champagne-dark">{asset.netBookValue.toLocaleString()} ر.س</td>
+                      <td className="p-3.5 font-mono font-bold text-black">{asset.cost.toLocaleString()} ⃁</td>
+                      <td className="p-3.5 font-mono text-zinc-600">{asset.accumulatedDep.toLocaleString()} ⃁</td>
+                      <td className="p-3.5 font-bold font-mono text-champagne-dark">{asset.netBookValue.toLocaleString()} ⃁</td>
                       <td className="p-3.5">
                         <span className="pill-tag-mint" style={{ fontSize: '10.5px' }}>{asset.status}</span>
                       </td>
@@ -982,7 +982,7 @@ export const SmaccModulesPage: React.FC = () => {
                       <td className="p-3.5 font-bold text-black">{item.name}</td>
                       <td className="p-3.5 text-zinc-600">{item.category}</td>
                       <td className="p-3.5 font-bold font-mono text-black">{item.qty}</td>
-                      <td className="p-3.5 font-bold font-mono text-champagne-dark">{item.unitPrice.toLocaleString()} ر.س</td>
+                      <td className="p-3.5 font-bold font-mono text-champagne-dark">{item.unitPrice.toLocaleString()} ⃁</td>
                       <td className="p-3.5 text-zinc-500 font-mono">{item.reorderLevel}</td>
                       <td className="p-3.5">
                         <span className={item.status === 'متوفر' ? 'pill-tag-mint' : 'pill-tag-shade'} style={{ fontSize: '10.5px' }}>
@@ -1009,13 +1009,13 @@ export const SmaccModulesPage: React.FC = () => {
             <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff' }}>
               <span className="text-xs text-zinc-500 font-semibold">إجمالي المبيعات المحققة</span>
               <p className="text-2xl font-bold text-black mt-1">
-                {salesReps.reduce((sum, r) => sum + r.totalSales, 0).toLocaleString()} ر.س
+                {salesReps.reduce((sum, r) => sum + r.totalSales, 0).toLocaleString()} ⃁
               </p>
             </div>
             <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff' }}>
               <span className="text-xs text-zinc-500 font-semibold">إجمالي المبالغ المحصلة</span>
               <p className="text-2xl font-bold text-champagne-dark font-mono mt-1">
-                {salesReps.reduce((sum, r) => sum + r.collected, 0).toLocaleString()} ر.س
+                {salesReps.reduce((sum, r) => sum + r.collected, 0).toLocaleString()} ⃁
               </p>
             </div>
           </div>
@@ -1075,9 +1075,9 @@ export const SmaccModulesPage: React.FC = () => {
                       </td>
                       <td className="p-3.5 text-zinc-600">{rep.role}</td>
                       <td className="p-3.5 text-zinc-500 font-mono">{rep.phone}</td>
-                      <td className="p-3.5 font-bold font-mono text-black">{rep.totalSales.toLocaleString()} ر.س</td>
-                      <td className="p-3.5 text-champagne-dark font-mono font-bold">{rep.collected.toLocaleString()} ر.س</td>
-                      <td className="p-3.5 text-zinc-500 font-mono">{rep.pending.toLocaleString()} ر.س</td>
+                      <td className="p-3.5 font-bold font-mono text-black">{rep.totalSales.toLocaleString()} ⃁</td>
+                      <td className="p-3.5 text-champagne-dark font-mono font-bold">{rep.collected.toLocaleString()} ⃁</td>
+                      <td className="p-3.5 text-zinc-500 font-mono">{rep.pending.toLocaleString()} ⃁</td>
                       <td className="p-3.5 font-bold font-mono text-black">{rep.targetAchieved}</td>
                       <td className="p-3.5 text-center">
                         <button
@@ -1256,7 +1256,7 @@ export const SmaccModulesPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">تكلفة الشراء (ر.س) *</label>
+                  <label className="text-xs font-semibold text-zinc-700 block mb-1">تكلفة الشراء (⃁) *</label>
                   <input
                     type="number"
                     required
@@ -1343,7 +1343,7 @@ export const SmaccModulesPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">سعر الوحدة (ر.س) *</label>
+                  <label className="text-xs font-semibold text-zinc-700 block mb-1">سعر الوحدة (⃁) *</label>
                   <input
                     type="number"
                     required
@@ -1481,7 +1481,7 @@ export const SmaccModulesPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">المبلغ المحصل (ر.س) *</label>
+                  <label className="text-xs font-semibold text-zinc-700 block mb-1">المبلغ المحصل (⃁) *</label>
                   <input
                     type="number"
                     required

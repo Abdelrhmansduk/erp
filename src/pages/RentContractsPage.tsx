@@ -648,7 +648,7 @@ export const RentContractsPage: React.FC = () => {
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#000000', color: '#ffffff' }}>
           <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>إجمالي المبيعات الشهرية المحققة</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>
-            {((rentContracts.reduce((sum, c) => sum + (c.total_amount || 0), 0) || 128500) / 1000).toFixed(1)}k ر.س
+            {((rentContracts.reduce((sum, c) => sum + (c.total_amount || 0), 0) || 128500) / 1000).toFixed(1)}k ⃁
           </div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>سداد آلي شامل الضريبة 15%</span>
         </div>
@@ -741,7 +741,7 @@ export const RentContractsPage: React.FC = () => {
                     <td className="p-3.5">{ord.nat}</td>
                     <td className="p-3.5 font-bold text-black">{ord.dur}</td>
                     <td className="p-3.5 font-mono text-zinc-500">{ord.date}</td>
-                    <td className="p-3.5 font-mono font-bold text-emerald-700">{ord.deposit} ر.س</td>
+                    <td className="p-3.5 font-mono font-bold text-emerald-700">{ord.deposit} ⃁</td>
                     <td className="p-3.5"><Badge text={ord.status} type={ord.status.includes('تم') ? 'success' : 'warning'} /></td>
                     <td className="p-3.5 text-center">
                       <button
@@ -849,7 +849,7 @@ export const RentContractsPage: React.FC = () => {
                     <td className="p-3.5"><Badge text={d.lic_status} type="success" /></td>
                     <td className="p-3.5 font-semibold text-black">{d.car}</td>
                     <td className="p-3.5 text-zinc-600">{d.client}</td>
-                    <td className="p-3.5 font-mono font-bold text-emerald-700">{d.salary} ر.س</td>
+                    <td className="p-3.5 font-mono font-bold text-emerald-700">{d.salary} ⃁</td>
                     <td className="p-3.5">
                       <Badge 
                         text={d.status} 
@@ -937,7 +937,7 @@ export const RentContractsPage: React.FC = () => {
                     <td className="p-3.5 text-zinc-700">{m.skill}</td>
                     <td className="p-3.5 font-bold text-black">{m.client}</td>
                     <td className="p-3.5 font-mono text-zinc-500">{m.end}</td>
-                    <td className="p-3.5 font-mono font-bold text-emerald-700">{m.price} ر.س</td>
+                    <td className="p-3.5 font-mono font-bold text-emerald-700">{m.price} ⃁</td>
                     <td className="p-3.5">
                       <Badge 
                         text={m.status} 
@@ -1026,15 +1026,15 @@ export const RentContractsPage: React.FC = () => {
                       <div className="p-3 bg-zinc-100 rounded-2xl mb-4 space-y-1.5 text-xs">
                         <div className="flex justify-between">
                           <span className="text-zinc-500">السعر قبل الضريبة:</span>
-                          <strong className="font-mono text-black">{(pkg.price_before_tax ?? 0).toLocaleString()} ر.س</strong>
+                          <strong className="font-mono text-black">{(pkg.price_before_tax ?? 0).toLocaleString()} ⃁</strong>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-zinc-500">ضريبة القيمة المضافة (15%):</span>
-                          <span className="font-mono text-zinc-600">{(pkg.tax ?? ((pkg.price_before_tax || 0) * 0.15)).toLocaleString()} ر.س</span>
+                          <span className="font-mono text-zinc-600">{(pkg.tax ?? ((pkg.price_before_tax || 0) * 0.15)).toLocaleString()} ⃁</span>
                         </div>
                         <div className="flex justify-between pt-1 border-t border-zinc-200">
                           <span className="font-bold text-black">الإجمالي شامل الضريبة:</span>
-                          <strong className="font-mono font-bold text-emerald-700 text-sm">{(pkg.total_price ?? ((pkg.price_before_tax || 0) * 1.15)).toLocaleString()} ر.س</strong>
+                          <strong className="font-mono font-bold text-emerald-700 text-sm">{(pkg.total_price ?? ((pkg.price_before_tax || 0) * 1.15)).toLocaleString()} ⃁</strong>
                         </div>
                       </div>
                     </div>
@@ -1187,8 +1187,8 @@ export const RentContractsPage: React.FC = () => {
                     <td className="p-3.5 text-zinc-500 font-mono">
                       {c.start_date} إلى {c.end_date}
                     </td>
-                    <td className="p-3.5 font-mono">{(c.monthly_cost ?? 0).toLocaleString()} ر.س</td>
-                    <td className="p-3.5 font-mono font-bold text-emerald-700">{(c.total_amount ?? 0).toLocaleString()} ر.س</td>
+                    <td className="p-3.5 font-mono">{(c.monthly_cost ?? 0).toLocaleString()} ⃁</td>
+                    <td className="p-3.5 font-mono font-bold text-emerald-700">{(c.total_amount ?? 0).toLocaleString()} ⃁</td>
                     <td className="p-3.5">
                       <Badge text={c.status} type={c.status === 'نشط' ? 'success' : 'primary'} />
                     </td>
@@ -1239,9 +1239,9 @@ export const RentContractsPage: React.FC = () => {
                       <span className="pill-tag-shade" style={{ fontSize: '10.5px' }}>{pkg.rent_type}</span>
                     </td>
                     <td className="p-3">{pkg.duration}</td>
-                    <td className="p-3 font-mono">{(pkg.price_before_tax ?? 0).toLocaleString()} ر.س</td>
-                    <td className="p-3 font-mono text-zinc-500">{(pkg.tax ?? 0).toLocaleString()} ر.س</td>
-                    <td className="p-3 font-mono font-bold text-emerald-700">{(pkg.total_price ?? 0).toLocaleString()} ر.س</td>
+                    <td className="p-3 font-mono">{(pkg.price_before_tax ?? 0).toLocaleString()} ⃁</td>
+                    <td className="p-3 font-mono text-zinc-500">{(pkg.tax ?? 0).toLocaleString()} ⃁</td>
+                    <td className="p-3 font-mono font-bold text-emerald-700">{(pkg.total_price ?? 0).toLocaleString()} ⃁</td>
                     <td className="p-3 font-mono">{pkg.days_count} يوم</td>
                     <td className="p-3">
                       <span className="pill-tag-mint" style={{ fontSize: '10.5px' }}>مفعل وظاهر</span>
@@ -1350,7 +1350,7 @@ export const RentContractsPage: React.FC = () => {
                   <div>
                     <label className="text-xs text-zinc-700 block mb-1 font-semibold">الإجمالي بعد الضريبة</label>
                     <div className="py-2 px-3 bg-zinc-100 rounded-2xl font-bold font-mono text-emerald-700 text-xs">
-                      {totalAmount.toLocaleString()} ر.س
+                      {totalAmount.toLocaleString()} ⃁
                     </div>
                   </div>
                 </div>
@@ -1478,9 +1478,9 @@ export const RentContractsPage: React.FC = () => {
                     <tbody className="bg-white divide-y divide-zinc-100 font-mono">
                       <tr>
                         <td className="p-2.5 font-sans font-medium text-black">{selectedContractForPrint.package_name || 'باقة التأجير الشهري'} ({selectedContractForPrint.duration_months} شهر)</td>
-                        <td className="p-2.5 text-center">{(selectedContractForPrint.monthly_cost ?? 2500).toLocaleString()} ر.س / شهر</td>
-                        <td className="p-2.5 text-center">{(selectedContractForPrint.tax_amount ?? (selectedContractForPrint.total_amount ? Math.round(selectedContractForPrint.total_amount * 0.15 / 1.15) : 375)).toLocaleString()} ر.س</td>
-                        <td className="p-2.5 text-left font-bold text-emerald-700">{(selectedContractForPrint.total_amount ?? 2875).toLocaleString()} ر.س</td>
+                        <td className="p-2.5 text-center">{(selectedContractForPrint.monthly_cost ?? 2500).toLocaleString()} ⃁ / شهر</td>
+                        <td className="p-2.5 text-center">{(selectedContractForPrint.tax_amount ?? (selectedContractForPrint.total_amount ? Math.round(selectedContractForPrint.total_amount * 0.15 / 1.15) : 375)).toLocaleString()} ⃁</td>
+                        <td className="p-2.5 text-left font-bold text-emerald-700">{(selectedContractForPrint.total_amount ?? 2875).toLocaleString()} ⃁</td>
                       </tr>
                     </tbody>
                   </table>
@@ -1591,7 +1591,7 @@ export const RentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">الراتب الشهري (ر.س)</label>
+                  <label className="block text-zinc-600 font-bold mb-1">الراتب الشهري (⃁)</label>
                   <input
                     type="number"
                     value={driverForm.salary}
@@ -1680,7 +1680,7 @@ export const RentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">سعر التأجير الشهري (ر.س)</label>
+                  <label className="block text-zinc-600 font-bold mb-1">سعر التأجير الشهري (⃁)</label>
                   <input
                     type="number"
                     value={maidForm.price}
@@ -1783,7 +1783,7 @@ export const RentContractsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">السعر الأساسي قبل الضريبة (ر.س)</label>
+                  <label className="block text-zinc-600 font-bold mb-1">السعر الأساسي قبل الضريبة (⃁)</label>
                   <input
                     type="number"
                     required
@@ -1806,11 +1806,11 @@ export const RentContractsPage: React.FC = () => {
               <div className="p-3 bg-zinc-50 rounded-2xl border border-zinc-200 text-[11px] space-y-1">
                 <div className="flex justify-between">
                   <span className="text-zinc-500">ضريبة القيمة المضافة المحسوبة (15%):</span>
-                  <span className="font-mono font-bold text-black">{((parseFloat(packageForm.price_before_tax) || 0) * 0.15).toLocaleString()} ر.س</span>
+                  <span className="font-mono font-bold text-black">{((parseFloat(packageForm.price_before_tax) || 0) * 0.15).toLocaleString()} ⃁</span>
                 </div>
                 <div className="flex justify-between font-bold text-emerald-800">
                   <span>الإجمالي شامل الضريبة:</span>
-                  <span className="font-mono">{((parseFloat(packageForm.price_before_tax) || 0) * 1.15).toLocaleString()} ر.س</span>
+                  <span className="font-mono">{((parseFloat(packageForm.price_before_tax) || 0) * 1.15).toLocaleString()} ⃁</span>
                 </div>
               </div>
 

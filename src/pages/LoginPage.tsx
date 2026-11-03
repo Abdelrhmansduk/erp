@@ -173,7 +173,7 @@ export const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
     features: ['تفكيك وتسعير جداول الكميات BOQ', 'متابعة الضمانات الابتدائية والنهائية', 'تحليل هوامش الربح والمنافسين'],
     stats: [
       { label: 'المنافسات النشطة', value: '42 منافسة' },
-      { label: 'قيمة المشاريع', value: '68M ر.س' },
+      { label: 'قيمة المشاريع', value: '68M ⃁' },
     ],
     quickRoles: [
       { label: 'منافسات اعتماد (كاس)', username: 'tenders@kas-etimad.sa', roleTitle: 'مدير المنافسات وجداول الكميات', tab: 'kas-etmad', title: 'منصة كاس للمنافسات واعتماد' },

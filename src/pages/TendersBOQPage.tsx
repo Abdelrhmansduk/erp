@@ -662,7 +662,7 @@ export const TendersBOQPage: React.FC = () => {
 
   // 2. Suppliers Registry Exports
   const handleExportSuppliersCSV = () => {
-    const headers = ['اسم المورد', 'الفئة', 'المدينة', 'المسؤول', 'الهاتف', 'البريد الإلكتروني', 'التقييم', 'الجودة', 'الالتزام', 'السعر', 'التعاملات', 'إجمالي القيمة (ر.س)', 'الحالة'];
+    const headers = ['اسم المورد', 'الفئة', 'المدينة', 'المسؤول', 'الهاتف', 'البريد الإلكتروني', 'التقييم', 'الجودة', 'الالتزام', 'السعر', 'التعاملات', 'إجمالي القيمة (⃁)', 'الحالة'];
     const rows = suppliers.map(s => [
       `"${s.name}"`, `"${s.category}"`, `"${s.city}"`, `"${s.contactPerson}"`, `"${s.phone}"`, `"${s.email}"`,
       s.rating, `${s.qualityScore}%`, `${s.commitmentScore}%`, `${s.priceCompetitiveness}%`, s.totalDeals, s.totalValue, `"${s.status}"`
@@ -1139,7 +1139,7 @@ export const TendersBOQPage: React.FC = () => {
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#000000', color: '#ffffff' }}>
           <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>إجمالي القيمة المالية</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>
-            {(tendersList.reduce((s, t) => s + t.grandTotal, 0) / 1000).toFixed(1)}k ر.س
+            {(tendersList.reduce((s, t) => s + t.grandTotal, 0) / 1000).toFixed(1)}k ⃁
           </div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>شامل الضريبة 15%</span>
         </div>
@@ -1255,7 +1255,7 @@ export const TendersBOQPage: React.FC = () => {
           </button>
 
           <span className="pill-tag-mint text-xs font-bold font-mono">
-            {selectedTender.grandTotal.toLocaleString()} ر.س
+            {selectedTender.grandTotal.toLocaleString()} ⃁
           </span>
         </div>
       </div>
@@ -1681,9 +1681,9 @@ export const TendersBOQPage: React.FC = () => {
                         <span className="font-semibold text-slate-800 dark:text-slate-200">{t.entityName}</span>
                       </td>
                       <td className="p-4 font-mono text-center font-bold">{t.itemsCount} بنود</td>
-                      <td className="p-4 font-mono font-bold text-slate-900 dark:text-white">{t.subtotal.toLocaleString()} ر.س</td>
-                      <td className="p-4 font-mono text-emerald-600">{t.vatAmount.toLocaleString()} ر.س</td>
-                      <td className="p-4 font-mono font-black text-emerald-600 bg-emerald-50/40 dark:bg-emerald-950/20">{t.grandTotal.toLocaleString()} ر.س</td>
+                      <td className="p-4 font-mono font-bold text-slate-900 dark:text-white">{t.subtotal.toLocaleString()} ⃁</td>
+                      <td className="p-4 font-mono text-emerald-600">{t.vatAmount.toLocaleString()} ⃁</td>
+                      <td className="p-4 font-mono font-black text-emerald-600 bg-emerald-50/40 dark:bg-emerald-950/20">{t.grandTotal.toLocaleString()} ⃁</td>
                       <td className="p-4"><Badge text={t.status} type="success" /></td>
                       <td className="p-4 text-center">
                         <div className="flex items-center justify-center gap-1.5">
@@ -1779,7 +1779,7 @@ export const TendersBOQPage: React.FC = () => {
             />
             <KasKpiCard
               title="إجمالي الإيرادات شامل الضريبة"
-              value={`${kpis.totalRevenueWithVat.toLocaleString()} ر.س`}
+              value={`${kpis.totalRevenueWithVat.toLocaleString()} ⃁`}
               subtitle="القيمة الإجمالية للعقود"
               icon={DollarSign}
               variant="gold"
@@ -1828,7 +1828,7 @@ export const TendersBOQPage: React.FC = () => {
                     <div key={idx}>
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-medium text-zinc-700">{cat.category}</span>
-                        <span className="text-xs font-mono font-bold text-zinc-900">{cat.value.toLocaleString()} ر.س ({cat.count})</span>
+                        <span className="text-xs font-mono font-bold text-zinc-900">{cat.value.toLocaleString()} ⃁ ({cat.count})</span>
                       </div>
                       <div className="w-full h-3 bg-zinc-100 rounded-full overflow-hidden">
                         <div className="h-full rounded-full transition-all" style={{ width: `${barWidth}%`, backgroundColor: colors[idx % colors.length] }} />
@@ -1845,11 +1845,11 @@ export const TendersBOQPage: React.FC = () => {
             <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff' }}>
               <h4 className="text-xs font-bold text-zinc-500 mb-2">أعلى عميل بالقيمة</h4>
               <div className="text-sm font-bold text-black">{kpis.topClient.name}</div>
-              <div className="text-xs text-zinc-600 mt-1">{kpis.topClient.value.toLocaleString()} ر.س — {kpis.topClient.count} منافسة</div>
+              <div className="text-xs text-zinc-600 mt-1">{kpis.topClient.value.toLocaleString()} ⃁ — {kpis.topClient.count} منافسة</div>
             </div>
             <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff' }}>
               <h4 className="text-xs font-bold text-zinc-500 mb-2">متوسط قيمة المنافسة</h4>
-              <div className="text-sm font-bold text-black">{kpis.avgTenderValue.toLocaleString()} ر.س</div>
+              <div className="text-sm font-bold text-black">{kpis.avgTenderValue.toLocaleString()} ⃁</div>
               <div className="text-xs text-zinc-600 mt-1">شامل الضريبة 15%</div>
             </div>
             <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff' }}>
@@ -1965,7 +1965,7 @@ export const TendersBOQPage: React.FC = () => {
               </div>
               <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-center">
                 <div className="text-xl font-black font-mono text-amber-800 dark:text-amber-300">{suppliers.reduce((s, sup) => s + sup.totalValue, 0).toLocaleString()}</div>
-                <div className="text-[11px] font-bold text-amber-700 dark:text-amber-400 mt-0.5">إجمالي القيمة (ر.س)</div>
+                <div className="text-[11px] font-bold text-amber-700 dark:text-amber-400 mt-0.5">إجمالي القيمة (⃁)</div>
               </div>
             </div>
 
@@ -2477,9 +2477,9 @@ export const TendersBOQPage: React.FC = () => {
                           <td className="p-3 font-bold text-zinc-900">{it.itemNumber}</td>
                           <td className="p-3 font-sans font-bold text-zinc-900">{it.description}</td>
                           <td className="p-3 text-center">{it.quantity} {it.unit}</td>
-                          <td className="p-3 text-center text-zinc-700">{estimatedCost.toLocaleString()} ر.س</td>
-                          <td className="p-3 text-center font-bold text-emerald-700">{it.unitPrice.toLocaleString()} ر.س</td>
-                          <td className="p-3 text-center font-bold text-emerald-800">+{profitMarginPct}% ({unitProfit.toLocaleString()} ر.س)</td>
+                          <td className="p-3 text-center text-zinc-700">{estimatedCost.toLocaleString()} ⃁</td>
+                          <td className="p-3 text-center font-bold text-emerald-700">{it.unitPrice.toLocaleString()} ⃁</td>
+                          <td className="p-3 text-center font-bold text-emerald-800">+{profitMarginPct}% ({unitProfit.toLocaleString()} ⃁)</td>
                           <td className="p-3 text-center font-sans">
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                               تنافسي ومربح
@@ -2575,15 +2575,15 @@ export const TendersBOQPage: React.FC = () => {
               <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-2">
                 <div className="flex justify-between font-bold text-zinc-900">
                   <span>المبلغ الخاضع للضريبة:</span>
-                  <span className="font-mono">{selectedTender.subtotal.toLocaleString()} ر.س</span>
+                  <span className="font-mono">{selectedTender.subtotal.toLocaleString()} ⃁</span>
                 </div>
                 <div className="flex justify-between font-bold text-zinc-900">
                   <span>ضريبة القيمة المضافة (15%):</span>
-                  <span className="font-mono text-emerald-700">{selectedTender.vatAmount.toLocaleString()} ر.س</span>
+                  <span className="font-mono text-emerald-700">{selectedTender.vatAmount.toLocaleString()} ⃁</span>
                 </div>
                 <div className="flex justify-between font-bold text-base text-zinc-950 pt-2 border-t border-zinc-200">
                   <span>الإجمالي المستحق شامل الضريبة:</span>
-                  <span className="font-mono text-emerald-800">{selectedTender.grandTotal.toLocaleString()} ر.س</span>
+                  <span className="font-mono text-emerald-800">{selectedTender.grandTotal.toLocaleString()} ⃁</span>
                 </div>
                 <div className="text-[11px] text-zinc-500 pt-1 leading-relaxed">
                   {selectedTender.grandTotalInWords}
@@ -2697,8 +2697,8 @@ export const TendersBOQPage: React.FC = () => {
               </div>
 
               <div className="p-3 bg-zinc-100 rounded-xl text-zinc-700 space-y-1">
-                <div>الإجمالي الحالي قبل التعديل: <strong className="font-mono">{selectedTender.grandTotal.toLocaleString()} ر.س</strong></div>
-                <div>الإجمالي التقديري بعد التطبيق (+{targetMarginPct}%): <strong className="font-mono text-emerald-700">{(selectedTender.grandTotal * (1 + (parseFloat(targetMarginPct) || 0) / 100)).toLocaleString(undefined, { maximumFractionDigits: 2 })} ر.س</strong></div>
+                <div>الإجمالي الحالي قبل التعديل: <strong className="font-mono">{selectedTender.grandTotal.toLocaleString()} ⃁</strong></div>
+                <div>الإجمالي التقديري بعد التطبيق (+{targetMarginPct}%): <strong className="font-mono text-emerald-700">{(selectedTender.grandTotal * (1 + (parseFloat(targetMarginPct) || 0) / 100)).toLocaleString(undefined, { maximumFractionDigits: 2 })} ⃁</strong></div>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -2789,17 +2789,17 @@ export const TendersBOQPage: React.FC = () => {
                   <tfoot className="font-bold">
                     <tr className="bg-[#e2efda] border-t-2 border-emerald-600">
                       <td colSpan={6} className="p-2 text-left border-r border-emerald-300">السعر الإجمالي (قبل الضريبة):</td>
-                      <td colSpan={2} className="p-2 text-center font-mono">{selectedTender.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })} ر.س</td>
+                      <td colSpan={2} className="p-2 text-center font-mono">{selectedTender.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })} ⃁</td>
                       <td colSpan={3} className="p-2 text-[11px]">{selectedTender.subtotalInWords}</td>
                     </tr>
                     <tr className="bg-[#e2efda] border-t border-emerald-300">
                       <td colSpan={6} className="p-2 text-left border-r border-emerald-300">ضريبة القيمة المضافة (15%):</td>
-                      <td colSpan={2} className="p-2 text-center font-mono text-emerald-800">{selectedTender.vatAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ر.س</td>
+                      <td colSpan={2} className="p-2 text-center font-mono text-emerald-800">{selectedTender.vatAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ⃁</td>
                       <td colSpan={3} className="p-2 text-[11px]">{selectedTender.vatInWords}</td>
                     </tr>
                     <tr className="bg-[#107c41] text-white">
                       <td colSpan={6} className="p-2.5 text-left border-r border-emerald-700">الإجمالي شامل الضريبة:</td>
-                      <td colSpan={2} className="p-2.5 text-center font-mono text-sm bg-[#0b5c30]">{selectedTender.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })} ر.س</td>
+                      <td colSpan={2} className="p-2.5 text-center font-mono text-sm bg-[#0b5c30]">{selectedTender.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })} ⃁</td>
                       <td colSpan={3} className="p-2.5 text-[11px] leading-relaxed">{selectedTender.grandTotalInWords}</td>
                     </tr>
                   </tfoot>
@@ -3176,7 +3176,7 @@ export const TendersBOQPage: React.FC = () => {
                 {/* Financial Summary */}
                 <div className="flex justify-between items-center text-xs p-3 bg-zinc-50 rounded-xl border border-zinc-200">
                   <div>إجمالي العمليات السابقة: <strong className="font-mono">{selectedSupplierForPrint.totalDeals} توريدات</strong></div>
-                  <div>إجمالي حجم التعاملات: <strong className="font-mono text-emerald-800">{selectedSupplierForPrint.totalValue.toLocaleString()} ر.س</strong></div>
+                  <div>إجمالي حجم التعاملات: <strong className="font-mono text-emerald-800">{selectedSupplierForPrint.totalValue.toLocaleString()} ⃁</strong></div>
                 </div>
               </div>
             </div>

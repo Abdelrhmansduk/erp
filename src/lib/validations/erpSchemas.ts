@@ -57,11 +57,12 @@ export function validateJournalBalance(entries: Array<{ debit: number; credit: n
   return Math.abs(totalDebit - totalCredit) < 0.01 && totalDebit > 0;
 }
 
-// Format Currency to SAR
+// Format Currency to Official SAMA Saudi Riyal Symbol (U+20C1)
 export function formatSAR(amount: number): string {
-  return new Intl.NumberFormat('ar-SA', {
-    style: 'currency',
-    currency: 'SAR',
+  const isNeg = amount < 0;
+  const formatted = Math.abs(amount).toLocaleString('en-US', {
     minimumFractionDigits: 2,
-  }).format(amount);
+    maximumFractionDigits: 2,
+  });
+  return `${isNeg ? '\u200E-' : ''}${formatted} \u20C1`;
 }

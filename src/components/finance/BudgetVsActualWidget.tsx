@@ -36,7 +36,7 @@ export const BudgetVsActualWidget: React.FC<{ items?: BudgetItem[] }> = ({ items
             <span>إجمالي الميزانية المعتمدة</span>
             <DollarSign className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-xl font-bold font-mono text-emerald-400">{totalAllocated.toLocaleString()} ر.س</div>
+          <div className="text-xl font-bold font-mono text-emerald-400">{totalAllocated.toLocaleString()} ⃁</div>
           <div className="text-[10px] text-zinc-400 mt-1">المخصص لعام 2026</div>
         </div>
 
@@ -45,7 +45,7 @@ export const BudgetVsActualWidget: React.FC<{ items?: BudgetItem[] }> = ({ items
             <span>المصروف الفعلي (Actual)</span>
             <TrendingDown className="w-4 h-4 text-sky-600" />
           </div>
-          <div className="text-xl font-bold font-mono text-zinc-900">{totalSpent.toLocaleString()} ر.س</div>
+          <div className="text-xl font-bold font-mono text-zinc-900">{totalSpent.toLocaleString()} ⃁</div>
           <div className="text-[10px] text-zinc-500 mt-1">{((totalSpent / totalAllocated) * 100).toFixed(1)}% من الميزانية</div>
         </div>
 
@@ -54,7 +54,7 @@ export const BudgetVsActualWidget: React.FC<{ items?: BudgetItem[] }> = ({ items
             <span>التزامات قيد الصرف (Committed)</span>
             <TrendingUp className="w-4 h-4 text-amber-600" />
           </div>
-          <div className="text-xl font-bold font-mono text-amber-700">{totalCommitted.toLocaleString()} ر.س</div>
+          <div className="text-xl font-bold font-mono text-amber-700">{totalCommitted.toLocaleString()} ⃁</div>
           <div className="text-[10px] text-zinc-500 mt-1">عقود وأوامر شراء معتمدة</div>
         </div>
 
@@ -64,7 +64,7 @@ export const BudgetVsActualWidget: React.FC<{ items?: BudgetItem[] }> = ({ items
             {totalRemaining >= 0 ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <AlertTriangle className="w-4 h-4 text-red-600" />}
           </div>
           <div className={`text-xl font-bold font-mono ${totalRemaining >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
-            {totalRemaining.toLocaleString()} ر.س
+            {totalRemaining.toLocaleString()} ⃁
           </div>
           <div className="text-[10px] text-zinc-500 mt-1">نسبة الاستهلاك الكلي: {overallUsagePct}%</div>
         </div>
@@ -104,10 +104,10 @@ export const BudgetVsActualWidget: React.FC<{ items?: BudgetItem[] }> = ({ items
                   <tr key={item.id} className="hover:bg-zinc-50/80 transition-colors">
                     <td className="p-3 font-semibold text-zinc-900">{item.category}</td>
                     <td className="p-3 text-zinc-600">{item.department}</td>
-                    <td className="p-3 text-center font-mono font-bold">{item.allocatedBudget.toLocaleString()} ر.س</td>
-                    <td className="p-3 text-center font-mono text-zinc-800">{item.spentAmount.toLocaleString()} ر.س</td>
+                    <td className="p-3 text-center font-mono font-bold">{item.allocatedBudget.toLocaleString()} ⃁</td>
+                    <td className="p-3 text-center font-mono text-zinc-800">{item.spentAmount.toLocaleString()} ⃁</td>
                     <td className={`p-3 text-center font-mono font-bold ${remaining < 0 ? 'text-red-600' : 'text-emerald-700'}`}>
-                      {remaining.toLocaleString()} ر.س
+                      {remaining.toLocaleString()} ⃁
                     </td>
                     <td className="p-3">
                       <div className="flex items-center gap-2">

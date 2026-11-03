@@ -382,7 +382,7 @@ class MusanedLifecycleEngine {
         replacementOrderEligible: true,
         agencyLiabilityAmount: clientCompensationAmount,
         clientCompensationAmount,
-        decisionAr: `المطالبة ضمن فترة الضمان النظامية (${daysPassed} يوماً من أصل 90): يحق للعميل إصدار عقد استقدام بديل مجاناً أو استرداد تعويضي بقيمة ${clientCompensationAmount} ر.س وتحميل الوكالة الخارجية التكلفة.`,
+        decisionAr: `المطالبة ضمن فترة الضمان النظامية (${daysPassed} يوماً من أصل 90): يحق للعميل إصدار عقد استقدام بديل مجاناً أو استرداد تعويضي بقيمة ${clientCompensationAmount} ⃁ وتحميل الوكالة الخارجية التكلفة.`,
       };
     }
 

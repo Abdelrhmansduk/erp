@@ -197,7 +197,7 @@ export const CreateCVPage: React.FC = () => {
           </div>
         </div>
         <span className="pill-tag-mint" style={{ fontSize: '11px' }}>
-          الراتب المقترح: {formData.monthly_salary} ر.س
+          الراتب المقترح: {formData.monthly_salary} ⃁
         </span>
       </div>
 
@@ -489,7 +489,7 @@ export const CreateCVPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">الراتب الشهري (ر.س) *</label>
+                <label className="text-xs text-zinc-700 block mb-1 font-semibold">الراتب الشهري (⃁) *</label>
                 <input
                   type="number"
                   required
@@ -606,7 +606,7 @@ export const CreateCVPage: React.FC = () => {
                   <div className="flex justify-between py-1 border-b border-zinc-100"><span className="text-zinc-500">العمر:</span><strong className="text-black font-mono">{formData.age} سنة</strong></div>
                   <div className="flex justify-between py-1 border-b border-zinc-100"><span className="text-zinc-500">الحالة الاجتماعية:</span><strong className="text-black">{formData.marital_status} ({formData.children_count} أطفال)</strong></div>
                   <div className="flex justify-between py-1 border-b border-zinc-100"><span className="text-zinc-500">رقم الجواز:</span><strong className="text-black font-mono">{formData.passport_number || 'EP9920145'}</strong></div>
-                  <div className="flex justify-between py-1 border-b border-zinc-100"><span className="text-zinc-500">الراتب الشهري:</span><strong className="text-emerald-700 font-mono font-bold">{formData.monthly_salary} ر.س</strong></div>
+                  <div className="flex justify-between py-1 border-b border-zinc-100"><span className="text-zinc-500">الراتب الشهري:</span><strong className="text-emerald-700 font-mono font-bold">{formData.monthly_salary} ⃁</strong></div>
                 </div>
               </div>
 

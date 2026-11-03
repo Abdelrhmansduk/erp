@@ -486,7 +486,7 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}{' '}
-                      ر.س
+                      ⃁
                     </span>
                   </span>
                 )}

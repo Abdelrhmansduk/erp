@@ -756,7 +756,7 @@ export const CVsBankPage: React.FC = () => {
             {filteredCVs.length > 0
               ? Math.round(filteredCVs.reduce((sum, c) => sum + c.salary, 0) / filteredCVs.length).toLocaleString()
               : '1,500'}{' '}
-            ر.س
+            ⃁
           </div>
           <span className="pill-tag-mint" style={{ fontSize: '11px' }}>بحسب الجنسية والمهنة</span>
         </div>
@@ -963,7 +963,7 @@ export const CVsBankPage: React.FC = () => {
                   <div>
                     <span className="text-zinc-400 text-[10px] block">الراتب / التكلفة</span>
                     <strong className="font-mono text-emerald-700 font-bold">
-                      {cv.salary.toLocaleString()} ر.س
+                      {cv.salary.toLocaleString()} ⃁
                     </strong>
                   </div>
                 </div>
@@ -1018,7 +1018,7 @@ export const CVsBankPage: React.FC = () => {
 
                 <a
                   href={`https://wa.me/?text=${encodeURIComponent(
-                    `سيرة ذاتية مختارة من مجموعة خالد السليم: ${cv.maid_name_ar} (${cv.cv_code}) - الجنسية: ${cv.nationality} - المهنة: ${cv.job} - الراتب: ${cv.salary} ر.س`
+                    `سيرة ذاتية مختارة من مجموعة خالد السليم: ${cv.maid_name_ar} (${cv.cv_code}) - الجنسية: ${cv.nationality} - المهنة: ${cv.job} - الراتب: ${cv.salary} ⃁`
                   )}`}
                   target="_blank"
                   rel="noreferrer"
@@ -1075,7 +1075,7 @@ export const CVsBankPage: React.FC = () => {
                       {cv.age} سنة | {cv.religion}
                     </td>
                     <td className="p-3.5 font-mono font-bold text-emerald-700">
-                      {cv.salary.toLocaleString()} ر.س
+                      {cv.salary.toLocaleString()} ⃁
                     </td>
                     <td className="p-3.5 text-zinc-600 truncate max-w-[140px]">{cv.external_office}</td>
                     <td className="p-3.5">
@@ -1147,7 +1147,7 @@ export const CVsBankPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-500">التكلفة / الراتب:</span>
-                  <strong className="font-mono text-black font-bold">{bookingCV.salary.toLocaleString()} ر.س</strong>
+                  <strong className="font-mono text-black font-bold">{bookingCV.salary.toLocaleString()} ⃁</strong>
                 </div>
               </div>
 
@@ -1240,7 +1240,7 @@ export const CVsBankPage: React.FC = () => {
                   <div className="text-left font-mono">
                     <div className="text-xs text-zinc-400">رقم الجواز:</div>
                     <div className="text-sm font-bold text-black">{selectedCVForPrint.passport_number}</div>
-                    <div className="text-xs text-emerald-700 font-bold">{selectedCVForPrint.salary} ر.س / شهرياً</div>
+                    <div className="text-xs text-emerald-700 font-bold">{selectedCVForPrint.salary} ⃁ / شهرياً</div>
                   </div>
                 </div>
 

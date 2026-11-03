@@ -368,7 +368,7 @@ export const ZATCAPage: React.FC = () => {
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
           <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>إجمالي المبيعات (بدون ضريبة)</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#000000', marginTop: '6px', letterSpacing: '-0.02em' }}>
-            {invoices.reduce((acc, inv) => acc + (inv.subtotal || 0), 0).toLocaleString()} ر.س
+            {invoices.reduce((acc, inv) => acc + (inv.subtotal || 0), 0).toLocaleString()} ⃁
           </div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>المبلغ الأساسي</span>
         </div>
@@ -376,7 +376,7 @@ export const ZATCAPage: React.FC = () => {
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#000000', color: '#ffffff' }}>
           <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>ضريبة القيمة المضافة (15%)</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>
-            {invoices.reduce((acc, inv) => acc + (inv.vat_amount || 0), 0).toLocaleString()} ر.س
+            {invoices.reduce((acc, inv) => acc + (inv.vat_amount || 0), 0).toLocaleString()} ⃁
           </div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>الإقرار الدوري</span>
         </div>
@@ -384,7 +384,7 @@ export const ZATCAPage: React.FC = () => {
         <div className="card-pistachio-band" style={{ padding: '24px', borderRadius: '16px' }}>
           <span style={{ fontSize: '13px', color: '#000000', fontWeight: 550 }}>إجمالي المبالغ شاملة الضريبة</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#000000', marginTop: '6px', letterSpacing: '-0.02em' }}>
-            {invoices.reduce((acc, inv) => acc + (inv.total_amount || 0), 0).toLocaleString()} ر.س
+            {invoices.reduce((acc, inv) => acc + (inv.total_amount || 0), 0).toLocaleString()} ⃁
           </div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>شامل ضريبة 15%</span>
         </div>
@@ -493,9 +493,9 @@ export const ZATCAPage: React.FC = () => {
                         type="purple"
                       />
                     </td>
-                    <td className="p-3.5 font-mono font-bold text-black">{(inv.subtotal ?? 0).toLocaleString()} ر.س</td>
-                    <td className="p-3.5 font-mono font-bold text-black">{(inv.vat_amount ?? 0).toLocaleString()} ر.س</td>
-                    <td className="p-3.5 font-mono font-bold text-champagne-dark">{(inv.total_amount ?? 0).toLocaleString()} ر.س</td>
+                    <td className="p-3.5 font-mono font-bold text-black">{(inv.subtotal ?? 0).toLocaleString()} ⃁</td>
+                    <td className="p-3.5 font-mono font-bold text-black">{(inv.vat_amount ?? 0).toLocaleString()} ⃁</td>
+                    <td className="p-3.5 font-mono font-bold text-champagne-dark">{(inv.total_amount ?? 0).toLocaleString()} ⃁</td>
                     <td className="p-3.5">
                       <Badge
                         text={inv.zatca_status === 'CLEARED' ? 'تمت المصادقة (Clearance)' : 'تم الإبلاغ (Reported)'}
@@ -605,15 +605,15 @@ export const ZATCAPage: React.FC = () => {
               <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 space-y-2 text-xs">
                 <div className="flex justify-between text-zinc-600">
                   <span>المبلغ الخاضع للضريبة:</span>
-                  <span className="font-bold font-mono">{subtotal.toLocaleString()} ر.س</span>
+                  <span className="font-bold font-mono">{subtotal.toLocaleString()} ⃁</span>
                 </div>
                 <div className="flex justify-between text-amber-700 font-bold">
                   <span>ضريبة القيمة المضافة (15%):</span>
-                  <span className="font-mono">{vatAmount.toLocaleString()} ر.س</span>
+                  <span className="font-mono">{vatAmount.toLocaleString()} ⃁</span>
                 </div>
                 <div className="flex justify-between text-champagne-dark font-black text-sm border-t border-zinc-200 pt-2">
                   <span>المجموع النهائي المستحق:</span>
-                  <span className="font-mono">{totalAmount.toLocaleString()} ر.س</span>
+                  <span className="font-mono">{totalAmount.toLocaleString()} ⃁</span>
                 </div>
               </div>
 
@@ -660,7 +660,7 @@ export const ZATCAPage: React.FC = () => {
                   <div className="font-bold text-zinc-400">بيانات الفاتورة المعتمدة</div>
                   <div className="text-sm font-bold text-black">{selectedInvoiceForXml.client_name}</div>
                   <div className="font-mono font-bold text-champagne-dark">
-                    الإجمالي: {(selectedInvoiceForXml.total_amount ?? 0).toLocaleString()} ر.س (شامل ضريبة {(selectedInvoiceForXml.vat_amount ?? 0).toLocaleString()} ر.س)
+                    الإجمالي: {(selectedInvoiceForXml.total_amount ?? 0).toLocaleString()} ⃁ (شامل ضريبة {(selectedInvoiceForXml.vat_amount ?? 0).toLocaleString()} ⃁)
                   </div>
                   <div className="text-[11px] text-zinc-500 font-mono truncate">
                     Hash: {selectedInvoiceForXml.xml_hash}
@@ -858,7 +858,7 @@ export const ZATCAPage: React.FC = () => {
                     فاتورة ضريبية إلكترونية معتمدة #{selectedInvoiceAttachment.invoice_number}
                   </div>
                   <div className="text-xs text-zinc-600">
-                    العميل: {selectedInvoiceAttachment.client_name} • الإجمالي: {(selectedInvoiceAttachment.total_amount ?? 0).toLocaleString()} ر.س
+                    العميل: {selectedInvoiceAttachment.client_name} • الإجمالي: {(selectedInvoiceAttachment.total_amount ?? 0).toLocaleString()} ⃁
                   </div>
                 </div>
               )}

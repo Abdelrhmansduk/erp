@@ -72,7 +72,7 @@ const DEPARTMENT_OPERATION_BLUEPRINTS: Record<DepartmentId, DepartmentOperationB
         const amount = 14500 + (seq % 7) * 2300;
         return {
           title: `ترحيل قيد يومية مزدوج #${refNo} في نظام سماك`,
-          details: `قام المحاسب (${staff.full_name}) في (${staff.branch}) بترحيل قيد يومية متوازن بمبلغ ${amount.toLocaleString()} ر.س بين ح/ البنك الأهلي (110201) وح/ إيرادات العقود التشغيلية (410101).`,
+          details: `قام المحاسب (${staff.full_name}) في (${staff.branch}) بترحيل قيد يومية متوازن بمبلغ ${amount.toLocaleString()} ⃁ بين ح/ البنك الأهلي (110201) وح/ إيرادات العقود التشغيلية (410101).`,
           amountSar: amount,
           status: 'مرحّلة للدفتر العام',
           persistDomainRecord: async () => {
@@ -106,7 +106,7 @@ const DEPARTMENT_OPERATION_BLUEPRINTS: Record<DepartmentId, DepartmentOperationB
         const compCode = staff.company_id === 'all' ? 'SAF' : staff.company_id;
         return {
           title: `اعتماد فاتورة ضريبية ZATCA #${compCode}-INV-${refNo.slice(-4)}`,
-          details: `أصدر (${staff.full_name}) فاتورة ضريبية إلكترونية المرحلة الثانية شاملة ضريبة القيمة المضافة (15%) بإجمالي ${total.toLocaleString()} ر.س مع توليد ختم CSID ورمز QR المشفر.`,
+          details: `أصدر (${staff.full_name}) فاتورة ضريبية إلكترونية المرحلة الثانية شاملة ضريبة القيمة المضافة (15%) بإجمالي ${total.toLocaleString()} ⃁ مع توليد ختم CSID ورمز QR المشفر.`,
           amountSar: total,
           status: 'موثقة إلكترونياً',
           persistDomainRecord: async () => {
@@ -141,7 +141,7 @@ const DEPARTMENT_OPERATION_BLUEPRINTS: Record<DepartmentId, DepartmentOperationB
         const amount = 6500 + (seq % 4) * 1250;
         return {
           title: `اعتماد سند صرف وعهدة تشغيلية #${refNo}`,
-          details: `اعتمد (${staff.full_name}) في (${staff.branch}) سند صرف مالي بمبلغ ${amount.toLocaleString()} ر.س لتغطية رسوم التأشيرات والتشغيل وربطه بمركز التكلفة.`,
+          details: `اعتمد (${staff.full_name}) في (${staff.branch}) سند صرف مالي بمبلغ ${amount.toLocaleString()} ⃁ لتغطية رسوم التأشيرات والتشغيل وربطه بمركز التكلفة.`,
           amountSar: amount,
           status: 'مكتملة ومعتمدة',
         };
@@ -159,7 +159,7 @@ const DEPARTMENT_OPERATION_BLUEPRINTS: Record<DepartmentId, DepartmentOperationB
         const amount = 17250 + (seq % 3) * 1150;
         return {
           title: `توثيق عقد استقدام مساند #MUS-${refNo.slice(-4)}`,
-          details: `أتم (${staff.full_name}) في (${staff.branch}) توثيق عقد استقدام رسمي عبر منصة مساند بقيمة ${amount.toLocaleString()} ر.س وإصدار أمر التفويض للوكالة الخارجية.`,
+          details: `أتم (${staff.full_name}) في (${staff.branch}) توثيق عقد استقدام رسمي عبر منصة مساند بقيمة ${amount.toLocaleString()} ⃁ وإصدار أمر التفويض للوكالة الخارجية.`,
           amountSar: amount,
           status: 'موثقة إلكترونياً',
         };
@@ -200,7 +200,7 @@ const DEPARTMENT_OPERATION_BLUEPRINTS: Record<DepartmentId, DepartmentOperationB
         const amount = 3450 + (seq % 4) * 850;
         return {
           title: `تحرير عقد تأجير مرن #RNT-${refNo.slice(-4)} وتحصيل السند`,
-          details: `أبرم (${staff.full_name}) في (${staff.branch}) عقد تأجير باقة شهرية شاملة الضريبة بقيمة ${amount.toLocaleString()} ر.س وجدولة التسليم الفوري للعميل.`,
+          details: `أبرم (${staff.full_name}) في (${staff.branch}) عقد تأجير باقة شهرية شاملة الضريبة بقيمة ${amount.toLocaleString()} ⃁ وجدولة التسليم الفوري للعميل.`,
           amountSar: amount,
           status: 'مكتملة ومعتمدة',
         };
@@ -240,7 +240,7 @@ const DEPARTMENT_OPERATION_BLUEPRINTS: Record<DepartmentId, DepartmentOperationB
         const amountSar = (1100 + (seq % 3) * 350) * 3.75;
         return {
           title: `مطابقة كشف حساب وحوالة وكالة دولية #AGN-${refNo.slice(-4)}`,
-          details: `نفّذ (${staff.full_name}) تسوية عمولات دفعة السير الذاتية للوكالة الخارجية المعتمدة بما يعادل ${Math.round(amountSar).toLocaleString()} ر.س.`,
+          details: `نفّذ (${staff.full_name}) تسوية عمولات دفعة السير الذاتية للوكالة الخارجية المعتمدة بما يعادل ${Math.round(amountSar).toLocaleString()} ⃁.`,
           amountSar: Math.round(amountSar),
           status: 'مرحّلة للدفتر العام',
         };
@@ -258,7 +258,7 @@ const DEPARTMENT_OPERATION_BLUEPRINTS: Record<DepartmentId, DepartmentOperationB
         const payrollTotal = 148000 + (seq % 5) * 18500;
         return {
           title: `اعتماد مسير الرواتب وملف حماية الأجور WPS #WPS-${refNo.slice(-4)}`,
-          details: `أصدر (${staff.full_name}) في (${staff.branch}) مسير الرواتب الشهري واستقطاعات التأمينات الاجتماعية (GOSI) بإجمالي ${payrollTotal.toLocaleString()} ر.س وتوليد ملف البنك SIF.`,
+          details: `أصدر (${staff.full_name}) في (${staff.branch}) مسير الرواتب الشهري واستقطاعات التأمينات الاجتماعية (GOSI) بإجمالي ${payrollTotal.toLocaleString()} ⃁ وتوليد ملف البنك SIF.`,
           amountSar: payrollTotal,
           status: 'موثقة إلكترونياً',
         };
@@ -337,7 +337,7 @@ const DEPARTMENT_OPERATION_BLUEPRINTS: Record<DepartmentId, DepartmentOperationB
         const bidValue = 420000 + (seq % 6) * 85000;
         return {
           title: `اعتماد تسعير منافسة حكومية BOQ #ETM-${refNo.slice(-4)}`,
-          details: `أنجز (${staff.full_name}) في (${staff.branch}) تسعير جدول الكميات لمنافسة منصة اعتماد بقيمة إجمالية ${bidValue.toLocaleString()} ر.س وإصدار خطاب الضمان البنكي الابتدائي.`,
+          details: `أنجز (${staff.full_name}) في (${staff.branch}) تسعير جدول الكميات لمنافسة منصة اعتماد بقيمة إجمالية ${bidValue.toLocaleString()} ⃁ وإصدار خطاب الضمان البنكي الابتدائي.`,
           amountSar: bidValue,
           status: 'مكتملة ومعتمدة',
         };
@@ -352,7 +352,7 @@ const DEPARTMENT_OPERATION_BLUEPRINTS: Record<DepartmentId, DepartmentOperationB
         const poValue = 68000 + (seq % 4) * 14000;
         return {
           title: `إصدار أمر شراء وتوريد مشروع كاس #PO-${refNo.slice(-4)}`,
-          details: `اعتمد (${staff.full_name}) أمر شراء وتوريد تشغيلي لشركة كاس بمبلغ ${poValue.toLocaleString()} ر.س وربطه بموازنة المشروع.`,
+          details: `اعتمد (${staff.full_name}) أمر شراء وتوريد تشغيلي لشركة كاس بمبلغ ${poValue.toLocaleString()} ⃁ وربطه بموازنة المشروع.`,
           amountSar: poValue,
           status: 'مرحّلة للدفتر العام',
         };

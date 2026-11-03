@@ -524,7 +524,7 @@ export const OfficesPage: React.FC = () => {
                     </td>
                     <td className="p-3.5">
                       <div className="font-mono font-bold text-amber-600">${(row.cost_usd ?? 0).toLocaleString()}</div>
-                      <div className="text-[10.5px] text-slate-400">~{(row.commission_sar ?? 0).toLocaleString()} ر.س</div>
+                      <div className="text-[10.5px] text-slate-400">~{(row.commission_sar ?? 0).toLocaleString()} ⃁</div>
                     </td>
                     <td className="p-3.5 font-mono font-bold text-champagne-dark">
                       ${(row.balance_usd ?? 0).toLocaleString()}

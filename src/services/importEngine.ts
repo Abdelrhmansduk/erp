@@ -578,7 +578,7 @@ async function parseXMLDocument(file: File, fileName: string, companyId: string)
   const invNo = invMatch ? invMatch[1].trim() : `${companyId}-XML-${Date.now().toString().slice(-4)}`;
   const clientName = nameMatch ? nameMatch[1].trim() : `مورد / عميل فاتورة إلكترونية (${fileName.replace(/\.[^.]+$/, '')})`;
   const issueDate = dateMatch ? dateMatch[1].trim() : new Date().toISOString().slice(0, 10);
-  const previewUrl = generateDocumentPreviewSvgDataUrl(fileName, 'ZATCA XML', invNo, `${total.toLocaleString()} ر.س`, companyId);
+  const previewUrl = generateDocumentPreviewSvgDataUrl(fileName, 'ZATCA XML', invNo, `${total.toLocaleString()} ⃁`, companyId);
 
   const row: Record<string, any> = {
     'رقم الفاتورة': invNo,
@@ -631,7 +631,7 @@ function extractRecordsFromUnstructuredText(
       const vat = Math.round(subtotal * 0.15 * 100) / 100;
       const total = subtotal + vat;
       const invNo = `${companyId}-INV-2026-${String(i).padStart(4, '0')}`;
-      const preview = customAttachmentUrl || generateDocumentPreviewSvgDataUrl(`${fileName} (#${i})`, formatLabel, invNo, `${total.toLocaleString()} ر.س`, companyId);
+      const preview = customAttachmentUrl || generateDocumentPreviewSvgDataUrl(`${fileName} (#${i})`, formatLabel, invNo, `${total.toLocaleString()} ⃁`, companyId);
       extractedRows.push({
         'رقم الفاتورة': invNo,
         'اسم العميل': `عميل / مورد مستخلص #${i} — ${cleanName}`,
@@ -671,7 +671,7 @@ function extractRecordsFromUnstructuredText(
   const subtotal = Math.round((detectedAmount / 1.15) * 100) / 100;
   const vat = Math.round((detectedAmount - subtotal) * 100) / 100;
   const refNo = `${companyId}-DOC-${Date.now().toString().slice(-4)}`;
-  const preview = customAttachmentUrl || generateDocumentPreviewSvgDataUrl(fileName, formatLabel, refNo, `${detectedAmount.toLocaleString()} ر.س`, companyId);
+  const preview = customAttachmentUrl || generateDocumentPreviewSvgDataUrl(fileName, formatLabel, refNo, `${detectedAmount.toLocaleString()} ⃁`, companyId);
 
   return [
     {
@@ -1420,7 +1420,7 @@ export async function extractAndStageMultipleFiles(
         amountOrValue: amount,
         vatAmount: vat,
         date: dateStr,
-        attachmentUrl: rec.attachment_url || generateDocumentPreviewSvgDataUrl(file.name, parsed.fileType, primaryRef, `${amount.toLocaleString()} ر.س`, companyId),
+        attachmentUrl: rec.attachment_url || generateDocumentPreviewSvgDataUrl(file.name, parsed.fileType, primaryRef, `${amount.toLocaleString()} ⃁`, companyId),
         mappedRecord: {
           ...rec,
           company_id: companyId,
@@ -1479,7 +1479,7 @@ export function generateSimulatedBatchRecords(
     const party = `${vendorsOrParties[i % vendorsOrParties.length]} (#${i})`;
     const refNo = `${safeCompany}-${entityKey === 'journal_entries' ? 'JV' : entityKey === 'contracts' ? 'CNT' : entityKey === 'cvs' ? 'CV' : 'INV'}-2026-${String(i).padStart(4, '0')}`;
     const fileName = `مستند_${template.displayName.replace(/\s+/g, '_')}_${String(i).padStart(3, '0')}.${fmt.ext}`;
-    const previewUrl = generateDocumentPreviewSvgDataUrl(fileName, fmt.badge, refNo, `${total.toLocaleString()} ر.س`, safeCompany);
+    const previewUrl = generateDocumentPreviewSvgDataUrl(fileName, fmt.badge, refNo, `${total.toLocaleString()} ⃁`, safeCompany);
 
     records.push({
       id: `sim-batch-${Date.now()}-${i}`,

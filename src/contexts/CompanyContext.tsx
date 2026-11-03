@@ -17,7 +17,7 @@ export const GROUP_MASTER_ENTITY: CompanyEntity = {
   activeOrdersCount: 1240,
   revenueYTD: 28500000,
   vatRate: 0.15,
-  currency: 'ر.س',
+  currency: '⃁',
   branding: {
     primaryColor: '#1D2428',
     secondaryColor: '#A98232',
@@ -45,7 +45,7 @@ export const COMPANIES_LIST: CompanyEntity[] = [
     activeOrdersCount: 380,
     revenueYTD: 8900000,
     vatRate: 0.15,
-    currency: 'ر.س',
+    currency: '⃁',
     branding: {
       primaryColor: '#0284c7',
       secondaryColor: '#0369a1',
@@ -71,7 +71,7 @@ export const COMPANIES_LIST: CompanyEntity[] = [
     activeOrdersCount: 290,
     revenueYTD: 6700000,
     vatRate: 0.15,
-    currency: 'ر.س',
+    currency: '⃁',
     branding: {
       primaryColor: '#b91c1c',
       secondaryColor: '#991b1b',
@@ -97,7 +97,7 @@ export const COMPANIES_LIST: CompanyEntity[] = [
     activeOrdersCount: 420,
     revenueYTD: 9800000,
     vatRate: 0.15,
-    currency: 'ر.س',
+    currency: '⃁',
     branding: {
       primaryColor: '#0d9488',
       secondaryColor: '#0f766e',
@@ -123,7 +123,7 @@ export const COMPANIES_LIST: CompanyEntity[] = [
     activeOrdersCount: 185,
     revenueYTD: 4200000,
     vatRate: 0.15,
-    currency: 'ر.س',
+    currency: '⃁',
     branding: {
       primaryColor: '#1e40af',
       secondaryColor: '#1d4ed8',
@@ -149,7 +149,7 @@ export const COMPANIES_LIST: CompanyEntity[] = [
     activeOrdersCount: 210,
     revenueYTD: 5400000,
     vatRate: 0.15,
-    currency: 'ر.س',
+    currency: '⃁',
     branding: {
       primaryColor: '#1D2428',
       secondaryColor: '#A98232',

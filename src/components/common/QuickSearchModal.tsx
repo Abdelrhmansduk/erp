@@ -336,7 +336,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
         results.push({
           id: `rec-inv-${inv.id}`,
           title: `فاتورة ضريبية #${num} — ${client}`,
-          subtitle: `الإجمالي: ${inv.total_amount || inv.total || ''} ر.س • الحالة: ${inv.status || 'معتمدة ZATCA'}`,
+          subtitle: `الإجمالي: ${inv.total_amount || inv.total || ''} ⃁ • الحالة: ${inv.status || 'معتمدة ZATCA'}`,
           href: 'zatca',
           kind: 'record',
           badge: 'فاتورة ZATCA',

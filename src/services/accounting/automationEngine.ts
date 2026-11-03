@@ -355,7 +355,7 @@ export const accountingAutomationEngine = {
     companyId: CompanyId,
     params: ForeignAgentSettlementPostingParams
   ): { entry: JournalEntry | null; error: string | null } {
-    const description = `تسوية حوالة بنكية دولية للوكيل الخارجي: ${params.agentName} بمبلغ $${params.amountUsd.toLocaleString()} (${params.totalSar.toLocaleString()} ر.س)`;
+    const description = `تسوية حوالة بنكية دولية للوكيل الخارجي: ${params.agentName} بمبلغ $${params.amountUsd.toLocaleString()} (${params.totalSar.toLocaleString()} ⃁)`;
 
     return journalEngine.createJournalEntry(companyId, {
       entryType: 'AUTOMATIC',

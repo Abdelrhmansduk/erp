@@ -332,7 +332,7 @@ export const AvailableWorkersCatalog: React.FC<AvailableWorkersCatalogProps> = (
                         <span>الراتب الشهري</span>
                       </div>
                       <div className="text-xs font-black text-emerald-400 mt-1 font-mono">
-                        {worker.requestedSalary?.toLocaleString('ar-SA') || '1,500'} <span className="text-[10px] text-zinc-500">ر.س</span>
+                        {worker.requestedSalary?.toLocaleString('ar-SA') || '1,500'} <span className="text-[10px] text-zinc-500">⃁</span>
                       </div>
                     </div>
 

@@ -149,7 +149,7 @@ export const CompanySelectorPortal: React.FC<CompanySelectorPortalProps> = ({ on
                   </div>
                   <div className="card-pistachio-band" style={{ padding: '14px 18px', borderRadius: '12px' }}>
                     <span style={{ fontSize: '11.5px', color: '#000000', fontWeight: 550 }}>المبيعات المعتمدة</span>
-                    <span className="display-sm block mt-1" style={{ fontSize: '22px', fontWeight: 330, color: '#000000' }}>106,006 ر.س</span>
+                    <span className="display-sm block mt-1" style={{ fontSize: '22px', fontWeight: 330, color: '#000000' }}>106,006 ⃁</span>
                     <span className="pill-tag-mint" style={{ fontSize: '10px', marginTop: '4px' }}>فواتير ZATCA</span>
                   </div>
                   <div className="card-pricing-featured" style={{ padding: '14px 18px', borderRadius: '12px', background: '#000000', color: '#ffffff', border: '1px solid rgba(255,255,255,0.15)' }}>

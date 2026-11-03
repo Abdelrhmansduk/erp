@@ -60,4 +60,5 @@
 - [x] **TASK-701**: بناء محرك رصد الأخطاء الحي والاستشفاء الذاتي ([`src/services/errorMonitorService.ts`](src/services/errorMonitorService.ts)) ولوحة المراقبة النهارية ([`src/components/monitoring/EnterpriseErrorMonitorPanel.tsx`](src/components/monitoring/EnterpriseErrorMonitorPanel.tsx)).
 - [x] **TASK-702**: بناء محرك التدقيق الأمني وكشف الشذوذ (`Brute Force` / `IP Whitelist`) في [`src/services/securityAuditService.ts`](src/services/securityAuditService.ts).
 - [x] **TASK-703**: توحيد الهوية البصرية (`DESIGN-mobbin.md`) عبر كافة الأقسام الـ 9، وإصلاح مقاسات الأيقونات (`44x44px` squircle) ومحدد الفرع (`المقر الرئيسي للمجموعة - الرياض`) في [`Header.tsx`](src/components/layout/Header.tsx) و[`Sidebar.tsx`](src/components/layout/Sidebar.tsx) و[`AppLauncherPage.tsx`](src/pages/AppLauncherPage.tsx).
-- [x] **TASK-704**: التحقق الشامل من الركائز المعمارية الـ 16 واجتياز جميع الاختبارات الآلية (`20/20` ملف اختبار، `97/97` اختباراً ناجحاً، و`0` أخطاء `tsc --noEmit`).
+- [x] **TASK-704**: التحقق الشامل من الركائز المعمارية الـ 16 واجتياز جميع الاختبارات الآلية (`22/22` ملف اختبار، `111/111` اختباراً ناجحاً، و`0` أخطاء `tsc --noEmit`).
+- [x] **TASK-705**: تطبيق الدليل الإرشادي الرسمي لرمز الريال السعودي الصادر عن البنك المركزي السعودي (`SAMA SRS Guidelines.pdf` — `U+20C1` `⃁`) عبر 65 ملفاً ومكوناً وتقريراً في المنظومة.

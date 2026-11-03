@@ -52,7 +52,7 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
   const [companySettings, setCompanySettings] = useState({
     companyName: 'مجموعة خالد السليم التجارية',
     taxNumber: '310998231000003',
-    currency: 'SAR (ريال سعودي)',
+    currency: '⃁ (ريال سعودي - SAR)',
     fiscalYearStart: '2026-01-01',
     mainBranch: 'فرع الرياض الرئيسي',
     vatRate: '15%',
@@ -116,7 +116,7 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
     setEosbCalc({ ...eosbCalc, result: res });
     addNotification({
       title: 'احتساب مكافأة نهاية الخدمة (EOSB)',
-      message: `تم احتساب المستحق النظامي بقيمة ${res.toLocaleString()} ر.س بناءً على نظام العمل السعودي.`,
+      message: `تم احتساب المستحق النظامي بقيمة ${res.toLocaleString()} ⃁ بناءً على نظام العمل السعودي.`,
       type: 'info',
     });
   };
@@ -160,7 +160,7 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
 
     addNotification({
       title: 'تسجيل موظف جديد',
-      message: `تم حفظ الموظف (${empRecord.name}) في قاعدة بيانات SMACC وحفظ مسير الراتب (${total.toLocaleString()} ر.س) بنجاح.`,
+      message: `تم حفظ الموظف (${empRecord.name}) في قاعدة بيانات SMACC وحفظ مسير الراتب (${total.toLocaleString()} ⃁) بنجاح.`,
       type: 'success',
     });
   };
@@ -360,9 +360,9 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
                       <td className="p-3.5 font-mono text-zinc-500">{emp.nationalId}</td>
                       <td className="p-3.5 text-black font-semibold">{emp.jobTitle}</td>
                       <td className="p-3.5 text-zinc-600">{emp.department}</td>
-                      <td className="p-3.5 font-bold font-mono text-black">{emp.basicSalary.toLocaleString()} ر.س</td>
-                      <td className="p-3.5 text-zinc-500 font-mono">{(emp.housingAllowance + emp.transportAllowance).toLocaleString()} ر.س</td>
-                      <td className="p-3.5 font-bold font-mono text-champagne-dark">{emp.totalSalary.toLocaleString()} ر.س</td>
+                      <td className="p-3.5 font-bold font-mono text-black">{emp.basicSalary.toLocaleString()} ⃁</td>
+                      <td className="p-3.5 text-zinc-500 font-mono">{(emp.housingAllowance + emp.transportAllowance).toLocaleString()} ⃁</td>
+                      <td className="p-3.5 font-bold font-mono text-champagne-dark">{emp.totalSalary.toLocaleString()} ⃁</td>
                       <td className="p-3.5">
                         <span className="pill-tag-mint" style={{ fontSize: '10px' }}>{emp.status}</span>
                       </td>
@@ -560,7 +560,7 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
             </select>
           </div>
           <div>
-            <label className="text-xs text-zinc-700 block mb-1 font-semibold">الراتب الأساسي (ر.س) *</label>
+            <label className="text-xs text-zinc-700 block mb-1 font-semibold">الراتب الأساسي (⃁) *</label>
             <input
               type="number"
               required
@@ -571,7 +571,7 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="text-xs text-zinc-700 block mb-1 font-semibold">بدل السكن (ر.س)</label>
+            <label className="text-xs text-zinc-700 block mb-1 font-semibold">بدل السكن (⃁)</label>
             <input
               type="number"
               placeholder="0.00"
@@ -581,7 +581,7 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="text-xs text-zinc-700 block mb-1 font-semibold">بدل النقل والمواصلات (ر.س)</label>
+            <label className="text-xs text-zinc-700 block mb-1 font-semibold">بدل النقل والمواصلات (⃁)</label>
             <input
               type="number"
               placeholder="0.00"
@@ -621,7 +621,7 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
               />
             </div>
             <div>
-              <label className="text-xs text-zinc-700 block mb-1 font-semibold">الراتب الأخير الشامل (ر.س)</label>
+              <label className="text-xs text-zinc-700 block mb-1 font-semibold">الراتب الأخير الشامل (⃁)</label>
               <input
                 type="number"
                 value={eosbCalc.lastSalary}
@@ -642,7 +642,7 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
           {eosbCalc.result > 0 && (
             <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-2xl text-center mt-3">
               <span className="text-xs text-zinc-600 block">إجمالي المستحق لمكافأة نهاية الخدمة:</span>
-              <span className="text-2xl font-mono font-black text-champagne-dark mt-1 block">{eosbCalc.result.toLocaleString()} ر.س</span>
+              <span className="text-2xl font-mono font-black text-champagne-dark mt-1 block">{eosbCalc.result.toLocaleString()} ⃁</span>
             </div>
           )}
         </div>

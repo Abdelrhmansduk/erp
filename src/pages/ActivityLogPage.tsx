@@ -44,7 +44,7 @@ const MOCK_ACTIVITIES: ActivityItem[] = [
     role: 'مدير العمليات',
     action_type: 'اعتماد مالي',
     module: 'المالية والمحاسبة',
-    details: 'اعتماد سند صرف رقم #VOU-2026-0089 بمبلغ 18,500 ر.س لحساب وكالة مانيلا الدولية',
+    details: 'اعتماد سند صرف رقم #VOU-2026-0089 بمبلغ 18,500 ⃁ لحساب وكالة مانيلا الدولية',
     severity: 'تنبيه',
     ip_address: '192.168.1.12',
     device: 'MacBook Pro / Safari',
@@ -145,7 +145,7 @@ export const ActivityLogPage: React.FC = () => {
       const totalSar = results.reduce((s, r) => s + (r.amount_sar || 0), 0);
       addNotification({
         title: `تم تنفيذ (${results.length}) عملية حقيقية لجميع الموظفين`,
-        message: `تم تسجيل العمليات والقيود والفواتير لجميع موظفي المجموعة في كافة الأقسام والفروع بإجمالي أثر مالي ${totalSar.toLocaleString('ar-SA')} ر.س.`,
+        message: `تم تسجيل العمليات والقيود والفواتير لجميع موظفي المجموعة في كافة الأقسام والفروع بإجمالي أثر مالي ${totalSar.toLocaleString('ar-SA')} ⃁.`,
         type: 'success',
       });
     } finally {

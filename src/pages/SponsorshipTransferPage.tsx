@@ -329,7 +329,7 @@ export const SponsorshipTransferPage: React.FC = () => {
               <DollarSign className="w-4 h-4 text-[#141414]" />
             </div>
           </div>
-          <div className="display-sm">{metrics.totalTransferRevenue.toLocaleString('ar-SA')} ر.س</div>
+          <div className="display-sm">{metrics.totalTransferRevenue.toLocaleString('ar-SA')} ⃁</div>
           <div className="pill-tag-mint mt-2">{metrics.transfersCompletedThisMonth} عملية نقل مكتملة هذا الشهر</div>
         </div>
       </div>
@@ -678,7 +678,7 @@ export const SponsorshipTransferPage: React.FC = () => {
 
                       <td className="p-3">
                         <div className="font-bold text-emerald-400 font-mono">
-                          {transfer.transferFee.toLocaleString('ar-SA')} ر.س
+                          {transfer.transferFee.toLocaleString('ar-SA')} ⃁
                         </div>
                         <div className="text-[10.5px] text-zinc-400">
                           عربون: {transfer.downPayment.toLocaleString('ar-SA')} | متبقي: {transfer.remainingAmount.toLocaleString('ar-SA')}
@@ -830,7 +830,7 @@ export const SponsorshipTransferPage: React.FC = () => {
 
                   <div className="pt-2 border-t border-white/5 flex items-center justify-between text-xs">
                     <span className="text-zinc-400 text-[11px]">إجمالي إيراد المكتب:</span>
-                    <strong className="text-emerald-400 font-mono">{officeRevenue.toLocaleString('ar-SA')} ر.س</strong>
+                    <strong className="text-emerald-400 font-mono">{officeRevenue.toLocaleString('ar-SA')} ⃁</strong>
                   </div>
                 </div>
               );

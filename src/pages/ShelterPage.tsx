@@ -591,7 +591,7 @@ export const ShelterPage: React.FC = () => {
                       <td className="p-3 font-semibold text-black">{row.meal}</td>
                       <td className="p-3 font-mono font-bold text-black">{row.count} وجبة</td>
                       <td className="p-3 text-zinc-600">{row.vendor}</td>
-                      <td className="p-3 font-mono font-bold text-champagne-dark">{row.cost.toLocaleString()} ر.س</td>
+                      <td className="p-3 font-mono font-bold text-champagne-dark">{row.cost.toLocaleString()} ⃁</td>
                       <td className="p-3 text-zinc-700">{row.sup}</td>
                       <td className="p-3"><Badge text={row.status} type="success" /></td>
                     </tr>
@@ -991,7 +991,7 @@ export const ShelterPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">التكلفة (ر.س)</label>
+                  <label className="block text-xs font-semibold text-zinc-700 mb-1">التكلفة (⃁)</label>
                   <input
                     type="number"
                     value={newMealForm.cost}

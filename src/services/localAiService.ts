@@ -601,7 +601,7 @@ export function generateEmployeeDailyBriefing(
 
   return `${header}
 • **القسم النشط:** ${playbook.departmentNameAr}
-• **حالة الدفتر المحاسبي (سماك SMACC):** ${live.journalsCount} قيد يومية متوازن | ${live.invoicesCount} فاتورة ضريبية بإجمالي ${live.totalSalesFormatted} ر.س (${live.clearedCount} معتمدة في ZATCA) | ${live.vouchersCount} سند قبض/صرف.
+• **حالة الدفتر المحاسبي (سماك SMACC):** ${live.journalsCount} قيد يومية متوازن | ${live.invoicesCount} فاتورة ضريبية بإجمالي ${live.totalSalesFormatted} ⃁ (${live.clearedCount} معتمدة في ZATCA) | ${live.vouchersCount} سند قبض/صرف.
 • **المؤشرات التشغيلية الحية:** ${live.contractsCount} عقد استقدام مساند | ${live.rentCount} عقد تأجير مرن | ${live.cvsCount} سيرة ذاتية في بنك ATS | ${live.shelterCount} نزيلة بمركز الإيواء | ${live.complaintsCount} تذاكر شكاوى نشطة.
 • **توصيات إنجاز المهام اليوم:**
   1) يمكنك الضغط على أي زر في شريط **"مهام قسمي السريعة"** بالأسفل لتنفيذ المعاملات بضغطة واحدة.
@@ -622,7 +622,7 @@ function buildCompanyIsolationContext(company: CompanyScopeContext, persona: Ass
 الموظف الحالي: ${user?.full_name || 'موظف معتمد'} | المسمى: ${user?.role || playbook.departmentNameAr} | القسم: ${playbook.departmentNameAr}
 مهمتك: مساعدة الموظف في إنجاز مهامه اليومية بسرعة ودقة ضمن نطاق شركته وقسمه.
 الأرقام الحية في قاعدة البيانات الآن:
-- فواتير ZATCA: ${live.invoicesCount} فاتورة بإجمالي ${live.totalSalesFormatted} ر.س وضريبة ${live.totalVatFormatted} ر.س.
+- فواتير ZATCA: ${live.invoicesCount} فاتورة بإجمالي ${live.totalSalesFormatted} ⃁ وضريبة ${live.totalVatFormatted} ⃁.
 - قيود اليومية (سماك): ${live.journalsCount} قيد محاسبي | السندات: ${live.vouchersCount} سند.
 - عقود الاستقدام: ${live.contractsCount} عقد | عقود التأجير: ${live.rentCount} عقد | السير الذاتية: ${live.cvsCount}.
 - نزيلات الإيواء: ${live.shelterCount} نزيلة | الموظفون: ${live.employeesCount} | العملاء: ${live.clientsCount} | الشكاوى: ${live.complaintsCount}.
@@ -1019,7 +1019,7 @@ function generateOfflineFallback(
     text = `${advisorIntro}
 • **حالة الدفتر المحاسبي الحي في (${company.name}):**
   - قيود اليومية المرحلة: **${live.journalsCount}** قيد محاسبي متوازن.
-  - الفواتير الضريبية (ZATCA): **${live.invoicesCount}** فاتورة بإجمالي **${live.totalSalesFormatted} ر.س** وضريبة **${live.totalVatFormatted} ر.س**.
+  - الفواتير الضريبية (ZATCA): **${live.invoicesCount}** فاتورة بإجمالي **${live.totalSalesFormatted} ⃁** وضريبة **${live.totalVatFormatted} ⃁**.
   - سندات القبض والصرف: **${live.vouchersCount}** سند مالي.
 • **مهام أستطيع تنفيذها لك فوراً في قسم المحاسبة:**
   - قل أو اكتب: *"سجل قيد يومية تحصيل عقود بمبلغ 25000 ريال"*
@@ -1039,7 +1039,7 @@ function generateOfflineFallback(
     text = `${advisorIntro}
 • **بوابة الفوترة الإلكترونية ZATCA المرحلة الثانية في (${company.name}):**
 • إجمالي الفواتير الضريبية المسجلة: **${live.invoicesCount}** فاتورة (**${live.clearedCount}** معتمدة ومشفرة بـ TLV Base64 QR وتوقيع ECDSA).
-• إجمالي المبيعات الخاضعة للضريبة: **${live.totalSalesFormatted} ر.س** | إجمالي ضريبة القيمة المضافة (15%): **${live.totalVatFormatted} ر.س**.
+• إجمالي المبيعات الخاضعة للضريبة: **${live.totalSalesFormatted} ⃁** | إجمالي ضريبة القيمة المضافة (15%): **${live.totalVatFormatted} ⃁**.
 • لإصدار فاتورة جديدة فوراً، اكتب لي: *"أنشئ فاتورة ضريبية للعميل [الاسم] بمبلغ [المبلغ] ريال"*.`;
   }
   // 4. Musaned Recruitment Topic

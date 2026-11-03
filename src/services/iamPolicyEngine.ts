@@ -286,7 +286,7 @@ class IamPolicyEngine {
       toUserName: 'أ. محمد مصطفى',
       companyId: '22222222-2222-2222-2222-222222222221',
       companyName: 'السفير الماسي للاستقدام (SAF)',
-      roleName: 'اعتماد سندات الصرف التشغيلية حتى 50,000 ر.س',
+      roleName: 'اعتماد سندات الصرف التشغيلية حتى 50,000 ⃁',
       permissionsScope: ['payment.release', 'accounting.journal.post'],
       reason: 'تفويض مالي تشغيلي لتسريع تسويات مساند والوكلاء الخارجيين',
       validFrom: '2026-10-01',

@@ -182,12 +182,12 @@ export const INITIAL_ESTIMATE_REQUESTS: KasEtmadEstimateRequest[] = [
 export const INITIAL_EMAIL_TEMPLATES: KasEtmadEmailTemplate[] = [
   {
     id: 'eml-1', name: 'تأكيد فاتورة جديدة', subject: 'فاتورة جديدة #{invoice_number} - شركة كاس',
-    body: 'عزيزي {client_name}،\n\nنرفق لكم الفاتورة رقم {invoice_number} بقيمة {amount} ر.س شاملة الضريبة.\n\nيرجى السداد خلال {due_days} يوم.\n\nمع تحيات فريق كاس للتجارة والمقاولات',
+    body: 'عزيزي {client_name}،\n\nنرفق لكم الفاتورة رقم {invoice_number} بقيمة {amount} ⃁ شاملة الضريبة.\n\nيرجى السداد خلال {due_days} يوم.\n\nمع تحيات فريق كاس للتجارة والمقاولات',
     category: 'فاتورة', variables: ['{client_name}', '{invoice_number}', '{amount}', '{due_days}'], lastModified: '2026-08-01'
   },
   {
     id: 'eml-2', name: 'إشعار استلام دفعة', subject: 'تأكيد استلام الدفعة - كاس',
-    body: 'عزيزي {client_name}،\n\nنؤكد استلام دفعتكم بمبلغ {amount} ر.س بتاريخ {date}.\n\nرقم المعاملة: {transaction_id}\n\nشكراً لثقتكم.',
+    body: 'عزيزي {client_name}،\n\nنؤكد استلام دفعتكم بمبلغ {amount} ⃁ بتاريخ {date}.\n\nرقم المعاملة: {transaction_id}\n\nشكراً لثقتكم.',
     category: 'إشعار دفع', variables: ['{client_name}', '{amount}', '{date}', '{transaction_id}'], lastModified: '2026-08-01'
   },
   {

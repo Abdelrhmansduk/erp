@@ -312,7 +312,7 @@ export const IngazPage: React.FC = () => {
                     <td className="p-3.5 font-bold text-zinc-800">{c.name}</td>
                     <td className="p-3.5 text-zinc-600">{c.doc}</td>
                     <td className="p-3.5 font-mono text-zinc-600">{c.cr}</td>
-                    <td className="p-3.5 font-mono font-bold text-emerald-700">{c.fee} ر.س</td>
+                    <td className="p-3.5 font-mono font-bold text-emerald-700">{c.fee} ⃁</td>
                     <td className="p-3.5 font-mono text-zinc-500">{c.date}</td>
                     <td className="p-3.5"><Badge text={c.status} type="success" /></td>
                   </tr>
@@ -432,7 +432,7 @@ export const IngazPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="p-3.5 font-semibold text-zinc-700">{row.foreign_office}</td>
-                    <td className="p-3.5 font-mono font-bold text-emerald-700">{(row.fee_amount ?? 0).toFixed(2)} ر.س</td>
+                    <td className="p-3.5 font-mono font-bold text-emerald-700">{(row.fee_amount ?? 0).toFixed(2)} ⃁</td>
                     <td className="p-3.5">
                       <Badge
                         text={row.status}
@@ -632,7 +632,7 @@ export const IngazPage: React.FC = () => {
                     {selectedDelegationForPrint.status} - معتمد ومصدق
                   </span>
                 </div>
-                <span className="text-[11px] font-mono font-bold text-emerald-800">رسوم التوثيق: {(selectedDelegationForPrint.fee_amount ?? 350).toFixed(2)} ر.س</span>
+                <span className="text-[11px] font-mono font-bold text-emerald-800">رسوم التوثيق: {(selectedDelegationForPrint.fee_amount ?? 350).toFixed(2)} ⃁</span>
               </div>
 
               {/* Sponsor & Visa Details Grid */}

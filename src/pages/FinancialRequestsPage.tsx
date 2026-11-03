@@ -173,7 +173,7 @@ export const FinancialRequestsPage: React.FC = () => {
     setRequests([newReq, ...requests]);
     addNotification({
       title: 'إنشاء طلب مالي',
-      message: `تم رفع الطلب المالي #${newReq.request_number} للمستفيد (${paidTo}) بمبلغ ${newReq.amount} ر.س.`,
+      message: `تم رفع الطلب المالي #${newReq.request_number} للمستفيد (${paidTo}) بمبلغ ${newReq.amount} ⃁.`,
       type: 'success',
     });
     setShowAddModal(false);
@@ -370,7 +370,7 @@ export const FinancialRequestsPage: React.FC = () => {
                   </td>
                   <td className="p-3.5"><Badge text={r.request_type} type="purple" /></td>
                   <td className="p-3.5 text-zinc-600">{r.branch}</td>
-                  <td className="p-3.5 font-mono font-bold text-emerald-700">{r.amount.toLocaleString()} ر.س</td>
+                  <td className="p-3.5 font-mono font-bold text-emerald-700">{r.amount.toLocaleString()} ⃁</td>
                   <td className="p-3.5 text-zinc-600">{r.payment_method}</td>
                   <td className="p-3.5"><Badge text={r.escalation} type={r.escalation === 'شديد الأهمية' ? 'danger' : 'warning'} /></td>
                   <td className="p-3.5"><Badge text={r.status} type={r.status === 'تم السداد' ? 'success' : 'warning'} /></td>
@@ -459,7 +459,7 @@ export const FinancialRequestsPage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">المبلغ المطلوب (ر.س) *</label>
+                  <label className="block text-xs font-semibold text-zinc-700 mb-1">المبلغ المطلوب (⃁) *</label>
                   <input type="number" required value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-black font-mono font-bold focus:border-black focus:outline-none" />
                 </div>
                 <div>

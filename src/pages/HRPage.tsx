@@ -522,7 +522,7 @@ export const HRPage: React.FC = () => {
       role: 'Super Admin',
       action_type: 'تعديل',
       module: 'الموارد البشرية',
-      details: `ترقية الموظف ${targetEmpForPromotion.name} إلى مسمى (${promoNewTitle}) وزيادة الراتب إلى (${newSal.toLocaleString()} ر.س) وتحديث الدور إلى (${promoSystemRole})`,
+      details: `ترقية الموظف ${targetEmpForPromotion.name} إلى مسمى (${promoNewTitle}) وزيادة الراتب إلى (${newSal.toLocaleString()} ⃁) وتحديث الدور إلى (${promoSystemRole})`,
       severity: 'عادي',
       ip_address: '192.168.1.10',
       device: 'Admin Console / Chrome',
@@ -531,7 +531,7 @@ export const HRPage: React.FC = () => {
 
     addNotification({
       title: 'اعتماد ترقية الموظف بنجاح',
-      message: `تمت ترقية الموظف (${targetEmpForPromotion.name}) إلى (${promoNewTitle}) بزيادة (+${increment.toLocaleString()} ر.س / ${percent}).`,
+      message: `تمت ترقية الموظف (${targetEmpForPromotion.name}) إلى (${promoNewTitle}) بزيادة (+${increment.toLocaleString()} ⃁ / ${percent}).`,
       type: 'success',
     });
 
@@ -691,7 +691,7 @@ export const HRPage: React.FC = () => {
 
       addNotification({
         title: 'توليد ملف حماية الأجور (.SIF)',
-        message: `تم توليد ملف SIF القياسي المعتمد من البنك المركزي ومنصة مدد لـ ${payrollRecords.length} موظفاً بإجمالي ${totalAmount.toLocaleString()} ر.س.`,
+        message: `تم توليد ملف SIF القياسي المعتمد من البنك المركزي ومنصة مدد لـ ${payrollRecords.length} موظفاً بإجمالي ${totalAmount.toLocaleString()} ⃁.`,
         type: 'success',
       });
     } else {
@@ -967,7 +967,7 @@ export const HRPage: React.FC = () => {
                       <div className="font-semibold text-zinc-800">{emp.department}</div>
                       <div className="text-[11px] text-zinc-400">{emp.branch}</div>
                     </td>
-                    <td className="p-3.5 font-mono font-bold text-emerald-700">{(emp.salary ?? 0).toLocaleString()} ر.س</td>
+                    <td className="p-3.5 font-mono font-bold text-emerald-700">{(emp.salary ?? 0).toLocaleString()} ⃁</td>
                     <td className="p-3.5">
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold">
                         <Fingerprint className="w-3 h-3 text-emerald-600" />
@@ -1238,10 +1238,10 @@ export const HRPage: React.FC = () => {
                       <td className="p-3.5 font-mono">
                         <span className="text-zinc-400 line-through">{promo.previous_salary.toLocaleString()}</span>
                         <span className="text-black font-bold mx-1"></span>
-                        <span className="text-emerald-700 font-bold">{promo.new_salary.toLocaleString()} ر.س</span>
+                        <span className="text-emerald-700 font-bold">{promo.new_salary.toLocaleString()} ⃁</span>
                       </td>
                       <td className="p-3.5 font-mono">
-                        <div className="font-bold text-emerald-700">+{promo.increment_amount.toLocaleString()} ر.س</div>
+                        <div className="font-bold text-emerald-700">+{promo.increment_amount.toLocaleString()} ⃁</div>
                         <span className="pill-tag-mint text-[10px]">{promo.increment_percentage}</span>
                       </td>
                       <td className="p-3.5">
@@ -1333,7 +1333,7 @@ export const HRPage: React.FC = () => {
                     <td className="p-3.5 font-mono font-bold text-black">{adv.id}</td>
                     <td className="p-3.5 font-bold text-black">{adv.employee_name}</td>
                     <td className="p-3.5">{adv.payment_method}</td>
-                    <td className="p-3.5 font-mono font-bold text-emerald-700">{adv.amount.toLocaleString()} ر.س</td>
+                    <td className="p-3.5 font-mono font-bold text-emerald-700">{adv.amount.toLocaleString()} ⃁</td>
                     <td className="p-3.5 font-mono text-zinc-500">{adv.date}</td>
                     <td className="p-3.5 font-mono">{adv.installments_count} أشهر</td>
                     <td className="p-3.5"><Badge text={adv.status} type="success" /></td>
@@ -1371,7 +1371,7 @@ export const HRPage: React.FC = () => {
                     <td className="p-3.5 font-mono font-bold text-black">{sanc.id}</td>
                     <td className="p-3.5 font-bold text-black">{sanc.employee_name}</td>
                     <td className="p-3.5 font-semibold text-rose-700">{sanc.sanction_type}</td>
-                    <td className="p-3.5 font-mono font-bold text-rose-700">{sanc.amount.toLocaleString()} ر.س</td>
+                    <td className="p-3.5 font-mono font-bold text-rose-700">{sanc.amount.toLocaleString()} ⃁</td>
                     <td className="p-3.5 font-mono text-zinc-500">{sanc.date}</td>
                     <td className="p-3.5"><Badge text={sanc.deduct_from_salary ? 'نعم - آلي' : 'لا'} type={sanc.deduct_from_salary ? 'danger' : 'shade'} /></td>
                     <td className="p-3.5 text-zinc-600 max-w-xs leading-relaxed">{sanc.reason}</td>
@@ -1446,7 +1446,7 @@ export const HRPage: React.FC = () => {
                     <td className="p-3.5 font-mono font-bold text-black">{rew.id}</td>
                     <td className="p-3.5 font-bold text-black">{rew.employee_name}</td>
                     <td className="p-3.5 font-semibold text-emerald-800">{rew.reward_type}</td>
-                    <td className="p-3.5 font-mono font-bold text-emerald-700">+{rew.net_reward.toLocaleString()} ر.س</td>
+                    <td className="p-3.5 font-mono font-bold text-emerald-700">+{rew.net_reward.toLocaleString()} ⃁</td>
                     <td className="p-3.5 text-zinc-600">{rew.payout_timing}</td>
                     <td className="p-3.5 font-mono text-zinc-500">{rew.date}</td>
                     <td className="p-3.5"><Badge text={rew.status} type="success" /></td>
@@ -1518,11 +1518,11 @@ export const HRPage: React.FC = () => {
                         <div className="font-bold text-black">{emp.name}</div>
                         <div className="text-[11px] text-zinc-400">{emp.job_title}</div>
                       </td>
-                      <td className="p-3.5 font-mono">{basic.toLocaleString()} ر.س</td>
-                      <td className="p-3.5 font-mono">{housing.toLocaleString()} ر.س</td>
-                      <td className="p-3.5 font-mono">{transport.toLocaleString()} ر.س</td>
-                      <td className="p-3.5 font-mono text-rose-700">-{gosi.toFixed(2)} ر.س</td>
-                      <td className="p-3.5 font-mono font-bold text-emerald-700">{net.toFixed(2)} ر.س</td>
+                      <td className="p-3.5 font-mono">{basic.toLocaleString()} ⃁</td>
+                      <td className="p-3.5 font-mono">{housing.toLocaleString()} ⃁</td>
+                      <td className="p-3.5 font-mono">{transport.toLocaleString()} ⃁</td>
+                      <td className="p-3.5 font-mono text-rose-700">‎- ⃁</td>
+                      <td className="p-3.5 font-mono font-bold text-emerald-700">{net.toFixed(2)} ⃁</td>
                       <td className="p-3.5"><Badge text="جاهز للتحويل" type="success" /></td>
                     </tr>
                   );
@@ -1609,7 +1609,7 @@ export const HRPage: React.FC = () => {
                         onChange={e => setEosSalary(Math.max(0, Number(e.target.value)))}
                         className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-xs font-mono font-bold text-black focus:border-black focus:outline-none"
                       />
-                      <span className="absolute left-3 top-2 text-xs text-zinc-400">ر.س</span>
+                      <span className="absolute left-3 top-2 text-xs text-zinc-400">⃁</span>
                     </div>
                   </div>
 
@@ -1657,7 +1657,7 @@ export const HRPage: React.FC = () => {
                     <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-200">
                       <span className="text-[11px] text-zinc-500 font-bold block">مكافأة السنوات الـ 5 الأولى</span>
                       <div className="text-lg font-extrabold font-mono text-black mt-1">
-                        {first5Award.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ر.س
+                        {first5Award.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ⃁
                       </div>
                       <span className="text-[10px] text-zinc-400">({first5Years.toFixed(1)} سنة × نصف راتب)</span>
                     </div>
@@ -1665,7 +1665,7 @@ export const HRPage: React.FC = () => {
                     <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-200">
                       <span className="text-[11px] text-zinc-500 font-bold block">مكافأة ما بعد الـ 5 سنوات</span>
                       <div className="text-lg font-extrabold font-mono text-black mt-1">
-                        {after5Award.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ر.س
+                        {after5Award.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ⃁
                       </div>
                       <span className="text-[10px] text-zinc-400">({after5Years.toFixed(1)} سنة × راتب كامل)</span>
                     </div>
@@ -1673,7 +1673,7 @@ export const HRPage: React.FC = () => {
                     <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200">
                       <span className="text-[11px] text-emerald-800 font-bold block">صافي المكافأة المستحقة للصرف</span>
                       <div className="text-xl font-extrabold font-mono text-emerald-900 mt-1">
-                        {finalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ر.س
+                        {finalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ⃁
                       </div>
                       <span className="text-[10px] text-emerald-700 font-bold">نسبة الاستحقاق: {Math.round(payoutPct * 100)}%</span>
                     </div>
@@ -1702,7 +1702,7 @@ export const HRPage: React.FC = () => {
                           id: `JV-${Date.now().toString().slice(-6)}`,
                           journal_number: `JV-EOSB-${Date.now().toString().slice(-4)}`,
                           date: new Date().toISOString().slice(0, 10),
-                          description: `قيد تسوية مخصص مكافأة نهاية الخدمة للموظف (مبلغ ${finalAmount.toFixed(2)} ر.س)`,
+                          description: `قيد تسوية مخصص مكافأة نهاية الخدمة للموظف (مبلغ ${finalAmount.toFixed(2)} ⃁)`,
                           debit: Number(finalAmount.toFixed(2)),
                           credit: Number(finalAmount.toFixed(2)),
                           status: 'مرحل',
@@ -1714,7 +1714,7 @@ export const HRPage: React.FC = () => {
                         await realErpDataStore.addRecord('journals', jv);
                         addNotification({
                           title: 'ترحيل مخصص نهاية الخدمة',
-                          message: `تم إنشاء وترحيل قيد محاسبي مزدوج رقم (${jv.journal_number}) بمبلغ (${finalAmount.toFixed(2)} ر.س) في قيود SMACC بنجاح.`,
+                          message: `تم إنشاء وترحيل قيد محاسبي مزدوج رقم (${jv.journal_number}) بمبلغ (${finalAmount.toFixed(2)} ⃁) في قيود SMACC بنجاح.`,
                           type: 'success',
                         });
                       }}
@@ -1799,7 +1799,7 @@ export const HRPage: React.FC = () => {
                         onChange={e => setGosiBasic(Math.max(0, Number(e.target.value)))}
                         className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-xs font-mono font-bold text-black focus:border-black focus:outline-none"
                       />
-                      <span className="absolute left-3 top-2 text-xs text-zinc-400">ر.س</span>
+                      <span className="absolute left-3 top-2 text-xs text-zinc-400">⃁</span>
                     </div>
                   </div>
 
@@ -1812,12 +1812,12 @@ export const HRPage: React.FC = () => {
                         onChange={e => setGosiHousing(Math.max(0, Number(e.target.value)))}
                         className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-xs font-mono font-bold text-black focus:border-black focus:outline-none"
                       />
-                      <span className="absolute left-3 top-2 text-xs text-zinc-400">ر.س</span>
+                      <span className="absolute left-3 top-2 text-xs text-zinc-400">⃁</span>
                     </div>
                   </div>
 
                   <div className="p-3 bg-zinc-100 rounded-xl text-[11px] text-zinc-600">
-                    الأجر الخاضع للاشتراك المحسوب: <strong className="font-mono text-black">{wage.toLocaleString()} ر.س</strong> (الحد الأقصى 45,000 ر.س).
+                    الأجر الخاضع للاشتراك المحسوب: <strong className="font-mono text-black">{wage.toLocaleString()} ⃁</strong> (الحد الأقصى 45,000 ⃁).
                   </div>
                 </div>
 
@@ -1827,7 +1827,7 @@ export const HRPage: React.FC = () => {
                     <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200">
                       <span className="text-[11px] text-emerald-800 font-bold block">تحمل المنشأة الشهري ({isSaudi ? '11.75%' : '2%'})</span>
                       <div className="text-xl font-extrabold font-mono text-emerald-900 mt-1">
-                        {totalEmployer.toFixed(2)} ر.س
+                        {totalEmployer.toFixed(2)} ⃁
                       </div>
                       <span className="text-[10px] text-emerald-700">تتحمله الشركة كمصروف تشغيلي</span>
                     </div>
@@ -1835,7 +1835,7 @@ export const HRPage: React.FC = () => {
                     <div className="p-4 bg-rose-50 rounded-2xl border border-rose-200">
                       <span className="text-[11px] text-rose-800 font-bold block">استقطاع الموظف ({isSaudi ? '9.75%' : '0%'})</span>
                       <div className="text-xl font-extrabold font-mono text-rose-900 mt-1">
-                        {totalEmployee.toFixed(2)} ر.س
+                        {totalEmployee.toFixed(2)} ⃁
                       </div>
                       <span className="text-[10px] text-rose-700">يخصم شهرياً من مسير الرواتب</span>
                     </div>
@@ -1843,7 +1843,7 @@ export const HRPage: React.FC = () => {
                     <div className="p-4 bg-zinc-900 text-white rounded-2xl">
                       <span className="text-[11px] text-zinc-400 font-bold block">إجمالي سداد الفاتورة لـ GOSI</span>
                       <div className="text-xl font-extrabold font-mono text-emerald-400 mt-1">
-                        {grandTotal.toFixed(2)} ر.س
+                        {grandTotal.toFixed(2)} ⃁
                       </div>
                       <span className="text-[10px] text-zinc-400">سداد الفاتورة الموحدة للفرع</span>
                     </div>
@@ -1864,20 +1864,20 @@ export const HRPage: React.FC = () => {
                         <tr>
                           <td className="p-3 font-sans font-medium text-black">فرع المعاشات (التقاعد)</td>
                           <td className="p-3 text-center font-bold">{isSaudi ? '18%' : 'غير منطبق'}</td>
-                          <td className="p-3 text-center text-emerald-700">{annuitiesEmployer.toFixed(2)} ر.س (9%)</td>
-                          <td className="p-3 text-left text-rose-700">{annuitiesEmployee.toFixed(2)} ر.س (9%)</td>
+                          <td className="p-3 text-center text-emerald-700">{annuitiesEmployer.toFixed(2)} ⃁ (9%)</td>
+                          <td className="p-3 text-left text-rose-700">{annuitiesEmployee.toFixed(2)} ⃁ (9%)</td>
                         </tr>
                         <tr>
                           <td className="p-3 font-sans font-medium text-black">فرع الأخطار المهنية</td>
                           <td className="p-3 text-center font-bold">2%</td>
-                          <td className="p-3 text-center text-emerald-700">{hazardEmployer.toFixed(2)} ر.س (2%)</td>
-                          <td className="p-3 text-left text-zinc-400">0.00 ر.س (0%)</td>
+                          <td className="p-3 text-center text-emerald-700">{hazardEmployer.toFixed(2)} ⃁ (2%)</td>
+                          <td className="p-3 text-left text-zinc-400">0.00 ⃁ (0%)</td>
                         </tr>
                         <tr>
                           <td className="p-3 font-sans font-medium text-black">نظام التعطل عن العمل (ساند)</td>
                           <td className="p-3 text-center font-bold">{isSaudi ? '1.5%' : 'غير منطبق'}</td>
-                          <td className="p-3 text-center text-emerald-700">{sanedEmployer.toFixed(2)} ر.س (0.75%)</td>
-                          <td className="p-3 text-left text-rose-700">{sanedEmployee.toFixed(2)} ر.س (0.75%)</td>
+                          <td className="p-3 text-center text-emerald-700">{sanedEmployer.toFixed(2)} ⃁ (0.75%)</td>
+                          <td className="p-3 text-left text-rose-700">{sanedEmployee.toFixed(2)} ⃁ (0.75%)</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1936,7 +1936,7 @@ export const HRPage: React.FC = () => {
                       </span>
                       <div className="text-[10px] text-zinc-400 mt-0.5">{w.location}</div>
                     </td>
-                    <td className="p-3.5 font-mono font-bold text-emerald-700">{w.salary} ر.س</td>
+                    <td className="p-3.5 font-mono font-bold text-emerald-700">{w.salary} ⃁</td>
                     <td className="p-3.5"><Badge text={w.insurance} type="success" /></td>
                     <td className="p-3.5 text-center">
                       <button
@@ -2172,7 +2172,7 @@ export const HRPage: React.FC = () => {
                 >
                   {employeesList.map(e => (
                     <option key={e.id} value={e.id}>
-                      {e.name} ({e.employee_code}) - {e.job_title} [{e.salary.toLocaleString()} ر.س]
+                      {e.name} ({e.employee_code}) - {e.job_title} [{e.salary.toLocaleString()} ⃁]
                     </option>
                   ))}
                 </select>
@@ -2184,16 +2184,16 @@ export const HRPage: React.FC = () => {
                   <span className="text-[11px] text-zinc-500 font-semibold block">الوضع الحالي:</span>
                   <div className="font-bold text-xs text-zinc-800 mt-1">{targetEmpForPromotion.job_title}</div>
                   <div className="text-[11px] text-zinc-500">{targetEmpForPromotion.department} • {targetEmpForPromotion.grade || 'الدرجة الثالثة'}</div>
-                  <div className="font-mono font-bold text-xs text-zinc-700 mt-1">الراتب: {targetEmpForPromotion.salary.toLocaleString()} ر.س</div>
+                  <div className="font-mono font-bold text-xs text-zinc-700 mt-1">الراتب: {targetEmpForPromotion.salary.toLocaleString()} ⃁</div>
                 </div>
 
                 <div>
                   <span className="text-[11px] text-emerald-700 font-semibold block">الوضع بعد الترقية المعتمدة:</span>
                   <div className="font-bold text-xs text-emerald-900 mt-1">{promoNewTitle || 'مسمى وظيفي جديد'}</div>
                   <div className="text-[11px] text-emerald-700">{promoNewDepartment} • {promoNewGrade}</div>
-                  <div className="font-mono font-bold text-xs text-emerald-800 mt-1">الراتب الجديد: {(parseFloat(promoNewSalary) || 0).toLocaleString()} ر.س</div>
+                  <div className="font-mono font-bold text-xs text-emerald-800 mt-1">الراتب الجديد: {(parseFloat(promoNewSalary) || 0).toLocaleString()} ⃁</div>
                   <div className="text-[10px] text-emerald-700 font-bold mt-0.5">
-                    الزيادة: +{Math.max(0, (parseFloat(promoNewSalary) || 0) - targetEmpForPromotion.salary).toLocaleString()} ر.س
+                    الزيادة: +{Math.max(0, (parseFloat(promoNewSalary) || 0) - targetEmpForPromotion.salary).toLocaleString()} ⃁
                   </div>
                 </div>
               </div>
@@ -2245,7 +2245,7 @@ export const HRPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">الراتب الإجمالي الجديد (ر.س) *</label>
+                  <label className="block text-xs font-semibold text-zinc-700 mb-1">الراتب الإجمالي الجديد (⃁) *</label>
                   <input
                     type="number"
                     required

@@ -133,7 +133,7 @@ export const CostCentersPage: React.FC = () => {
 
     addNotification({
       title: 'تسجيل مصروف وقيد محاسبي',
-      message: `تم قيد مصروف بقيمة ${amt.toLocaleString()} ر.س على (${selectedCostCenterForExpense.name}) وتوليد سند صرف وقيد محاسبي مزدوج تلقائياً.`,
+      message: `تم قيد مصروف بقيمة ${amt.toLocaleString()} ⃁ على (${selectedCostCenterForExpense.name}) وتوليد سند صرف وقيد محاسبي مزدوج تلقائياً.`,
       type: 'success',
     });
 
@@ -240,13 +240,13 @@ export const CostCentersPage: React.FC = () => {
       <div className="stat-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
           <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>إجمالي الميزانيات المخصصة</span>
-          <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#000000', marginTop: '6px', letterSpacing: '-0.02em' }}>{totalBudget.toLocaleString()} ر.س</div>
+          <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#000000', marginTop: '6px', letterSpacing: '-0.02em' }}>{totalBudget.toLocaleString()} ⃁</div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>{costCenters.length} مراكز نشطة</span>
         </div>
 
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#000000', color: '#ffffff' }}>
           <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>إجمالي المنصرف الفعلي</span>
-          <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>{totalSpent.toLocaleString()} ر.س</div>
+          <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>{totalSpent.toLocaleString()} ⃁</div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>
             معدل الصرف: {totalBudget > 0 ? ((totalSpent / totalBudget) * 100).toFixed(1) : 0}%
           </span>
@@ -254,7 +254,7 @@ export const CostCentersPage: React.FC = () => {
 
         <div className="card-pistachio-band" style={{ padding: '24px', borderRadius: '16px' }}>
           <span style={{ fontSize: '13px', color: '#000000', fontWeight: 550 }}>المتبقي من الميزانية المعتمدة</span>
-          <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#000000', marginTop: '6px', letterSpacing: '-0.02em' }}>{remainingBudget.toLocaleString()} ر.س</div>
+          <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#000000', marginTop: '6px', letterSpacing: '-0.02em' }}>{remainingBudget.toLocaleString()} ⃁</div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>سيولة متبقية</span>
         </div>
       </div>
@@ -325,9 +325,9 @@ export const CostCentersPage: React.FC = () => {
                           <span>{c.manager_name || 'غير محدد'}</span>
                         </div>
                       </td>
-                      <td className="p-3.5 font-mono font-bold text-black">{c.budget.toLocaleString()} ر.س</td>
-                      <td className="p-3.5 font-mono font-bold text-rose-700">{c.actual_spent.toLocaleString()} ر.س</td>
-                      <td className="p-3.5 font-mono font-bold text-emerald-700">{remaining.toLocaleString()} ر.س</td>
+                      <td className="p-3.5 font-mono font-bold text-black">{c.budget.toLocaleString()} ⃁</td>
+                      <td className="p-3.5 font-mono font-bold text-rose-700">{c.actual_spent.toLocaleString()} ⃁</td>
+                      <td className="p-3.5 font-mono font-bold text-emerald-700">{remaining.toLocaleString()} ⃁</td>
                       <td className="p-3.5">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 bg-zinc-200 h-2 rounded-full overflow-hidden">
@@ -413,7 +413,7 @@ export const CostCentersPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">الميزانية التقديرية المعتمدة (ر.س) *</label>
+                <label className="block text-xs font-semibold text-zinc-700 mb-1">الميزانية التقديرية المعتمدة (⃁) *</label>
                 <input
                   type="number"
                   placeholder="50000"
@@ -468,15 +468,15 @@ export const CostCentersPage: React.FC = () => {
               <div className="text-zinc-500 font-medium">مركز التكلفة المحدد:</div>
               <div className="font-bold text-black text-sm mt-0.5">{selectedCostCenterForExpense.name} ({selectedCostCenterForExpense.code})</div>
               <div className="flex justify-between mt-2 pt-2 border-t border-zinc-200 font-mono text-[11px]">
-                <span>الميزانية: {selectedCostCenterForExpense.budget.toLocaleString()} ر.س</span>
-                <span className="text-rose-700">المنصرف: {selectedCostCenterForExpense.actual_spent.toLocaleString()} ر.س</span>
-                <span className="text-emerald-700 font-bold">المتبقي: {(selectedCostCenterForExpense.budget - selectedCostCenterForExpense.actual_spent).toLocaleString()} ر.س</span>
+                <span>الميزانية: {selectedCostCenterForExpense.budget.toLocaleString()} ⃁</span>
+                <span className="text-rose-700">المنصرف: {selectedCostCenterForExpense.actual_spent.toLocaleString()} ⃁</span>
+                <span className="text-emerald-700 font-bold">المتبقي: {(selectedCostCenterForExpense.budget - selectedCostCenterForExpense.actual_spent).toLocaleString()} ⃁</span>
               </div>
             </div>
 
             <form onSubmit={handleRecordExpense} className="p-6 space-y-4 bg-white text-black text-xs">
               <div>
-                <label className="block font-bold text-zinc-700 mb-1">مبلغ المصروف (ر.س) *</label>
+                <label className="block font-bold text-zinc-700 mb-1">مبلغ المصروف (⃁) *</label>
                 <input
                   type="number"
                   step="0.01"

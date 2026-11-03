@@ -344,7 +344,7 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
 
     addNotification({
       title: 'احتساب الإهلاك الدوري وترحيل القيد',
-      message: `تم احتساب الإهلاك بقيمة (${totalMonthlyDep.toLocaleString()} ر.س) وتوليد قيد اليومية رقم (${jv.journal_number}) في SMACC بنجاح.`,
+      message: `تم احتساب الإهلاك بقيمة (${totalMonthlyDep.toLocaleString()} ⃁) وتوليد قيد اليومية رقم (${jv.journal_number}) في SMACC بنجاح.`,
       type: 'success',
     });
   };
@@ -505,17 +505,17 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
                         </td>
                         <td className="p-3.5 text-zinc-600">{asset.category}</td>
                         <td className="p-3.5 text-zinc-500 font-mono">{asset.purchaseDate}</td>
-                        <td className="p-3.5 font-bold font-mono text-black">{asset.cost.toLocaleString()} ر.س</td>
+                        <td className="p-3.5 font-bold font-mono text-black">{asset.cost.toLocaleString()} ⃁</td>
                         <td className="p-3.5 text-black font-bold font-mono">{asset.depreciationRate}%</td>
-                        <td className="p-3.5 text-zinc-600 font-mono">{asset.accumulatedDepreciation.toLocaleString()} ر.س</td>
-                        <td className="p-3.5 font-bold font-mono text-champagne-dark">{asset.bookValue.toLocaleString()} ر.س</td>
+                        <td className="p-3.5 text-zinc-600 font-mono">{asset.accumulatedDepreciation.toLocaleString()} ⃁</td>
+                        <td className="p-3.5 font-bold font-mono text-champagne-dark">{asset.bookValue.toLocaleString()} ⃁</td>
                         <td className="p-3.5 text-center">
                           <button
                             onClick={() => {
                               setSelectedAssetDetail(asset);
                               addNotification({
                                 title: `تفاصيل الأصل ${asset.code}`,
-                                message: `${asset.name} - التكلفة: ${asset.cost.toLocaleString()} ر.س - القيمة الدفترية: ${asset.bookValue.toLocaleString()} ر.س - نسبة الإهلاك: ${asset.depreciationRate}%.`,
+                                message: `${asset.name} - التكلفة: ${asset.cost.toLocaleString()} ⃁ - القيمة الدفترية: ${asset.bookValue.toLocaleString()} ⃁ - نسبة الإهلاك: ${asset.depreciationRate}%.`,
                                 type: 'info',
                               });
                             }}
@@ -599,8 +599,8 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
                         <td className="p-3.5 font-bold text-black">{item.name}</td>
                         <td className="p-3.5 text-zinc-600">{item.category}</td>
                         <td className="p-3.5">{item.unit}</td>
-                        <td className="p-3.5 text-zinc-500 font-mono">{item.costPrice.toLocaleString()} ر.س</td>
-                        <td className="p-3.5 font-bold font-mono text-champagne-dark">{item.salePrice.toLocaleString()} ر.س</td>
+                        <td className="p-3.5 text-zinc-500 font-mono">{item.costPrice.toLocaleString()} ⃁</td>
+                        <td className="p-3.5 font-bold font-mono text-champagne-dark">{item.salePrice.toLocaleString()} ⃁</td>
                         <td className="p-3.5 font-bold text-black">{item.currentStock} {item.unit}</td>
                         <td className="p-3.5">
                           <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${item.currentStock > 0 ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
@@ -731,7 +731,7 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="text-xs text-zinc-700 block mb-1 font-semibold">تكلفة الشراء (ر.س) *</label>
+            <label className="text-xs text-zinc-700 block mb-1 font-semibold">تكلفة الشراء (⃁) *</label>
             <input
               type="number"
               required
@@ -806,7 +806,7 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="text-xs text-zinc-700 block mb-1 font-semibold">سعر التكلفة (ر.س)</label>
+            <label className="text-xs text-zinc-700 block mb-1 font-semibold">سعر التكلفة (⃁)</label>
             <input
               type="number"
               placeholder="0.00"
@@ -816,7 +816,7 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="text-xs text-zinc-700 block mb-1 font-semibold">سعر البيع الموصى به (ر.س) *</label>
+            <label className="text-xs text-zinc-700 block mb-1 font-semibold">سعر البيع الموصى به (⃁) *</label>
             <input
               type="number"
               required
@@ -935,17 +935,17 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
               </div>
               <div className="p-3 rounded-2xl bg-zinc-50 border border-zinc-200">
                 <span className="text-zinc-500 block">التكلفة الرأسمالية</span>
-                <strong className="text-black font-mono text-sm mt-0.5 block">{selectedAssetDetail.cost.toLocaleString()} ر.س</strong>
+                <strong className="text-black font-mono text-sm mt-0.5 block">{selectedAssetDetail.cost.toLocaleString()} ⃁</strong>
               </div>
               <div className="p-3 rounded-2xl bg-zinc-50 border border-zinc-200">
                 <span className="text-zinc-500 block">مجمع الإهلاك ({selectedAssetDetail.depreciationRate}% سنوياً)</span>
-                <strong className="text-rose-700 font-mono text-sm mt-0.5 block">{selectedAssetDetail.accumulatedDepreciation.toLocaleString()} ر.س</strong>
+                <strong className="text-rose-700 font-mono text-sm mt-0.5 block">{selectedAssetDetail.accumulatedDepreciation.toLocaleString()} ⃁</strong>
               </div>
             </div>
             <div className="p-4 rounded-2xl bg-[#000000] text-white flex items-center justify-between">
               <div>
                 <span className="text-zinc-400 block">صافي القيمة الدفترية الحالية (Net Book Value)</span>
-                <strong className="text-xl font-mono text-amber-400 mt-1 block">{selectedAssetDetail.bookValue.toLocaleString()} ر.س</strong>
+                <strong className="text-xl font-mono text-amber-400 mt-1 block">{selectedAssetDetail.bookValue.toLocaleString()} ⃁</strong>
               </div>
               <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold">
                 {selectedAssetDetail.status}

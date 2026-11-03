@@ -335,7 +335,7 @@ export const ShelterIntakeModal: React.FC<ShelterIntakeModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-zinc-300 block mb-1">الراتب الشهري المطلوب (ر.س)</label>
+                  <label className="text-[11px] font-bold text-zinc-300 block mb-1">الراتب الشهري المطلوب (⃁)</label>
                   <input
                     type="number"
                     value={monthlySalary}
@@ -524,7 +524,7 @@ export const ShelterIntakeModal: React.FC<ShelterIntakeModalProps> = ({
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-zinc-300 block mb-1">المطالبة المالية للكفيل (ر.س)</label>
+                    <label className="text-[11px] font-bold text-zinc-300 block mb-1">المطالبة المالية للكفيل (⃁)</label>
                     <input
                       type="number"
                       value={financialClaimAmount}

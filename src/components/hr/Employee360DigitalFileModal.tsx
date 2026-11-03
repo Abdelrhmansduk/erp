@@ -423,15 +423,15 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                 <div style={{ backgroundColor: '#FFF', padding: '12px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
                   <div style={{ fontSize: '11px', color: '#64748B' }}>الراتب الأساسي (70%)</div>
-                  <div style={{ fontSize: '16px', fontWeight: '800', color: '#1D2428' }}>{((employee.salary ?? 8000) * 0.7).toLocaleString()} ر.س</div>
+                  <div style={{ fontSize: '16px', fontWeight: '800', color: '#1D2428' }}>{((employee.salary ?? 8000) * 0.7).toLocaleString()} ⃁</div>
                 </div>
                 <div style={{ backgroundColor: '#FFF', padding: '12px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
                   <div style={{ fontSize: '11px', color: '#64748B' }}>بدل السكن والنقل (30%)</div>
-                  <div style={{ fontSize: '16px', fontWeight: '800', color: '#2563EB' }}>{((employee.salary ?? 8000) * 0.3).toLocaleString()} ر.س</div>
+                  <div style={{ fontSize: '16px', fontWeight: '800', color: '#2563EB' }}>{((employee.salary ?? 8000) * 0.3).toLocaleString()} ⃁</div>
                 </div>
                 <div style={{ backgroundColor: '#FFF', padding: '12px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
                   <div style={{ fontSize: '11px', color: '#64748B' }}>إجمالي الراتب المسجل (GOSI)</div>
-                  <div style={{ fontSize: '16px', fontWeight: '900', color: '#059669' }}>{(employee.salary ?? 8000).toLocaleString()} ر.س</div>
+                  <div style={{ fontSize: '16px', fontWeight: '900', color: '#059669' }}>{(employee.salary ?? 8000).toLocaleString()} ⃁</div>
                 </div>
               </div>
             </div>
@@ -495,7 +495,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                 بناءً على المادة 84 و 85 من نظام العمل السعودي، يستحق الموظف أجر نصف شهر عن كل سنة من السنوات الخمس الأولى، وأجر شهر عن كل سنة تالية.
               </p>
               <div style={{ fontSize: '16px', fontWeight: '900', color: '#9A3412' }}>
-                المبلغ المقدر لمكافأة نهاية الخدمة: {(((employee.salary || 8000) / 2) * 3).toLocaleString()} ر.س (فترة خدمة تقديرية: 3 سنوات)
+                المبلغ المقدر لمكافأة نهاية الخدمة: {(((employee.salary || 8000) / 2) * 3).toLocaleString()} ⃁ (فترة خدمة تقديرية: 3 سنوات)
               </div>
             </div>
           )}

@@ -36,7 +36,7 @@ export interface DynamicActionButtonProps {
   executingLabel?: string;
   /** Optional custom label on completion */
   successLabel?: string;
-  /** Optional amount to display in payment/receipt badge (e.g. "18,500 ر.س") */
+  /** Optional amount to display in payment/receipt badge (e.g. "18,500 ⃁") */
   amountBadge?: string;
   /** Action handler (can be sync or async) */
   onAction?: () => void | Promise<void>;
