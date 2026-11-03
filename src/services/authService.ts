@@ -29,7 +29,7 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
     id: 'finance',
     nameAr: 'قسم المحاسبة والمالية (نظام سماك SMACC)',
     nameEn: 'SMACC Accounting & Financial Control',
-    emoji: '📊',
+    emoji: '',
     badgeText: 'محاسبة سماك SMACC',
     defaultTab: 'smacc-accounting',
     defaultTabTitle: 'نظام سماك المحاسبي المتكامل (SMACC)',
@@ -95,7 +95,7 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
     id: 'recruitment',
     nameAr: 'قسم الاستقدام وعقود مساند والتأشيرات',
     nameEn: 'Recruitment, Musaned Contracts & Visas',
-    emoji: '📑',
+    emoji: '',
     badgeText: 'الاستقدام ومساند',
     defaultTab: 'recruitment-contracts',
     defaultTabTitle: 'عقود الاستقدام الموثقة (مساند)',
@@ -162,7 +162,7 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
     id: 'rental',
     nameAr: 'قسم التأجير والتشغيل المرن',
     nameEn: 'Flexible Rental & Operations Department',
-    emoji: '🏢',
+    emoji: '',
     badgeText: 'التأجير والتشغيل',
     defaultTab: 'rent-contracts',
     defaultTabTitle: 'عقود التأجير والتشغيل المرن',
@@ -191,7 +191,7 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
     id: 'ats',
     nameAr: 'قسم التوظيف والسير الذاتية والوكلاء',
     nameEn: 'Talent Acquisition, CVs & Foreign Agencies',
-    emoji: '🗂️',
+    emoji: '',
     badgeText: 'التوظيف والوكلاء',
     defaultTab: 'cvs-recruitment',
     defaultTabTitle: 'بنك السير الذاتية والوكلاء الخارجيين',
@@ -226,7 +226,7 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
     id: 'hr',
     nameAr: 'قسم الموارد البشرية والرواتب (HR & WPS)',
     nameEn: 'Human Resources & Payroll Protection (WPS)',
-    emoji: '👥',
+    emoji: '',
     badgeText: 'الموارد البشرية والرواتب',
     defaultTab: 'employees',
     defaultTabTitle: 'إدارة الموارد البشرية ومسير الرواتب (WPS)',
@@ -268,7 +268,7 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
     id: 'crm',
     nameAr: 'قسم المبيعات وخدمة العملاء والشكاوى',
     nameEn: 'CRM, Sales & Customer Relations Department',
-    emoji: '🏛️',
+    emoji: '',
     badgeText: 'العملاء والشكاوى',
     defaultTab: 'clients',
     defaultTabTitle: 'إدارة العملاء والمبيعات والشكاوى (CRM)',
@@ -307,7 +307,7 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
     id: 'shelter',
     nameAr: 'قسم الإيواء والتسكين والإعاشة والترحيل',
     nameEn: 'Shelter, Housing & Welfare Operations (HRSD)',
-    emoji: '🏨',
+    emoji: '',
     badgeText: 'الإيواء والتسكين',
     defaultTab: 'shelter-suite',
     defaultTabTitle: 'منظومة مراكز الإيواء والتسكين والرعاية (HRSD)',
@@ -336,7 +336,7 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
     id: 'tenders',
     nameAr: 'قسم المنافسات وجداول الكميات والمشتريات (اعتماد)',
     nameEn: 'Etimad Tenders, BOQ & Procurement Department',
-    emoji: '⚖️',
+    emoji: '',
     badgeText: 'منافسات اعتماد BOQ',
     defaultTab: 'kas-suite',
     defaultTabTitle: 'منظومة منافسات اعتماد وجداول الكميات (KAS)',
@@ -364,7 +364,7 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
     id: 'executive',
     nameAr: 'الإدارة التنفيذية والرقابة الشاملة للمجموعة',
     nameEn: 'Group Executive Command & Governance',
-    emoji: '🛡️',
+    emoji: '',
     badgeText: 'الإدارة التنفيذية العليا',
     defaultTab: 'dashboard',
     defaultTabTitle: 'الرئيسية ولوحة القيادة التنفيذية للمجموعة',
@@ -454,37 +454,37 @@ export const COMPANY_AUTH_METADATA: Record<string, CompanyAuthMetadata> = {
     code: 'SAF',
     nameAr: 'شركة السفير الماسي للاستقدام',
     domain: 'saf-rec.sa',
-    emoji: '🏛️',
+    emoji: '',
   },
   YAQ: {
     code: 'YAQ',
     nameAr: 'شركة الياقوت الشرقية للتشغيل والتأجير',
     domain: 'yaqoot-ops.sa',
-    emoji: '🏢',
+    emoji: '',
   },
   TOP: {
     code: 'TOP',
     nameAr: 'شركة توب تالنت الدولية للتوظيف',
     domain: 'topaz-rec.sa',
-    emoji: '💼',
+    emoji: '',
   },
   KAS: {
     code: 'KAS',
     nameAr: 'شركة كاس للمنافسات والتشغيل',
     domain: 'kas-etimad.sa',
-    emoji: '⚖️',
+    emoji: '',
   },
   DAR: {
     code: 'DAR',
     nameAr: 'دار الرواد لمراكز الإيواء والخدمات اللوجستية',
     domain: 'alruwad.sa',
-    emoji: '🏨',
+    emoji: '',
   },
   ALL: {
     code: 'all',
     nameAr: 'الإدارة المركزية لمجموعة خالد السليم القابضة',
     domain: 'alsulaim.sa',
-    emoji: '🛡️',
+    emoji: '',
   },
 };
 
@@ -516,7 +516,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'SAF',
     department_id: 'finance',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '📊',
+    badgeEmoji: '',
   },
   {
     id: 'USR-SAF-REC-01',
@@ -527,7 +527,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'SAF',
     department_id: 'recruitment',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '📑',
+    badgeEmoji: '',
   },
   {
     id: 'USR-SAF-HR-01',
@@ -538,7 +538,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'SAF',
     department_id: 'hr',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '👥',
+    badgeEmoji: '',
   },
   {
     id: 'USR-SAF-CRM-01',
@@ -549,7 +549,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'SAF',
     department_id: 'crm',
     branch: 'فرع الرياض (التخصصي)',
-    badgeEmoji: '🏛️',
+    badgeEmoji: '',
   },
   {
     id: 'USR-SAF-RNT-01',
@@ -560,7 +560,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'SAF',
     department_id: 'rental',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '🏢',
+    badgeEmoji: '',
   },
   {
     id: 'USR-SAF-ATS-01',
@@ -571,7 +571,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'SAF',
     department_id: 'ats',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '🗂️',
+    badgeEmoji: '',
   },
   {
     id: 'USR-SAF-SHL-01',
@@ -582,7 +582,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'SAF',
     department_id: 'shelter',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '🏨',
+    badgeEmoji: '',
   },
   {
     id: 'USR-SAF-EXEC-01',
@@ -593,7 +593,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'SAF',
     department_id: 'recruitment',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '📑',
+    badgeEmoji: '',
   },
 
   // ─── 2. شركة الياقوت الشرقية للتشغيل والتأجير (YAQ) ──────────────────
@@ -606,7 +606,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'YAQ',
     department_id: 'rental',
     branch: 'فرع الدمام',
-    badgeEmoji: '🏢',
+    badgeEmoji: '',
   },
   {
     id: 'USR-YAQ-FIN-01',
@@ -617,7 +617,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'YAQ',
     department_id: 'finance',
     branch: 'فرع الدمام',
-    badgeEmoji: '📊',
+    badgeEmoji: '',
   },
   {
     id: 'USR-YAQ-HR-01',
@@ -628,7 +628,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'YAQ',
     department_id: 'hr',
     branch: 'فرع الدمام',
-    badgeEmoji: '👥',
+    badgeEmoji: '',
   },
   {
     id: 'USR-YAQ-CRM-01',
@@ -639,7 +639,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'YAQ',
     department_id: 'crm',
     branch: 'فرع الدمام',
-    badgeEmoji: '🏛️',
+    badgeEmoji: '',
   },
   {
     id: 'USR-YAQ-SHL-01',
@@ -650,7 +650,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'YAQ',
     department_id: 'shelter',
     branch: 'فرع الخبر',
-    badgeEmoji: '🏨',
+    badgeEmoji: '',
   },
 
   // ─── 3. شركة توب تالنت الدولية للتوظيف (TOP) ─────────────────────────
@@ -663,7 +663,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'TOP',
     department_id: 'ats',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '🗂️',
+    badgeEmoji: '',
   },
   {
     id: 'USR-TOP-FIN-01',
@@ -674,7 +674,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'TOP',
     department_id: 'finance',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '📊',
+    badgeEmoji: '',
   },
   {
     id: 'USR-TOP-HR-01',
@@ -685,7 +685,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'TOP',
     department_id: 'hr',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '👥',
+    badgeEmoji: '',
   },
   {
     id: 'USR-TOP-CRM-01',
@@ -696,7 +696,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'TOP',
     department_id: 'crm',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '🏛️',
+    badgeEmoji: '',
   },
 
   // ─── 4. شركة كاس للمنافسات والتشغيل (KAS) ────────────────────────────
@@ -709,7 +709,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'KAS',
     department_id: 'tenders',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '⚖️',
+    badgeEmoji: '',
   },
   {
     id: 'USR-KAS-FIN-01',
@@ -720,7 +720,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'KAS',
     department_id: 'finance',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '📊',
+    badgeEmoji: '',
   },
   {
     id: 'USR-KAS-HR-01',
@@ -731,7 +731,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'KAS',
     department_id: 'hr',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '👥',
+    badgeEmoji: '',
   },
   {
     id: 'USR-KAS-CRM-01',
@@ -742,7 +742,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'KAS',
     department_id: 'crm',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '🏛️',
+    badgeEmoji: '',
   },
   {
     id: 'USR-KAS-BOQ-02',
@@ -753,7 +753,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'KAS',
     department_id: 'tenders',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '⚖️',
+    badgeEmoji: '',
   },
 
   // ─── 5. دار الرواد لمراكز الإيواء والتسكين (DAR) ─────────────────────
@@ -766,7 +766,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'DAR',
     department_id: 'shelter',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '🏨',
+    badgeEmoji: '',
   },
   {
     id: 'USR-DAR-FIN-01',
@@ -777,7 +777,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'DAR',
     department_id: 'finance',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '📊',
+    badgeEmoji: '',
   },
   {
     id: 'USR-DAR-HR-01',
@@ -788,7 +788,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'DAR',
     department_id: 'hr',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '👥',
+    badgeEmoji: '',
   },
   {
     id: 'USR-DAR-CRM-01',
@@ -799,7 +799,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'DAR',
     department_id: 'crm',
     branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '🏛️',
+    badgeEmoji: '',
   },
 
   // ─── 6. الإدارة التنفيذية العليا للمجموعة (ALL) ──────────────────────
@@ -812,7 +812,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'all',
     department_id: 'executive',
     branch: 'المقر الرئيسي للمجموعة - الرياض',
-    badgeEmoji: '🛡️',
+    badgeEmoji: '',
   },
   {
     id: 'USR-GRP-FIN-01',
@@ -823,7 +823,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'all',
     department_id: 'executive',
     branch: 'المقر الرئيسي للمجموعة - الرياض',
-    badgeEmoji: '📊',
+    badgeEmoji: '',
   },
   {
     id: 'USR-GRP-DEV-01',
@@ -834,7 +834,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     company_id: 'all',
     department_id: 'executive',
     branch: 'المقر الرئيسي للمجموعة - الرياض',
-    badgeEmoji: '💻',
+    badgeEmoji: '',
   },
 ];
 

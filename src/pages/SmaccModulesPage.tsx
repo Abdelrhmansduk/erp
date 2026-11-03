@@ -1520,7 +1520,7 @@ export const SmaccModulesPage: React.FC = () => {
               </div>
 
               <div className="p-3 bg-zinc-50 rounded-xl text-xs text-zinc-500 border border-zinc-200">
-                ⚡ سيقوم النظام آلياً بترحيل قيد وسند قبض محاسبي إلى دفتر اليومية وتحديث رصيد المندوب المحصل.
+                سيقوم النظام آلياً بترحيل قيد وسند قبض محاسبي إلى دفتر اليومية وتحديث رصيد المندوب المحصل.
               </div>
 
               <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">

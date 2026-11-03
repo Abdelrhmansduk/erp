@@ -375,10 +375,10 @@ export const CustodiesPage: React.FC = () => {
               </p>
 
               <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 space-y-2 text-xs">
-                <div>🔹 <strong>اسم الأصل:</strong> {selectedCustodyForDoc.item_name}</div>
-                <div>🔹 <strong>الرقم التسلسلي:</strong> <span className="font-mono">{selectedCustodyForDoc.serial_number}</span></div>
-                <div>🔹 <strong>تاريخ الاستلام:</strong> <span className="font-mono">{selectedCustodyForDoc.received_date}</span></div>
-                <div>🔹 <strong>القيمة التقديرية:</strong> <span className="font-mono font-bold text-emerald-700">{(selectedCustodyForDoc.estimated_value ?? 0).toLocaleString()} ر.س</span></div>
+                <div><strong>اسم الأصل:</strong> {selectedCustodyForDoc.item_name}</div>
+                <div><strong>الرقم التسلسلي:</strong> <span className="font-mono">{selectedCustodyForDoc.serial_number}</span></div>
+                <div><strong>تاريخ الاستلام:</strong> <span className="font-mono">{selectedCustodyForDoc.received_date}</span></div>
+                <div><strong>القيمة التقديرية:</strong> <span className="font-mono font-bold text-emerald-700">{(selectedCustodyForDoc.estimated_value ?? 0).toLocaleString()} ر.س</span></div>
               </div>
 
               <div className="flex justify-between pt-4 border-t border-dashed border-zinc-200 text-xs text-zinc-600">

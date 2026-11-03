@@ -633,7 +633,7 @@ async function executeCreateInvoice(
 
   return {
     success: true,
-    message: `✅ تم إنشاء وحفظ الفاتورة الضريبية في دفتر (${companyId}) بنجاح:\n• رقم الفاتورة: ${invoiceNumber}\n• العميل: ${customerName}\n• المبلغ قبل الضريبة: ${subtotal.toLocaleString('en-US')} ر.س\n• ضريبة القيمة المضافة (15%): ${vatAmount.toLocaleString('en-US')} ر.س\n• الإجمالي الشامل: ${total.toLocaleString('en-US')} ر.س\n• حالة ZATCA: معتمدة ومشفرة (Cleared)`,
+    message: `تم إنشاء وحفظ الفاتورة الضريبية في دفتر (${companyId}) بنجاح:\n• رقم الفاتورة: ${invoiceNumber}\n• العميل: ${customerName}\n• المبلغ قبل الضريبة: ${subtotal.toLocaleString('en-US')} ر.س\n• ضريبة القيمة المضافة (15%): ${vatAmount.toLocaleString('en-US')} ر.س\n• الإجمالي الشامل: ${total.toLocaleString('en-US')} ر.س\n• حالة ZATCA: معتمدة ومشفرة (Cleared)`,
     spokenSummary: `تم إنشاء وحفظ الفاتورة الضريبية للعميل ${customerName} بمبلغ إجمالي ${total.toLocaleString('ar-SA')} ريال سعودي وتوثيقها في بوابة زاتكا.`,
     data: newInvoice,
   };
@@ -676,7 +676,7 @@ async function executeCreateJournalEntry(
 
   return {
     success: true,
-    message: `✅ تم تسجيل وترحيل قيد اليومية المزدوج في نظام سماك (${companyId}):\n• رقم القيد: ${entryNumber}\n• من حـ/ (مدين): ${debitAccount} — ${amount.toLocaleString('en-US')} ر.س\n• إلى حـ/ (دائن): ${creditAccount} — ${amount.toLocaleString('en-US')} ر.س\n• البيان: ${description}\n• الحالة: مرحّل ومتوازن 100%`,
+    message: `تم تسجيل وترحيل قيد اليومية المزدوج في نظام سماك (${companyId}):\n• رقم القيد: ${entryNumber}\n• من حـ/ (مدين): ${debitAccount} — ${amount.toLocaleString('en-US')} ر.س\n• إلى حـ/ (دائن): ${creditAccount} — ${amount.toLocaleString('en-US')} ر.س\n• البيان: ${description}\n• الحالة: مرحّل ومتوازن 100%`,
     spokenSummary: `تم تسجيل وترحيل قيد اليومية المزدوج رقم ${entryNumber} بمبلغ ${amount.toLocaleString('ar-SA')} ريال سعودي في دفتر سماك بنجاح.`,
     data: newEntry,
   };
@@ -718,7 +718,7 @@ async function executeCreateVoucher(
 
   return {
     success: true,
-    message: `✅ تم إصدار وحفظ ${voucherType} رقم (${voucherNumber}) في (${companyId}):\n• الطرف المستفيد/العميل: ${partyName}\n• المبلغ: ${amount.toLocaleString('en-US')} ر.س\n• البيان: ${description}\n• الحالة: معتمد ومرحّل مالياً`,
+    message: `تم إصدار وحفظ ${voucherType} رقم (${voucherNumber}) في (${companyId}):\n• الطرف المستفيد/العميل: ${partyName}\n• المبلغ: ${amount.toLocaleString('en-US')} ر.س\n• البيان: ${description}\n• الحالة: معتمد ومرحّل مالياً`,
     spokenSummary: `تم إصدار وحفظ ${voucherType} لصالح ${partyName} بمبلغ ${amount.toLocaleString('ar-SA')} ريال سعودي.`,
     data: newVoucher,
   };
@@ -818,7 +818,7 @@ async function executeCreateRecruitmentContract(
 
   return {
     success: true,
-    message: `✅ تم تسجيل وتوثيق عقد استقدام مساند جديد (${contractNo}) بنجاح:\n• العميل: ${clientName}\n• الجنسية والمهنة: ${profession} (${nationality})\n• القيمة الإجمالية شاملة الضريبة: ${amount.toLocaleString('en-US')} ر.س\n• تم توليد القيد المحاسبي والفاتورة الضريبية آلياً في نظام سماك.`,
+    message: `تم تسجيل وتوثيق عقد استقدام مساند جديد (${contractNo}) بنجاح:\n• العميل: ${clientName}\n• الجنسية والمهنة: ${profession} (${nationality})\n• القيمة الإجمالية شاملة الضريبة: ${amount.toLocaleString('en-US')} ر.س\n• تم توليد القيد المحاسبي والفاتورة الضريبية آلياً في نظام سماك.`,
     spokenSummary: `تم تسجيل عقد استقدام مساند للعميل ${clientName} بقيمة ${amount.toLocaleString('ar-SA')} ريال وتوليد قيده المحاسبي تلقائياً.`,
     data: newContract,
   };
@@ -853,7 +853,7 @@ async function executeCreateRentContract(
 
   return {
     success: true,
-    message: `✅ تم إنشاء عقد التأجير والتشغيل المرن (${contractNo}) بنجاح:\n• العميل: ${clientName}\n• نوع الباقة: ${packageType}\n• الكادر المخصص: ${workerName}\n• القيمة: ${monthlyRate.toLocaleString('en-US')} ر.س\n• تم ترحيل القيد والفاتورة الضريبية في نظام سماك.`,
+    message: `تم إنشاء عقد التأجير والتشغيل المرن (${contractNo}) بنجاح:\n• العميل: ${clientName}\n• نوع الباقة: ${packageType}\n• الكادر المخصص: ${workerName}\n• القيمة: ${monthlyRate.toLocaleString('en-US')} ر.س\n• تم ترحيل القيد والفاتورة الضريبية في نظام سماك.`,
     spokenSummary: `تم إنشاء عقد التأجير للعميل ${clientName} ضمن ${packageType} بقيمة ${monthlyRate.toLocaleString('ar-SA')} ريال سعودي.`,
     data: newRent,
   };
@@ -888,7 +888,7 @@ async function executeCreateCandidateCv(
 
   return {
     success: true,
-    message: `✅ تم إدراج السيرة الذاتية في بنك المرشحين (ATS) برقم (${cvId}):\n• الاسم: ${candidateName}\n• الجنسية والمهنة: ${profession} — ${nationality}\n• الراتب الشهري: ${salary.toLocaleString('en-US')} ر.س\n• الحالة: متاح للتعاقد الفوري`,
+    message: `تم إدراج السيرة الذاتية في بنك المرشحين (ATS) برقم (${cvId}):\n• الاسم: ${candidateName}\n• الجنسية والمهنة: ${profession} — ${nationality}\n• الراتب الشهري: ${salary.toLocaleString('en-US')} ر.س\n• الحالة: متاح للتعاقد الفوري`,
     spokenSummary: `تم إضافة السيرة الذاتية للمرشحة ${candidateName} في بنك السير الذاتية وهي متاحة الآن للتعاقد.`,
     data: newCv,
   };
@@ -917,7 +917,7 @@ function executeCalculateEosBenefits(params: Record<string, unknown>): ToolExecu
 
   return {
     success: true,
-    message: `📊 نتيجة حاسبة مستحقات نهاية الخدمة (وفق نظام العمل السعودي - المادتان 84 و85):\n• الراتب الشهري المعتمد: ${salary.toLocaleString('en-US')} ر.س\n• مدة الخدمة: ${years} سنوات\n• سبب الإنهاء: ${reason}\n• الاستحقاق الكامل الأساسي: ${baseAward.toLocaleString('en-US')} ر.س\n• نسبة الاستحقاق النظامية: ${Math.round(factor * 100)}%\n• صافي مكافأة نهاية الخدمة المستحقة: ${netAward.toLocaleString('en-US')} ر.س`,
+    message: `نتيجة حاسبة مستحقات نهاية الخدمة (وفق نظام العمل السعودي - المادتان 84 و85):\n• الراتب الشهري المعتمد: ${salary.toLocaleString('en-US')} ر.س\n• مدة الخدمة: ${years} سنوات\n• سبب الإنهاء: ${reason}\n• الاستحقاق الكامل الأساسي: ${baseAward.toLocaleString('en-US')} ر.س\n• نسبة الاستحقاق النظامية: ${Math.round(factor * 100)}%\n• صافي مكافأة نهاية الخدمة المستحقة: ${netAward.toLocaleString('en-US')} ر.س`,
     spokenSummary: `صافي مكافأة نهاية الخدمة المستحقة للموظف يبلغ ${netAward.toLocaleString('ar-SA')} ريال سعودي عن خدمة مدتها ${years} سنوات.`,
     data: { salary, years, reason, baseAward, netAward },
   };
@@ -949,7 +949,7 @@ async function executeCreateClientRecord(
 
   return {
     success: true,
-    message: `✅ تم تسجيل العميل الجديد في قاعدة بيانات CRM برقم (${clientId}):\n• الاسم: ${clientName}\n• الجوال: ${phone}\n• المدينة والتصنيف: ${city} — ${clientType}\n• فحص القائمة السوداء: سليم ومصرح بالتعاقد`,
+    message: `تم تسجيل العميل الجديد في قاعدة بيانات CRM برقم (${clientId}):\n• الاسم: ${clientName}\n• الجوال: ${phone}\n• المدينة والتصنيف: ${city} — ${clientType}\n• فحص القائمة السوداء: سليم ومصرح بالتعاقد`,
     spokenSummary: `تم تسجيل العميل ${clientName} في سجل العملاء بنجاح وتفعيل ملفه للتعاقد.`,
     data: newClient,
   };
@@ -981,7 +981,7 @@ async function executeCreateComplaintTicket(
 
   return {
     success: true,
-    message: `✅ تم فتح تذكرة الشكوى والمتابعة رقم (${ticketNo}) بنجاح:\n• العميل: ${clientName}\n• الموضوع: ${subject}\n• الأولوية: ${priority} (مؤقت SLA: 24 ساعة عمل)\n• تم إشعار فريق علاقات العملاء ومشرف الجودة للمعالجة الفورية.`,
+    message: `تم فتح تذكرة الشكوى والمتابعة رقم (${ticketNo}) بنجاح:\n• العميل: ${clientName}\n• الموضوع: ${subject}\n• الأولوية: ${priority} (مؤقت SLA: 24 ساعة عمل)\n• تم إشعار فريق علاقات العملاء ومشرف الجودة للمعالجة الفورية.`,
     spokenSummary: `تم فتح تذكرة الشكوى رقم ${ticketNo} للعميل ${clientName} وتوجيهها لفريق المعالجة الفورية.`,
     data: newComplaint,
   };
@@ -1001,7 +1001,7 @@ function executeDraftOfficialMessage(params: Record<string, unknown>): ToolExecu
 
   return {
     success: true,
-    message: `📝 تمت صياغة الخطاب / الرسالة الرسمية بنجاح (جاهزة للنسخ والإرسال):\n\n${draft}`,
+    message: `تمت صياغة الخطاب / الرسالة الرسمية بنجاح (جاهزة للنسخ والإرسال):\n\n${draft}`,
     spokenSummary: `تمت صياغة الرسالة الرسمية الموجهة إلى ${recipient} وهي جاهزة الآن للنسخ والإرسال.`,
     data: { recipient, topic, draft },
   };
@@ -1111,7 +1111,7 @@ async function executeRegisterInmate(
 
   return {
     success: true,
-    message: `✅ تم تسجيل وتسكين النزيلة في مركز الإيواء بنجاح:\n• الرقم المرجعي: ${inmateId}\n• الاسم: ${fullName}\n• الجنسية: ${nationality}\n• الغرفة المخصصة: ${roomNumber}\n• نوع الحالة: ${caseType}\n• تاريخ الدخول: ${today}`,
+    message: `تم تسجيل وتسكين النزيلة في مركز الإيواء بنجاح:\n• الرقم المرجعي: ${inmateId}\n• الاسم: ${fullName}\n• الجنسية: ${nationality}\n• الغرفة المخصصة: ${roomNumber}\n• نوع الحالة: ${caseType}\n• تاريخ الدخول: ${today}`,
     spokenSummary: `تم تسجيل النزيلة ${fullName} بنجاح وتسكينها في الغرفة رقم ${roomNumber} بمركز الإيواء.`,
     data: newInmate,
   };

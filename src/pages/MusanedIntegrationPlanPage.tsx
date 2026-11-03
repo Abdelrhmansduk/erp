@@ -49,23 +49,23 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
     { id: 'sec-30', number: '30', title: 'معايير القبول والجاهزية للإنتاج', category: 'الاعتماد الحكومي' },
     { id: 'sec-31', number: '31', title: 'الملاحق التقنية وجداول قاعدة البيانات (17 جدولاً)', category: 'الملاحق التقنية' },
     { id: 'sec-32', number: '32', title: 'المراجع والقرارات الوزارية الرسمية', category: 'المراجع الرسمية' },
-    { id: 'sec-33', number: '33', title: 'معمارية مساند لأربع شركات استقدام (Multi-Company Architecture)', category: 'هندسة الشركات الأربع 🏢' },
-    { id: 'sec-34', number: '34', title: 'إدارة اتصالات ومفاتيح مساند للشركات الأربع (Dedicated Credentials)', category: 'هندسة الشركات الأربع 🏢' },
-    { id: 'sec-35', number: '35', title: 'قاعدة البيانات متعددة الشركات وقواعد العزل الصارم (RLS Constraints)', category: 'هندسة الشركات الأربع 🏢' },
-    { id: 'sec-36', number: '36', title: 'نموذج الصلاحيات والفصل بين المهام (SoD & RBAC)', category: 'هندسة الشركات الأربع 🏢' },
-    { id: 'sec-37', number: '37', title: 'سيناريو التشغيل الكامل لشركة واحدة وتكراره على الأربع', category: 'هندسة الشركات الأربع 🏢' },
-    { id: 'sec-38', number: '38', title: 'محرك توجيه الـ Webhooks للأربع شركات', category: 'هندسة الشركات الأربع 🏢' },
-    { id: 'sec-39', number: '39', title: 'المحاسبة والتسويات ودفاتر الأستاذ المنفصلة لكل شركة (Dedicated Ledgers)', category: 'هندسة الشركات الأربع 🏢' },
-    { id: 'sec-40', number: '40', title: 'لوحة التحكم الموحدة لمساند للأربع شركات داخل ERP', category: 'هندسة الشركات الأربع 🏢' },
-    { id: 'sec-41', number: '41', title: 'إدارة الأخطاء والاستثناءات المخصصة لكل شركة', category: 'هندسة الشركات الأربع 🏢' },
-    { id: 'sec-42', number: '42', title: 'سيناريو منع كارثة خلط الشركات (Zero Cross-Contamination Guard)', category: 'هندسة الشركات الأربع 🏢' },
-    { id: 'sec-43', number: '43', title: 'خطة الاختبار الشاملة للأربع شركات (Isolation & Cross-Tenant Negative Tests)', category: 'هندسة الشركات الأربع 🏢' },
-    { id: 'sec-44', number: '44', title: 'استراتيجية Queue والـ Rate Limits الموزعة للشركات', category: 'هندسة الشركات الأربع 🏢' },
-    { id: 'sec-45', number: '45', title: 'خطة الإطلاق المتدرجة للأربع شركات (Waves 0 to 6)', category: 'هندسة الشركات الأربع 🏢' },
-    { id: 'sec-46', number: '46', title: 'مصفوفة مسؤوليات الفرق RACI المعتمدة للشركات', category: 'هندسة الشركات الأربع 🏢' },
-    { id: 'sec-47', number: '47', title: 'قائمة التحقق للـ Go-Live لكل شركة من الشركات الأربع', category: 'هندسة الشركات الأربع 🏢' },
-    { id: 'sec-48', number: '48', title: 'معايير القبول النهائية لعزل الشركات (Zero Leakage Standards)', category: 'هندسة الشركات الأربع 🏢' },
-    { id: 'sec-49', number: '49', title: 'القرار المعماري الموصى به للمجموعة (Architecture Decision Record)', category: 'هندسة الشركات الأربع 🏢' },
+    { id: 'sec-33', number: '33', title: 'معمارية مساند لأربع شركات استقدام (Multi-Company Architecture)', category: 'هندسة الشركات الأربع ' },
+    { id: 'sec-34', number: '34', title: 'إدارة اتصالات ومفاتيح مساند للشركات الأربع (Dedicated Credentials)', category: 'هندسة الشركات الأربع ' },
+    { id: 'sec-35', number: '35', title: 'قاعدة البيانات متعددة الشركات وقواعد العزل الصارم (RLS Constraints)', category: 'هندسة الشركات الأربع ' },
+    { id: 'sec-36', number: '36', title: 'نموذج الصلاحيات والفصل بين المهام (SoD & RBAC)', category: 'هندسة الشركات الأربع ' },
+    { id: 'sec-37', number: '37', title: 'سيناريو التشغيل الكامل لشركة واحدة وتكراره على الأربع', category: 'هندسة الشركات الأربع ' },
+    { id: 'sec-38', number: '38', title: 'محرك توجيه الـ Webhooks للأربع شركات', category: 'هندسة الشركات الأربع ' },
+    { id: 'sec-39', number: '39', title: 'المحاسبة والتسويات ودفاتر الأستاذ المنفصلة لكل شركة (Dedicated Ledgers)', category: 'هندسة الشركات الأربع ' },
+    { id: 'sec-40', number: '40', title: 'لوحة التحكم الموحدة لمساند للأربع شركات داخل ERP', category: 'هندسة الشركات الأربع ' },
+    { id: 'sec-41', number: '41', title: 'إدارة الأخطاء والاستثناءات المخصصة لكل شركة', category: 'هندسة الشركات الأربع ' },
+    { id: 'sec-42', number: '42', title: 'سيناريو منع كارثة خلط الشركات (Zero Cross-Contamination Guard)', category: 'هندسة الشركات الأربع ' },
+    { id: 'sec-43', number: '43', title: 'خطة الاختبار الشاملة للأربع شركات (Isolation & Cross-Tenant Negative Tests)', category: 'هندسة الشركات الأربع ' },
+    { id: 'sec-44', number: '44', title: 'استراتيجية Queue والـ Rate Limits الموزعة للشركات', category: 'هندسة الشركات الأربع ' },
+    { id: 'sec-45', number: '45', title: 'خطة الإطلاق المتدرجة للأربع شركات (Waves 0 to 6)', category: 'هندسة الشركات الأربع ' },
+    { id: 'sec-46', number: '46', title: 'مصفوفة مسؤوليات الفرق RACI المعتمدة للشركات', category: 'هندسة الشركات الأربع ' },
+    { id: 'sec-47', number: '47', title: 'قائمة التحقق للـ Go-Live لكل شركة من الشركات الأربع', category: 'هندسة الشركات الأربع ' },
+    { id: 'sec-48', number: '48', title: 'معايير القبول النهائية لعزل الشركات (Zero Leakage Standards)', category: 'هندسة الشركات الأربع ' },
+    { id: 'sec-49', number: '49', title: 'القرار المعماري الموصى به للمجموعة (Architecture Decision Record)', category: 'هندسة الشركات الأربع ' },
   ];
 
   const filteredSections = SECTIONS.filter(s => 
@@ -224,8 +224,7 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
             </p>
           </div>
           <span className="pill-tag-mint" style={{ fontSize: '11px' }}>
-            Zero Cross-Company Contamination Rule 🔒
-          </span>
+            Zero Cross-Company Contamination Rule </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">

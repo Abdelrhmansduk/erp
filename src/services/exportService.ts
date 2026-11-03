@@ -2080,9 +2080,9 @@ export function generateExecutiveReportHtml(
           </div>
         </div>
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <input type="text" class="search-input" placeholder="🔍 فلترة وبحث فوري في السجلات..." oninput="window.__filterRows && window.__filterRows(this.value)" />
+          <input type="text" class="search-input" placeholder="فلترة وبحث فوري في السجلات..." oninput="window.__filterRows && window.__filterRows(this.value)" />
           <button class="btn btn-primary" onclick="window.print()">
-            🖨️ طباعة رسمية A4 / حفظ PDF
+            طباعة رسمية A4 / حفظ PDF
           </button>
           ${isPrintPreview ? `
           <button class="btn btn-secondary" onclick="window.close()">
@@ -2118,7 +2118,7 @@ export function generateExecutiveReportHtml(
           <h2 class="report-title-text">${title}</h2>
           <div class="report-subtitle">تاريخ الاستخراج: <strong>${dateAr}</strong> — الساعة <strong>${timeStr}</strong></div>
           <div class="exporter-pill">
-            <span>👤 الموظف المصدِّر: ${exporter.name}</span>
+            <span>الموظف المصدِّر: ${exporter.name}</span>
             <span>|</span>
             <span>${exporter.role}</span>
           </div>
@@ -2176,7 +2176,7 @@ export function generateExecutiveReportHtml(
       <!-- 2.b Arabic Tafqeet Financial Bar -->
       <div class="tafqeet-ribbon">
         <div>
-          <span style="color: #8C681E; margin-left: 6px;">💰 التفقيط المالي المعتمد بالحروف:</span>
+          <span style="color: #8C681E; margin-left: 6px;">التفقيط المالي المعتمد بالحروف:</span>
           <span>${kpis.tafqeetAr}</span>
         </div>
         <span style="font-family: monospace; font-size: 11px; color: #047857;">SAR ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
@@ -2185,7 +2185,7 @@ export function generateExecutiveReportHtml(
 
       ${options?.executiveNote ? `
       <div class="executive-note-box">
-        <strong>📌 توجيه / ملاحظة الإدارة التنفيذية:</strong> ${options.executiveNote}
+        <strong>توجيه / ملاحظة الإدارة التنفيذية:</strong> ${options.executiveNote}
       </div>
       ` : ''}
 
@@ -3149,7 +3149,7 @@ export function exportToMarkdown(
   md += `**الموظف المستخرج**: ${exporter.name} (${exporter.role}) | **الفرع**: ${exporter.branch}  \n`;
   md += `**تاريخ الاستخراج**: ${dateAr} | **إجمالي السجلات**: ${data.length}\n\n`;
 
-  md += `### 📊 ملخص المؤشرات التنفيذية (Executive KPIs)\n`;
+  md += `### ملخص المؤشرات التنفيذية (Executive KPIs)\n`;
   md += `- **إجمالي السجلات المدققة**: ${kpis.recordCount} سجل\n`;
   if (kpis.hasFinancials && kpis.totalAmount > 0) {
     md += `- **القيمة المالية الإجمالية**: ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} ر.س\n`;
@@ -3179,7 +3179,7 @@ export function exportToMarkdown(
   }
 
   md += `\n---\n`;
-  md += `### 🏛️ مصفوفة الاعتماد الرسمي\n`;
+  md += `### مصفوفة الاعتماد الرسمي\n`;
   md += `| مرحلة الاعتماد | المسؤول المختص | الفرع / الصفة | الحالة |\n`;
   md += `| :--- | :--- | :--- | :--- |\n`;
   md += `| **إعداد واستخراج** | ${exporter.name} | ${exporter.branch} (${exporter.role}) | ✓ موثق إلكترونياً |\n`;

@@ -335,23 +335,23 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
     const combined = `${notes || ''} ${reason || ''}`.trim();
     const txt = combined.toLowerCase();
 
-    let label = '⏳ قيد الدراسة والتحليل';
+    let label = 'قيد الدراسة والتحليل';
     let type: 'success' | 'warning' | 'danger' | 'info' = 'info';
 
     if (txt.includes('تم الترسية') || txt.includes('معتمد') || txt.includes('تم اعتماد') || txt.includes('ترسية') || txt.includes('فائز')) {
-      label = '🏆 تمت الترسية والاعتماد';
+      label = 'تمت الترسية والاعتماد';
       type = 'success';
     } else if (txt.includes('مرتفع') || txt.includes('فارق مالي')) {
-      label = '📈 عرض مالي مرتفع';
+      label = 'عرض مالي مرتفع';
       type = 'warning';
     } else if (txt.includes('إلغاء') || txt.includes('الغاء') || txt.includes('لاغي')) {
-      label = '❌ منافسة ملغية';
+      label = 'منافسة ملغية';
       type = 'danger';
     } else if (txt.includes('غير مطابق') || txt.includes('استبعاد') || txt.includes('مستبعد')) {
-      label = '⚠️ غير مطابق للشروط';
+      label = 'غير مطابق للشروط';
       type = 'danger';
     } else if (txt.includes('فحص') || txt.includes('تحت الدراسة')) {
-      label = '⏳ مرحلة فحص العروض';
+      label = 'مرحلة فحص العروض';
       type = 'info';
     } else if (notes && notes.length <= 25) {
       label = notes;

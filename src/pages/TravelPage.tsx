@@ -269,7 +269,7 @@ export const TravelPage: React.FC = () => {
         {[
           { id: 'all', label: `جميع الرحلات (${flights.length})` },
           { id: 'arrivals', label: 'رحلات الوصول (Arrivals)' },
-          { id: 'reception', label: 'سجل استقبال المطارات والنقل (4) 🚐' },
+          { id: 'reception', label: 'سجل استقبال المطارات والنقل (4) ' },
           { id: 'deportations', label: 'رحلات الترحيل والمغادرة (Deportation)' },
         ].map((tab) => {
           const isActive = activeTab === tab.id;

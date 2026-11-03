@@ -609,7 +609,7 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
                 />
                 {!hasSignature && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-zinc-400 text-xs">
-                    ✍️ ارسم توقيعك هنا بالماوس أو الشاشة اللمسية...
+                    ارسم توقيعك هنا بالماوس أو الشاشة اللمسية...
                   </div>
                 )}
               </div>

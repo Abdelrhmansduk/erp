@@ -121,7 +121,7 @@ export const UniversalNotificationToaster: React.FC<UniversalNotificationToaster
     >
       {/* Sound Mute Toggle Bar when notifications are active */}
       <div className="flex items-center justify-between px-2.5 py-1 rounded-full bg-slate-950/90 backdrop-blur-md text-[11px] text-white pointer-events-auto shadow-md border border-white/10">
-        <span className="font-bold text-amber-300">🔔 تنبيهات حية ({notifications.length})</span>
+        <span className="font-bold text-amber-300">تنبيهات حية ({notifications.length})</span>
         <div className="flex items-center gap-2">
           <button
             type="button"

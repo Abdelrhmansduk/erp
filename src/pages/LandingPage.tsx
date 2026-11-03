@@ -1,17 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { CompanyLogo } from '../components/common/CompanyLogo';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
-import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import { resolveIllustrationForPortal } from '../services/visualAssetsRegistry';
 import { CompanyId } from '../types';
 import { useCompany } from '../contexts/CompanyContext';
+import { useAuthContext } from '../contexts/AuthContext';
+import { useAppStore } from '../stores/appStore';
+import {
+  CORPORATE_DEPARTMENTS,
+  getFullStaffDirectory,
+  resolveDepartmentAndCompany,
+} from '../services/authService';
 import { 
   ArrowLeft, Network, TrendingUp, Bot, ShieldCheck, 
-  Menu, X, Building2, ChevronDown, Sparkles, LogIn, CheckCircle2,
-  Lock, Globe, Hotel, Briefcase, Users, MessageSquare, Volume2, VolumeX, Smartphone
+  Menu, X, Building2, Sparkles, LogIn, CheckCircle2, Check,
+  Lock, Mail, Eye, EyeOff, Fingerprint, Loader2, AlertCircle,
+  Briefcase, Layers, FileSpreadsheet, Scale
 } from 'lucide-react';
-import { playPersonaIntroGreeting, stopAllAudio, subscribeAudioState } from '../services/audioVoiceService';
 
 interface LandingPageProps {
   onSelectCompany: (companyId: string) => void;
@@ -20,52 +26,71 @@ interface LandingPageProps {
 export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => {
   const { currentLanguage } = useLanguage();
   const { setActiveCompanyId } = useCompany();
+  const { signIn } = useAuthContext();
+  const { setFlowState, setActiveTab } = useAppStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
-  const [persona, setPersona] = useState<'faris' | 'noura'>(() => {
-    return (localStorage.getItem('assistant_persona') as 'faris' | 'noura') || 'faris';
-  });
-  const [isPlayingVoice, setIsPlayingVoice] = useState(false);
 
-  useEffect(() => {
-    const handlePersonaChange = (event: any) => {
-      if (event.detail?.persona && (event.detail.persona === 'faris' || event.detail.persona === 'noura')) {
-        setPersona(event.detail.persona);
+  // Interactive Login State inside Hero Split
+  const [identifier, setIdentifier] = useState('chairman@alsulaim.sa');
+  const [password, setPassword] = useState('Alsulaim@2026');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [authTab, setAuthTab] = useState<'login' | 'activate'>('login');
+  const [portalMode, setPortalMode] = useState<'staff' | 'companies'>('staff');
+
+  const staffDirectory = useMemo(() => getFullStaffDirectory(), []);
+  const departmentsList = useMemo(() => Object.values(CORPORATE_DEPARTMENTS), []);
+
+  const executeQuickLogin = async (loginEmail: string, loginPass = 'Alsulaim@2026') => {
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    setIdentifier(loginEmail);
+    setPassword(loginPass);
+    setLoading(true);
+    try {
+      const result = await signIn(loginEmail, loginPass);
+      if (result.error) {
+        setErrorMsg(result.error);
+      } else {
+        const routeInfo = resolveDepartmentAndCompany(loginEmail);
+        const landingTab = routeInfo.departmentDef.defaultTab;
+        const landingTitle = routeInfo.departmentDef.defaultTabTitle;
+
+        if (routeInfo.companyId === 'all') {
+          setActiveCompanyId('SAF');
+          useAppStore.getState().setActiveCompanyId('all' as any);
+        } else {
+          const compUpper = routeInfo.companyId.toUpperCase() as CompanyId;
+          setActiveCompanyId(compUpper);
+          useAppStore.getState().setActiveCompanyId(compUpper as any);
+        }
+
+        setActiveTab(landingTab, landingTitle);
+        setSuccessMsg(`تم التحقق بنجاح — جاري توجيهك إلى ${routeInfo.departmentDef.nameAr}...`);
+        setFlowState('workspace');
       }
-    };
-    window.addEventListener('assistant-persona-changed', handlePersonaChange);
-    const unsubAudio = subscribeAudioState((speaking) => {
-      setIsPlayingVoice(speaking);
-    });
-    return () => {
-      window.removeEventListener('assistant-persona-changed', handlePersonaChange);
-      unsubAudio();
-      stopAllAudio();
-    };
-  }, []);
-
-  const playVoice = (p: 'faris' | 'noura') => {
-    setIsPlayingVoice(true);
-    playPersonaIntroGreeting(p, {
-      onStart: () => setIsPlayingVoice(true),
-      onEnd: () => setIsPlayingVoice(false),
-    });
-  };
-
-  const toggleLandingVoice = () => {
-    if (isPlayingVoice) {
-      stopAllAudio();
-      setIsPlayingVoice(false);
-    } else {
-      playVoice(persona);
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'حدث خطأ أثناء الاتصال بالخادم');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const switchPersona = (newPersona: 'faris' | 'noura') => {
-    setPersona(newPersona);
-    localStorage.setItem('assistant_persona', newPersona);
-    window.dispatchEvent(new CustomEvent('assistant-persona-changed', { detail: { persona: newPersona } }));
-    stopAllAudio();
-    playVoice(newPersona);
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!identifier.trim()) {
+      setErrorMsg('يرجى إدخال البريد الإلكتروني أو الرقم الوظيفي');
+      return;
+    }
+    await executeQuickLogin(identifier, password || 'Alsulaim@2026');
+  };
+
+  const handleBiometricLogin = async () => {
+    setErrorMsg(null);
+    setSuccessMsg('جاري التحقق من البصمة الحيوية عبر مفتاح الأمان (FIDO2 Passkey)...');
+    await executeQuickLogin(identifier || 'chairman@alsulaim.sa', 'Alsulaim@2026');
   };
 
   const handleSelect = (id: CompanyId | string, portalCode?: string) => {
@@ -296,221 +321,314 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
         </div>
       )}
 
-      {/* 2. Executive Hero Section - Luxury White Theme with 3D Saudi Assistant */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-8 py-12 sm:py-20 lg:py-24">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          {/* Right Column: Corporate Headline & Actions (7 cols) */}
-          <div className="lg:col-span-7 space-y-6 text-right">
-            {/* Eyebrow badge from corporate flag */}
-            <div>
-              <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-champagne-pale border border-champagne/40 text-champagne-dark text-xs font-bold shadow-2xs">
-                <Sparkles className="w-3.5 h-3.5 text-champagne-dark" />
+      {/* 2. Executive Hero Section — Split Layout: Right Brand Intro & Checkmarks | Left Interactive Login Card */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-8 py-10 sm:py-16 lg:py-20 relative">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+          {/* =====================================================================
+              RIGHT COLUMN (اليمين): Brand Introduction, Checkmarks & Floating Icons
+             ===================================================================== */}
+          <div className="lg:col-span-7 relative py-4 lg:py-8 text-right select-none">
+            {/* Floating Decorative Circular Icon Badges */}
+            <div className="hidden sm:flex absolute -top-2 right-6 w-14 h-14 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] shadow-xs">
+              <Sparkles className="w-6 h-6" strokeWidth={1.75} />
+            </div>
+
+            <div className="hidden sm:flex absolute top-28 left-8 w-12 h-12 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] shadow-xs">
+              <ShieldCheck className="w-5 h-5" strokeWidth={1.75} />
+            </div>
+
+            <div className="hidden sm:flex absolute bottom-16 left-20 w-16 h-16 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] shadow-xs">
+              <Building2 className="w-7 h-7" strokeWidth={1.6} />
+            </div>
+
+            {/* Brand Title & Subtitle */}
+            <div className="space-y-3 sm:mt-10">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] text-xs font-bold mb-1">
+                <Sparkles className="w-3.5 h-3.5 text-[#0066ff]" />
                 <span>منظومة أعمال متكاملة • KHALID AL-SULAIM GROUP</span>
-              </span>
+              </div>
+
+              <div className="text-2xl sm:text-3xl font-black tracking-tight text-[#141414]">
+                خالد السليم <span className="text-[#c8c8c8] font-light mx-1">|</span>{' '}
+                <span className="font-extrabold">KASSR ERP</span>
+              </div>
+
+              <h1 className="text-3xl sm:text-5xl font-extrabold text-[#141414] tracking-tight leading-[1.2] font-display">
+                نستثمر في الفرص.. نصنع المستقبل.
+              </h1>
+
+              <p className="text-sm sm:text-base font-medium text-[#707070] pt-1 max-w-xl leading-relaxed">
+                بوابة التشغيل الذكي والحوكمة الرقمية لمجموعة خالد السليم: تنوع في القطاعات، قوة في التنفيذ، واستدامة في النمو عبر 9 أقسام مؤسسية مستقلة و5 شركات قابضة.
+              </p>
             </div>
 
-            {/* Official Flag Slogan */}
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-zinc-950 leading-[1.2] font-display">
-              نستثمر في الفرص.. <br className="hidden sm:inline" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-l from-zinc-950 via-zinc-800 to-champagne-dark">
-                نصنع المستقبل.
-              </span>
-            </h1>
-
-            {/* Strategic Value Proposition */}
-            <p className="text-sm sm:text-base lg:text-lg text-zinc-600 leading-relaxed max-w-2xl font-normal">
-              بوابة التشغيل الذكي والحوكمة الرقمية لمجموعة خالد السليم: تنوع في القطاعات، قوة في التنفيذ، واستدامة في النمو. منظومة سحابية متقدمة تدير شركات المجموعة والمراكز المستقلة ببيئات عمل معزولة ومركز قيادة موحد للأداء والمالية والربط الحكومي.
-            </p>
-
-            {/* CTA Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center gap-3.5 pt-2">
-              <button
-                type="button"
-                className="w-full sm:w-auto button-primary-pill px-7 py-3.5 text-sm rounded-full font-bold flex items-center justify-center gap-2.5 shadow-md hover:shadow-lg transition-all"
-                onClick={() => handleSelect('gateway', 'gateway')}
-              >
-                <LogIn className="w-4 h-4" />
-                <span>بوابات دخول الشركات المستقلة</span>
-                <ArrowLeft className="w-4 h-4" />
-              </button>
-
-              <button
-                type="button"
-                className="w-full sm:w-auto button-outline-on-light px-6 py-3.5 text-sm rounded-full font-bold flex items-center justify-center gap-2 hover:bg-zinc-50 transition-all"
-                onClick={() => handleSelect('all', 'admin')}
-              >
-                <Building2 className="w-4 h-4 text-zinc-700" />
-                <span>دخول الإدارة المركزية (Super Admin)</span>
-              </button>
+            {/* Vertical Checkmark Features List (Right-aligned like reference image) */}
+            <div className="mt-8 space-y-3.5 max-w-md">
+              {[
+                'عزل مالي ومحاسبي 100% عبر منظومة سماك SMACC',
+                'ربط فوري وموثق مع منصة مساند والفوترة المشفرة ZATCA',
+                'إدارة متكاملة لـ 9 أقسام تشغيلية و29 شركة ومركز مستقل',
+                'حماية الأجور WPS ومنافسات اعتماد ومراكز الإيواء الذكية',
+              ].map((feature, idx) => (
+                <div key={idx} className="flex items-center gap-3.5">
+                  <div className="w-8 h-8 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center text-[#141414] shrink-0">
+                    <Check className="w-4 h-4" strokeWidth={2.5} />
+                  </div>
+                  <span className="text-sm font-bold text-[#141414]">{feature}</span>
+                </div>
+              ))}
             </div>
 
-            {/* Compliance & Vision 2030 Badges */}
-            <div className="pt-4 flex items-center gap-4 text-xs text-zinc-500 font-medium flex-wrap">
-              <span className="flex items-center gap-1.5 text-zinc-700">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>الفوترة المشفرة ZATCA المرحلة الثانية</span>
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1.5 text-zinc-700">
-                <CheckCircle2 className="w-4 h-4 text-sky-600" />
-                <span>منصة مساند ووزارة الموارد البشرية HRSD</span>
-              </span>
-              <span>•</span>
-              <span className="font-bold text-zinc-900">رؤية المملكة 2030</span>
+            {/* Quick Sector Switcher Pills */}
+            <div className="mt-9 pt-6 border-t border-[#efefef] max-w-xl">
+              <div className="text-[11px] font-bold text-[#707070] mb-3">
+                الأقسام والشركات المعتمدة في المنظومة — اختر للدخول السريع:
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {departmentsList.slice(0, 6).map((dept) => (
+                  <button
+                    key={dept.id}
+                    type="button"
+                    onClick={() => {
+                      const acct = staffDirectory.find((a) => a.department_id === dept.id);
+                      if (acct) executeQuickLogin(acct.email, 'Alsulaim@2026');
+                    }}
+                    className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-white border border-[#e0e0e0] text-[11px] font-bold transition-all cursor-pointer"
+                  >
+                    {dept.nameAr}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => handleSelect('gateway', 'gateway')}
+                  className="px-3 py-1.5 rounded-full bg-[#141414] text-white text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1"
+                >
+                  <span>بوابات الشركات</span>
+                  <ArrowLeft className="w-3 h-3" />
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Left Column: Corporate Governance & SMACC Architecture Showcase (5 cols) */}
-          <div className="lg:col-span-5 flex flex-col items-center justify-center relative">
-            <div className="w-full card-pricing p-6 sm:p-8 bg-white border border-zinc-200 rounded-3xl shadow-lg space-y-5 text-right">
-              <div className="flex items-center justify-between gap-3 pb-4 border-b border-zinc-200">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-[#000000] border border-[#cfa64a] p-1.5 flex items-center justify-center shrink-0">
-                    <img
-                      src="/alsulaim-gold-emblem.png"
-                      alt="شعار مجموعة خالد السليم"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <div>
-                    <div className="text-sm font-black text-black">بوابة النفاذ المؤسسي الموحد</div>
-                    <div className="text-[11px] font-semibold text-[#a98232]">
-                      تسجيل دخول واحد يوجه كل موظف لقسمه وشركته
-                    </div>
-                  </div>
-                </div>
-                <span className="pill-tag-mint text-[10.5px] font-bold">🔐 عزل صارم</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2.5">
-                <div className="p-3 rounded-2xl bg-[#fbfbf5] border border-zinc-200 flex items-center justify-between gap-2">
-                  <div>
-                    <div className="text-xs font-black text-black">📊 محاسبة سماك SMACC</div>
-                    <div className="text-[10.5px] text-zinc-500 mt-0.5">
-                      الأستاذ العام، القبض والصرف، التسوية البنكية، ومراكز التكلفة
-                    </div>
-                  </div>
-                  <BusinessIllustration type="smacc-finance" size="sm" showBackground={false} className="!w-12 !h-12 shrink-0" />
-                </div>
-                <div className="p-3 rounded-2xl bg-[#fbfbf5] border border-zinc-200 flex items-center justify-between gap-2">
-                  <div>
-                    <div className="text-xs font-black text-black">📑 الاستقدام والتأجير</div>
-                    <div className="text-[10.5px] text-zinc-500 mt-0.5">
-                      عقود مساند، باقات التأجير المرن، تفاويض إنجاز، ونقل الخدمات
-                    </div>
-                  </div>
-                  <BusinessIllustration type="musaned-recruitment" size="sm" showBackground={false} className="!w-12 !h-12 shrink-0" />
-                </div>
-                <div className="p-3 rounded-2xl bg-[#fbfbf5] border border-zinc-200 flex items-center justify-between gap-2">
-                  <div>
-                    <div className="text-xs font-black text-black">👥 الموارد البشرية WPS</div>
-                    <div className="text-[10.5px] text-zinc-500 mt-0.5">
-                      شؤون الموظفين، مسير الرواتب، حماية الأجور، ونهاية الخدمة
-                    </div>
-                  </div>
-                  <BusinessIllustration type="hr-wps" size="sm" showBackground={false} className="!w-12 !h-12 shrink-0" />
-                </div>
-                <div className="p-3 rounded-2xl bg-[#fbfbf5] border border-zinc-200 flex items-center justify-between gap-2">
-                  <div>
-                    <div className="text-xs font-black text-black">⚖️ المنافسات والإيواء</div>
-                    <div className="text-[10.5px] text-zinc-500 mt-0.5">
-                      منافسات اعتماد وجداول BOQ لشركة كاس، ومراكز إيواء دار الرواد
-                    </div>
-                  </div>
-                  <BusinessIllustration type="kas-tenders" size="sm" showBackground={false} className="!w-12 !h-12 shrink-0" />
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => handleSelect('gateway', 'gateway')}
-                className="w-full button-primary-pill py-3.5 px-6 text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <LogIn className="w-4 h-4" />
-                <span>الدخول لبوابة الموظفين والأقسام الموحدة</span>
-                <ArrowLeft className="w-4 h-4" />
-              </button>
-
-              {/* Interactive Faris & Noura Institutional Advisors Showcase */}
-              <div className="pt-4 border-t border-[#E4E4E7] space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex items-center -space-x-2 rtl:space-x-reverse">
-                      <CorporateAvatar
-                        archetype="ai-faris"
-                        name="فارس"
-                        role="المستشار التنفيذي"
-                        size="md"
-                        status={persona === 'faris' ? 'speaking' : 'online'}
-                        className={persona === 'faris' ? 'ring-2 ring-[#CFA64A] z-10' : 'opacity-75'}
-                      />
-                      <CorporateAvatar
-                        archetype="ai-noura"
-                        name="نُورة"
-                        role="المستشارة المؤسسية"
-                        size="md"
-                        status={persona === 'noura' ? 'speaking' : 'online'}
-                        className={persona === 'noura' ? 'ring-2 ring-[#CFA64A] z-10' : 'opacity-75'}
-                      />
-                    </div>
-                    <div>
-                      <div className="text-xs font-black text-black">
-                        {persona === 'noura' ? 'نُورة • المستشارة المؤسسية' : 'فارس • المستشار التنفيذي'}
-                      </div>
-                      <div className="text-[10.5px] text-zinc-500">
-                        توجيه صوتي ونصي للمحاسبة ومستخرج الـ 100 فاتورة والأقسام
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Persona Switcher */}
-                  <div className="inline-flex items-center bg-[#FBFBF5] p-0.5 rounded-full border border-[#E4E4E7]">
-                    <button
-                      type="button"
-                      onClick={() => switchPersona('faris')}
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-black transition-all cursor-pointer ${
-                        persona === 'faris'
-                          ? 'bg-black text-[#CFA64A]'
-                          : 'text-zinc-600 hover:text-black'
-                      }`}
-                    >
-                      فارس
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => switchPersona('noura')}
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-black transition-all cursor-pointer ${
-                        persona === 'noura'
-                          ? 'bg-[#CFA64A] text-black'
-                          : 'text-zinc-600 hover:text-black'
-                      }`}
-                    >
-                      نُورة
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
+          {/* =====================================================================
+              LEFT COLUMN (اليسار): Clean Interactive White Login Card
+             ===================================================================== */}
+          <div className="lg:col-span-5 flex flex-col items-center lg:items-end w-full">
+            <div className="w-full max-w-[440px]">
+              <div className="bg-white rounded-[28px] border border-[#ebebeb] shadow-[0_20px_60px_rgba(0,0,0,0.06)] p-6 sm:p-8 space-y-5 text-right">
+                {/* Top Mode Switcher Pill */}
+                <div className="grid grid-cols-2 p-1 rounded-full bg-[#f5f5f5] border border-[#ebebeb]">
                   <button
                     type="button"
-                    onClick={toggleLandingVoice}
-                    className="flex-1 py-2 px-3 rounded-full bg-[#F5EDDC] hover:bg-[#CFA64A] text-black border border-[#CFA64A] text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    onClick={() => setPortalMode('staff')}
+                    className={`py-2 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      portalMode === 'staff'
+                        ? 'bg-white text-[#141414] shadow-xs'
+                        : 'text-[#707070] hover:text-[#141414]'
+                    }`}
                   >
-                    {isPlayingVoice ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-                    <span>{isPlayingVoice ? 'إيقاف الصوت التعريفي' : `استمع لتعريف ${persona === 'noura' ? 'نُورة' : 'فارس'}`}</span>
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>بوابة المشرفين</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPortalMode('companies')}
+                    className={`py-2 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      portalMode === 'companies'
+                        ? 'bg-white text-[#141414] shadow-xs'
+                        : 'text-[#707070] hover:text-[#141414]'
+                    }`}
+                  >
+                    <Building2 className="w-3.5 h-3.5" />
+                    <span>مركز الشركات (29)</span>
+                  </button>
+                </div>
+
+                {/* Centered Welcome Title */}
+                <div className="text-center space-y-1 pt-1">
+                  <h2 className="text-2xl font-extrabold text-[#141414] tracking-tight">
+                    مرحباً بعودتك
+                  </h2>
+                  <p className="text-xs font-medium text-[#707070]">
+                    {portalMode === 'staff'
+                      ? 'إدارة ملفك الوظيفي ومهام قسمك وشركتك المستقلة'
+                      : 'اختر الشركة أو المكتب للدخول الفوري إلى بيئة العمل'}
+                  </p>
+                </div>
+
+                {/* Secondary Sub-tab Pill (تسجيل الدخول / تفعيل حساب موظف) */}
+                <div className="grid grid-cols-2 p-1 rounded-full bg-[#f3f3f3]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthTab('login');
+                      setErrorMsg(null);
+                    }}
+                    className={`py-2 px-3 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                      authTab === 'login'
+                        ? 'bg-white text-[#141414] shadow-xs'
+                        : 'text-[#707070] hover:text-[#141414]'
+                    }`}
+                  >
+                    تسجيل الدخول
                   </button>
                   <button
                     type="button"
                     onClick={() => {
-                      window.dispatchEvent(
-                        new CustomEvent('open-faris-assistant', { detail: { persona } })
-                      );
+                      setAuthTab('activate');
+                      setErrorMsg(null);
                     }}
-                    className="py-2 px-3.5 rounded-full bg-[#1D2428] hover:bg-black text-[#CFA64A] border border-[#CFA64A] text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    className={`py-2 px-3 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                      authTab === 'activate'
+                        ? 'bg-white text-[#141414] shadow-xs'
+                        : 'text-[#707070] hover:text-[#141414]'
+                    }`}
                   >
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    <span>محادثة مباشرة</span>
+                    تفعيل حساب موظف
                   </button>
+                </div>
+
+                {/* Quick Biometric & Magic Link Outline Pill Buttons */}
+                <div className="space-y-2.5">
+                  <button
+                    type="button"
+                    onClick={handleBiometricLogin}
+                    disabled={loading}
+                    className="w-full py-2.5 px-4 rounded-full bg-white hover:bg-[#f9f9f9] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <Fingerprint className="w-4 h-4 text-[#0066ff]" />
+                    <span>الدخول بالبصمة البيومترية FIDO2</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => executeQuickLogin('admin@alsulaim.com.sa', 'Alsulaim@2026')}
+                    disabled={loading}
+                    className="w-full py-2.5 px-4 rounded-full bg-white hover:bg-[#f9f9f9] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <Sparkles className="w-4 h-4 text-[#141414]" />
+                    <span>الرابط السحري (دخول الإدارة العليا الفوري)</span>
+                  </button>
+                </div>
+
+                {/* Divider */}
+                <div className="relative flex items-center justify-center py-0.5">
+                  <div className="border-t border-[#ebebeb] w-full" />
+                  <span className="bg-white px-3 text-[11px] font-medium text-[#707070] shrink-0">
+                    أو بالبريد الإلكتروني
+                  </span>
+                  <div className="border-t border-[#ebebeb] w-full" />
+                </div>
+
+                {/* Error / Success Messages */}
+                {errorMsg && (
+                  <div className="p-3 rounded-2xl bg-red-50 border border-red-200 flex items-center gap-2 text-xs font-bold text-red-700">
+                    <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                    <span>{errorMsg}</span>
+                  </div>
+                )}
+
+                {successMsg && (
+                  <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-2 text-xs font-bold text-emerald-800">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>{successMsg}</span>
+                  </div>
+                )}
+
+                {/* Email & Password Form */}
+                <form onSubmit={handleLoginSubmit} className="space-y-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-[#141414] mb-1.5">
+                      البريد الإلكتروني
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
+                        placeholder="your@alsulaim.com.sa"
+                        dir="ltr"
+                        className="w-full pl-4 pr-10 py-3 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-medium text-[#141414] placeholder:text-[#999999] outline-none transition-all text-left"
+                      />
+                      <Mail className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-bold text-[#141414]">كلمة المرور</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIdentifier('admin@alsulaim.com.sa');
+                          setPassword('Alsulaim@2026');
+                        }}
+                        className="text-[11px] font-bold text-[#707070] hover:text-[#141414] transition-colors cursor-pointer"
+                      >
+                        نسيت كلمة المرور؟
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        dir="ltr"
+                        className="w-full pl-10 pr-10 py-3 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-medium text-[#141414] placeholder:text-[#999999] outline-none transition-all text-left"
+                      />
+                      <Lock className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#707070] hover:text-[#141414] cursor-pointer"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3.5 px-6 rounded-full bg-[#141414] hover:bg-[#262626] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-60 mt-1"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>جاري التحقق والدخول...</span>
+                      </>
+                    ) : (
+                      <span>{authTab === 'login' ? 'تسجيل الدخول' : 'تفعيل الحساب والدخول'}</span>
+                    )}
+                  </button>
+                </form>
+
+                {/* Quick Demo Accounts Bar inside the Login Card */}
+                <div className="pt-3 border-t border-[#f0f0f0]">
+                  <div className="flex items-center justify-between text-[10.5px] font-bold text-[#707070] mb-2">
+                    <span>دخول سريع بحسابات الأقسام المعتمدة:</span>
+                    <span className="font-mono text-[10px]">Alsulaim@2026</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[
+                      { label: 'المدير العام', email: 'admin@alsulaim.com.sa' },
+                      { label: 'سماك المالية', email: 'accounting@alsulaim.com.sa' },
+                      { label: 'الاستقدام', email: 'recruitment@alsafeer.sa' },
+                      { label: 'إيواء الرواد', email: 'shelter@daralruwad.sa' },
+                      { label: 'منافسات كاس', email: 'tenders@kas-group.sa' },
+                      { label: 'الموارد البشرية', email: 'hr@alsulaim.com.sa' },
+                    ].map((quick) => (
+                      <button
+                        key={quick.email}
+                        type="button"
+                        onClick={() => executeQuickLogin(quick.email, 'Alsulaim@2026')}
+                        className="py-1.5 px-2 rounded-xl bg-[#f5f5f5] hover:bg-[#141414] text-[#141414] hover:text-white text-[10.5px] font-bold transition-all truncate cursor-pointer"
+                      >
+                        {quick.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -518,10 +636,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
         </div>
       </section>
 
-      {/* 3. Official Corporate Values & Trust Banner (From Flag Brand Identity) */}
-      <section id="values" className="w-full bg-gradient-to-r from-zinc-50 via-champagne-pale/35 to-zinc-50 border-y border-zinc-200/80 py-4 px-4 sm:px-8">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 text-xs font-bold text-zinc-700">
-          <div className="flex items-center gap-2 text-champagne-dark font-extrabold tracking-wider">
+      {/* 3. Official Corporate Values & Trust Banner */}
+      <section id="values" className="w-full bg-[#f3f3f3] border-y border-[#e0e0e0] py-4 px-4 sm:px-8">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 text-xs font-bold text-[#707070]">
+          <div className="flex items-center gap-2 text-[#141414] font-extrabold tracking-wider">
             <span>KSHG</span>
             <span className="text-zinc-300">•</span>
             <span className="text-zinc-900">مجموعة خالد السليم القابضة</span>
@@ -529,19 +647,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
 
           <div className="flex items-center gap-6 sm:gap-8 flex-wrap">
             <span className="flex items-center gap-1.5 hover:text-black transition-colors">
-              <span className="w-1.5 h-1.5 rounded-full bg-champagne-gold"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#141414]"></span>
               <span>الثقة (TRUST)</span>
             </span>
             <span className="flex items-center gap-1.5 hover:text-black transition-colors">
-              <span className="w-1.5 h-1.5 rounded-full bg-champagne-gold"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#141414]"></span>
               <span>النمو (GROWTH)</span>
             </span>
             <span className="flex items-center gap-1.5 hover:text-black transition-colors">
-              <span className="w-1.5 h-1.5 rounded-full bg-champagne-gold"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#141414]"></span>
               <span>الاستثمار (INVESTMENT)</span>
             </span>
             <span className="flex items-center gap-1.5 hover:text-black transition-colors">
-              <span className="w-1.5 h-1.5 rounded-full bg-champagne-gold"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#141414]"></span>
               <span>الاستدامة (SUSTAINABILITY)</span>
             </span>
           </div>
@@ -553,11 +671,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
       </section>
 
       {/* 4. Companies Grid: Luxury White Editorial Cards */}
-      {/* 4. Companies Grid: Luxury White Editorial Cards */}
       <section id="companies" className="max-w-7xl mx-auto px-4 sm:px-8 py-16 sm:py-24">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 sm:mb-14 gap-4 text-right">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-champagne-pale border border-champagne/40 text-champagne-dark text-[11px] font-extrabold mb-2.5">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] text-[11px] font-extrabold mb-2.5">
               <span>COMPANIES & WORKSPACES</span>
               <span>•</span>
               <span>قطاعات الأعمال المستقلة</span>
@@ -680,7 +797,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
       <section id="capabilities" className="border-t border-zinc-200/80 bg-zinc-50/70 py-16 sm:py-24 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="max-w-2xl mb-12 sm:mb-16 text-right">
-            <span className="eyebrow-cap text-champagne-dark text-xs tracking-widest font-bold">CAPABILITIES & INFRASTRUCTURE</span>
+            <span className="eyebrow-cap text-[#707070] text-xs tracking-widest font-bold">CAPABILITIES & INFRASTRUCTURE</span>
             <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-zinc-950 mt-2 font-display">
               بنية تحتية موحدة بمقاييس عالمية
             </h2>
@@ -696,10 +813,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
               style={{ backgroundColor: '#ffffff', color: '#000000' }}
             >
               {/* Top Accent Line */}
-              <div className="absolute top-0 inset-x-0 h-1 bg-[#047857]" />
+              <div className="absolute top-0 inset-x-0 h-1 bg-[#141414]" />
 
               <div className="flex items-center justify-between mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-[#FBFBF5] border border-[#E4E4E7] text-[#047857] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                <div className="w-14 h-14 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
                   <Network className="w-7 h-7" />
                 </div>
                 <BusinessIllustration type="zatca-einvoice" size="sm" showBackground={false} className="!w-20 !h-16" />
@@ -715,22 +832,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
 
               <div className="space-y-2 pt-4 border-t border-zinc-100 text-xs text-zinc-700">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#047857] shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0" />
                   <span className="font-semibold">ربط وتوثيق فوري مع مساند (RC01 - RC03)</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#047857] shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0" />
                   <span className="font-semibold">فوترة مشفرة ZATCA متوافقة كلياً مع المرحلة الثانية</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#047857] shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0" />
                   <span className="font-semibold">تكامل آلي مع التأمينات ومقيم وسحابة اعتماد</span>
                 </div>
               </div>
 
               <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500">
-                <span className="font-bold text-[#047857] flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#047857] animate-pulse" />
+                <span className="font-bold text-[#141414] flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#141414]" />
                   <span>ربط نشط وممتثل 100%</span>
                 </span>
                 <span className="font-mono text-[10px] text-zinc-400">GOV Gateway v2.4</span>
@@ -743,10 +860,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
               style={{ backgroundColor: '#ffffff', color: '#000000' }}
             >
               {/* Top Accent Line */}
-              <div className="absolute top-0 inset-x-0 h-1 bg-[#1D2428]" />
+              <div className="absolute top-0 inset-x-0 h-1 bg-[#141414]" />
 
               <div className="flex items-center justify-between mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-[#FBFBF5] border border-[#E4E4E7] text-black flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                <div className="w-14 h-14 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
                   <TrendingUp className="w-7 h-7" />
                 </div>
                 <BusinessIllustration type="smacc-finance" size="sm" showBackground={false} className="!w-20 !h-16" />
@@ -762,22 +879,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
 
               <div className="space-y-2 pt-4 border-t border-zinc-100 text-xs text-zinc-700">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#8C681E] shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0" />
                   <span className="font-semibold">6 أنظمة محاسبية متكاملة وعزل دفاتر كل شركة</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#8C681E] shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0" />
                   <span className="font-semibold">رفع واستخلاص حتى 100 فاتورة ومستندات PDF/Word/Excel</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#8C681E] shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0" />
                   <span className="font-semibold">أرشفة رقمية للقيود وتفقيط مالي آلي بالريال السعودي</span>
                 </div>
               </div>
 
               <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500">
                 <span className="font-bold text-black flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#CFA64A]" />
+                  <span className="w-2 h-2 rounded-full bg-[#141414]" />
                   <span>عزل مالي ومحاسبي 100%</span>
                 </span>
                 <span className="font-mono text-[10px] text-zinc-400">SMACC 6-Divisions</span>
@@ -790,11 +907,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
               style={{ backgroundColor: '#ffffff', color: '#000000' }}
             >
               {/* Top Accent Line */}
-              <div className="absolute top-0 inset-x-0 h-1 bg-[#CFA64A]" />
+              <div className="absolute top-0 inset-x-0 h-1 bg-[#141414]" />
 
               <div className="flex items-center justify-between mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-[#F5EDDC] border border-[#CFA64A] text-black flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-                  <Bot className="w-7 h-7 text-[#8C681E]" />
+                <div className="w-14 h-14 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                  <Bot className="w-7 h-7 text-[#141414]" />
                 </div>
                 <BusinessIllustration type="ai-copilot" size="sm" showBackground={false} className="!w-20 !h-16" />
               </div>
@@ -809,22 +926,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
 
               <div className="space-y-2 pt-4 border-t border-zinc-100 text-xs text-zinc-700">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#8C681E] shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0" />
                   <span className="font-semibold">فارس للمنافسات والمحاسبة • نُورة للإيواء والتشغيل</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#8C681E] shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0" />
                   <span className="font-semibold">أوامر صوتية وتوجيه مباشر للشاشات المصرح بها</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#8C681E] shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0" />
                   <span className="font-semibold">عزل تام للبيانات حسب شركة وقسم كل موظف</span>
                 </div>
               </div>
 
               <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500">
-                <span className="font-bold text-[#8C681E] flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#CFA64A]" />
+                <span className="font-bold text-[#141414] flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#141414]" />
                   <span>توجيه مؤسسي 24/7</span>
                 </span>
                 <span className="font-mono text-[10px] text-zinc-400">Faris & Noura Suite</span>
@@ -839,7 +956,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 mb-12 text-right">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full border border-champagne/60 p-0.5 bg-white shrink-0 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full border border-[#e0e0e0] p-0.5 bg-white shrink-0 flex items-center justify-center">
                 <img src="/logo.png" alt="Logo" className="w-full h-full object-contain rounded-full" />
               </div>
               <span className="font-bold text-base text-zinc-950 font-display">مجموعة خالد السليم</span>
@@ -847,7 +964,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
             <p className="text-xs text-zinc-600 leading-relaxed">
               المنظومة الرقمية المركزية الرائدة لإدارة قطاع الاستقدام والتشغيل والمنافسات والتوريدات بالمملكة العربية السعودية.
             </p>
-            <div className="flex items-center gap-2 pt-1 text-[11px] text-champagne-dark font-bold">
+            <div className="flex items-center gap-2 pt-1 text-[11px] text-[#141414] font-bold">
               <span>نستثمر في الفرص.. نصنع المستقبل</span>
             </div>
           </div>

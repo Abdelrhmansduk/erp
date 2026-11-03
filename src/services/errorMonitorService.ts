@@ -63,7 +63,7 @@ export interface SystemHealthSummary {
   checks: SystemHealthCheckItem[];
 }
 
-const STORAGE_KEY = 'KAS_ENTERPRISE_ERROR_MONITOR_V1';
+const STORAGE_KEY = 'KAS_ENTERPRISE_ERROR_MONITOR_V2';
 
 const CATEGORY_LABELS: Record<ErrorCategory, string> = {
   react_render: 'رندرة الواجهة وشجرة DOM (React Fiber)',
@@ -181,20 +181,22 @@ const INITIAL_SEED_INCIDENTS: MonitoredErrorIncident[] = [
     categoryLabelAr: CATEGORY_LABELS.data_validation,
     severity: 'medium',
     severityLabelAr: SEVERITY_LABELS.medium,
-    status: 'open',
-    statusLabelAr: STATUS_LABELS.open,
+    status: 'auto_healed',
+    statusLabelAr: STATUS_LABELS.auto_healed,
     moduleName: 'Musaned & Ingaz Sync Engine',
     routeOrTab: 'ingaz',
     diagnosisAr:
       'سجل تفويض مسودة وارد من مكتب خارجي يحتوي على حقل رقم حدود قيد الاستكمال.',
     remediationAr:
-      'اضغط على "إصلاح ذاتي فوري" لاستكمال الحقل افتراضياً من بطاقة السيرة الذاتية المرتبطة أو اعتماده يدوياً.',
-    autoHealed: false,
+      'تم استكمال حقل رقم الحدود تلقائياً من بطاقة السيرة الذاتية المرتبطة واعتماده في دفعة مساند.',
+    autoHealed: true,
+    healingActionAr: 'استكمال رقم الحدود تلقائياً من بطاقة الجواز ومزامنة مساند خلال 92ms',
     stack:
       'ValidationNotice: Border number field empty on record #DEL-8841\n  at validateDelegationPayload (ingazService.ts:64)',
     occurrences: 1,
     firstSeenAt: '2026-10-22 13:50:11',
     lastSeenAt: '2026-10-22 13:50:11',
+    resolvedAt: '2026-10-22 13:50:12',
     browserInfo: 'KAS API Validator / v2.4',
     latencyMs: 92,
   },

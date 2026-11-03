@@ -429,7 +429,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         />
       )}
 
-      {/* Sidebar (Desktop Collapsible or Mobile Slide-over Drawer) */}
+      {/* Sidebar (Desktop Collapsible Rail or Mobile Slide-over Drawer) */}
       <aside
         className={`app-sidebar ${
           isDesktop
@@ -441,25 +441,25 @@ export const AppShell: React.FC<AppShellProps> = ({
             : 'mobile-drawer-closed'
         }`}
         style={{
+          width: isDesktop ? (desktopSidebarCollapsed ? '76px' : 'var(--sidebar-width)') : undefined,
+          minWidth: isDesktop ? (desktopSidebarCollapsed ? '76px' : 'var(--sidebar-width)') : undefined,
           transform: isDesktop
-            ? desktopSidebarCollapsed
-              ? isRtl
-                ? 'translateX(100%)'
-                : 'translateX(-100%)'
-              : 'translateX(0)'
+            ? 'translateX(0)'
             : mobileDrawerOpen
             ? 'translateX(0)'
             : isRtl
             ? 'translateX(100%)'
             : 'translateX(-100%)',
           transition:
-            'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+            'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), width 0.25s cubic-bezier(0.16, 1, 0.3, 1), min-width 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
         <Sidebar
           activeTab={activeTab}
           onSelectTab={handleSelectTab}
           onClose={() => setMobileDrawerOpen(false)}
+          isCollapsed={isDesktop && desktopSidebarCollapsed}
+          onToggleCollapse={handleToggleSidebar}
         />
       </aside>
 
@@ -467,14 +467,14 @@ export const AppShell: React.FC<AppShellProps> = ({
       <div
         className="main-wrapper"
         style={{
-          marginRight: isDesktop && isRtl && !desktopSidebarCollapsed ? 'var(--sidebar-width)' : '0px',
-          marginLeft: isDesktop && !isRtl && !desktopSidebarCollapsed ? 'var(--sidebar-width)' : '0px',
-          width: isDesktop && !desktopSidebarCollapsed ? 'calc(100% - var(--sidebar-width))' : '100%',
+          marginRight: isDesktop && isRtl ? (desktopSidebarCollapsed ? '76px' : 'var(--sidebar-width)') : '0px',
+          marginLeft: isDesktop && !isRtl ? (desktopSidebarCollapsed ? '76px' : 'var(--sidebar-width)') : '0px',
+          width: isDesktop ? `calc(100% - ${desktopSidebarCollapsed ? '76px' : 'var(--sidebar-width)'})` : '100%',
           maxWidth:
-            isDesktop && !desktopSidebarCollapsed ? 'calc(100vw - var(--sidebar-width))' : '100vw',
+            isDesktop ? `calc(100vw - ${desktopSidebarCollapsed ? '76px' : 'var(--sidebar-width)'})` : '100vw',
           minWidth: 0,
           transition:
-            'margin 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+            'margin 0.25s cubic-bezier(0.16, 1, 0.3, 1), width 0.25s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
         {/* Sticky Header Navbar */}

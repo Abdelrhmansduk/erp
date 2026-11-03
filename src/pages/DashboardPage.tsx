@@ -202,8 +202,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 </span>
               </div>
               <h2 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, margin: 0, letterSpacing: '-0.02em', color: '#ffffff', fontFamily: 'var(--font-family-display)' }}>
-                مرحباً مجموعة خالد السليم 👋
-              </h2>
+                مرحباً مجموعة خالد السليم </h2>
               <p className="text-xs text-zinc-400 mt-1 max-w-xl font-sans leading-relaxed">
                 تابع أداء العقود والطلبات والإيرادات لحظة بلحظة مع إمكانية التحكم الكامل في الأقسام والعمليات التشغيلية.
               </p>

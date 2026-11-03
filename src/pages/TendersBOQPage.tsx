@@ -1843,17 +1843,17 @@ export const TendersBOQPage: React.FC = () => {
           {/* Additional KPIs */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff' }}>
-              <h4 className="text-xs font-bold text-zinc-500 mb-2">🏆 أعلى عميل بالقيمة</h4>
+              <h4 className="text-xs font-bold text-zinc-500 mb-2">أعلى عميل بالقيمة</h4>
               <div className="text-sm font-bold text-black">{kpis.topClient.name}</div>
               <div className="text-xs text-zinc-600 mt-1">{kpis.topClient.value.toLocaleString()} ر.س — {kpis.topClient.count} منافسة</div>
             </div>
             <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff' }}>
-              <h4 className="text-xs font-bold text-zinc-500 mb-2">📊 متوسط قيمة المنافسة</h4>
+              <h4 className="text-xs font-bold text-zinc-500 mb-2">متوسط قيمة المنافسة</h4>
               <div className="text-sm font-bold text-black">{kpis.avgTenderValue.toLocaleString()} ر.س</div>
               <div className="text-xs text-zinc-600 mt-1">شامل الضريبة 15%</div>
             </div>
             <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff' }}>
-              <h4 className="text-xs font-bold text-zinc-500 mb-2">📋 حالة المنافسات</h4>
+              <h4 className="text-xs font-bold text-zinc-500 mb-2">حالة المنافسات</h4>
               <div className="flex gap-3 mt-1">
                 <span className="text-xs"><span className="font-bold text-amber-600">{kpis.totalDraft}</span> مسودة</span>
                 <span className="text-xs"><span className="font-bold text-sky-600">{kpis.totalSubmitted}</span> مقدمة</span>

@@ -50,37 +50,37 @@ export const SmaccDashboardWidget: React.FC = () => {
         </div>
       </div>
 
-      {/* Top 3 Stat Counter Cards with Level 3 Stacked Shadows and Thin 330 Display Numbers */}
+      {/* Top 3 Stat Counter Cards — Mobbin 24px Uniform Surface & 30% Squircle Icons */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* Card 1: عدد البائعين */}
-        <div className="card-pricing" style={{ padding: '22px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="card-pricing" style={{ padding: '22px 24px', borderRadius: '24px', background: '#ffffff', border: '1px solid #e0e0e0', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <span style={{ fontSize: '12px', fontWeight: 550, color: '#71717a', display: 'block', marginBottom: '4px' }}>عدد البائعين</span>
-            <span className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#000000', letterSpacing: '-0.02em' }}>2</span>
+            <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#707070', display: 'block', marginBottom: '6px' }}>عدد البائعين</span>
+            <span className="display-sm" style={{ fontSize: '32px', fontWeight: 652, color: '#141414', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>2</span>
           </div>
-          <div style={{ width: '44px', height: '44px', borderRadius: '9999px', background: '#000000', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '44px', height: '44px', borderRadius: '30%', background: '#f3f3f3', color: '#141414', border: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Users className="w-5 h-5" />
           </div>
         </div>
 
         {/* Card 2: عدد العملاء */}
-        <div className="card-pistachio-band" style={{ padding: '22px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="card-pricing" style={{ padding: '22px 24px', borderRadius: '24px', background: '#ffffff', border: '1px solid #e0e0e0', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <span style={{ fontSize: '12px', fontWeight: 550, color: '#000000', display: 'block', marginBottom: '4px' }}>عدد العملاء</span>
-            <span className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#000000', letterSpacing: '-0.02em' }}>4</span>
+            <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#707070', display: 'block', marginBottom: '6px' }}>عدد العملاء</span>
+            <span className="display-sm" style={{ fontSize: '32px', fontWeight: 652, color: '#141414', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>4</span>
           </div>
-          <div style={{ width: '44px', height: '44px', borderRadius: '9999px', background: '#ffffff', color: '#000000', border: '1px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '44px', height: '44px', borderRadius: '30%', background: '#f3f3f3', color: '#141414', border: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <UserCheck className="w-5 h-5" />
           </div>
         </div>
 
         {/* Card 3: عدد محصلين المبيعات */}
-        <div className="card-pricing" style={{ padding: '22px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="card-pricing" style={{ padding: '22px 24px', borderRadius: '24px', background: '#ffffff', border: '1px solid #e0e0e0', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <span style={{ fontSize: '12px', fontWeight: 550, color: '#71717a', display: 'block', marginBottom: '4px' }}>عدد محصلين المبيعات</span>
-            <span className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#000000', letterSpacing: '-0.02em' }}>1</span>
+            <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#707070', display: 'block', marginBottom: '6px' }}>عدد محصلين المبيعات</span>
+            <span className="display-sm" style={{ fontSize: '32px', fontWeight: 652, color: '#141414', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>1</span>
           </div>
-          <div style={{ width: '44px', height: '44px', borderRadius: '9999px', background: '#f4f4f5', color: '#000000', border: '1px solid #e4e4e7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '44px', height: '44px', borderRadius: '30%', background: '#f3f3f3', color: '#141414', border: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <CreditCard className="w-5 h-5" />
           </div>
         </div>

@@ -240,67 +240,102 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
     }
   };
 
-  return (
-    <div className="flex h-screen w-full bg-[#0d1013] text-zinc-100 overflow-hidden font-sans" dir="rtl">
-      {/* 1. Dedicated KAS Navigation Sidebar */}
-      <KasNavigationSidebar
-        activeDept={activeDept}
-        onSelectDept={setActiveDept}
-        onReturnToErp={onReturnToErp}
-        selectedBranch={selectedBranch}
-        onSelectBranch={setSelectedBranch}
-      />
+  const kasSubTabs: Array<{ id: KasDepartmentId; label: string; icon: React.ReactNode; badge?: string }> = [
+    { id: 'command-center', label: 'المركز التنفيذي للمنافسات', icon: <BarChart3 className="w-3.5 h-3.5" /> },
+    { id: 'monafasat', label: 'منافسات منصة اعتماد', icon: <Layers className="w-3.5 h-3.5" />, badge: '2,651' },
+    { id: 'boq-editor', label: 'محرر جداول الكميات BOQ', icon: <Calculator className="w-3.5 h-3.5" /> },
+    { id: 'suppliers', label: 'سجل الموردين والمقاولين', icon: <Store className="w-3.5 h-3.5" />, badge: String(suppliers.length) },
+    { id: 'purchase-orders', label: 'أوامر التوريد والصرف PO', icon: <Truck className="w-3.5 h-3.5" />, badge: String(purchaseOrders.length) },
+    { id: 'contracts-projects', label: 'ترسية المشاريع والعقود', icon: <Award className="w-3.5 h-3.5" />, badge: '12' },
+    { id: 'zatca-invoices', label: 'فوترة ZATCA المشفرة', icon: <QrCode className="w-3.5 h-3.5" />, badge: String(invoices.length) },
+    { id: 'etmad-cloud-api', label: 'الربط السحابي Etmad API', icon: <CloudLightning className="w-3.5 h-3.5" /> },
+    { id: 'audit-security', label: 'تدقيق الأمان وعزل البيانات', icon: <ShieldCheck className="w-3.5 h-3.5" /> },
+  ];
 
-      {/* 2. Main Executive Content Area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#0f1316]">
-        {/* Top Header Bar with KAS Branding & Quick Controls */}
-        <header className="h-16 border-b border-white/10 bg-[#14181c] px-6 flex items-center justify-between shrink-0 shadow-md">
-          {/* Right side: Department Title & Active Badge */}
-          <div className="flex items-center gap-3">
+  return (
+    <div className="space-y-6" dir="rtl">
+      {/* 1. Mobbin Grand Hero Banner */}
+      <div className="card-feature-cinematic p-6">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
             <BusinessIllustration
               type="kas-tenders"
               size="sm"
               showBackground={false}
-              className="!w-12 !h-11 shrink-0"
+              className="!w-16 !h-14 shrink-0"
             />
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-sm font-bold text-white m-0">
-                  {activeDept === 'command-center' && 'مركز العمليات والمؤشرات التنفيذية — كاس'}
-                  {activeDept === 'monafasat' && 'منصة اعتماد والمنافسات الحكومية المطروحة (2,651+ منافسة)'}
-                  {activeDept === 'boq-editor' && 'محرر جداول الكميات والأسعار الذكي (Live Excel BOQ)'}
-                  {activeDept === 'suppliers' && 'سجل الموردين والمقاولين المعتمدين لشركة كاس'}
-                  {activeDept === 'purchase-orders' && 'أوامر التوريد وصرف المستودعات المركزية (PO)'}
-                  {activeDept === 'contracts-projects' && 'ترسية المشاريع والعقود الحكومية السارية'}
-                  {activeDept === 'zatca-invoices' && 'الفوترة الإلكترونية ZATCA المرحلة الثانية المشفرة'}
-                  {activeDept === 'etmad-cloud-api' && 'مركز تكامل سحابة اعتماد والربط الشبكي (Etmad API)'}
-                  {activeDept === 'audit-security' && 'سجل تدقيق الأمان وعزل البيانات والامتثال'}
-                </h1>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="pill-tag-mint text-[11px] font-bold">
+                  KAS ENTERPRISE PLATFORM
+                </span>
+                <span className="pill-tag-shade text-[11px] font-bold">
                   كيان معزول 100%
                 </span>
+                <span className="text-xs text-[#707070] font-mono">
+                  السجل: 1010789234 • الرقم الضريبي: 310284759200003
+                </span>
               </div>
-              <p className="text-[11px] text-zinc-400 m-0 font-sans">
-                نطاق العمل: {selectedBranch} • السجل: 1010789234 • الرقم الضريبي: 310284759200003
+              <h2 className="text-xl font-bold text-[#141414] m-0 tracking-tight">
+                منظومة المنافسات الحكومية والمشاريع — شركة كاس
+              </h2>
+              <p className="text-xs text-[#707070] max-w-3xl leading-relaxed m-0">
+                إدارة مركزية للمنافسات الحكومية عبر منصة اعتماد، كراسات وجداول الكميات (BOQ)، عقود التوريد والصرف للمشاريع، والفوترة الإلكترونية المشفرة لـ ZATCA.
               </p>
             </div>
           </div>
 
-          {/* Left side: Export Dropdown, Quick Action, and Return Button */}
-          <div className="flex items-center gap-2.5">
-            <div className="hidden lg:flex items-center gap-2 bg-white/5 border border-white/10 rounded-full py-1 px-2.5">
-              <CorporateAvatar
-                size="sm"
-                archetype="tenders-engineer"
-                status="verified"
-                name={currentUser?.fullName || 'م. أحمد البشير'}
-                role="مدير منافسات كاس"
-              />
-              <div className="text-right">
-                <div className="text-[11px] font-bold text-white leading-tight">{currentUser?.fullName || 'م. أحمد البشير'}</div>
-                <div className="text-[10px] text-amber-400 leading-tight">مدير المنافسات والتسعير</div>
-              </div>
-            </div>
+          {/* Right Quick Actions & Branch Selector */}
+          <div className="pt-3 border-t border-[#e0e0e0] flex items-center gap-2 flex-wrap">
+            <select
+              value={selectedBranch}
+              onChange={(e) => setSelectedBranch(e.target.value)}
+              className="px-3 py-1.5 text-xs font-bold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] rounded-full focus:outline-none"
+              aria-label="تصفية حسب فرع كاس"
+            >
+              {KAS_BRANCHES.map((b) => (
+                <option key={b.id} value={b.name}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+
+            <button
+              type="button"
+              onClick={() => setShowAddTenderModal(true)}
+              className="btn-pill-dark px-3.5 py-1.5 text-xs font-bold flex items-center gap-1.5"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>منافسة جديدة</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowAddSupplierModal(true)}
+              className="btn-pill-secondary px-3 py-1.5 text-xs font-bold flex items-center gap-1.5"
+            >
+              <Store className="w-3.5 h-3.5" />
+              <span>+ مورد</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowAddPoModal(true)}
+              className="btn-pill-secondary px-3 py-1.5 text-xs font-bold flex items-center gap-1.5"
+            >
+              <Truck className="w-3.5 h-3.5" />
+              <span>+ أمر توريد</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowAddInvoiceModal(true)}
+              className="btn-pill-secondary px-3 py-1.5 text-xs font-bold flex items-center gap-1.5"
+            >
+              <QrCode className="w-3.5 h-3.5" />
+              <span>+ فاتورة ZATCA</span>
+            </button>
+
             <ExportDropdown
               sectionKey={`kas_${activeDept}`}
               data={getExportData()}
@@ -308,161 +343,95 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
               buttonLabel="تصدير بيانات كاس"
               variant="compact"
             />
-
-            {activeDept === 'monafasat' && (
-              <button
-                type="button"
-                onClick={() => setShowAddTenderModal(true)}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-400 text-black hover:bg-amber-300 shadow-md shadow-amber-500/20 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                <span>إضافة منافسة جديدة</span>
-              </button>
-            )}
-
-            {activeDept === 'suppliers' && (
-              <button
-                type="button"
-                onClick={() => setShowAddSupplierModal(true)}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-400 text-black hover:bg-amber-300 shadow-md shadow-amber-500/20 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                <span>اعتماد مورد جديد</span>
-              </button>
-            )}
-
-            {activeDept === 'purchase-orders' && (
-              <button
-                type="button"
-                onClick={() => setShowAddPoModal(true)}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-400 text-black hover:bg-amber-300 shadow-md shadow-amber-500/20 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                <span>إصدار أمر توريد</span>
-              </button>
-            )}
-
-            {activeDept === 'zatca-invoices' && (
-              <button
-                type="button"
-                onClick={() => setShowAddInvoiceModal(true)}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-400 text-black hover:bg-emerald-300 shadow-md shadow-emerald-500/20 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                <span>فاتورة ZATCA جديدة</span>
-              </button>
-            )}
-
-            {onReturnToErp && (
-              <button
-                type="button"
-                onClick={onReturnToErp}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 transition-colors"
-                title="الرجوع إلى لوحة تحكم المجموعة العامة"
-              >
-                <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
-                <span>نظام المجموعة ERP</span>
-              </button>
-            )}
           </div>
-        </header>
+        </div>
+      </div>
 
-        {/* Dynamic Department Content Body */}
-        <main className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-white/10">
+      {/* 2. Mobbin 4 KPI Metric Cards (.stat-card-grid) */}
+      <div className="stat-card-grid">
+        <div className="card-pricing">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-[#707070]">إجمالي المنافسات المسجلة</span>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#f3f3f3] border border-[#e0e0e0]">
+              <Layers className="w-4 h-4 text-[#141414]" />
+            </div>
+          </div>
+          <div className="display-sm">2,651</div>
+          <div className="pill-tag-mint mt-2">سجل شيت كاس الشامل</div>
+        </div>
 
-          {/* ========================================================================= */}
-          {/* DEPT 1: COMMAND CENTER & EXECUTIVE KPIS */}
-          {/* ========================================================================= */}
-          {activeDept === 'command-center' && (
-            <div className="space-y-6">
-              {/* Cinematic Hero Overview Card */}
-              <div className="rounded-2xl p-6 bg-gradient-to-l from-[#182026] via-[#141a1f] to-[#101417] border border-amber-500/20 shadow-xl relative overflow-hidden">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                        KAS ENTERPRISE PLATFORM
-                      </span>
-                      <span className="text-xs text-zinc-400 font-mono">
-                        نطاق مستقل ومحمي — 0 تسريب بين الشركات
-                      </span>
-                    </div>
-                    <h2 className="text-2xl font-bold text-white m-0">
-                      لوحة قيادة العمليات والمنافسات — مؤسسة كاس
-                    </h2>
-                    <p className="text-xs text-zinc-300 max-w-2xl leading-relaxed">
-                      إدارة مركزية للمنافسات الحكومية عبر منصة اعتماد، كراسات وجداول الكميات (BOQ)، عقود التوريد والصرف للمشاريع، والفوترة الإلكترونية المشفرة لـ ZATCA بمعزل تام عن شركات الاستقدام الأخرى.
-                    </p>
-                  </div>
+        <div className="card-pistachio-band">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-[#262626]">المبيعات والفواتير المعتمدة</span>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white border border-[#e0e0e0]">
+              <DollarSign className="w-4 h-4 text-[#141414]" />
+            </div>
+          </div>
+          <div className="display-sm">106,006 ر.س</div>
+          <div className="pill-tag-mint mt-2">فواتير ZATCA المرحلة الثانية</div>
+        </div>
 
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setActiveDept('monafasat')}
-                      className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-400 text-black hover:bg-amber-300 shadow-md shadow-amber-500/20 flex items-center gap-2"
-                    >
-                      <Layers className="w-4 h-4" />
-                      <span>تصفح المنافسات (2,651)</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveDept('boq-editor')}
-                      className="px-4 py-2 rounded-xl text-xs font-bold bg-[#1d252c] text-white hover:bg-[#252f38] border border-white/15 flex items-center gap-2"
-                    >
-                      <Calculator className="w-4 h-4 text-emerald-400" />
-                      <span>محرر BOQ الذكي</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
+        <div className="card-pricing">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-[#707070]">المشاريع والعقود الجارية</span>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#f3f3f3] border border-[#e0e0e0]">
+              <Award className="w-4 h-4 text-[#141414]" />
+            </div>
+          </div>
+          <div className="display-sm">12 مشروعاً</div>
+          <div className="pill-tag-shade mt-2">نسبة الترسية 56.6%</div>
+        </div>
 
-              {/* 4 KPI Metric Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="rounded-2xl p-4 bg-[#14181c] border border-white/10 shadow-md">
-                  <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-                    <span>إجمالي المنافسات المسجلة</span>
-                    <Layers className="w-4 h-4 text-amber-400" />
-                  </div>
-                  <div className="text-2xl font-black text-white">2,651</div>
-                  <div className="text-[11px] text-emerald-400 mt-1 flex items-center gap-1 font-bold">
-                    <TrendingUp className="w-3 h-3" />
-                    <span>سجل شيت كاس الشامل</span>
-                  </div>
-                </div>
+        <div className="card-pricing">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-[#707070]">الموردون المعتمدون</span>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#f3f3f3] border border-[#e0e0e0]">
+              <Store className="w-4 h-4 text-[#141414]" />
+            </div>
+          </div>
+          <div className="display-sm">48 مورداً</div>
+          <div className="pill-tag-mint mt-2">سجل الموردين والمقاولين</div>
+        </div>
+      </div>
 
-                <div className="rounded-2xl p-4 bg-[#14181c] border border-white/10 shadow-md">
-                  <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-                    <span>المبيعات والفواتير المعتمدة</span>
-                    <DollarSign className="w-4 h-4 text-emerald-400" />
-                  </div>
-                  <div className="text-2xl font-black text-emerald-400">106,006 ر.س</div>
-                  <div className="text-[11px] text-zinc-400 mt-1 font-mono">
-                    فواتير ZATCA المرحلة الثانية
-                  </div>
-                </div>
+      {/* 3. Horizontal Mobbin Stadium Pill Tab Bar */}
+      <div className="bg-white border border-[#e0e0e0] rounded-2xl p-2 flex items-center gap-1.5 flex-wrap">
+        {kasSubTabs.map((tab) => {
+          const isActive = activeDept === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveDept(tab.id)}
+              className={`px-3.5 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                isActive
+                  ? 'bg-[#141414] text-white'
+                  : 'bg-transparent text-[#707070] hover:bg-[#f3f3f3] hover:text-[#141414]'
+              }`}
+            >
+              {tab.icon}
+              <span>{tab.label}</span>
+              {tab.badge && (
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
+                  }`}
+                >
+                  {tab.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
 
-                <div className="rounded-2xl p-4 bg-[#14181c] border border-white/10 shadow-md">
-                  <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-                    <span>المشاريع والعقود الجارية</span>
-                    <Award className="w-4 h-4 text-amber-400" />
-                  </div>
-                  <div className="text-2xl font-black text-amber-300">12 مشروعاً</div>
-                  <div className="text-[11px] text-emerald-400 mt-1 font-bold">
-                    نسبة الترسية 56.6%
-                  </div>
-                </div>
-
-                <div className="rounded-2xl p-4 bg-[#14181c] border border-white/10 shadow-md">
-                  <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-                    <span>الموردون المعتمدون</span>
-                    <Store className="w-4 h-4 text-blue-400" />
-                  </div>
-                  <div className="text-2xl font-black text-blue-300">48 مورداً</div>
-                  <div className="text-[11px] text-zinc-400 mt-1">
-                    سجل الموردين والمقاولين
-                  </div>
-                </div>
-              </div>
+      {/* 4. Dynamic Department Content Body */}
+      <div className="space-y-6">
+        {/* ========================================================================= */}
+        {/* DEPT 1: COMMAND CENTER & EXECUTIVE KPIS */}
+        {/* ========================================================================= */}
+        {activeDept === 'command-center' && (
+          <div className="space-y-6">
 
               {/* Two Column Section: Recent Tenders & Live Invoices */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -769,7 +738,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                         </div>
                       </div>
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300">
-                        ⭐ {sup.rating}
+                        {sup.rating}
                       </span>
                     </div>
 
@@ -1026,8 +995,6 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
               </div>
             </div>
           )}
-
-        </main>
       </div>
 
       {/* ========================================================================= */}

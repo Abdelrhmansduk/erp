@@ -729,40 +729,36 @@ export const CVsBankPage: React.FC = () => {
       </div>
 
       {/* ─── 4 Quick KPI Summary Cards ─── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="card-pricing p-5 bg-white rounded-2xl border border-zinc-200 flex flex-col justify-between">
-          <span className="text-xs text-zinc-500 font-bold">إجمالي السير في هذا القسم</span>
-          <div className="text-3xl font-black text-black my-1 font-mono">
-            {filteredCVs.length} <span className="text-xs font-normal text-zinc-400">سيرة</span>
-          </div>
-          <span className="text-[10.5px] text-zinc-400">محدثة ومطابقة لمنصة مساند</span>
+      <div className="stat-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+        <div className="card-pricing" style={{ padding: '24px', borderRadius: '24px' }}>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 600 }}>إجمالي السير في هذا القسم</span>
+          <div className="display-sm">{filteredCVs.length} سيرة</div>
+          <span className="pill-tag-mint" style={{ fontSize: '11px' }}>محدثة ومطابقة لمنصة مساند</span>
         </div>
 
-        <div className="card-pistachio-band p-5 rounded-2xl border border-emerald-200/60 bg-emerald-50/40 flex flex-col justify-between">
-          <span className="text-xs text-emerald-800 font-bold">متاحة للحجز والتعاقد الفوري</span>
-          <div className="text-3xl font-black text-emerald-900 my-1 font-mono">
-            {filteredCVs.filter(c => c.status === 'متاح').length} <span className="text-xs font-normal text-emerald-700">متاحة</span>
-          </div>
-          <span className="text-[10.5px] text-emerald-700 font-medium">فحوصات طبية وجوازات سارية</span>
+        <div className="card-pistachio-band" style={{ padding: '24px', borderRadius: '24px' }}>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 600 }}>متاحة للحجز والتعاقد الفوري</span>
+          <div className="display-sm">{filteredCVs.filter(c => c.status === 'متاح').length} متاحة</div>
+          <span className="pill-tag-shade" style={{ fontSize: '11px' }}>فحوصات طبية وجوازات سارية</span>
         </div>
 
-        <div className="card-pricing p-5 bg-white rounded-2xl border border-zinc-200 flex flex-col justify-between">
-          <span className="text-xs text-zinc-500 font-bold">السير المحجوزة وقيد العقد</span>
-          <div className="text-3xl font-black text-amber-700 my-1 font-mono">
-            {filteredCVs.filter(c => c.status === 'محجوز' || c.status === 'مؤجر').length}
+        <div className="card-pricing" style={{ padding: '24px', borderRadius: '24px' }}>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 600 }}>السير المحجوزة وقيد العقد</span>
+          <div className="display-sm">
+            {filteredCVs.filter(c => c.status === 'محجوز' || c.status === 'مؤجر').length} سيرة
           </div>
-          <span className="text-[10.5px] text-zinc-400">عقود تفويض أو عقود تأجير نشطة</span>
+          <span className="pill-tag-mint" style={{ fontSize: '11px' }}>عقود تفويض أو عقود تأجير نشطة</span>
         </div>
 
-        <div className="card-pricing p-5 bg-white rounded-2xl border border-zinc-200 flex flex-col justify-between">
-          <span className="text-xs text-zinc-500 font-bold">متوسط الراتب / الباقة الشهرية</span>
-          <div className="text-3xl font-black text-black my-1 font-mono">
+        <div className="card-pricing" style={{ padding: '24px', borderRadius: '24px' }}>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 600 }}>متوسط الراتب / الباقة الشهرية</span>
+          <div className="display-sm">
             {filteredCVs.length > 0
               ? Math.round(filteredCVs.reduce((sum, c) => sum + c.salary, 0) / filteredCVs.length).toLocaleString()
               : '1,500'}{' '}
-            <span className="text-xs font-normal text-zinc-400">ر.س</span>
+            ر.س
           </div>
-          <span className="text-[10.5px] text-zinc-400">بحسب الجنسية والمهنة</span>
+          <span className="pill-tag-mint" style={{ fontSize: '11px' }}>بحسب الجنسية والمهنة</span>
         </div>
       </div>
 

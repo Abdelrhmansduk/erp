@@ -732,16 +732,18 @@ const MainContent: React.FC = () => {
         </>
       )}
 
-      <AICopilotWidget
-        onNavigate={(tabKey, title) => {
-          if (flowState !== 'workspace') {
-            setFlowState('workspace');
-          }
-          handleSelectTab(tabKey, title || '');
-        }}
-      />
+      {(flowState === 'workspace' || flowState === 'launcher') && (
+        <AICopilotWidget
+          onNavigate={(tabKey, title) => {
+            if (flowState !== 'workspace') {
+              setFlowState('workspace');
+            }
+            handleSelectTab(tabKey, title || '');
+          }}
+        />
+      )}
       <UniversalNotificationToaster onNavigate={(tabKey, title) => handleSelectTab(tabKey, title || '')} />
-      <PwaInstallPrompt />
+      {(flowState === 'workspace' || flowState === 'launcher') && <PwaInstallPrompt />}
       {showLegalModal && (
         <LegalDisclaimerModal
           user={currentUserForLegal}

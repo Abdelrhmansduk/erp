@@ -954,8 +954,8 @@ export const RecruitmentContractsPage: React.FC = () => {
         {[
           { id: 'all', label: `جميع عقود الاستقدام (${contracts.length || 115})` },
           { id: 'active', label: 'العقود السارية (27)' },
-          { id: 'musaned', label: 'مزامنة مساند ⚡' },
-          { id: 'insurance', label: 'بوالص التأمين (3) 🛡️' },
+          { id: 'musaned', label: 'مزامنة مساند ' },
+          { id: 'insurance', label: 'بوالص التأمين (3) ' },
           { id: 'dispatches', label: `إرساليات المكتب الخارجي (${MOCK_DISPATCHES.length})` },
           { id: 'extensions', label: `طلبات تمديد العقود (${MOCK_EXTENSIONS.length})` },
           { id: 'returns', label: `طلبات استرجاع العقود (${MOCK_RETURNS.length})` },

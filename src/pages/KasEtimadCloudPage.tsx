@@ -810,7 +810,7 @@ export const KasEtimadCloudPage: React.FC = () => {
       return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">✓ {status}</span>;
     }
     if (status.includes('رفع العرض') || status === 'مدفوع جزئيًا' || status === 'مرسل' || status === 'قيد التقدم' || status === 'مفتوحة' || status === 'مفتوح' || status === 'مؤهل' || status === 'عرض سعر مرسل') {
-      return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-600 border border-sky-500/20">⏳ {status}</span>;
+      return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-600 border border-sky-500/20">{status}</span>;
     }
     if (status.includes('لاغي') || status === 'ملغي' || status === 'مرفوض' || status === 'غير مدفوع' || status === 'متأخر' || status === 'حرج' || status === 'مغلق خاسر') {
       return <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-600 border border-rose-500/20">✕ {status}</span>;
@@ -1954,7 +1954,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                   <span className="font-mono font-bold text-emerald-600">{lead.opportunityValue.toLocaleString()} ر.س</span>
                 </div>
                 <div className="text-[11px] text-muted-foreground font-mono flex justify-between pt-1">
-                  <span>📞 {lead.phone}</span>
+                  <span>{lead.phone}</span>
                   <span>المسؤول: {lead.assignedTo}</span>
                 </div>
               </div>
@@ -2257,7 +2257,7 @@ export const KasEtimadCloudPage: React.FC = () => {
                 </div>
                 <div className="text-[11px] text-muted-foreground flex justify-between pt-1 font-mono">
                   <span>نشر في: {art.publishedDate}</span>
-                  <span>👁️ {art.viewsCount} مشاهدة</span>
+                  <span>{art.viewsCount} مشاهدة</span>
                 </div>
               </div>
             ))}
@@ -2404,17 +2404,17 @@ export const KasEtimadCloudPage: React.FC = () => {
                         <div className="space-y-1 mt-1">
                           {dayComp && (calendarFilter === 'all' || calendarFilter === 'competitions') && (
                             <div className="text-[9px] font-semibold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded truncate">
-                              🏆 منافسة اعتماد
+                              منافسة اعتماد
                             </div>
                           )}
                           {dayInv && (calendarFilter === 'all' || calendarFilter === 'invoices') && (
                             <div className="text-[9px] font-semibold bg-sky-500/20 text-sky-700 dark:text-sky-300 px-1.5 py-0.5 rounded truncate">
-                              💰 استحقاق فاتورة
+                              استحقاق فاتورة
                             </div>
                           )}
                           {dayTask && (calendarFilter === 'all' || calendarFilter === 'tasks') && (
                             <div className="text-[9px] font-semibold bg-amber-500/20 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded truncate">
-                              📋 تسليم مهمة
+                              تسليم مهمة
                             </div>
                           )}
                         </div>
@@ -2437,7 +2437,7 @@ export const KasEtimadCloudPage: React.FC = () => {
               <div className="space-y-3 text-xs">
                 <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-1.5">
                   <div className="flex items-center justify-between font-bold text-emerald-600">
-                    <span>🏆 موعد تقديم منافسة</span>
+                    <span>موعد تقديم منافسة</span>
                     <span className="text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded-full">معتمد</span>
                   </div>
                   <div className="font-semibold text-foreground">توريد وتركيب أنظمة إنارة لمستشفى الملك سلمان بالطائف</div>
@@ -2446,7 +2446,7 @@ export const KasEtimadCloudPage: React.FC = () => {
 
                 <div className="p-3 rounded-xl bg-sky-500/10 border border-sky-500/20 space-y-1.5">
                   <div className="flex items-center justify-between font-bold text-sky-600">
-                    <span>💰 استحقاق سداد فاتورة</span>
+                    <span>استحقاق سداد فاتورة</span>
                     <span className="text-[10px] bg-sky-500/20 px-2 py-0.5 rounded-full">ZATCA</span>
                   </div>
                   <div className="font-semibold text-foreground">فاتورة رقم INV-000001 (قيمة: 106,006 ر.س)</div>
@@ -2455,7 +2455,7 @@ export const KasEtimadCloudPage: React.FC = () => {
 
                 <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-1.5">
                   <div className="flex items-center justify-between font-bold text-amber-600">
-                    <span>📋 موعد إنجاز مهمة تشغيل</span>
+                    <span>موعد إنجاز مهمة تشغيل</span>
                     <span className="text-[10px] bg-amber-500/20 px-2 py-0.5 rounded-full">عاجل</span>
                   </div>
                   <div className="font-semibold text-foreground">إدارة مشتريات الدمام – توريد مضخات غاطسة</div>
@@ -2639,9 +2639,9 @@ export const KasEtimadCloudPage: React.FC = () => {
                   <p className="text-xs text-muted-foreground mt-1">جهة الاتصال: {client.primaryContact}</p>
                 </div>
                 <div className="text-xs text-muted-foreground space-y-1 font-mono">
-                  <div>📞 {client.phone}</div>
-                  <div>✉️ {client.email}</div>
-                  <div>📍 {client.city}</div>
+                  <div>{client.phone}</div>
+                  <div>{client.email}</div>
+                  <div>{client.city}</div>
                 </div>
               </div>
             ))}

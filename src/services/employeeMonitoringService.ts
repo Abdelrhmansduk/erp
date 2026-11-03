@@ -63,11 +63,11 @@ export interface EmployeeMonitoringSummary {
 }
 
 export const MOOD_META: Record<MoodType, { emoji: string; label: string; color: string; score: number }> = {
-  thrilled: { emoji: '🤩', label: 'متحمس ومنجز', color: '#10b981', score: 5 },
-  happy: { emoji: '😊', label: 'مرتاح ومستقر', color: '#06b6d4', score: 4 },
-  neutral: { emoji: '😐', label: 'عادي / روتيني', color: '#a1a1aa', score: 3 },
-  stressed: { emoji: '😫', label: 'مضغوط ومشتت', color: '#f59e0b', score: 2 },
-  frustrated: { emoji: '😡', label: 'محبط / أواجه عقبات', color: '#ef4444', score: 1 },
+  thrilled: { emoji: '5/5', label: 'متحمس ومنجز', color: '#10b981', score: 5 },
+  happy: { emoji: '4/5', label: 'مرتاح ومستقر', color: '#06b6d4', score: 4 },
+  neutral: { emoji: '3/5', label: 'عادي / روتيني', color: '#a1a1aa', score: 3 },
+  stressed: { emoji: '2/5', label: 'مضغوط ومشتت', color: '#f59e0b', score: 2 },
+  frustrated: { emoji: '1/5', label: 'محبط / أواجه عقبات', color: '#ef4444', score: 1 },
 };
 
 export const REASON_CATEGORIES: Record<ReasonCategory, string> = {

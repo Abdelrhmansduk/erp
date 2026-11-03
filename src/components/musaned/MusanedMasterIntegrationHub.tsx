@@ -172,13 +172,13 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
       {/* Main Navigation Sub-Tabs */}
       <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
         {[
-          { id: 'overview', label: '⚡ لوحة العمليات وحالة البوابة' },
-          { id: 'multi_company', label: '🏢 معمارية الشركات الأربع (4 Companies)' },
-          { id: 'mdm', label: '🗄️ نموذج البيانات الرئيسي (MDM)' },
-          { id: 'reconciliation', label: '💰 المطابقة والتسويات المالية' },
-          { id: 'visas_insurance', label: '🛡️ التأشيرات وبوالص التأمين (24 شهر)' },
-          { id: 'webhooks_dlq', label: '📡 الـ Webhooks ورسائل DLQ' },
-          { id: 'checklist', label: '📋 قائمة اعتماد الربط الرسمي (30 بند)' },
+          { id: 'overview', label: 'لوحة العمليات وحالة البوابة' },
+          { id: 'multi_company', label: 'معمارية الشركات الأربع (4 Companies)' },
+          { id: 'mdm', label: 'نموذج البيانات الرئيسي (MDM)' },
+          { id: 'reconciliation', label: 'المطابقة والتسويات المالية' },
+          { id: 'visas_insurance', label: 'التأشيرات وبوالص التأمين (24 شهر)' },
+          { id: 'webhooks_dlq', label: 'الـ Webhooks ورسائل DLQ' },
+          { id: 'checklist', label: 'قائمة اعتماد الربط الرسمي (30 بند)' },
         ].map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -315,8 +315,7 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <span className="pill-tag-mint" style={{ fontSize: '11px' }}>
-                  Zero Cross-Tenant Contamination: Active 🔒
-                </span>
+                  Zero Cross-Tenant Contamination: Active </span>
               </div>
             </div>
 

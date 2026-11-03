@@ -242,8 +242,8 @@ export const IngazPage: React.FC = () => {
         {[
           { id: 'all', label: `جميع التفاويض (${delegations.length})` },
           { id: 'verified', label: 'تفاويض موثقة (Enjaz Valid)' },
-          { id: 'chamber', label: 'تصديقات الغرفة التجارية (4) 🏛️' },
-          { id: 'visas', label: 'التأشيرات الصادرة والجاهزة (6) ✈️' },
+          { id: 'chamber', label: 'تصديقات الغرفة التجارية (4) ' },
+          { id: 'visas', label: 'التأشيرات الصادرة والجاهزة (6) ' },
           { id: 'pending', label: 'بانتظار الموافقة' },
         ].map((tab) => {
           const isActive = activeTab === tab.id;

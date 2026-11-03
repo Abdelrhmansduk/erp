@@ -191,7 +191,7 @@ export const ProductionDataHubModal: React.FC<ProductionDataHubModalProps> = ({ 
                   مركز إدارة قواعد البيانات التشغيلية (Production Data Hub)
                 </h3>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${currentMode === 'production_real' ? 'bg-emerald-500 text-black' : 'bg-amber-500 text-black'}`}>
-                  {currentMode === 'production_real' ? '⚡ نمط الإنتاج الفعلي' : '🧪 نمط المعاينة'}
+                  {currentMode === 'production_real' ? 'نمط الإنتاج الفعلي' : 'نمط المعاينة'}
                 </span>
               </div>
               <p className="text-xs text-zinc-400 m-0 mt-0.5">
@@ -445,7 +445,7 @@ export const ProductionDataHubModal: React.FC<ProductionDataHubModalProps> = ({ 
                   onChange={(e) => setTargetTable(e.target.value)}
                   className="w-full bg-white border border-zinc-300 rounded-xl p-2.5 text-xs font-bold text-black"
                 >
-                  <option value="auto">⚡ التعرف التلقائي وتوجيه المستند للقسم المعني والنظام المحاسبي المنفصل للشركة</option>
+                  <option value="auto">التعرف التلقائي وتوجيه المستند للقسم المعني والنظام المحاسبي المنفصل للشركة</option>
                   {Object.entries(tableLabels).map(([k, v]) => (
                     <option key={k} value={k}>{v.label} ({k})</option>
                   ))}

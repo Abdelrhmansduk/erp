@@ -1,152 +1,157 @@
-/* Shopifi Design System Design Tokens - Applied Down to the Millimeter */
+/* Mobbin Design System Tokens — Applied Down to the Millimeter (from DESIGN-mobbin.md) */
 
 :root {
-  /* Colors from DESIGN-shopify.md */
-  --color-primary: #000000;
-  --color-ink: #000000;
-  --color-on-primary: #ffffff;
-  --color-on-dark: #ffffff;
-  --color-canvas-night: #000000;
-  --color-canvas-night-elevated: #0a0a0a;
-  --color-canvas-light: #ffffff;
-  --color-canvas-cream: #fbfbf5;
-  --color-surface-elevated-dark: #1e2c31;
-  --color-shade-30: #d4d4d8;
-  --color-shade-40: #a1a1aa;
-  --color-shade-50: #5a6363;
-  --text-light: #5a6363;
-  --color-shade-60: #52525b;
-  --color-shade-70: #3f3f46;
-  --color-hairline-light: #e4e4e7;
-  --color-hairline-dark: #1e2c31;
+  /* ─── 1. Core Mobbin Monochrome & Electric Blue Palette ─── */
+  --color-primary: #141414;          /* Ink Black: Primary CTA pill, footer band, display type */
+  --color-on-primary: #ffffff;       /* Pure White on Ink Black / Accent */
+  --color-ink: #141414;              /* Near-black Ink: Headings, body copy, nav links */
+  --color-ink-soft: #262626;         /* Soft Ink: Secondary lockups & wordmarks */
+  --color-text-muted: #707070;       /* Muted Text: Supporting copy, descriptions, inactive tabs */
+  --color-text-faint: #adadad;       /* Faint Text: Placeholders, fine print, tertiary metadata */
+  --color-canvas: #ffffff;           /* Gallery-White Default Page & Card Canvas */
+  --color-canvas-soft: #f3f3f3;      /* Soft Canvas (6% ink wash): Nav pill, featured card, tracks */
+  --color-field: #f0f0f0;            /* Field Fill (8% ink wash): Borderless form inputs at rest */
+  --color-hairline-soft: #f0f0f0;    /* Soft Hairline (1px card outlines on white-on-white cards) */
+  --color-hairline: #e0e0e0;         /* Hairline (16% control border on outlined pill buttons) */
+  --color-accent: #0066ff;           /* Electric Blue: Reserved exclusively for commercial badges */
+  --color-badge-overlay: rgba(115, 115, 115, 0.56);
 
-  /* Warm Champagne Gold Luxury Identity Palette */
-  --color-champagne-gold: #CFA64A;       /* Primary Accent */
-  --color-gold-light: #E4C77B;           /* Light Gold / Hover & Dark Mode Glow */
-  --color-gold-dark: #A98232;            /* Dark Gold / Text & Contrasting Borders */
-  --color-gold-pale: #F5EDDC;            /* Pale Gold Background / Badges & Pills */
-  --color-charcoal-dark: #1D2428;        /* Luxury Dark Charcoal */
-  --color-charcoal-deep: #14181B;        /* Deep Midnight Charcoal */
-
-  /* Semantic UI Brand Accent Aliases */
-  --color-primary-accent: var(--color-champagne-gold);
-  --color-primary-accent-light: var(--color-gold-light);
-  --color-primary-accent-dark: var(--color-gold-dark);
-  --color-primary-accent-pale: var(--color-gold-pale);
-  --color-accent-contrast: var(--color-charcoal-dark);
-
-  /* Legacy tint aliases transitioned to Champagne Gold */
-  --color-aloe-10: var(--color-gold-pale);
-  --color-pistachio-10: #faebd7;
-  --color-link-cool-1: #9dabad;
-  --color-link-cool-2: #9797a2;
-  --color-link-cool-3: #bdbdca;
-  --color-link-mint: #d4b36a;
-
-  /* Aliases for theme integration */
+  /* ─── 2. Compatibility & Theme Integration Aliases ─── */
   --primary: var(--color-primary);
-  --ink: var(--color-ink);
   --on-primary: var(--color-on-primary);
-  --on-dark: var(--color-on-dark);
-  --canvas-night: var(--color-canvas-night);
-  --canvas-night-elevated: var(--color-canvas-night-elevated);
-  --canvas-light: var(--color-canvas-light);
-  --canvas-cream: var(--color-canvas-cream);
-  --hairline-light: var(--color-hairline-light);
-  --hairline-dark: var(--color-hairline-dark);
-  --aloe-10: var(--color-aloe-10);
-  --pistachio-10: var(--color-pistachio-10);
-  --champagne-gold: var(--color-champagne-gold);
-  --gold-light: var(--color-gold-light);
-  --gold-dark: var(--color-gold-dark);
-  --gold-pale: var(--color-gold-pale);
-  --charcoal-dark: var(--color-charcoal-dark);
+  --ink: var(--color-ink);
+  --ink-soft: var(--color-ink-soft);
+  --text-muted: var(--color-text-muted);
+  --text-faint: var(--color-text-faint);
+  --text-light: var(--color-text-muted);
+  --canvas: var(--color-canvas);
+  --canvas-light: var(--color-canvas);
+  --canvas-cream: var(--color-canvas);
+  --canvas-soft: var(--color-canvas-soft);
+  --canvas-night: var(--color-ink);
+  --canvas-night-elevated: var(--color-ink-soft);
+  --field: var(--color-field);
+  --hairline-soft: var(--color-hairline-soft);
+  --hairline: var(--color-hairline);
+  --hairline-light: var(--color-hairline);
+  --hairline-dark: var(--color-ink-soft);
+  --accent: var(--color-accent);
+
+  /* Shade Ladder Mapped to Mobbin Neutral Tint Ladder */
+  --color-shade-30: #e0e0e0;
+  --color-shade-40: #adadad;
+  --color-shade-50: #707070;
+  --color-shade-60: #262626;
+  --color-shade-70: #141414;
   --shade-30: var(--color-shade-30);
   --shade-40: var(--color-shade-40);
   --shade-50: var(--color-shade-50);
   --shade-60: var(--color-shade-60);
   --shade-70: var(--color-shade-70);
 
+  /* Legacy Brand Aliases Mapped to Mobbin Monochrome + Electric Blue */
+  --color-champagne-gold: #0066ff;
+  --color-gold-light: #f3f3f3;
+  --color-gold-dark: #141414;
+  --color-gold-pale: #f3f3f3;
+  --color-charcoal-dark: #141414;
+  --color-charcoal-deep: #141414;
+  --color-primary-accent: var(--color-accent);
+  --color-primary-accent-light: var(--color-canvas-soft);
+  --color-primary-accent-dark: var(--color-ink);
+  --color-primary-accent-pale: var(--color-canvas-soft);
+  --color-accent-contrast: var(--color-ink);
+  --color-aloe-10: var(--color-canvas-soft);
+  --color-pistachio-10: var(--color-canvas-soft);
+
   /* Background & Surface Aliases */
-  --background: var(--color-canvas-cream);
-  --bg-body: var(--color-canvas-cream);
-  --bg-surface: var(--color-canvas-light);
+  --background: var(--color-canvas);
+  --bg-body: var(--color-canvas);
+  --bg-surface: var(--color-canvas);
   --on-background: var(--color-ink);
   --on-surface: var(--color-ink);
-  --on-surface-variant: var(--color-shade-50);
-  --surface-container-lowest: var(--color-canvas-light);
-  --surface-container-low: #f4f4f0;
-  --surface-container: #ebeee8;
-  --surface-container-high: #e2e5df;
-  --outline-variant: var(--color-hairline-light);
-  --outline: var(--color-shade-50);
+  --on-surface-variant: var(--color-text-muted);
+  --surface-container-lowest: var(--color-canvas);
+  --surface-container-low: var(--color-canvas-soft);
+  --surface-container: var(--color-field);
+  --surface-container-high: var(--color-hairline);
+  --outline-variant: var(--color-hairline-soft);
+  --outline: var(--color-hairline);
 
-  /* Legacy / Brand Accents */
-  --gold-primary: #D4AF37;
-  --odoo-teal: #005154;
-  --odoo-purple: #714B67;
-  --status-success: #10B981;
-  --status-success-bg: #c1fbd4;
-  --status-success-border: #a7f3d0;
-  --status-warning: #F59E0B;
-  --status-warning-bg: #FFFBEB;
-  --status-warning-border: #FDE68A;
+  /* Semantic Status Signals */
+  --status-success: #141414;
+  --status-success-bg: #f3f3f3;
+  --status-success-border: #e0e0e0;
+  --status-warning: #262626;
+  --status-warning-bg: #f3f3f3;
+  --status-warning-border: #e0e0e0;
   --status-danger: #ba1a1a;
   --status-danger-bg: #ffdad6;
   --status-danger-border: #fca5a5;
 
-  /* Typography Font Families */
-  --font-family-display: "Inter Display", "Readex Pro", "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
-  --font-family-ui: "Inter", "Readex Pro", "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-family-heading: "Inter Display", "Readex Pro", "Inter", system-ui, -apple-system, sans-serif;
-  --font-family-body: "Inter", "Readex Pro", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* ─── 3. Mobbin Typography Font Stack (Saans + Inter Variable + Arabic RTL) ─── */
+  --font-family-saans: "Saans", "Inter", "Readex Pro", "Cairo", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-family-display: var(--font-family-saans);
+  --font-family-ui: var(--font-family-saans);
+  --font-family-heading: var(--font-family-saans);
+  --font-family-body: var(--font-family-saans);
   --font-family-code: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /* Shapes & Radii Scale from DESIGN-shopify.md */
-  --rounded-xs: 4px;
-  --rounded-sm: 5px;
-  --rounded-md: 8px;
-  --rounded-lg: 12px;
-  --rounded-xl: 20px;
+  /* ─── 4. Mobbin Border Radius Scale (rounded) ─── */
+  --rounded-none: 0px;
+  --rounded-xs: 8px;
+  --rounded-sm: 16px;      /* Inputs, video tiles, testimonial cards, FAQ rows */
+  --rounded-md: 24px;      /* Content cards, auth card, pricing cards, modals, footer top */
+  --rounded-lg: 24px;
+  --rounded-xl: 24px;
+  --rounded-2xl: 24px;
+  --rounded-full: 9999px;  /* Every pill: nav, buttons, badges, segmented toggles */
   --rounded-pill: 9999px;
+  --rounded-squircle: 30%; /* iOS-style app-icon-squircle */
 
   /* Radius Aliases */
+  --radius-none: var(--rounded-none);
   --radius-xs: var(--rounded-xs);
   --radius-sm: var(--rounded-sm);
   --radius-md: var(--rounded-md);
-  --radius-lg: var(--rounded-lg);
-  --radius-xl: var(--rounded-xl);
-  --radius-pill: var(--rounded-pill);
+  --radius-lg: var(--rounded-md);
+  --radius-xl: var(--rounded-md);
+  --radius-2xl: var(--rounded-md);
+  --radius-full: var(--rounded-full);
+  --radius-pill: var(--rounded-full);
 
-  /* Spacing Scale from DESIGN-shopify.md */
-  --spacing-xxs: 2px;
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 12px;
-  --spacing-lg: 16px;
-  --spacing-xl: 24px;
-  --spacing-xxl: 32px;
-  --spacing-huge: 64px;
+  /* ─── 5. Mobbin Spacing Scale (8px base unit with 4px half-steps) ─── */
+  --spacing-xxs: 4px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+  --spacing-section: 80px;
+  --spacing-section-lg: 120px;
+  --spacing-huge: 80px;
 
   /* Layout dimensions */
-  --sidebar-width: 290px;
+  --sidebar-width: 280px;
   --header-height: 64px;
 
-  /* Elevation & Shadows from DESIGN-shopify.md */
+  /* ─── 6. Mobbin Shadow-Free Elevation System ─── */
+  /* Hierarchy is built from neutral tint fills (#ffffff, #f3f3f3, #f0f0f0) and 1px hairlines (#f0f0f0, #e0e0e0) */
   --elevation-0: none;
-  --elevation-1: 0 1px 2px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  --elevation-2: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.3), 0 5px 10px rgba(0, 0, 0, 0.2);
-  --elevation-3: 0 8px 8px rgba(0, 0, 0, 0.08), 0 4px 4px rgba(0, 0, 0, 0.06), 0 2px 2px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.06);
-  --elevation-4: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --elevation-1: none;
+  --elevation-2: 0 0 0 1px var(--color-hairline-soft);
+  --elevation-3: 0 0 0 1px var(--color-hairline);
+  --elevation-segmented-active: 0 1px 3px rgba(20, 20, 20, 0.08);
+  --elevation-modal: 0 20px 48px -12px rgba(20, 20, 20, 0.16);
 
-  --shadow-card: var(--elevation-3);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: var(--elevation-3);
-  --shadow-lg: var(--elevation-4);
+  --shadow-card: none;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: var(--elevation-modal);
 
   /* Transitions */
   --transition-fast: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-normal: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-normal: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
-

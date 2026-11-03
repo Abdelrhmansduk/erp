@@ -614,12 +614,12 @@ export const CreateCVPage: React.FC = () => {
               <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200">
                 <h4 className="font-bold text-xs text-black mb-2">مصفوفة المهارات واللغات:</h4>
                 <div className="grid grid-cols-3 gap-2 text-[11px]">
-                  <div className="flex items-center gap-1.5">{formData.baby_care ? '✅' : '❌'} رعاية الأطفال</div>
-                  <div className="flex items-center gap-1.5">{formData.elderly_care ? '✅' : '❌'} كبار السن</div>
-                  <div className="flex items-center gap-1.5">{formData.cooking_arabic ? '✅' : '❌'} الطبخ الخليجي</div>
-                  <div className="flex items-center gap-1.5">{formData.cleaning ? '✅' : '❌'} النظافة العامة</div>
-                  <div className="flex items-center gap-1.5">{formData.washing_ironing ? '✅' : '❌'} الغسيل والكي</div>
-                  <div className="flex items-center gap-1.5">{formData.driving ? '✅' : '❌'} قيادة السيارة</div>
+                  <div className="flex items-center gap-1.5">{formData.baby_care ? '' : ''} رعاية الأطفال</div>
+                  <div className="flex items-center gap-1.5">{formData.elderly_care ? '' : ''} كبار السن</div>
+                  <div className="flex items-center gap-1.5">{formData.cooking_arabic ? '' : ''} الطبخ الخليجي</div>
+                  <div className="flex items-center gap-1.5">{formData.cleaning ? '' : ''} النظافة العامة</div>
+                  <div className="flex items-center gap-1.5">{formData.washing_ironing ? '' : ''} الغسيل والكي</div>
+                  <div className="flex items-center gap-1.5">{formData.driving ? '' : ''} قيادة السيارة</div>
                   <div>اللغة العربية: <strong>{formData.arabic_level}</strong></div>
                   <div>اللغة الإنجليزية: <strong>{formData.english_level}</strong></div>
                   <div>الخبرة: <strong>{formData.experience_type}</strong></div>

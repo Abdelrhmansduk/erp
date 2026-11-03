@@ -376,51 +376,70 @@ export const ShelterSuitePortalPage: React.FC = () => {
     });
   };
 
-  return (
-    <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden bg-[#0d1013] text-zinc-100 font-sans" dir="rtl">
-      {/* 1. Dedicated Shelter Navigation Sidebar */}
-      <ShelterNavigationSidebar
-        activeDepartment={activeDepartment}
-        onSelectDepartment={setActiveDepartment}
-        stats={sidebarStats}
-        selectedBranch={selectedBranch}
-        onSelectBranch={setSelectedBranch}
-        onReturnToErp={() => setGlobalActiveTab('dashboard', 'لوحة التحكم')}
-        onOpenCheckinModal={() => setShowCheckinModal(true)}
-      />
+  const shelterSubTabs: Array<{ id: ShelterDepartmentId; label: string; icon: React.ReactNode; count?: number }> = [
+    { id: 'dashboard', label: 'المركز التنفيذي للإيواء', icon: <Hotel className="w-3.5 h-3.5" /> },
+    { id: 'checkin', label: 'تسكين واستلام النزيلات', icon: <Users className="w-3.5 h-3.5" />, count: sidebarStats.insideCount },
+    { id: 'rooms', label: 'الغرف والأجنحة', icon: <Bed className="w-3.5 h-3.5" />, count: sidebarStats.availableBeds },
+    { id: 'catering', label: 'التغذية والإعاشة', icon: <Utensils className="w-3.5 h-3.5" />, count: sidebarStats.cateringToday },
+    { id: 'clinic', label: 'الفرز الطبي والعزل', icon: <Stethoscope className="w-3.5 h-3.5" />, count: sidebarStats.medicalQuarantine },
+    { id: 'welfare', label: 'الرعاية والتأهيل للتنازل', icon: <HeartHandshake className="w-3.5 h-3.5" />, count: sidebarStats.availableTransfer },
+    { id: 'deportation', label: 'إجراءات المغادرة والترحيل', icon: <PlaneTakeoff className="w-3.5 h-3.5" />, count: sidebarStats.deportationCount },
+    { id: 'branches', label: 'مقرات وفروع الإيواء', icon: <MapPin className="w-3.5 h-3.5" /> },
+    { id: 'compliance', label: 'الامتثال والتفتيش HRSD', icon: <ShieldCheck className="w-3.5 h-3.5" /> },
+  ];
 
-      {/* 2. Main Work Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#0f1316]">
-        {/* Top Control Bar */}
-        <header className="min-h-16 py-2.5 bg-[#14181c] border-b border-white/10 px-4 flex flex-wrap items-center justify-between gap-3 shrink-0 shadow-md">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0 shadow-md">
-              <Hotel className="w-5 h-5 text-amber-400" />
-            </div>
-            <div className="min-w-0">
+  return (
+    <div className="space-y-6" dir="rtl">
+      {/* 1. Mobbin Grand Hero Banner */}
+      <div className="card-feature-cinematic p-6">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            <BusinessIllustration
+              type="shelter-care"
+              size="sm"
+              showBackground={false}
+              className="!w-16 !h-14 shrink-0"
+            />
+            <div className="space-y-1.5">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-sm font-bold text-white m-0 truncate">
-                  منظومة وبوابة مراكز الإيواء والتسكين والرعاية المستقلة
-                </h1>
-                <span className="text-[10.5px] px-2.5 py-0.5 rounded-full font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                <span className="pill-tag-mint text-[11px] font-bold">
+                  SHELTER & CARE ENTERPRISE SUITE
+                </span>
+                <span className="pill-tag-shade text-[11px] font-bold">
                   {SHELTER_BRANCHES.find((b) => b.id === selectedBranch)?.name || 'كافة الفروع'}
                 </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-white/5 text-zinc-400 border border-white/10">
-                  HRSD-MOL Compliant
+                <span className="text-xs text-[#707070] font-mono">
+                  HRSD-MOL Compliant • اعتماد 100%
                 </span>
               </div>
-              <p className="text-[11px] text-zinc-400 m-0 truncate">
-                إدارة السكن، الغرف، التغذية، الفرز الطبي، والمغادرة بموجب اشتراطات وزارة الموارد البشرية
+              <h2 className="text-xl font-bold text-[#141414] m-0 tracking-tight">
+                منظومة مراكز الإيواء والتسكين والرعاية المستقلة
+              </h2>
+              <p className="text-xs text-[#707070] max-w-3xl leading-relaxed m-0">
+                إدارة الطاقة الاستيعابية للأجنحة، الرعاية الصحية اليومية، جداول الإعاشة، وفرز النزيلات للتنازل أو الترحيل بموجب اشتراطات وزارة الموارد البشرية.
               </p>
             </div>
           </div>
 
-          {/* Quick Actions & Profile */}
-          <div className="flex items-center gap-1.5 flex-wrap">
+          {/* Quick Actions & Branch Selector */}
+          <div className="pt-3 border-t border-[#e0e0e0] flex items-center gap-2 flex-wrap">
+            <select
+              value={selectedBranch}
+              onChange={(e) => setSelectedBranch(e.target.value)}
+              className="px-3 py-1.5 text-xs font-bold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] rounded-full focus:outline-none"
+              aria-label="تصفية حسب فرع الإيواء"
+            >
+              {SHELTER_BRANCHES.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+
             <button
               type="button"
               onClick={() => setShowCheckinModal(true)}
-              className="px-3 py-1.5 rounded-xl bg-amber-400 text-black font-bold text-xs hover:bg-amber-300 transition-all flex items-center gap-1.5 shadow-md shadow-amber-400/20"
+              className="btn-pill-dark px-3.5 py-1.5 text-xs font-bold flex items-center gap-1.5"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>تسكين نزيلة</span>
@@ -429,161 +448,125 @@ export const ShelterSuitePortalPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowRoomModal(true)}
-              className="px-2.5 py-1.5 rounded-xl border border-white/15 bg-white/5 text-zinc-200 hover:bg-white/10 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all"
+              className="btn-pill-secondary px-3 py-1.5 text-xs font-bold flex items-center gap-1.5"
             >
-              <Bed className="w-3.5 h-3.5 text-zinc-400" />
+              <Bed className="w-3.5 h-3.5" />
               <span>+ غرفة</span>
             </button>
 
             <button
               type="button"
               onClick={() => setShowMealModal(true)}
-              className="px-2.5 py-1.5 rounded-xl border border-white/15 bg-white/5 text-zinc-200 hover:bg-white/10 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all"
+              className="btn-pill-secondary px-3 py-1.5 text-xs font-bold flex items-center gap-1.5"
             >
-              <Utensils className="w-3.5 h-3.5 text-amber-400" />
+              <Utensils className="w-3.5 h-3.5" />
               <span>+ وجبة</span>
             </button>
 
             <button
               type="button"
               onClick={() => setShowClinicModal(true)}
-              className="px-2.5 py-1.5 rounded-xl border border-white/15 bg-white/5 text-zinc-200 hover:bg-white/10 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all"
+              className="btn-pill-secondary px-3 py-1.5 text-xs font-bold flex items-center gap-1.5"
             >
-              <Stethoscope className="w-3.5 h-3.5 text-rose-400" />
+              <Stethoscope className="w-3.5 h-3.5" />
               <span>+ فحص طبي</span>
             </button>
 
-            {/* Export Suite */}
             <ExportDropdown
               sectionKey="shelter"
               data={filteredInmates}
               customTitle={`كشف نزيلات مراكز الإيواء - ${activeCompany.name}`}
               buttonLabel="تصدير الكشوفات"
             />
-
-            {/* Return to general ERP button */}
-            <button
-              type="button"
-              onClick={() => setGlobalActiveTab('dashboard', 'لوحة التحكم')}
-              className="px-2.5 py-1.5 rounded-xl border border-white/15 bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all"
-              title="العودة إلى الـ ERP العام"
-            >
-              <span>الـ ERP العام</span>
-              <ArrowRight className="w-3 h-3 text-zinc-400" />
-            </button>
           </div>
-        </header>
+        </div>
+      </div>
 
-        {/* Dynamic Department Content Body */}
-        <main className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* =========================================================================
-              DEPARTMENT 1: DASHBOARD & LIVE COMMAND CENTER
-             ========================================================================= */}
-          {activeDepartment === 'dashboard' && (
-            <div className="space-y-6">
-              {/* Grand Hero Platform Banner */}
-              <div className="bg-gradient-to-l from-[#182026] via-[#141a1f] to-[#101417] border border-amber-500/20 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-                  <div className="flex items-center gap-4">
-                    <BusinessIllustration
-                      type="shelter-care"
-                      size="sm"
-                      showBackground={false}
-                      className="!w-16 !h-14 shrink-0"
-                    />
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono tracking-wider px-2.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase font-bold">
-                          SHELTER & CARE ENTERPRISE SUITE
-                        </span>
-                        <span className="text-[11px] text-zinc-400 font-mono">نظام التسكين والإعاشة المركزي — اعتماد 100%</span>
-                      </div>
-                      <h2 className="text-xl font-display font-black text-white m-0 tracking-tight flex items-center gap-2">
-                        مركز العمليات والمؤشرات التنفيذية — مراكز الإيواء والتسكين
-                      </h2>
-                      <p className="text-xs text-zinc-400 max-w-2xl leading-relaxed m-0">
-                        إدارة الطاقة الاستيعابية للأجنحة، الرعاية الصحية اليومية، جداول الإعاشة، وفرز النزيلات للتنازل أو الترحيل بموجب اشتراطات وزارة الموارد البشرية.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setShowCheckinModal(true)}
-                      className="px-4 py-2 rounded-xl bg-amber-400 text-black font-bold text-xs hover:bg-amber-300 transition-all flex items-center gap-1.5 shadow-lg shadow-amber-400/20"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>تسكين نزيلة جديدة</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveDepartment('compliance')}
-                      className="px-3.5 py-2 rounded-xl bg-white/5 border border-white/15 text-zinc-200 hover:bg-white/10 hover:text-white font-semibold text-xs transition-all flex items-center gap-1.5"
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-                      <span>ملف التفتيش HRSD</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
+      {/* 2. Mobbin 4 KPI Cards (.stat-card-grid) */}
+      <div className="stat-card-grid">
+        <div className="card-pricing">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-[#707070]">إجمالي النزيلات المقيدات</span>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#f3f3f3] border border-[#e0e0e0]">
+              <Hotel className="w-4 h-4 text-[#141414]" />
+            </div>
+          </div>
+          <div className="display-sm">{sidebarStats.totalInmates}</div>
+          <div className="pill-tag-mint mt-2">{sidebarStats.insideCount} داخل مباني الإيواء حالياً</div>
+        </div>
 
-              {/* 4 Grand Executive KPI Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-4 bg-[#14181c] rounded-2xl border border-white/10 shadow-lg flex items-center justify-between">
-                  <div>
-                    <div className="text-xs text-zinc-400 font-bold">إجمالي النزيلات المقيدات</div>
-                    <div className="text-2xl font-display font-black font-mono text-amber-400 mt-1">
-                      {sidebarStats.totalInmates} <span className="text-xs font-sans text-zinc-400">نزيلة</span>
-                    </div>
-                    <div className="text-[11px] text-emerald-400 mt-1 flex items-center gap-1 font-medium">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>{sidebarStats.insideCount} داخل مباني الإيواء حالياً</span>
-                    </div>
-                  </div>
-                  <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shadow-md">
-                    <Hotel className="w-6 h-6" />
-                  </div>
-                </div>
+        <div className="card-pricing">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-[#707070]">الأسرة والطاقة الاستيعابية</span>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#f3f3f3] border border-[#e0e0e0]">
+              <Bed className="w-4 h-4 text-[#141414]" />
+            </div>
+          </div>
+          <div className="display-sm">{sidebarStats.availableBeds}</div>
+          <div className="pill-tag-shade mt-2">سرير متاح من إجمالي 120</div>
+        </div>
 
-                <div className="p-4 bg-[#14181c] rounded-2xl border border-white/10 shadow-lg flex items-center justify-between">
-                  <div>
-                    <div className="text-xs text-zinc-400 font-bold">الأسرة والطاقة الاستيعابية</div>
-                    <div className="text-2xl font-display font-black font-mono text-cyan-400 mt-1">
-                      {sidebarStats.availableBeds} <span className="text-xs font-sans text-zinc-400">سرير متاح</span>
-                    </div>
-                    <div className="text-[11px] text-zinc-400 mt-1">من إجمالي طاقة استيعابية 120 سريراً</div>
-                  </div>
-                  <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center shadow-md">
-                    <Bed className="w-6 h-6" />
-                  </div>
-                </div>
+        <div className="card-pistachio-band">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-[#262626]">وجبات الإعاشة والتغذية اليوم</span>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white border border-[#e0e0e0]">
+              <Utensils className="w-4 h-4 text-[#141414]" />
+            </div>
+          </div>
+          <div className="display-sm">{sidebarStats.cateringToday}</div>
+          <div className="pill-tag-mint mt-2">موزعة عبر 3 وجبات معتمدة صحياً</div>
+        </div>
 
-                <div className="p-4 bg-[#14181c] rounded-2xl border border-white/10 shadow-lg flex items-center justify-between">
-                  <div>
-                    <div className="text-xs text-zinc-400 font-bold">وجبات الإعاشة والتغذية اليوم</div>
-                    <div className="text-2xl font-display font-black font-mono text-amber-300 mt-1">
-                      {sidebarStats.cateringToday} <span className="text-xs font-sans text-zinc-400">وجبة</span>
-                    </div>
-                    <div className="text-[11px] text-amber-400 mt-1">موزعة عبر 3 وجبات معتمدة صحياً</div>
-                  </div>
-                  <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shadow-md">
-                    <Utensils className="w-6 h-6" />
-                  </div>
-                </div>
+        <div className="card-pricing">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-[#707070]">حالات العزل والفرز الطبي</span>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#f3f3f3] border border-[#e0e0e0]">
+              <Stethoscope className="w-4 h-4 text-[#141414]" />
+            </div>
+          </div>
+          <div className="display-sm">{sidebarStats.medicalQuarantine}</div>
+          <div className="pill-tag-shade mt-2">تحت الرعاية الطبية الوقائية</div>
+        </div>
+      </div>
 
-                <div className="p-4 bg-[#14181c] rounded-2xl border border-white/10 shadow-lg flex items-center justify-between">
-                  <div>
-                    <div className="text-xs text-zinc-400 font-bold">حالات العزل والفرز الطبي</div>
-                    <div className="text-2xl font-display font-black font-mono text-rose-400 mt-1">
-                      {sidebarStats.medicalQuarantine} <span className="text-xs font-sans text-zinc-400">حالة عزل</span>
-                    </div>
-                    <div className="text-[11px] text-rose-400 mt-1">تحت الرعاية الطبية والعلاج الوقائي</div>
-                  </div>
-                  <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center shadow-md">
-                    <Stethoscope className="w-6 h-6" />
-                  </div>
-                </div>
-              </div>
+      {/* 3. Horizontal Mobbin Stadium Pill Tab Bar */}
+      <div className="bg-white border border-[#e0e0e0] rounded-2xl p-2 flex items-center gap-1.5 flex-wrap">
+        {shelterSubTabs.map((tab) => {
+          const isActive = activeDepartment === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveDepartment(tab.id)}
+              className={`px-3.5 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                isActive
+                  ? 'bg-[#141414] text-white'
+                  : 'bg-transparent text-[#707070] hover:bg-[#f3f3f3] hover:text-[#141414]'
+              }`}
+            >
+              {tab.icon}
+              <span>{tab.label}</span>
+              {typeof tab.count === 'number' && (
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 4. Dynamic Department Content Body */}
+      <div className="space-y-6">
+        {/* =========================================================================
+            DEPARTMENT 1: DASHBOARD & LIVE COMMAND CENTER
+           ========================================================================= */}
+        {activeDepartment === 'dashboard' && (
+          <div className="space-y-6">
 
               {/* Quick Status Bar & Distribution */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1477,7 +1460,6 @@ export const ShelterSuitePortalPage: React.FC = () => {
               </div>
             </div>
           )}
-        </main>
       </div>
 
       {/* =========================================================================

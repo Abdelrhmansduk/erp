@@ -27,7 +27,6 @@ import {
   Minimize,
   MapPin,
   ChevronDown,
-  Plus,
   ShieldCheck,
   LogOut,
   Check,
@@ -47,6 +46,98 @@ interface HeaderProps {
   onLogout?: () => void;
 }
 
+export const SLUG_ARABIC_TITLES: Record<string, string> = {
+  dashboard: 'الرئيسية (لوحة المؤشرات التنفيذية)',
+  'group-command-center': 'مركز القيادة الموحد للمجموعة',
+  'admin-dashboard': 'لوحة الرقابة العليا والحوكمة',
+  'smacc-accounting': 'مركز نظام سماك المحاسبي الموحد (SMACC 6)',
+  'smacc-gl-tree': 'شجرة الحسابات والأستاذ العام (SMACC GL)',
+  'smacc-vouchers': 'سندات القبض والصرف والتسويات البنكية',
+  'smacc-inventory': 'إدارة المخزون والأصول الثابتة (SMACC)',
+  'smacc-modules': 'الأقسام الـ 6 لنظام سماك المحاسبي',
+  'smacc-employees': 'إعدادات موظفي وصلاحيات سماك',
+  'finance-home': 'لوحة المؤشرات والقوائم المالية',
+  finance: 'الإدارة المالية والمحاسبة العامة (SMACC)',
+  'trial-balance': 'ميزان المراجعة بالمجاميع والأرصدة',
+  'income-statement': 'قائمة الدخل والأرباح والخسائر',
+  zatca: 'الفوترة الإلكترونية ZATCA المرحلة الثانية',
+  invoices: 'فواتير المبيعات والعقود الضريبية',
+  journals: 'قيود اليومية المزدوجة والترحيل',
+  'financial-requests': 'العهد المالية وطلبات الصرف',
+  'cost-centers': 'مراكز التكلفة وتوزيع المشاريع',
+  custodies: 'العهد النقدية والعينية للموظفين',
+  recruitment: 'إدارة عقود الاستقدام الموحدة (مساند)',
+  'recruitment-contracts': 'عقود الاستقدام الموثقة (مساند)',
+  'new-recruitment-contract': 'إنشاء عقد استقدام مساند جديد',
+  'current-contracts': 'عقود الاستقدام السارية',
+  'musaned-master-plan': 'الربط المباشر مع منصة مساند',
+  orders: 'طلبات الاستقدام والحجوزات (SLA)',
+  'pending-orders': 'طلبات الاستقدام قيد الإجراء',
+  ingaz: 'تفاويض إنجاز والتأشيرات والغرف التجارية',
+  'sponsorship-transfer': 'نقل الخدمات والتنازل وفترة التجربة',
+  'probation-transfer': 'متابعة فترة التجربة (90 يوماً)',
+  travel: 'إدارة حركة السفر والرحلات والمطارات',
+  'group-dispatch': 'تفويج العاملات الجماعي وجدولة الاستقبال',
+  rent: 'إدارة عقود التأجير والتشغيل المرن',
+  'rent-contracts': 'سجل عقود التأجير والتشغيل المرن',
+  'new-rent-contract': 'إضافة عقد تأجير مرن جديد',
+  'rent-packages': 'باقات وأسعار التأجير المعتمدة',
+  'rental-drivers': 'تشغيل وجدولة السائقين',
+  'rental-domestic': 'تشغيل العمالة المنزلية بالساعة والشهر',
+  'cvs-rental': 'سير التأجير الجاهزة للتسليم الفوري',
+  'returned-rent': 'عقود التأجير المرتجعة والتسويات',
+  'ats-pipeline': 'مسار الفرز والتوظيف المؤسسي الذكي (ATS)',
+  'cvs-recruitment': 'بنك السير الذاتية والمرشحين المعتمد',
+  'create-cv': 'إضافة سيرة ذاتية ومسح جواز السفر',
+  offices: 'إدارة المكاتب والوكالات الخارجية',
+  'external-offices': 'عقود وحصص الوكالات الدولية',
+  'agent-accounts': 'كشوف حسابات الوكلاء الخارجيين',
+  'office-transfers': 'حوالات المكاتب والوكالات الدولية',
+  'foreign-agency-portal': 'بوابة الشركاء والوكالات الخارجية',
+  'agent-imports': 'استيراد دفعات السير الذاتية من الوكلاء',
+  hr: 'إدارة الموارد البشرية ومسيرات الرواتب',
+  employees: 'سجل الموظفين والملفات الوظيفية (HR)',
+  'employee-salaries': 'مسيرات الرواتب وحماية الأجور (WPS)',
+  'employee-contracts': 'عقود قوى والتأمينات الاجتماعية (GOSI)',
+  'employee-leaves': 'الإجازات والاستحقاقات ونهاية الخدمة',
+  attendances: 'سجل الحضور والانصراف والبصمة الذكية',
+  'employee-monitoring': 'رادار الإنتاجية والنبض الوظيفي الذكي',
+  'employee-pulse': 'منظومة متابعة النقرات والإنتاجية الذكية',
+  'branch-departments': 'دليل الهيكلية والأقسام التخصصية للفروع',
+  branches: 'دليل الهيكلية والأقسام التخصصية للشركات والفروع',
+  clients: 'سجل العملاء وأصحاب العمل (CRM)',
+  'vip-clients': 'كبار العملاء وحسابات VIP',
+  'corporate-clients': 'عملاء قطاع الأعمال والشركات (B2B)',
+  complaints: 'مركز علاقات العملاء والشكاوى ومؤشر SLA',
+  'whatsapp-inbox': 'صندوق الواتساب المؤسسي الموحد',
+  'unified-communication': 'مركز الاتصال الموحد وقنوات التراسل',
+  'sent-messages': 'سجل الإشعارات والرسائل النصية (SMS)',
+  'client-portal': 'بوابة الخدمة الذاتية للعملاء',
+  'website-visitors': 'تحليلات زوار المنصة وطلبات البوابة',
+  shelter: 'بوابة مراكز الإيواء والتسكين (دار الرواد)',
+  'shelter-suite': 'منظومة إدارة مركز الإيواء الشاملة (HRSD)',
+  'inside-shelter': 'سجل العاملات داخل مركز الإيواء',
+  'room-management': 'إدارة الغرف والأجنحة والأسرة',
+  'food-catering': 'الإعاشة اليومية والرعاية الصحية',
+  'available-transfer': 'العاملات الجاهزات لنقل الكفالة',
+  'deportation-stage': 'إجراءات السفر والترحيل النظامي',
+  'shelter-archive': 'أرشيف الخروج النهائي والمخالصات',
+  'kas-suite': 'منظومة شركة كاس للمنافسات والمشاريع (KAS Suite)',
+  'tenders-boq': 'منافسات اعتماد وجداول الكميات (BOQ)',
+  'kas-etmad-cloud': 'سحابة منافسات اعتماد (2,650+ منافسة)',
+  'kas-etmad': 'سحابة منافسات اعتماد (KAS Etimad Cloud)',
+  'purchase-orders': 'أوامر الشراء والتوريد للمشاريع',
+  'project-guarantees': 'خطابات الضمان البنكية للمنافسات',
+  iam: 'إدارة الهوية والصلاحيات والأمان (IAM & RBAC)',
+  'iam-security': 'إدارة الهوية والصلاحيات والأمان (IAM)',
+  users: 'إدارة المستخدمين وحسابات الأقسام',
+  reports: 'التقارير التحليلية الموحدة وذكاء الأعمال (BI)',
+  'legal-compliance': 'الحوكمة والامتثال القانوني والنظامي',
+  'master-constants': 'ثوابت النظام المرجعية والترميز',
+  'activity-logs': 'سجل التدقيق الأمني والعمليات (Audit Trail)',
+  settings: 'إعدادات النظام والربط السحابي',
+};
+
 export const Header: React.FC<HeaderProps> = ({
   activeTabTitle,
   onToggleSidebar,
@@ -63,18 +154,10 @@ export const Header: React.FC<HeaderProps> = ({
     if (activeTabTitle && !/^[a-z0-9-_]+$/i.test(activeTabTitle)) {
       return activeTabTitle;
     }
-    const targetSlug = activeTabTitle || activeTab || 'dashboard';
-    const SLUG_ARABIC_TITLES: Record<string, string> = {
-      dashboard: 'الرئيسية (لوحة المؤشرات التنفيذية)',
-      recruitment: 'إدارة عقود الاستقدام الموحدة',
-      rent: 'إدارة عقود التأجير والتشغيل',
-      'iam-security': 'إدارة الهوية والصلاحيات والأمان (IAM)',
-      'employee-pulse': 'منظومة متابعة النقرات والمشاعر والمراقبة الذكية',
-      branches: 'دليل الهيكلية والأقسام التخصصية للشركات والفروع',
-      finance: 'الإدارة المالية والمحاسبة العامة (SMACC)',
-      complaints: 'مركز علاقات العملاء والشكاوى (CRM)',
-      travel: 'إدارة حركة السفر والرحلات والمطارات',
-    };
+    const targetSlug = (activeTab || activeTabTitle || 'dashboard').trim().toLowerCase();
+    if (SLUG_ARABIC_TITLES[targetSlug]) {
+      return SLUG_ARABIC_TITLES[targetSlug];
+    }
     const findTitle = (items: typeof SIDEBAR_MENU): string | null => {
       for (const item of items) {
         if (item.href === targetSlug || item.id === targetSlug) return item.title;
@@ -87,8 +170,7 @@ export const Header: React.FC<HeaderProps> = ({
     };
     return (
       findTitle(SIDEBAR_MENU) ||
-      SLUG_ARABIC_TITLES[targetSlug] ||
-      activeTabTitle ||
+      SLUG_ARABIC_TITLES[activeTabTitle?.toLowerCase()] ||
       'لوحة المؤشرات التنفيذية'
     );
   }, [activeTabTitle, activeTab]);
@@ -189,71 +271,6 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'khamis', name: 'فرع خميس مشيط', city: 'طريق الملك فهد' },
   ];
 
-  // Department-Aware Quick Action Pills
-  const departmentQuickActions = useMemo(() => {
-    switch (resolvedScope.departmentId) {
-      case 'finance':
-        return [
-          { tab: 'smacc-accounting', title: 'مركز محاسبة سماك (SMACC)', primary: true },
-          { tab: 'journals', title: 'قيود اليومية' },
-          { tab: 'receipt-vouchers', title: 'سندات القبض' },
-          { tab: 'payment-vouchers', title: 'سندات الصرف' },
-          { tab: 'zatca', title: 'الفوترة ZATCA' },
-        ];
-      case 'recruitment':
-        return [
-          { tab: 'create-contract', title: 'إضافة عقد مساند', primary: true },
-          { tab: 'current-contracts', title: 'العقود السارية' },
-          { tab: 'orders', title: 'طلبات الحجز' },
-          { tab: 'ingaz', title: 'تفاويض إنجاز' },
-        ];
-      case 'rental':
-        return [
-          { tab: 'create-rent', title: 'إضافة عقد تأجير', primary: true },
-          { tab: 'rent-contracts', title: 'عقود التأجير' },
-          { tab: 'rent-packages', title: 'باقات التأجير' },
-        ];
-      case 'ats':
-        return [
-          { tab: 'create-cv', title: 'إضافة سيرة ذاتية', primary: true },
-          { tab: 'cvs-recruitment', title: 'بنك السير الذاتية' },
-          { tab: 'offices', title: 'الوكلاء الخارجيون' },
-        ];
-      case 'hr':
-        return [
-          { tab: 'employees', title: 'سجل الموظفين', primary: true },
-          { tab: 'payrolls', title: 'مسير الرواتب WPS' },
-          { tab: 'attendances', title: 'الحضور والانصراف' },
-          { tab: 'end-of-service', title: 'نهاية الخدمة' },
-        ];
-      case 'crm':
-        return [
-          { tab: 'new-client', title: 'إضافة عميل جديد', primary: true },
-          { tab: 'clients', title: 'سجل العملاء' },
-          { tab: 'complaints', title: 'الشكاوى والتذاكر' },
-        ];
-      case 'shelter':
-        return [
-          { tab: 'create-shelter', title: 'تسكين جديد بالإيواء', primary: true },
-          { tab: 'shelter-suite', title: 'لوحة مركز الإيواء' },
-          { tab: 'room-management', title: 'الغرف والأسرة' },
-        ];
-      case 'tenders':
-        return [
-          { tab: 'kas-suite', title: 'منظومة منافسات كاس', primary: true },
-          { tab: 'tenders-boq', title: 'جداول الكميات BOQ' },
-          { tab: 'kas-etmad', title: 'منافسات اعتماد' },
-        ];
-      default:
-        return [
-          { tab: 'dashboard', title: 'لوحة المؤشرات التنفيذية', primary: true },
-          { tab: 'smacc-accounting', title: 'محاسبة سماك SMACC' },
-          { tab: 'recruitment-contracts', title: 'عقود مساند' },
-          { tab: 'reports', title: 'التقارير الموحدة' },
-        ];
-    }
-  }, [resolvedScope.departmentId]);
-
   const filteredLanguages = availableLanguages.filter(
     (l) =>
       l.name.toLowerCase().includes(langSearch.toLowerCase()) ||
@@ -267,7 +284,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <>
       {impersonatedState.isImpersonating && (
-        <div className="bg-rose-900 text-white px-4 py-2 text-xs font-bold flex items-center justify-between shadow-md z-[1100]">
+        <div className="bg-[#141414] text-[#ffffff] px-4 py-2 text-xs font-semibold flex items-center justify-between z-[1100] border-b border-[#262626]">
           <div className="flex items-center gap-2">
             <span>
               وضع المعاينة والتدقيق الكلي: أنت تتصفح بصلاحيات (
@@ -277,19 +294,20 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={stopImpersonation}
-            className="bg-white text-rose-900 px-3 py-1 rounded-full text-xs font-bold hover:bg-zinc-100"
+            className="bg-[#ffffff] text-[#141414] px-3 py-1 rounded-full text-xs font-semibold hover:bg-[#f3f3f3] cursor-pointer"
           >
             العودة لنمط الأدمن الرئيسي
           </button>
         </div>
       )}
 
-      <header className="nav-bar-light h-16 bg-white border-b border-zinc-200 px-2.5 sm:px-4 lg:px-5 flex items-center justify-between sticky top-0 z-[90] shadow-xs flex-nowrap gap-2">
-        {/* Right Section: Sidebar Toggle, Department App Launcher, Page Title, Branch */}
-        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink flex-nowrap">
+      {/* Mobbin Clean Top Bar: #ffffff surface, 1px #f0f0f0 hairline, zero shadow, zero collision */}
+      <header className="h-16 bg-[#ffffff] border-b border-[#f0f0f0] px-3 sm:px-5 flex items-center justify-between sticky top-0 z-[90] gap-3">
+        {/* Right Section: Sidebar Toggle, App Launcher Pill, Active Title, Branch Switcher */}
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           <button
             type="button"
-            className="w-9 h-9 rounded-full bg-white border border-black hover:bg-black text-black hover:text-white flex items-center justify-center shrink-0 cursor-pointer transition-colors"
+            className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] flex items-center justify-center shrink-0 cursor-pointer transition-colors"
             onClick={onToggleSidebar}
             title="القائمة الجانبية"
             aria-label="القائمة الجانبية"
@@ -299,7 +317,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             type="button"
-            className="button-outline-on-light hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs min-h-[34px] shrink-0 whitespace-nowrap cursor-pointer"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] text-xs font-semibold shrink-0 whitespace-nowrap cursor-pointer transition-colors"
             onClick={onOpenAppLauncher}
             title={t('appLauncherTitle', 'شاشات القسم المصرح بها')}
           >
@@ -307,27 +325,27 @@ export const Header: React.FC<HeaderProps> = ({
             <span>شاشات القسم</span>
           </button>
 
-          <div className="header-title-box min-w-0 shrink">
-            <h1 className="text-xs sm:text-sm font-bold text-black m-0 truncate max-w-[110px] sm:max-w-[155px] xl:max-w-[195px] whitespace-nowrap">
+          <div className="min-w-[120px] flex-1 overflow-hidden">
+            <h1 className="text-sm sm:text-[15px] font-bold text-[#141414] m-0 truncate">
               {resolvedTabTitle}
             </h1>
           </div>
 
-          {/* Active Branch Switcher */}
-          <div className="relative hidden xl:block shrink-0">
+          {/* Active Branch Switcher (visible on 2xl screens so it never crowds 1280-1440px) */}
+          <div className="relative hidden 2xl:block shrink-0">
             <button
               type="button"
               onClick={() => setShowBranchDropdown(!showBranchDropdown)}
-              className="pill-tag-mint cursor-pointer flex items-center gap-1 text-[11px] font-medium whitespace-nowrap shrink-0 px-2.5 py-1"
+              className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] cursor-pointer flex items-center gap-1.5 text-xs font-semibold whitespace-nowrap shrink-0 transition-colors"
             >
-              <MapPin className="w-3 h-3 text-black shrink-0" />
-              <span className="truncate max-w-[120px]">{selectedBranch}</span>
-              <ChevronDown className="w-2.5 h-2.5 opacity-60 shrink-0" />
+              <MapPin className="w-3.5 h-3.5 text-[#707070] shrink-0" />
+              <span className="truncate max-w-[140px]">{selectedBranch}</span>
+              <ChevronDown className="w-3 h-3 text-[#707070] shrink-0" />
             </button>
 
             {showBranchDropdown && (
-              <div className="absolute top-full mt-2 right-0 bg-white border border-zinc-200 rounded-2xl shadow-xl w-56 z-[250] p-2 space-y-1">
-                <div className="px-3 py-1.5 text-[10.5px] font-bold text-zinc-400 border-b border-zinc-100">
+              <div className="absolute top-full mt-2 right-0 bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] w-60 z-[250] p-2.5 space-y-1">
+                <div className="px-3 py-1.5 text-[11px] font-semibold text-[#707070] border-b border-[#f0f0f0]">
                   الفرع التشغيلي:
                 </div>
                 {branches.map((b) => (
@@ -338,14 +356,14 @@ export const Header: React.FC<HeaderProps> = ({
                       setSelectedBranch(b.name);
                       setShowBranchDropdown(false);
                     }}
-                    className={`w-full text-right px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors ${
+                    className={`w-full text-right px-3 py-2 rounded-[16px] text-xs flex items-center justify-between transition-colors cursor-pointer ${
                       selectedBranch === b.name
-                        ? 'bg-[#f5eddc] text-[#a98232] font-bold border border-[#cfa64a]/30'
-                        : 'hover:bg-zinc-50 text-zinc-700'
+                        ? 'bg-[#141414] text-[#ffffff] font-semibold'
+                        : 'hover:bg-[#f3f3f3] text-[#141414]'
                     }`}
                   >
                     <span>{b.name}</span>
-                    {selectedBranch === b.name && <Check className="w-3.5 h-3.5 text-[#a98232]" />}
+                    {selectedBranch === b.name && <Check className="w-3.5 h-3.5 text-[#ffffff]" />}
                   </button>
                 ))}
               </div>
@@ -353,62 +371,30 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Center Department-Scoped Quick Action Pills (only on ultra-wide >= 1920px so header never overflows on 1280px-1536px) */}
-        <div className="hidden min-[1920px]:flex items-center gap-1.5 flex-nowrap shrink-0">
-          {departmentQuickActions.map((act) =>
-            act.primary ? (
-              <button
-                key={act.tab}
-                type="button"
-                className="button-primary-pill flex items-center gap-1 px-3 py-1 text-xs min-h-[30px] whitespace-nowrap shrink-0 cursor-pointer"
-                onClick={() => navigateGuarded(act.tab, act.title)}
-              >
-                <Plus className="w-3.5 h-3.5 shrink-0" />
-                <span>{act.title}</span>
-              </button>
-            ) : (
-              <button
-                key={act.tab}
-                type="button"
-                onClick={() => navigateGuarded(act.tab, act.title)}
-                className="pill-tag-shade cursor-pointer border border-zinc-200 whitespace-nowrap shrink-0"
-              >
-                {act.title}
-              </button>
-            )
-          )}
-        </div>
-
-        {/* Left Section: Universal Document Extractor, Locked Department Badge, Language, Search, Notifications, User Profile & Logout */}
-        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+        {/* Left Section: Clean Non-Overlapping Mobbin Pills */}
+        <div className="flex items-center gap-1.5 shrink-0">
           {resolvedScope.departmentId === 'executive' && (
             <button
               type="button"
               onClick={() => setShowDataHubModal(true)}
-              className="hidden xl:inline-flex pill-tag-mint cursor-pointer whitespace-nowrap shrink-0 items-center gap-1 px-2.5 py-1"
+              className="hidden 2xl:inline-flex px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] cursor-pointer whitespace-nowrap shrink-0 items-center gap-1.5 text-xs font-semibold transition-colors"
               title="حالة الاتصال بقاعدة البيانات السحابية"
             >
-              <Database className="w-3 h-3 text-black shrink-0" />
-              <span className="font-bold text-[10.5px]">قاعدة البيانات</span>
+              <Database className="w-3.5 h-3.5 text-[#141414] shrink-0" />
+              <span>قاعدة البيانات</span>
             </button>
           )}
 
-          {/* Live Enterprise Error Monitor & Self-Healing Trigger */}
+          {/* Live Enterprise Error Monitor */}
           <button
             type="button"
             onClick={() => setShowErrorMonitorModal(true)}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#FBFBF5] hover:bg-[#F5EDDC] text-[#1D2428] border border-[#CFA64A]/60 rounded-full text-xs font-black transition-all shrink-0 cursor-pointer shadow-xs min-h-[34px]"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer"
             title="رادار مراقبة وتشخيص الأخطاء المباشر ومحرك الإصلاح الذاتي"
           >
-            <Activity className="w-3.5 h-3.5 text-[#8C681E] shrink-0" />
-            <span className="hidden lg:inline text-[11px]">رادار الأخطاء</span>
-            <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black ${
-                openErrorCount > 0
-                  ? 'bg-amber-500 text-white'
-                  : 'bg-emerald-600 text-white'
-              }`}
-            >
+            <Activity className="w-3.5 h-3.5 text-[#141414] shrink-0" />
+            <span className="hidden 2xl:inline">رادار الأخطاء</span>
+            <span className="mobbin-badge-popular">
               {openErrorCount > 0 ? openErrorCount : '100%'}
             </span>
           </button>
@@ -417,12 +403,11 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={() => setShowUniversalExtractor(true)}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-black hover:bg-zinc-900 text-[#CFA64A] border border-[#CFA64A]/50 rounded-full text-xs font-black transition-all shrink-0 cursor-pointer shadow-xs min-h-[34px]"
-            title="رفع واستخلاص آلي لأي مستند (100 صورة فاتورة / PDF / Word / Excel / نظام محاسبي منفصل) وتوجيهه للقسم المعني"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#141414] hover:bg-[#262626] text-[#ffffff] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer"
+            title="رفع واستخلاص آلي لأي مستند (100 صورة فاتورة / PDF / Word / Excel)"
           >
-            <UploadCloud className="w-3.5 h-3.5 text-[#CFA64A] shrink-0" />
-            <span className="hidden md:inline text-[11px]">رفع واستخلاص مستندات</span>
-            <span className="md:hidden text-[11px]">رفع مستندات</span>
+            <UploadCloud className="w-3.5 h-3.5 text-[#ffffff] shrink-0" />
+            <span className="hidden xl:inline">مستخرج المستندات</span>
           </button>
 
           {/* Faris & Noura Institutional Advisor Quick Trigger */}
@@ -431,27 +416,25 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => {
               window.dispatchEvent(new CustomEvent('open-faris-assistant'));
             }}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#F5EDDC] hover:bg-[#CFA64A] text-black border border-[#CFA64A] rounded-full text-xs font-black transition-all shrink-0 cursor-pointer shadow-xs min-h-[34px]"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer"
             title="استدعاء المستشار المؤسسي الصوتي والنصي (فارس / نُورة)"
           >
             <img
               src="/mascot.png"
               alt="فارس ونُورة"
-              className="w-4 h-4 rounded-full object-contain bg-white border border-[#CFA64A] shrink-0"
+              className="w-4 h-4 rounded-full object-contain bg-[#ffffff] shrink-0"
             />
-            <span className="hidden lg:inline text-[11px]">فارس ونُورة</span>
+            <span className="hidden 2xl:inline">فارس ونُورة</span>
           </button>
 
           {/* Institutional Department & Company Scope Pill */}
           <button
             type="button"
             onClick={() => setShowProfileModal(true)}
-            className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 bg-[#f5eddc] hover:bg-[#efe2c6] text-black border border-[#cfa64a]/50 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer min-h-[34px]"
+            className="hidden 2xl:inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer"
             title="عرض بطاقة الهوية الوظيفية والقسم المصرح به"
           >
-            <span>{departmentDef.emoji}</span>
-            <span className="text-[10.5px] font-extrabold truncate max-w-[115px]">{departmentDef.badgeText}</span>
-            <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-black text-white font-mono">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#141414] text-[#ffffff] font-mono">
               {companyMeta.code === 'all' ? 'GROUP' : companyMeta.code}
             </span>
           </button>
@@ -465,42 +448,42 @@ export const Header: React.FC<HeaderProps> = ({
                 setShowUserDropdown(false);
                 setShowNotifDropdown(false);
               }}
-              className="flex items-center gap-1 px-2 py-1 bg-zinc-50 border border-zinc-200 rounded-full hover:bg-zinc-100 transition-colors text-xs font-semibold text-zinc-800 h-[34px] cursor-pointer"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] rounded-full transition-colors text-xs font-semibold text-[#141414] cursor-pointer"
               title="تغيير لغة المنظومة"
             >
               <span className="text-sm leading-none">{currentLanguage.flag}</span>
-              <span className="hidden lg:inline text-[11px]">{currentLanguage.nativeName}</span>
-              <ChevronDown className="w-3 h-3 text-zinc-400 shrink-0" />
+              <span className="hidden 2xl:inline text-xs">{currentLanguage.nativeName}</span>
+              <ChevronDown className="w-3 h-3 text-[#707070] shrink-0" />
             </button>
 
             {showLangDropdown && (
-              <div className="fixed inset-x-3 top-[calc(var(--header-height,64px)+8px)] sm:absolute sm:inset-x-auto sm:top-full sm:mt-2 sm:left-0 bg-white border border-zinc-200 rounded-2xl shadow-2xl sm:w-64 max-w-[calc(100vw-24px)] z-[350] p-2.5 space-y-2 font-sans text-right">
-                <div className="px-2 pt-1 pb-2 border-b border-zinc-100 flex items-center justify-between">
-                  <span className="text-xs font-bold text-black flex items-center gap-1.5">
-                    <Globe className="w-3.5 h-3.5 text-black" />
+              <div className="fixed inset-x-3 top-[calc(var(--header-height,64px)+8px)] sm:absolute sm:inset-x-auto sm:top-full sm:mt-2 sm:left-0 bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] sm:w-64 max-w-[calc(100vw-24px)] z-[350] p-3 space-y-2 text-right">
+                <div className="px-2 pt-1 pb-2 border-b border-[#f0f0f0] flex items-center justify-between">
+                  <span className="text-xs font-semibold text-[#141414] flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-[#141414]" />
                     <span>لغات النظام الرسمية</span>
                   </span>
                   <button
                     type="button"
                     onClick={() => setShowLangDropdown(false)}
-                    className="text-zinc-400 hover:text-black p-0.5 rounded-md"
+                    className="text-[#707070] hover:text-[#141414] p-0.5 rounded-full"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
                 <div className="relative px-1">
-                  <Search className="w-3.5 h-3.5 text-zinc-400 absolute right-3 top-2.5" />
+                  <Search className="w-3.5 h-3.5 text-[#707070] absolute right-3.5 top-2.5" />
                   <input
                     type="text"
                     placeholder="ابحث عن لغة..."
                     value={langSearch}
                     onChange={(e) => setLangSearch(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl pr-7 pl-3 py-1.5 text-xs text-black focus:border-black outline-none"
+                    className="w-full bg-[#f0f0f0] rounded-[16px] pr-8 pl-3 py-1.5 text-xs text-[#141414] outline-none"
                   />
                 </div>
 
-                <div className="max-h-60 overflow-y-auto space-y-0.5 pr-1 scrollbar-thin">
+                <div className="max-h-60 overflow-y-auto space-y-0.5 pr-1">
                   {filteredLanguages.map((lang) => {
                     const isSelected = currentLanguage.code === lang.code;
                     return (
@@ -512,22 +495,26 @@ export const Header: React.FC<HeaderProps> = ({
                           setShowLangDropdown(false);
                           setLangSearch('');
                         }}
-                        className={`w-full text-right px-2.5 py-1.5 rounded-xl text-xs flex items-center justify-between transition-colors ${
+                        className={`w-full text-right px-3 py-2 rounded-[16px] text-xs flex items-center justify-between transition-colors cursor-pointer ${
                           isSelected
-                            ? 'bg-[#f5eddc] text-black font-bold'
-                            : 'hover:bg-zinc-50 text-zinc-700'
+                            ? 'bg-[#141414] text-[#ffffff] font-semibold'
+                            : 'hover:bg-[#f3f3f3] text-[#141414]'
                         }`}
                       >
                         <div className="flex items-center gap-2">
                           <span className="text-base leading-none">{lang.flag}</span>
                           <div>
                             <div className="font-semibold leading-tight">{lang.nativeName}</div>
-                            <div className="text-[10px] text-zinc-400 leading-none">
+                            <div
+                              className={`text-[10px] leading-none mt-0.5 ${
+                                isSelected ? 'text-[#adadad]' : 'text-[#707070]'
+                              }`}
+                            >
                               {lang.name} ({lang.code.toUpperCase()})
                             </div>
                           </div>
                         </div>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-black" />}
+                        {isSelected && <Check className="w-3.5 h-3.5 text-[#ffffff]" />}
                       </button>
                     );
                   })}
@@ -539,26 +526,26 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Quick Search Button */}
           <button
             type="button"
-            className="w-9 h-9 rounded-full bg-white border border-zinc-200 flex items-center justify-center text-black hover:bg-zinc-50 transition-colors shrink-0 cursor-pointer"
+            className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] flex items-center justify-center text-[#141414] transition-colors shrink-0 cursor-pointer"
             onClick={() => setQuickSearchOpen(true)}
             title="البحث السريع (Ctrl + K)"
             aria-label="البحث السريع"
           >
-            <Search className="w-4 h-4 text-zinc-700" />
+            <Search className="w-4 h-4" />
           </button>
 
           {/* Fullscreen Button */}
           <button
             type="button"
-            className="hidden sm:flex w-9 h-9 rounded-full bg-white border border-zinc-200 items-center justify-center text-black hover:bg-zinc-50 transition-colors shrink-0 cursor-pointer"
+            className="hidden sm:flex w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] items-center justify-center text-[#141414] transition-colors shrink-0 cursor-pointer"
             onClick={toggleFullscreen}
             title={isFullscreen ? 'الخروج من ملء الشاشة' : 'ملء الشاشة'}
             aria-label="ملء الشاشة"
           >
             {isFullscreen ? (
-              <Minimize className="w-4 h-4 text-zinc-700" />
+              <Minimize className="w-4 h-4" />
             ) : (
-              <Maximize className="w-4 h-4 text-zinc-700" />
+              <Maximize className="w-4 h-4" />
             )}
           </button>
 
@@ -566,7 +553,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="relative">
             <button
               type="button"
-              className="w-9 h-9 rounded-full bg-white border border-zinc-200 flex items-center justify-center text-black hover:bg-zinc-50 transition-colors relative shrink-0 cursor-pointer"
+              className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] flex items-center justify-center text-[#141414] transition-colors relative shrink-0 cursor-pointer"
               onClick={() => {
                 setShowNotifDropdown(!showNotifDropdown);
                 setShowUserDropdown(false);
@@ -575,9 +562,9 @@ export const Header: React.FC<HeaderProps> = ({
               title="الإشعارات والتنبيهات"
               aria-label="الإشعارات"
             >
-              <Bell className="w-4 h-4 text-zinc-700" />
+              <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-rose-600 text-white rounded-full px-1.5 py-0.2 text-[9px] font-bold">
+                <span className="absolute -top-0.5 -right-0.5 bg-[#0066ff] text-[#ffffff] rounded-full px-1.5 py-0.2 text-[9px] font-semibold">
                   {unreadCount}
                 </span>
               )}
@@ -598,7 +585,7 @@ export const Header: React.FC<HeaderProps> = ({
                 setShowNotifDropdown(false);
                 setShowLangDropdown(false);
               }}
-              className="flex items-center gap-1.5 bg-white border border-zinc-200 rounded-full p-1 pl-2 sm:pl-3 hover:bg-zinc-50 transition-colors shrink-0 cursor-pointer"
+              className="flex items-center gap-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] rounded-full p-1 pl-2.5 transition-colors shrink-0 cursor-pointer"
             >
               <CorporateAvatar
                 name={displayName}
@@ -609,19 +596,19 @@ export const Header: React.FC<HeaderProps> = ({
                 status="online"
               />
               <div className="hidden sm:block text-right">
-                <div className="text-[11px] font-bold text-black leading-tight truncate max-w-[110px]">
+                <div className="text-[11px] font-semibold text-[#141414] leading-tight truncate max-w-[100px]">
                   {displayName}
                 </div>
-                <div className="text-[9.5px] text-[#a98232] font-bold truncate max-w-[110px]">
+                <div className="text-[10px] text-[#707070] font-medium truncate max-w-[100px]">
                   {departmentDef.badgeText}
                 </div>
               </div>
-              <ChevronDown className="w-3 h-3 text-zinc-400" />
+              <ChevronDown className="w-3 h-3 text-[#707070]" />
             </button>
 
             {showUserDropdown && (
-              <div className="fixed inset-x-3 top-[calc(var(--header-height,64px)+8px)] sm:absolute sm:inset-x-auto sm:top-full sm:mt-2 sm:left-0 bg-white border border-zinc-200 rounded-2xl shadow-2xl sm:w-72 max-w-[calc(100vw-24px)] z-[350] p-3 space-y-1.5">
-                <div className="p-3 bg-[#fbfbf5] rounded-xl border border-zinc-200 mb-1 flex items-center gap-2.5">
+              <div className="fixed inset-x-3 top-[calc(var(--header-height,64px)+8px)] sm:absolute sm:inset-x-auto sm:top-full sm:mt-2 sm:left-0 bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] sm:w-72 max-w-[calc(100vw-24px)] z-[350] p-3 space-y-1.5">
+                <div className="p-3 bg-[#f3f3f3] rounded-[16px] mb-1 flex items-center gap-2.5">
                   <CorporateAvatar
                     name={displayName}
                     email={displayEmail}
@@ -631,14 +618,14 @@ export const Header: React.FC<HeaderProps> = ({
                     status="verified"
                   />
                   <div className="space-y-1 min-w-0 flex-1">
-                    <div className="font-black text-xs text-black truncate">{displayName}</div>
-                    <div className="text-[10.5px] text-zinc-500 font-mono truncate">{displayEmail}</div>
+                    <div className="font-semibold text-xs text-[#141414] truncate">{displayName}</div>
+                    <div className="text-[10.5px] text-[#707070] font-mono truncate">{displayEmail}</div>
                     <div className="pt-0.5 flex flex-wrap items-center gap-1">
-                      <span className="px-2 py-0.5 bg-black text-white text-[9.5px] font-bold rounded-full">
-                        {companyMeta.emoji} {companyMeta.nameAr}
+                      <span className="px-2 py-0.5 bg-[#141414] text-[#ffffff] text-[10px] font-semibold rounded-full">
+                        {companyMeta.nameAr}
                       </span>
-                      <span className="px-2 py-0.5 bg-[#f5eddc] text-[#a98232] border border-[#cfa64a]/40 text-[9.5px] font-bold rounded-full">
-                        {departmentDef.emoji} {departmentDef.nameAr}
+                      <span className="px-2 py-0.5 bg-[#ffffff] text-[#141414] border border-[#e0e0e0] text-[10px] font-semibold rounded-full">
+                        {departmentDef.nameAr}
                       </span>
                     </div>
                   </div>
@@ -650,9 +637,9 @@ export const Header: React.FC<HeaderProps> = ({
                     setShowUserDropdown(false);
                     setShowProfileModal(true);
                   }}
-                  className="w-full text-right px-3 py-2 rounded-xl text-xs hover:bg-zinc-50 text-zinc-800 font-bold flex items-center gap-2 cursor-pointer"
+                  className="w-full text-right px-3 py-2 rounded-[16px] text-xs hover:bg-[#f3f3f3] text-[#141414] font-semibold flex items-center gap-2 cursor-pointer"
                 >
-                  <User className="w-3.5 h-3.5 text-[#a98232]" />
+                  <User className="w-3.5 h-3.5 text-[#141414]" />
                   <span>بطاقة الموظف وصلاحيات القسم</span>
                 </button>
 
@@ -662,9 +649,9 @@ export const Header: React.FC<HeaderProps> = ({
                     setShowUserDropdown(false);
                     onOpenAppLauncher();
                   }}
-                  className="w-full text-right px-3 py-2 rounded-xl text-xs hover:bg-zinc-50 text-zinc-700 flex items-center gap-2 cursor-pointer"
+                  className="w-full text-right px-3 py-2 rounded-[16px] text-xs hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] flex items-center gap-2 cursor-pointer"
                 >
-                  <Grid className="w-3.5 h-3.5 text-zinc-500" />
+                  <Grid className="w-3.5 h-3.5" />
                   <span>مستكشف شاشات القسم</span>
                 </button>
 
@@ -673,16 +660,16 @@ export const Header: React.FC<HeaderProps> = ({
                     type="button"
                     onClick={() => {
                       setShowUserDropdown(false);
-                      navigateGuarded('users', 'إدارة الهوية وصلاحيات الأقسام (IAM)');
+                      navigateGuarded('iam', 'إدارة الهوية وصلاحيات الأقسام (IAM)');
                     }}
-                    className="w-full text-right px-3 py-2 rounded-xl text-xs hover:bg-[#f5eddc] text-[#a98232] font-bold flex items-center gap-2 cursor-pointer"
+                    className="w-full text-right px-3 py-2 rounded-[16px] text-xs hover:bg-[#f3f3f3] text-[#141414] font-semibold flex items-center gap-2 cursor-pointer"
                   >
-                    <ShieldCheck className="w-4 h-4 text-[#a98232]" />
+                    <ShieldCheck className="w-4 h-4 text-[#0066ff]" />
                     <span>إدارة الهوية وصلاحيات الأقسام (IAM)</span>
                   </button>
                 )}
 
-                <div className="border-t border-zinc-200 my-1" />
+                <div className="border-t border-[#f0f0f0] my-1" />
 
                 <button
                   type="button"
@@ -690,7 +677,7 @@ export const Header: React.FC<HeaderProps> = ({
                     setShowUserDropdown(false);
                     if (onLogout) onLogout();
                   }}
-                  className="w-full text-right px-3 py-2.5 rounded-xl text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 flex items-center justify-center gap-2 font-black cursor-pointer"
+                  className="w-full text-right px-3 py-2.5 rounded-full text-xs bg-[#141414] hover:bg-[#262626] text-[#ffffff] flex items-center justify-center gap-2 font-semibold cursor-pointer transition-colors"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>تسجيل الخروج والعودة لبوابة الدخول</span>
@@ -709,27 +696,27 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Enterprise Live Error Monitor Global Modal */}
       {showErrorMonitorModal && (
         <div
-          className="fixed inset-0 z-[2300] bg-black/65 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+          className="fixed inset-0 z-[2300] bg-[#141414]/60 flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
           onClick={() => setShowErrorMonitorModal(false)}
           dir="rtl"
         >
           <div
-            className="w-full max-w-6xl bg-[#FBFBF5] rounded-3xl border-2 border-[#CFA64A]/60 shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col"
+            className="w-full max-w-6xl bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden my-auto max-h-[92vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-5 py-3.5 bg-[#1D2428] text-white flex items-center justify-between border-b border-[#CFA64A]/30 shrink-0">
+            <div className="px-5 py-4 bg-[#141414] text-[#ffffff] flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
-                <Activity className="w-5 h-5 text-[#CFA64A]" />
-                <span className="text-sm font-black text-white">
-                  مركز مراقبة وتشخيص الأخطاء المباشر والإصلاح الذاتي (Enterprise Error Monitor)
+                <Activity className="w-5 h-5 text-[#0066ff]" />
+                <span className="text-sm font-semibold text-[#ffffff]">
+                  مركز مراقبة وتشخيص الأخطاء المباشر والإصلاح الذاتي.
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setShowErrorMonitorModal(false)}
-                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-200 cursor-pointer"
+                className="p-1.5 rounded-full bg-[#262626] hover:bg-[#3f3f46] text-[#ffffff] cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
             <div className="p-4 sm:p-6 overflow-y-auto flex-1">
@@ -746,9 +733,9 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Employee Profile & Locked Department Modal */}
       {showProfileModal && (
-        <div className="fixed inset-0 z-[500] bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white border border-zinc-200 rounded-2xl max-w-md w-full p-6 space-y-4 text-right shadow-2xl">
-            <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
+        <div className="fixed inset-0 z-[500] bg-[#141414]/60 flex items-center justify-center p-4">
+          <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] max-w-md w-full p-6 space-y-4 text-right">
+            <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-3">
               <div className="flex items-center gap-2.5">
                 <CorporateAvatar
                   name={displayName}
@@ -758,19 +745,21 @@ export const Header: React.FC<HeaderProps> = ({
                   size="sm"
                   status="verified"
                 />
-                <h3 className="text-sm font-black text-black">بطاقة الهوية الوظيفية ونطاق القسم</h3>
+                <h3 className="text-sm font-semibold text-[#141414] m-0">
+                  بطاقة الهوية الوظيفية ونطاق القسم.
+                </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowProfileModal(false)}
-                className="text-zinc-400 hover:text-black"
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] flex items-center justify-center text-[#141414] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#fbfbf5] border border-zinc-200 space-y-2.5 text-xs">
-              <div className="flex items-center justify-between pb-2.5 mb-2 border-b border-zinc-200/80">
+            <div className="p-4 rounded-[16px] bg-[#f3f3f3] space-y-2.5 text-xs">
+              <div className="flex items-center justify-between pb-2.5 mb-2 border-b border-[#e0e0e0]">
                 <div className="flex items-center gap-2.5">
                   <CorporateAvatar
                     name={displayName}
@@ -781,8 +770,8 @@ export const Header: React.FC<HeaderProps> = ({
                     status="online"
                   />
                   <div>
-                    <div className="font-black text-black text-sm">{displayName}</div>
-                    <div className="text-[11px] text-[#a98232] font-bold">{departmentDef.badgeText}</div>
+                    <div className="font-semibold text-[#141414] text-sm">{displayName}</div>
+                    <div className="text-[11px] text-[#707070] font-medium">{departmentDef.badgeText}</div>
                   </div>
                 </div>
                 <BusinessIllustration
@@ -792,33 +781,33 @@ export const Header: React.FC<HeaderProps> = ({
                 />
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">اسم الموظف:</span>
-                <span className="font-black text-black">{displayName}</span>
+                <span className="text-[#707070]">اسم الموظف:</span>
+                <span className="font-semibold text-[#141414]">{displayName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">البريد الوظيفي:</span>
-                <span className="font-mono font-bold text-black">{displayEmail}</span>
+                <span className="text-[#707070]">البريد الوظيفي:</span>
+                <span className="font-mono font-semibold text-[#141414]">{displayEmail}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">الشركة التابع لها:</span>
-                <span className="font-bold text-black">
-                  {companyMeta.emoji} {companyMeta.nameAr}
+                <span className="text-[#707070]">الشركة التابع لها:</span>
+                <span className="font-semibold text-[#141414]">
+                  {companyMeta.nameAr}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">القسم الوظيفي المختص:</span>
-                <span className="font-black text-[#a98232]">
-                  {departmentDef.emoji} {departmentDef.nameAr}
+                <span className="text-[#707070]">القسم الوظيفي المختص:</span>
+                <span className="font-semibold text-[#141414]">
+                  {departmentDef.nameAr}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">الفرع التشغيلي:</span>
-                <span className="font-bold text-black">{selectedBranch}</span>
+                <span className="text-[#707070]">الفرع التشغيلي:</span>
+                <span className="font-semibold text-[#141414]">{selectedBranch}</span>
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#f5eddc]/70 border border-[#cfa64a]/40 text-[11px] text-zinc-800 flex items-start gap-2">
-              <Lock className="w-4 h-4 text-[#a98232] shrink-0 mt-0.5" />
+            <div className="p-3 rounded-[16px] bg-[#f3f3f3] text-[11px] text-[#141414] flex items-start gap-2">
+              <Lock className="w-4 h-4 text-[#141414] shrink-0 mt-0.5" />
               <span>
                 <strong>عزل الصلاحيات النشط:</strong> حسابك مقيد للعمل داخل ({departmentDef.nameAr}) في ({companyMeta.nameAr}) فقط وفق سياسة الحوكمة المؤسسية.
               </span>
@@ -828,7 +817,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 onClick={() => setShowProfileModal(false)}
-                className="button-primary-pill flex-1 py-2.5 text-xs font-bold"
+                className="mobbin-btn-primary flex-1"
               >
                 العودة لبيئة العمل
               </button>
@@ -838,7 +827,7 @@ export const Header: React.FC<HeaderProps> = ({
                   setShowProfileModal(false);
                   if (onLogout) onLogout();
                 }}
-                className="px-4 py-2.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1.5"
+                className="mobbin-btn-outline px-4"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>تسجيل الخروج</span>

@@ -102,7 +102,7 @@ const ALL_GROUP_ENTITIES: BranchEntity[] = [
   // 2. Landing Page Group Subsidiaries & KAS Trading Network
   {
     id: 'b-kas',
-    name: '🏛️ شركة كاس للتجارة (مؤسسة خالد عبدالعزيز السليم للتجارة)',
+    name: 'شركة كاس للتجارة (مؤسسة خالد عبدالعزيز السليم للتجارة)',
     code: 'HQ-KAS-RUH',
     category: 'شركة مجموعة',
     location: 'الرياض - طريق الملك فهد - برج كاس التجاري',
@@ -117,7 +117,7 @@ const ALL_GROUP_ENTITIES: BranchEntity[] = [
   },
   {
     id: 'b-kas-jed',
-    name: '⚓ فرع شركة كاس للتجارة والخدمات اللوجستية - جدة',
+    name: 'فرع شركة كاس للتجارة والخدمات اللوجستية - جدة',
     code: 'BR-KAS-JED',
     category: 'فرع منطقي',
     location: 'جدة - ميناء جدة الإسلامي وطريق المدينة',
@@ -130,7 +130,7 @@ const ALL_GROUP_ENTITIES: BranchEntity[] = [
   },
   {
     id: 'b-kas-expo',
-    name: '🎪 مؤسسة كاس لتنظيم المعارض والمؤتمرات',
+    name: 'مؤسسة كاس لتنظيم المعارض والمؤتمرات',
     code: 'KAS-EXPO',
     category: 'شركة مجموعة',
     location: 'الرياض - مركز المؤتمرات والمعارض',
@@ -143,7 +143,7 @@ const ALL_GROUP_ENTITIES: BranchEntity[] = [
   },
   {
     id: 'b-sulaim-adv',
-    name: '📢 وكالة خالد عبدالعزيز السليم للدعاية والإعلان',
+    name: 'وكالة خالد عبدالعزيز السليم للدعاية والإعلان',
     code: 'SULAIM-ADV',
     category: 'شركة مجموعة',
     location: 'الرياض - حي الملز - شارع الستين',
@@ -156,7 +156,7 @@ const ALL_GROUP_ENTITIES: BranchEntity[] = [
   },
   {
     id: 'b-smart-bld',
-    name: '🏗️ مؤسسة بنايات ذكية للمقاولات',
+    name: 'مؤسسة بنايات ذكية للمقاولات',
     code: 'SMART-BLD',
     category: 'شركة مجموعة',
     location: 'الرياض - حي العليا',
@@ -169,7 +169,7 @@ const ALL_GROUP_ENTITIES: BranchEntity[] = [
   },
   {
     id: 'b-super-touch',
-    name: '⚡ مؤسسة اللمسة الخارقة للاتصالات وتقنية المعلومات',
+    name: 'مؤسسة اللمسة الخارقة للاتصالات وتقنية المعلومات',
     code: 'SUPER-TOUCH',
     category: 'شركة مجموعة',
     location: 'الرياض - واحة التقنية الرقمية',
@@ -182,7 +182,7 @@ const ALL_GROUP_ENTITIES: BranchEntity[] = [
   },
   {
     id: 'b-topaz',
-    name: '💎 شركة توباز للاستقدام والتشغيل (TOP - RC03)',
+    name: 'شركة توباز للاستقدام والتشغيل (TOP - RC03)',
     code: 'TOP-RC03',
     category: 'شركة مجموعة',
     location: 'الرياض - البرج الرئيسي',
@@ -196,7 +196,7 @@ const ALL_GROUP_ENTITIES: BranchEntity[] = [
   },
   {
     id: 'b-ruwad',
-    name: '🏗️ شركة دار الرواد للاستقدام والحلول العمالية (DAR - RC04)',
+    name: 'شركة دار الرواد للاستقدام والحلول العمالية (DAR - RC04)',
     code: 'DAR-RC04',
     category: 'شركة مجموعة',
     location: 'الرياض - حي طريق الملك فهد',
@@ -210,7 +210,7 @@ const ALL_GROUP_ENTITIES: BranchEntity[] = [
   },
   {
     id: 'b-saffir',
-    name: '🤝 شركة السفير الماسي للاستقدام (SAF - RC01)',
+    name: 'شركة السفير الماسي للاستقدام (SAF - RC01)',
     code: 'SAF-RC01',
     category: 'شركة مجموعة',
     location: 'الرياض - طريق العليا العام',
@@ -224,7 +224,7 @@ const ALL_GROUP_ENTITIES: BranchEntity[] = [
   },
   {
     id: 'b-yaqoot',
-    name: '💠 شركة ياقوت نجد لتشغيل الكوادر والتأجير (YAQ - RC02)',
+    name: 'شركة ياقوت نجد لتشغيل الكوادر والتأجير (YAQ - RC02)',
     code: 'YAQ-RC02',
     category: 'شركة مجموعة',
     location: 'الرياض - حي العليا والخدمات الفاخرة',
@@ -238,7 +238,7 @@ const ALL_GROUP_ENTITIES: BranchEntity[] = [
   },
   {
     id: 'b-ayal',
-    name: '✈️ وكالة الأَمْيال للسفر والسياحة',
+    name: 'وكالة الأَمْيال للسفر والسياحة',
     code: 'AYAL-TRV',
     category: 'شركة مجموعة',
     location: 'الرياض - طريق الملك فهد',
@@ -253,7 +253,7 @@ const ALL_GROUP_ENTITIES: BranchEntity[] = [
   // 3. International Foreign Agencies
   {
     id: 'b-damas',
-    name: '🌍 مكتب داماس الإثيوبي (DAMAS Agency - Addis Ababa)',
+    name: 'مكتب داماس الإثيوبي (DAMAS Agency - Addis Ababa)',
     code: 'DAMAS-ETH',
     category: 'مكتب خارجي',
     location: 'أديس أبابا - إثيوبيا',
@@ -266,7 +266,7 @@ const ALL_GROUP_ENTITIES: BranchEntity[] = [
   },
   {
     id: 'b-platinum',
-    name: '🌍 مكتب بلاتينيوم الفلبيني (PLATINUM Brothers - Manila)',
+    name: 'مكتب بلاتينيوم الفلبيني (PLATINUM Brothers - Manila)',
     code: 'PLT-PHL',
     category: 'مكتب خارجي',
     location: 'مانيلا - الفلبين',
@@ -279,7 +279,7 @@ const ALL_GROUP_ENTITIES: BranchEntity[] = [
   },
   {
     id: 'b-versatile',
-    name: '🌍 مكتب فيرساتيل الهندي (VERSATILE Overseas - New Delhi)',
+    name: 'مكتب فيرساتيل الهندي (VERSATILE Overseas - New Delhi)',
     code: 'VRST-IND',
     category: 'مكتب خارجي',
     location: 'نيودلهي - الهند',
@@ -704,7 +704,7 @@ export const BranchDepartmentsPage: React.FC = () => {
                   {selectedEntity.category}
                 </span>
                 <span className="pill-tag-shade text-xs font-mono">
-                  👥 إجمالي الكادر: {selectedEntity.staff_count || 0} موظف
+                  إجمالي الكادر: {selectedEntity.staff_count || 0} موظف
                 </span>
               </div>
               <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">

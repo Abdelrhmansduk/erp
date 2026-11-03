@@ -242,21 +242,21 @@ export const SponsorshipTransferPage: React.FC = () => {
 
       {/* 1.5 Urgent Proactive Alert Banner (T=0 / Overdue) */}
       {criticalAlertsCount > 0 && (
-        <div className="rounded-2xl p-4 bg-gradient-to-r from-rose-950/90 via-rose-900/70 to-[#14181c] text-white shadow-xl flex items-center justify-between flex-wrap gap-4 border border-rose-500/30 animate-in fade-in duration-300">
+        <div className="rounded-2xl p-4 bg-[#fff1f2] text-[#141414] flex items-center justify-between flex-wrap gap-4 border border-[#fecdd3]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center font-black shrink-0">
-              <AlertTriangle className="w-5 h-5 text-rose-400 animate-pulse" />
+            <div className="w-10 h-10 rounded-xl bg-white border border-[#fecdd3] flex items-center justify-center font-black shrink-0">
+              <AlertTriangle className="w-5 h-5 text-[#be123c]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white font-mono">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#be123c] text-white font-mono">
                   تنبيه استباقي عاجل (T=0)
                 </span>
-                <span className="text-xs text-rose-200 font-bold">
+                <span className="text-xs text-[#be123c] font-bold">
                   تجاوز مدة التجربة أو انتهاء اليوم
                 </span>
               </div>
-              <h3 className="text-sm font-bold text-white mt-0.5">
+              <h3 className="text-sm font-bold text-[#141414] mt-0.5">
                 يوجد {criticalAlertsCount} حالة تجربة تجاوزت الموعد أو تنتهي اليوم وتتطلب حسم القرار فوراً!
               </h3>
             </div>
@@ -266,7 +266,7 @@ export const SponsorshipTransferPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowNotificationDrawer(true)}
-              className="px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-rose-900/30 cursor-pointer"
+              className="btn-pill-dark px-3.5 py-1.5 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
             >
               <Bell className="w-3.5 h-3.5" />
               <span>معالجة التنبيهات ({proactiveAlerts.length})</span>
@@ -275,7 +275,7 @@ export const SponsorshipTransferPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveTab('followup')}
-              className="px-3 py-1.5 rounded-xl bg-black/40 hover:bg-black/60 text-zinc-300 text-xs font-bold border border-white/10 transition-all cursor-pointer"
+              className="btn-pill-secondary px-3 py-1.5 text-xs font-bold cursor-pointer"
             >
               المتابعة اليومية
             </button>
@@ -283,64 +283,54 @@ export const SponsorshipTransferPage: React.FC = () => {
         </div>
       )}
 
-      {/* 2. The 4 Grand Executive KPI Cards (Matching KAS Suite Exactly) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 2. The 4 Grand Executive KPI Cards (.stat-card-grid) */}
+      <div className="stat-card-grid">
         {/* Card 1: Total In Shelter */}
-        <div className="rounded-2xl p-4 bg-[#14181c] border border-white/10 shadow-md">
-          <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-            <span>نزيلات السكن المشترك</span>
-            <Hotel className="w-4 h-4 text-amber-400" />
+        <div className="card-pricing">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-[#707070]">نزيلات السكن المشترك</span>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#f3f3f3] border border-[#e0e0e0]">
+              <Hotel className="w-4 h-4 text-[#141414]" />
+            </div>
           </div>
-          <div className="text-2xl font-black text-white font-display">
-            {metrics.totalWorkersInShelter} <span className="text-xs font-normal text-zinc-400">نزيلة</span>
-          </div>
-          <div className="text-[11px] text-emerald-400 mt-1 flex items-center gap-1 font-bold">
-            <TrendingUp className="w-3 h-3" />
-            <span>سعة مستقرة داخل المقرات</span>
-          </div>
+          <div className="display-sm">{metrics.totalWorkersInShelter}</div>
+          <div className="pill-tag-mint mt-2">سعة مستقرة داخل المقرات</div>
         </div>
 
         {/* Card 2: Available for Transfer */}
-        <div className="rounded-2xl p-4 bg-[#14181c] border border-white/10 shadow-md">
-          <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-            <span>متاحة لنقل الخدمات المباشر</span>
-            <UserCheck className="w-4 h-4 text-emerald-400" />
+        <div className="card-pistachio-band">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-[#262626]">متاحة لنقل الخدمات المباشر</span>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white border border-[#e0e0e0]">
+              <UserCheck className="w-4 h-4 text-[#141414]" />
+            </div>
           </div>
-          <div className="text-2xl font-black text-emerald-400 font-display">
-            {availableWorkersCount} <span className="text-xs font-normal text-zinc-400">عاملة</span>
-          </div>
-          <div className="text-[11px] text-zinc-400 mt-1 font-mono">
-            جاهزة للتسليم والتجربة الفورية
-          </div>
+          <div className="display-sm">{availableWorkersCount}</div>
+          <div className="pill-tag-mint mt-2">جاهزة للتسليم والتجربة الفورية</div>
         </div>
 
         {/* Card 3: In Trial Period */}
-        <div className="rounded-2xl p-4 bg-[#14181c] border border-white/10 shadow-md">
-          <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-            <span>عقود وتجارب العملاء النشطة</span>
-            <Hourglass className="w-4 h-4 text-amber-400" />
+        <div className="card-pricing">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-[#707070]">عقود وتجارب العملاء النشطة</span>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#f3f3f3] border border-[#e0e0e0]">
+              <Hourglass className="w-4 h-4 text-[#141414]" />
+            </div>
           </div>
-          <div className="text-2xl font-black text-amber-300 font-display">
-            {metrics.workersInClientTrial} <span className="text-xs font-normal text-zinc-400">عقد تجربة</span>
-          </div>
-          <div className="text-[11px] text-emerald-400 mt-1 font-bold flex items-center gap-1">
-            <Award className="w-3 h-3" />
-            <span>نسبة استقرار التجربة 94.6%</span>
-          </div>
+          <div className="display-sm">{metrics.workersInClientTrial}</div>
+          <div className="pill-tag-shade mt-2">نسبة استقرار التجربة 94.6%</div>
         </div>
 
         {/* Card 4: Total Transfer Revenue */}
-        <div className="rounded-2xl p-4 bg-[#14181c] border border-white/10 shadow-md">
-          <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-            <span>إجمالي القيمة المالية للتنازل</span>
-            <DollarSign className="w-4 h-4 text-blue-400" />
+        <div className="card-pricing">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-[#707070]">إجمالي القيمة المالية للتنازل</span>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#f3f3f3] border border-[#e0e0e0]">
+              <DollarSign className="w-4 h-4 text-[#141414]" />
+            </div>
           </div>
-          <div className="text-2xl font-black text-blue-300 font-display">
-            {metrics.totalTransferRevenue.toLocaleString('ar-SA')} <span className="text-xs font-normal text-zinc-400">ر.س</span>
-          </div>
-          <div className="text-[11px] text-zinc-400 mt-1">
-            {metrics.transfersCompletedThisMonth} عملية نقل مكتملة هذا الشهر
-          </div>
+          <div className="display-sm">{metrics.totalTransferRevenue.toLocaleString('ar-SA')} ر.س</div>
+          <div className="pill-tag-mint mt-2">{metrics.transfersCompletedThisMonth} عملية نقل مكتملة هذا الشهر</div>
         </div>
       </div>
 

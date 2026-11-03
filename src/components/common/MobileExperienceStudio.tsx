@@ -168,7 +168,7 @@ export const MobileExperienceStudio: React.FC = () => {
 
     const payloads = {
       musaned: {
-        title: '📱 إشعار مساند الفوري (نسخة الهاتف)',
+        title: 'إشعار مساند الفوري (نسخة الهاتف)',
         message: 'تم توثيق واعتماد عقد الاستقدام رقم MUS-2026-8841 في الخلفية بنجاح.',
         type: 'musaned' as const,
         companyId: 'SAF',
@@ -176,7 +176,7 @@ export const MobileExperienceStudio: React.FC = () => {
         action: { label: 'فتح العقود', tabKey: 'recruitment' },
       },
       zatca: {
-        title: '🧾 اعتماد فاتورة ZATCA المرحلة الثانية',
+        title: 'اعتماد فاتورة ZATCA المرحلة الثانية',
         message: 'تمت مصادقة الفاتورة الضريبية وتوليد ختم التشفير PIH في الخلفية.',
         type: 'zatca' as const,
         companyId: 'YAQ',
@@ -184,7 +184,7 @@ export const MobileExperienceStudio: React.FC = () => {
         action: { label: 'فتح ZATCA', tabKey: 'zatca' },
       },
       etimad: {
-        title: '🏛️ ترسية منافسة حكومية - منصة اعتماد',
+        title: 'ترسية منافسة حكومية - منصة اعتماد',
         message: 'إشعار فوري: تحديث حالة الضمان البنكي للمنافسة رقم ETM-7720.',
         type: 'etimad' as const,
         companyId: 'KAS',
@@ -192,7 +192,7 @@ export const MobileExperienceStudio: React.FC = () => {
         action: { label: 'منافسات كاس', tabKey: 'kas-etmad' },
       },
       shelter: {
-        title: '🏠 تحديث إيواء ونقل خدمات',
+        title: 'تحديث إيواء ونقل خدمات',
         message: 'تم تسجيل وصول العاملة وتحديث حالة الإيواء الميداني في الخلفية.',
         type: 'shelter' as const,
         companyId: 'DAR',
@@ -232,7 +232,7 @@ export const MobileExperienceStudio: React.FC = () => {
       },
     });
     notificationPopupEngine.show({
-      title: '📥 تمت إضافة عملية لطابور الخلفية',
+      title: 'تمت إضافة عملية لطابور الخلفية',
       message:
         'تم حفظ العملية الميدانية في طابور عدم الاتصال (Offline Queue) ليتم رفعها تلقائياً في الخلفية.',
       type: 'info',
@@ -245,7 +245,7 @@ export const MobileExperienceStudio: React.FC = () => {
     try {
       const res = await backgroundExecutionService.flushBackgroundQueues('manual-studio');
       notificationPopupEngine.show({
-        title: '✅ اكتملت المزامنة الخلفية للهاتف',
+        title: 'اكتملت المزامنة الخلفية للهاتف',
         message: `تمت مزامنة (${res.syncedMutations}) عمليات ميدانية ومعالجة (${res.processedEvents}) أحداث في الخلفية بنجاح.`,
         type: 'success',
         companyName: 'Service Worker v3',

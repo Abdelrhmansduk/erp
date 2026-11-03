@@ -194,9 +194,6 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
       >
         <div className="flex items-center gap-3">
           <BusinessIllustration type="ats-talent" size="sm" />
-          <div style={{ width: '44px', height: '44px', borderRadius: '9999px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff' }}>
-            <Users className="w-5 h-5" />
-          </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
               <span className="pill-tag-mint" style={{ fontSize: '11px' }}>

@@ -295,10 +295,10 @@ export const OfficesPage: React.FC = () => {
         {/* Sub-Branch Navigation Tabs inside OfficesPage */}
         <div className="mt-5 pt-4 border-t border-white/15 flex items-center gap-2 flex-wrap">
           {[
-            { id: 'offices', label: '🌐 دليل الوكالات الدولية (كروت)', mode: 'cards' as const },
-            { id: 'agent-accounts', label: '📊 كشوف حسابات وأرصدة الوكلاء', mode: 'table' as const },
-            { id: 'office-transfers', label: '💸 حوالات وتسويات المكاتب الخارجية', mode: 'table' as const },
-            { id: 'add-office', label: '➕ تسجيل وكالة خارجية جديدة', mode: 'cards' as const },
+            { id: 'offices', label: 'دليل الوكالات الدولية (كروت)', mode: 'cards' as const },
+            { id: 'agent-accounts', label: 'كشوف حسابات وأرصدة الوكلاء', mode: 'table' as const },
+            { id: 'office-transfers', label: 'حوالات وتسويات المكاتب الخارجية', mode: 'table' as const },
+            { id: 'add-office', label: 'تسجيل وكالة خارجية جديدة', mode: 'cards' as const },
           ].map((sub) => {
             const isActive = storeActiveTab === sub.id;
             return (

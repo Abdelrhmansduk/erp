@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { SIDEBAR_MENU } from '../../data/sidebarMenu';
 import { NavItem } from '../../types';
 import { useLanguage } from '../../i18n/LanguageContext';
@@ -29,7 +29,8 @@ import {
   Wallet, BarChart4, FolderTree, Landmark, FolderKanban, BookOpen,
   MessageSquare, Smartphone, MessagesSquare, Megaphone, Radio,
   GitPullRequest, Globe, FolderSync, UploadCloud, Settings, Sliders,
-  History, Settings2, Lock, TrendingUp,
+  History, Settings2, Lock, TrendingUp, PanelRightClose, PanelRightOpen,
+  ChevronsDownUp, ChevronsUpDown,
 } from 'lucide-react';
 
 const LUCIDE_ICONS: Record<string, React.FC<{ className?: string }>> = {
@@ -55,18 +56,20 @@ interface SidebarProps {
   activeTab: string;
   onSelectTab: (href: string, title: string) => void;
   onClose?: () => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export type SidebarDisplayMode = 'tree' | 'compact' | 'cards';
 
 function findFirstLeaf(item: NavItem): { href: string; title: string } | null {
-  if (item.href) return { href: item.href, title: item.title };
-  if (item.children) {
+  if (item.children && item.children.length > 0) {
     for (const child of item.children) {
       const found = findFirstLeaf(child);
       if (found) return found;
     }
   }
+  if (item.href) return { href: item.href, title: item.title };
   return null;
 }
 
@@ -78,7 +81,19 @@ function collectLeafItems(item: NavItem): NavItem[] {
   return item.children.flatMap((c) => collectLeafItems(c));
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab, onClose }) => {
+function itemContainsTab(item: NavItem, targetTab: string): boolean {
+  if (item.href === targetTab) return true;
+  if (!item.children) return false;
+  return item.children.some((c) => itemContainsTab(c, targetTab));
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({
+  activeTab,
+  onSelectTab,
+  onClose,
+  isCollapsed = false,
+  onToggleCollapse,
+}) => {
   const { currentLanguage } = useLanguage();
   const { isSuperAdmin, activeCompany } = useIamSession();
   const { activeCompanyId } = useCompany();
@@ -87,6 +102,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab, onClos
 
   const [displayMode, setDisplayMode] = useState<SidebarDisplayMode>('tree');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Keep displayMode synchronized with parent collapse prop
+  const effectiveMode: SidebarDisplayMode = isCollapsed ? 'compact' : displayMode;
 
   const effectiveProfile = authUser || authService.getCurrentUser();
   const resolvedScope = useMemo(() => {
@@ -108,33 +126,78 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab, onClos
 
   const departmentDef = CORPORATE_DEPARTMENTS[resolvedScope.departmentId];
 
-  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({
-    'finance-section': true,
-    'smacc-gl-group': true,
-    'smacc-cash-group': true,
-    'smacc-ar-group': true,
-    'smacc-ap-group': true,
-    'smacc-cc-group': true,
-    'smacc-reports-group': true,
-    'operations-section': true,
-    'recruitment-group': true,
-    'rent-group': true,
-    'cvs-group': true,
-    'offices-group': true,
-    'orders-group': true,
-    'ingaz-group': true,
-    'shelter-group': true,
-    'transfer-group': true,
-    'logistics-group': true,
-    'complaints-group': true,
-    'crm-section': true,
-    'hr-section': true,
-    'governance-section': true,
+  // Initialize expanded state so ONLY the active department is open by default (clean accordion)
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    for (const section of SIDEBAR_MENU) {
+      if (section.children && section.children.length > 0) {
+        initial[section.id] = itemContainsTab(section, activeTab);
+      }
+    }
+    // If on dashboard, keep all 9 departments neatly folded so user sees all 9 at a glance
+    return initial;
   });
 
-  const toggleExpand = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setExpandedItems((prev) => ({ ...prev, [id]: !prev[id] }));
+  // Automatically expand ONLY the department containing activeTab (clean single-open accordion)
+  useEffect(() => {
+    if (!activeTab || activeTab === 'dashboard') {
+      setExpandedItems({});
+      return;
+    }
+    const matchingSection = SIDEBAR_MENU.find(
+      (section) => section.children && itemContainsTab(section, activeTab)
+    );
+    if (matchingSection) {
+      setExpandedItems({
+        [matchingSection.id]: true,
+      });
+    }
+  }, [activeTab]);
+
+  const toggleExpand = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setExpandedItems((prev) => {
+      const isCurrentlyOpen = Boolean(prev[id]);
+      if (isCurrentlyOpen) {
+        return { ...prev, [id]: false };
+      }
+      // Accordion mode: opening a department folds other departments so all 9 remain accessible
+      return { [id]: true };
+    });
+  };
+
+  const anyExpanded = useMemo(
+    () => SIDEBAR_MENU.some((s) => s.children && expandedItems[s.id]),
+    [expandedItems]
+  );
+
+  const handleToggleAllSections = () => {
+    if (anyExpanded) {
+      // Collapse all 9 departments
+      setExpandedItems({});
+    } else {
+      // Expand all 9 departments
+      const allOpen: Record<string, boolean> = {};
+      for (const s of SIDEBAR_MENU) {
+        if (s.children) allOpen[s.id] = true;
+      }
+      setExpandedItems(allOpen);
+    }
+  };
+
+  const handleModeSwitch = (mode: SidebarDisplayMode) => {
+    if (mode === 'compact') {
+      if (!isCollapsed && onToggleCollapse) {
+        onToggleCollapse();
+      } else {
+        setDisplayMode('compact');
+      }
+    } else {
+      setDisplayMode(mode);
+      if (isCollapsed && onToggleCollapse) {
+        onToggleCollapse();
+      }
+    }
   };
 
   const renderIcon = (iconName?: string, className = 'w-4 h-4') => {
@@ -144,49 +207,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab, onClos
     return <CircleDot className={className} />;
   };
 
-  // Multi-Company & Department Visibility (all 9 departments and sub-branches unlocked for inspection)
-  const isCompanyMatch = (_item: NavItem): boolean => {
-    return true;
-  };
-
-  const isLeafAuthorized = (href: string): boolean => {
-    return Boolean(href);
-  };
-
-  // Filter Sidebar Menu strictly by Company + Department + Search Query
   const filteredMenu = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
 
     const filterItem = (item: NavItem): NavItem | null => {
-      if (!isCompanyMatch(item)) return null;
-
       if (item.children && item.children.length > 0) {
+        const selfMatches = query ? item.title.toLowerCase().includes(query) : false;
         const authorizedChildren = item.children
-          .map(filterItem)
+          .map((child) => (selfMatches ? child : filterItem(child)))
           .filter((child): child is NavItem => child !== null);
 
         if (authorizedChildren.length === 0) return null;
-
-        if (!query) {
-          return { ...item, children: authorizedChildren };
-        }
-
-        const selfMatches = item.title.toLowerCase().includes(query);
-        if (selfMatches) {
-          return { ...item, children: authorizedChildren };
-        }
         return { ...item, children: authorizedChildren };
       }
 
-      // Leaf item: MUST be explicitly authorized for this employee's department
-      if (!item.href || !isLeafAuthorized(item.href)) {
-        return null;
-      }
-
+      if (!item.href) return null;
       if (query && !item.title.toLowerCase().includes(query)) {
         return null;
       }
-
       return item;
     };
 
@@ -202,73 +240,70 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab, onClos
 
   const getBadgeStyle = (type?: string, isSelected?: boolean) => {
     if (isSelected) {
-      return 'bg-zinc-800 text-[#e4c77b] border border-zinc-700';
+      return 'bg-[#0066ff] text-[#ffffff]';
     }
     switch (type) {
       case 'success':
-        return 'bg-[#faebd7] text-black font-semibold';
+        return 'bg-[#f3f3f3] text-[#141414] font-semibold';
       case 'danger':
-        return 'bg-rose-50 text-rose-700 border border-rose-200';
-      case 'warning':
-        return 'bg-amber-50 text-amber-800 border border-amber-200';
+        return 'bg-[#141414] text-[#ffffff] font-semibold';
       default:
-        return 'bg-zinc-100 text-zinc-700 border border-zinc-200';
+        return 'bg-[#f3f3f3] text-[#707070]';
     }
   };
 
   const renderTreeItem = (item: NavItem, depth = 0) => {
     const hasChildren = Boolean(item.children && item.children.length > 0);
     const isExpanded = Boolean(expandedItems[item.id]) || searchQuery.trim().length > 0;
-    const isDirectActive = item.href === activeTab;
-    const isBranchActive = !isDirectActive && hasActiveChild(item);
-
-    const handleClick = (e: React.MouseEvent) => {
-      if (hasChildren) {
-        toggleExpand(item.id, e);
-        if (item.href) {
-          onSelectTab(item.href, item.title);
-          if (onClose && window.innerWidth < 1024) onClose();
-        }
-      } else if (item.href) {
-        onSelectTab(item.href, item.title);
-        if (onClose && window.innerWidth < 1024) onClose();
-      }
-    };
+    const isDirectActive = !hasChildren && item.href === activeTab;
+    const isBranchActive = hasChildren && hasActiveChild(item);
 
     if (depth === 0 && hasChildren) {
+      const childCount = item.children?.length || 0;
       return (
-        <div key={item.id} className="mb-2.5">
+        <div key={item.id} className="mb-1.5">
           <button
             type="button"
-            onClick={handleClick}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            onClick={(e) => toggleExpand(item.id, e)}
+            aria-expanded={isExpanded}
+            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-[16px] text-xs font-semibold transition-colors cursor-pointer ${
               isBranchActive
-                ? 'bg-zinc-100 text-black border border-zinc-200'
-                : 'text-zinc-800 hover:bg-zinc-100'
+                ? 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
+                : isExpanded
+                ? 'bg-[#f8f8f8] text-[#141414]'
+                : 'text-[#141414] hover:bg-[#f3f3f3]'
             }`}
           >
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0">
               <div
-                className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
-                  isBranchActive ? 'bg-black text-white' : 'bg-zinc-100 text-black border border-zinc-200'
+                className={`w-7 h-7 app-icon-squircle flex items-center justify-center shrink-0 transition-colors ${
+                  isBranchActive || isExpanded
+                    ? 'bg-[#141414] text-[#ffffff]'
+                    : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
                 }`}
               >
                 {renderIcon(item.icon, 'w-3.5 h-3.5')}
               </div>
-              <span className="truncate">{item.title}</span>
+              <span className="truncate text-right">{item.title}</span>
             </div>
-            <ChevronDown
-              className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 shrink-0 ${
-                isExpanded ? 'rotate-180 text-black' : ''
-              }`}
-            />
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-[#f3f3f3] text-[#707070]">
+                {childCount}
+              </span>
+              <ChevronDown
+                className={`w-4 h-4 text-[#707070] transition-transform duration-200 shrink-0 ${
+                  isExpanded ? 'rotate-180 text-[#141414]' : ''
+                }`}
+              />
+            </div>
           </button>
 
           {isExpanded && (
             <div
               className={`mt-1 space-y-0.5 ${
-                isRtl ? 'pr-3 mr-3 border-r' : 'pl-3 ml-3 border-l'
-              } border-zinc-200`}
+                isRtl ? 'pr-2.5 mr-3 border-r' : 'pl-2.5 ml-3 border-l'
+              } border-[#e0e0e0]`}
             >
               {item.children!.map((child) => renderTreeItem(child, depth + 1))}
             </div>
@@ -277,24 +312,33 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab, onClos
       );
     }
 
+    const handleLeafOrSubClick = (e: React.MouseEvent) => {
+      if (hasChildren) {
+        toggleExpand(item.id, e);
+      } else if (item.href) {
+        onSelectTab(item.href, item.title);
+        if (onClose && window.innerWidth < 1024) onClose();
+      }
+    };
+
     return (
       <div key={item.id} className="my-0.5">
         <button
           type="button"
-          onClick={handleClick}
-          className={`w-full flex items-center justify-between px-3 py-2 rounded-full text-xs transition-all cursor-pointer ${
+          onClick={handleLeafOrSubClick}
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-full text-xs transition-colors cursor-pointer ${
             isDirectActive
-              ? 'bg-black text-white font-semibold shadow-xs'
+              ? 'bg-[#141414] text-[#ffffff] font-semibold'
               : isBranchActive
-              ? 'bg-zinc-100 text-black font-semibold'
-              : 'text-zinc-600 hover:bg-zinc-100 hover:text-black'
+              ? 'bg-[#f3f3f3] text-[#141414] font-semibold'
+              : 'text-[#707070] hover:bg-[#f3f3f3] hover:text-[#141414]'
           }`}
         >
           <div className="flex items-center gap-2 min-w-0">
-            <span className={`shrink-0 ${isDirectActive ? 'text-white' : 'text-zinc-500'}`}>
+            <span className={`shrink-0 ${isDirectActive ? 'text-[#ffffff]' : 'text-[#707070]'}`}>
               {renderIcon(item.icon, 'w-3.5 h-3.5')}
             </span>
-            <span className="truncate">{item.title}</span>
+            <span className="truncate text-right">{item.title}</span>
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
@@ -309,7 +353,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab, onClos
               </span>
             )}
             {hasChildren && (
-              <span className="text-zinc-400">
+              <span className="text-[#adadad]">
                 {isExpanded ? (
                   <ChevronDown className="w-3.5 h-3.5" />
                 ) : isRtl ? (
@@ -326,7 +370,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab, onClos
           <div
             className={`mt-1 space-y-0.5 ${
               isRtl ? 'pr-3 mr-2.5 border-r' : 'pl-3 ml-2.5 border-l'
-            } border-zinc-200`}
+            } border-[#f0f0f0]`}
           >
             {item.children!.map((subChild) => renderTreeItem(subChild, depth + 1))}
           </div>
@@ -337,126 +381,168 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab, onClos
 
   return (
     <div
-      className={`h-full flex flex-col bg-white border-zinc-200 select-none transition-all duration-200 ${
+      className={`h-full w-full flex flex-col bg-[#ffffff] border-[#f0f0f0] select-none transition-all duration-200 ${
         isRtl ? 'border-l' : 'border-r'
-      } ${displayMode === 'compact' ? 'w-20' : 'w-72'}`}
+      }`}
     >
-      {/* 1. Top Corporate Brand & Locked Department Context Header */}
-      <div className="p-3.5 border-b border-zinc-200 space-y-2.5">
-        <div className="flex items-center justify-between">
+      {/* 1. Top Corporate Brand & Collapse Controller Header */}
+      <div className={`${effectiveMode === 'compact' ? 'p-2.5' : 'p-3.5'} border-b border-[#f0f0f0] space-y-2.5`}>
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
-            <img
-              src="/logo.png"
-              alt="مجموعة خالد السليم"
-              className="w-9 h-9 rounded-full border border-[#cfa64a] p-0.5 object-cover shrink-0 bg-white"
-            />
-            {displayMode !== 'compact' && (
+            <div className="w-9 h-9 app-icon-squircle bg-[#141414] text-[#ffffff] flex items-center justify-center font-bold text-xs shrink-0">
+              KS
+            </div>
+            {effectiveMode !== 'compact' && (
               <div className="min-w-0">
-                <div className="font-black text-xs text-black truncate">
-                  {companyMeta.emoji} {companyMeta.nameAr}
+                <div className="font-semibold text-xs text-[#141414] truncate">
+                  {companyMeta.nameAr}
                 </div>
-                <div className="text-[10.5px] font-bold text-[#a98232] truncate">
-                  {departmentDef.emoji} {departmentDef.badgeText}
+                <div className="text-[11px] font-medium text-[#707070] truncate">
+                  الأقسام الإدارية الـ 9
                 </div>
               </div>
             )}
           </div>
 
-          {onClose && (
-            <button
-              type="button"
-              onClick={onClose}
-              className="lg:hidden p-1.5 rounded-full text-zinc-500 hover:text-black hover:bg-zinc-100"
-              aria-label="إغلاق القائمة"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
+          <div className="flex items-center gap-1 shrink-0">
+            {onToggleCollapse && (
+              <button
+                type="button"
+                onClick={onToggleCollapse}
+                className="hidden lg:inline-flex w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] items-center justify-center transition-colors cursor-pointer"
+                title={effectiveMode === 'compact' ? 'توسيع القائمة الجانبية (Alt+B)' : 'طي القائمة الجانبية (Alt+B)'}
+                aria-label={effectiveMode === 'compact' ? 'توسيع القائمة الجانبية' : 'طي القائمة الجانبية'}
+              >
+                {effectiveMode === 'compact' ? (
+                  <PanelRightOpen className="w-4 h-4" />
+                ) : (
+                  <PanelRightClose className="w-4 h-4" />
+                )}
+              </button>
+            )}
+
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="lg:hidden p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3] cursor-pointer"
+                aria-label="إغلاق القائمة"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Locked Department Security Badge */}
-        {displayMode !== 'compact' && (
-          <div className="px-2.5 py-1.5 rounded-xl bg-[#f5eddc]/70 border border-[#cfa64a]/40 flex items-center justify-between text-[10.5px]">
-            <span className="font-bold text-black flex items-center gap-1 truncate">
-              <Lock className="w-3 h-3 text-[#a98232] shrink-0" />
+        {effectiveMode !== 'compact' && (
+          <div className="px-3 py-1.5 rounded-[14px] bg-[#f3f3f3] flex items-center justify-between text-[11px]">
+            <span className="font-semibold text-[#141414] flex items-center gap-1.5 truncate">
+              <Lock className="w-3.5 h-3.5 text-[#707070] shrink-0" />
               <span className="truncate">{departmentDef.nameAr}</span>
             </span>
-            <span className="px-1.5 py-0.5 rounded bg-black text-white font-mono text-[9.5px] font-bold shrink-0">
+            <span className="mobbin-badge-popular shrink-0">
               {companyMeta.code === 'all' ? 'GROUP' : companyMeta.code}
             </span>
           </div>
         )}
 
-        {/* Display Mode Switcher */}
-        <div className="flex items-center justify-between bg-zinc-100 p-1 rounded-full border border-zinc-200">
-          <button
-            type="button"
-            onClick={() => setDisplayMode('tree')}
-            className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer ${
-              displayMode === 'tree' ? 'bg-black text-white shadow-2xs' : 'text-zinc-600 hover:text-black'
-            }`}
-            title="عرض شجري"
-          >
-            <ListTree className="w-3.5 h-3.5" />
-            {displayMode !== 'compact' && <span>شجري</span>}
-          </button>
+        {/* Display Mode Switcher (Mobbin Segmented Control) */}
+        {effectiveMode !== 'compact' && (
+          <div className="flex items-center justify-between bg-[#f3f3f3] p-1 rounded-full">
+            <button
+              type="button"
+              onClick={() => handleModeSwitch('tree')}
+              className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
+                effectiveMode === 'tree'
+                  ? 'bg-[#ffffff] text-[#141414] border border-[#e0e0e0]'
+                  : 'text-[#707070] hover:text-[#141414]'
+              }`}
+              title="عرض شجري للأقسام الـ 9"
+            >
+              <ListTree className="w-3.5 h-3.5" />
+              <span>الأقسام الـ 9</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setDisplayMode('compact')}
-            className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer ${
-              displayMode === 'compact' ? 'bg-black text-white shadow-2xs' : 'text-zinc-600 hover:text-black'
-            }`}
-            title="عرض مضغوط"
-          >
-            <Columns className="w-3.5 h-3.5" />
-            {displayMode !== 'compact' && <span>مضغوط</span>}
-          </button>
+            <button
+              type="button"
+              onClick={() => handleModeSwitch('cards')}
+              className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
+                effectiveMode === 'cards'
+                  ? 'bg-[#ffffff] text-[#141414] border border-[#e0e0e0]'
+                  : 'text-[#707070] hover:text-[#141414]'
+              }`}
+              title="عرض بطاقات"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>بطاقات</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setDisplayMode('cards')}
-            className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer ${
-              displayMode === 'cards' ? 'bg-black text-white shadow-2xs' : 'text-zinc-600 hover:text-black'
-            }`}
-            title="عرض بطاقات"
-          >
-            <LayoutGrid className="w-3.5 h-3.5" />
-            {displayMode !== 'compact' && <span>بطاقات</span>}
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={() => handleModeSwitch('compact')}
+              className="flex-1 flex items-center justify-center gap-1 py-1 rounded-full text-[11px] font-semibold text-[#707070] hover:text-[#141414] transition-all cursor-pointer"
+              title="طي القائمة الجانبية"
+            >
+              <Columns className="w-3.5 h-3.5" />
+              <span>طي القائمة</span>
+            </button>
+          </div>
+        )}
 
-        {/* Quick Menu Search */}
-        {displayMode !== 'compact' && (
-          <div className="flex items-center gap-1.5 bg-zinc-50 border border-zinc-200 rounded-full px-3 py-1.5 text-xs">
-            <Search className="w-3.5 h-3.5 text-zinc-400" />
-            <input
-              type="text"
-              placeholder="بحث في شاشات القسم..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent border-none outline-none text-xs text-black placeholder-zinc-400"
-            />
-            {searchQuery && (
-              <X
-                className="w-3.5 h-3.5 text-zinc-400 cursor-pointer hover:text-black"
-                onClick={() => setSearchQuery('')}
+        {/* Quick Menu Search + Collapse/Expand All 9 Departments Button */}
+        {effectiveMode !== 'compact' && (
+          <div className="flex items-center gap-1.5">
+            <div className="flex-1 flex items-center gap-2 bg-[#f0f0f0] rounded-[14px] px-3 py-1.5 text-xs">
+              <Search className="w-3.5 h-3.5 text-[#707070] shrink-0" />
+              <input
+                type="text"
+                placeholder="بحث في الأقسام الـ 9..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-transparent border-none outline-none text-xs text-[#141414] placeholder-[#707070]"
               />
+              {searchQuery && (
+                <X
+                  className="w-3.5 h-3.5 text-[#707070] cursor-pointer hover:text-[#141414]"
+                  onClick={() => setSearchQuery('')}
+                />
+              )}
+            </div>
+
+            {effectiveMode === 'tree' && (
+              <button
+                type="button"
+                onClick={handleToggleAllSections}
+                className="px-2.5 py-1.5 rounded-[14px] bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-[10.5px] font-semibold inline-flex items-center gap-1 shrink-0 cursor-pointer transition-colors"
+                title={anyExpanded ? 'طي جميع الأقسام الـ 9' : 'توسيع جميع الأقسام الـ 9'}
+              >
+                {anyExpanded ? (
+                  <>
+                    <ChevronsDownUp className="w-3.5 h-3.5" />
+                    <span>طي الكل</span>
+                  </>
+                ) : (
+                  <>
+                    <ChevronsUpDown className="w-3.5 h-3.5" />
+                    <span>فتح الكل</span>
+                  </>
+                )}
+              </button>
             )}
           </div>
         )}
       </div>
 
       {/* 2. Navigation Content */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
-        {/* MODE 1: HIERARCHICAL TREE VIEW */}
-        {displayMode === 'tree' && filteredMenu.map((item) => renderTreeItem(item, 0))}
+      <div className="flex-1 overflow-y-auto p-2.5 space-y-1">
+        {effectiveMode === 'tree' && filteredMenu.map((item) => renderTreeItem(item, 0))}
 
-        {/* MODE 2: COMPACT ICON RAIL (Fixed so all icons navigate to first authorized leaf) */}
-        {displayMode === 'compact' && (
-          <div className="flex flex-col items-center gap-2 py-2">
-            {filteredMenu.map((item) => {
+        {effectiveMode === 'compact' && (
+          <div className="flex flex-col items-center gap-2 py-1">
+            {filteredMenu.map((item, idx) => {
               const isActive = item.href === activeTab || hasActiveChild(item);
+              const deptNum = idx > 0 ? idx : null;
               return (
                 <button
                   key={item.id}
@@ -469,30 +555,42 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab, onClos
                     }
                   }}
                   title={item.title}
-                  className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${
-                    isActive ? 'bg-black text-white shadow-sm' : 'hover:bg-zinc-100 text-zinc-700'
+                  className={`relative w-11 h-11 app-icon-squircle flex items-center justify-center transition-colors cursor-pointer ${
+                    isActive
+                      ? 'bg-[#141414] text-[#ffffff]'
+                      : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414]'
                   }`}
                 >
                   {renderIcon(item.icon, 'w-4 h-4')}
+                  {deptNum && (
+                    <span
+                      className={`absolute -top-1 -left-1 w-4 h-4 rounded-full text-[9px] font-mono font-bold flex items-center justify-center border ${
+                        isActive
+                          ? 'bg-[#0066ff] text-[#ffffff] border-[#ffffff]'
+                          : 'bg-[#ffffff] text-[#141414] border-[#e0e0e0]'
+                      }`}
+                    >
+                      {deptNum}
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
         )}
 
-        {/* MODE 3: CARD VIEW (Fixed to flatten nested SMACC & operational sub-groups) */}
-        {displayMode === 'cards' && (
+        {effectiveMode === 'cards' && (
           <div className="space-y-2.5 p-1">
             {filteredMenu.map((item) => {
               const leaves = collectLeafItems(item);
               return (
                 <div
                   key={item.id}
-                  className="p-3.5 bg-zinc-50 border border-zinc-200 rounded-2xl space-y-2.5 shadow-xs"
+                  className="p-3.5 bg-[#f3f3f3] rounded-[24px] space-y-2.5 border border-[#e0e0e0]"
                 >
-                  <div className="flex items-center gap-2.5 text-xs font-bold text-black">
-                    <div className="w-6 h-6 rounded-lg bg-black text-white flex items-center justify-center">
-                      {renderIcon(item.icon, 'w-3 h-3 text-white')}
+                  <div className="flex items-center gap-2.5 text-xs font-semibold text-[#141414]">
+                    <div className="w-7 h-7 app-icon-squircle bg-[#141414] text-[#ffffff] flex items-center justify-center">
+                      {renderIcon(item.icon, 'w-3.5 h-3.5 text-[#ffffff]')}
                     </div>
                     <span>{item.title}</span>
                   </div>
@@ -511,10 +609,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab, onClos
                                 if (onClose && window.innerWidth < 1024) onClose();
                               }
                             }}
-                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
                               isChildActive
-                                ? 'bg-black text-white font-bold shadow-xs'
-                                : 'bg-white hover:bg-zinc-200 text-zinc-700 border border-zinc-200'
+                                ? 'bg-[#141414] text-[#ffffff]'
+                                : 'bg-[#ffffff] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0]'
                             }`}
                           >
                             {leaf.title}
@@ -531,30 +629,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab, onClos
       </div>
 
       {/* 3. Sticky Institutional Footer with Direct Logout Button */}
-      <div className="p-3 border-t border-zinc-200 bg-[#fbfbf5]">
-        {displayMode === 'compact' ? (
+      <div className="p-3 border-t border-[#f0f0f0] bg-[#ffffff]">
+        {effectiveMode === 'compact' ? (
           <button
             type="button"
             onClick={() => onSelectTab('logout', 'تسجيل الخروج')}
             title="تسجيل الخروج من القسم"
-            className="w-full h-10 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 flex items-center justify-center cursor-pointer"
+            className="w-full h-10 app-icon-squircle bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] flex items-center justify-center cursor-pointer transition-colors"
           >
             <LogOut className="w-4 h-4" />
           </button>
         ) : (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-[11px] px-1">
-              <span className="font-bold text-zinc-700 truncate">
+              <span className="font-semibold text-[#141414] truncate">
                 {effectiveProfile?.full_name || 'موظف القسم'}
               </span>
-              <span className="text-[10px] font-mono text-zinc-500">
+              <span className="text-[11px] text-[#707070] truncate">
                 {effectiveProfile?.branch || 'الفرع الرئيسي'}
               </span>
             </div>
             <button
               type="button"
               onClick={() => onSelectTab('logout', 'تسجيل الخروج')}
-              className="w-full py-2 px-3 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              className="w-full py-2 px-3 rounded-full bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>تسجيل الخروج من القسم</span>

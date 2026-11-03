@@ -1,32 +1,36 @@
-/* Shopifi Transactional UI Components Styles */
+/* Mobbin Design System Components (DESIGN-mobbin.md Specification)
+   - Three-Radius Geometry: {rounded.sm}=16px, {rounded.md}=24px, {rounded.full}=9999px, squircle=30%
+   - Shadow-Free Elevation: 0px drop-shadow, 1px #f0f0f0 / #e0e0e0 hairlines & #f3f3f3 tonal surfaces
+   - 95% Achromatic Ink-on-Canvas (#141414 / #ffffff / #f3f3f3) + 5% Electric Blue (#0066ff)
+*/
 
-/* KPI Stat Cards Widget */
+/* KPI Stat Cards Widget — Shadow-Free 24px Radius */
 .stat-card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
+  gap: 16px;
   margin-bottom: 24px;
 }
 
 .stat-card {
-  background: var(--color-canvas-light);
-  border-radius: var(--rounded-lg);
+  background: var(--color-canvas);
+  border-radius: var(--rounded-md);
   padding: 24px;
-  border: 1px solid var(--color-hairline-light);
-  box-shadow: 0 8px 8px rgba(0, 0, 0, 0.08), 0 4px 4px rgba(0, 0, 0, 0.06), 0 2px 2px rgba(0, 0, 0, 0.04), 0 0 0 1px #e4e4e7;
+  border: 1px solid var(--color-hairline-soft);
+  box-shadow: none !important;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   position: relative;
   overflow: hidden;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
   font-family: var(--font-family-ui);
-  font-feature-settings: "ss03" 1;
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 16px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.06), 0 2px 2px rgba(0, 0, 0, 0.04), 0 0 0 1px #e4e4e7;
+  border-color: var(--color-hairline);
+  transform: none;
+  box-shadow: none !important;
 }
 
 .stat-card-accent-bar {
@@ -42,15 +46,16 @@
 
 .stat-title {
   font-size: 13px;
-  font-weight: 550;
-  color: var(--color-shade-60);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  letter-spacing: 0px;
 }
 
 .stat-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: var(--rounded-pill);
-  background: var(--color-shade-30);
+  width: 40px;
+  height: 40px;
+  border-radius: 30%;
+  background: var(--color-canvas-soft);
   color: var(--color-ink);
   display: flex;
   align-items: center;
@@ -60,11 +65,11 @@
 
 .stat-value {
   font-family: var(--font-family-display);
-  font-size: 38px;
-  font-weight: 330;
-  letter-spacing: -0.02em;
+  font-size: 32px;
+  font-weight: 652;
+  letter-spacing: 0px;
   color: var(--color-ink);
-  line-height: 1.15;
+  line-height: 1.13;
 }
 
 .stat-footer {
@@ -73,7 +78,7 @@
   justify-content: space-between;
   margin-top: 14px;
   font-size: 12px;
-  color: var(--color-shade-50);
+  color: var(--color-text-muted);
 }
 
 .stat-badge {
@@ -81,52 +86,58 @@
   align-items: center;
   gap: 4px;
   padding: 3px 10px;
-  border-radius: var(--rounded-pill);
-  font-weight: 550;
-  font-size: 11.5px;
+  border-radius: var(--rounded-full);
+  font-weight: 600;
+  font-size: 12px;
 }
 
 .stat-badge.up {
-  background: var(--color-gold-pale);
-  color: var(--color-gold-dark);
-  border: 1px solid rgba(207, 166, 74, 0.25);
+  background: var(--color-canvas-soft);
+  color: var(--color-ink);
+  border: none;
 }
 
 .stat-badge.down {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-canvas-soft);
+  color: var(--color-text-muted);
 }
 
-/* Table Card Container - Pure Shopifi Surface with Level 3 Shadows */
+/* Table Card Container — Pure Mobbin #ffffff Surface with 1px #f0f0f0 Hairline & Zero Shadow */
 .table-card {
-  background: var(--color-canvas-light);
-  border-radius: var(--rounded-lg);
-  border: 1px solid var(--color-hairline-light);
-  box-shadow: 0 8px 8px rgba(0, 0, 0, 0.08), 0 4px 4px rgba(0, 0, 0, 0.06), 0 2px 2px rgba(0, 0, 0, 0.04), 0 0 0 1px #e4e4e7;
+  background: var(--color-canvas);
+  border-radius: var(--rounded-md);
+  border: 1px solid var(--color-hairline-soft);
+  box-shadow: none !important;
   overflow: hidden;
   margin-bottom: 24px;
   font-family: var(--font-family-ui);
-  font-feature-settings: "ss03" 1;
+  transition: border-color 0.15s ease;
+}
+
+.table-card:hover {
+  border-color: var(--color-hairline);
+  box-shadow: none !important;
 }
 
 .table-card-header {
-  padding: 16px 20px;
+  padding: 18px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--color-hairline-light);
+  border-bottom: 1px solid var(--color-hairline-soft);
   flex-wrap: wrap;
   gap: 12px;
-  background: var(--color-canvas-light);
+  background: var(--color-canvas);
 }
 
 .table-card-title {
-  font-size: 16px;
-  font-weight: 550;
+  font-size: 18px;
+  font-weight: 600;
   color: var(--color-ink);
   display: flex;
   align-items: center;
   gap: 8px;
+  letter-spacing: 0px;
 }
 
 .table-card-actions {
@@ -135,79 +146,79 @@
   gap: 8px;
 }
 
-/* Modern Action Buttons - Strict Pill Geometry */
+/* Modern Action Buttons — Mobbin Stadium Pill Geometry (9999px) */
 .btn-odoo {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   padding: 8px 18px;
-  border-radius: var(--rounded-pill);
+  border-radius: var(--rounded-full);
   font-family: var(--font-family-ui);
-  font-feature-settings: "ss03" 1;
-  font-size: 13px;
-  font-weight: 550;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
   cursor: pointer;
   min-height: 40px;
   user-select: none;
-  border: 1px solid var(--color-hairline-light);
-  background: var(--color-canvas-light);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-canvas);
   color: var(--color-ink);
+  box-shadow: none !important;
 }
 
 .btn-odoo:active {
-  transform: scale(0.98);
+  transform: scale(0.99);
 }
 
 .btn-odoo-primary,
 .btn-odoo-purple {
-  background: #000000;
+  background: #141414;
   color: #ffffff;
-  border: 1px solid #000000;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  border: 1px solid #141414;
+  box-shadow: none !important;
 }
 
 .btn-odoo-primary:hover,
 .btn-odoo-purple:hover {
-  background: #27272a;
-  border-color: #27272a;
+  background: #262626;
+  border-color: #262626;
   color: #ffffff;
 }
 
 .btn-odoo-secondary {
   background: #ffffff;
-  border: 1px solid var(--color-hairline-light);
-  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+  color: #141414;
 }
 
 .btn-odoo-secondary:hover {
-  background: #f4f4f5;
-  border-color: var(--color-hairline-light);
+  background: var(--color-canvas-soft);
+  border-color: var(--color-hairline);
 }
 
 .btn-odoo-mint {
-  background: var(--color-aloe-10);
-  color: var(--color-ink);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--color-canvas-soft);
+  color: #141414;
+  border: none;
 }
 
 .btn-odoo-mint:hover {
-  background: #a7f3d0;
+  background: var(--color-hairline);
 }
 
 .btn-odoo-danger {
   background: #ffffff;
-  color: #dc2626;
-  border: 1px solid #fecaca;
+  color: #141414;
+  border: 1px solid #141414;
 }
 
 .btn-odoo-danger:hover {
-  background: #fef2f2;
-  border-color: #f87171;
+  background: #141414;
+  color: #ffffff;
 }
 
-/* Data Table Element - Clean Hairlines and Inter Typography */
+/* Data Table Element — Mobbin Clean Hairlines & Zero Tracking */
 .data-table-wrapper {
   width: 100%;
   overflow-x: auto;
@@ -218,28 +229,26 @@
   width: 100%;
   border-collapse: collapse;
   text-align: right;
-  font-size: 13.5px;
+  font-size: 14px;
   font-family: var(--font-family-ui);
-  font-feature-settings: "ss03" 1;
 }
 
 .odoo-data-table th {
-  background: #fafafa;
-  color: var(--color-shade-60);
-  font-weight: 550;
+  background: var(--color-canvas-soft);
+  color: var(--color-text-muted);
+  font-weight: 600;
   font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.2px;
+  letter-spacing: 0px;
   padding: 14px 18px;
-  border-bottom: 1px solid var(--color-hairline-light);
+  border-bottom: 1px solid var(--color-hairline-soft);
   white-space: nowrap;
 }
 
 .odoo-data-table td {
   padding: 14px 18px;
-  border-bottom: 1px solid var(--color-hairline-light);
+  border-bottom: 1px solid var(--color-hairline-soft);
   color: var(--color-ink);
-  font-weight: 420;
+  font-weight: 456;
   vertical-align: middle;
 }
 
@@ -249,51 +258,51 @@
 }
 
 .odoo-data-table tbody tr:hover {
-  background: #f4f4f5;
+  background: var(--color-canvas-soft);
 }
 
-/* Status Badges - Shopifi Pill Tags */
+/* Status Badges — Mobbin Pill Tags */
 .badge-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 3px 10px;
-  border-radius: var(--rounded-pill);
-  font-size: 11.5px;
-  font-weight: 500;
+  border-radius: var(--rounded-full);
+  font-size: 12px;
+  font-weight: 600;
   white-space: nowrap;
 }
 
 .badge-pill.success {
-  background: var(--color-aloe-10);
-  color: var(--color-ink);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--color-canvas-soft);
+  color: #141414;
+  border: 1px solid var(--color-hairline);
 }
 
 .badge-pill.warning {
-  background: #fef3c7;
-  color: #92400e;
-  border: 1px solid rgba(146, 64, 14, 0.15);
+  background: var(--color-canvas-soft);
+  color: #707070;
+  border: 1px solid var(--color-hairline);
 }
 
 .badge-pill.danger {
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid rgba(153, 27, 27, 0.15);
+  background: #141414;
+  color: #ffffff;
+  border: 1px solid #141414;
 }
 
 .badge-pill.info,
 .badge-pill.purple {
-  background: var(--color-shade-30);
-  color: var(--color-ink);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--color-accent);
+  color: #ffffff;
+  border: none;
 }
 
-/* Filter Card Drawer */
+/* Filter Card Drawer — Mobbin #f3f3f3 Soft Track + 16px Inputs */
 .filter-panel {
-  background: #fafafa;
-  border-bottom: 1px solid var(--color-hairline-light);
-  padding: 16px 20px;
+  background: var(--color-canvas-soft);
+  border-bottom: 1px solid var(--color-hairline-soft);
+  padding: 16px 24px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 14px;
@@ -306,67 +315,38 @@
 }
 
 .filter-label {
-  font-size: 13px;
-  font-weight: 550;
-  color: var(--color-ink);
+  font-size: 12px;
+  font-weight: 600;
+  color: #141414;
+  letter-spacing: 0px;
 }
 
 .filter-input,
 .filter-select {
-  height: 40px;
-  min-height: 40px;
+  height: 42px;
+  min-height: 42px;
   padding: 0 14px;
-  border-radius: var(--rounded-pill);
-  border: 1px solid var(--color-hairline-light);
+  border-radius: var(--rounded-sm);
+  border: 2px solid transparent;
   background: #ffffff;
-  color: var(--color-ink);
-  font-size: 13px;
+  color: #141414;
+  font-size: 13.5px;
   font-family: var(--font-family-ui);
-  font-feature-settings: "ss03" 1;
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease;
 }
 
 .filter-input:focus,
 .filter-select:focus {
-  border-color: #000000;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+  border-color: #141414;
+  box-shadow: none;
 }
 
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.filter-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.filter-select, .filter-input {
-  padding: 8px 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid #D1D5DB;
-  background: var(--bg-surface);
-  font-size: 13px;
-  color: var(--text-main);
-  outline: none;
-  font-family: inherit;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.filter-select:focus, .filter-input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0, 160, 157, 0.15);
-}
-
-/* App Launcher Portal Styles matching user design */
+/* App Launcher Portal Styles */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -376,52 +356,25 @@
 
 .card-stagger {
   opacity: 0;
-  transform: translateY(30px);
-  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.cards-container:hover .nav-card:not(:hover) {
-  opacity: 0.6;
-  filter: blur(1px) grayscale(0.2);
-  transform: scale(0.98);
-}
-
-.nav-card:hover {
-  transform: scale(1.05) !important;
-  opacity: 1 !important;
-  filter: blur(0) grayscale(0) brightness(1.05) !important;
-  z-index: 10;
+  transform: translateY(16px);
+  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Pulsing Live Dot Effect */
 @keyframes pulseDot {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-  70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  0% { transform: scale(0.95); opacity: 0.85; }
+  70% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.85; }
 }
 
 .live-pulse-dot {
-  width: 9px;
-  height: 9px;
-  background-color: #10B981;
+  width: 8px;
+  height: 8px;
+  background-color: #0066ff;
   border-radius: 50%;
   display: inline-block;
   animation: pulseDot 2s infinite ease-in-out;
   margin-left: 6px;
-}
-
-/* Premium Card Micro-Animations */
-.table-card {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.table-card:hover {
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
-  border-color: #000000;
-}
-
-.btn-odoo {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Custom Sleek Scrollbar */
@@ -431,16 +384,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: #f3f3f3;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 4px;
+  background: #d4d4d4;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: #a3a3a3;
 }
 
 /* Global Responsive Adjustments */
@@ -457,17 +410,17 @@
 }
 
 /* ==========================================================================
-   Finance & Accounting Suite (SOCPA / IFRS Professional Styling)
+   Finance & Accounting Suite (SOCPA / IFRS Professional Mobbin Styling)
    ========================================================================== */
 .finance-nav-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  background: #ffffff;
+  background: #f3f3f3;
   padding: 16px;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  border-radius: 24px;
+  border: 1px solid #f0f0f0;
+  box-shadow: none;
   margin-bottom: 20px;
 }
 
@@ -484,85 +437,84 @@
 }
 
 .finance-category-box {
-  background: #f8fafc;
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid #edf2f7;
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid #f0f0f0;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
 .finance-category-title {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  color: #71717a;
-  padding: 0 4px 4px 4px;
-  border-bottom: 1px dashed #e4e4e7;
+  color: #707070;
+  padding: 0 4px 6px 4px;
+  border-bottom: 1px solid #f0f0f0;
   font-family: var(--font-family-ui);
 }
 
 .finance-tab-pill {
   width: 100%;
   text-align: right;
-  padding: 8px 12px;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 700;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  color: #334155;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: #f3f3f3;
+  border: 1px solid transparent;
+  color: #141414;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.15s ease;
   font-family: var(--font-family-ui);
 }
 
 .finance-tab-pill:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-  color: #0f172a;
+  background: #e0e0e0;
+  color: #141414;
 }
 
 .finance-tab-pill.active {
-  background: #000000;
+  background: #141414;
   color: #ffffff;
-  border-color: #000000;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  border-color: #141414;
+  box-shadow: none;
 }
 
 .finance-table {
   width: 100%;
   text-align: right;
-  font-size: 12px;
+  font-size: 13px;
   border-collapse: collapse;
 }
 
 .finance-table thead th {
-  background: #f8fafc;
-  color: #475569;
-  font-weight: 800;
-  padding: 12px 14px;
-  border-bottom: 2px solid #e2e8f0;
+  background: #f3f3f3;
+  color: #707070;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .finance-table tbody td {
-  padding: 12px 14px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #1e293b;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #141414;
+  font-weight: 456;
 }
 
 .finance-table tbody tr:hover {
-  background: rgba(0, 0, 0, 0.03);
+  background: #f3f3f3;
 }
 
 /* ==========================================================================
-   Shopifi Design System Core Components (DESIGN-shopify.md Specification)
+   Mobbin Canonical Buttons & Surfaces (DESIGN-mobbin.md Specification)
    ========================================================================== */
 
-/* 1. BUTTONS */
 button svg,
 a svg,
 .button-primary-pill svg,
@@ -574,7 +526,7 @@ a svg,
   flex-shrink: 0;
 }
 
-/* button-primary-pill: The dominant CTA across the system */
+/* button-primary-pill: #141414 fill, #ffffff text, 9999px stadium */
 :where(.button-primary-pill) {
   font-size: 14px;
   padding: 10px 20px;
@@ -586,31 +538,31 @@ a svg,
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background-color: var(--color-primary);
-  color: var(--color-on-primary);
+  background-color: #141414;
+  color: #ffffff;
   font-family: var(--font-family-ui);
-  font-weight: 500;
-  line-height: 1.4;
-  border-radius: var(--rounded-pill);
+  font-weight: 600;
+  line-height: 1.38;
+  border-radius: 9999px;
   border: none;
   cursor: pointer;
   text-decoration: none;
-  font-feature-settings: "ss03" 1;
-  transition: background-color var(--transition-fast), transform var(--transition-fast), opacity var(--transition-fast);
+  box-shadow: none !important;
+  transition: background-color 0.15s ease;
   user-select: none;
 }
 
 .button-primary-pill:hover {
-  background-color: #27272a;
-  color: var(--color-on-primary);
+  background-color: #262626;
+  color: #ffffff;
 }
 
 .button-primary-pill:active, .button-primary-pill-pressed {
-  background-color: var(--color-shade-70);
-  transform: scale(0.985);
+  background-color: #141414;
+  transform: scale(0.99);
 }
 
-/* button-white-pill: Solid white pill with black text for dark backgrounds */
+/* button-white-pill: Solid white pill with #141414 text */
 :where(.button-white-pill) {
   font-size: 14px;
   padding: 10px 20px;
@@ -623,29 +575,25 @@ a svg,
   justify-content: center;
   gap: 8px;
   background-color: #ffffff !important;
-  color: #000000 !important;
+  color: #141414 !important;
   font-family: var(--font-family-ui);
-  font-weight: 550;
-  line-height: 1.4;
-  border-radius: var(--rounded-pill);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-weight: 600;
+  line-height: 1.38;
+  border-radius: 9999px;
+  border: 1px solid #e0e0e0;
   cursor: pointer;
   text-decoration: none;
-  font-feature-settings: "ss03" 1;
-  transition: all var(--transition-fast);
+  box-shadow: none !important;
+  transition: background-color 0.15s ease;
   user-select: none;
 }
 
 .button-white-pill:hover {
-  background-color: #f4f4f5 !important;
-  color: #000000 !important;
+  background-color: #f3f3f3 !important;
+  color: #141414 !important;
 }
 
-.button-white-pill:active {
-  transform: scale(0.985);
-}
-
-/* button-outline-on-dark: The cinematic hero CTA */
+/* button-outline-on-dark */
 :where(.button-outline-on-dark) {
   font-size: 14px;
   padding: 10px 22px;
@@ -657,30 +605,25 @@ a svg,
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background-color: transparent;
-  color: var(--color-on-primary) !important;
+  background-color: #262626;
+  color: #ffffff !important;
   font-family: var(--font-family-ui);
-  font-weight: 500;
-  line-height: 1.4;
-  border-radius: var(--rounded-pill);
-  border: 2px solid var(--color-on-primary);
+  font-weight: 600;
+  line-height: 1.38;
+  border-radius: 9999px;
+  border: 1px solid #3f3f46;
   cursor: pointer;
   text-decoration: none;
-  font-feature-settings: "ss03" 1;
-  transition: all var(--transition-fast);
+  transition: background-color 0.15s ease;
   user-select: none;
 }
 
 .button-outline-on-dark:hover {
-  background-color: var(--color-on-primary);
-  color: var(--color-primary) !important;
+  background-color: #ffffff;
+  color: #141414 !important;
 }
 
-.button-outline-on-dark:active {
-  transform: scale(0.985);
-}
-
-/* button-outline-on-light: The light-track equivalent */
+/* button-outline-on-light: #ffffff fill, 1px solid #e0e0e0 border, 9999px radius */
 :where(.button-outline-on-light) {
   font-size: 14px;
   padding: 10px 20px;
@@ -692,30 +635,26 @@ a svg,
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background-color: var(--color-canvas-light);
-  color: var(--color-ink) !important;
+  background-color: #ffffff;
+  color: #141414 !important;
   font-family: var(--font-family-ui);
-  font-weight: 500;
-  line-height: 1.4;
-  border-radius: var(--rounded-pill);
-  border: 1px solid var(--color-ink);
+  font-weight: 600;
+  line-height: 1.38;
+  border-radius: 9999px;
+  border: 1px solid #e0e0e0;
   cursor: pointer;
   text-decoration: none;
-  font-feature-settings: "ss03" 1;
-  transition: all var(--transition-fast);
+  box-shadow: none !important;
+  transition: background-color 0.15s ease;
   user-select: none;
 }
 
 .button-outline-on-light:hover {
-  background-color: #000000;
-  color: #ffffff !important;
+  background-color: #f3f3f3;
+  color: #141414 !important;
 }
 
-.button-outline-on-light:active {
-  transform: scale(0.985);
-}
-
-/* button-aloe-pill: The featured CTA on pricing/dashboard */
+/* button-aloe-pill -> mapped to Mobbin button-pill-soft (#f3f3f3 fill) */
 :where(.button-aloe-pill) {
   font-size: 14px;
   padding: 10px 20px;
@@ -727,306 +666,259 @@ a svg,
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background-color: var(--color-aloe-10);
-  color: var(--color-ink) !important;
+  background-color: #f3f3f3;
+  color: #141414 !important;
   font-family: var(--font-family-ui);
-  font-weight: 500;
-  line-height: 1.4;
-  border-radius: var(--rounded-pill);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  font-weight: 600;
+  line-height: 1.38;
+  border-radius: 9999px;
+  border: none;
   cursor: pointer;
   text-decoration: none;
-  font-feature-settings: "ss03" 1;
-  transition: all var(--transition-fast);
+  transition: background-color 0.15s ease;
   user-select: none;
 }
 
 .button-aloe-pill:hover {
-  background-color: #a8f5c2;
+  background-color: #e0e0e0;
 }
 
-.button-aloe-pill:active {
-  transform: scale(0.985);
-}
-
-/* 2. CARDS & CONTAINERS */
-/* card-pricing: Standard tier card on light track */
+/* 2. CARDS & CONTAINERS — Shadow-Free 24px Radius */
 .card-pricing {
-  background-color: var(--color-canvas-light);
-  color: var(--color-ink);
-  padding: 32px;
-  border-radius: var(--rounded-lg);
-  border: 1px solid var(--color-hairline-light);
-  box-shadow: var(--elevation-3);
+  background-color: #ffffff;
+  color: #141414;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid #f0f0f0;
+  box-shadow: none !important;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   font-family: var(--font-family-ui);
-  font-feature-settings: "ss03" 1;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color 0.15s ease;
 }
 
 .card-pricing:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.09), 0 4px 6px rgba(0, 0, 0, 0.05);
+  border-color: #e0e0e0;
+  transform: none;
+  box-shadow: none !important;
 }
 
-/* card-pricing-featured: Highlighted aloe mint pricing tier */
 .card-pricing-featured {
-  background-color: var(--color-aloe-10);
-  color: var(--color-ink);
-  padding: 32px;
-  border-radius: var(--rounded-lg);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: var(--elevation-3);
+  background-color: #f3f3f3;
+  color: #141414;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid #f0f0f0;
+  box-shadow: none !important;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   font-family: var(--font-family-ui);
-  font-feature-settings: "ss03" 1;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.card-pricing-featured:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-}
-
-/* card-feature-cinematic: Feature card on the cinematic dark track */
 .card-feature-cinematic {
-  background-color: var(--color-canvas-night-elevated);
-  color: var(--color-on-primary);
-  padding: 32px;
-  border-radius: var(--rounded-lg);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: var(--elevation-1);
+  background-color: #141414;
+  color: #ffffff;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid #262626;
+  box-shadow: none !important;
   display: flex;
   flex-direction: column;
   font-family: var(--font-family-ui);
-  font-feature-settings: "ss03" 1;
   position: relative;
   overflow: hidden;
-  transition: all var(--transition-fast);
 }
 
-.card-feature-cinematic:hover {
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: var(--elevation-2);
-}
-
-/* card-pistachio-band: Wide horizontal band card for category highlight */
 .card-pistachio-band {
-  background-color: var(--color-pistachio-10);
-  color: var(--color-ink);
-  padding: 32px;
-  border-radius: var(--rounded-lg);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: #f3f3f3;
+  color: #141414;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid #f0f0f0;
   font-family: var(--font-family-ui);
-  font-feature-settings: "ss03" 1;
 }
 
-/* card-photo-frame: Full-bleed photography container on cinematic pages */
 .card-photo-frame {
-  background-color: var(--color-canvas-night);
-  color: var(--color-on-primary);
+  background-color: #141414;
+  color: #ffffff;
   padding: 0;
-  border-radius: var(--rounded-xl);
+  border-radius: 24px;
   overflow: hidden;
   position: relative;
 }
 
-/* 3. INPUTS & FORMS */
+/* 3. INPUTS & FORMS — 16px Radius, #f0f0f0 Field Fill, 2px #141414 Focus Ring */
 .text-input, input.text-input, select.text-input, textarea.text-input {
-  background-color: var(--color-canvas-light);
-  color: var(--color-ink);
+  background-color: #f0f0f0;
+  color: #141414;
   font-family: var(--font-family-ui);
-  font-size: 16px;
-  font-weight: 420;
-  line-height: 1.5;
-  padding: 10px 12px;
-  border-radius: var(--rounded-md);
-  border: 1px solid var(--color-hairline-light);
+  font-size: 15px;
+  font-weight: 456;
+  line-height: 1.38;
+  padding: 10px 14px;
+  border-radius: 16px;
+  border: 2px solid transparent;
   outline: none;
   width: 100%;
-  font-feature-settings: "ss03" 1;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
   min-height: 44px;
 }
 
 .text-input:focus, input.text-input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  border-color: #141414;
+  box-shadow: none;
 }
 
-/* 4. PILLS, TAGS & CHIPS */
+/* 4. PILLS, TAGS & CHIPS — Mobbin Neutral Soft Pills & #0066ff Popular Badge */
 .pill-tag-mint, .pill-tag-champagne, .pill-tag-gold {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background-color: var(--color-gold-pale);
-  color: var(--color-gold-dark);
-  border: 1px solid rgba(207, 166, 74, 0.35);
+  background-color: #f3f3f3;
+  color: #141414;
+  border: 1px solid #e0e0e0;
   font-family: var(--font-family-ui);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: 0.5px;
+  line-height: 1.33;
+  letter-spacing: 0px;
   padding: 4px 12px;
-  border-radius: var(--rounded-pill);
-  font-feature-settings: "ss03" 1;
+  border-radius: 9999px;
   white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(207, 166, 74, 0.08);
+  box-shadow: none !important;
 }
 
 .pill-tag-shade {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background-color: var(--color-shade-30);
-  color: var(--color-ink);
+  background-color: #f3f3f3;
+  color: #141414;
   font-family: var(--font-family-ui);
   font-size: 12px;
-  font-weight: 400;
-  line-height: 1.2;
-  letter-spacing: 0.72px;
-  text-transform: uppercase;
+  font-weight: 600;
+  line-height: 1.33;
+  letter-spacing: 0px;
   padding: 4px 12px;
-  border-radius: var(--rounded-pill);
-  font-feature-settings: "ss03" 1;
+  border-radius: 9999px;
   white-space: nowrap;
 }
 
 /* 5. NAVIGATION BARS */
 .nav-bar-dark {
-  background-color: var(--color-canvas-night);
-  color: var(--color-on-primary);
+  background-color: #141414;
+  color: #ffffff;
   padding: 16px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #262626;
   font-family: var(--font-family-ui);
   font-size: 16px;
-  font-weight: 420;
+  font-weight: 600;
 }
 
 .nav-bar-light {
-  background-color: var(--color-canvas-light);
-  color: var(--color-ink);
+  background-color: #ffffff;
+  color: #141414;
   padding: 16px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--color-hairline-light);
+  border-bottom: 1px solid #f0f0f0;
   font-family: var(--font-family-ui);
   font-size: 16px;
-  font-weight: 420;
+  font-weight: 600;
 }
 
-/* 6. FOOTERS */
+/* 6. FOOTERS — Mobbin Full-Bleed #141414 Inverse Footer with 24px Top Corners */
 .footer-dark {
-  background-color: var(--color-canvas-night);
-  color: var(--color-on-primary);
-  padding: 64px 24px;
+  background-color: #141414;
+  color: #ffffff;
+  padding: 48px 24px;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
   font-family: var(--font-family-ui);
   font-size: 14px;
-  font-weight: 500;
-  line-height: 1.49;
-  letter-spacing: 0.28px;
+  font-weight: 456;
+  line-height: 1.43;
 }
 
 .footer-light {
-  background-color: var(--color-canvas-light);
-  color: var(--color-ink);
-  padding: 64px 24px;
+  background-color: #f3f3f3;
+  color: #141414;
+  padding: 48px 24px;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
   font-family: var(--font-family-ui);
   font-size: 14px;
-  font-weight: 500;
-  line-height: 1.49;
-  letter-spacing: 0.28px;
-  border-top: 1px solid var(--color-hairline-light);
+  font-weight: 456;
+  line-height: 1.43;
+  border-top: 1px solid #f0f0f0;
 }
 
 /* 7. LINKS ON DARK */
 .link-on-dark {
-  color: var(--color-on-primary);
+  color: #ffffff;
   text-decoration: none;
-  transition: color var(--transition-fast);
+  transition: color 0.15s ease;
 }
 
 .link-on-dark:hover {
-  color: var(--color-aloe-10);
+  color: #adadad;
 }
 
-.link-cool-1 { color: var(--color-link-cool-1); }
-.link-cool-2 { color: var(--color-link-cool-2); }
-.link-cool-3 { color: var(--color-link-cool-3); }
-.link-mint { color: var(--color-link-mint); }
-
-/* 8. 3D SAUDI MASCOT DIGITAL ASSISTANT ANIMATIONS */
-@keyframes floatMascot {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-@keyframes shadowPulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.28;
-  }
-  50% {
-    transform: scale(0.88);
-    opacity: 0.16;
-  }
-}
-
-/* Executive White Theme Luxury Card Styles */
+/* 8. LUXURY / FEATURE CARDS -> Mapped to Mobbin Shadow-Free 24px Cards */
 .luxury-white-card {
   background-color: #ffffff !important;
-  color: #091725 !important;
-  border: 1px solid rgba(228, 228, 231, 0.9);
-  border-radius: 1.5rem;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.03);
+  color: #141414 !important;
+  border: 1px solid #f0f0f0;
+  border-radius: 24px;
+  transition: border-color 0.15s ease;
+  box-shadow: none !important;
 }
 
 .luxury-white-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(207, 166, 74, 0.6);
-  box-shadow: 0 20px 35px -8px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(207, 166, 74, 0.3);
+  transform: none;
+  border-color: #e0e0e0;
+  box-shadow: none !important;
 }
 
 .white-feature-card {
   background-color: #ffffff !important;
-  color: #091725 !important;
-  border: 1px solid rgba(228, 228, 231, 0.9);
-  border-radius: 1.75rem;
-  padding: 2rem;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.04);
+  color: #141414 !important;
+  border: 1px solid #f0f0f0;
+  border-radius: 24px;
+  padding: 24px;
+  transition: border-color 0.15s ease;
+  box-shadow: none !important;
   position: relative;
   overflow: hidden;
 }
 
 .white-feature-card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(207, 166, 74, 0.6);
-  box-shadow: 0 20px 35px -8px rgba(0, 0, 0, 0.08);
+  transform: none;
+  border-color: #e0e0e0;
+  box-shadow: none !important;
+}
+
+/* 9. MASCOT & DOCK ANIMATIONS */
+@keyframes floatMascot {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes shadowPulse {
+  0%, 100% { transform: scale(1); opacity: 0.24; }
+  50% { transform: scale(0.9); opacity: 0.14; }
 }
 
 @keyframes speechBubbleIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .mascot-float {
@@ -1038,87 +930,95 @@ a svg,
 }
 
 .speech-bubble-anim {
-  animation: speechBubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: speechBubbleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes dockSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .dock-pill-slide-in {
-  animation: dockSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: dockSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes mascotPopIn {
-  from {
-    opacity: 0;
-    transform: translateY(25px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(16px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .mascot-pop-in {
-  animation: mascotPopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: mascotPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* ==========================================================================
-   Dynamic Interactive Button States (Payment, ZATCA, WPS, Approval, Sync)
+   Dynamic Interactive Button States (Mobbin #141414 & #0066ff Discipline)
    ========================================================================== */
 @keyframes dynProgressFill {
-  0% {
-    width: 12%;
-  }
-  55% {
-    width: 68%;
-  }
-  100% {
-    width: 100%;
-  }
+  0% { width: 12%; }
+  55% { width: 68%; }
+  100% { width: 100%; }
 }
 
 @keyframes dynSpin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes dynSuccessPop {
-  0% {
-    transform: scale(0.95);
-  }
-  50% {
-    transform: scale(1.03);
-  }
-  100% {
-    transform: scale(1);
-  }
+  0% { transform: scale(0.98); }
+  50% { transform: scale(1.01); }
+  100% { transform: scale(1); }
 }
 
-button[data-dyn-state="processing"] { position: relative !important; overflow: hidden !important; background-color: #1D2428 !important; color: transparent !important; border-color: #CFA64A !important; box-shadow: 0 6px 18px rgba(29, 36, 40, 0.22) !important; transition: all 0.2s ease !important; }
-button[data-dyn-state="processing"] > *, button[data-dyn-state="completed"] > * { opacity: 0 !important; pointer-events: none !important; }
-button[data-dyn-state="processing"]::before { content: attr(data-dyn-label); position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0 10px; color: #CFA64A !important; font-weight: 800; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; z-index: 2; }
-button[data-dyn-state="completed"]::before { content: attr(data-dyn-label); position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0 10px; color: #ffffff !important; font-weight: 800; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; z-index: 2; }
-button[data-dyn-state="processing-legacy"] {
+button[data-dyn-state="processing"] {
   position: relative !important;
   overflow: hidden !important;
-  background-color: #1D2428 !important;
-  color: #CFA64A !important;
-  border-color: #CFA64A !important;
-  box-shadow: 0 6px 18px rgba(29, 36, 40, 0.22) !important;
+  background-color: #141414 !important;
+  color: transparent !important;
+  border-color: #141414 !important;
+  box-shadow: none !important;
   transition: all 0.2s ease !important;
+}
+
+button[data-dyn-state="processing"] > *,
+button[data-dyn-state="completed"] > * {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+button[data-dyn-state="processing"]::before {
+  content: attr(data-dyn-label);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  color: #ffffff !important;
+  font-weight: 600;
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 2;
+}
+
+button[data-dyn-state="completed"]::before {
+  content: attr(data-dyn-label);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  color: #ffffff !important;
+  font-weight: 600;
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 2;
 }
 
 button[data-dyn-state="processing"]::after {
@@ -1127,27 +1027,484 @@ button[data-dyn-state="processing"]::after {
   bottom: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #047857, #CFA64A);
+  background: #0066ff;
   animation: dynProgressFill 0.65s ease-out forwards;
 }
 
-button[data-dyn-state="completed"] { position: relative !important; overflow: hidden !important; background-color: #047857 !important; color: transparent !important; border-color: #10b981 !important; box-shadow: 0 6px 18px rgba(4, 120, 87, 0.28) !important; animation: dynSuccessPop 0.28s ease-out forwards; }
-button[data-dyn-state="completed-legacy"] {
-  background-color: #047857 !important;
-  color: #ffffff !important;
-  border-color: #10b981 !important;
-  box-shadow: 0 6px 18px rgba(4, 120, 87, 0.28) !important;
-  animation: dynSuccessPop 0.28s ease-out forwards;
+button[data-dyn-state="completed"] {
+  position: relative !important;
+  overflow: hidden !important;
+  background-color: #0066ff !important;
+  color: transparent !important;
+  border-color: #0066ff !important;
+  box-shadow: none !important;
+  animation: dynSuccessPop 0.25s ease-out forwards;
 }
 
 .dyn-inline-spinner {
   display: inline-block;
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(207, 166, 74, 0.3);
-  border-top-color: #CFA64A;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
   border-radius: 9999px;
   animation: dynSpin 0.65s linear infinite;
   vertical-align: middle;
   margin-left: 6px;
+}
+
+
+/* ==========================================================================
+   Mobbin Gallery Surface Normalization (95% Achromatic + 5% #0066ff)
+   Normalizes legacy dark-gold hero banners, navy KPI cards, and amber buttons
+   across all 9 corporate department pages into sunlit Mobbin gallery surfaces.
+   ========================================================================== */
+.content-body .card-feature-cinematic,
+.content-body .bg-charcoal,
+.content-body div[class*="bg-[#1D2428]"],
+.content-body div[style*="207, 166, 74"],
+.content-body div[style*="background: rgb(0, 0, 0)"],
+.content-body div[style*="background-color: rgb(0, 0, 0)"],
+.content-body div[style*="rgb(9, 23, 37)"],
+.content-body div[style*="#091725"],
+.content-body div[style*="#132a44"],
+.content-body div[class*="from-[#1D2428]"],
+.content-body div[class*="from-[#14181B]"],
+.content-body div[class*="from-[#182026]"],
+.content-body div[class*="from-[#0F172A]"],
+.content-body div[class*="from-slate-900"],
+.content-body div[class*="from-zinc-900"] {
+  background: #f3f3f3 !important;
+  background-image: none !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 24px !important;
+  box-shadow: none !important;
+  color: #141414 !important;
+}
+
+/* Uniform Elevated #ffffff Mobbin KPI Cards inside Grids across all 9 Departments */
+.content-body .stat-card-grid > div,
+.content-body .grid > .card-pricing,
+.content-body .grid > .card-pistachio-band,
+.content-body .grid > .card-pricing-featured {
+  background: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 24px !important;
+  box-shadow: none !important;
+  color: #141414 !important;
+}
+
+.content-body .stat-card-grid > div:hover,
+.content-body .grid > .card-pricing:hover,
+.content-body .grid > .card-pistachio-band:hover,
+.content-body .grid > .card-pricing-featured:hover {
+  border-color: #141414 !important;
+}
+
+.content-body .stat-card-grid > div .display-sm,
+.content-body .grid > .card-pricing .display-sm,
+.content-body .grid > .card-pistachio-band .display-sm,
+.content-body .grid > .card-pricing-featured .display-sm {
+  font-family: var(--font-family-display) !important;
+  font-size: 24px !important;
+  font-weight: 652 !important;
+  color: #141414 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.2 !important;
+  margin-top: 8px !important;
+  margin-bottom: 4px !important;
+  font-variant-numeric: tabular-nums !important;
+  white-space: nowrap !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+
+.content-body .stat-card-grid > div > span:first-child,
+.content-body .stat-card-grid > div > div:first-child:not(.flex) {
+  color: #707070 !important;
+  font-weight: 600 !important;
+  font-size: 12.5px !important;
+}
+
+.content-body .stat-card-grid > div div[class*="rounded-full"][class*="w-8"],
+.content-body .stat-card-grid > div div[class*="rounded-lg"][class*="w-7"] {
+  background: #f3f3f3 !important;
+  color: #141414 !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 30% !important;
+}
+
+.content-body .stat-card-grid > div .pill-tag-mint,
+.content-body .stat-card-grid > div .pill-tag-shade {
+  width: fit-content !important;
+  margin-top: 10px !important;
+}
+
+/* Normalize standalone dark portal wrappers & cards (KAS, Shelter, Sponsorship, Tenders, Monitoring, IAM, Offices) into Mobbin White/Soft surfaces */
+.content-body div[class*="bg-[#0d1013]"],
+.content-body div[class*="bg-[#0f1316]"],
+.content-body div[class*="bg-[#101417]"],
+.content-body div[class*="bg-[#0b0e11]"],
+.content-body div[class*="bg-[#14181c]"],
+.content-body div[class*="bg-[#121619]"],
+.content-body div[class*="bg-[#182026]"],
+.content-body div[class*="bg-[#171c20]"],
+.content-body div[class*="bg-[#1a2126]"],
+.content-body div[class*="bg-[#1d252c]"],
+.content-body aside[class*="bg-[#0"],
+.content-body aside[class*="bg-[#1"],
+.content-body header[class*="bg-[#0"],
+.content-body header[class*="bg-[#1"] {
+  background: #ffffff !important;
+  border-color: #e0e0e0 !important;
+  color: #141414 !important;
+  box-shadow: none !important;
+}
+
+/* Normalize inner dark sub-cards (bg-black/20..60) to Mobbin Soft Neutral (#f3f3f3) while preserving fixed modal backdrops */
+.content-body div[class*="bg-black/"]:not(.fixed):not([class*="inset-0"]),
+.content-body div[class*="bg-white/5"]:not(.fixed) {
+  background: #f3f3f3 !important;
+  border-color: #e0e0e0 !important;
+  color: #141414 !important;
+  box-shadow: none !important;
+}
+
+/* Normalize dark table headers, dividers, and borders */
+.content-body thead[class*="bg-black/"],
+.content-body thead[class*="bg-white/"],
+.content-body thead[class*="bg-[#1"],
+.content-body thead[class*="bg-[#0"] {
+  background: #f3f3f3 !important;
+  color: #707070 !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+.content-body [class*="border-white/"] {
+  border-color: #e0e0e0 !important;
+}
+
+.content-body [class*="divide-white/"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e0e0e0 !important;
+}
+
+/* Normalize dark inputs, selects, and textareas into Mobbin Soft Neutral inputs */
+.content-body input[class*="bg-black/"],
+.content-body select[class*="bg-black/"],
+.content-body textarea[class*="bg-black/"],
+.content-body input[class*="bg-[#1"],
+.content-body select[class*="bg-[#1"],
+.content-body textarea[class*="bg-[#1"],
+.content-body input[class*="bg-[#0"],
+.content-body select[class*="bg-[#0"],
+.content-body div[class*="bg-[#0d1013]"] select,
+.content-body div[class*="bg-[#101417]"] select {
+  background: #f3f3f3 !important;
+  color: #141414 !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 14px !important;
+}
+
+/* Normalize legacy dark/amber buttons inside content-body to Mobbin Pill buttons */
+.content-body button[class*="bg-amber-400"],
+.content-body button[class*="bg-amber-500"] {
+  background: #141414 !important;
+  color: #ffffff !important;
+  border: 1px solid #141414 !important;
+  border-radius: 9999px !important;
+  box-shadow: none !important;
+}
+
+.content-body button[class*="bg-amber-400"] svg,
+.content-body button[class*="bg-amber-500"] svg {
+  color: #ffffff !important;
+}
+
+.content-body div[class*="bg-[#0d1013]"] button[class*="bg-white/"],
+.content-body div[class*="bg-[#0d1013]"] button[class*="bg-[#1"],
+.content-body div[class*="bg-[#101417]"] button[class*="bg-white/"],
+.content-body div[class*="bg-[#101417]"] button[class*="bg-[#1"],
+.content-body div[class*="bg-[#14181c]"] button[class*="bg-white/"],
+.content-body div[class*="bg-[#14181c]"] button[class*="bg-black/"],
+.content-body div[class*="bg-[#14181c]"] button[class*="bg-[#1"],
+.content-body div[class*="bg-[#1D2428]"] button[class*="bg-white/"],
+.content-body button[class*="bg-[#1d252c]"] {
+  background: #ffffff !important;
+  color: #141414 !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 9999px !important;
+  box-shadow: none !important;
+}
+
+.content-body div[class*="bg-[#0d1013]"] div[class*="bg-white/"],
+.content-body div[class*="bg-[#101417]"] div[class*="bg-white/"],
+.content-body .card-feature-cinematic div[class*="bg-white/10"] {
+  background: #ffffff !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 9999px !important;
+  color: #141414 !important;
+  box-shadow: none !important;
+}
+
+/* High-contrast text normalization inside normalized cards */
+.content-body div[class*="bg-[#14181c]"] h1,
+.content-body div[class*="bg-[#14181c]"] h2,
+.content-body div[class*="bg-[#14181c]"] h3,
+.content-body div[class*="bg-[#14181c]"] h4,
+.content-body div[class*="bg-[#14181c]"] .text-white:not(button):not([class*="bg-"]),
+.content-body div[class*="bg-[#14181c]"] .text-zinc-100,
+.content-body div[class*="bg-[#14181c]"] .text-zinc-200,
+.content-body div[class*="bg-[#14181c]"] .text-zinc-300,
+.content-body div[class*="bg-[#121619]"] .text-white:not(button):not([class*="bg-"]),
+.content-body div[class*="bg-[#121619]"] .text-zinc-100,
+.content-body div[class*="bg-[#121619]"] .text-zinc-200,
+.content-body div[class*="bg-[#121619]"] .text-zinc-300,
+.content-body div[class*="bg-[#182026]"] h3,
+.content-body div[class*="bg-[#182026]"] .text-white:not(button):not([class*="bg-"]),
+.content-body div[class*="bg-[#182026]"] .text-zinc-200,
+.content-body div[class*="bg-[#171c20]"] h3,
+.content-body div[class*="bg-[#171c20]"] .text-white:not(button):not([class*="bg-"]),
+.content-body div[class*="bg-[#171c20]"] .text-zinc-200,
+.content-body div[class*="bg-[#171c20]"] .text-zinc-300,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-white:not(button):not([class*="bg-"]),
+.content-body div[class*="bg-black/"]:not(.fixed) .text-zinc-100,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-zinc-200,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-zinc-300 {
+  color: #141414 !important;
+}
+
+.content-body div[class*="bg-[#14181c]"] .text-zinc-400,
+.content-body div[class*="bg-[#14181c]"] .text-zinc-500,
+.content-body div[class*="bg-[#121619]"] .text-zinc-400,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-zinc-400,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-zinc-500 {
+  color: #707070 !important;
+}
+
+.content-body div[class*="bg-[#14181c]"] .text-amber-300,
+.content-body div[class*="bg-[#14181c]"] .text-amber-400,
+.content-body div[class*="bg-[#121619]"] .text-amber-300,
+.content-body div[class*="bg-[#121619]"] .text-amber-400,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-amber-300,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-amber-400 {
+  color: #b45309 !important;
+}
+
+.content-body div[class*="bg-[#14181c]"] .text-emerald-300,
+.content-body div[class*="bg-[#14181c]"] .text-emerald-400,
+.content-body div[class*="bg-[#121619]"] .text-emerald-400,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-emerald-300,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-emerald-400 {
+  color: #15803d !important;
+}
+
+.content-body div[class*="bg-[#14181c]"] .text-cyan-300,
+.content-body div[class*="bg-[#14181c]"] .text-cyan-400,
+.content-body div[class*="bg-[#14181c]"] .text-blue-300,
+.content-body div[class*="bg-[#14181c]"] .text-blue-400,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-cyan-400,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-blue-400 {
+  color: #0066ff !important;
+}
+
+.content-body div[class*="bg-[#14181c]"] .text-rose-300,
+.content-body div[class*="bg-[#14181c]"] .text-rose-400,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-rose-300,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-rose-400 {
+  color: #be123c !important;
+}
+
+/* Hide duplicate legacy 44x44 icon circle when BusinessIllustration is present in hero banners */
+.content-body .card-feature-cinematic .mobbin-illustration-card + div[style*="44px"],
+.content-body .card-feature-cinematic div:has(> .mobbin-illustration-card) + div[style*="44px"],
+.content-body .card-feature-cinematic div.sm\:hidden[style*="44px"] {
+  display: none !important;
+}
+
+.content-body .card-feature-cinematic div.hidden.sm\:block:has(> .mobbin-illustration-card) {
+  display: block !important;
+}
+
+.content-body .card-feature-cinematic h1,
+.content-body .card-feature-cinematic h2,
+.content-body .card-feature-cinematic h3,
+.content-body .card-feature-cinematic strong,
+.content-body .card-feature-cinematic .display-sm,
+.content-body .card-feature-cinematic .text-white,
+.content-body .bg-charcoal .text-white,
+.content-body .bg-charcoal strong,
+.content-body .text-\[\#F5EDDC\],
+.content-body .text-\[\#E6D3A7\],
+.content-body div[style*="background: rgb(0, 0, 0)"] h1,
+.content-body div[style*="background: rgb(0, 0, 0)"] h2,
+.content-body div[style*="background: rgb(0, 0, 0)"] h3,
+.content-body div[style*="background: rgb(0, 0, 0)"] .display-sm,
+.content-body div[style*="background: rgb(0, 0, 0)"] .text-white,
+.content-body div[style*="207, 166, 74"] h1,
+.content-body div[style*="207, 166, 74"] h2,
+.content-body div[style*="207, 166, 74"] h3,
+.content-body div[style*="207, 166, 74"] .text-white,
+.content-body div[style*="#091725"] .text-white,
+.content-body div[style*="#091725"] .text-amber-300,
+.content-body div[style*="rgb(9, 23, 37)"] .text-white,
+.content-body div[style*="rgb(9, 23, 37)"] .text-amber-300,
+.content-body div[style*="rgb(9, 23, 37)"] .text-zinc-300,
+.content-body div[class*="from-[#1D2428]"] h1,
+.content-body div[class*="from-[#1D2428]"] h2,
+.content-body div[class*="from-[#1D2428]"] h3,
+.content-body div[class*="from-[#1D2428]"] .text-white,
+.content-body div[class*="from-[#14181B]"] h1,
+.content-body div[class*="from-[#14181B]"] h2,
+.content-body div[class*="from-[#14181B]"] .text-white,
+.content-body div[class*="from-[#182026]"] h1,
+.content-body div[class*="from-[#182026]"] h2,
+.content-body div[class*="from-[#182026]"] .text-white,
+.content-body div[class*="from-[#0F172A]"] h1,
+.content-body div[class*="from-[#0F172A]"] h2,
+.content-body div[class*="from-[#0F172A]"] .text-white,
+.content-body div[class*="from-slate-900"] h1,
+.content-body div[class*="from-slate-900"] h2,
+.content-body div[class*="from-slate-900"] .text-white,
+.content-body div[class*="from-zinc-900"] h1,
+.content-body div[class*="from-zinc-900"] h2,
+.content-body div[class*="from-zinc-900"] .text-white,
+.content-body div[class*="bg-[#0d1013]"] h1,
+.content-body div[class*="bg-[#0d1013]"] h2,
+.content-body div[class*="bg-[#0d1013]"] h3,
+.content-body div[class*="bg-[#0d1013]"] .text-white,
+.content-body div[class*="bg-[#0d1013]"] .text-zinc-100,
+.content-body div[class*="bg-[#0d1013]"] .text-zinc-200,
+.content-body div[class*="bg-[#0d1013]"] .text-emerald-400,
+.content-body div[class*="bg-[#101417]"] h1,
+.content-body div[class*="bg-[#101417]"] h2,
+.content-body div[class*="bg-[#101417]"] h3,
+.content-body div[class*="bg-[#101417]"] .text-white,
+.content-body div[class*="bg-[#101417]"] .text-zinc-100,
+.content-body div[class*="bg-[#101417]"] .text-zinc-200 {
+  color: #141414 !important;
+}
+
+.content-body .pill-tag-shade {
+  background: #0066ff !important;
+  color: #ffffff !important;
+  border: 1px solid #0066ff !important;
+  border-radius: 9999px !important;
+  padding: 2px 10px !important;
+  font-weight: 600 !important;
+}
+
+.content-body .card-feature-cinematic p,
+.content-body .bg-charcoal p,
+.content-body div[style*="background: rgb(0, 0, 0)"] p,
+.content-body div[style*="207, 166, 74"] p,
+.content-body div[style*="207, 166, 74"] .text-zinc-300,
+.content-body div[style*="207, 166, 74"] .text-zinc-400,
+.content-body div[style*="#091725"] .text-zinc-300,
+.content-body div[class*="from-[#1D2428]"] p,
+.content-body div[class*="from-[#1D2428]"] .text-zinc-300,
+.content-body div[class*="from-[#1D2428]"] .text-zinc-400,
+.content-body div[class*="from-[#14181B]"] p,
+.content-body div[class*="from-[#182026]"] p,
+.content-body div[class*="from-[#0F172A]"] p,
+.content-body div[class*="from-slate-900"] p,
+.content-body div[class*="from-zinc-900"] p,
+.content-body div[class*="bg-[#0d1013]"] .text-zinc-400,
+.content-body div[class*="bg-[#0d1013]"] .text-zinc-500,
+.content-body div[class*="bg-[#101417]"] .text-zinc-400,
+.content-body div[class*="bg-[#101417]"] .text-zinc-500 {
+  color: #707070 !important;
+}
+
+.content-body div[style*="207, 166, 74"] strong,
+.content-body div[style*="207, 166, 74"] .text-amber-300,
+.content-body div[style*="207, 166, 74"] .text-amber-200,
+.content-body div[style*="#091725"] .text-amber-200\/80,
+.content-body div[class*="from-[#1D2428]"] strong,
+.content-body div[class*="from-[#1D2428]"] .text-[#CFA64A],
+.content-body div[class*="from-[#1D2428]"] .text-[#E6D3A7] {
+  color: #141414 !important;
+}
+
+/* Convert legacy gold/amber primary buttons to Mobbin #141414 pill buttons */
+.content-body button[class*="bg-[#CFA64A]"],
+.content-body button[class*="from-amber-400"],
+.content-body button[class*="bg-amber-400"],
+.content-body button[class*="bg-amber-500"] {
+  background: #141414 !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  border: 1px solid #141414 !important;
+  border-radius: 9999px !important;
+  box-shadow: none !important;
+}
+
+.content-body button[class*="bg-[#CFA64A]"] *,
+.content-body button[class*="from-amber-400"] *,
+.content-body button[class*="bg-amber-400"] *,
+.content-body button[class*="bg-amber-500"] * {
+  color: #ffffff !important;
+}
+
+/* Convert secondary dark buttons inside normalized hero banners to white Mobbin pills */
+.content-body button[class*="bg-[#1D2428]"],
+.content-body button[class*="bg-[#14181B]"],
+.content-body div[style*="background: rgb(0, 0, 0)"] button:not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]),
+.content-body div[style*="207, 166, 74"] button:not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]),
+.content-body div[class*="from-[#1D2428]"] button:not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]),
+.content-body div[class*="from-[#14181B]"] button:not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]),
+.content-body div[class*="from-[#0F172A]"] button:not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]) {
+  background: #ffffff !important;
+  color: #141414 !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 9999px !important;
+  box-shadow: none !important;
+}
+
+.content-body button[class*="bg-[#1D2428]"] *,
+.content-body button[class*="bg-[#14181B]"] *,
+.content-body div[style*="background: rgb(0, 0, 0)"] button:not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]) *,
+.content-body div[style*="207, 166, 74"] button:not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]) *,
+.content-body div[class*="from-[#1D2428]"] button:not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]) *,
+.content-body div[class*="from-[#14181B]"] button:not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]) *,
+.content-body div[class*="from-[#0F172A]"] button:not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]) * {
+  color: #141414 !important;
+  background-color: transparent !important;
+}
+
+.content-body .text-amber-200,
+.content-body .text-amber-300 {
+  color: #141414 !important;
+}
+
+.content-body div[style*="207, 166, 74"] div[class*="bg-zinc-950"],
+.content-body div[style*="207, 166, 74"] div[class*="bg-white/5"],
+.content-body div[class*="from-[#1D2428]"] div[class*="bg-zinc-950"],
+.content-body div[class*="from-[#1D2428]"] div[class*="bg-white/5"] {
+  background: #ffffff !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 16px !important;
+  color: #141414 !important;
+  box-shadow: none !important;
+}
+
+/* Normalize badges inside hero headers to Mobbin #ffffff and #0066ff pills */
+.content-body div[style*="207, 166, 74"] span[class*="bg-amber-"],
+.content-body div[style*="207, 166, 74"] span[class*="bg-[#CFA64A]"],
+.content-body div[class*="from-[#1D2428]"] span[class*="bg-amber-"],
+.content-body div[class*="from-[#1D2428]"] span[class*="bg-[#CFA64A]"] {
+  background: #ffffff !important;
+  color: #141414 !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 9999px !important;
+}
+
+.content-body div[style*="207, 166, 74"] span[class*="bg-emerald-"],
+.content-body div[class*="from-[#1D2428]"] span[class*="bg-emerald-"] {
+  background: #0066ff !important;
+  color: #ffffff !important;
+  border: 1px solid #0066ff !important;
+  border-radius: 9999px !important;
 }

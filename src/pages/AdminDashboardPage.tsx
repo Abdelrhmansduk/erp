@@ -738,7 +738,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
           </p>
 
           <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-200 space-y-2">
-            <h4 className="text-xs font-bold text-black">💡 توصيات الذكاء الاصطناعي التشغيلية:</h4>
+            <h4 className="text-xs font-bold text-black">توصيات الذكاء الاصطناعي التشغيلية:</h4>
             <ul className="text-xs text-zinc-700 leading-relaxed space-y-1 list-disc pr-4">
               <li>ارتفاع الطلب على العمالة المنزلية الإثيوبية بنسبة +34% خلال الشهر القادم. يُنصح بزيادة التفاويض الخارجية لمكتب DAMAS.</li>
               <li>مؤشر سرعة إنجاز تفاويض إنجاز تسجل معدل قياسي (3.2 يوم).</li>

@@ -597,7 +597,6 @@ export function resolveIllustrationForTab(
     t.includes('monitoring') ||
     t.includes('telemetry') ||
     t.includes('pulse') ||
-    t.includes('complaint') ||
     t.includes('activity-log')
   ) {
     return 'attendance-monitoring';
@@ -617,7 +616,7 @@ export function resolveIllustrationForTab(
   if (t.includes('iam') || t.includes('users') || t.includes('access') || t.includes('roles')) {
     return 'iam-security';
   }
-  if (t.includes('client') || t.includes('crm') || t.includes('black-list')) {
+  if (t.includes('client') || t.includes('crm') || t.includes('complaint') || t.includes('black-list')) {
     return 'crm-customer';
   }
   if (t.includes('recruitment') || t.includes('musaned') || t.includes('order') || t.includes('contract')) {

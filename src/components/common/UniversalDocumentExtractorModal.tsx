@@ -249,11 +249,11 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
                 className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 bg-[#FBFBF5] text-xs font-bold text-zinc-900 focus:outline-none focus:border-black"
               >
                 <option value="auto">
-                  🔍 التعرف التلقائي الذكي حسب محتوى الملف وتوجيهه للقسم المعني
+                  التعرف التلقائي الذكي حسب محتوى الملف وتوجيهه للقسم المعني
                 </option>
                 {IMPORT_TEMPLATES.map((tpl) => (
                   <option key={tpl.entityKey} value={tpl.entityKey}>
-                    📌 توجيه مباشر إلى: {tpl.displayName} ({tpl.entityKey})
+                    توجيه مباشر إلى: {tpl.displayName} ({tpl.entityKey})
                   </option>
                 ))}
               </select>
@@ -309,16 +309,16 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
               </p>
               <div className="flex flex-wrap items-center justify-center gap-1.5 mt-3">
                 <span className="px-2.5 py-1 rounded-md bg-zinc-100 text-zinc-800 text-[10px] font-black">
-                  📷 صور فواتير ZATCA QR
+                  صور فواتير ZATCA QR
                 </span>
                 <span className="px-2.5 py-1 rounded-md bg-zinc-100 text-zinc-800 text-[10px] font-black">
-                  📄 مستندات PDF
+                  مستندات PDF
                 </span>
                 <span className="px-2.5 py-1 rounded-md bg-zinc-100 text-zinc-800 text-[10px] font-black">
-                  📝 ملفات Word
+                  ملفات Word
                 </span>
                 <span className="px-2.5 py-1 rounded-md bg-zinc-100 text-zinc-800 text-[10px] font-black">
-                  📊 أنظمة محاسبية Excel / XML
+                  أنظمة محاسبية Excel / XML
                 </span>
               </div>
             </div>
@@ -328,7 +328,7 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-black text-zinc-900">
-                    ⚡ استخلاص دفعي فوري ({batchCountInput} فاتورة / مستند بضغطة واحدة):
+                    استخلاص دفعي فوري ({batchCountInput} فاتورة / مستند بضغطة واحدة):
                   </span>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#FAEBD7] text-black">
                     شركة: {targetCompanyObj.name} [{selectedCompanyId}]

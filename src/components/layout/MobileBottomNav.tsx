@@ -285,7 +285,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                       }}
                       className="px-2.5 py-1 rounded-lg bg-white border border-[#CFA64A]/40 text-[11px] font-bold text-[#1D2428]"
                     >
-                      ⭐ {pin.title}
+                      {pin.title}
                     </button>
                   ))}
                 </div>

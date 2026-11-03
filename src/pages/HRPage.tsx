@@ -862,9 +862,9 @@ export const HRPage: React.FC = () => {
           { id: 'permissions', label: `طلبات الأذونات (${permissions.length})`, icon: Clock },
           { id: 'rewards', label: `طلبات المكافآت (${rewards.length})`, icon: Award },
           { id: 'payroll', label: 'مسير الرواتب (WPS)', icon: ShieldCheck },
-          { id: 'end-of-service', label: 'حاسبة نهاية الخدمة ⚖️', icon: Calculator },
-          { id: 'gosi', label: 'التأمينات الاجتماعية (GOSI) 🛡️', icon: ShieldCheck },
-          { id: 'maids-hr', label: 'أسطول العمالة والتشغيل 👥', icon: Users },
+          { id: 'end-of-service', label: 'حاسبة نهاية الخدمة ', icon: Calculator },
+          { id: 'gosi', label: 'التأمينات الاجتماعية (GOSI) ', icon: ShieldCheck },
+          { id: 'maids-hr', label: 'أسطول العمالة والتشغيل ', icon: Users },
         ].map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
@@ -1210,8 +1210,8 @@ export const HRPage: React.FC = () => {
                   <tr>
                     <th className="p-3.5">رقم القرار</th>
                     <th className="p-3.5">الموظف</th>
-                    <th className="p-3.5">المسمى والدرجة السابقة ⬅ الجديدة</th>
-                    <th className="p-3.5">الراتب السابق ⬅ الجديد</th>
+                    <th className="p-3.5">المسمى والدرجة السابقة الجديدة</th>
+                    <th className="p-3.5">الراتب السابق الجديد</th>
                     <th className="p-3.5">مبلغ ونسبة الزيادة</th>
                     <th className="p-3.5">الصلاحية في المنظومة</th>
                     <th className="p-3.5">تقييم الأداء</th>
@@ -1237,7 +1237,7 @@ export const HRPage: React.FC = () => {
                       </td>
                       <td className="p-3.5 font-mono">
                         <span className="text-zinc-400 line-through">{promo.previous_salary.toLocaleString()}</span>
-                        <span className="text-black font-bold mx-1">⬅</span>
+                        <span className="text-black font-bold mx-1"></span>
                         <span className="text-emerald-700 font-bold">{promo.new_salary.toLocaleString()} ر.س</span>
                       </td>
                       <td className="p-3.5 font-mono">

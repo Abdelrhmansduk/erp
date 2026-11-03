@@ -420,7 +420,7 @@ export const ForeignAgencyPortalPage: React.FC = () => {
                   </td>
                   <td className="p-4">
                     <span className={cand.medicalStatus === 'FIT' ? 'pill-tag-mint text-xs' : 'pill-tag-shade text-xs'}>
-                      {cand.medicalStatus === 'FIT' ? '✓ لائق طبياً' : '⏳ قيد الفحص'}
+                      {cand.medicalStatus === 'FIT' ? '✓ لائق طبياً' : 'قيد الفحص'}
                     </span>
                   </td>
                   <td className="p-4">
@@ -430,7 +430,7 @@ export const ForeignAgencyPortalPage: React.FC = () => {
                   </td>
                   <td className="p-4">
                     <span className={cand.ticketStatus === 'BOOKED' ? 'pill-tag-mint text-xs' : 'pill-tag-shade text-xs'}>
-                      {cand.ticketStatus === 'BOOKED' ? '✈️ مؤكد الحجز' : 'بانتظار الحجز'}
+                      {cand.ticketStatus === 'BOOKED' ? 'مؤكد الحجز' : 'بانتظار الحجز'}
                     </span>
                   </td>
                   <td className="p-4 font-bold font-mono text-slate-900 dark:text-white text-sm">

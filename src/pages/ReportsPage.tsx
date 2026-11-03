@@ -220,10 +220,10 @@ export const ReportsPage: React.FC = () => {
       {/* Sub Tabs Navigation */}
       <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
         {[
-          { id: 'executive', label: '🏛️ الملخص التنفيذي الموحد' },
-          { id: 'sales', label: '📈 تقارير المبيعات والتعاقدات' },
-          { id: 'recruitment', label: '✈️ تقارير الاستقدام والمدد الزمنية' },
-          { id: 'financial', label: '💰 التقارير المالية وهوامش الأرباح' },
+          { id: 'executive', label: 'الملخص التنفيذي الموحد' },
+          { id: 'sales', label: 'تقارير المبيعات والتعاقدات' },
+          { id: 'recruitment', label: 'تقارير الاستقدام والمدد الزمنية' },
+          { id: 'financial', label: 'التقارير المالية وهوامش الأرباح' },
         ].map((tab) => {
           const isActive = activeReportTab === tab.id;
           return (

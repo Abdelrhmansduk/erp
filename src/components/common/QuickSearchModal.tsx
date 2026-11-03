@@ -489,7 +489,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
                 { id: 'all', label: 'الكل', icon: Sparkles },
                 { id: 'screens', label: `الشاشات (${allScreenItems.length})`, icon: Briefcase },
                 { id: 'records', label: `السجلات الحية (${liveRecordItems.length})`, icon: Users },
-                { id: 'actions', label: 'أوامر تنفيذية ⚡', icon: Zap },
+                { id: 'actions', label: 'أوامر تنفيذية ', icon: Zap },
               ] as const
             ).map((tab) => {
               const Icon = tab.icon;
@@ -539,7 +539,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
                     }}
                     className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#1D2428] hover:text-[#CFA64A] text-[#1D2428] border border-[#CFA64A]/40 text-[11px] font-extrabold transition-all shrink-0 cursor-pointer shadow-2xs"
                   >
-                    ⭐ {pin.title}
+                    {pin.title}
                   </button>
                 ))}
               </div>
@@ -640,8 +640,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
                         </h4>
                         {item.kind === 'action' && (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-[#CFA64A] text-[#1D2428]">
-                            أمر سريع ⚡
-                          </span>
+                            أمر سريع </span>
                         )}
                         {item.kind === 'record' && (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-600 text-white">

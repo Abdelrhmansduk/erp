@@ -1,4 +1,4 @@
-/* Shopifi Enterprise Layout Styles - Transactional Track */
+/* Mobbin Enterprise Layout Styles — DESIGN-mobbin.md Specification */
 
 :root {
   --sidebar-width: 300px;
@@ -17,13 +17,13 @@
   width: 100%;
   max-width: 100vw;
   position: relative;
-  background-color: var(--color-canvas-cream);
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
   font-family: var(--font-family-ui);
-  font-feature-settings: "ss03" 1;
   overflow-x: hidden;
 }
 
-/* Sidebar Base Styles - Clean White Surface */
+/* Sidebar Base Styles — Shadow-Free Gallery White Surface */
 .app-sidebar {
   width: var(--sidebar-width);
   min-width: var(--sidebar-width);
@@ -33,22 +33,27 @@
   top: 0;
   bottom: 0;
   z-index: 1000;
-  background: var(--color-canvas-light);
+  background: var(--color-canvas);
   color: var(--color-ink);
   display: flex;
   flex-direction: column;
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.04);
+  box-shadow: none;
   overflow-y: auto;
+  overflow-x: hidden;
   font-family: var(--font-family-ui);
-  font-feature-settings: "ss03" 1;
   -webkit-overflow-scrolling: touch;
+}
+
+.app-sidebar.desktop-collapsed {
+  width: 76px !important;
+  min-width: 76px !important;
 }
 
 /* RTL Mode Sidebar Positioning */
 html[dir="rtl"] .app-sidebar, [dir="rtl"] .app-sidebar {
   right: 0;
   left: auto;
-  border-left: 1px solid var(--color-hairline-light);
+  border-left: 1px solid var(--color-hairline-soft);
   border-right: none;
 }
 
@@ -56,7 +61,7 @@ html[dir="rtl"] .app-sidebar, [dir="rtl"] .app-sidebar {
 html[dir="ltr"] .app-sidebar, [dir="ltr"] .app-sidebar {
   left: 0;
   right: auto;
-  border-right: 1px solid var(--color-hairline-light);
+  border-right: 1px solid var(--color-hairline-soft);
   border-left: none;
 }
 
@@ -65,8 +70,8 @@ html[dir="ltr"] .app-sidebar, [dir="ltr"] .app-sidebar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--color-hairline-light);
-  background: var(--color-canvas-light);
+  border-bottom: 1px solid var(--color-hairline-soft);
+  background: var(--color-canvas);
 }
 
 .brand-badge {
@@ -78,14 +83,14 @@ html[dir="ltr"] .app-sidebar, [dir="ltr"] .app-sidebar {
 .brand-icon {
   width: 38px;
   height: 38px;
-  border-radius: var(--rounded-md);
-  background: #000000;
+  border-radius: 30%;
+  background: #141414;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 16px;
-  font-weight: 800;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .brand-title {
@@ -95,18 +100,18 @@ html[dir="ltr"] .app-sidebar, [dir="ltr"] .app-sidebar {
 
 .brand-title-main {
   font-size: 14.5px;
-  font-weight: 550;
-  letter-spacing: 0.2px;
-  color: #000000;
+  font-weight: 600;
+  letter-spacing: 0px;
+  color: #141414;
 }
 
 .brand-title-sub {
   font-size: 11px;
-  color: var(--color-shade-50);
-  font-weight: 420;
+  color: var(--color-text-muted);
+  font-weight: 456;
 }
 
-/* Sidebar Navigation Items - Dark Text on Clean White Background */
+/* Sidebar Navigation Items — Mobbin Stadium Pills */
 .sidebar-nav {
   padding: 14px 12px;
   display: flex;
@@ -115,37 +120,36 @@ html[dir="ltr"] .app-sidebar, [dir="ltr"] .app-sidebar {
 }
 
 .nav-section-title {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  text-transform: uppercase;
-  color: var(--color-shade-50);
+  color: var(--color-text-muted);
   padding: 10px 12px 4px 12px;
-  letter-spacing: 0.72px;
+  letter-spacing: 0px;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 9px 12px;
-  border-radius: var(--rounded-md);
-  color: #27272a;
+  padding: 9px 14px;
+  border-radius: var(--rounded-full);
+  color: var(--color-text-muted);
   font-size: 13.5px;
-  font-weight: 420;
+  font-weight: 456;
   transition: all var(--transition-fast);
   cursor: pointer;
   user-select: none;
 }
 
 .nav-item:hover {
-  background: #f4f4f5;
-  color: #000000;
+  background: var(--color-canvas-soft);
+  color: #141414;
 }
 
 .nav-item.active {
-  background: #000000;
+  background: #141414;
   color: #ffffff;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 html[dir="rtl"] .nav-item.active, [dir="rtl"] .nav-item.active {
@@ -168,12 +172,12 @@ html[dir="ltr"] .nav-item.active, [dir="ltr"] .nav-item.active {
   width: 18px;
   text-align: center;
   font-size: 14px;
-  color: var(--color-shade-50);
+  color: var(--color-text-muted);
   transition: color var(--transition-fast);
 }
 
 .nav-item:hover .nav-icon {
-  color: #000000;
+  color: #141414;
 }
 
 .nav-item.active .nav-icon {
@@ -182,16 +186,16 @@ html[dir="ltr"] .nav-item.active, [dir="ltr"] .nav-item.active {
 
 .nav-badge {
   padding: 2px 8px;
-  border-radius: var(--rounded-pill);
+  border-radius: var(--rounded-full);
   font-size: 11px;
-  font-weight: 500;
-  background: var(--color-shade-30);
-  color: #000000;
+  font-weight: 600;
+  background: var(--color-canvas-soft);
+  color: #141414;
 }
 
 .nav-badge.primary {
-  background: var(--color-aloe-10);
-  color: #000000;
+  background: var(--color-accent);
+  color: #ffffff;
 }
 
 .submenu-list {
@@ -214,8 +218,8 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
 .submenu-item {
   padding: 7px 12px;
   font-size: 13px;
-  color: var(--color-shade-60);
-  border-radius: var(--rounded-md);
+  color: var(--color-text-muted);
+  border-radius: var(--rounded-full);
   transition: all var(--transition-fast);
   cursor: pointer;
   display: flex;
@@ -224,14 +228,14 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
 }
 
 .submenu-item:hover {
-  color: #000000;
-  background: #f4f4f5;
+  color: #141414;
+  background: var(--color-canvas-soft);
 }
 
 .submenu-item.active {
-  color: #000000;
+  color: #ffffff;
   font-weight: 600;
-  background: var(--color-aloe-10);
+  background: #141414;
 }
 
 /* Main Content Area Layout Rules */
@@ -247,13 +251,11 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
   overflow-x: hidden;
 }
 
-/* Header Navbar */
+/* Header Navbar — Shadow-Free Gallery White with 1px Soft Hairline */
 .app-header, .nav-bar-light {
   height: var(--header-height);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--color-hairline-light);
+  background: #ffffff;
+  border-bottom: 1px solid var(--color-hairline-soft);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -261,7 +263,7 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  box-shadow: none;
   width: 100%;
   max-width: 100vw;
 }
@@ -287,20 +289,20 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
 .odoo-app-switcher {
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-sm);
+  border-radius: 30%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--odoo-purple);
+  color: #141414;
   font-size: 18px;
-  background: var(--accent-purple-light);
+  background: var(--color-canvas-soft);
   border: none;
   cursor: pointer;
   transition: background var(--transition-fast);
 }
 
 .odoo-app-switcher:hover {
-  background: rgba(113, 75, 103, 0.18);
+  background: var(--color-hairline);
 }
 
 .header-title-box {
@@ -311,8 +313,8 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
 
 .page-title {
   font-size: 16px;
-  font-weight: 700;
-  color: var(--text-main);
+  font-weight: 652;
+  color: #141414;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -320,8 +322,8 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
 }
 
 .breadcrumb-sub {
-  font-size: 11px;
-  color: var(--text-muted);
+  font-size: 12px;
+  color: var(--color-text-muted);
 }
 
 /* User Profile Badge Button */
@@ -330,9 +332,9 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
   align-items: center;
   gap: 8px;
   padding: 4px 10px;
-  border-radius: var(--radius-pill);
-  background: var(--bg-subtle);
-  border: 1px solid #E5E7EB;
+  border-radius: var(--rounded-full);
+  background: var(--color-canvas-soft);
+  border: 1px solid var(--color-hairline-soft);
   cursor: pointer;
 }
 
@@ -340,12 +342,12 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: #000000;
-  color: white;
+  background: #141414;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 12px;
 }
 
@@ -367,7 +369,7 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
 
 @media (min-width: 1024px) {
   .content-body {
-    padding: 28px 24px;
+    padding: 24px 24px;
   }
 }
 
@@ -395,7 +397,7 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
 
   .stat-card {
     padding: 16px !important;
-    border-radius: 16px !important;
+    border-radius: 24px !important;
   }
 
   .stat-value {
@@ -403,7 +405,7 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
   }
 
   .table-card {
-    border-radius: 16px !important;
+    border-radius: 24px !important;
     margin-bottom: 16px !important;
   }
 
@@ -420,12 +422,12 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
 
   .card-feature-cinematic {
     padding: 18px 14px !important;
-    border-radius: 16px !important;
+    border-radius: 24px !important;
   }
 
   .card-pricing, .card-pistachio-band, .card-pricing-featured {
     padding: 18px 14px !important;
-    border-radius: 18px !important;
+    border-radius: 24px !important;
   }
 
   .display-sm {
@@ -453,7 +455,7 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
     max-width: calc(100vw - 16px) !important;
     max-height: calc(100dvh - 24px - var(--safe-top) - var(--safe-bottom)) !important;
     margin: 8px !important;
-    border-radius: 20px !important;
+    border-radius: 24px !important;
     overflow-y: auto !important;
   }
 }
@@ -468,6 +470,15 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 16px !important;
   }
+
+  .hidden-tablet {
+    display: none !important;
+  }
+
+  .app-sidebar {
+    width: 300px;
+    max-width: 80vw;
+  }
 }
 
 /* Standard Desktop (1024px - 1535px) */
@@ -478,14 +489,14 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
 
   .stat-card-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    gap: 20px !important;
+    gap: 16px !important;
   }
 }
 
 /* Large Displays & Ultra-wide Monitors (1536px+) */
 @media (min-width: 1536px) {
   .content-body {
-    padding: 32px 40px !important;
+    padding: 28px 36px !important;
     max-width: 1920px;
     margin-left: auto;
     margin-right: auto;
@@ -493,29 +504,11 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
 
   .stat-card-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    gap: 24px !important;
+    gap: 20px !important;
   }
 
   .display-sm {
     font-size: 32px !important;
-  }
-}
-
-
-/* Tablets (640px to 1023px) */
-@media (min-width: 640px) and (max-width: 1023px) {
-  .hidden-tablet {
-    display: none !important;
-  }
-
-  .stat-card-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 16px !important;
-  }
-
-  .app-sidebar {
-    width: 300px;
-    max-width: 80vw;
   }
 }
 
@@ -526,7 +519,7 @@ html[dir="ltr"] .submenu-list, [dir="ltr"] .submenu-list {
   }
 
   .app-sidebar {
-    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.04);
+    box-shadow: none;
   }
 }
 

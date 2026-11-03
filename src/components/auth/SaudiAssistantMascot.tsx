@@ -219,7 +219,7 @@ export const SaudiAssistantMascot: React.FC<SaudiAssistantMascotProps> = ({
                     : 'text-zinc-500 hover:text-zinc-800'
                 }`}
               >
-                👨 فارس
+                فارس
               </button>
               <button
                 type="button"
@@ -233,7 +233,7 @@ export const SaudiAssistantMascot: React.FC<SaudiAssistantMascotProps> = ({
                     : 'text-zinc-500 hover:text-zinc-800'
                 }`}
               >
-                👩 نُورة
+                نُورة
               </button>
             </div>
 

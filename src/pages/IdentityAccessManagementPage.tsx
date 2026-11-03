@@ -819,8 +819,8 @@ export const IdentityAccessManagementPage: React.FC = () => {
                 <h4 className="text-sm font-black text-slate-900 dark:text-white">{rule.name}</h4>
                 <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{rule.description}</p>
                 <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl space-y-1 text-[11px] font-mono">
-                  <div className="text-slate-700 dark:text-slate-300">❌ الصلاحية 1: <span className="text-red-500 font-bold">{rule.permissionA}</span></div>
-                  <div className="text-slate-700 dark:text-slate-300">❌ الصلاحية 2: <span className="text-red-500 font-bold">{rule.permissionB}</span></div>
+                  <div className="text-slate-700 dark:text-slate-300">الصلاحية 1: <span className="text-red-500 font-bold">{rule.permissionA}</span></div>
+                  <div className="text-slate-700 dark:text-slate-300">الصلاحية 2: <span className="text-red-500 font-bold">{rule.permissionB}</span></div>
                 </div>
               </div>
             ))}

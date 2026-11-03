@@ -713,7 +713,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
               </div>
 
               <div className="p-3 bg-amber-400/10 rounded-xl border border-amber-400/20 text-amber-300 text-[11px]">
-                💡 <strong>ملاحظة برمجية:</strong> سيتم حفظ كافة تفاصيل تجربة العميل <strong>{selectedTransfer.newClientName}</strong> في سجل العاملة الدائم ولن تحذف، كما سيزيد عداد تجارب العاملة تلقائياً.
+                <strong>ملاحظة برمجية:</strong> سيتم حفظ كافة تفاصيل تجربة العميل <strong>{selectedTransfer.newClientName}</strong> في سجل العاملة الدائم ولن تحذف، كما سيزيد عداد تجارب العاملة تلقائياً.
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-white/10">

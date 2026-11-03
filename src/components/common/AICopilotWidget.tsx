@@ -129,7 +129,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
     return saved !== 'false'; // Default to true so voice works out of the box
   });
   const [isDocked, setIsDocked] = useState<boolean>(() => {
-    return localStorage.getItem('assistant_mascot_docked') === 'true';
+    return localStorage.getItem('assistant_mascot_docked') !== 'false';
   });
   const [wakeWordEnabled, setWakeWordEnabled] = useState<boolean>(() => {
     return localStorage.getItem('assistant_wake_word_enabled') !== 'false';
@@ -676,7 +676,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
     const userMsg: ChatMessage = {
       id: `u-brief-${Date.now()}`,
       sender: 'user',
-      text: '📋 أعطني إيجاز مهامي اليومي ومؤشرات قسمي',
+      text: 'أعطني إيجاز مهامي اليومي ومؤشرات قسمي',
       timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
     };
 
@@ -704,7 +704,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
     const userMsg: ChatMessage = {
       id: `u-file-${Date.now()}`,
       sender: 'user',
-      text: `📎 مرفق (${fileList.length}): ${fileNames}`,
+      text: `مرفق (${fileList.length}): ${fileNames}`,
       timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
     };
 
@@ -728,7 +728,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
       text: responseText,
       timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
       actionButton: {
-        label: '📄 فتح مستخرج الـ 100 مستند وفاتورة الذكي',
+        label: 'فتح مستخرج الـ 100 مستند وفاتورة الذكي',
         actionKey: 'open-document-extractor',
       },
     };
@@ -747,7 +747,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
     }));
 
     const commonExtractor = {
-      label: '📄 رفع 100 فاتورة / مستند',
+      label: 'رفع 100 فاتورة / مستند',
       query: 'أريد رفع 100 صورة فاتورة أو مستندات PDF وWord وExcel واستخلاص بياناتها تلقائياً',
     };
 
@@ -1019,38 +1019,30 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
           <button
             type="button"
             onClick={() => {
-              if (isDocked) {
-                setIsDocked(false);
-                localStorage.setItem('assistant_mascot_docked', 'false');
-              } else {
-                setIsOpen(true);
-                setShowTooltip(false);
-              }
+              setIsOpen(true);
+              setShowTooltip(false);
             }}
-            className="group flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-[#1D2428] border border-[#CFA64A] rounded-full shadow-lg hover:bg-black transition-all duration-300 cursor-pointer"
+            className="group flex items-center gap-2 px-3.5 py-2 bg-[#141414] border border-[#262626] rounded-full hover:bg-[#262626] transition-colors cursor-pointer"
             title={`التحدث مع ${persona === 'noura' ? 'نُورة' : 'فارس'}`}
           >
-            <div className="relative w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0 rounded-full bg-[#FBFBF5] border border-[#CFA64A] p-0.5">
+            <div className="relative w-7 h-7 flex-shrink-0 rounded-full bg-[#ffffff] p-0.5">
               <img
                 src={persona === 'noura' ? '/noura.png' : '/mascot.png'}
                 alt={persona === 'noura' ? 'نُورة' : 'فارس'}
-                className="w-full h-full object-contain group-hover:scale-110 transition-transform"
+                className="w-full h-full object-contain"
               />
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#1D2428]" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#0066ff] border-2 border-[#141414]" />
             </div>
 
             <div className="flex flex-col text-right">
-              <div className="flex items-center gap-1">
-                <span className="text-[11px] sm:text-xs font-black text-white">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-semibold text-[#ffffff]">
                   {persona === 'noura' ? 'نُورة' : 'فارس'}
                 </span>
-                <span className="text-[9px] text-black font-black bg-[#CFA64A] px-1.5 py-0.2 rounded-full">
-                  مستشار
+                <span className="text-[10px] text-[#ffffff] font-semibold bg-[#0066ff] px-2 py-0.5 rounded-full">
+                  AI
                 </span>
               </div>
-              <span className="hidden sm:inline text-[10px] text-[#F5EDDC]">
-                المستشار المؤسسي • صوتي ونصي
-              </span>
             </div>
           </button>
         </div>

@@ -91,7 +91,7 @@ const MOCK_INTER_DISPUTES: InterCompanyDispute[] = [
   {
     id: 'disp-1',
     dispute_no: 'EXEC-2026-001',
-    sender_entity: '💎 شركة توباز (Topaz Group)',
+    sender_entity: 'شركة توباز (Topaz Group)',
     target_entity: '🇵🇭 مكتب بلاتينيوم الفلبيني (PLATINUM)',
     subject: 'تأخير إرسالية 12 سيرة ذاتية وتأشيرة موثقة بالربط',
     amount_claimed: 45000,
@@ -165,7 +165,7 @@ export const ComplaintsPage: React.FC = () => {
 
   // Inter Dispute Form State
   const [disputeForm, setDisputeForm] = useState({
-    sender_entity: '💎 شركة توباز (Topaz Group)',
+    sender_entity: 'شركة توباز (Topaz Group)',
     target_entity: '🇵🇭 مكتب بلاتينيوم الفلبيني (PLATINUM)',
     subject: '',
     amount_claimed: '',
@@ -241,7 +241,7 @@ export const ComplaintsPage: React.FC = () => {
       type: 'warning',
     });
     setShowAddDisputeModal(false);
-    setDisputeForm({ sender_entity: '💎 شركة توباز (Topaz Group)', target_entity: '🇵🇭 مكتب بلاتينيوم الفلبيني (PLATINUM)', subject: '', amount_claimed: '', priority: 'عالي جداً VIP', details: '' });
+    setDisputeForm({ sender_entity: 'شركة توباز (Topaz Group)', target_entity: '🇵🇭 مكتب بلاتينيوم الفلبيني (PLATINUM)', subject: '', amount_claimed: '', priority: 'عالي جداً VIP', details: '' });
   };
 
   const handleResolveTicket = async (status: 'تم الحل وإغلاق الشكوى' | 'مرفوعة للمشرف') => {
@@ -328,12 +328,7 @@ export const ComplaintsPage: React.FC = () => {
         }}
       >
         <div className="flex items-center gap-3.5">
-          <div className="hidden sm:block">
-            <BusinessIllustration type="attendance-monitoring" size="sm" showBackground={false} />
-          </div>
-          <div className="sm:hidden" style={{ width: '44px', height: '44px', borderRadius: '9999px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff' }}>
-            <Headphones className="w-5 h-5" />
-          </div>
+          <BusinessIllustration type="crm-customer" size="sm" showBackground={false} />
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
               <span className="pill-tag-mint" style={{ fontSize: '11px' }}>EXECUTIVE SUPPORT HUB</span>
@@ -404,13 +399,13 @@ export const ComplaintsPage: React.FC = () => {
       {/* Tabs Row */}
       <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
         {[
-          { id: 'tickets', label: '📥 تذاكر العملاء والدعم' },
-          { id: 'claims', label: '💰 مطالبات التعويض المالي للعملاء (3)' },
-          { id: 'types', label: '⚙️ تصنيفات ومستويات الشكاوى SLA' },
-          { id: 'inter-company', label: '🏢 شكاوى ونزاعات الشركات للإدارة العليا' },
-          { id: 'escalated', label: '⚡ الشكاوى المصعدة للمشرفين' },
-          { id: 'whatsapp', label: '💬 محادثات الواتساب الحية' },
-          { id: 'analytics', label: '📊 تحليلات أسباب الشكاوى (RCA)' }
+          { id: 'tickets', label: 'تذاكر العملاء والدعم' },
+          { id: 'claims', label: 'مطالبات التعويض المالي للعملاء (3)' },
+          { id: 'types', label: 'تصنيفات ومستويات الشكاوى SLA' },
+          { id: 'inter-company', label: 'شكاوى ونزاعات الشركات للإدارة العليا' },
+          { id: 'escalated', label: 'الشكاوى المصعدة للمشرفين' },
+          { id: 'whatsapp', label: 'محادثات الواتساب الحية' },
+          { id: 'analytics', label: 'تحليلات أسباب الشكاوى (RCA)' }
         ].map(tab => (
           <button
             key={tab.id}
@@ -888,11 +883,11 @@ export const ComplaintsPage: React.FC = () => {
                   onChange={e => setDisputeForm({ ...disputeForm, sender_entity: e.target.value })}
                   className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-black focus:border-black focus:outline-none"
                 >
-                  <option>💎 شركة توباز (Topaz Group)</option>
-                  <option>🏗️ دار الرواد (Dar Al-Ruwad)</option>
-                  <option>🤝 السفير (Al-Saffir)</option>
-                  <option>💠 الماسي (Al-Masi Luxury Services)</option>
-                  <option>✈️ الأيال للسفر والسياحة (Al-Ayal Travel)</option>
+                  <option>شركة توباز (Topaz Group)</option>
+                  <option>دار الرواد (Dar Al-Ruwad)</option>
+                  <option>السفير (Al-Saffir)</option>
+                  <option>الماسي (Al-Masi Luxury Services)</option>
+                  <option>الأيال للسفر والسياحة (Al-Ayal Travel)</option>
                 </select>
               </div>
 
@@ -906,8 +901,8 @@ export const ComplaintsPage: React.FC = () => {
                   <option>🇵🇭 مكتب بلاتينيوم الفلبيني (PLATINUM)</option>
                   <option>🇪🇹 مكتب داماس الإثيوبي (DAMAS)</option>
                   <option>🇮🇳 مكتب فيرساتيل الهندي (VERSATILE)</option>
-                  <option>🏢 قسم الإيواء الرئيسي (الرياض)</option>
-                  <option>💼 الإدارة المالية للمجموعة</option>
+                  <option>قسم الإيواء الرئيسي (الرياض)</option>
+                  <option>الإدارة المالية للمجموعة</option>
                 </select>
               </div>
 

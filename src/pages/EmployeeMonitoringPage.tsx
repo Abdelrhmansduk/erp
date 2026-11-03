@@ -198,31 +198,13 @@ export const EmployeeMonitoringPage: React.FC = () => {
       >
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="hidden sm:block">
-              <BusinessIllustration type="attendance-monitoring" size="sm" showBackground={false} />
-            </div>
-            <div 
-              className="sm:hidden"
-              style={{
-                width: '52px',
-                height: '52px',
-                borderRadius: '16px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(8px)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: '1px solid rgba(255, 255, 255, 0.2)'
-              }}
-            >
-              <Activity className="w-7 h-7 text-emerald-400" />
-            </div>
+            <BusinessIllustration type="attendance-monitoring" size="sm" showBackground={false} />
             <div>
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="pill-tag-mint text-[11px] font-bold">
                   CLICKSTREAM & EMOTION INTELLIGENCE
                 </span>
-                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/10 text-white border border-white/15">
+                <span className="pill-tag-shade text-[11px] font-bold">
                   رصد الإنتاجية ونبض المشاعر
                 </span>
               </div>
@@ -239,33 +221,33 @@ export const EmployeeMonitoringPage: React.FC = () => {
             <button
               onClick={handleExecuteAllOperations}
               disabled={isExecutingBatch}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-amber-200 bg-amber-950/70 hover:bg-amber-900/80 border border-amber-500/50 rounded-xl shadow-lg transition-all transform active:scale-95"
+              className="btn-pill-dark flex items-center gap-2 px-4 py-2 text-xs font-bold"
               title="إجراء عمليات حية لجميع الـ 28 موظفاً في كافة الأقسام والفروع"
             >
-              <Zap className={`w-4 h-4 text-amber-400 ${isExecutingBatch ? 'animate-spin' : ''}`} />
-              <span>{isExecutingBatch ? 'جاري التنفيذ...' : '⚡ تنفيذ عمليات لجميع الموظفين (28 موظفاً)'}</span>
+              <Zap className={`w-4 h-4 ${isExecutingBatch ? 'animate-spin' : ''}`} />
+              <span>{isExecutingBatch ? 'جاري التنفيذ...' : 'تنفيذ عمليات لجميع الموظفين (28 موظفاً)'}</span>
             </button>
             <button
               onClick={() => setIsMoodModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-black bg-emerald-400 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 rounded-xl shadow-lg transition-all transform active:scale-95"
+              className="btn-pill-secondary flex items-center gap-2 px-4 py-2 text-xs font-bold"
             >
               <Smile className="w-4 h-4" />
-              <span>تسجيل حالتي اليوم 😊</span>
+              <span>تسجيل حالتي اليوم</span>
             </button>
             <button
               onClick={handleSimulateRageClick}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-amber-300 bg-amber-950/50 hover:bg-amber-900/60 border border-amber-800/60 rounded-xl transition-all"
+              className="btn-pill-secondary flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold"
               title="محاكاة نقرة عصبية لاختبار استجابة الرادار"
             >
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
+              <Zap className="w-3.5 h-3.5" />
               <span>محاكاة نقرة عصبية</span>
             </button>
             <button
               onClick={loadData}
               disabled={isLoading}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-white bg-white/10 hover:bg-white/15 border border-white/20 rounded-xl transition-all"
+              className="btn-pill-secondary flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-emerald-400' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
               <span>تحديث</span>
             </button>
             <ExportDropdown
@@ -473,11 +455,11 @@ export const EmployeeMonitoringPage: React.FC = () => {
             className="px-3 py-1.5 text-xs rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 focus:outline-none"
           >
             <option value="الكل">جميع الحالات المزاجية</option>
-            <option value="thrilled">🤩 متحمس ومنجز</option>
-            <option value="happy">😊 مرتاح ومستقر</option>
-            <option value="neutral">😐 عادي / روتيني</option>
-            <option value="stressed">😫 مضغوط ومشتت</option>
-            <option value="frustrated">😡 محبط / يواجه عقبات</option>
+            <option value="thrilled">متحمس ومنجز</option>
+            <option value="happy">مرتاح ومستقر</option>
+            <option value="neutral">عادي / روتيني</option>
+            <option value="stressed">مضغوط ومشتت</option>
+            <option value="frustrated">محبط / يواجه عقبات</option>
           </select>
         </div>
       </div>
@@ -650,7 +632,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
                               className="px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 rounded-lg border border-amber-500/30 transition-colors"
                               title={`تنفيذ عملية حية باسم ${emp.user_name}`}
                             >
-                              ⚡ إجراء عملية
+                              إجراء عملية
                             </button>
                             <button
                               onClick={async () => {
@@ -1013,7 +995,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
             </ul>
 
             <div className="p-3 bg-white/5 rounded-xl border border-white/10 text-[11px] text-zinc-300">
-              💡 <em>"المراقبة الذكية تُبنى على تعزيز الثقة وتذليل العقبات، لا على التجسس وهدم المعنويات."</em>
+              <em>"المراقبة الذكية تُبنى على تعزيز الثقة وتذليل العقبات، لا على التجسس وهدم المعنويات."</em>
             </div>
           </div>
         </div>

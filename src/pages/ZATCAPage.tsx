@@ -303,9 +303,9 @@ export const ZATCAPage: React.FC = () => {
       <div className="p-3 rounded-2xl bg-[#1D2428] border border-[#CFA64A]/35 flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2 flex-wrap">
           {[
-            { id: 'zatca', label: '🏛️ الفوترة الإلكترونية ZATCA المرحلة 2 (UBL 2.1 & CSID)' },
-            { id: 'invoices', label: '🧾 فواتير المبيعات والعقود الضريبية (B2B / B2C)' },
-            { id: 'universal-extractor', label: '🤖 استخلاص 100+ فاتورة وأي مستند آلياً (AI OCR)' },
+            { id: 'zatca', label: 'الفوترة الإلكترونية ZATCA المرحلة 2 (UBL 2.1 & CSID)' },
+            { id: 'invoices', label: 'فواتير المبيعات والعقود الضريبية (B2B / B2C)' },
+            { id: 'universal-extractor', label: 'استخلاص 100+ فاتورة وأي مستند آلياً (AI OCR)' },
           ].map((sub) => {
             const isActive = storeActiveTab === sub.id;
             return (

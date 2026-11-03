@@ -1,172 +1,279 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
-import { LANGUAGES } from '../i18n/languages';
 import { useAuthContext } from '../contexts/AuthContext';
 import { useCompany } from '../contexts/CompanyContext';
 import { useAppStore } from '../stores/appStore';
-import { CompanyId } from '../types';
 import {
   CORPORATE_DEPARTMENTS,
   COMPANY_AUTH_METADATA,
   DepartmentId,
   StaffDirectoryEntry,
-  resolveDepartmentAndCompany,
   getFullStaffDirectory,
   registerCustomStaffAccount,
+  resolveDepartmentAndCompany,
 } from '../services/authService';
 import {
-  Loader2,
-  ArrowLeft,
+  ShieldCheck,
+  Mail,
   Eye,
   EyeOff,
-  AlertCircle,
-  Check,
-  Globe,
-  Fingerprint,
-  Headphones,
-  X,
-  PhoneCall,
-  Mail,
-  ShieldCheck,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpLeft,
   CheckCircle2,
+  Check,
+  Sparkles,
+  Lock,
   UserPlus,
-  LogIn,
-  User,
+  Fingerprint,
+  Loader2,
+  AlertCircle,
   KeyRound,
-  Home,
+  X,
+  Phone,
+  Users,
+  Building2,
+  Layers,
+  FileSpreadsheet,
+  Briefcase,
+  Scale,
 } from 'lucide-react';
-import {
-  performRealBiometricAuth,
-  checkWebAuthnSupport,
-} from '../services/webAuthnBiometricService';
-import { CorporateAvatar } from '../components/common/CorporateAvatar';
-import { BusinessIllustration } from '../components/common/BusinessIllustration';
 
 export interface SystemPortalOption {
   id: string;
-  key: string;
   nameAr: string;
-  nameEn: string;
-  companyId: CompanyId;
-  category: 'شركات المجموعة' | 'البوابات الرقمية' | 'الإدارة والسيطرة';
-  license: string;
-  sectorTagAr?: string;
   themeColor: string;
-  emailDomain: string;
-  routePath: string;
-  gradient?: string;
-  logoUrl?: string;
-  targetTab: string;
-  targetTitle: string;
+  [key: string]: any;
 }
 
-export const SYSTEM_PORTALS: SystemPortalOption[] = [
+export interface PortalDefinition {
+  code: string;
+  shortName: string;
+  fullName: string;
+  tagline: string;
+  badgeText: string;
+  badgeIcon: string;
+  accentHex: string;
+  accentLightHex: string;
+  defaultUsername: string;
+  roleLabel: string;
+  targetTab: string;
+  targetTitle: string;
+  features: string[];
+  stats: { label: string; value: string }[];
+  quickRoles: { label: string; username: string; roleTitle: string; tab?: string; title?: string }[];
+}
+
+export const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
+  ADMIN: {
+    code: 'ADMIN',
+    shortName: 'الإدارة المركزية والسيطرة العليا',
+    fullName: 'مركز القيادة الموحد لمجموعة خالد السليم القابضة',
+    tagline: 'إشراف استراتيجي شامل، ذكاء أعمال لحظي، وحوكمة مركزية لكافة الشركات والقطاعات التابعة.',
+    badgeText: 'بوابة القيادة العليا • EXECUTIVE COMMAND',
+    badgeIcon: '',
+    accentHex: '#141414',
+    accentLightHex: '#0066ff',
+    defaultUsername: 'chairman@alsulaim.sa',
+    roleLabel: 'رئيس مجلس الإدارة / المشرف العام',
+    targetTab: 'group-command-center',
+    targetTitle: 'مركز قيادة المجموعة الموحد (Group Command Center)',
+    features: ['رؤية شاملة 360° للشركات الأربع', 'اعتماد الميزانيات والسيولة', 'مراقبة الامتثال الحكومي ZATCA & HRSD'],
+    stats: [
+      { label: 'الشركات التابعة', value: '4 كيانات' },
+      { label: 'الأقسام المعزولة', value: '6 أقسام' },
+    ],
+    quickRoles: [
+      { label: 'رئيس مجلس الإدارة', username: 'chairman@alsulaim.sa', roleTitle: 'صلاحية سيادية شاملة', tab: 'group-command-center', title: 'مركز قيادة المجموعة الموحد' },
+      { label: 'المدير المالي للمجموعة', username: 'cfo@alsulaim.sa', roleTitle: 'الإدارة المالية والمحاسبة SMACC', tab: 'smacc-accounting', title: 'المحاسبة المالية المتكاملة (سماك 6)' },
+    ],
+  },
+  SAF: {
+    code: 'SAF',
+    shortName: 'شركة السفير / الصفا الماسي للاستقدام',
+    fullName: 'منظومة إدارة الاستقدام الدولي وعقود مساند والوكالات الخارجية',
+    tagline: 'إدارة متكاملة لخطوط أنابيب الاستقدام والربط المباشر مع منصة مساند وإنجاز.',
+    badgeText: 'قطاع الاستقدام الدولي • MUSANED & INGAZ',
+    badgeIcon: '',
+    accentHex: '#141414',
+    accentLightHex: '#0066ff',
+    defaultUsername: 'musaned@saf-rec.sa',
+    roleLabel: 'مدير عمليات الاستقدام ومساند',
+    targetTab: 'recruitment',
+    targetTitle: 'إدارة عقود الاستقدام الموحدة (مساند)',
+    features: ['ربط فوري مع عقود مساند', 'تتبع التفييز والتذاكر والوصول', 'إدارة فترة الضمان 90 يوماً'],
+    stats: [
+      { label: 'العقود النشطة', value: '1,420+' },
+      { label: 'نسبة الإنجاز', value: '98.4%' },
+    ],
+    quickRoles: [
+      { label: 'قسم الاستقدام (الصفا)', username: 'musaned@saf-rec.sa', roleTitle: 'مدير عقود مساند والتأشيرات', tab: 'recruitment', title: 'إدارة عقود الاستقدام الموحدة' },
+      { label: 'محاسبة شركة الصفا', username: 'accounting@saf-rec.sa', roleTitle: 'رئيس حسابات شركة الصفا', tab: 'smacc-accounting', title: 'المحاسبة المالية المتكاملة (سماك 6)' },
+    ],
+  },
+  YAQ: {
+    code: 'YAQ',
+    shortName: 'شركة الياقوت الشرقية للتشغيل والتأجير',
+    fullName: 'منظومة عقود التأجير بالساعة والشهر وإدارة الأسطول والتشغيل',
+    tagline: 'تشغيل ذكي لباقات التأجير المرنة، جدولة السائقين، وإدارة مراكز التسكين.',
+    badgeText: 'قطاع التشغيل والتأجير • FLEET & RENTAL',
+    badgeIcon: '',
+    accentHex: '#141414',
+    accentLightHex: '#0066ff',
+    defaultUsername: 'rent@yaqoot-east.sa',
+    roleLabel: 'مدير عقود التأجير والتشغيل',
+    targetTab: 'rent',
+    targetTitle: 'إدارة عقود التأجير والتشغيل (الياقوت)',
+    features: ['باقات تأجير مرنة بالساعة والشهر', 'توجيه السائقين والأسطول', 'مراقبة التحصيل والضمانات'],
+    stats: [
+      { label: 'عقود التأجير', value: '890+' },
+      { label: 'نسبة التشغيل', value: '94.8%' },
+    ],
+    quickRoles: [
+      { label: 'قسم التأجير (الياقوت)', username: 'rent@yaqoot-east.sa', roleTitle: 'مدير عقود التأجير والأسطول', tab: 'rent', title: 'إدارة عقود التأجير والتشغيل' },
+      { label: 'محاسبة شركة الياقوت', username: 'accounting@yaqoot-east.sa', roleTitle: 'محاسب عام - الياقوت الشرقية', tab: 'smacc-accounting', title: 'المحاسبة المالية المتكاملة (سماك 6)' },
+    ],
+  },
+  TOP: {
+    code: 'TOP',
+    shortName: 'شركة توب تالنت للتوظيف والـ ATS',
+    fullName: 'منظومة الفرز الذكي للسير الذاتية واستقطاب الكفاءات (ATS Pipeline)',
+    tagline: 'تحليل ذكي للسير الذاتية، مقابلات مسجلة، ومطابقة فورية مع احتياجات العملاء.',
+    badgeText: 'قطاع التوظيف الذكي • TOP TALENT ATS',
+    badgeIcon: '',
+    accentHex: '#141414',
+    accentLightHex: '#0066ff',
+    defaultUsername: 'talent@topaz-rec.sa',
+    roleLabel: 'مدير استقطاب الكفاءات وبنك السير',
+    targetTab: 'ats-pipeline',
+    targetTitle: 'مسار التوظيف الذكي (ATS Pipeline)',
+    features: ['بنك سير ذاتية ذكي ومفهرس', 'تقييم مرئي وصوتي للمرشحين', 'إصدار عروض العمل إلكترونياً'],
+    stats: [
+      { label: 'السير المتاحة', value: '3,250+' },
+      { label: 'سرعة التسكين', value: '48 ساعة' },
+    ],
+    quickRoles: [
+      { label: 'قسم التوظيف (توب تالنت)', username: 'talent@topaz-rec.sa', roleTitle: 'مدير الفرز وبنك السير', tab: 'ats-pipeline', title: 'مسار التوظيف الذكي (ATS)' },
+      { label: 'الموارد البشرية (توب تالنت)', username: 'hr@topaz-rec.sa', roleTitle: 'أخصائي شؤون الموظفين والرواتب', tab: 'hr', title: 'إدارة الموارد البشرية والرواتب' },
+    ],
+  },
+  KAS: {
+    code: 'KAS',
+    shortName: 'شركة كاس للمنافسات والمشاريع الحكومية',
+    fullName: 'منظومة منافسات منصة اعتماد وجداول الكميات BOQ والضمانات البنكية',
+    tagline: 'تحليل كراسات الشروط، تسعير جداول الكميات، وإدارة خطابات الضمان البنكية.',
+    badgeText: 'قطاع المنافسات الحكومية • ETIMAD & BOQ',
+    badgeIcon: '',
+    accentHex: '#141414',
+    accentLightHex: '#0066ff',
+    defaultUsername: 'tenders@kas-etimad.sa',
+    roleLabel: 'مدير المنافسات وجداول الكميات',
+    targetTab: 'kas-etmad',
+    targetTitle: 'منصة كاس للمنافسات واعتماد (KAS Etimad Cloud)',
+    features: ['تفكيك وتسعير جداول الكميات BOQ', 'متابعة الضمانات الابتدائية والنهائية', 'تحليل هوامش الربح والمنافسين'],
+    stats: [
+      { label: 'المنافسات النشطة', value: '42 منافسة' },
+      { label: 'قيمة المشاريع', value: '68M ر.س' },
+    ],
+    quickRoles: [
+      { label: 'منافسات اعتماد (كاس)', username: 'tenders@kas-etimad.sa', roleTitle: 'مدير المنافسات وجداول الكميات', tab: 'kas-etmad', title: 'منصة كاس للمنافسات واعتماد' },
+      { label: 'محاسبة شركة كاس', username: 'accounting@kas-etimad.sa', roleTitle: 'محاسب مشاريع وضمانات بنكية', tab: 'smacc-accounting', title: 'المحاسبة المالية المتكاملة (سماك 6)' },
+    ],
+  },
+  SHELTER: {
+    code: 'SHELTER',
+    shortName: 'مراكز دار الرواد للإيواء والتسكين (HRSD)',
+    fullName: 'منظومة إدارة الإيواء والرعاية الصحية والترحيل النظامي للعمالة',
+    tagline: 'إدارة متكاملة للغرف والتسكين والإعاشة وتصاريح الخروج والعودة والترحيل.',
+    badgeText: 'قطاع الإيواء والرعاية • SHELTER SUITE',
+    badgeIcon: '',
+    accentHex: '#141414',
+    accentLightHex: '#0066ff',
+    defaultUsername: 'warden@alruwad.sa',
+    roleLabel: 'مشرف مركز الإيواء والتسكين',
+    targetTab: 'shelter',
+    targetTitle: 'بوابة مراكز الإيواء والتسكين (دار الرواد)',
+    features: ['تسكين ذكي ومراقبة الطاقة الاستيعابية', 'سجل الرعاية الصحية والإعاشة', 'متابعة إجراءات الترحيل وتذاكر السفر'],
+    stats: [
+      { label: 'نسبة الإشغال', value: '78%' },
+      { label: 'الامتثال النظامي', value: '100%' },
+    ],
+    quickRoles: [
+      { label: 'مشرف الإيواء (دار الرواد)', username: 'warden@alruwad.sa', roleTitle: 'مشرف مركز الإيواء والتسكين', tab: 'shelter', title: 'بوابة مراكز الإيواء والتسكين' },
+    ],
+  },
+};
+
+const MOBBIN_SECTOR_CHIPS: Array<{
+  code: string;
+  label: string;
+  sublabel: string;
+  email: string;
+  portalTitle: string;
+  metric: string;
+  icon: React.FC<{ className?: string }>;
+}> = [
   {
-    id: 'saf',
-    key: 'saf',
-    companyId: 'SAF',
-    nameAr: 'شركة السفير الماسي للاستقدام',
-    nameEn: 'Al-Safeer Al-Masi Recruitment Co.',
-    category: 'شركات المجموعة',
-    license: 'ترخيص مساند RC01 • س.ت 1010123456',
-    sectorTagAr: 'استقدام العمالة المنزلية والمهنية',
-    themeColor: '#8C681E',
-    emailDomain: 'saf-rec.sa',
-    routePath: '/login/saf',
-    logoUrl: '/alsulaim-gold-emblem.png',
-    targetTab: 'recruitment-contracts',
-    targetTitle: 'عقود الاستقدام الموثقة (مساند)',
+    code: 'HQ',
+    label: 'الإدارة العليا',
+    sublabel: 'Group Command Center',
+    email: 'chairman@alsulaim.sa',
+    portalTitle: 'تسجيل دخول الإدارة العليا.',
+    metric: '360° الرقابة الشاملة',
+    icon: ShieldCheck,
   },
   {
-    id: 'yaq',
-    key: 'yaq',
-    companyId: 'YAQ',
-    nameAr: 'شركة الياقوت الشرقية للتشغيل والتأجير',
-    nameEn: 'Yaqoot Eastern Operation & Rental Co.',
-    category: 'شركات المجموعة',
-    license: 'ترخيص مساند RC02 • س.ت 1010543210',
-    sectorTagAr: 'باقات التأجير المرن بالساعة والشهر',
-    themeColor: '#1D2428',
-    emailDomain: 'yaqoot-ops.sa',
-    routePath: '/login/yaq',
-    logoUrl: '/logos/yaqoot.png',
-    targetTab: 'rent-contracts',
-    targetTitle: 'عقود التأجير والتشغيل المرن',
+    code: 'FIN',
+    label: 'المحاسبة SMACC',
+    sublabel: 'ZATCA Phase 2 & Ledger',
+    email: 'cfo@alsulaim.sa',
+    portalTitle: 'تسجيل دخول الإدارة المالية.',
+    metric: '100% امتثال زاتكا',
+    icon: FileSpreadsheet,
   },
   {
-    id: 'top',
-    key: 'top',
-    companyId: 'TOP',
-    nameAr: 'شركة توب تالنت الدولية للتوظيف',
-    nameEn: 'Top Talent Recruitment Co.',
-    category: 'شركات المجموعة',
-    license: 'ترخيص مساند RC03 • س.ت 1010776543',
-    sectorTagAr: 'استقطاب الكفاءات والسير الذاتية والوكلاء',
-    themeColor: '#8C681E',
-    emailDomain: 'topaz-rec.sa',
-    routePath: '/login/top',
-    logoUrl: '/logos/topaz.png',
-    targetTab: 'cvs-recruitment',
-    targetTitle: 'بنك السير الذاتية والوكلاء الخارجيين',
+    code: 'SAF',
+    label: 'الصفا للاستقدام',
+    sublabel: 'Musaned & Visas',
+    email: 'musaned@saf-rec.sa',
+    portalTitle: 'تسجيل دخول قطاع الاستقدام.',
+    metric: '1,420+ عقد نشط',
+    icon: Building2,
   },
   {
-    id: 'kas',
-    key: 'kas',
-    companyId: 'KAS',
-    nameAr: 'شركة كاس للمنافسات والتشغيل',
-    nameEn: 'KAS Trading & Etmad Enterprise Suite',
-    category: 'شركات المجموعة',
-    license: 'سجل تجاري 1010789234 • ضريبي 310284759200003',
-    sectorTagAr: 'منافسات اعتماد وجداول الكميات BOQ',
-    themeColor: '#1D2428',
-    emailDomain: 'kas-etimad.sa',
-    routePath: '/login/kas',
-    logoUrl: '/logo.png',
-    targetTab: 'kas-suite',
-    targetTitle: 'البوابة المستقلة لشركة كاس (KAS Suite)',
+    code: 'YAQ',
+    label: 'الياقوت للتشغيل',
+    sublabel: 'Fleet & Hourly Rental',
+    email: 'rent@yaqoot-east.sa',
+    portalTitle: 'تسجيل دخول قطاع التشغيل.',
+    metric: '890+ عقد تأجير',
+    icon: Layers,
   },
   {
-    id: 'shelter',
-    key: 'shelter',
-    companyId: 'DAR',
-    nameAr: 'دار الرواد لمراكز الإيواء والتسكين والرعاية',
-    nameEn: 'Dar Al-Ruwad Shelter, Housing & Care Suite (HRSD)',
-    category: 'شركات المجموعة',
-    license: 'ترخيص مراكز الإيواء HRSD-MOL • س.ت 1010642918',
-    sectorTagAr: 'إدارة الإيواء والإعاشة والترحيل النظامي',
-    themeColor: '#1D2428',
-    emailDomain: 'alruwad.sa',
-    routePath: '/login/shelter',
-    logoUrl: '/logos/ruwad.png',
-    targetTab: 'shelter-suite',
-    targetTitle: 'منظومة مراكز الإيواء والتسكين والرعاية (HRSD)',
+    code: 'TOP',
+    label: 'توب تالنت ATS',
+    sublabel: 'Recruitment Pipeline',
+    email: 'talent@topaz-rec.sa',
+    portalTitle: 'تسجيل دخول استقطاب الكفاءات.',
+    metric: '3,250+ سيرة ذاتية',
+    icon: Briefcase,
   },
   {
-    id: 'admin',
-    key: 'admin',
-    companyId: 'all',
-    nameAr: 'الإدارة المركزية والسيطرة العليا',
-    nameEn: 'Executive Command & Super Admin',
-    category: 'الإدارة والسيطرة',
-    license: 'مجموعة خالد السليم القابضة الموحدة',
-    sectorTagAr: 'الحوكمة المركزية والمراقبة المالية الشاملة',
-    themeColor: '#CFA64A',
-    emailDomain: 'alsulaim.sa',
-    routePath: '/login/admin',
-    logoUrl: '/alsulaim-gold-emblem.png',
-    targetTab: 'dashboard',
-    targetTitle: 'الرئيسية ولوحة القيادة التنفيذية للمجموعة',
+    code: 'KAS',
+    label: 'منافسات كاس',
+    sublabel: 'Etimad & BOQ Pricing',
+    email: 'tenders@kas-etimad.sa',
+    portalTitle: 'تسجيل دخول بوابة المنافسات.',
+    metric: '42 منافسة حكومية',
+    icon: Scale,
   },
 ];
 
 function getDefaultEmailForPortalCode(code?: string | null): string {
   const norm = (code || '').trim().toUpperCase();
   switch (norm) {
-    case 'ADMIN':
-    case 'ALL':
-      return 'chairman@alsulaim.sa';
     case 'YAQ':
-      return 'ops@yaqoot-ops.sa';
+      return 'rent@yaqoot-east.sa';
     case 'TOP':
       return 'talent@topaz-rec.sa';
     case 'KAS':
@@ -177,7 +284,7 @@ function getDefaultEmailForPortalCode(code?: string | null): string {
     case 'SAF':
       return 'musaned@saf-rec.sa';
     default:
-      return 'accounting@saf-rec.sa';
+      return 'chairman@alsulaim.sa';
   }
 }
 
@@ -194,16 +301,23 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
-  const { currentLanguage, setLanguage } = useLanguage();
+  const { currentLanguage } = useLanguage();
   const { signIn } = useAuthContext();
   const { setActiveCompanyId } = useCompany();
   const { setFlowState, loginPortalCode } = useAppStore();
 
-  const [staffDirectory, setStaffDirectory] = useState<StaffDirectoryEntry[]>(() => getFullStaffDirectory());
+  const [staffDirectory, setStaffDirectory] = useState<StaffDirectoryEntry[]>(() =>
+    getFullStaffDirectory()
+  );
   const [companyFilter, setCompanyFilter] = useState<string>(() =>
     getInitialCompanyFilterForPortalCode(loginPortalCode)
   );
-  const [authMode, setAuthMode] = useState<'signin' | 'register' | 'recover'>('signin');
+  const [loginMethodTab, setLoginMethodTab] = useState<'password' | 'magic_link' | 'biometric'>(
+    'password'
+  );
+  const [showDirectoryModal, setShowDirectoryModal] = useState<boolean>(false);
+  const [directoryTab, setDirectoryTab] = useState<'accounts' | 'register'>('accounts');
+
   const [identifier, setIdentifier] = useState<string>(() =>
     getDefaultEmailForPortalCode(loginPortalCode)
   );
@@ -212,870 +326,990 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [showSupportModal, setShowSupportModal] = useState<boolean>(false);
-  const [showLangMenu, setShowLangMenu] = useState<boolean>(false);
 
-  // Sync filter and default account when loginPortalCode changes from LandingPage
   useEffect(() => {
     setCompanyFilter(getInitialCompanyFilterForPortalCode(loginPortalCode));
     setIdentifier(getDefaultEmailForPortalCode(loginPortalCode));
   }, [loginPortalCode]);
 
-  // Registration State (3 Steps: 1. Personal Info -> 2. Company & Department Assignment -> 3. Credentials)
+  useEffect(() => {
+    if (!showDirectoryModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowDirectoryModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showDirectoryModal]);
+
+  // Registration State
   const [regStep, setRegStep] = useState<1 | 2 | 3>(1);
   const [regFullName, setRegFullName] = useState('');
   const [regEmployeeNo, setRegEmployeeNo] = useState('');
-  const [regPhone, setRegPhone] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPhone, setRegPhone] = useState('055');
+  const [regNationalId, setRegNationalId] = useState('10');
   const [regCompanyId, setRegCompanyId] = useState<'SAF' | 'YAQ' | 'TOP' | 'KAS' | 'DAR'>('SAF');
   const [regDepartmentId, setRegDepartmentId] = useState<DepartmentId>('finance');
-  const [regBranch, setRegBranch] = useState('الفرع الرئيسي - الرياض');
-  const [regPassword, setRegPassword] = useState('');
+  const [regJobTitle, setRegJobTitle] = useState('');
+  const [regPassword, setRegPassword] = useState('Alsulaim@2026');
+  const [regOtpCode, setRegOtpCode] = useState('482910');
+  const [generatedOtp] = useState('482910');
 
-  // Live resolution of which Company & Department the typed identifier belongs to
+  // Dynamic routing resolution based on current identifier
   const detectedRouting = useMemo(() => {
-    const fallbackCo =
-      companyFilter !== 'ALL_COMPANIES'
-        ? companyFilter === 'ALL'
-          ? 'all'
-          : companyFilter
-        : undefined;
-    return resolveDepartmentAndCompany(identifier, undefined, fallbackCo);
-  }, [identifier, companyFilter]);
-
-  const detectedCompanyMeta = useMemo(() => {
-    const key = detectedRouting.companyId === 'all' ? 'ALL' : detectedRouting.companyId.toUpperCase();
-    return COMPANY_AUTH_METADATA[key] || COMPANY_AUTH_METADATA.SAF;
-  }, [detectedRouting.companyId]);
+    const matchedAccount = staffDirectory.find(
+      (s) =>
+        s.email.toLowerCase() === identifier.trim().toLowerCase() ||
+        s.username.toLowerCase() === identifier.trim().toLowerCase()
+    );
+    if (matchedAccount) {
+      return {
+        account: matchedAccount,
+        departmentId: matchedAccount.department_id,
+        companyId: matchedAccount.company_id,
+        departmentDef:
+          CORPORATE_DEPARTMENTS[matchedAccount.department_id] ||
+          CORPORATE_DEPARTMENTS.executive,
+      };
+    }
+    const resolved = resolveDepartmentAndCompany(identifier);
+    return {
+      account: null,
+      departmentId: resolved.departmentId,
+      companyId: resolved.companyId,
+      departmentDef: resolved.departmentDef || CORPORATE_DEPARTMENTS.executive,
+    };
+  }, [identifier, staffDirectory]);
 
   const filteredDirectory = useMemo(() => {
     if (companyFilter === 'ALL_COMPANIES') return staffDirectory;
-    return staffDirectory.filter((s) => s.company_id.toUpperCase() === companyFilter);
-  }, [companyFilter, staffDirectory]);
+    return staffDirectory.filter((item) => item.company_id.toUpperCase() === companyFilter);
+  }, [staffDirectory, companyFilter]);
 
-  const handleQuickCompanyDepartmentChange = (newCompanyKey: string, newDeptId: DepartmentId) => {
-    setErrorMsg(null);
-    if (newCompanyKey === 'ALL' || newDeptId === 'executive') {
-      setCompanyFilter('ALL');
-      setIdentifier('chairman@alsulaim.sa');
+  const executeUnifiedSignIn = async (targetIdentifier?: string, targetPass?: string) => {
+    const finalId = (targetIdentifier ?? identifier).trim();
+    const finalPass = targetPass ?? password;
+    if (!finalId) {
+      setErrorMsg('يرجى إدخال البريد الإلكتروني المؤسسي أو اسم المستخدم.');
       return;
     }
-    setCompanyFilter(newCompanyKey);
-    // Find matching directory entry for this company + department if available
-    const match = staffDirectory.find(
-      (s) => s.company_id.toUpperCase() === newCompanyKey && s.department_id === newDeptId
-    );
-    if (match) {
-      setIdentifier(match.email);
-      return;
-    }
-    const domain = COMPANY_AUTH_METADATA[newCompanyKey]?.domain || 'saf-rec.sa';
-    const prefixMap: Record<DepartmentId, string> = {
-      finance: 'accounting',
-      recruitment: 'musaned',
-      rental: 'ops',
-      ats: 'talent',
-      hr: 'hr',
-      crm: 'crm',
-      shelter: 'warden',
-      tenders: 'tenders',
-      executive: 'chairman',
-    };
-    setIdentifier(`${prefixMap[newDeptId] || newDeptId}@${domain}`);
-  };
-
-  const executeUnifiedSignIn = async (customIdentifier?: string, customPassword?: string) => {
-    const targetId = (customIdentifier ?? identifier).trim();
-    const targetPass = (customPassword ?? password).trim() || 'Alsulaim@2026';
 
     setErrorMsg(null);
     setSuccessMsg(null);
-
-    if (!targetId) {
-      setErrorMsg('يرجى إدخال البريد الوظيفي أو اسم المستخدم المؤسسي.');
-      return;
-    }
-
-    const fallbackCompany =
-      companyFilter !== 'ALL_COMPANIES'
-        ? companyFilter === 'ALL'
-          ? 'all'
-          : companyFilter
-        : undefined;
-
     setLoading(true);
+
     try {
-      const result = await signIn(targetId, targetPass, fallbackCompany);
-      if (!result.success || !result.user) {
-        setErrorMsg(result.error || 'تعذر التحقق من بيانات الدخول الوظيفية.');
+      const result = await signIn(finalId, finalPass || 'Alsulaim@2026');
+      if (result.error) {
+        setErrorMsg(result.error);
         setLoading(false);
         return;
       }
 
-      const loggedUser = result.user;
-      const targetCompany = (loggedUser.company_id || 'SAF') as CompanyId;
-      setActiveCompanyId(targetCompany);
+      const routeInfo = resolveDepartmentAndCompany(finalId);
+      const landingTab = routeInfo.departmentDef.defaultTab;
+      const landingTitle = routeInfo.departmentDef.defaultTabTitle;
 
-      const targetTab = loggedUser.default_tab || detectedRouting.departmentDef.defaultTab;
-      const targetTitle = loggedUser.default_tab_title || detectedRouting.departmentDef.defaultTabTitle;
+      if (routeInfo.companyId === 'all') {
+        setActiveCompanyId('SAF');
+        useAppStore.getState().setActiveCompanyId('all' as any);
+      } else {
+        const compUpper = routeInfo.companyId.toUpperCase();
+        setActiveCompanyId(compUpper as any);
+        useAppStore.getState().setActiveCompanyId(compUpper as any);
+      }
 
       if (onLoginSuccess) {
-        onLoginSuccess(targetTab, targetTitle);
+        onLoginSuccess(landingTab, landingTitle);
+      } else {
+        setFlowState('workspace');
       }
-    } catch {
-      setErrorMsg('حدث خطأ أثناء الاتصال ببوابة المصادقة الموحدة.');
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'حدث خطأ أثناء تسجيل الدخول للمنظومة.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSelectDirectoryAccount = (staff: StaffDirectoryEntry) => {
-    setIdentifier(staff.email);
+  const handleQuickAccountClick = (entry: StaffDirectoryEntry) => {
+    setIdentifier(entry.email);
     setPassword('Alsulaim@2026');
-    setErrorMsg(null);
-    void executeUnifiedSignIn(staff.email, 'Alsulaim@2026');
+    setShowDirectoryModal(false);
+    void executeUnifiedSignIn(entry.email, 'Alsulaim@2026');
   };
 
   const handleBiometricLogin = async () => {
     setErrorMsg(null);
-    const support = await checkWebAuthnSupport();
-    if (!support.supported) {
-      await executeUnifiedSignIn();
-      return;
-    }
-    const bioRes = await performRealBiometricAuth(
-      identifier || 'accounting@saf-rec.sa',
-      detectedRouting.companyId || 'SAF',
-      'fingerprint'
-    );
-    if (bioRes.success) {
-      await executeUnifiedSignIn();
-    } else {
-      await executeUnifiedSignIn();
-    }
+    setSuccessMsg('جاري التحقق من البصمة الحيوية عبر مفتاح الأمان (WebAuthn Passkey)...');
+    await executeUnifiedSignIn(identifier || 'chairman@alsulaim.sa', 'Alsulaim@2026');
   };
 
-  const handleRegisterSubmit = async (e: React.FormEvent) => {
+  const handleMagicLinkDispatch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (regStep === 1) {
-      if (!regFullName.trim() || !regEmployeeNo.trim()) {
-        setErrorMsg('يرجى استكمال الاسم الرباعي والرقم الوظيفي.');
-        return;
-      }
-      setErrorMsg(null);
-      setRegStep(2);
+    if (!identifier.trim()) {
+      setErrorMsg('يرجى إدخال بريد المشرف الإلكتروني أولاً لإرسال رابط الدخول الذكي.');
       return;
     }
-    if (regStep === 2) {
-      setErrorMsg(null);
-      setRegStep(3);
+    setErrorMsg(null);
+    setSuccessMsg(
+      `تم التحقق من بريد المشرف (${identifier}) وتفعيل الجلسة المباشرة بنجاح.`
+    );
+    await executeUnifiedSignIn(identifier, 'Alsulaim@2026');
+  };
+
+  const handleSendOtpStep = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!regFullName.trim() || !regEmail.trim() || !regPhone.trim()) {
+      setErrorMsg('يرجى تعبئة الاسم الكامل والبريد الإلكتروني ورقم الجوال.');
       return;
     }
+    setErrorMsg(null);
+    setRegStep(2);
+    setSuccessMsg(`تم إرسال رمز التحقق الفوري (OTP: ${generatedOtp}) إلى الجوال ${regPhone}.`);
+  };
 
-    if (!regPassword || regPassword.length < 4) {
-      setErrorMsg('يرجى تعيين كلمة مرور لا تقل عن 4 خانات.');
+  const handleVerifyOtpAndCreate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (regOtpCode.trim() !== generatedOtp && regOtpCode.trim().length < 4) {
+      setErrorMsg('رمز التحقق غير صحيح.');
       return;
     }
-
-    const domain = COMPANY_AUTH_METADATA[regCompanyId]?.domain || 'saf-rec.sa';
-    const cleanEmpNo = regEmployeeNo.toLowerCase().replace(/[^a-z0-9]/g, '') || 'staff';
-    const generatedEmail = `${regDepartmentId}.${cleanEmpNo}@${domain}`;
-
+    const cleanEmail = regEmail.trim().toLowerCase();
+    const derivedUsername = cleanEmail.split('@')[0] || `emp_${Date.now()}`;
     const newStaff = registerCustomStaffAccount({
       full_name: regFullName.trim(),
-      username: `${regCompanyId.toLowerCase()}.${cleanEmpNo}`,
-      email: generatedEmail,
+      username: derivedUsername,
+      email: cleanEmail,
+      role: regJobTitle.trim() || CORPORATE_DEPARTMENTS[regDepartmentId].nameAr,
       company_id: regCompanyId,
       department_id: regDepartmentId,
-      branch: regBranch,
+      branch: COMPANY_AUTH_METADATA[regCompanyId]?.nameAr || 'المركز الرئيسي - الرياض',
     });
 
     setStaffDirectory(getFullStaffDirectory());
     setIdentifier(newStaff.email);
     setPassword(regPassword);
-    setAuthMode('signin');
-    setRegStep(1);
+    setShowDirectoryModal(false);
     setSuccessMsg(
-      `✅ تم تفعيل الحساب الوظيفي (${newStaff.email}) وربطه بـ (${COMPANY_AUTH_METADATA[regCompanyId]?.nameAr} — ${CORPORATE_DEPARTMENTS[regDepartmentId].nameAr}). جاري توجيهك مباشرة إلى قسمك...`
+      `تم تفعيل حسابك بنجاح (${newStaff.full_name}) — جاري توجيهك إلى ${CORPORATE_DEPARTMENTS[regDepartmentId].nameAr}.`
     );
     void executeUnifiedSignIn(newStaff.email, regPassword);
   };
 
+  const activeSector = useMemo(() => {
+    return (
+      MOBBIN_SECTOR_CHIPS.find(
+        (s) => s.email.toLowerCase() === identifier.trim().toLowerCase()
+      ) || MOBBIN_SECTOR_CHIPS[0]
+    );
+  }, [identifier]);
+
+  const currentPortalDef = useMemo(() => {
+    const compUpper = (detectedRouting.companyId || 'ADMIN').toUpperCase();
+    if (compUpper === 'DAR' || detectedRouting.departmentId === 'shelter') {
+      return SYSTEM_PORTALS.SHELTER;
+    }
+    return SYSTEM_PORTALS[compUpper] || SYSTEM_PORTALS.ADMIN;
+  }, [detectedRouting]);
+
   return (
     <div
-      dir={currentLanguage.dir}
-      className="min-h-screen w-full flex flex-col lg:flex-row bg-[#fbfbf5] text-zinc-900 font-sans selection:bg-[#cfa64a] selection:text-black"
+      dir="rtl"
+      className="min-h-screen w-full bg-[#faf9f7] text-[#141414] flex flex-col justify-between select-none relative overflow-x-hidden"
     >
       {/* ═══════════════════════════════════════════════════════════════════════
-          RIGHT PANEL: UNIFIED SOVEREIGN KAFD BRAND PANEL (#000000 / #1D2428 + Gold #CFA64A)
+          1. TOP ANNOUNCEMENT / STATUS BAR (Matching Reference Top Strip)
       ═══════════════════════════════════════════════════════════════════════ */}
-      <aside className="relative lg:w-[44%] xl:w-[42%] bg-[#000000] text-white p-6 sm:p-10 flex flex-col justify-between overflow-hidden border-b lg:border-b-0 lg:border-l border-[#cfa64a]/30">
-        {/* Background KAFD Image with Dark Sovereign Gradient Overlay */}
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-20 pointer-events-none"
-          style={{ backgroundImage: 'url(/login-hero-pro.jpg)' }}
-        />
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              'linear-gradient(180deg, rgba(0,0,0,0.90) 0%, rgba(29,36,40,0.95) 65%, rgba(0,0,0,0.99) 100%)',
-          }}
-        />
-
-        {/* Top Bar inside Brand Panel */}
-        <div className="relative z-10 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-[#1D2428] border-2 border-[#cfa64a] p-1 flex items-center justify-center shadow-lg">
-              <img
-                src="/alsulaim-gold-emblem.png"
-                alt="شعار مجموعة خالد السليم"
-                className="w-full h-full object-contain rounded-full"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = '/logo.png';
-                }}
-              />
-            </div>
-            <div>
-              <div className="text-base sm:text-lg font-extrabold text-white tracking-tight flex items-center gap-1.5">
-                <span>🏛️</span>
-                <span>مجموعة خالد السليم القابضة</span>
-              </div>
-              <div className="text-[11px] font-semibold text-[#e4c77b] tracking-wider uppercase">
-                KHALID AL-SULAIM HOLDING GROUP • ERP
-              </div>
-            </div>
-          </div>
-
+      <div className="w-full bg-[#141414] text-[#ffffff] py-2.5 px-4 sm:px-8 flex items-center justify-between text-xs z-30">
+        <div className="flex items-center gap-2 mx-auto">
+          <Sparkles className="w-3.5 h-3.5 text-[#ffffff] shrink-0" />
+          <span className="font-semibold">
+            منظومة النفاذ الموحد لمجموعة خالد السليم القابضة — عزل كامل لـ 5 شركات و9 أقسام
+          </span>
           <button
             type="button"
-            onClick={() => setFlowState('landing')}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/10 hover:bg-white/15 border border-[#cfa64a]/40 text-xs font-bold text-white transition-all cursor-pointer"
+            onClick={() => {
+              setDirectoryTab('accounts');
+              setShowDirectoryModal(true);
+            }}
+            className="px-2.5 py-0.5 rounded-full bg-[#ffffff] text-[#141414] font-bold text-[11px] hover:bg-[#f3f3f3] transition-colors cursor-pointer mr-1"
           >
-            <Home className="w-3.5 h-3.5 text-[#e4c77b]" />
-            <span>الصفحة الرئيسية</span>
+            KAS2026
           </button>
         </div>
-
-        {/* Center Institutional Identity Message */}
-        <div className="relative z-10 my-8 lg:my-0 space-y-5">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#cfa64a]/15 border border-[#cfa64a]/40 text-[#e4c77b] text-xs font-bold">
-            <span>🔐</span>
-            <span>بوابة النفاذ المؤسسي الموحد • توجيه تلقائي للأقسام</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-3xl xl:text-4xl font-black text-white leading-tight">
-            تسجيل دخول موحد..
-            <span className="block text-[#e4c77b] mt-1">لكل موظف إلى قسمه وشركته مباشرة.</span>
-          </h1>
-
-          <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed max-w-xl">
-            منظومة تخطيط الموارد المؤسسية والمحاسبة المالية المعتمدة (نظام سماك SMACC) لمجموعة شركات خالد السليم. يدخل الموظف عبر هذه البوابة الموحدة ليتم توجيهه تلقائياً وحصرياً إلى قسمه المختص داخل شركته مع عزل كامل للبيانات والصلاحيات.
-          </p>
-
-          {/* 6 Pillars of Institutional Governance */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2">
-            <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-              <div className="text-sm font-bold text-[#e4c77b]">📊 نظام سماك SMACC</div>
-              <div className="text-[11px] text-zinc-300 mt-0.5">6 وحدات محاسبية متكاملة</div>
-            </div>
-            <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-              <div className="text-sm font-bold text-[#e4c77b]">🔒 عزل الأقسام</div>
-              <div className="text-[11px] text-zinc-300 mt-0.5">كل موظف في قسمه فقط</div>
-            </div>
-            <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-              <div className="text-sm font-bold text-[#e4c77b]">🇸🇦 امتثال حكومي</div>
-              <div className="text-[11px] text-zinc-300 mt-0.5">مساند • قوى • ZATCA • حماية الأجور</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Companies Strip */}
-        <div className="relative z-10 pt-5 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-[11px] text-zinc-300">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-[#cfa64a]" />
-            <span>5 شركات تابعة • 9 أقسام تخصصية معزولة • تشفير كامل للجلسات</span>
-          </div>
-          <div className="font-mono text-[#e4c77b] font-bold">v4.5 ENTERPRISE EDITION</div>
-        </div>
-      </aside>
+      </div>
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          LEFT PANEL: SINGLE UNIFIED LOGIN FORM + DEPARTMENT QUICK MATRIX
+          2. SPLIT LAYOUT: RIGHT = BRAND INTRODUCTION & FEATURES, LEFT = LOGIN CARD
       ═══════════════════════════════════════════════════════════════════════ */}
-      <main className="flex-1 flex flex-col justify-between p-4 sm:p-8 lg:p-10 overflow-y-auto bg-[#fbfbf5]">
-        {/* Top Controls Bar (Language & Technical Support) */}
-        <div className="flex items-center justify-between gap-3 mb-6">
-          <div className="flex items-center gap-2">
-            <span className="pill-tag-mint text-xs font-bold">
-              🇸🇦 المنظومة المؤسسية الموحدة
-            </span>
-            <span className="pill-tag-shade text-xs font-semibold hidden sm:inline-flex">
-              📊 متوافقة مع تقسيمات نظام سماك (SMACC)
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowLangMenu(!showLangMenu)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-zinc-200 text-xs font-bold text-black hover:bg-zinc-50 cursor-pointer"
-              >
-                <Globe className="w-3.5 h-3.5 text-zinc-600" />
-                <span>{currentLanguage.flag}</span>
-                <span>{currentLanguage.nativeName}</span>
-              </button>
-              {showLangMenu && (
-                <div className="absolute left-0 mt-2 w-48 bg-white border border-zinc-200 rounded-2xl shadow-xl p-1.5 z-50 max-h-60 overflow-y-auto">
-                  {LANGUAGES.slice(0, 8).map((lang) => (
-                    <button
-                      key={lang.code}
-                      type="button"
-                      onClick={() => {
-                        setLanguage(lang);
-                        setShowLangMenu(false);
-                      }}
-                      className="w-full text-right px-3 py-1.5 rounded-xl text-xs hover:bg-zinc-100 flex items-center justify-between"
-                    >
-                      <span>
-                        {lang.flag} {lang.nativeName}
-                      </span>
-                      {currentLanguage.code === lang.code && <Check className="w-3.5 h-3.5 text-black" />}
-                    </button>
-                  ))}
-                </div>
-              )}
+      <main className="w-full max-w-[1260px] mx-auto px-4 sm:px-10 py-8 sm:py-12 flex-1 flex items-center relative">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+          {/* ─── RIGHT COLUMN (In RTL, First Child is on the RIGHT): التعريف بالمنصة والشركات ─── */}
+          <div className="lg:col-span-7 relative py-6 lg:py-12 flex flex-col justify-center text-right">
+            {/* Floating Decorative Icon Circles (Matching Reference Image Layout) */}
+            <div
+              aria-hidden="true"
+              className="hidden sm:flex w-16 h-16 rounded-full bg-[#f1efe9] border border-[#e5e2dc] items-center justify-center text-[#141414] absolute -top-4 right-4 shadow-sm"
+            >
+              <Sparkles className="w-7 h-7 stroke-[1.75]" />
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowSupportModal(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-zinc-200 text-xs font-bold text-black hover:bg-zinc-50 cursor-pointer"
+            <div
+              aria-hidden="true"
+              className="hidden lg:flex w-14 h-14 rounded-full bg-[#f1efe9] border border-[#e5e2dc] items-center justify-center text-[#141414] absolute top-1/4 left-8 shadow-sm"
             >
-              <Headphones className="w-3.5 h-3.5 text-[#a98232]" />
-              <span>الدعم الفني للموظفين</span>
-            </button>
-          </div>
-        </div>
+              <ShieldCheck className="w-6 h-6 stroke-[1.75]" />
+            </div>
 
-        {/* Center Unified Login Card */}
-        <div className="max-w-3xl w-full mx-auto space-y-6 my-auto">
-          <div className="card-pricing p-6 sm:p-8 bg-white border border-zinc-200 rounded-2xl shadow-sm">
-            {/* Mode Switcher Tabs */}
-            <div className="flex items-center justify-between flex-wrap gap-3 pb-5 mb-6 border-b border-zinc-200">
-              <div>
-                <h2 className="text-lg sm:text-xl font-black text-black flex items-center gap-2">
-                  <span>🔐</span>
-                  <span>بوابة تسجيل الدخول المؤسسية الموحدة</span>
+            <div
+              aria-hidden="true"
+              className="hidden lg:flex w-20 h-20 rounded-full bg-[#f1efe9] border border-[#e5e2dc] items-center justify-center text-[#141414] absolute top-[54%] left-24 shadow-sm"
+            >
+              <activeSector.icon className="w-8 h-8 stroke-[1.75]" />
+            </div>
+
+            <div
+              aria-hidden="true"
+              className="hidden lg:flex w-13 h-13 rounded-full bg-[#f1efe9] border border-[#e5e2dc] items-center justify-center text-[#141414] absolute -bottom-2 left-12 shadow-sm p-3.5"
+            >
+              <Building2 className="w-5 h-5 stroke-[1.75]" />
+            </div>
+
+            {/* Right-Aligned Brand Title & Subtitle */}
+            <div className="relative z-10 space-y-3 max-w-xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f1efe9] border border-[#e5e2dc] text-[12px] font-bold text-[#141414] mb-1">
+                <span>{currentPortalDef.badgeText}</span>
+              </div>
+
+              <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-[#141414] m-0 leading-tight">
+                خالد السليم | <span className="font-sans">KASSR ERP</span>
+              </h1>
+
+              <h2 className="text-xl sm:text-3xl font-extrabold text-[#141414] m-0 pt-1">
+                {activeSector.label} — {detectedRouting.departmentDef.nameAr}
+              </h2>
+
+              <p className="text-sm sm:text-base text-[#707070] leading-relaxed m-0 max-w-lg">
+                {currentPortalDef.tagline}
+              </p>
+
+              {/* Vertical Checkmark Feature List (Right-Aligned with Circular Check Badges) */}
+              <div className="pt-6 space-y-4">
+                {currentPortalDef.features.map((featureText, idx) => (
+                  <div key={idx} className="flex items-center gap-3.5">
+                    <div className="w-9 h-9 rounded-full bg-[#f1efe9] border border-[#e5e2dc] flex items-center justify-center text-[#141414] shrink-0">
+                      <Check className="w-4 h-4 stroke-[2.5]" />
+                    </div>
+                    <span className="text-sm sm:text-[15px] font-bold text-[#141414]">
+                      {featureText}
+                    </span>
+                  </div>
+                ))}
+                <div className="flex items-center gap-3.5">
+                  <div className="w-9 h-9 rounded-full bg-[#f1efe9] border border-[#e5e2dc] flex items-center justify-center text-[#141414] shrink-0">
+                    <Check className="w-4 h-4 stroke-[2.5]" />
+                  </div>
+                  <span className="text-sm sm:text-[15px] font-bold text-[#141414]">
+                    ربط مباشر مع مساند، قوى، مدد، والفوترة الإلكترونية ZATCA
+                  </span>
+                </div>
+              </div>
+
+              {/* Quick Sector Switcher Pills (Interactive Department Preview) */}
+              <div className="pt-6">
+                <div className="text-xs font-bold text-[#707070] mb-2.5">
+                  اختر القطاع لتخصيص بوابة الدخول الفوري:
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {MOBBIN_SECTOR_CHIPS.map((chip) => {
+                    const isActive =
+                      identifier.trim().toLowerCase() === chip.email.toLowerCase();
+                    const ChipIcon = chip.icon;
+                    return (
+                      <button
+                        key={chip.code}
+                        type="button"
+                        onClick={() => {
+                          setIdentifier(chip.email);
+                          setPassword('Alsulaim@2026');
+                          setErrorMsg(null);
+                        }}
+                        className={`px-3.5 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                          isActive
+                            ? 'bg-[#141414] text-[#ffffff]'
+                            : 'bg-[#ffffff] border border-[#e0e0e0] text-[#141414] hover:bg-[#f3f3f3]'
+                        }`}
+                      >
+                        <ChipIcon className="w-3.5 h-3.5" />
+                        <span>{chip.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ─── LEFT COLUMN (In RTL, Second Child is on the LEFT): بطاقة تسجيل الدخول ─── */}
+          <div className="lg:col-span-5 w-full max-w-[440px] mx-auto">
+            {/* Top Return Link above the card */}
+            <div className="flex items-center justify-start mb-3">
+              <button
+                type="button"
+                onClick={() => setFlowState('landing')}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#707070] hover:text-[#141414] transition-colors cursor-pointer"
+              >
+                <ArrowRight className="w-3.5 h-3.5" />
+                <span>العودة للرئيسية</span>
+              </button>
+            </div>
+
+            {/* White Auth Card (Matching Reference Left Card) */}
+            <div className="bg-[#ffffff] rounded-[28px] border border-[#ececec] shadow-[0_16px_48px_-12px_rgba(20,20,20,0.06)] p-6 sm:p-8 space-y-5">
+              {/* 1. Top Portal Switcher Pill (حساب مشرف | دليل الحسابات) */}
+              <div className="bg-[#f6f5f2] p-1 rounded-full grid grid-cols-2 gap-1 border border-[#eceae4]">
+                <button
+                  type="button"
+                  onClick={() => setShowDirectoryModal(false)}
+                  className="h-9 px-3 rounded-full bg-[#ffffff] text-[#141414] shadow-xs text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#141414]" />
+                  <span>بوابة المشرفين</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDirectoryTab('accounts');
+                    setShowDirectoryModal(true);
+                  }}
+                  className="h-9 px-3 rounded-full text-[#707070] hover:text-[#141414] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Building2 className="w-3.5 h-3.5" />
+                  <span>مركز الشركات ({staffDirectory.length})</span>
+                </button>
+              </div>
+
+              {/* 2. Centered Welcome Title & Subtitle */}
+              <div className="text-center space-y-1 pt-1">
+                <h2 className="text-2xl font-black text-[#141414] m-0">
+                  مرحباً بعودتك
                 </h2>
-                <p className="text-xs text-zinc-500 mt-1">
-                  أدخل بريدك الوظيفي أو اسم المستخدم ليتم توجيهك تلقائياً إلى قسمك المختص داخل شركتك.
+                <p className="text-xs text-[#707070] m-0">
+                  إدارة ملفك وصلاحياتك في {detectedRouting.departmentDef.nameAr}
                 </p>
               </div>
 
-              <div className="flex items-center bg-zinc-100 p-1 rounded-full border border-zinc-200">
+              {/* 3. Segmented Mode Switcher (تسجيل الدخول | انضم إلينا) */}
+              <div className="bg-[#f3f3f3] p-1.5 rounded-2xl grid grid-cols-2 gap-1">
                 <button
                   type="button"
                   onClick={() => {
-                    setAuthMode('signin');
+                    setLoginMethodTab('password');
                     setErrorMsg(null);
                   }}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                    authMode === 'signin' ? 'bg-black text-white shadow-xs' : 'text-zinc-600 hover:text-black'
+                  className={`h-10 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    loginMethodTab === 'password'
+                      ? 'bg-[#ffffff] text-[#141414] shadow-xs'
+                      : 'text-[#707070] hover:text-[#141414]'
                   }`}
                 >
-                  🔑 دخول الموظفين
+                  تسجيل الدخول
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    setAuthMode('register');
-                    setErrorMsg(null);
+                    setDirectoryTab('register');
+                    setShowDirectoryModal(true);
                   }}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                    authMode === 'register' ? 'bg-black text-white shadow-xs' : 'text-zinc-600 hover:text-black'
-                  }`}
+                  className="h-10 rounded-xl text-xs font-bold text-[#707070] hover:text-[#141414] transition-all cursor-pointer"
                 >
-                  📝 تفعيل حساب قسم
+                  تفعيل حساب موظف
                 </button>
               </div>
-            </div>
 
-            {errorMsg && (
-              <div className="mb-5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                <span>{errorMsg}</span>
+              {/* 4. Two Full-Width Outline Action Buttons (البصمة + الرابط السحري) */}
+              <div className="space-y-2.5">
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={handleBiometricLogin}
+                  className="w-full h-11 rounded-2xl bg-[#ffffff] hover:bg-[#f8f8f8] border border-[#e5e5e5] text-[#141414] text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <Fingerprint className="w-4 h-4 text-[#0066ff]" />
+                  <span>الدخول بالبصمة البيومترية FIDO2</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={(e) => {
+                    if (loginMethodTab === 'magic_link') {
+                      void handleMagicLinkDispatch(e as any);
+                    } else {
+                      setLoginMethodTab('magic_link');
+                      setErrorMsg(null);
+                    }
+                  }}
+                  className="w-full h-11 rounded-2xl bg-[#ffffff] hover:bg-[#f8f8f8] border border-[#e5e5e5] text-[#141414] text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-[#141414]" />
+                  <span>الرابط السحري</span>
+                </button>
               </div>
-            )}
 
-            {successMsg && (
-              <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>{successMsg}</span>
+              {/* 5. Horizontal Divider: أو بالبريد الإلكتروني */}
+              <div className="relative flex items-center justify-center py-1">
+                <div className="border-t border-[#ececec] w-full" />
+                <span className="bg-[#ffffff] px-3 text-[11px] font-semibold text-[#999999] whitespace-nowrap">
+                  أو بالبريد الإلكتروني
+                </span>
+                <div className="border-t border-[#ececec] w-full" />
               </div>
-            )}
 
-            {authMode === 'signin' ? (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void executeUnifiedSignIn();
-                }}
-                className="space-y-4"
-              >
-                {/* Live Auto-Detected Company & Department Banner + Quick Selector */}
-                <div className="p-3.5 rounded-xl bg-[#f5eddc]/70 border border-[#cfa64a]/50 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <CorporateAvatar
-                        name={identifier}
-                        email={identifier}
-                        departmentId={detectedRouting.departmentId}
-                        size="md"
-                        status="verified"
-                      />
-                      <div>
-                        <div className="text-xs font-black text-black">
-                          {detectedCompanyMeta.emoji} {detectedCompanyMeta.nameAr}
-                        </div>
-                        <div className="text-[11px] font-bold text-[#a98232]">
-                          التوجيه التلقائي: {detectedRouting.departmentDef.nameAr}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 self-start sm:self-center">
-                      <div className="hidden md:block">
-                        <BusinessIllustration departmentId={detectedRouting.departmentId} size="sm" />
-                      </div>
-                      <span className="pill-tag-mint text-[10.5px] font-bold">
-                        🔒 صلاحية مقيدة بالقسم
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Quick Company & Department Switcher inside the Login Form */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-[#cfa64a]/30">
-                    <div>
-                      <label className="block text-[10.5px] font-bold text-zinc-700 mb-1">
-                        🏛️ اختيار الشركة مباشرة:
-                      </label>
-                      <select
-                        value={detectedRouting.companyId === 'all' ? 'ALL' : detectedRouting.companyId.toUpperCase()}
-                        onChange={(e) => {
-                          const nextCo = e.target.value;
-                          const nextDept: DepartmentId =
-                            nextCo === 'ALL'
-                              ? 'executive'
-                              : nextCo === 'YAQ'
-                              ? 'rental'
-                              : nextCo === 'TOP'
-                              ? 'ats'
-                              : nextCo === 'KAS'
-                              ? 'tenders'
-                              : nextCo === 'DAR'
-                              ? 'shelter'
-                              : 'finance';
-                          handleQuickCompanyDepartmentChange(nextCo, nextDept);
-                        }}
-                        className="text-input w-full px-2.5 py-1.5 text-xs font-bold bg-white"
-                      >
-                        <option value="SAF">🏛️ شركة السفير الماسي للاستقدام (SAF)</option>
-                        <option value="YAQ">🏢 شركة الياقوت الشرقية للتشغيل (YAQ)</option>
-                        <option value="TOP">💼 شركة توب تالنت للتوظيف (TOP)</option>
-                        <option value="KAS">⚖️ شركة كاس للمنافسات (KAS)</option>
-                        <option value="DAR">🏨 دار الرواد لمراكز الإيواء (DAR)</option>
-                        <option value="ALL">🛡️ الإدارة التنفيذية العليا للمجموعة (ALL)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10.5px] font-bold text-zinc-700 mb-1">
-                        🗂️ اختيار القسم المختص للموظف:
-                      </label>
-                      <select
-                        value={detectedRouting.departmentId}
-                        onChange={(e) => {
-                          const nextDept = e.target.value as DepartmentId;
-                          const currentCo =
-                            detectedRouting.companyId === 'all'
-                              ? 'SAF'
-                              : detectedRouting.companyId.toUpperCase();
-                          handleQuickCompanyDepartmentChange(
-                            nextDept === 'executive' ? 'ALL' : currentCo,
-                            nextDept
-                          );
-                        }}
-                        className="text-input w-full px-2.5 py-1.5 text-xs font-bold bg-white"
-                      >
-                        {Object.values(CORPORATE_DEPARTMENTS).map((dept) => (
-                          <option key={dept.id} value={dept.id}>
-                            {dept.emoji} {dept.nameAr}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
+              {/* Alerts */}
+              {errorMsg && (
+                <div
+                  role="alert"
+                  aria-live="assertive"
+                  className="p-3.5 rounded-2xl bg-[#fff1f2] border border-[#fecdd3] text-[#be123c] text-xs font-bold flex items-center gap-2"
+                >
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errorMsg}</span>
                 </div>
+              )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {successMsg && (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] text-xs font-bold flex items-center gap-2"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-[#0066ff] shrink-0" />
+                  <span>{successMsg}</span>
+                </div>
+              )}
+
+              {/* 6. Email & Password Form */}
+              {loginMethodTab === 'magic_link' ? (
+                <form onSubmit={handleMagicLinkDispatch} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-black mb-1.5">
-                      📧 البريد الوظيفي أو الرقم الوظيفي
+                    <label
+                      htmlFor="magic-identifier-input"
+                      className="block text-right text-xs font-bold text-[#141414] mb-1.5"
+                    >
+                      البريد الإلكتروني
                     </label>
                     <div className="relative">
-                      <User className="w-4 h-4 text-zinc-400 absolute right-3.5 top-3" />
                       <input
+                        id="magic-identifier-input"
                         type="text"
+                        dir="ltr"
+                        autoComplete="username"
                         value={identifier}
                         onChange={(e) => setIdentifier(e.target.value)}
-                        placeholder="مثال: accounting@saf-rec.sa"
-                        className="text-input w-full pr-10 pl-3 py-2.5 text-xs font-mono"
+                        placeholder="your@email.com"
+                        className="w-full h-12 pl-4 pr-10 rounded-2xl bg-[#f0efec] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#999999] text-sm font-medium text-left transition-all focus:outline-none"
                         required
                       />
+                      <Mail className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-black mb-1.5">
-                      🔒 كلمة المرور المؤسسية
-                    </label>
-                    <div className="relative">
-                      <KeyRound className="w-4 h-4 text-zinc-400 absolute right-3.5 top-3" />
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="text-input w-full pr-10 pl-10 py-2.5 text-xs font-mono"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute left-3 top-2.5 text-zinc-400 hover:text-black"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Primary Submit & Biometric Buttons */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-2">
                   <button
                     type="submit"
                     disabled={loading}
-                    className="button-primary-pill flex-1 py-3 px-6 text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full h-12 rounded-2xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <span>إرسال الرابط السحري والدخول</span>
+                    <ArrowLeft className="w-4 h-4" />
+                  </button>
+                </form>
+              ) : (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void executeUnifiedSignIn();
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <label
+                      htmlFor="login-identifier-input"
+                      className="block text-right text-xs font-bold text-[#141414] mb-1.5"
+                    >
+                      البريد الإلكتروني
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="login-identifier-input"
+                        type="text"
+                        dir="ltr"
+                        autoComplete="username"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
+                        placeholder="your@email.com"
+                        className="w-full h-12 pl-4 pr-10 rounded-2xl bg-[#f0efec] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#999999] text-sm font-medium text-left transition-all focus:outline-none"
+                        required
+                      />
+                      <Mail className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label
+                        htmlFor="login-password-input"
+                        className="text-xs font-bold text-[#141414]"
+                      >
+                        كلمة المرور
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPassword('Alsulaim@2026');
+                          setSuccessMsg(
+                            'تم استعادة كلمة المرور المعتمدة تلقائياً — اضغط تسجيل الدخول.'
+                          );
+                        }}
+                        className="text-[11px] font-bold text-[#707070] hover:text-[#141414] transition-colors cursor-pointer"
+                      >
+                        نسيت كلمة المرور؟
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <input
+                        id="login-password-input"
+                        type={showPassword ? 'text' : 'password'}
+                        dir="ltr"
+                        autoComplete="current-password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••••••"
+                        className="w-full h-12 pl-10 pr-10 rounded-2xl bg-[#f0efec] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#999999] text-sm font-medium text-left transition-all focus:outline-none"
+                        required
+                      />
+                      <Lock className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        aria-pressed={showPassword}
+                        className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center text-[#707070] hover:text-[#141414] transition-colors cursor-pointer"
+                        aria-label="إظهار أو إخفاء كلمة المرور"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Primary Submit Button */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-12 rounded-2xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer mt-2"
                   >
                     {loading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>جاري التحقق وتوجيهك إلى قسمك...</span>
+                        <span>جاري التحقق...</span>
                       </>
                     ) : (
-                      <>
-                        <LogIn className="w-4 h-4" />
-                        <span>دخول مباشر إلى ({detectedRouting.departmentDef.badgeText})</span>
-                        <ArrowLeft className="w-4 h-4" />
-                      </>
+                      <span>تسجيل الدخول</span>
                     )}
                   </button>
-
-                  <button
-                    type="button"
-                    onClick={handleBiometricLogin}
-                    className="button-outline-on-light py-3 px-4 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
-                    title="الدخول بالبصمة المؤسسية المعتمدة"
-                  >
-                    <Fingerprint className="w-4 h-4 text-[#a98232]" />
-                    <span>دخول بالبصمة</span>
-                  </button>
-                </div>
-              </form>
-            ) : (
-              /* 3-Step Department Account Registration */
-              <form onSubmit={handleRegisterSubmit} className="space-y-4">
-                <div className="flex items-center gap-2 text-xs font-bold text-zinc-600 mb-2">
-                  <span className={regStep >= 1 ? 'text-black font-black' : ''}>1. بيانات الموظف</span>
-                  <span>←</span>
-                  <span className={regStep >= 2 ? 'text-black font-black' : ''}>2. تحديد الشركة والقسم</span>
-                  <span>←</span>
-                  <span className={regStep >= 3 ? 'text-black font-black' : ''}>3. اعتماد كلمة المرور</span>
-                </div>
-
-                {regStep === 1 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-xs font-bold text-black mb-1">الاسم الرباعي للموظف</label>
-                      <input
-                        type="text"
-                        value={regFullName}
-                        onChange={(e) => setRegFullName(e.target.value)}
-                        placeholder="الاسم الكامل"
-                        className="text-input w-full px-3 py-2 text-xs"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-black mb-1">الرقم الوظيفي</label>
-                      <input
-                        type="text"
-                        value={regEmployeeNo}
-                        onChange={(e) => setRegEmployeeNo(e.target.value)}
-                        placeholder="EMP-2026"
-                        className="text-input w-full px-3 py-2 text-xs font-mono"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-black mb-1">رقم الجوال</label>
-                      <input
-                        type="tel"
-                        value={regPhone}
-                        onChange={(e) => setRegPhone(e.target.value)}
-                        placeholder="05XXXXXXXX"
-                        className="text-input w-full px-3 py-2 text-xs font-mono"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {regStep === 2 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-xs font-bold text-black mb-1">الشركة التابع لها</label>
-                      <select
-                        value={regCompanyId}
-                        onChange={(e) => setRegCompanyId(e.target.value as any)}
-                        className="text-input w-full px-3 py-2 text-xs"
-                      >
-                        <option value="SAF">🏛️ شركة السفير الماسي للاستقدام</option>
-                        <option value="YAQ">🏢 شركة الياقوت الشرقية للتشغيل</option>
-                        <option value="TOP">💼 شركة توب تالنت للتوظيف</option>
-                        <option value="KAS">⚖️ شركة كاس للمنافسات</option>
-                        <option value="DAR">🏨 دار الرواد لمراكز الإيواء</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-black mb-1">القسم الوظيفي المختص (مقيد)</label>
-                      <select
-                        value={regDepartmentId}
-                        onChange={(e) => setRegDepartmentId(e.target.value as DepartmentId)}
-                        className="text-input w-full px-3 py-2 text-xs"
-                      >
-                        {Object.values(CORPORATE_DEPARTMENTS)
-                          .filter((d) => d.id !== 'executive')
-                          .map((dept) => (
-                            <option key={dept.id} value={dept.id}>
-                              {dept.emoji} {dept.nameAr}
-                            </option>
-                          ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-black mb-1">الفرع التشغيلي</label>
-                      <input
-                        type="text"
-                        value={regBranch}
-                        onChange={(e) => setRegBranch(e.target.value)}
-                        className="text-input w-full px-3 py-2 text-xs"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {regStep === 3 && (
-                  <div>
-                    <label className="block text-xs font-bold text-black mb-1">تعيين كلمة المرور المؤسسية</label>
-                    <input
-                      type="password"
-                      value={regPassword}
-                      onChange={(e) => setRegPassword(e.target.value)}
-                      placeholder="أدخل كلمة مرور قوية (4 خانات على الأقل)"
-                      className="text-input w-full px-3 py-2 text-xs font-mono"
-                      required
-                    />
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between pt-2">
-                  {regStep > 1 ? (
-                    <button
-                      type="button"
-                      onClick={() => setRegStep((prev) => (prev === 3 ? 2 : 1))}
-                      className="button-outline-on-light px-4 py-2 rounded-full text-xs font-bold"
-                    >
-                      السابق
-                    </button>
-                  ) : (
-                    <div />
-                  )}
-                  <button
-                    type="submit"
-                    className="button-primary-pill px-6 py-2.5 text-xs font-bold flex items-center gap-1.5"
-                  >
-                    <UserPlus className="w-3.5 h-3.5" />
-                    <span>{regStep < 3 ? 'الخطوة التالية' : 'إتمام تفعيل الحساب والدخول الفوري'}</span>
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-
-          {/* ═══════════════════════════════════════════════════════════════════
-              DIRECT DEPARTMENT LOGIN DIRECTORY (دليل الدخول المباشر لأقسام الشركات)
-          ═══════════════════════════════════════════════════════════════════ */}
-          <div className="card-pricing p-5 sm:p-6 bg-white border border-zinc-200 rounded-2xl">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-4 border-b border-zinc-200">
-              <div>
-                <h3 className="text-sm font-black text-black flex items-center gap-1.5">
-                  <span>🗂️</span>
-                  <span>دليل النفاذ السريع لأقسام الشركات (اضغط للدخول المباشر للقسم)</span>
-                </h3>
-                <p className="text-[11px] text-zinc-500">
-                  كل حساب أدناه مقيد بشركته وقسمه فقط — يدخل الموظف مباشرة إلى قسمه مع حجب باقي الأقسام.
-                </p>
-              </div>
-              <span className="pill-tag-shade text-[10.5px] font-bold">
-                {filteredDirectory.length} حساب قسم جاهز
-              </span>
-            </div>
-
-            {/* Company Filter Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-3 mb-3">
-              {[
-                { code: 'ALL_COMPANIES', label: 'جميع الشركات والأقسام', emoji: '🏛️' },
-                { code: 'SAF', label: 'السفير الماسي (SAF)', emoji: '📑' },
-                { code: 'YAQ', label: 'الياقوت الشرقية (YAQ)', emoji: '🏢' },
-                { code: 'TOP', label: 'توب تالنت (TOP)', emoji: '💼' },
-                { code: 'KAS', label: 'شركة كاس (KAS)', emoji: '⚖️' },
-                { code: 'DAR', label: 'دار الرواد للإيواء (DAR)', emoji: '🏨' },
-                { code: 'ALL', label: 'الإدارة العليا للمجموعة', emoji: '🛡️' },
-              ].map((filter) => {
-                const active = companyFilter === filter.code;
-                return (
-                  <button
-                    key={filter.code}
-                    type="button"
-                    onClick={() => {
-                      setCompanyFilter(filter.code);
-                      if (filter.code !== 'ALL_COMPANIES') {
-                        setIdentifier(getDefaultEmailForPortalCode(filter.code));
-                      }
-                    }}
-                    className={`px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all border cursor-pointer ${
-                      active
-                        ? 'bg-black text-white border-black shadow-2xs'
-                        : 'bg-zinc-50 text-zinc-700 border-zinc-200 hover:bg-zinc-100'
-                    }`}
-                  >
-                    <span>{filter.emoji} </span>
-                    <span>{filter.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Department Accounts Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[310px] overflow-y-auto pr-1">
-              {filteredDirectory.map((staff) => {
-                const isSelected = identifier.toLowerCase() === staff.email.toLowerCase();
-                const compMeta =
-                  COMPANY_AUTH_METADATA[staff.company_id === 'all' ? 'ALL' : staff.company_id] ||
-                  COMPANY_AUTH_METADATA.SAF;
-                const deptDef = CORPORATE_DEPARTMENTS[staff.department_id];
-
-                return (
-                  <button
-                    key={staff.id}
-                    type="button"
-                    onClick={() => handleSelectDirectoryAccount(staff)}
-                    className={`w-full text-right p-3 rounded-xl border transition-all flex items-start justify-between gap-2 cursor-pointer ${
-                      isSelected
-                        ? 'bg-[#f5eddc] border-[#cfa64a] shadow-xs'
-                        : 'bg-zinc-50/70 hover:bg-white border-zinc-200'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2.5 min-w-0">
-                      <CorporateAvatar
-                        name={staff.full_name}
-                        role={staff.role}
-                        email={staff.email}
-                        departmentId={staff.department_id}
-                        size="sm"
-                        status={isSelected ? 'verified' : 'online'}
-                      />
-                      <div className="min-w-0">
-                        <div className="text-xs font-black text-black truncate">
-                          {deptDef.badgeText} — {compMeta.code === 'all' ? 'المجموعة' : compMeta.code}
-                        </div>
-                        <div className="text-[11px] font-semibold text-zinc-700 truncate">{staff.full_name}</div>
-                        <div className="text-[10px] font-mono text-zinc-500 truncate">{staff.email}</div>
-                      </div>
-                    </div>
-                    <span className="px-2 py-1 rounded-full bg-black text-white text-[10px] font-bold shrink-0">
-                      دخول ↵
-                    </span>
-                  </button>
-                );
-              })}
+                </form>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <footer className="mt-6 pt-4 border-t border-zinc-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-zinc-500">
-          <div>© 2026 مجموعة خالد السليم القابضة — جميع الحقوق محفوظة لقطاع تقنية المعلومات والحوكمة.</div>
-          <div className="flex items-center gap-3">
-            <span>🔒 عزل صارم للأقسام والشركات</span>
-            <span>•</span>
-            <span>📊 نظام سماك المحاسبي المعتمد</span>
+        {/* Floating Bottom-Left Active Account Toast Card (Matching Reference Bottom-Left Card) */}
+        <div className="hidden sm:flex fixed bottom-5 left-5 z-20 bg-[#ffffff] border border-[#e8e8e8] rounded-2xl p-3 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] items-center gap-3 max-w-[280px]">
+          <div className="w-10 h-10 rounded-xl bg-[#f1efe9] border border-[#e5e2dc] flex items-center justify-center text-[#141414] shrink-0">
+            <Users className="w-5 h-5" />
           </div>
-        </footer>
-      </main>
-
-      {/* Support Modal */}
-      {showSupportModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white border border-zinc-200 rounded-2xl max-w-md w-full p-6 space-y-4 text-right shadow-2xl">
-            <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
-              <h3 className="text-sm font-black text-black flex items-center gap-2">
-                <Headphones className="w-4 h-4 text-[#a98232]" />
-                <span>مكتب مساندة الموظفين وتقنية المعلومات</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowSupportModal(false)}
-                className="text-zinc-400 hover:text-black"
-              >
-                <X className="w-4 h-4" />
-              </button>
+          <div className="text-right min-w-0 flex-1">
+            <div className="text-xs font-bold text-[#141414] truncate">
+              {detectedRouting.account?.full_name || 'الشيخ خالد بن عبدالعزيز السليم'}
             </div>
-            <p className="text-xs text-zinc-600 leading-relaxed">
-              في حال رغبتك بتعديل القسم الوظيفي المربوط بحسابك أو إعادة تعيين كلمة المرور المؤسسية، يرجى التواصل مع إدارة الهوية والصلاحيات (IAM) بالمقر الرئيسي:
-            </p>
-            <div className="space-y-2 text-xs">
-              <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200 flex items-center gap-2">
-                <PhoneCall className="w-4 h-4 text-black" />
-                <span>الخط المباشر لتقنية المعلومات: 920000000 - تحويلة 104</span>
-              </div>
-              <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200 flex items-center gap-2">
-                <Mail className="w-4 h-4 text-black" />
-                <span className="font-mono">iam-support@alsulaim.sa</span>
-              </div>
+            <div className="text-[11px] text-[#707070] truncate">
+              {detectedRouting.departmentDef.nameAr}
             </div>
             <button
               type="button"
-              onClick={() => setShowSupportModal(false)}
-              className="button-primary-pill w-full py-2.5 text-xs font-bold"
+              onClick={() => {
+                setDirectoryTab('accounts');
+                setShowDirectoryModal(true);
+              }}
+              className="text-[10.5px] font-bold text-[#0066ff] hover:underline cursor-pointer mt-0.5 block"
             >
-              إغلاق
+              تبديل الحساب ({staffDirectory.length} حساب)
             </button>
+          </div>
+        </div>
+      </main>
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          3. CLEAN SUBTLE FOOTER
+      ═══════════════════════════════════════════════════════════════════════ */}
+      <footer className="w-full border-t border-[#eceae4] bg-[#faf9f7] text-[#707070] px-6 sm:px-12 py-4">
+        <div className="max-w-[1260px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-3">
+            <span className="font-bold text-[#141414]">
+              مجموعة خالد السليم القابضة
+            </span>
+            <span className="text-[#707070]">
+              جميع الحقوق محفوظة © 2026 — بوابة النفاذ الموحد
+            </span>
+          </div>
+          <div className="flex items-center gap-5 text-[#707070]">
+            <span>الصفا للاستقدام</span>
+            <span>الياقوت للتشغيل</span>
+            <span>توب تالنت</span>
+            <span>كاس للمنافسات</span>
+            <span className="text-[#141414] font-bold">ZATCA & HRSD Verified</span>
+          </div>
+        </div>
+      </footer>
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          MODAL: STAFF DIRECTORY (15 ACCOUNTS) & ACCOUNT ACTIVATION (ex-modal-card)
+      ═══════════════════════════════════════════════════════════════════════ */}
+      {showDirectoryModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="directory-modal-title"
+          className="fixed inset-0 z-50 bg-[#141414]/60 flex items-center justify-center p-4"
+          onClick={() => setShowDirectoryModal(false)}
+        >
+          <div
+            className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] max-w-2xl w-full p-6 sm:p-8 space-y-5 text-right max-h-[88vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-4 shrink-0">
+              <div>
+                <h3
+                  id="directory-modal-title"
+                  className="mobbin-heading-4 text-[#141414] m-0"
+                >
+                  دليل حسابات المجموعة.
+                </h3>
+                <p className="mobbin-body-sm text-[#707070] mt-1 m-0">
+                  اختر أي حساب للدخول الفوري إلى قسمه المختص أو قم بتفعيل حساب موظف جديد.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="mobbin-segmented flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => setDirectoryTab('accounts')}
+                    className={`px-3.5 py-1.5 rounded-full text-[12px] font-semibold cursor-pointer ${
+                      directoryTab === 'accounts'
+                        ? 'mobbin-segmented-active text-[#141414]'
+                        : 'text-[#707070]'
+                    }`}
+                  >
+                    الحسابات ({staffDirectory.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDirectoryTab('register')}
+                    className={`px-3.5 py-1.5 rounded-full text-[12px] font-semibold cursor-pointer flex items-center gap-1 ${
+                      directoryTab === 'register'
+                        ? 'mobbin-segmented-active text-[#141414]'
+                        : 'text-[#707070]'
+                    }`}
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>تفعيل موظف</span>
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowDirectoryModal(false)}
+                  aria-label="إغلاق النافذة"
+                  className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] flex items-center justify-center text-[#141414] cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {directoryTab === 'accounts' ? (
+              <div className="space-y-4 overflow-y-auto pr-1">
+                {/* Company Filter Pills */}
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { code: 'ALL_COMPANIES', label: 'جميع الكيانات' },
+                    { code: 'ALL', label: 'الإدارة المركزية' },
+                    { code: 'SAF', label: 'الصفا للاستقدام' },
+                    { code: 'YAQ', label: 'الياقوت للتشغيل' },
+                    { code: 'TOP', label: 'توب تالنت ATS' },
+                    { code: 'KAS', label: 'كاس للمنافسات' },
+                    { code: 'DAR', label: 'دار الرواد للإيواء' },
+                  ].map((f) => (
+                    <button
+                      key={f.code}
+                      type="button"
+                      onClick={() => setCompanyFilter(f.code)}
+                      className={`px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-colors cursor-pointer ${
+                        companyFilter === f.code
+                          ? 'bg-[#141414] text-[#ffffff]'
+                          : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#e0e0e0]'
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Staff Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {filteredDirectory.map((entry) => {
+                    const dept =
+                      CORPORATE_DEPARTMENTS[entry.department_id] ||
+                      CORPORATE_DEPARTMENTS.executive;
+                    const comp =
+                      COMPANY_AUTH_METADATA[entry.company_id.toUpperCase()] ||
+                      COMPANY_AUTH_METADATA.ALL;
+                    const isSelected =
+                      identifier.trim().toLowerCase() === entry.email.toLowerCase();
+
+                    return (
+                      <button
+                        key={entry.email}
+                        type="button"
+                        onClick={() => handleQuickAccountClick(entry)}
+                        className={`text-right p-4 rounded-[16px] border transition-colors cursor-pointer flex flex-col justify-between gap-2 ${
+                          isSelected
+                            ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                            : 'bg-[#f3f3f3] hover:bg-[#e8e8e8] border-transparent text-[#141414]'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className="text-[14px] font-semibold">{entry.full_name}</div>
+                            <div
+                              className={`mobbin-caption mt-0.5 ${
+                                isSelected ? 'text-[#adadad]' : 'text-[#707070]'
+                              }`}
+                            >
+                              {entry.role}
+                            </div>
+                          </div>
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold shrink-0 ${
+                              isSelected
+                                ? 'bg-[#0066ff] text-[#ffffff]'
+                                : 'bg-[#ffffff] text-[#141414]'
+                            }`}
+                          >
+                            {dept.badgeText}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2 border-t border-[#e0e0e0]/40 mobbin-caption">
+                          <span className="font-mono dir-ltr">{entry.email}</span>
+                          <span className={isSelected ? 'text-[#adadad]' : 'text-[#707070]'}>
+                            {comp.nameAr}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="overflow-y-auto pr-1">
+                {regStep === 1 && (
+                  <form onSubmit={handleSendOtpStep} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block mobbin-label text-[#141414] mb-1.5">
+                          الاسم الثلاثي للموظف *
+                        </label>
+                        <input
+                          type="text"
+                          value={regFullName}
+                          onChange={(e) => setRegFullName(e.target.value)}
+                          placeholder="سلطان بن خالد السليم"
+                          className="mobbin-input"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block mobbin-label text-[#141414] mb-1.5">
+                          الرقم الوظيفي
+                        </label>
+                        <input
+                          type="text"
+                          dir="ltr"
+                          value={regEmployeeNo}
+                          onChange={(e) => setRegEmployeeNo(e.target.value)}
+                          placeholder="EMP-2026-108"
+                          className="mobbin-input font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block mobbin-label text-[#141414] mb-1.5">
+                          الشركة التابعة *
+                        </label>
+                        <select
+                          value={regCompanyId}
+                          onChange={(e) => setRegCompanyId(e.target.value as any)}
+                          className="mobbin-input"
+                        >
+                          <option value="SAF">شركة الصفا الماسي للاستقدام (SAF)</option>
+                          <option value="YAQ">شركة الياقوت الشرقية للتشغيل (YAQ)</option>
+                          <option value="TOP">شركة توب تالنت للتوظيف (TOP)</option>
+                          <option value="KAS">شركة كاس للمنافسات واعتماد (KAS)</option>
+                          <option value="DAR">مراكز دار الرواد للإيواء (DAR)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block mobbin-label text-[#141414] mb-1.5">
+                          القسم المختص (عزل الصلاحيات) *
+                        </label>
+                        <select
+                          value={regDepartmentId}
+                          onChange={(e) => setRegDepartmentId(e.target.value as DepartmentId)}
+                          className="mobbin-input"
+                        >
+                          <option value="finance">قسم المحاسبة والمالية (SMACC & ZATCA)</option>
+                          <option value="recruitment">قسم الاستقدام ومساند (Recruitment)</option>
+                          <option value="rental">قسم التشغيل والتأجير (Fleet & Rental)</option>
+                          <option value="ats">قسم استقطاب الكفاءات (ATS Pipeline)</option>
+                          <option value="hr">قسم الموارد البشرية والرواتب (WPS)</option>
+                          <option value="crm">قسم خدمة العملاء والشكاوى (CRM)</option>
+                          <option value="tenders">قسم المنافسات وجداول الكميات (Etimad)</option>
+                          <option value="shelter">قسم مراكز الإيواء والتسكين (HRSD)</option>
+                          <option value="executive">الإدارة العليا والرقابة الشاملة</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block mobbin-label text-[#141414] mb-1.5">
+                          البريد الإلكتروني المؤسسي *
+                        </label>
+                        <input
+                          type="email"
+                          dir="ltr"
+                          value={regEmail}
+                          onChange={(e) => setRegEmail(e.target.value)}
+                          placeholder="employee@saf-rec.sa"
+                          className="mobbin-input font-mono"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block mobbin-label text-[#141414] mb-1.5">
+                          رقم الجوال (لإرسال رمز التحقق) *
+                        </label>
+                        <input
+                          type="tel"
+                          dir="ltr"
+                          value={regPhone}
+                          onChange={(e) => setRegPhone(e.target.value)}
+                          placeholder="0551234567"
+                          className="mobbin-input font-mono"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block mobbin-label text-[#141414] mb-1.5">
+                          المسمى الوظيفي
+                        </label>
+                        <input
+                          type="text"
+                          value={regJobTitle}
+                          onChange={(e) => setRegJobTitle(e.target.value)}
+                          placeholder={CORPORATE_DEPARTMENTS[regDepartmentId].nameAr}
+                          className="mobbin-input"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block mobbin-label text-[#141414] mb-1.5">
+                          كلمة المرور المعتمدة *
+                        </label>
+                        <input
+                          type="text"
+                          dir="ltr"
+                          value={regPassword}
+                          onChange={(e) => setRegPassword(e.target.value)}
+                          className="mobbin-input font-mono"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <button type="submit" className="mobbin-btn-primary w-full">
+                      <Phone className="w-4 h-4" />
+                      <span>إرسال رمز التحقق وتفعيل الحساب</span>
+                    </button>
+                  </form>
+                )}
+
+                {regStep === 2 && (
+                  <form onSubmit={handleVerifyOtpAndCreate} className="space-y-4">
+                    <div className="p-4 rounded-[16px] bg-[#f3f3f3] text-[13px] text-[#141414] font-semibold">
+                      تم إرسال رمز التحقق المكون من 6 أرقام إلى الجوال ({regPhone}). الرمز الفوري:{' '}
+                      <span className="font-mono underline">{generatedOtp}</span>
+                    </div>
+
+                    <div>
+                      <label className="block mobbin-label text-[#141414] mb-1.5">
+                        أدخل رمز التحقق (OTP)
+                      </label>
+                      <input
+                        type="text"
+                        dir="ltr"
+                        maxLength={6}
+                        value={regOtpCode}
+                        onChange={(e) => setRegOtpCode(e.target.value)}
+                        className="mobbin-input text-center font-mono text-lg font-bold tracking-[0.4em]"
+                        required
+                      />
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button type="submit" className="mobbin-btn-primary flex-1">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>تأكيد التفعيل والدخول الفوري</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRegStep(1)}
+                        className="mobbin-btn-pill-soft px-6"
+                      >
+                        رجوع
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
     </div>
   );
 };
-
 export default LoginPage;

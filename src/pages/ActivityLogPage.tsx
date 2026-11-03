@@ -237,7 +237,7 @@ export const ActivityLogPage: React.FC = () => {
               title="تنفيذ عملية تشغيلية ومالية حية لكل موظف من موظفي المجموعة الـ 28"
             >
               <Zap className={`w-3.5 h-3.5 ml-1 text-amber-400 ${isExecutingBatch ? 'animate-spin' : ''}`} />
-              <span>{isExecutingBatch ? 'جاري التنفيذ...' : '⚡ إجراء عملية حية لكل موظف (28 موظفاً)'}</span>
+              <span>{isExecutingBatch ? 'جاري التنفيذ...' : 'إجراء عملية حية لكل موظف (28 موظفاً)'}</span>
             </button>
             <button
               className="button-outline-on-dark"
