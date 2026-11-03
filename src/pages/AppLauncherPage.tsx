@@ -700,116 +700,115 @@ const CATEGORY_STYLES: Record<string, CategoryMeta> = {
     id: 'finance',
     label: 'محاسبة سماك (SMACC)',
     emoji: '',
-    cellBg: 'bg-white',
-    cellHover: 'hover:bg-[#FBFBF5]',
-    titleColor: 'text-black',
-    subColor: 'text-zinc-600',
-    iconBg: 'bg-black',
-    iconColor: 'text-[#CFA64A]',
-    categoryTagBg: 'bg-[#FAEBD7]',
-    categoryTagColor: 'text-[#8C6239]',
-    metricTagBg: 'bg-zinc-100',
-    metricTagColor: 'text-zinc-800',
-    footerBorder: 'border-zinc-200',
-    actionColor: 'text-black group-hover:text-[#8C6239]',
-    activePillBg: 'bg-black border-black',
-    activePillText: 'text-[#CFA64A]'
+    cellBg: 'bg-[#ffffff]',
+    cellHover: 'hover:bg-[#fafafa]',
+    titleColor: 'text-[#141414]',
+    subColor: 'text-[#707070]',
+    iconBg: 'bg-[#f3f3f3]',
+    iconColor: 'text-[#141414]',
+    categoryTagBg: 'bg-[#f3f3f3]',
+    categoryTagColor: 'text-[#141414]',
+    metricTagBg: 'bg-[#f3f3f3]',
+    metricTagColor: 'text-[#707070]',
+    footerBorder: 'border-[#f0f0f0]',
+    actionColor: 'text-[#141414]',
+    activePillBg: 'bg-[#141414] border-[#141414]',
+    activePillText: 'text-[#ffffff]'
   },
   operations: {
     id: 'operations',
     label: 'العمليات والاستقدام والتأجير',
     emoji: '',
-    cellBg: 'bg-white',
-    cellHover: 'hover:bg-[#FBFBF5]',
-    titleColor: 'text-black',
-    subColor: 'text-zinc-600',
-    iconBg: 'bg-zinc-900',
-    iconColor: 'text-white',
-    categoryTagBg: 'bg-zinc-100',
-    categoryTagColor: 'text-zinc-800',
-    metricTagBg: 'bg-[#FAEBD7]/70',
-    metricTagColor: 'text-[#8C6239]',
-    footerBorder: 'border-zinc-200',
-    actionColor: 'text-black group-hover:text-zinc-700',
-    activePillBg: 'bg-black border-black',
-    activePillText: 'text-white'
+    cellBg: 'bg-[#ffffff]',
+    cellHover: 'hover:bg-[#fafafa]',
+    titleColor: 'text-[#141414]',
+    subColor: 'text-[#707070]',
+    iconBg: 'bg-[#f3f3f3]',
+    iconColor: 'text-[#141414]',
+    categoryTagBg: 'bg-[#f3f3f3]',
+    categoryTagColor: 'text-[#141414]',
+    metricTagBg: 'bg-[#f3f3f3]',
+    metricTagColor: 'text-[#707070]',
+    footerBorder: 'border-[#f0f0f0]',
+    actionColor: 'text-[#141414]',
+    activePillBg: 'bg-[#141414] border-[#141414]',
+    activePillText: 'text-[#ffffff]'
   },
   crm: {
     id: 'crm',
     label: 'خدمة العملاء والمبيعات',
     emoji: '',
-    cellBg: 'bg-white',
-    cellHover: 'hover:bg-[#FBFBF5]',
-    titleColor: 'text-black',
-    subColor: 'text-zinc-600',
-    iconBg: 'bg-zinc-900',
-    iconColor: 'text-[#CFA64A]',
-    categoryTagBg: 'bg-zinc-100',
-    categoryTagColor: 'text-zinc-800',
-    metricTagBg: 'bg-zinc-100',
-    metricTagColor: 'text-zinc-800',
-    footerBorder: 'border-zinc-200',
-    actionColor: 'text-black group-hover:text-zinc-700',
-    activePillBg: 'bg-black border-black',
-    activePillText: 'text-white'
+    cellBg: 'bg-[#ffffff]',
+    cellHover: 'hover:bg-[#fafafa]',
+    titleColor: 'text-[#141414]',
+    subColor: 'text-[#707070]',
+    iconBg: 'bg-[#f3f3f3]',
+    iconColor: 'text-[#141414]',
+    categoryTagBg: 'bg-[#f3f3f3]',
+    categoryTagColor: 'text-[#141414]',
+    metricTagBg: 'bg-[#f3f3f3]',
+    metricTagColor: 'text-[#707070]',
+    footerBorder: 'border-[#f0f0f0]',
+    actionColor: 'text-[#141414]',
+    activePillBg: 'bg-[#141414] border-[#141414]',
+    activePillText: 'text-[#ffffff]'
   },
   hr: {
     id: 'hr',
     label: 'الموارد البشرية والوكلاء',
     emoji: '',
-    cellBg: 'bg-white',
-    cellHover: 'hover:bg-[#FBFBF5]',
-    titleColor: 'text-black',
-    subColor: 'text-zinc-600',
-    iconBg: 'bg-zinc-900',
-    iconColor: 'text-white',
-    categoryTagBg: 'bg-[#FAEBD7]/60',
-    categoryTagColor: 'text-[#8C6239]',
-    metricTagBg: 'bg-zinc-100',
-    metricTagColor: 'text-zinc-800',
-    footerBorder: 'border-zinc-200',
-    actionColor: 'text-black group-hover:text-zinc-700',
-    activePillBg: 'bg-black border-black',
-    activePillText: 'text-white'
+    cellBg: 'bg-[#ffffff]',
+    cellHover: 'hover:bg-[#fafafa]',
+    titleColor: 'text-[#141414]',
+    subColor: 'text-[#707070]',
+    iconBg: 'bg-[#f3f3f3]',
+    iconColor: 'text-[#141414]',
+    categoryTagBg: 'bg-[#f3f3f3]',
+    categoryTagColor: 'text-[#141414]',
+    metricTagBg: 'bg-[#f3f3f3]',
+    metricTagColor: 'text-[#707070]',
+    footerBorder: 'border-[#f0f0f0]',
+    actionColor: 'text-[#141414]',
+    activePillBg: 'bg-[#141414] border-[#141414]',
+    activePillText: 'text-[#ffffff]'
   },
   governance: {
     id: 'governance',
     label: 'القيادة والمنافسات والحوكمة',
     emoji: '',
-    cellBg: 'bg-[#09090b]',
-    cellHover: 'hover:bg-[#18181b]',
-    titleColor: 'text-white',
-    subColor: 'text-zinc-400',
-    iconBg: 'bg-zinc-800',
-    iconColor: 'text-[#CFA64A]',
-    categoryTagBg: 'bg-zinc-800',
-    categoryTagColor: 'text-[#CFA64A]',
-    metricTagBg: 'bg-zinc-800',
-    metricTagColor: 'text-zinc-200',
-    footerBorder: 'border-zinc-800',
-    actionColor: 'text-[#CFA64A] group-hover:text-white',
-    activePillBg: 'bg-black border-black',
-    activePillText: 'text-[#CFA64A]',
-    isDark: true
+    cellBg: 'bg-[#ffffff]',
+    cellHover: 'hover:bg-[#fafafa]',
+    titleColor: 'text-[#141414]',
+    subColor: 'text-[#707070]',
+    iconBg: 'bg-[#f3f3f3]',
+    iconColor: 'text-[#141414]',
+    categoryTagBg: 'bg-[#f3f3f3]',
+    categoryTagColor: 'text-[#141414]',
+    metricTagBg: 'bg-[#f3f3f3]',
+    metricTagColor: 'text-[#707070]',
+    footerBorder: 'border-[#f0f0f0]',
+    actionColor: 'text-[#141414]',
+    activePillBg: 'bg-[#141414] border-[#141414]',
+    activePillText: 'text-[#ffffff]'
   },
   tech: {
     id: 'tech',
     label: 'الأمان والامتثال والإعدادات',
     emoji: '',
-    cellBg: 'bg-white',
-    cellHover: 'hover:bg-[#FBFBF5]',
-    titleColor: 'text-black',
-    subColor: 'text-zinc-600',
-    iconBg: 'bg-black',
-    iconColor: 'text-white',
-    categoryTagBg: 'bg-zinc-100',
-    categoryTagColor: 'text-zinc-700',
-    metricTagBg: 'bg-zinc-100',
-    metricTagColor: 'text-zinc-800',
-    footerBorder: 'border-zinc-200',
-    actionColor: 'text-black group-hover:text-zinc-700',
-    activePillBg: 'bg-black border-black',
-    activePillText: 'text-white'
+    cellBg: 'bg-[#ffffff]',
+    cellHover: 'hover:bg-[#fafafa]',
+    titleColor: 'text-[#141414]',
+    subColor: 'text-[#707070]',
+    iconBg: 'bg-[#f3f3f3]',
+    iconColor: 'text-[#141414]',
+    categoryTagBg: 'bg-[#f3f3f3]',
+    categoryTagColor: 'text-[#141414]',
+    metricTagBg: 'bg-[#f3f3f3]',
+    metricTagColor: 'text-[#707070]',
+    footerBorder: 'border-[#f0f0f0]',
+    actionColor: 'text-[#141414]',
+    activePillBg: 'bg-[#141414] border-[#141414]',
+    activePillText: 'text-[#ffffff]'
   }
 };
 
@@ -884,10 +883,10 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
   return (
     <main
       dir="rtl"
-      className="min-h-screen min-h-[100dvh] w-full bg-[#FBFBF5] text-zinc-900 flex flex-col font-sans selection:bg-[#FAEBD7] selection:text-black"
+      className="min-h-screen min-h-[100dvh] w-full bg-[#ffffff] text-[#141414] flex flex-col font-sans"
     >
       {/* Top Institutional Header */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-zinc-200 px-4 sm:px-8 lg:px-12 py-3 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#f0f0f0] px-4 sm:px-8 lg:px-12 py-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <CorporateAvatar
             name={currentUser?.full_name || 'موظف معتمد'}
@@ -899,14 +898,14 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
           />
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-black text-sm sm:text-base text-black font-display leading-tight">
+              <span className="font-bold text-sm sm:text-base text-[#141414] font-display leading-tight">
                 {currentDeptMeta.nameAr}
               </span>
-              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#FAEBD7] text-[#8C6239] border border-[#CFA64A]/40">
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]">
                 {isGroupAdmin ? 'صلاحية الإدارة العليا الشاملة' : 'معزول ومقيد للقسم فقط'}
               </span>
             </div>
-            <div className="text-[11px] text-zinc-500 font-semibold truncate mt-0.5">
+            <div className="text-[11px] text-[#707070] font-medium truncate mt-0.5">
               {currentUser?.full_name || 'موظف معتمد'} • {activeCompany.name} ({resolvedScope.companyId}) •{' '}
               {authorizedApps.length} وحدة نظامية مصرحة
             </div>
@@ -916,19 +915,19 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
         {/* Search Bar & Primary Actions */}
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           <div className="relative flex items-center">
-            <Search className="w-4 h-4 text-zinc-400 absolute right-3 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#707070] absolute right-3 pointer-events-none" />
             <input
               type="text"
               placeholder={t('searchAppPlaceholder', 'ابحث في وحدات قسمك...')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-[#FBFBF5] border border-zinc-300 rounded-full pr-9 pl-4 py-1.5 text-xs text-black placeholder-zinc-400 outline-none w-36 sm:w-64 focus:border-black focus:ring-1 focus:ring-black transition-all"
+              className="bg-[#f3f3f3] border border-[#e0e0e0] rounded-full pr-9 pl-4 py-1.5 text-xs text-[#141414] placeholder-[#707070] outline-none w-36 sm:w-64 focus:border-[#141414] focus:bg-[#ffffff] transition-all"
             />
           </div>
 
           <button
             type="button"
-            className="bg-black hover:bg-zinc-800 text-[#CFA64A] border border-black flex items-center gap-1.5 text-xs px-4 py-2 rounded-full font-bold min-h-[36px] transition-all cursor-pointer"
+            className="bg-[#141414] hover:bg-[#262626] text-[#ffffff] border border-[#141414] flex items-center gap-1.5 text-xs px-4 py-2 rounded-full font-bold min-h-[36px] transition-all cursor-pointer"
             onClick={() =>
               onSelectApp(currentDeptMeta.defaultTab, currentDeptMeta.defaultTabTitle)
             }
@@ -941,7 +940,7 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
           <button
             type="button"
             onClick={() => onSelectApp('logout', 'تسجيل الخروج')}
-            className="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 flex items-center gap-1.5 text-xs px-3.5 py-2 rounded-full font-bold min-h-[36px] transition-all cursor-pointer"
+            className="bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] flex items-center gap-1.5 text-xs px-3.5 py-2 rounded-full font-bold min-h-[36px] transition-all cursor-pointer"
             title="تسجيل الخروج والعودة لبوابة الدخول الموحدة"
           >
             <LogOut className="w-3.5 h-3.5" />
@@ -951,29 +950,25 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
       </header>
 
       {/* Department Isolation Banner */}
-      <div className="bg-black text-white border-b border-zinc-800 px-4 sm:px-8 lg:px-12 py-3.5">
+      <div className="bg-[#f3f3f3] text-[#141414] border-b border-[#e0e0e0] px-4 sm:px-8 lg:px-12 py-3.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-3">
-            <BusinessIllustration
-              tabKey={currentDeptMeta.defaultTab}
-              departmentId={currentDeptMeta.id}
-              size="sm"
-              showBackground={false}
-              className="!w-12 !h-12 shrink-0"
-            />
+            <div className="w-11 h-11 rounded-[14px] bg-[#141414] text-[#ffffff] flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
             <div>
               <div className="flex items-center gap-2">
-                <Lock className="w-3.5 h-3.5 text-[#CFA64A] shrink-0" />
-                <span className="font-bold text-[#CFA64A]">
+                <Lock className="w-3.5 h-3.5 text-[#141414] shrink-0" />
+                <span className="font-bold text-[#141414]">
                   بوابة القسم المعزولة (تقسيمات نظام سماك SMACC المعتمدة):
                 </span>
               </div>
-              <span className="text-zinc-300 block mt-0.5">
+              <span className="text-[#707070] block mt-0.5">
                 يتم عرض الوحدات المصرحة فقط لقسم ({currentDeptMeta.nameAr}) داخل ({activeCompany.name}).
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-[11px] font-mono text-zinc-400">
+          <div className="flex items-center gap-2 text-[11px] font-mono text-[#707070]">
             <span>DEPT: {currentDeptMeta.id.toUpperCase()}</span>
             <span>•</span>
             <span>ENTITY: {String(resolvedScope.companyId).toUpperCase()}</span>
@@ -988,14 +983,6 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
           {visibleCategories.map((cat) => {
             const isActive = selectedCategory === cat.id;
             const count = countsByCategory[cat.id] || 0;
-            const catStyle = CATEGORY_STYLES[cat.id];
-
-            let activeClass = 'bg-black text-[#CFA64A] border-black shadow-xs';
-            let activeCountBadge = 'bg-zinc-800 text-[#CFA64A]';
-            if (isActive && catStyle) {
-              activeClass = `${catStyle.activePillBg} ${catStyle.activePillText} shadow-xs`;
-              activeCountBadge = 'bg-white/15 text-white';
-            }
 
             return (
               <button
@@ -1004,15 +991,14 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border cursor-pointer ${
                   isActive
-                    ? activeClass
-                    : 'bg-white text-zinc-800 border-zinc-200 hover:border-black hover:bg-[#FBFBF5]'
+                    ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                    : 'bg-[#ffffff] text-[#141414] border-[#e0e0e0] hover:bg-[#f3f3f3]'
                 }`}
               >
-                <span>{cat.emoji}</span>
                 <span>{cat.label}</span>
                 <span
                   className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                    isActive ? activeCountBadge : 'bg-zinc-100 text-zinc-700'
+                    isActive ? 'bg-[#ffffff]/20 text-[#ffffff]' : 'bg-[#f3f3f3] text-[#707070]'
                   }`}
                 >
                   {count}
@@ -1023,7 +1009,7 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
         </div>
 
         {/* Seamless Institutional Bento Grid */}
-        <div className="bg-zinc-200 border border-zinc-200 rounded-3xl overflow-hidden shadow-xs grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-[1px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
           {filteredApps.map((app) => {
             const title = t(app.titleKey, app.defaultTitle);
             const subtitle = t(app.subKey, app.defaultSubtitle);
@@ -1034,26 +1020,22 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
               <div
                 key={app.id}
                 onClick={() => onSelectApp(app.href, title)}
-                className={`p-5 sm:p-6 flex flex-col justify-between cursor-pointer transition-all duration-200 group relative min-h-[220px] ${style.cellBg} ${style.cellHover}`}
+                className={`p-5 sm:p-6 rounded-[24px] border border-[#e0e0e0] hover:border-[#141414] flex flex-col justify-between cursor-pointer transition-all duration-200 group relative min-h-[210px] ${style.cellBg} ${style.cellHover}`}
               >
-                <div className="space-y-3">
-                  {/* Top Badges & Funkyways Illustration Row */}
+                <div className="space-y-3.5">
+                  {/* Top Badges & Crisp Module Squircle Icon Row */}
                   <div className="flex items-center justify-between gap-2">
-                    <BusinessIllustration
-                      tabKey={app.href}
-                      departmentId={currentDeptMeta.id}
-                      size="sm"
-                      showBackground={false}
-                      className="!w-12 !h-12 shrink-0"
-                    />
+                    <div className="w-11 h-11 rounded-[14px] bg-[#f3f3f3] group-hover:bg-[#141414] text-[#141414] group-hover:text-[#ffffff] border border-[#e0e0e0] group-hover:border-[#141414] flex items-center justify-center transition-colors shrink-0">
+                      <Icon className="w-5 h-5" strokeWidth={1.85} />
+                    </div>
 
                     <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                      <span className="text-[9.5px] px-2 py-0.5 rounded-md font-mono font-bold bg-zinc-100 text-zinc-700 border border-zinc-200">
+                      <span className="text-[10px] px-2 py-0.5 rounded-md font-mono font-bold bg-[#f3f3f3] text-[#707070] border border-[#e0e0e0]">
                         {app.smaccCode}
                       </span>
                       {app.metricBadge && (
                         <span
-                          className={`text-[9.5px] px-2.5 py-0.5 rounded-full font-bold font-mono ${style.metricTagBg} ${style.metricTagColor}`}
+                          className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold font-mono ${style.metricTagBg} ${style.metricTagColor}`}
                         >
                           {app.metricBadge}
                         </span>
@@ -1111,18 +1093,18 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
       </div>
 
       {/* Institutional Footer */}
-      <footer className="bg-white border-t border-zinc-200 py-4 px-4 sm:px-8 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-500 mt-auto">
+      <footer className="bg-white border-t border-[#f0f0f0] py-4 px-4 sm:px-8 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#707070] mt-auto">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-[#8C6239]" />
-          <span className="font-semibold text-zinc-700">
+          <ShieldCheck className="w-4 h-4 text-[#141414]" />
+          <span className="font-semibold text-[#141414]">
             مجموعة خالد السليم للاستقدام والتشغيل • المنظومة السحابية الموحدة المعتمدة على تقسيمات سماك (SMACC)
           </span>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="px-2.5 py-0.5 rounded-full bg-[#FAEBD7] text-[#8C6239] font-bold text-[10px]">
+          <span className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] font-bold text-[10px]">
             عزل صارم للأقسام والشركات
           </span>
-          <span className="px-2.5 py-0.5 rounded-full bg-zinc-100 text-zinc-700 font-bold text-[10px]">
+          <span className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] text-[#707070] border border-[#e0e0e0] font-bold text-[10px]">
             ZATCA المرحلة الثانية
           </span>
         </div>

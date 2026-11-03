@@ -449,43 +449,43 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Display Mode Switcher (Mobbin Segmented Control) */}
         {effectiveMode !== 'compact' && (
-          <div className="flex items-center justify-between bg-[#f3f3f3] p-1 rounded-full">
+          <div className="grid grid-cols-3 gap-1 bg-[#f3f3f3] p-1 rounded-full">
             <button
               type="button"
               onClick={() => handleModeSwitch('tree')}
-              className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-1 py-1.5 px-2 rounded-full text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 effectiveMode === 'tree'
                   ? 'bg-[#ffffff] text-[#141414] border border-[#e0e0e0]'
                   : 'text-[#707070] hover:text-[#141414]'
               }`}
               title="عرض شجري للأقسام الـ 9"
             >
-              <ListTree className="w-3.5 h-3.5" />
-              <span>الأقسام الـ 9</span>
+              <ListTree className="w-3.5 h-3.5 shrink-0" />
+              <span>الأقسام</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleModeSwitch('cards')}
-              className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-1 py-1.5 px-2 rounded-full text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 effectiveMode === 'cards'
                   ? 'bg-[#ffffff] text-[#141414] border border-[#e0e0e0]'
                   : 'text-[#707070] hover:text-[#141414]'
               }`}
               title="عرض بطاقات"
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
+              <LayoutGrid className="w-3.5 h-3.5 shrink-0" />
               <span>بطاقات</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleModeSwitch('compact')}
-              className="flex-1 flex items-center justify-center gap-1 py-1 rounded-full text-[11px] font-semibold text-[#707070] hover:text-[#141414] transition-all cursor-pointer"
+              className="flex items-center justify-center gap-1 py-1.5 px-2 rounded-full text-[11px] font-semibold text-[#707070] hover:text-[#141414] transition-all cursor-pointer whitespace-nowrap"
               title="طي القائمة الجانبية"
             >
-              <Columns className="w-3.5 h-3.5" />
-              <span>طي القائمة</span>
+              <Columns className="w-3.5 h-3.5 shrink-0" />
+              <span>طي</span>
             </button>
           </div>
         )}

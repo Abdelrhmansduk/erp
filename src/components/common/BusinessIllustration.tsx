@@ -47,11 +47,11 @@ export interface BusinessIllustrationProps {
   variant?: 'funkyways' | 'vector';
 }
 
-const DIMENSIONS: Record<NonNullable<BusinessIllustrationProps['size']>, { w: number; h: number }> = {
-  sm: { w: 68, h: 60 },
-  md: { w: 136, h: 112 },
-  lg: { w: 188, h: 148 },
-  xl: { w: 240, h: 184 },
+const DIMENSIONS: Record<NonNullable<BusinessIllustrationProps['size']>, { box: number; icon: number; radius: string }> = {
+  sm: { box: 44, icon: 20, radius: '14px' },
+  md: { box: 56, icon: 24, radius: '16px' },
+  lg: { box: 68, icon: 28, radius: '18px' },
+  xl: { box: 80, icon: 32, radius: '22px' },
 };
 
 const ICON_MAP: Record<IllustrationKey, React.ElementType> = {
@@ -137,155 +137,31 @@ export const BusinessIllustration: React.FC<BusinessIllustrationProps> = ({
   const resolvedKey: IllustrationKey =
     type || resolveIllustrationForTab(tabKey, departmentId);
   const meta = getIllustrationMetadata(resolvedKey);
-  const { w, h } = DIMENSIONS[size] || DIMENSIONS.md;
+  const { box, icon, radius } = DIMENSIONS[size] || DIMENSIONS.md;
   const IconComponent = ICON_MAP[resolvedKey] || ShieldCheck;
-  const moduleCode = MODULE_CODE_MAP[resolvedKey] || 'SYS-26';
-
-  if (size === 'sm') {
-    return (
-      <div
-        className={`relative inline-flex flex-col items-center justify-center select-none shrink-0 ${className}`}
-        style={{
-          width: w,
-          height: h,
-          borderRadius: '18px',
-          backgroundColor: '#ffffff',
-          border: '1px solid #e0e0e0',
-          padding: '6px',
-          gap: '4px',
-        }}
-        title={meta.titleAr}
-      >
-        <div
-          style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '30%',
-            backgroundColor: '#141414',
-            color: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-          }}
-        >
-          <IconComponent style={{ width: '16px', height: '16px', color: '#ffffff' }} />
-          <span
-            style={{
-              position: 'absolute',
-              top: '-2px',
-              left: '-2px',
-              width: '7px',
-              height: '7px',
-              borderRadius: '9999px',
-              backgroundColor: '#0066ff',
-              border: '1.5px solid #ffffff',
-            }}
-          />
-        </div>
-        <span
-          style={{
-            fontSize: '8.5px',
-            fontWeight: 700,
-            fontFamily: 'var(--font-family-mono)',
-            color: '#707070',
-            letterSpacing: '0.03em',
-            lineHeight: 1,
-          }}
-        >
-          {moduleCode}
-        </span>
-      </div>
-    );
-  }
 
   return (
     <div
-      className={`relative inline-flex flex-col justify-between select-none shrink-0 ${className}`}
+      className={`relative inline-flex items-center justify-center select-none shrink-0 ${className}`}
       style={{
-        width: w,
-        height: h,
-        borderRadius: '20px',
-        backgroundColor: '#ffffff',
+        width: box,
+        height: box,
+        borderRadius: radius,
+        backgroundColor: '#f3f3f3',
         border: '1px solid #e0e0e0',
-        padding: '12px',
-        overflow: 'hidden',
+        color: '#141414',
       }}
       title={meta.titleAr}
     >
-      {/* Top Row: 30% Squircle Icon + Module Code Pill */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        <div
-          style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '30%',
-            backgroundColor: '#141414',
-            color: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <IconComponent style={{ width: '18px', height: '18px', color: '#ffffff' }} />
-        </div>
-
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '4px',
-            padding: '3px 8px',
-            borderRadius: '9999px',
-            backgroundColor: '#f3f3f3',
-            border: '1px solid #e0e0e0',
-            fontSize: '9px',
-            fontWeight: 700,
-            fontFamily: 'var(--font-family-mono)',
-            color: '#141414',
-          }}
-        >
-          <span
-            style={{
-              width: '5px',
-              height: '5px',
-              borderRadius: '9999px',
-              backgroundColor: '#0066ff',
-            }}
-          />
-          {moduleCode}
-        </span>
-      </div>
-
-      {/* Middle Row: Swiss Architectural Telemetry Bars */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', margin: '8px 0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', width: '100%' }}>
-          <div style={{ height: '4px', flex: 3, borderRadius: '9999px', backgroundColor: '#141414' }} />
-          <div style={{ height: '4px', flex: 2, borderRadius: '9999px', backgroundColor: '#0066ff' }} />
-          <div style={{ height: '4px', flex: 1, borderRadius: '9999px', backgroundColor: '#e0e0e0' }} />
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', width: '75%' }}>
-          <div style={{ height: '4px', flex: 2, borderRadius: '9999px', backgroundColor: '#e0e0e0' }} />
-          <div style={{ height: '4px', flex: 1, borderRadius: '9999px', backgroundColor: '#f3f3f3' }} />
-        </div>
-      </div>
-
-      {/* Bottom Row: Badge Title */}
-      <div
+      <IconComponent
         style={{
-          fontSize: '10px',
-          fontWeight: 600,
-          color: '#707070',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          width: '100%',
-          textAlign: 'right',
+          width: icon,
+          height: icon,
+          color: '#141414',
+          strokeWidth: 1.85,
+          flexShrink: 0,
         }}
-      >
-        {meta.badgeAr}
-      </div>
+      />
     </div>
   );
 };

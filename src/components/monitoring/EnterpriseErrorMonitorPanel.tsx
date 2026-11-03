@@ -207,26 +207,26 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
 
   return (
     <div className="space-y-5 font-sans" dir="rtl" data-no-dyn-enhancer="true">
-      {/* Top Executive Error Monitor Header Banner */}
-      <div className="rounded-3xl bg-[#1D2428] border-2 border-[#CFA64A]/60 p-6 text-white shadow-xl">
+      {/* Top Executive Error Monitor Header Banner — Mobbin Light Mode */}
+      <div className="rounded-[24px] bg-[#ffffff] border border-[#e0e0e0] p-6 text-[#141414]">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-13 h-13 rounded-2xl bg-[#CFA64A]/15 border border-[#CFA64A] flex items-center justify-center text-[#CFA64A] shrink-0 shadow-inner">
-              <ShieldCheck className="w-7 h-7" />
+            <div className="w-12 h-12 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center text-[#141414] shrink-0">
+              <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap mb-1">
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#CFA64A] text-[#1D2428]">
-                  ENTERPRISE LIVE ERROR MONITOR & SELF-HEALING v3.5
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#141414] text-[#ffffff]">
+                  ENTERPRISE LIVE ERROR MONITOR v3.5
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]">
                   درع الحماية الذاتي نشط • {summary.uptimePercent}
                 </span>
               </div>
-              <h2 className="text-lg sm:text-xl font-black text-white m-0">
+              <h2 className="text-lg sm:text-xl font-black text-[#141414] m-0">
                 رادار مراقبة وتشخيص الأخطاء المباشر ومحرك الإصلاح الذاتي
               </h2>
-              <p className="text-xs text-zinc-300 mt-1 m-0">
+              <p className="text-xs text-[#707070] mt-1 m-0">
                 التقاط لحظي لأخطاء الواجهة (React 19 Fiber)، الشبكة، الحزم الديناميكية، وبوابات الربط الحكومي مع التشخيص والعلاج الفوري
               </p>
             </div>
@@ -237,7 +237,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
               type="button"
               onClick={handleHealAll}
               disabled={isHealingAll}
-              className="h-10 px-4 rounded-xl bg-[#CFA64A] hover:bg-[#e0b85c] text-[#1D2428] text-xs font-black inline-flex items-center gap-1.5 cursor-pointer transition-all shadow-sm"
+              className="h-10 px-4 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer transition-all"
             >
               <Wrench className="w-4 h-4" />
               <span>
@@ -251,7 +251,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
               type="button"
               onClick={handleRunFullScan}
               disabled={isScanning}
-              className="h-10 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer transition-all"
+              className="h-10 px-4 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer transition-all"
             >
               <RefreshCw className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
               <span>{isScanning ? 'جارٍ فحص النظام...' : 'فحص شامل للمنظومة'}</span>
@@ -262,67 +262,63 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
               data={exportRows}
               customTitle="تقرير رادار مراقبة وتشخيص الأخطاء المباشر (Enterprise Error Monitor)"
               buttonLabel="تصدير السجل التشخيصي"
-              variant="outline-dark"
+              variant="outline-light"
             />
           </div>
         </div>
 
         {/* 4 KPI Summary Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5 pt-5 border-t border-white/10">
-          <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
-            <div className="flex items-center justify-between text-xs text-zinc-400">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5 pt-5 border-t border-[#f0f0f0]">
+          <div className="p-3.5 rounded-[18px] bg-[#f3f3f3] border border-[#e0e0e0]">
+            <div className="flex items-center justify-between text-xs text-[#707070]">
               <span>مؤشر سلامة واستقرار النظام</span>
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <ShieldCheck className="w-4 h-4 text-[#141414]" />
             </div>
-            <div className="text-2xl font-black text-emerald-400 font-mono mt-1">
+            <div className="text-2xl font-black text-[#141414] font-mono mt-1">
               {summary.healthScore}%
             </div>
-            <div className="text-[11px] text-zinc-400 mt-0.5">
+            <div className="text-[11px] text-[#707070] mt-0.5">
               آخر فحص: {summary.lastScanAt}
             </div>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
-            <div className="flex items-center justify-between text-xs text-zinc-400">
+          <div className="p-3.5 rounded-[18px] bg-[#f3f3f3] border border-[#e0e0e0]">
+            <div className="flex items-center justify-between text-xs text-[#707070]">
               <span>أخطاء تم إصلاحها ذاتياً</span>
-              <Sparkles className="w-4 h-4 text-[#CFA64A]" />
+              <Sparkles className="w-4 h-4 text-[#141414]" />
             </div>
-            <div className="text-2xl font-black text-[#CFA64A] font-mono mt-1">
+            <div className="text-2xl font-black text-[#141414] font-mono mt-1">
               {summary.autoHealedCount} / {summary.totalIncidents}
             </div>
-            <div className="text-[11px] text-zinc-400 mt-0.5">
+            <div className="text-[11px] text-[#707070] mt-0.5">
               عبر درع الاستشفاء التلقائي (Auto-Heal)
             </div>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
-            <div className="flex items-center justify-between text-xs text-zinc-400">
+          <div className="p-3.5 rounded-[18px] bg-[#f3f3f3] border border-[#e0e0e0]">
+            <div className="flex items-center justify-between text-xs text-[#707070]">
               <span>تنبيهات مفتوحة قيد المعالجة</span>
-              <AlertTriangle className="w-4 h-4 text-amber-400" />
+              <AlertTriangle className="w-4 h-4 text-[#141414]" />
             </div>
-            <div
-              className={`text-2xl font-black font-mono mt-1 ${
-                summary.openIncidents > 0 ? 'text-amber-400' : 'text-emerald-400'
-              }`}
-            >
+            <div className="text-2xl font-black text-[#141414] font-mono mt-1">
               {summary.openIncidents}
             </div>
-            <div className="text-[11px] text-zinc-400 mt-0.5">
+            <div className="text-[11px] text-[#707070] mt-0.5">
               {summary.openIncidents === 0
                 ? 'لا توجد أي أخطاء معلقة حالياً'
                 : 'قابلة للإصلاح الفوري بنقرة واحدة'}
             </div>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
-            <div className="flex items-center justify-between text-xs text-zinc-400">
+          <div className="p-3.5 rounded-[18px] bg-[#f3f3f3] border border-[#e0e0e0]">
+            <div className="flex items-center justify-between text-xs text-[#707070]">
               <span>متوسط سرعة الاستشفاء الذاتي</span>
-              <Zap className="w-4 h-4 text-emerald-400" />
+              <Zap className="w-4 h-4 text-[#141414]" />
             </div>
-            <div className="text-2xl font-black text-white font-mono mt-1">
+            <div className="text-2xl font-black text-[#141414] font-mono mt-1">
               {summary.avgRecoveryMs} ms
             </div>
-            <div className="text-[11px] text-emerald-300 mt-0.5">
+            <div className="text-[11px] text-[#707070] mt-0.5">
               استعادة فورية دون مقاطعة الموظف
             </div>
           </div>
@@ -351,21 +347,21 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
                   {chk.statusLabelAr}
                 </span>
               </div>
-              <div className="text-xs font-mono font-black text-[#8C681E]">
+              <div className="text-xs font-mono font-black text-[#141414]">
                 {chk.metricValue}
               </div>
-              <p className="text-[11px] text-zinc-500 m-0 leading-relaxed">{chk.detailsAr}</p>
+              <p className="text-[11px] text-[#707070] m-0 leading-relaxed">{chk.detailsAr}</p>
             </div>
           ))}
         </div>
       )}
 
       {/* Simulation & Chaos Testing Bar + Filters */}
-      <div className="p-4 rounded-2xl bg-white border border-zinc-200 shadow-xs space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-zinc-100">
+      <div className="p-4 rounded-[24px] bg-white border border-[#e0e0e0] space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#f0f0f0]">
           <div className="flex items-center gap-2">
-            <Cpu className="w-4 h-4 text-[#8C681E]" />
-            <span className="text-xs font-black text-[#1D2428]">
+            <Cpu className="w-4 h-4 text-[#141414]" />
+            <span className="text-xs font-black text-[#141414]">
               مختبر فحص درع الحماية والاستجابة اللحظية (Chaos & Self-Healing Simulator):
             </span>
           </div>
@@ -373,21 +369,21 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
             <button
               type="button"
               onClick={() => handleSimulate('dom_reconciliation')}
-              className="px-3 py-1.5 rounded-xl bg-[#FBFBF5] hover:bg-[#F5EDDC] text-[#1D2428] border border-[#CFA64A]/50 text-[11px] font-bold cursor-pointer transition-colors"
+              className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-[11px] font-bold cursor-pointer transition-colors"
             >
               + اختبار درع React Fiber
             </button>
             <button
               type="button"
               onClick={() => handleSimulate('network_timeout')}
-              className="px-3 py-1.5 rounded-xl bg-[#FBFBF5] hover:bg-[#F5EDDC] text-[#1D2428] border border-[#CFA64A]/50 text-[11px] font-bold cursor-pointer transition-colors"
+              className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-[11px] font-bold cursor-pointer transition-colors"
             >
               + اختبار انقطاع الشبكة
             </button>
             <button
               type="button"
               onClick={() => handleSimulate('zatca_validation')}
-              className="px-3 py-1.5 rounded-xl bg-[#FBFBF5] hover:bg-[#F5EDDC] text-[#1D2428] border border-[#CFA64A]/50 text-[11px] font-bold cursor-pointer transition-colors"
+              className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-[11px] font-bold cursor-pointer transition-colors"
             >
               + اختبار مدقق ZATCA
             </button>

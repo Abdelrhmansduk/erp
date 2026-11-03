@@ -326,11 +326,11 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
         title="تصدير ومعاينة الكشوفات الرسمية بـ 12 صيغة مؤسسية"
       >
         <span className={`inline-flex shrink-0 ${isExporting ? 'animate-bounce' : ''}`}>
-          <Download className="w-4 h-4 text-emerald-500 shrink-0" />
+          <Download className="w-4 h-4 text-[#141414] shrink-0" />
         </span>
         <span>{isExporting ? 'جاري التجهيز...' : buttonLabel}</span>
         {showCountBadge && badgeCount > 0 && !isExporting && (
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-black">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#e0e0e0] text-[#141414] font-bold">
             {badgeCount}
           </span>
         )}
