@@ -304,7 +304,7 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Mobbin Clean Top Bar: #ffffff surface, 1px #f0f0f0 hairline, zero shadow, zero collision */}
       <header className="h-16 bg-[#ffffff] border-b border-[#f0f0f0] px-3 sm:px-5 flex items-center justify-between sticky top-0 z-[90] gap-3">
         {/* Right Section: Sidebar Toggle, App Launcher Pill, Active Title, Branch Switcher */}
-        <div className="flex items-center gap-2 min-w-0 flex-1">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
           <button
             type="button"
             className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] flex items-center justify-center shrink-0 cursor-pointer transition-colors"
@@ -325,26 +325,26 @@ export const Header: React.FC<HeaderProps> = ({
             <span>شاشات القسم</span>
           </button>
 
-          <div className="min-w-[120px] flex-1 overflow-hidden">
+          <div className="min-w-0 shrink overflow-hidden">
             <h1 className="text-sm sm:text-[15px] font-bold text-[#141414] m-0 truncate">
               {resolvedTabTitle}
             </h1>
           </div>
 
-          {/* Active Branch Switcher (visible on 2xl screens so it never crowds 1280-1440px) */}
-          <div className="relative hidden 2xl:block shrink-0">
+          {/* Active Branch Switcher — Full width without truncation */}
+          <div className="relative hidden lg:block shrink-0">
             <button
               type="button"
               onClick={() => setShowBranchDropdown(!showBranchDropdown)}
-              className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] cursor-pointer flex items-center gap-1.5 text-xs font-semibold whitespace-nowrap shrink-0 transition-colors"
+              className="px-3.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] cursor-pointer flex items-center gap-1.5 text-xs font-semibold whitespace-nowrap shrink-0 transition-colors"
             >
-              <MapPin className="w-3.5 h-3.5 text-[#707070] shrink-0" />
-              <span className="truncate max-w-[140px]">{selectedBranch}</span>
-              <ChevronDown className="w-3 h-3 text-[#707070] shrink-0" />
+              <MapPin className="w-3.5 h-3.5 text-[#141414] shrink-0" />
+              <span className="whitespace-nowrap">{selectedBranch}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-[#707070] shrink-0" />
             </button>
 
             {showBranchDropdown && (
-              <div className="absolute top-full mt-2 right-0 bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] w-60 z-[250] p-2.5 space-y-1">
+              <div className="absolute top-full mt-2 right-0 bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] w-64 z-[250] p-2.5 space-y-1 shadow-lg">
                 <div className="px-3 py-1.5 text-[11px] font-semibold text-[#707070] border-b border-[#f0f0f0]">
                   الفرع التشغيلي:
                 </div>
@@ -377,11 +377,11 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               onClick={() => setShowDataHubModal(true)}
-              className="hidden 2xl:inline-flex px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] cursor-pointer whitespace-nowrap shrink-0 items-center gap-1.5 text-xs font-semibold transition-colors"
+              className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] cursor-pointer shrink-0 flex items-center justify-center transition-colors"
               title="حالة الاتصال بقاعدة البيانات السحابية"
+              aria-label="قاعدة البيانات"
             >
-              <Database className="w-3.5 h-3.5 text-[#141414] shrink-0" />
-              <span>قاعدة البيانات</span>
+              <Database className="w-4 h-4 text-[#141414] shrink-0" />
             </button>
           )}
 
@@ -389,11 +389,11 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={() => setShowErrorMonitorModal(true)}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer whitespace-nowrap"
             title="رادار مراقبة وتشخيص الأخطاء المباشر ومحرك الإصلاح الذاتي"
           >
             <Activity className="w-3.5 h-3.5 text-[#141414] shrink-0" />
-            <span className="hidden 2xl:inline">رادار الأخطاء</span>
+            <span className="hidden xl:inline">الأخطاء</span>
             <span className="mobbin-badge-popular">
               {openErrorCount > 0 ? openErrorCount : '100%'}
             </span>
@@ -403,7 +403,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={() => setShowUniversalExtractor(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#141414] hover:bg-[#262626] text-[#ffffff] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#141414] hover:bg-[#262626] text-[#ffffff] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer whitespace-nowrap"
             title="رفع واستخلاص آلي لأي مستند (100 صورة فاتورة / PDF / Word / Excel)"
           >
             <UploadCloud className="w-3.5 h-3.5 text-[#ffffff] shrink-0" />
@@ -416,27 +416,11 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => {
               window.dispatchEvent(new CustomEvent('open-faris-assistant'));
             }}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer whitespace-nowrap"
             title="استدعاء المستشار المؤسسي الصوتي والنصي (فارس / نُورة)"
           >
-            <img
-              src="/mascot.png"
-              alt="فارس ونُورة"
-              className="w-4 h-4 rounded-full object-contain bg-[#ffffff] shrink-0"
-            />
+            <User className="w-3.5 h-3.5 text-[#141414] shrink-0" />
             <span className="hidden 2xl:inline">فارس ونُورة</span>
-          </button>
-
-          {/* Institutional Department & Company Scope Pill */}
-          <button
-            type="button"
-            onClick={() => setShowProfileModal(true)}
-            className="hidden 2xl:inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer"
-            title="عرض بطاقة الهوية الوظيفية والقسم المصرح به"
-          >
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#141414] text-[#ffffff] font-mono">
-              {companyMeta.code === 'all' ? 'GROUP' : companyMeta.code}
-            </span>
           </button>
 
           {/* Language Selector */}
@@ -448,10 +432,10 @@ export const Header: React.FC<HeaderProps> = ({
                 setShowUserDropdown(false);
                 setShowNotifDropdown(false);
               }}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] rounded-full transition-colors text-xs font-semibold text-[#141414] cursor-pointer"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] rounded-full transition-colors text-xs font-semibold text-[#141414] cursor-pointer whitespace-nowrap"
               title="تغيير لغة المنظومة"
             >
-              <span className="text-sm leading-none">{currentLanguage.flag}</span>
+              <span className="text-xs font-mono font-bold">{currentLanguage.code.toUpperCase()}</span>
               <span className="hidden 2xl:inline text-xs">{currentLanguage.nativeName}</span>
               <ChevronDown className="w-3 h-3 text-[#707070] shrink-0" />
             </button>
@@ -596,10 +580,10 @@ export const Header: React.FC<HeaderProps> = ({
                 status="online"
               />
               <div className="hidden sm:block text-right">
-                <div className="text-[11px] font-semibold text-[#141414] leading-tight truncate max-w-[100px]">
+                <div className="text-[11px] font-semibold text-[#141414] leading-tight truncate max-w-[160px]">
                   {displayName}
                 </div>
-                <div className="text-[10px] text-[#707070] font-medium truncate max-w-[100px]">
+                <div className="text-[10px] text-[#707070] font-medium truncate max-w-[160px]">
                   {departmentDef.badgeText}
                 </div>
               </div>

@@ -641,13 +641,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         ) : (
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-[11px] px-1">
-              <span className="font-semibold text-[#141414] truncate">
+            <div className="px-1.5 space-y-0.5 text-right">
+              <div className="font-bold text-xs text-[#141414] leading-snug">
                 {effectiveProfile?.full_name || 'موظف القسم'}
-              </span>
-              <span className="text-[11px] text-[#707070] truncate">
-                {effectiveProfile?.branch || 'الفرع الرئيسي'}
-              </span>
+              </div>
+              <div className="text-[11px] font-medium text-[#707070] leading-snug">
+                {effectiveProfile?.branch || 'المقر الرئيسي للمجموعة - الرياض'}
+              </div>
             </div>
             <button
               type="button"
