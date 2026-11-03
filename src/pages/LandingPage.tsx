@@ -322,53 +322,47 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
       )}
 
       {/* 2. Executive Hero Section — Split Layout: Right Brand Intro & Checkmarks | Left Interactive Login Card */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-8 py-10 sm:py-16 lg:py-20 relative">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+      <section className="max-w-7xl mx-auto px-4 sm:px-8 py-12 sm:py-20 lg:py-24 relative">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
           {/* =====================================================================
               RIGHT COLUMN (اليمين): Brand Introduction, Checkmarks & Floating Icons
              ===================================================================== */}
-          <div className="lg:col-span-7 relative py-4 lg:py-8 text-right select-none">
+          <div className="lg:col-span-7 relative py-6 lg:py-12 text-right select-none">
             {/* Floating Decorative Circular Icon Badges */}
             <div className="hidden sm:flex absolute -top-2 right-6 w-14 h-14 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] shadow-xs">
               <Sparkles className="w-6 h-6" strokeWidth={1.75} />
             </div>
 
-            <div className="hidden sm:flex absolute top-28 left-8 w-12 h-12 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] shadow-xs">
+            <div className="hidden sm:flex absolute top-28 left-12 w-12 h-12 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] shadow-xs">
               <ShieldCheck className="w-5 h-5" strokeWidth={1.75} />
             </div>
 
-            <div className="hidden sm:flex absolute bottom-16 left-20 w-16 h-16 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] shadow-xs">
+            <div className="hidden sm:flex absolute bottom-8 left-24 w-16 h-16 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] shadow-xs">
               <Building2 className="w-7 h-7" strokeWidth={1.6} />
             </div>
 
-            {/* Brand Title & Subtitle */}
-            <div className="space-y-3 sm:mt-10">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] text-xs font-bold mb-1">
-                <Sparkles className="w-3.5 h-3.5 text-[#0066ff]" />
-                <span>منظومة أعمال متكاملة • KHALID AL-SULAIM GROUP</span>
+            {/* Brand Title & Subtitle — Simple, Executive & Institutional */}
+            <div className="space-y-3 sm:mt-8">
+              <div className="text-3xl sm:text-4xl font-black tracking-tight text-[#141414]">
+                خالد السليم <span className="text-[#c8c8c8] font-light mx-1.5">|</span>{' '}
+                <span className="font-extrabold">Al-Sulaim</span>
               </div>
 
-              <div className="text-2xl sm:text-3xl font-black tracking-tight text-[#141414]">
-                خالد السليم <span className="text-[#c8c8c8] font-light mx-1">|</span>{' '}
-                <span className="font-extrabold">KASSR ERP</span>
-              </div>
-
-              <h1 className="text-3xl sm:text-5xl font-extrabold text-[#141414] tracking-tight leading-[1.2] font-display">
-                نستثمر في الفرص.. نصنع المستقبل.
+              <h1 className="text-2xl sm:text-4xl font-extrabold text-[#141414] tracking-tight leading-snug font-display">
+                نستثمر في الفرص.. نصنع المستقبل
               </h1>
 
-              <p className="text-sm sm:text-base font-medium text-[#707070] pt-1 max-w-xl leading-relaxed">
-                بوابة التشغيل الذكي والحوكمة الرقمية لمجموعة خالد السليم: تنوع في القطاعات، قوة في التنفيذ، واستدامة في النمو عبر 9 أقسام مؤسسية مستقلة و5 شركات قابضة.
+              <p className="text-sm sm:text-base font-medium text-[#707070] pt-0.5">
+                منظومة الإدارة والتشغيل المؤسسي الموحدة
               </p>
             </div>
 
-            {/* Vertical Checkmark Features List (Right-aligned like reference image) */}
-            <div className="mt-8 space-y-3.5 max-w-md">
+            {/* Vertical Checkmark Features List (3 Concise Institutional Points) */}
+            <div className="mt-8 space-y-4 max-w-sm">
               {[
-                'عزل مالي ومحاسبي 100% عبر منظومة سماك SMACC',
-                'ربط فوري وموثق مع منصة مساند والفوترة المشفرة ZATCA',
-                'إدارة متكاملة لـ 9 أقسام تشغيلية و29 شركة ومركز مستقل',
-                'حماية الأجور WPS ومنافسات اعتماد ومراكز الإيواء الذكية',
+                'حوكمة مالية ومحاسبية متكاملة',
+                'ربط حكومي فوري وموثق',
+                'إدارة موحدة للشركات والأقسام',
               ].map((feature, idx) => (
                 <div key={idx} className="flex items-center gap-3.5">
                   <div className="w-8 h-8 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center text-[#141414] shrink-0">
@@ -378,43 +372,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                 </div>
               ))}
             </div>
-
-            {/* Quick Sector Switcher Pills */}
-            <div className="mt-9 pt-6 border-t border-[#efefef] max-w-xl">
-              <div className="text-[11px] font-bold text-[#707070] mb-3">
-                الأقسام والشركات المعتمدة في المنظومة — اختر للدخول السريع:
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {departmentsList.slice(0, 6).map((dept) => (
-                  <button
-                    key={dept.id}
-                    type="button"
-                    onClick={() => {
-                      const acct = staffDirectory.find((a) => a.department_id === dept.id);
-                      if (acct) executeQuickLogin(acct.email, 'Alsulaim@2026');
-                    }}
-                    className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-white border border-[#e0e0e0] text-[11px] font-bold transition-all cursor-pointer"
-                  >
-                    {dept.nameAr}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => handleSelect('gateway', 'gateway')}
-                  className="px-3 py-1.5 rounded-full bg-[#141414] text-white text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1"
-                >
-                  <span>بوابات الشركات</span>
-                  <ArrowLeft className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
           </div>
 
           {/* =====================================================================
               LEFT COLUMN (اليسار): Clean Interactive White Login Card
              ===================================================================== */}
           <div className="lg:col-span-5 flex flex-col items-center lg:items-end w-full">
-            <div className="w-full max-w-[440px]">
+            <div className="w-full max-w-[420px]">
               <div className="bg-white rounded-[28px] border border-[#ebebeb] shadow-[0_20px_60px_rgba(0,0,0,0.06)] p-6 sm:p-8 space-y-5 text-right">
                 {/* Top Mode Switcher Pill */}
                 <div className="grid grid-cols-2 p-1 rounded-full bg-[#f5f5f5] border border-[#ebebeb]">
@@ -428,11 +392,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                     }`}
                   >
                     <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>بوابة المشرفين</span>
+                    <span>حساب موظف</span>
                   </button>
                   <button
                     type="button"
-                    onClick={() => setPortalMode('companies')}
+                    onClick={() => handleSelect('gateway', 'gateway')}
                     className={`py-2 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       portalMode === 'companies'
                         ? 'bg-white text-[#141414] shadow-xs'
@@ -440,7 +404,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                     }`}
                   >
                     <Building2 className="w-3.5 h-3.5" />
-                    <span>مركز الشركات (29)</span>
+                    <span>مركز الشركات</span>
                   </button>
                 </div>
 
@@ -450,13 +414,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                     مرحباً بعودتك
                   </h2>
                   <p className="text-xs font-medium text-[#707070]">
-                    {portalMode === 'staff'
-                      ? 'إدارة ملفك الوظيفي ومهام قسمك وشركتك المستقلة'
-                      : 'اختر الشركة أو المكتب للدخول الفوري إلى بيئة العمل'}
+                    إدارة ملفك الوظيفي ومهام قسمك
                   </p>
                 </div>
 
-                {/* Secondary Sub-tab Pill (تسجيل الدخول / تفعيل حساب موظف) */}
+                {/* Secondary Sub-tab Pill (تسجيل الدخول / تفعيل حساب) */}
                 <div className="grid grid-cols-2 p-1 rounded-full bg-[#f3f3f3]">
                   <button
                     type="button"
@@ -484,7 +446,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                         : 'text-[#707070] hover:text-[#141414]'
                     }`}
                   >
-                    تفعيل حساب موظف
+                    تفعيل حساب
                   </button>
                 </div>
 
@@ -497,17 +459,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                     className="w-full py-2.5 px-4 rounded-full bg-white hover:bg-[#f9f9f9] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
                     <Fingerprint className="w-4 h-4 text-[#0066ff]" />
-                    <span>الدخول بالبصمة البيومترية FIDO2</span>
+                    <span>الدخول بالبصمة الرقمية</span>
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => executeQuickLogin('admin@alsulaim.com.sa', 'Alsulaim@2026')}
+                    onClick={() => executeQuickLogin('chairman@alsulaim.sa', 'Alsulaim@2026')}
                     disabled={loading}
                     className="w-full py-2.5 px-4 rounded-full bg-white hover:bg-[#f9f9f9] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
                     <Sparkles className="w-4 h-4 text-[#141414]" />
-                    <span>الرابط السحري (دخول الإدارة العليا الفوري)</span>
+                    <span>الرابط السحري</span>
                   </button>
                 </div>
 
@@ -546,7 +508,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                         type="text"
                         value={identifier}
                         onChange={(e) => setIdentifier(e.target.value)}
-                        placeholder="your@alsulaim.com.sa"
+                        placeholder="your@email.com"
                         dir="ltr"
                         className="w-full pl-4 pr-10 py-3 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-medium text-[#141414] placeholder:text-[#999999] outline-none transition-all text-left"
                       />
@@ -560,7 +522,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                       <button
                         type="button"
                         onClick={() => {
-                          setIdentifier('admin@alsulaim.com.sa');
+                          setIdentifier('chairman@alsulaim.sa');
                           setPassword('Alsulaim@2026');
                         }}
                         className="text-[11px] font-bold text-[#707070] hover:text-[#141414] transition-colors cursor-pointer"
@@ -596,40 +558,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                     {loading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>جاري التحقق والدخول...</span>
+                        <span>جاري الدخول...</span>
                       </>
                     ) : (
-                      <span>{authTab === 'login' ? 'تسجيل الدخول' : 'تفعيل الحساب والدخول'}</span>
+                      <span>{authTab === 'login' ? 'تسجيل الدخول' : 'تفعيل الحساب'}</span>
                     )}
                   </button>
                 </form>
-
-                {/* Quick Demo Accounts Bar inside the Login Card */}
-                <div className="pt-3 border-t border-[#f0f0f0]">
-                  <div className="flex items-center justify-between text-[10.5px] font-bold text-[#707070] mb-2">
-                    <span>دخول سريع بحسابات الأقسام المعتمدة:</span>
-                    <span className="font-mono text-[10px]">Alsulaim@2026</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {[
-                      { label: 'المدير العام', email: 'admin@alsulaim.com.sa' },
-                      { label: 'سماك المالية', email: 'accounting@alsulaim.com.sa' },
-                      { label: 'الاستقدام', email: 'recruitment@alsafeer.sa' },
-                      { label: 'إيواء الرواد', email: 'shelter@daralruwad.sa' },
-                      { label: 'منافسات كاس', email: 'tenders@kas-group.sa' },
-                      { label: 'الموارد البشرية', email: 'hr@alsulaim.com.sa' },
-                    ].map((quick) => (
-                      <button
-                        key={quick.email}
-                        type="button"
-                        onClick={() => executeQuickLogin(quick.email, 'Alsulaim@2026')}
-                        className="py-1.5 px-2 rounded-xl bg-[#f5f5f5] hover:bg-[#141414] text-[#141414] hover:text-white text-[10.5px] font-bold transition-all truncate cursor-pointer"
-                      >
-                        {quick.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           </div>

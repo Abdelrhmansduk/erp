@@ -526,7 +526,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         <div className="flex items-center gap-2 mx-auto">
           <Sparkles className="w-3.5 h-3.5 text-[#ffffff] shrink-0" />
           <span className="font-semibold">
-            منظومة النفاذ الموحد لمجموعة خالد السليم القابضة — عزل كامل لـ 5 شركات و9 أقسام
+            بوابة النفاذ الموحد لمجموعة خالد السليم القابضة
           </span>
           <button
             type="button"
@@ -536,7 +536,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             }}
             className="px-2.5 py-0.5 rounded-full bg-[#ffffff] text-[#141414] font-bold text-[11px] hover:bg-[#f3f3f3] transition-colors cursor-pointer mr-1"
           >
-            KAS2026
+            دليل الحسابات
           </button>
         </div>
       </div>
@@ -558,14 +558,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
             <div
               aria-hidden="true"
-              className="hidden lg:flex w-14 h-14 rounded-full bg-[#f1efe9] border border-[#e5e2dc] items-center justify-center text-[#141414] absolute top-1/4 left-8 shadow-sm"
+              className="hidden lg:flex w-14 h-14 rounded-full bg-[#f1efe9] border border-[#e5e2dc] items-center justify-center text-[#141414] absolute top-1/4 left-12 shadow-sm"
             >
               <ShieldCheck className="w-6 h-6 stroke-[1.75]" />
             </div>
 
             <div
               aria-hidden="true"
-              className="hidden lg:flex w-20 h-20 rounded-full bg-[#f1efe9] border border-[#e5e2dc] items-center justify-center text-[#141414] absolute top-[54%] left-24 shadow-sm"
+              className="hidden lg:flex w-20 h-20 rounded-full bg-[#f1efe9] border border-[#e5e2dc] items-center justify-center text-[#141414] absolute top-[56%] left-24 shadow-sm"
             >
               <activeSector.icon className="w-8 h-8 stroke-[1.75]" />
             </div>
@@ -577,27 +577,28 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               <Building2 className="w-5 h-5 stroke-[1.75]" />
             </div>
 
-            {/* Right-Aligned Brand Title & Subtitle */}
+            {/* Right-Aligned Brand Title & Subtitle — Simple, Executive & Institutional */}
             <div className="relative z-10 space-y-3 max-w-xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f1efe9] border border-[#e5e2dc] text-[12px] font-bold text-[#141414] mb-1">
-                <span>{currentPortalDef.badgeText}</span>
-              </div>
-
               <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-[#141414] m-0 leading-tight">
-                خالد السليم | <span className="font-sans">KASSR ERP</span>
+                خالد السليم <span className="text-[#c8c8c8] font-light mx-1">|</span>{' '}
+                <span className="font-sans">Al-Sulaim</span>
               </h1>
 
               <h2 className="text-xl sm:text-3xl font-extrabold text-[#141414] m-0 pt-1">
-                {activeSector.label} — {detectedRouting.departmentDef.nameAr}
+                نستثمر في الفرص.. نصنع المستقبل
               </h2>
 
               <p className="text-sm sm:text-base text-[#707070] leading-relaxed m-0 max-w-lg">
-                {currentPortalDef.tagline}
+                منظومة الإدارة والتشغيل المؤسسي الموحدة
               </p>
 
-              {/* Vertical Checkmark Feature List (Right-Aligned with Circular Check Badges) */}
+              {/* Vertical Checkmark Feature List (3 Concise Institutional Points) */}
               <div className="pt-6 space-y-4">
-                {currentPortalDef.features.map((featureText, idx) => (
+                {[
+                  'حوكمة مالية ومحاسبية متكاملة',
+                  'ربط حكومي فوري وموثق',
+                  'إدارة موحدة للشركات والأقسام',
+                ].map((featureText, idx) => (
                   <div key={idx} className="flex items-center gap-3.5">
                     <div className="w-9 h-9 rounded-full bg-[#f1efe9] border border-[#e5e2dc] flex items-center justify-center text-[#141414] shrink-0">
                       <Check className="w-4 h-4 stroke-[2.5]" />
@@ -607,53 +608,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     </span>
                   </div>
                 ))}
-                <div className="flex items-center gap-3.5">
-                  <div className="w-9 h-9 rounded-full bg-[#f1efe9] border border-[#e5e2dc] flex items-center justify-center text-[#141414] shrink-0">
-                    <Check className="w-4 h-4 stroke-[2.5]" />
-                  </div>
-                  <span className="text-sm sm:text-[15px] font-bold text-[#141414]">
-                    ربط مباشر مع مساند، قوى، مدد، والفوترة الإلكترونية ZATCA
-                  </span>
-                </div>
-              </div>
-
-              {/* Quick Sector Switcher Pills (Interactive Department Preview) */}
-              <div className="pt-6">
-                <div className="text-xs font-bold text-[#707070] mb-2.5">
-                  اختر القطاع لتخصيص بوابة الدخول الفوري:
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  {MOBBIN_SECTOR_CHIPS.map((chip) => {
-                    const isActive =
-                      identifier.trim().toLowerCase() === chip.email.toLowerCase();
-                    const ChipIcon = chip.icon;
-                    return (
-                      <button
-                        key={chip.code}
-                        type="button"
-                        onClick={() => {
-                          setIdentifier(chip.email);
-                          setPassword('Alsulaim@2026');
-                          setErrorMsg(null);
-                        }}
-                        className={`px-3.5 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                          isActive
-                            ? 'bg-[#141414] text-[#ffffff]'
-                            : 'bg-[#ffffff] border border-[#e0e0e0] text-[#141414] hover:bg-[#f3f3f3]'
-                        }`}
-                      >
-                        <ChipIcon className="w-3.5 h-3.5" />
-                        <span>{chip.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
               </div>
             </div>
           </div>
 
           {/* ─── LEFT COLUMN (In RTL, Second Child is on the LEFT): بطاقة تسجيل الدخول ─── */}
-          <div className="lg:col-span-5 w-full max-w-[440px] mx-auto">
+          <div className="lg:col-span-5 w-full max-w-[420px] mx-auto">
             {/* Top Return Link above the card */}
             <div className="flex items-center justify-start mb-3">
               <button
@@ -668,7 +628,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
             {/* White Auth Card (Matching Reference Left Card) */}
             <div className="bg-[#ffffff] rounded-[28px] border border-[#ececec] shadow-[0_16px_48px_-12px_rgba(20,20,20,0.06)] p-6 sm:p-8 space-y-5">
-              {/* 1. Top Portal Switcher Pill (حساب مشرف | دليل الحسابات) */}
+              {/* 1. Top Portal Switcher Pill (حساب موظف | مركز الشركات) */}
               <div className="bg-[#f6f5f2] p-1 rounded-full grid grid-cols-2 gap-1 border border-[#eceae4]">
                 <button
                   type="button"
@@ -676,7 +636,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   className="h-9 px-3 rounded-full bg-[#ffffff] text-[#141414] shadow-xs text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-[#141414]" />
-                  <span>بوابة المشرفين</span>
+                  <span>حساب موظف</span>
                 </button>
                 <button
                   type="button"
@@ -687,7 +647,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   className="h-9 px-3 rounded-full text-[#707070] hover:text-[#141414] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <Building2 className="w-3.5 h-3.5" />
-                  <span>مركز الشركات ({staffDirectory.length})</span>
+                  <span>مركز الشركات</span>
                 </button>
               </div>
 
@@ -697,11 +657,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   مرحباً بعودتك
                 </h2>
                 <p className="text-xs text-[#707070] m-0">
-                  إدارة ملفك وصلاحياتك في {detectedRouting.departmentDef.nameAr}
+                  إدارة ملفك الوظيفي ومهام قسمك
                 </p>
               </div>
 
-              {/* 3. Segmented Mode Switcher (تسجيل الدخول | انضم إلينا) */}
+              {/* 3. Segmented Mode Switcher (تسجيل الدخول | تفعيل حساب) */}
               <div className="bg-[#f3f3f3] p-1.5 rounded-2xl grid grid-cols-2 gap-1">
                 <button
                   type="button"
@@ -725,7 +685,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   }}
                   className="h-10 rounded-xl text-xs font-bold text-[#707070] hover:text-[#141414] transition-all cursor-pointer"
                 >
-                  تفعيل حساب موظف
+                  تفعيل حساب
                 </button>
               </div>
 
@@ -738,7 +698,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   className="w-full h-11 rounded-2xl bg-[#ffffff] hover:bg-[#f8f8f8] border border-[#e5e5e5] text-[#141414] text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
                   <Fingerprint className="w-4 h-4 text-[#0066ff]" />
-                  <span>الدخول بالبصمة البيومترية FIDO2</span>
+                  <span>الدخول بالبصمة الرقمية</span>
                 </button>
 
                 <button
