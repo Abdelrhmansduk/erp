@@ -20,7 +20,7 @@ import {
 } from '../services/authService';
 import { useCompany } from '../contexts/CompanyContext';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
-import { CorporateAvatar } from '../components/common/CorporateAvatar';
+import { EmployeePhotoAvatar } from '../components/auth/EmployeePhotoAvatar';
 
 interface AppTile {
   id: string;
@@ -43,21 +43,21 @@ interface AppLauncherPageProps {
 
 const ALL_SYSTEM_APPS: AppTile[] = [
   // ============================================================================
-  // 1. SMACC Accounting & Finance (نظام سماك المحاسبي المعتمد - 6 تقسيمات)
+  // 1. Financial & Accounting Modules (النظام المحاسبي والمالي المعتمد - 6 تقسيمات)
   // ============================================================================
   {
     id: 'smacc-gl',
     titleKey: 'finance',
-    defaultTitle: '١. الأستاذ العام وشجرة الحسابات (SMACC GL)',
+    defaultTitle: '١. الأستاذ العام وشجرة الحسابات',
     subKey: 'financeSub',
     defaultSubtitle: 'دليل الحسابات الشجري، قيود اليومية المزدوجة، الأرصدة الافتتاحية، وإقفال الفترات المحاسبية.',
     icon: Wallet,
     emoji: '',
     href: 'finance-home',
     category: 'finance',
-    categoryLabel: 'سماك ١ • الأستاذ العام',
-    smaccCode: 'SMACC-01',
-    metricBadge: 'شجرة حسابات سماك'
+    categoryLabel: 'المالية ١ • الأستاذ العام',
+    smaccCode: 'FIN-01',
+    metricBadge: 'شجرة الحسابات المعتمدة'
   },
   {
     id: 'smacc-journals',
@@ -69,8 +69,8 @@ const ALL_SYSTEM_APPS: AppTile[] = [
     emoji: '',
     href: 'journals',
     category: 'finance',
-    categoryLabel: 'سماك ١ • قيود اليومية',
-    smaccCode: 'SMACC-01B',
+    categoryLabel: 'المالية ١ • قيود اليومية',
+    smaccCode: 'FIN-01B',
     metricBadge: '1,420 قيد مرحّل'
   },
   {
@@ -83,8 +83,8 @@ const ALL_SYSTEM_APPS: AppTile[] = [
     emoji: '',
     href: 'vouchers',
     category: 'finance',
-    categoryLabel: 'سماك ٢ • النقدية والبنوك',
-    smaccCode: 'SMACC-02',
+    categoryLabel: 'المالية ٢ • النقدية والبنوك',
+    smaccCode: 'FIN-02',
     metricBadge: 'سندات وتسويات'
   },
   {
@@ -97,8 +97,8 @@ const ALL_SYSTEM_APPS: AppTile[] = [
     emoji: '',
     href: 'custodies',
     category: 'finance',
-    categoryLabel: 'سماك ٢ • العهد والسلف',
-    smaccCode: 'SMACC-02B',
+    categoryLabel: 'المالية ٢ • العهد والسلف',
+    smaccCode: 'FIN-02B',
     metricBadge: '6 عهد نشطة'
   },
   {
@@ -111,8 +111,8 @@ const ALL_SYSTEM_APPS: AppTile[] = [
     emoji: '',
     href: 'zatca',
     category: 'finance',
-    categoryLabel: 'سماك ٣ • العملاء وZATCA',
-    smaccCode: 'SMACC-03',
+    categoryLabel: 'المالية ٣ • العملاء وZATCA',
+    smaccCode: 'FIN-03',
     metricBadge: 'امتثال ZATCA 100%'
   },
   {
@@ -125,8 +125,8 @@ const ALL_SYSTEM_APPS: AppTile[] = [
     emoji: '',
     href: 'financial-requests',
     category: 'finance',
-    categoryLabel: 'سماك ٤ • الموردين والوكلاء',
-    smaccCode: 'SMACC-04',
+    categoryLabel: 'المالية ٤ • الموردين والوكلاء',
+    smaccCode: 'FIN-04',
     metricBadge: '16 أمر صرف'
   },
   {
@@ -139,8 +139,8 @@ const ALL_SYSTEM_APPS: AppTile[] = [
     emoji: '',
     href: 'cost-centers',
     category: 'finance',
-    categoryLabel: 'سماك ٥ • مراكز التكلفة',
-    smaccCode: 'SMACC-05',
+    categoryLabel: 'المالية ٥ • مراكز التكلفة',
+    smaccCode: 'FIN-05',
     metricBadge: '8 مراكز تكلفة'
   },
   {
@@ -153,8 +153,8 @@ const ALL_SYSTEM_APPS: AppTile[] = [
     emoji: '',
     href: 'trial-balance',
     category: 'finance',
-    categoryLabel: 'سماك ٦ • القوائم الختامية',
-    smaccCode: 'SMACC-06',
+    categoryLabel: 'المالية ٦ • القوائم الختامية',
+    smaccCode: 'FIN-06',
     metricBadge: 'قوائم مالية فورية'
   },
 
@@ -698,7 +698,7 @@ interface CategoryMeta {
 const CATEGORY_STYLES: Record<string, CategoryMeta> = {
   finance: {
     id: 'finance',
-    label: 'محاسبة سماك (SMACC)',
+    label: 'الإدارة المالية والمحاسبة',
     emoji: '',
     cellBg: 'bg-[#ffffff]',
     cellHover: 'hover:bg-[#fafafa]',
@@ -814,7 +814,7 @@ const CATEGORY_STYLES: Record<string, CategoryMeta> = {
 
 const CATEGORIES = [
   { id: 'all', label: 'كافة الوحدات المصرحة للقسم', emoji: '' },
-  { id: 'finance', label: 'محاسبة سماك (SMACC)', emoji: '' },
+  { id: 'finance', label: 'الإدارة المالية والمحاسبة', emoji: '' },
   { id: 'operations', label: 'العمليات والاستقدام والتأجير', emoji: '' },
   { id: 'crm', label: 'العملاء والشكاوى (CRM)', emoji: '' },
   { id: 'hr', label: 'الموارد البشرية والوكلاء', emoji: '' },
@@ -888,7 +888,7 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
       {/* Top Institutional Header */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#f0f0f0] px-4 sm:px-8 lg:px-12 py-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <CorporateAvatar
+          <EmployeePhotoAvatar
             name={currentUser?.full_name || 'موظف معتمد'}
             role={currentUser?.role || currentDeptMeta.nameAr}
             email={currentUser?.email}
@@ -899,15 +899,14 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-bold text-sm sm:text-base text-[#141414] font-display leading-tight">
-                {currentDeptMeta.nameAr}
+                {currentUser?.full_name || 'موظف معتمد'}
               </span>
               <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]">
-                {isGroupAdmin ? 'صلاحية الإدارة العليا الشاملة' : 'معزول ومقيد للقسم فقط'}
+                {currentDeptMeta.nameAr}
               </span>
             </div>
             <div className="text-[11px] text-[#707070] font-medium truncate mt-0.5">
-              {currentUser?.full_name || 'موظف معتمد'} • {activeCompany.name} ({resolvedScope.companyId}) •{' '}
-              {authorizedApps.length} وحدة نظامية مصرحة
+              {activeCompany.name} ({resolvedScope.companyId}) • {authorizedApps.length} بطاقة ووحدة مصرحة لصلاحياتك
             </div>
           </div>
         </div>
@@ -918,7 +917,7 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
             <Search className="w-4 h-4 text-[#707070] absolute right-3 pointer-events-none" />
             <input
               type="text"
-              placeholder={t('searchAppPlaceholder', 'ابحث في وحدات قسمك...')}
+              placeholder={t('searchAppPlaceholder', 'ابحث في بطاقات صلاحياتك...')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-[#f3f3f3] border border-[#e0e0e0] rounded-full pr-9 pl-4 py-1.5 text-xs text-[#141414] placeholder-[#707070] outline-none w-36 sm:w-64 focus:border-[#141414] focus:bg-[#ffffff] transition-all"
@@ -949,29 +948,45 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
         </div>
       </header>
 
-      {/* Department Isolation Banner */}
-      <div className="bg-[#f3f3f3] text-[#141414] border-b border-[#e0e0e0] px-4 sm:px-8 lg:px-12 py-3.5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-[14px] bg-[#141414] text-[#ffffff] flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
+      {/* Employee Welcome & Authorized Cards Banner */}
+      <div className="bg-[#FBFBF5] text-[#141414] border-b border-[#e5e5df] px-4 sm:px-8 lg:px-12 py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+          <div className="flex items-center gap-4">
+            <EmployeePhotoAvatar
+              name={currentUser?.full_name || 'موظف معتمد'}
+              role={currentUser?.role || currentDeptMeta.nameAr}
+              email={currentUser?.email}
+              departmentId={currentDeptMeta.id}
+              size="lg"
+              status="verified"
+            />
             <div>
-              <div className="flex items-center gap-2">
-                <Lock className="w-3.5 h-3.5 text-[#141414] shrink-0" />
-                <span className="font-bold text-[#141414]">
-                  بوابة القسم المعزولة (تقسيمات نظام سماك SMACC المعتمدة):
+              <div className="flex items-center gap-2 flex-wrap">
+                <Lock className="w-3.5 h-3.5 text-[#CFA64A] shrink-0" />
+                <span className="font-black text-sm text-[#141414]">
+                  مرحباً بك، {currentUser?.full_name || 'موظف معتمد'} — بطاقات الصلاحيات والوحدات المصرحة لك
+                </span>
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#141414] text-[#ffffff]">
+                  {isGroupAdmin ? 'صلاحية الإدارة العليا الشاملة' : currentDeptMeta.badgeText}
                 </span>
               </div>
-              <span className="text-[#707070] block mt-0.5">
-                يتم عرض الوحدات المصرحة فقط لقسم ({currentDeptMeta.nameAr}) داخل ({activeCompany.name}).
+              <span className="text-[#707070] block mt-1">
+                يتم عرض البطاقات والأنظمة المخصصة لصلاحياتك في ({currentDeptMeta.nameAr}) داخل ({activeCompany.name}) مع عزل مؤسسي كامل.
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-[11px] font-mono text-[#707070]">
-            <span>DEPT: {currentDeptMeta.id.toUpperCase()}</span>
-            <span>•</span>
-            <span>ENTITY: {String(resolvedScope.companyId).toUpperCase()}</span>
+          <div className="flex items-center gap-4 shrink-0">
+            <BusinessIllustration
+              departmentId={currentDeptMeta.id}
+              size="md"
+              showBackground={false}
+              className="hidden md:flex"
+            />
+            <div className="flex items-center gap-2 text-[11px] font-mono text-[#707070]">
+              <span>DEPT: {currentDeptMeta.id.toUpperCase()}</span>
+              <span>•</span>
+              <span>ENTITY: {String(resolvedScope.companyId).toUpperCase()}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -1097,7 +1112,7 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-[#141414]" />
           <span className="font-semibold text-[#141414]">
-            مجموعة خالد السليم للاستقدام والتشغيل • المنظومة السحابية الموحدة المعتمدة على تقسيمات سماك (SMACC)
+            مجموعة خالد السليم للاستقدام والتشغيل • المنظومة السحابية الموحدة لإدارة الموارد والشركات
           </span>
         </div>
         <div className="flex items-center gap-2 flex-wrap">

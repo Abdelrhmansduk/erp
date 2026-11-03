@@ -22,6 +22,7 @@ import { QuickSearchModal } from './components/common/QuickSearchModal';
 import { UniversalNotificationToaster } from './components/common/UniversalNotificationToaster';
 import { PwaInstallPrompt } from './components/common/PwaInstallPrompt';
 import { AICopilotWidget } from './components/common/AICopilotWidget';
+import { ExecutiveWelcomeScreen } from './components/auth/ExecutiveWelcomeScreen';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LegalDisclaimerModal } from './components/legal/LegalDisclaimerModal';
 import { employeeMonitoringService } from './services/employeeMonitoringService';
@@ -179,7 +180,7 @@ const MainContent: React.FC = () => {
     if (authLoading || !isProtectedFlow) return;
     const hasCachedSession = Boolean(authService.getCurrentUser());
     if (!isAuthenticated && !hasCachedSession) {
-      setFlowState(session?.user && mfaRequirement !== 'none' ? 'login' : 'landing');
+      setFlowState('login');
     }
   }, [authLoading, isProtectedFlow, isAuthenticated, session, mfaRequirement, setFlowState]);
 
@@ -698,13 +699,23 @@ const MainContent: React.FC = () => {
         <Suspense fallback={<PageFallback />}>
           <LoginPage onLoginSuccess={(targetTab?: string, targetTitle?: string) => {
             if (targetTab) {
-              setActiveTab(targetTab, targetTitle || targetTab);
-              setFlowState('workspace');
-            } else {
-              setFlowState('launcher');
+              useAppStore.setState({
+                activeTab: targetTab,
+                activeTabTitle: targetTitle || targetTab,
+              });
             }
+            setFlowState('welcome');
           }} />
         </Suspense>
+      )}
+
+      {flowState === 'welcome' && (
+        <ExecutiveWelcomeScreen
+          durationMs={3000}
+          onComplete={() => {
+            setFlowState('launcher');
+          }}
+        />
       )}
 
       {flowState === 'launcher' && (

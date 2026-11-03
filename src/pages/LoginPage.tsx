@@ -12,6 +12,8 @@ import {
   registerCustomStaffAccount,
   resolveDepartmentAndCompany,
 } from '../services/authService';
+import { EmployeePhotoAvatar } from '../components/auth/EmployeePhotoAvatar';
+import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import {
   ShieldCheck,
   Mail,
@@ -85,7 +87,7 @@ export const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
     ],
     quickRoles: [
       { label: 'رئيس مجلس الإدارة', username: 'chairman@alsulaim.sa', roleTitle: 'صلاحية سيادية شاملة', tab: 'group-command-center', title: 'مركز قيادة المجموعة الموحد' },
-      { label: 'المدير المالي للمجموعة', username: 'cfo@alsulaim.sa', roleTitle: 'الإدارة المالية والمحاسبة SMACC', tab: 'smacc-accounting', title: 'المحاسبة المالية المتكاملة (سماك 6)' },
+      { label: 'المدير المالي للمجموعة', username: 'cfo@alsulaim.sa', roleTitle: 'الإدارة المالية والمحاسبة العامة', tab: 'smacc-accounting', title: 'النظام المالي والمحاسبي الموحد' },
     ],
   },
   SAF: {
@@ -108,7 +110,7 @@ export const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
     ],
     quickRoles: [
       { label: 'قسم الاستقدام (الصفا)', username: 'musaned@saf-rec.sa', roleTitle: 'مدير عقود مساند والتأشيرات', tab: 'recruitment', title: 'إدارة عقود الاستقدام الموحدة' },
-      { label: 'محاسبة شركة الصفا', username: 'accounting@saf-rec.sa', roleTitle: 'رئيس حسابات شركة الصفا', tab: 'smacc-accounting', title: 'المحاسبة المالية المتكاملة (سماك 6)' },
+      { label: 'محاسبة شركة الصفا', username: 'accounting@saf-rec.sa', roleTitle: 'رئيس حسابات شركة الصفا', tab: 'smacc-accounting', title: 'النظام المالي والمحاسبي الموحد' },
     ],
   },
   YAQ: {
@@ -131,7 +133,7 @@ export const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
     ],
     quickRoles: [
       { label: 'قسم التأجير (الياقوت)', username: 'rent@yaqoot-east.sa', roleTitle: 'مدير عقود التأجير والأسطول', tab: 'rent', title: 'إدارة عقود التأجير والتشغيل' },
-      { label: 'محاسبة شركة الياقوت', username: 'accounting@yaqoot-east.sa', roleTitle: 'محاسب عام - الياقوت الشرقية', tab: 'smacc-accounting', title: 'المحاسبة المالية المتكاملة (سماك 6)' },
+      { label: 'محاسبة شركة الياقوت', username: 'accounting@yaqoot-east.sa', roleTitle: 'محاسب عام - الياقوت الشرقية', tab: 'smacc-accounting', title: 'النظام المالي والمحاسبي الموحد' },
     ],
   },
   TOP: {
@@ -177,7 +179,7 @@ export const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
     ],
     quickRoles: [
       { label: 'منافسات اعتماد (كاس)', username: 'tenders@kas-etimad.sa', roleTitle: 'مدير المنافسات وجداول الكميات', tab: 'kas-etmad', title: 'منصة كاس للمنافسات واعتماد' },
-      { label: 'محاسبة شركة كاس', username: 'accounting@kas-etimad.sa', roleTitle: 'محاسب مشاريع وضمانات بنكية', tab: 'smacc-accounting', title: 'المحاسبة المالية المتكاملة (سماك 6)' },
+      { label: 'محاسبة شركة كاس', username: 'accounting@kas-etimad.sa', roleTitle: 'محاسب مشاريع وضمانات بنكية', tab: 'smacc-accounting', title: 'النظام المالي والمحاسبي الموحد' },
     ],
   },
   SHELTER: {
@@ -224,7 +226,7 @@ const MOBBIN_SECTOR_CHIPS: Array<{
   },
   {
     code: 'FIN',
-    label: 'المحاسبة SMACC',
+    label: 'الإدارة المالية',
     sublabel: 'ZATCA Phase 2 & Ledger',
     email: 'cfo@alsulaim.sa',
     portalTitle: 'تسجيل دخول الإدارة المالية.',
@@ -302,7 +304,7 @@ interface LoginPageProps {
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const { currentLanguage } = useLanguage();
-  const { signIn } = useAuthContext();
+  const { signIn, signInWithGoogle } = useAuthContext();
   const { setActiveCompanyId } = useCompany();
   const { setFlowState, loginPortalCode } = useAppStore();
 
@@ -317,6 +319,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   );
   const [showDirectoryModal, setShowDirectoryModal] = useState<boolean>(false);
   const [directoryTab, setDirectoryTab] = useState<'accounts' | 'register'>('accounts');
+  const [showGoogleModal, setShowGoogleModal] = useState<boolean>(false);
+  const [customGoogleEmail, setCustomGoogleEmail] = useState<string>('');
+  const [customGoogleName, setCustomGoogleName] = useState<string>('');
 
   const [identifier, setIdentifier] = useState<string>(() =>
     getDefaultEmailForPortalCode(loginPortalCode)
@@ -446,6 +451,47 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     await executeUnifiedSignIn(identifier || 'chairman@alsulaim.sa', 'Alsulaim@2026');
   };
 
+  const handleGoogleAccountSelect = async (account: {
+    email: string;
+    name: string;
+    picture?: string;
+  }) => {
+    setShowGoogleModal(false);
+    setErrorMsg(null);
+    setSuccessMsg(`تمت المصادقة عبر Google (${account.email}) — جاري فتح جلستك...`);
+    setLoading(true);
+    try {
+      const result = await signInWithGoogle(account);
+      if (result.error) {
+        setErrorMsg(result.error);
+        setLoading(false);
+        return;
+      }
+      const routeInfo = resolveDepartmentAndCompany(account.email);
+      const landingTab = routeInfo.departmentDef.defaultTab;
+      const landingTitle = routeInfo.departmentDef.defaultTabTitle;
+
+      if (routeInfo.companyId === 'all') {
+        setActiveCompanyId('SAF');
+        useAppStore.getState().setActiveCompanyId('all' as any);
+      } else {
+        const compUpper = routeInfo.companyId.toUpperCase();
+        setActiveCompanyId(compUpper as any);
+        useAppStore.getState().setActiveCompanyId(compUpper as any);
+      }
+
+      if (onLoginSuccess) {
+        onLoginSuccess(landingTab, landingTitle);
+      } else {
+        setFlowState('welcome');
+      }
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'تعذر إكمال تسجيل الدخول عبر Google.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleMagicLinkDispatch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!identifier.trim()) {
@@ -544,76 +590,67 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       {/* ═══════════════════════════════════════════════════════════════════════
           2. SPLIT LAYOUT: RIGHT = BRAND INTRODUCTION & FEATURES, LEFT = LOGIN CARD
       ═══════════════════════════════════════════════════════════════════════ */}
-      <main className="w-full max-w-[1260px] mx-auto px-4 sm:px-10 py-8 sm:py-12 flex-1 flex items-center relative">
-        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
-          {/* ─── RIGHT COLUMN (In RTL, First Child is on the RIGHT): التعريف بالمنصة والشركات ─── */}
-          <div className="lg:col-span-7 relative py-6 lg:py-12 flex flex-col justify-center text-right">
-            {/* Floating Decorative Icon Circles (Matching Reference Image Layout) */}
+      <main className="w-full max-w-[1380px] mx-auto px-4 sm:px-10 py-8 sm:py-12 flex-1 flex items-center relative">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+          {/* ─── RIGHT COLUMN (In RTL, First Child is on the RIGHT): التعريف بالمنصة + الإليستريشن التحليلي الكبير ─── */}
+          <div className="lg:col-span-8 relative py-6 lg:py-10 flex flex-col justify-center text-right">
+            {/* Floating Top Right Accent Icon */}
             <div
               aria-hidden="true"
-              className="hidden sm:flex w-16 h-16 rounded-full bg-[#f1efe9] border border-[#e5e2dc] items-center justify-center text-[#141414] absolute -top-4 right-4 shadow-sm"
+              className="hidden sm:flex w-14 h-14 rounded-full bg-[#f1efe9] border border-[#e5e2dc] items-center justify-center text-[#141414] absolute -top-2 right-2 shadow-xs"
             >
-              <Sparkles className="w-7 h-7 stroke-[1.75]" />
+              <Sparkles className="w-6 h-6 stroke-[1.75]" />
             </div>
 
-            <div
-              aria-hidden="true"
-              className="hidden lg:flex w-14 h-14 rounded-full bg-[#f1efe9] border border-[#e5e2dc] items-center justify-center text-[#141414] absolute top-1/4 left-12 shadow-sm"
-            >
-              <ShieldCheck className="w-6 h-6 stroke-[1.75]" />
-            </div>
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-center relative z-10">
+              {/* Right Sub-Column: Brand Copy & 3 Checkmarks */}
+              <div className="xl:col-span-6 space-y-3">
+                <h1 className="text-3xl sm:text-[42px] font-black tracking-tight text-[#141414] m-0 leading-tight whitespace-nowrap">
+                  خالد السليم <span className="text-[#c8c8c8] font-light mx-1">|</span>{' '}
+                  <span className="font-sans">Al-Sulaim</span>
+                </h1>
 
-            <div
-              aria-hidden="true"
-              className="hidden lg:flex w-20 h-20 rounded-full bg-[#f1efe9] border border-[#e5e2dc] items-center justify-center text-[#141414] absolute top-[56%] left-24 shadow-sm"
-            >
-              <activeSector.icon className="w-8 h-8 stroke-[1.75]" />
-            </div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#141414] m-0 pt-1">
+                  نستثمر في الفرص.. نصنع المستقبل
+                </h2>
 
-            <div
-              aria-hidden="true"
-              className="hidden lg:flex w-13 h-13 rounded-full bg-[#f1efe9] border border-[#e5e2dc] items-center justify-center text-[#141414] absolute -bottom-2 left-12 shadow-sm p-3.5"
-            >
-              <Building2 className="w-5 h-5 stroke-[1.75]" />
-            </div>
+                <p className="text-sm sm:text-base text-[#707070] leading-relaxed m-0 max-w-lg">
+                  منظومة الإدارة والتشغيل المؤسسي الموحدة
+                </p>
 
-            {/* Right-Aligned Brand Title & Subtitle — Simple, Executive & Institutional */}
-            <div className="relative z-10 space-y-3 max-w-xl">
-              <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-[#141414] m-0 leading-tight">
-                خالد السليم <span className="text-[#c8c8c8] font-light mx-1">|</span>{' '}
-                <span className="font-sans">Al-Sulaim</span>
-              </h1>
-
-              <h2 className="text-xl sm:text-3xl font-extrabold text-[#141414] m-0 pt-1">
-                نستثمر في الفرص.. نصنع المستقبل
-              </h2>
-
-              <p className="text-sm sm:text-base text-[#707070] leading-relaxed m-0 max-w-lg">
-                منظومة الإدارة والتشغيل المؤسسي الموحدة
-              </p>
-
-              {/* Vertical Checkmark Feature List (3 Concise Institutional Points) */}
-              <div className="pt-6 space-y-4">
-                {[
-                  'حوكمة مالية ومحاسبية متكاملة',
-                  'ربط حكومي فوري وموثق',
-                  'إدارة موحدة للشركات والأقسام',
-                ].map((featureText, idx) => (
-                  <div key={idx} className="flex items-center gap-3.5">
-                    <div className="w-9 h-9 rounded-full bg-[#f1efe9] border border-[#e5e2dc] flex items-center justify-center text-[#141414] shrink-0">
-                      <Check className="w-4 h-4 stroke-[2.5]" />
+                {/* Vertical Checkmark Feature List (3 Concise Institutional Points) */}
+                <div className="pt-4 space-y-3.5">
+                  {[
+                    'حوكمة مالية ومحاسبية متكاملة',
+                    'ربط حكومي فوري وموثق',
+                    'إدارة موحدة للشركات والأقسام',
+                  ].map((featureText, idx) => (
+                    <div key={idx} className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-[#f1efe9] border border-[#e5e2dc] flex items-center justify-center text-[#141414] shrink-0">
+                        <Check className="w-4 h-4 stroke-[2.5]" />
+                      </div>
+                      <span className="text-sm sm:text-[15px] font-bold text-[#141414]">
+                        {featureText}
+                      </span>
                     </div>
-                    <span className="text-sm sm:text-[15px] font-bold text-[#141414]">
-                      {featureText}
-                    </span>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              </div>
+
+              {/* Left Sub-Column (Right next to Login Card): Extra-Large Frameless IconScout Data Analysis Illustration */}
+              <div className="xl:col-span-6 flex items-center justify-center relative">
+                <BusinessIllustration
+                  departmentId={detectedRouting.departmentId}
+                  size="hero"
+                  showBackground={false}
+                  className="!w-[340px] !h-[300px] sm:!w-[400px] sm:!h-[350px] xl:!w-[430px] xl:!h-[380px] drop-shadow-xs"
+                />
               </div>
             </div>
           </div>
 
           {/* ─── LEFT COLUMN (In RTL, Second Child is on the LEFT): بطاقة تسجيل الدخول ─── */}
-          <div className="lg:col-span-5 w-full max-w-[420px] mx-auto">
+          <div className="lg:col-span-4 w-full max-w-[430px] mx-auto">
             {/* Top Return Link above the card */}
             <div className="flex items-center justify-start mb-3">
               <button
@@ -626,8 +663,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               </button>
             </div>
 
-            {/* White Auth Card (Matching Reference Left Card) */}
-            <div className="bg-[#ffffff] rounded-[28px] border border-[#ececec] shadow-[0_16px_48px_-12px_rgba(20,20,20,0.06)] p-6 sm:p-8 space-y-5">
+            {/* White Auth Card (Matching Reference Left Card + Large Prominent Avatar) */}
+            <div className="bg-[#ffffff] rounded-[28px] border border-[#ececec] shadow-[0_16px_48px_-12px_rgba(20,20,20,0.06)] p-6 sm:p-7 space-y-4">
               {/* 1. Top Portal Switcher Pill (حساب موظف | مركز الشركات) */}
               <div className="bg-[#f6f5f2] p-1 rounded-full grid grid-cols-2 gap-1 border border-[#eceae4]">
                 <button
@@ -651,14 +688,28 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 </button>
               </div>
 
-              {/* 2. Centered Welcome Title & Subtitle */}
-              <div className="text-center space-y-1 pt-1">
-                <h2 className="text-2xl font-black text-[#141414] m-0">
-                  مرحباً بعودتك
-                </h2>
-                <p className="text-xs text-[#707070] m-0">
-                  إدارة ملفك الوظيفي ومهام قسمك
-                </p>
+              {/* 2. Large Prominent Avatar & Welcome Identity Header */}
+              <div className="flex flex-col items-center text-center pt-1 space-y-2">
+                <EmployeePhotoAvatar
+                  name={detectedRouting.account?.full_name || 'الشيخ خالد بن عبدالعزيز السليم'}
+                  email={identifier}
+                  role={detectedRouting.account?.role || detectedRouting.departmentDef.nameAr}
+                  departmentId={detectedRouting.departmentId}
+                  size="2xl"
+                  showStatusDot={true}
+                />
+
+                <div className="space-y-0.5">
+                  <h2 className="text-xl sm:text-2xl font-black text-[#141414] m-0">
+                    مرحباً بعودتك
+                  </h2>
+                  <div className="text-xs font-extrabold text-[#141414]">
+                    {detectedRouting.account?.full_name || 'الشيخ خالد بن عبدالعزيز السليم'}
+                  </div>
+                  <p className="text-[11px] text-[#707070] m-0">
+                    {detectedRouting.account?.role || detectedRouting.departmentDef.nameAr}
+                  </p>
+                </div>
               </div>
 
               {/* 3. Segmented Mode Switcher (تسجيل الدخول | تفعيل حساب) */}
@@ -689,34 +740,66 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 </button>
               </div>
 
-              {/* 4. Two Full-Width Outline Action Buttons (البصمة + الرابط السحري) */}
+              {/* 4. Quick Auth Action Buttons (Google + البصمة + الرابط السحري) */}
               <div className="space-y-2.5">
                 <button
                   type="button"
                   disabled={loading}
-                  onClick={handleBiometricLogin}
-                  className="w-full h-11 rounded-2xl bg-[#ffffff] hover:bg-[#f8f8f8] border border-[#e5e5e5] text-[#141414] text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  onClick={() => {
+                    setErrorMsg(null);
+                    setShowGoogleModal(true);
+                  }}
+                  className="w-full h-11 rounded-2xl bg-[#ffffff] hover:bg-[#f8f8f8] border border-[#e5e5e5] text-[#141414] text-xs font-bold flex items-center justify-center gap-2.5 transition-colors cursor-pointer shadow-2xs"
                 >
-                  <Fingerprint className="w-4 h-4 text-[#0066ff]" />
-                  <span>الدخول بالبصمة الرقمية</span>
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      fill="#4285F4"
+                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 24c3.3 0 6.08-1.09 8.1-2.96l-3.88-3.05c-1.08.72-2.45 1.16-4.22 1.16-3.24 0-5.98-2.18-6.96-5.13H1.04v3.14C3.05 21.15 7.21 24 12 24z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.04 14.02c-.25-.72-.39-1.5-.39-2.32s.14-1.6.39-2.32V6.24H1.04C.38 7.56 0 9.05 0 11.7s.38 4.14 1.04 5.46l4-3.14z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.21 0 3.05 2.85 1.04 6.24l4 3.14c.98-2.95 3.72-4.63 6.96-4.63z"
+                    />
+                  </svg>
+                  <span>تسجيل الدخول عبر Google</span>
                 </button>
 
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={(e) => {
-                    if (loginMethodTab === 'magic_link') {
-                      void handleMagicLinkDispatch(e as any);
-                    } else {
-                      setLoginMethodTab('magic_link');
-                      setErrorMsg(null);
-                    }
-                  }}
-                  className="w-full h-11 rounded-2xl bg-[#ffffff] hover:bg-[#f8f8f8] border border-[#e5e5e5] text-[#141414] text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
-                >
-                  <Sparkles className="w-4 h-4 text-[#141414]" />
-                  <span>الرابط السحري</span>
-                </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={handleBiometricLogin}
+                    className="w-full h-10 rounded-2xl bg-[#ffffff] hover:bg-[#f8f8f8] border border-[#e5e5e5] text-[#141414] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Fingerprint className="w-4 h-4 text-[#0066ff]" />
+                    <span>البصمة الرقمية</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={(e) => {
+                      if (loginMethodTab === 'magic_link') {
+                        void handleMagicLinkDispatch(e as any);
+                      } else {
+                        setLoginMethodTab('magic_link');
+                        setErrorMsg(null);
+                      }
+                    }}
+                    className="w-full h-10 rounded-2xl bg-[#ffffff] hover:bg-[#f8f8f8] border border-[#e5e5e5] text-[#141414] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-[#141414]" />
+                    <span>الرابط السحري</span>
+                  </button>
+                </div>
               </div>
 
               {/* 5. Horizontal Divider: أو بالبريد الإلكتروني */}
@@ -887,31 +970,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             </div>
           </div>
         </div>
-
-        {/* Floating Bottom-Left Active Account Toast Card (Matching Reference Bottom-Left Card) */}
-        <div className="hidden sm:flex fixed bottom-5 left-5 z-20 bg-[#ffffff] border border-[#e8e8e8] rounded-2xl p-3 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] items-center gap-3 max-w-[280px]">
-          <div className="w-10 h-10 rounded-xl bg-[#f1efe9] border border-[#e5e2dc] flex items-center justify-center text-[#141414] shrink-0">
-            <Users className="w-5 h-5" />
-          </div>
-          <div className="text-right min-w-0 flex-1">
-            <div className="text-xs font-bold text-[#141414] truncate">
-              {detectedRouting.account?.full_name || 'الشيخ خالد بن عبدالعزيز السليم'}
-            </div>
-            <div className="text-[11px] text-[#707070] truncate">
-              {detectedRouting.departmentDef.nameAr}
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setDirectoryTab('accounts');
-                setShowDirectoryModal(true);
-              }}
-              className="text-[10.5px] font-bold text-[#0066ff] hover:underline cursor-pointer mt-0.5 block"
-            >
-              تبديل الحساب ({staffDirectory.length} حساب)
-            </button>
-          </div>
-        </div>
       </main>
 
       {/* ═══════════════════════════════════════════════════════════════════════
@@ -1053,14 +1111,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <div className="text-[14px] font-semibold">{entry.full_name}</div>
-                            <div
-                              className={`mobbin-caption mt-0.5 ${
-                                isSelected ? 'text-[#adadad]' : 'text-[#707070]'
-                              }`}
-                            >
-                              {entry.role}
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <EmployeePhotoAvatar
+                              name={entry.full_name}
+                              email={entry.email}
+                              role={entry.role}
+                              departmentId={entry.department_id}
+                              size="sm"
+                              showStatusDot={isSelected}
+                            />
+                            <div className="min-w-0">
+                              <div className="text-[14px] font-semibold truncate">{entry.full_name}</div>
+                              <div
+                                className={`mobbin-caption mt-0.5 truncate ${
+                                  isSelected ? 'text-[#adadad]' : 'text-[#707070]'
+                                }`}
+                              >
+                                {entry.role}
+                              </div>
                             </div>
                           </div>
                           <span
@@ -1146,7 +1214,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                           onChange={(e) => setRegDepartmentId(e.target.value as DepartmentId)}
                           className="mobbin-input"
                         >
-                          <option value="finance">قسم المحاسبة والمالية (SMACC & ZATCA)</option>
+                          <option value="finance">قسم المحاسبة والمالية (ERP & ZATCA)</option>
                           <option value="recruitment">قسم الاستقدام ومساند (Recruitment)</option>
                           <option value="rental">قسم التشغيل والتأجير (Fleet & Rental)</option>
                           <option value="ats">قسم استقطاب الكفاءات (ATS Pipeline)</option>
@@ -1266,6 +1334,167 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          MODAL: GOOGLE ACCOUNT CHOOSER (تسجيل الدخول عبر Google)
+      ═══════════════════════════════════════════════════════════════════════ */}
+      {showGoogleModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="google-modal-title"
+          className="fixed inset-0 z-50 bg-[#141414]/60 flex items-center justify-center p-4"
+          onClick={() => setShowGoogleModal(false)}
+        >
+          <div
+            className="bg-[#ffffff] border border-[#e0e0e0] rounded-[28px] max-w-md w-full p-6 sm:p-7 space-y-5 text-right shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-4">
+              <div className="flex items-center gap-2.5">
+                <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="#4285F4"
+                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 24c3.3 0 6.08-1.09 8.1-2.96l-3.88-3.05c-1.08.72-2.45 1.16-4.22 1.16-3.24 0-5.98-2.18-6.96-5.13H1.04v3.14C3.05 21.15 7.21 24 12 24z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.04 14.02c-.25-.72-.39-1.5-.39-2.32s.14-1.6.39-2.32V6.24H1.04C.38 7.56 0 9.05 0 11.7s.38 4.14 1.04 5.46l4-3.14z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.21 0 3.05 2.85 1.04 6.24l4 3.14c.98-2.95 3.72-4.63 6.96-4.63z"
+                  />
+                </svg>
+                <div>
+                  <h3 id="google-modal-title" className="text-base font-black text-[#141414] m-0">
+                    اختيار حساب Google للدخول
+                  </h3>
+                  <p className="text-[11px] text-[#707070] m-0">
+                    المتابعة إلى منظومة مجموعة خالد السليم القابضة
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowGoogleModal(false)}
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] flex items-center justify-center text-[#141414] cursor-pointer"
+                aria-label="إغلاق"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {[
+                {
+                  name: 'الشيخ خالد بن عبدالعزيز السليم',
+                  email: 'abdo12uk@gmail.com',
+                  role: 'رئيس مجلس الإدارة — الإدارة العليا',
+                  dept: 'executive',
+                },
+                {
+                  name: 'الشيخ خالد بن عبدالعزيز السليم',
+                  email: 'chairman@alsulaim.sa',
+                  role: 'رئيس مجلس الإدارة (Google Workspace)',
+                  dept: 'executive',
+                },
+                {
+                  name: 'سلطان بن محمد العتيبي',
+                  email: 'cfo@alsulaim.sa',
+                  role: 'المدير المالي التنفيذي للمجموعة (CFO)',
+                  dept: 'finance',
+                },
+                {
+                  name: 'فهد بن عبدالله الدوسري',
+                  email: 'musaned@saf-rec.sa',
+                  role: 'مدير عمليات الاستقدام ومساند — الصفا',
+                  dept: 'recruitment',
+                },
+              ].map((gAcc) => (
+                <button
+                  key={gAcc.email}
+                  type="button"
+                  onClick={() =>
+                    void handleGoogleAccountSelect({
+                      email: gAcc.email,
+                      name: gAcc.name,
+                    })
+                  }
+                  className="w-full p-3 rounded-2xl bg-[#f8f8f7] hover:bg-[#f0efec] border border-[#e5e5e5] flex items-center justify-between gap-3 text-right transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <EmployeePhotoAvatar
+                      name={gAcc.name}
+                      email={gAcc.email}
+                      role={gAcc.role}
+                      departmentId={gAcc.dept}
+                      size="sm"
+                      showStatusDot={true}
+                    />
+                    <div className="min-w-0">
+                      <div className="text-xs font-extrabold text-[#141414] truncate">
+                        {gAcc.name}
+                      </div>
+                      <div className="text-[11px] font-mono text-[#707070] truncate dir-ltr text-right">
+                        {gAcc.email}
+                      </div>
+                      <div className="text-[10px] text-[#0066ff] font-bold truncate">
+                        {gAcc.role}
+                      </div>
+                    </div>
+                  </div>
+                  <ArrowLeft className="w-4 h-4 text-[#707070] shrink-0" />
+                </button>
+              ))}
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!customGoogleEmail.trim()) return;
+                void handleGoogleAccountSelect({
+                  email: customGoogleEmail.trim(),
+                  name: customGoogleName.trim() || customGoogleEmail.split('@')[0],
+                });
+              }}
+              className="pt-3 border-t border-[#f0f0f0] space-y-2.5"
+            >
+              <div className="text-[11px] font-bold text-[#707070]">
+                أو استخدم حساب Google آخر:
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  value={customGoogleName}
+                  onChange={(e) => setCustomGoogleName(e.target.value)}
+                  placeholder="الاسم الكامل (اختياري)"
+                  className="h-10 px-3 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-semibold text-[#141414] focus:outline-none focus:border-[#141414]"
+                />
+                <input
+                  type="email"
+                  dir="ltr"
+                  value={customGoogleEmail}
+                  onChange={(e) => setCustomGoogleEmail(e.target.value)}
+                  placeholder="name@gmail.com"
+                  className="h-10 px-3 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-mono text-[#141414] focus:outline-none focus:border-[#141414]"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full h-10 rounded-xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold cursor-pointer transition-colors"
+              >
+                متابعة بحساب Google المخصص
+              </button>
+            </form>
           </div>
         </div>
       )}

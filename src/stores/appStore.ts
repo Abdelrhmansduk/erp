@@ -100,13 +100,15 @@ function saveNotifications(list: AppNotification[]): void {
   }
 }
 
+export type FlowState = 'landing' | 'login' | 'welcome' | 'launcher' | 'workspace';
+
 interface AppState {
   // Navigation & Flow
-  flowState: 'landing' | 'login' | 'launcher' | 'workspace';
+  flowState: FlowState;
   loginPortalCode: string | null;
   activeTab: string;
   activeTabTitle: string;
-  setFlowState: (flow: 'landing' | 'login' | 'launcher' | 'workspace') => void;
+  setFlowState: (flow: FlowState) => void;
   setLoginPortalCode: (portalCode: string | null) => void;
   navigateToCompanyLogin: (portalCode: string | null) => void;
   setActiveTab: (tab: string, title: string) => void;
@@ -139,12 +141,12 @@ export function normalizePortalRouteCode(raw?: string | null): string | null {
 }
 
 function resolveInitialRouteFromUrl(): {
-  flowState: 'landing' | 'login' | 'launcher' | 'workspace';
+  flowState: FlowState;
   activeTab: string;
   loginPortalCode: string | null;
 } {
   if (typeof window === 'undefined') {
-    return { flowState: 'landing', activeTab: 'dashboard', loginPortalCode: null };
+    return { flowState: 'login', activeTab: 'dashboard', loginPortalCode: null };
   }
   const path = window.location.pathname.replace(/^\/+|\/+$/g, '');
   const searchParams = new URLSearchParams(window.location.search);
@@ -160,14 +162,22 @@ function resolveInitialRouteFromUrl(): {
   if (queryFlow === 'launcher') {
     return { flowState: 'launcher', activeTab: 'dashboard', loginPortalCode: null };
   }
-
-  if (!path || path === 'landing') {
+  if (queryFlow === 'welcome' || path === 'welcome') {
+    return { flowState: 'welcome', activeTab: 'dashboard', loginPortalCode: null };
+  }
+  if (queryFlow === 'landing' || path === 'landing') {
     return { flowState: 'landing', activeTab: 'dashboard', loginPortalCode: null };
   }
-  if (path === 'login') {
-    const savedTarget = normalizePortalRouteCode(localStorage.getItem('ALSULAIM_TARGET_SYSTEM'));
-    return { flowState: 'login', activeTab: 'dashboard', loginPortalCode: queryPortal || savedTarget };
+
+  let savedTarget: string | null = null;
+  let hasActiveBrowserLogin = false;
+  try {
+    savedTarget = normalizePortalRouteCode(localStorage.getItem('ALSULAIM_TARGET_SYSTEM'));
+    hasActiveBrowserLogin = sessionStorage.getItem('ALSULAIM_SESSION_AUTHENTICATED_V2') === 'true';
+  } catch {
+    // ignore storage errors
   }
+
   if (path.startsWith('login/')) {
     const subCode = normalizePortalRouteCode(path.replace(/^login\//, '').split('/')[0]);
     if (subCode) {
@@ -178,6 +188,19 @@ function resolveInitialRouteFromUrl(): {
       }
     }
     return { flowState: 'login', activeTab: 'dashboard', loginPortalCode: subCode };
+  }
+
+  // Always open Login directly on root '/' or when first opening the website without an active login session
+  if (!path || path === 'login' || !hasActiveBrowserLogin) {
+    try {
+      if (path !== 'login' && window.history?.replaceState) {
+        const targetPortal = queryPortal || savedTarget;
+        window.history.replaceState(null, '', targetPortal ? `/login/${targetPortal}` : '/login');
+      }
+    } catch {
+      // ignore history errors
+    }
+    return { flowState: 'login', activeTab: 'dashboard', loginPortalCode: queryPortal || savedTarget };
   }
   if (path === 'launcher') {
     return { flowState: 'launcher', activeTab: 'dashboard', loginPortalCode: null };
@@ -194,7 +217,7 @@ function resolveInitialRouteFromUrl(): {
 }
 
 function pushBrowserRoute(
-  flowState: 'landing' | 'login' | 'launcher' | 'workspace',
+  flowState: FlowState,
   activeTab: string,
   loginPortalCode?: string | null
 ) {
@@ -202,11 +225,13 @@ function pushBrowserRoute(
   const normalizedPortal = normalizePortalRouteCode(loginPortalCode);
   const targetPath =
     flowState === 'landing'
-      ? '/'
+      ? '/landing'
       : flowState === 'login'
       ? normalizedPortal
         ? `/login/${normalizedPortal}`
         : '/login'
+      : flowState === 'welcome'
+      ? '/welcome'
       : flowState === 'launcher'
       ? '/launcher'
       : `/workspace/${activeTab || 'dashboard'}`;

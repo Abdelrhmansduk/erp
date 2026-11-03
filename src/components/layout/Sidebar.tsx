@@ -11,6 +11,7 @@ import {
   COMPANY_AUTH_METADATA,
   resolveDepartmentAndCompany,
 } from '../../services/authService';
+import { EmployeePhotoAvatar } from '../auth/EmployeePhotoAvatar';
 import {
   X, Search, ChevronDown, ChevronLeft, ChevronRight,
   ListTree, Columns, LayoutGrid, CircleDot, Folder,
@@ -641,12 +642,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         ) : (
           <div className="space-y-2">
-            <div className="px-1.5 space-y-0.5 text-right">
-              <div className="font-bold text-xs text-[#141414] leading-snug">
-                {effectiveProfile?.full_name || 'موظف القسم'}
-              </div>
-              <div className="text-[11px] font-medium text-[#707070] leading-snug">
-                {effectiveProfile?.branch || 'المقر الرئيسي للمجموعة - الرياض'}
+            <div className="px-1.5 flex items-center gap-2.5 text-right">
+              <EmployeePhotoAvatar
+                name={effectiveProfile?.full_name || 'موظف القسم'}
+                email={effectiveProfile?.email}
+                role={effectiveProfile?.role}
+                departmentId={resolvedScope.departmentId}
+                size="sm"
+                status="online"
+              />
+              <div className="space-y-0.5 min-w-0 flex-1">
+                <div className="font-bold text-xs text-[#141414] leading-snug truncate">
+                  {effectiveProfile?.full_name || 'موظف القسم'}
+                </div>
+                <div className="text-[11px] font-medium text-[#707070] leading-snug truncate">
+                  {effectiveProfile?.branch || 'المقر الرئيسي للمجموعة - الرياض'}
+                </div>
               </div>
             </div>
             <button

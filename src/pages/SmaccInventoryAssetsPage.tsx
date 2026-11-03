@@ -248,7 +248,7 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
 
     addNotification({
       title: 'إضافة صنف مخزون',
-      message: `تم تسجيل الصنف (${itemRecord.name}) في دليل أصناف SMACC وحفظه بنجاح.`,
+      message: `تم تسجيل الصنف (${itemRecord.name}) في دليل الأصناف وحفظه بنجاح.`,
       type: 'success',
     });
   };
@@ -344,7 +344,7 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
 
     addNotification({
       title: 'احتساب الإهلاك الدوري وترحيل القيد',
-      message: `تم احتساب الإهلاك بقيمة (${totalMonthlyDep.toLocaleString()} ⃁) وتوليد قيد اليومية رقم (${jv.journal_number}) في SMACC بنجاح.`,
+      message: `تم احتساب الإهلاك بقيمة (${totalMonthlyDep.toLocaleString()} ⃁) وتوليد قيد اليومية رقم (${jv.journal_number}) بنجاح.`,
       type: 'success',
     });
   };
@@ -376,7 +376,7 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
           />
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span className="pill-tag-mint" style={{ fontSize: '11px' }}>SMACC FINANCIAL ENGINE</span>
+              <span className="pill-tag-mint" style={{ fontSize: '11px' }}>FINANCIAL ENGINE</span>
             </div>
             <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, margin: '0', letterSpacing: '-0.02em', color: '#ffffff', fontFamily: 'var(--font-family-display)' }}>
               إدارة الأصول الثابتة والمخزون
@@ -399,7 +399,7 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
           <ExportDropdown
             sectionKey="inventory_assets"
             data={activeTab === 'fixed-assets' ? assets : activeTab === 'inventory' ? items : vouchers}
-            customTitle="سجل الأصول والمستودعات والمخزون SMACC"
+            customTitle="سجل الأصول والمستودعات والمخزون"
             variant="outline-dark"
             buttonLabel="تصدير كشوفات الأصول والمخزون (10 صيغ)"
           />

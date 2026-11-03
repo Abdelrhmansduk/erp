@@ -148,15 +148,15 @@ export const SmaccNavigationSidebar: React.FC<SmaccNavigationSidebarProps> = ({
 
   return (
     <aside className="w-64 bg-white text-zinc-900 border-l border-zinc-200 flex flex-col h-full select-none shadow-sm">
-      {/* Brand Header matching SMACC */}
+      {/* Brand Header */}
       <div className="p-4 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-black flex items-center justify-center font-bold text-white shadow-sm text-sm tracking-wider">
-            SMACC
+            FIN
           </div>
           <div>
             <h2 className="font-bold text-xs text-zinc-900 leading-tight">نظام المحاسبة الشامل</h2>
-            <p className="text-[10.5px] text-zinc-500">بحر العرب / الإصدار الحديث</p>
+            <p className="text-[10.5px] text-zinc-500">الإصدار المؤسسي الحديث</p>
           </div>
         </div>
         <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20" title="النظام متصل" />
@@ -168,7 +168,7 @@ export const SmaccNavigationSidebar: React.FC<SmaccNavigationSidebarProps> = ({
           <Search className="w-3.5 h-3.5 absolute right-3 top-2.5 text-zinc-400" />
           <input
             type="text"
-            placeholder="البحث في قائمة SMACC..."
+            placeholder="البحث في القائمة المالية..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-[#fbfbf5] border border-zinc-200 rounded-full py-1 pr-8 pl-3 text-xs text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-black transition-all"

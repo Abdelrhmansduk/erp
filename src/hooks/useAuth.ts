@@ -13,7 +13,11 @@ export interface AuthContext {
     password: string,
     targetCompanyId?: string
   ) => Promise<{ success: boolean; error?: string; mfa?: MfaRequirement; user?: UserProfile }>;
-  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  signInWithGoogle: (googleAccount?: {
+    email?: string;
+    full_name?: string;
+    avatar_url?: string;
+  }) => Promise<{ success: boolean; error?: string; user?: UserProfile }>;
   verifyMfa: (code: string, factorId?: string) => Promise<{ success: boolean; error?: string }>;
   enrollMfa: () => Promise<{ data: TotpEnrollment | null; error: string | null }>;
   refreshMfa: () => Promise<MfaRequirement>;
@@ -114,15 +118,23 @@ export const useAuth = (): AuthContext => {
 
   const enrollMfa = useCallback(() => authService.enrollTotp(), []);
 
-  const signInWithGoogle = useCallback(async () => {
-    setError(null);
-    const { error: googleError } = await authService.signInWithGoogle();
-    if (googleError) {
-      setError(googleError.message);
-      return { success: false, error: googleError.message };
-    }
-    return { success: true };
-  }, []);
+  const signInWithGoogle = useCallback(
+    async (googleAccount?: { email?: string; full_name?: string; avatar_url?: string }) => {
+      setError(null);
+      const { data, error: googleError } = await authService.signInWithGoogle(googleAccount);
+      if (googleError) {
+        setError(googleError.message);
+        return { success: false, error: googleError.message };
+      }
+      if (data) {
+        setUser(data);
+        setSession({ user: { id: data.id, email: data.email, profile: data } });
+        setMfaRequirement('none');
+      }
+      return { success: true, user: data || undefined };
+    },
+    []
+  );
 
   const signOut = useCallback(async () => {
     await authService.signOut();

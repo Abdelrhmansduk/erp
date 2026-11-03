@@ -37,7 +37,7 @@ export function getPinnedTabs(): PinnedTabItem[] {
     const raw = localStorage.getItem(PINNED_TABS_KEY);
     if (!raw) {
       return [
-        { href: 'smacc-accounting', title: 'محاسبة سماك SMACC', category: 'الإدارة المالية' },
+        { href: 'smacc-accounting', title: 'الإدارة المالية والمحاسبة', category: 'الإدارة المالية' },
         { href: 'recruitment-contracts', title: 'عقود الاستقدام (مساند)', category: 'إدارة الاستقدام' },
         { href: 'zatca', title: 'الفوترة الإلكترونية ZATCA', category: 'الإدارة المالية' },
         { href: 'employees', title: 'شؤون الموظفين ومسيرات WPS', category: 'الموارد البشرية' },

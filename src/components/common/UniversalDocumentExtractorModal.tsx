@@ -231,7 +231,7 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
               >
                 {MAIN_SUBSIDIARY_COMPANIES.map((comp) => (
                   <option key={comp.id} value={comp.id}>
-                    [{comp.code}] {comp.name} — (دفتر محاسبي سماك مستقل)
+                    [{comp.code}] {comp.name} — (دفتر محاسبي مستقل)
                   </option>
                 ))}
               </select>

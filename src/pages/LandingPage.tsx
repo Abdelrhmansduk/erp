@@ -737,7 +737,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
               بنية تحتية موحدة بمقاييس عالمية
             </h2>
             <p className="text-sm text-zinc-500 mt-2">
-              منظومة إلكترونية متكاملة تدير الشركات والأقسام المستقلة وتتكامل مع المنصات الحكومية ومحاسبة سماك
+              منظومة إلكترونية متكاملة تدير الشركات والأقسام المستقلة وتتكامل مع المنصات الحكومية والنظام المالي الموحد
             </p>
           </div>
 
@@ -805,7 +805,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
               </div>
 
               <h3 className="text-xl font-bold text-black font-display mb-2.5">
-                منظومة محاسبة سماك (SMACC)
+                المنظومة المالية والمحاسبية الموحدة
               </h3>
 
               <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed mb-6">
@@ -832,7 +832,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                   <span className="w-2 h-2 rounded-full bg-[#141414]" />
                   <span>عزل مالي ومحاسبي 100%</span>
                 </span>
-                <span className="font-mono text-[10px] text-zinc-400">SMACC 6-Divisions</span>
+                <span className="font-mono text-[10px] text-zinc-400">6-Divisions Finance</span>
               </div>
             </div>
 

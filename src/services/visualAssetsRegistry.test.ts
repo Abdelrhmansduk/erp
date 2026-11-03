@@ -95,7 +95,7 @@ describe('visualAssetsRegistry — Corporate Avatars & Business Illustrations En
     expect(resolveIllustrationForPortal('ALL')).toBe('exec-command');
 
     const meta = getIllustrationMetadata('smacc-finance');
-    expect(meta.titleAr).toContain('سماك');
+    expect(meta.titleAr).toContain('المحاسبية');
     expect(meta.funkywaysSvgUrl).toBe('/illustrations/funkyways/smacc-finance.svg');
     expect(Object.keys(BUSINESS_ILLUSTRATION_METADATA).length).toBe(31);
   });

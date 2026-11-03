@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { BusinessIllustration } from './BusinessIllustration';
 import { CorporateAvatar } from './CorporateAvatar';
+import { EmployeePhotoAvatar } from '../auth/EmployeePhotoAvatar';
 import { DynamicActionButton } from './DynamicActionButton';
 import {
   resolveIllustrationForTab,
@@ -55,7 +56,7 @@ const SLIM_BANNER_STORAGE_KEY = 'alsulaim_banner_slim_mode_v1';
 
 const DEPARTMENT_QUICK_TABS: Record<DepartmentId, Array<{ key: string; label: string }>> = {
   finance: [
-    { key: 'smacc-accounting', label: 'محاسبة سماك SMACC' },
+    { key: 'smacc-accounting', label: 'النظام المحاسبي والمالي' },
     { key: 'smacc-gl-tree', label: 'شجرة الحسابات (GL)' },
     { key: 'smacc-vouchers', label: 'سندات القبض والصرف' },
     { key: 'finance-home', label: 'القوائم المالية' },
@@ -67,7 +68,7 @@ const DEPARTMENT_QUICK_TABS: Record<DepartmentId, Array<{ key: string; label: st
     { key: 'financial-requests', label: 'العهد وطلبات الصرف' },
     { key: 'cost-centers', label: 'مراكز التكلفة' },
     { key: 'smacc-inventory', label: 'المخزون والأصول' },
-    { key: 'smacc-modules', label: 'الأقسام الـ 6 لسماك' },
+    { key: 'smacc-modules', label: 'الأقسام المحاسبية الـ 6' },
     { key: 'universal-extractor', label: 'مستخرج الـ 100 فاتورة' },
   ],
   recruitment: [
@@ -111,7 +112,7 @@ const DEPARTMENT_QUICK_TABS: Record<DepartmentId, Array<{ key: string; label: st
     { key: 'employee-monitoring', label: 'مراقبة الأداء والإنتاجية' },
     { key: 'custodies', label: 'العهد العينية للموظفين' },
     { key: 'branch-departments', label: 'هيكل الفروع والأقسام' },
-    { key: 'smacc-employees', label: 'إعدادات موظفي سماك' },
+    { key: 'smacc-employees', label: 'إعدادات موظفي المالية' },
   ],
   crm: [
     { key: 'clients', label: 'سجل العملاء والمبيعات' },
@@ -160,16 +161,16 @@ const DEPARTMENT_GUIDED_PLAYBOOKS: Record<
 > = {
   finance: [
     {
-      title: 'استخلاص 100+ فاتورة وترحيلها لدفتر سماك',
+      title: 'استخلاص 100+ فاتورة وترحيلها للدفتر المحاسبي',
       desc: 'ارفع ملفات PDF أو صور الفواتير ليقوم الماسح الذكي بتوليد قيود اليومية تلقائياً.',
       targetTab: 'universal-extractor',
       badge: 'OCR ذكي',
     },
     {
-      title: 'مراجعة ميزان المراجعة والأقسام الـ 6 لسماك',
+      title: 'مراجعة ميزان المراجعة والأقسام المالية الـ 6',
       desc: 'افحص توازن المدين والدائن وحسابات الصندوق والبنوك والذمم.',
       targetTab: 'smacc-accounting',
-      badge: 'SMACC',
+      badge: 'المحاسبة',
     },
     {
       title: 'إصدار وتوثيق فاتورة ضريبية ZATCA',
@@ -1105,12 +1106,12 @@ export const DepartmentModuleBanner: React.FC<DepartmentModuleBannerProps> = ({
           {/* Left: Responsible Specialist Avatar & Actions */}
           <div className="flex flex-wrap items-center justify-between lg:justify-end gap-2 pt-2 lg:pt-0 border-t lg:border-t-0 border-[#f0f0f0] shrink-0">
             <div className="flex items-center gap-2 bg-[#f3f3f3] border border-[#e0e0e0] rounded-full px-3 py-1">
-              <CorporateAvatar
+              <EmployeePhotoAvatar
                 name={currentUser?.full_name || 'مسؤول القسم'}
                 role={currentUser?.role || deptDef.nameAr}
                 email={currentUser?.email}
                 departmentId={resolvedDeptId}
-                size="sm"
+                size="xs"
                 status="verified"
               />
               <div className="text-right pl-1">

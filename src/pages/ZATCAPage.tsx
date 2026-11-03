@@ -869,7 +869,12 @@ export const ZATCAPage: React.FC = () => {
 
       <UniversalDocumentExtractorModal
         isOpen={showBatchExtractor}
-        onClose={() => setShowBatchExtractor(false)}
+        onClose={() => {
+          setShowBatchExtractor(false);
+          if (storeActiveTab === 'universal-extractor') {
+            setActiveTab('zatca', 'الفوترة الإلكترونية ZATCA');
+          }
+        }}
         defaultEntityKey="invoices"
         onImportSuccess={() => {
           loadLocalInvoices();

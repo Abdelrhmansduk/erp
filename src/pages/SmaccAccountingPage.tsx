@@ -758,13 +758,13 @@ export const SmaccAccountingPage: React.FC = () => {
             />
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="pill-tag-mint text-[11px]">SMACC FINANCIAL ERP V2</span>
+                <span className="pill-tag-mint text-[11px]">FINANCIAL ERP V2</span>
                 <span className="pill-tag-shade text-[11px]" style={{ background: 'rgba(255,255,255,0.12)', color: '#fff' }}>
                   {activeCompany.name} ({activeCompanyId === 'all' ? 'GROUP' : activeCompanyId})
                 </span>
               </div>
               <h1 className="text-xl md:text-2xl font-bold text-white m-0">
-                منظومة سماك (SMACC) للمحاسبة المالية الموحدة — 6 أنظمة متكاملة
+                المنظومة المالية والمحاسبية الموحدة — 6 أنظمة متكاملة
               </h1>
               <p className="text-xs text-zinc-400 mt-1 font-sans">
                 عزل محاسبي مستقل لكل شركة • دليل الحسابات الشجري الخماسي، قيود اليومية المزدوجة، سندات القبض والصرف، المبيعات و ZATCA، المشتريات، المخزون والأصول، ومراكز التكلفة
@@ -839,11 +839,11 @@ export const SmaccAccountingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* SMACC 6-Division Architecture Quick Navigation Strip (Per-Company Isolated) */}
+      {/* 6-Division Financial Architecture Quick Navigation Strip (Per-Company Isolated) */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2.5">
         {[
           {
-            code: 'SMACC-01',
+            code: 'FIN-01',
             title: '1. الأستاذ العام والحسابات',
             subtitle: 'شجرة الحسابات والقيود والقوائم',
             emoji: '',
@@ -851,7 +851,7 @@ export const SmaccAccountingPage: React.FC = () => {
             active: ['coa', 'journals', 'ledger', 'trial-balance', 'income-statement', 'balance-sheet', 'fiscal-closing'].includes(activeTab),
           },
           {
-            code: 'SMACC-02',
+            code: 'FIN-02',
             title: '2. النقدية والبنوك والسندات',
             subtitle: 'سندات القبض والصرف والخزائن',
             emoji: '',
@@ -859,7 +859,7 @@ export const SmaccAccountingPage: React.FC = () => {
             active: activeTab === 'vouchers',
           },
           {
-            code: 'SMACC-03',
+            code: 'FIN-03',
             title: '3. المبيعات والفوترة ZATCA',
             subtitle: 'فواتير العملاء والربط الضريبي',
             emoji: '',
@@ -867,7 +867,7 @@ export const SmaccAccountingPage: React.FC = () => {
             active: false,
           },
           {
-            code: 'SMACC-04',
+            code: 'FIN-04',
             title: '4. المشتريات والوكلاء',
             subtitle: 'مستحقات الموردين وأوامر الصرف',
             emoji: '',
@@ -875,7 +875,7 @@ export const SmaccAccountingPage: React.FC = () => {
             active: false,
           },
           {
-            code: 'SMACC-05',
+            code: 'FIN-05',
             title: '5. المخزون والأصول الثابتة',
             subtitle: 'سجل الأصول والمستودعات والباقات',
             emoji: '',
@@ -883,7 +883,7 @@ export const SmaccAccountingPage: React.FC = () => {
             active: false,
           },
           {
-            code: 'SMACC-06',
+            code: 'FIN-06',
             title: '6. مراكز التكلفة والتقارير',
             subtitle: `تحليل مراكز تكلفة (${activeCompanyId === 'all' ? 'المجموعة' : activeCompanyId})`,
             emoji: '',

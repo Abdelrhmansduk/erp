@@ -160,7 +160,7 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
 
     addNotification({
       title: 'تسجيل موظف جديد',
-      message: `تم حفظ الموظف (${empRecord.name}) في قاعدة بيانات SMACC وحفظ مسير الراتب (${total.toLocaleString()} ⃁) بنجاح.`,
+      message: `تم حفظ الموظف (${empRecord.name}) في قاعدة البيانات وحفظ مسير الراتب (${total.toLocaleString()} ⃁) بنجاح.`,
       type: 'success',
     });
   };
@@ -177,7 +177,7 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
 
     addNotification({
       title: 'حفظ الإعدادات المالية',
-      message: 'تم حفظ إعدادات المنشأة وقواعد الترقيم التلقائي بنجاح في قاعدة بيانات SMACC.',
+      message: 'تم حفظ إعدادات المنشأة وقواعد الترقيم التلقائي بنجاح في قاعدة البيانات.',
       type: 'success',
     });
   };
@@ -221,7 +221,7 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
           />
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span className="pill-tag-mint" style={{ fontSize: '11px' }}>SMACC HR & SETTINGS</span>
+              <span className="pill-tag-mint" style={{ fontSize: '11px' }}>HR & FINANCE SETTINGS</span>
             </div>
             <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, letterSpacing: '-0.02em', color: '#ffffff', margin: 0, fontFamily: 'var(--font-family-display)' }}>
               إدارة الموظفين والإعدادات العامة

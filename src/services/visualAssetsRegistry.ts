@@ -75,7 +75,7 @@ export const ILLUSTRATION_METADATA: Record<IllustrationKey, IllustrationMetadata
   },
   'smacc-finance': {
     key: 'smacc-finance',
-    titleAr: 'منظومة سماك المحاسبية السحابية (SMACC 6-Divisions)',
+    titleAr: 'المنظومة المالية والمحاسبية السحابية (6 أنظمة متكاملة)',
     subtitleAr: 'دفتر الأستاذ العام، القيود المزدوجة المتوازنة، سندات القبض والصرف، ومراكز التكلفة',
     badgeAr: 'توازن محاسبي 100%',
     accentHex: '#CFA64A',

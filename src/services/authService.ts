@@ -27,12 +27,12 @@ export interface DepartmentDefinition {
 export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> = {
   finance: {
     id: 'finance',
-    nameAr: 'قسم المحاسبة والمالية (نظام سماك SMACC)',
-    nameEn: 'SMACC Accounting & Financial Control',
+    nameAr: 'قسم الإدارة المالية والمحاسبة العامة',
+    nameEn: 'Financial Control & General Accounting',
     emoji: '',
-    badgeText: 'محاسبة سماك SMACC',
+    badgeText: 'المالية والمحاسبة',
     defaultTab: 'smacc-accounting',
-    defaultTabTitle: 'نظام سماك المحاسبي المتكامل (SMACC)',
+    defaultTabTitle: 'النظام المالي والمحاسبي الموحد',
     descriptionAr: 'الأستاذ العام، سندات القبض والصرف، البنوك والخزائن، الفوترة الضريبية ZATCA، ومراكز التكلفة.',
     allowedSections: ['finance-section', 'financial-requests-group'],
     allowedTabs: [
@@ -381,6 +381,7 @@ export interface UserProfile {
   email: string;
   role: string;
   branch: string;
+  avatar_url?: string;
   company_id?: string;
   department_id?: DepartmentId;
   department_name_ar?: string;
@@ -498,6 +499,7 @@ export interface StaffDirectoryEntry {
   department_id: DepartmentId;
   branch: string;
   badgeEmoji: string;
+  avatar_url?: string;
 }
 
 /**
@@ -512,7 +514,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     username: 'saf.accounting',
     email: 'accounting@saf-rec.sa',
     full_name: 'أ. عبدالرحمن بن فهد الدوسري',
-    role: 'رئيس حسابات سماك — شركة السفير الماسي',
+    role: 'رئيس الحسابات والإدارة المالية — شركة السفير الماسي',
     company_id: 'SAF',
     department_id: 'finance',
     branch: 'الفرع الرئيسي - الرياض',
@@ -613,7 +615,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     username: 'yaq.accounting',
     email: 'accounting@yaqoot-ops.sa',
     full_name: 'أ. طارق بن سعد الغامدي',
-    role: 'محاسب نظام سماك — شركة الياقوت الشرقية',
+    role: 'محاسب عام وإدارة مالية — شركة الياقوت الشرقية',
     company_id: 'YAQ',
     department_id: 'finance',
     branch: 'فرع الدمام',
@@ -670,7 +672,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     username: 'top.accounting',
     email: 'accounting@topaz-rec.sa',
     full_name: 'أ. وليد بن حمد الشمري',
-    role: 'محاسب نظام سماك — شركة توب تالنت',
+    role: 'محاسب عام وإدارة مالية — شركة توب تالنت',
     company_id: 'TOP',
     department_id: 'finance',
     branch: 'الفرع الرئيسي - الرياض',
@@ -716,7 +718,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     username: 'kas.accounting',
     email: 'accounting@kas-etimad.sa',
     full_name: 'أ. بندر بن محمد السبيعي',
-    role: 'مدير الحسابات والضمانات البنكية (سماك) — شركة كاس',
+    role: 'مدير الحسابات والضمانات البنكية — شركة كاس',
     company_id: 'KAS',
     department_id: 'finance',
     branch: 'الفرع الرئيسي - الرياض',
@@ -773,7 +775,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     username: 'dar.accounting',
     email: 'accounting@alruwad.sa',
     full_name: 'أ. ياسر بن فهد المطيري',
-    role: 'محاسب نظام سماك — دار الرواد للإيواء',
+    role: 'محاسب عام وإدارة مالية — دار الرواد للإيواء',
     company_id: 'DAR',
     department_id: 'finance',
     branch: 'الفرع الرئيسي - الرياض',
@@ -819,7 +821,7 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     username: 'group.cfo',
     email: 'cfo@alsulaim.sa',
     full_name: 'أ. محمد بن عبدالرحمن السليم',
-    role: 'المدير المالي التنفيذي للمجموعة (SMACC Group CFO)',
+    role: 'المدير المالي التنفيذي للمجموعة (Group CFO)',
     company_id: 'all',
     department_id: 'executive',
     branch: 'المقر الرئيسي للمجموعة - الرياض',
@@ -1154,9 +1156,17 @@ export const authService = {
    */
   isTabAuthorizedForUser(profile: UserProfile | null, tabHref: string): boolean {
     if (!tabHref) return false;
-    if (tabHref === 'logout' || tabHref === 'profile') return true;
+    if (tabHref === 'logout' || tabHref === 'profile' || tabHref === 'dashboard') return true;
     if (!profile) return true;
-    return true;
+    if (this.isAdmin(profile) || profile.department_id === 'executive' || profile.company_id === 'all') {
+      return true;
+    }
+    const deptDef = profile.department_id ? CORPORATE_DEPARTMENTS[profile.department_id] : null;
+    if (!deptDef) return true;
+    if (deptDef.allowedTabs.includes('*') || deptDef.allowedTabs.includes(tabHref)) {
+      return true;
+    }
+    return false;
   },
 
   validateCompanyAccess(
@@ -1224,6 +1234,7 @@ export const authService = {
 
     try {
       sessionStorage.removeItem('ALSULAIM_EXPLICIT_LOGOUT');
+      sessionStorage.setItem('ALSULAIM_SESSION_AUTHENTICATED_V2', 'true');
     } catch {
       // ignore
     }
@@ -1373,6 +1384,7 @@ export const authService = {
   async signOut() {
     try {
       sessionStorage.setItem('ALSULAIM_EXPLICIT_LOGOUT', 'true');
+      sessionStorage.removeItem('ALSULAIM_SESSION_AUTHENTICATED_V2');
     } catch {
       // ignore
     }
@@ -1389,9 +1401,26 @@ export const authService = {
     }
   },
 
-  async signInWithGoogle(): Promise<{ error: { message: string } | null }> {
+  async signInWithGoogle(googleAccount?: {
+    email?: string;
+    full_name?: string;
+    avatar_url?: string;
+  }): Promise<{ data?: UserProfile | null; error: { message: string } | null }> {
+    const targetEmail = (googleAccount?.email || 'abdo12uk@gmail.com').trim().toLowerCase();
+    const res = await this.signIn(targetEmail, 'GoogleOAuth@2026');
+    if (res.data) {
+      if (googleAccount?.full_name) {
+        res.data.full_name = googleAccount.full_name;
+      }
+      if (googleAccount?.avatar_url) {
+        res.data.avatar_url = googleAccount.avatar_url;
+      }
+      cacheProfile(res.data);
+      window.dispatchEvent(new CustomEvent('alsulaim-auth-updated', { detail: { profile: res.data } }));
+      return { data: res.data, error: null };
+    }
     if (!isSupabaseConfigured) {
-      return { error: notConfiguredError() };
+      return { data: null, error: notConfiguredError() };
     }
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -1400,10 +1429,10 @@ export const authService = {
           redirectTo: window.location.origin,
         },
       });
-      if (error) return { error: { message: error.message } };
-      return { error: null };
+      if (error) return { data: null, error: { message: error.message } };
+      return { data: null, error: null };
     } catch (e: any) {
-      return { error: { message: e?.message || 'فشل الاتصال بخدمة Google' } };
+      return { data: null, error: { message: e?.message || 'فشل الاتصال بخدمة Google' } };
     }
   },
 

@@ -40,18 +40,23 @@ export interface BusinessIllustrationProps {
   type?: IllustrationKey;
   tabKey?: string;
   departmentId?: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'hero';
   className?: string;
   animated?: boolean;
   showBackground?: boolean;
   variant?: 'funkyways' | 'vector';
 }
 
-const DIMENSIONS: Record<NonNullable<BusinessIllustrationProps['size']>, { box: number; icon: number; radius: string }> = {
-  sm: { box: 44, icon: 20, radius: '14px' },
-  md: { box: 56, icon: 24, radius: '16px' },
-  lg: { box: 68, icon: 28, radius: '18px' },
-  xl: { box: 80, icon: 32, radius: '22px' },
+const DIMENSIONS: Record<
+  NonNullable<BusinessIllustrationProps['size']>,
+  { w: number; h: number; radius: string; icon: number }
+> = {
+  sm: { w: 64, h: 60, radius: '16px', icon: 24 },
+  md: { w: 116, h: 100, radius: '20px', icon: 32 },
+  lg: { w: 168, h: 144, radius: '24px', icon: 40 },
+  xl: { w: 224, h: 192, radius: '28px', icon: 48 },
+  '2xl': { w: 288, h: 250, radius: '32px', icon: 56 },
+  hero: { w: 390, h: 340, radius: '36px', icon: 64 },
 };
 
 const ICON_MAP: Record<IllustrationKey, React.ElementType> = {
@@ -88,44 +93,10 @@ const ICON_MAP: Record<IllustrationKey, React.ElementType> = {
   'group-command': FolderKanban,
 };
 
-const MODULE_CODE_MAP: Record<IllustrationKey, string> = {
-  'exec-command': 'EXEC-01',
-  'smacc-finance': 'FIN-GL',
-  'zatca-einvoice': 'ZATCA-2',
-  'ocr-extractor': 'AI-OCR',
-  'musaned-recruitment': 'MSND-03',
-  'flexible-rental': 'RENT-04',
-  'ats-talent': 'ATS-05',
-  'hr-wps': 'HR-WPS',
-  'crm-customer': 'CRM-07',
-  'shelter-care': 'SHLT-08',
-  'kas-tenders': 'KAS-09',
-  'empty-search': 'QUERY',
-  'ai-copilot': 'AI-CORE',
-  'innovation': 'R&D-26',
-  'treasury-vouchers': 'TRSR-V',
-  'whatsapp-chat': 'COMM-WA',
-  'legal-compliance': 'LEGAL',
-  'iam-security': 'IAM-SEC',
-  'attendance-monitoring': 'HR-ATT',
-  'inventory-custody': 'INV-AST',
-  'reports-bi': 'BI-RPT',
-  'foreign-agencies': 'INTL-AG',
-  'client-portal': 'B2B-VIP',
-  'travel-logistics': 'FLIGHT',
-  'branch-network': 'BR-18',
-  'unified-comm': 'OMNI-CH',
-  'sent-messages': 'MSG-LOG',
-  'rent-packages': 'PKG-PRO',
-  'sponsorship-transfer': 'NAQL-KF',
-  'master-constants': 'SYS-CFG',
-  'group-command': 'HOLDING',
-};
-
 /**
- * Mobbin Architectural Module Badge & Telemetry Card (DESIGN-mobbin.md Specification)
- * Replaces legacy cartoon illustrations with a high-contrast Swiss-grid squircle badge
- * (#ffffff / #f3f3f3 surface, 1px #e0e0e0 hairline, 30% squircle #141414 icon, #0066ff accent).
+ * IconScout Data Analysis & Enterprise Business Illustration Engine
+ * Renders authentic vector illustrations (/illustrations/funkyways/*.svg)
+ * with clean gallery-white / warm-alabaster framing.
  */
 export const BusinessIllustration: React.FC<BusinessIllustrationProps> = ({
   type,
@@ -133,23 +104,50 @@ export const BusinessIllustration: React.FC<BusinessIllustrationProps> = ({
   departmentId,
   size = 'md',
   className = '',
+  animated = true,
+  showBackground = true,
+  variant = 'funkyways',
 }) => {
+  const [imgFailed, setImgFailed] = React.useState(false);
   const resolvedKey: IllustrationKey =
     type || resolveIllustrationForTab(tabKey, departmentId);
   const meta = getIllustrationMetadata(resolvedKey);
-  const { box, icon, radius } = DIMENSIONS[size] || DIMENSIONS.md;
+  const { w, h, radius, icon } = DIMENSIONS[size] || DIMENSIONS.md;
   const IconComponent = ICON_MAP[resolvedKey] || ShieldCheck;
+
+  if (variant === 'funkyways' && meta?.funkywaysSvgUrl && !imgFailed) {
+    return (
+      <div
+        className={`mobbin-illustration-card relative inline-flex items-center justify-center select-none shrink-0 ${
+          showBackground
+            ? 'bg-[#faf9f7] border border-[#e5e2dc] p-2'
+            : 'bg-transparent p-0.5'
+        } ${animated ? 'transition-transform duration-300 hover:scale-[1.03]' : ''} ${className}`}
+        style={{
+          width: w,
+          height: h,
+          borderRadius: showBackground ? radius : undefined,
+        }}
+        title={meta.titleAr}
+      >
+        <img
+          src={meta.funkywaysSvgUrl}
+          alt={meta.titleAr}
+          onError={() => setImgFailed(true)}
+          className="w-full h-full object-contain"
+          loading="eager"
+        />
+      </div>
+    );
+  }
 
   return (
     <div
-      className={`relative inline-flex items-center justify-center select-none shrink-0 ${className}`}
+      className={`mobbin-illustration-card relative inline-flex items-center justify-center select-none shrink-0 bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] ${className}`}
       style={{
-        width: box,
-        height: box,
+        width: w,
+        height: h,
         borderRadius: radius,
-        backgroundColor: '#f3f3f3',
-        border: '1px solid #e0e0e0',
-        color: '#141414',
       }}
       title={meta.titleAr}
     >
@@ -158,7 +156,7 @@ export const BusinessIllustration: React.FC<BusinessIllustrationProps> = ({
           width: icon,
           height: icon,
           color: '#141414',
-          strokeWidth: 1.85,
+          strokeWidth: 1.75,
           flexShrink: 0,
         }}
       />

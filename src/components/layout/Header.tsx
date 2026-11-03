@@ -14,6 +14,7 @@ import { NotificationDropdown } from '../common/NotificationDropdown';
 import { ProductionDataHubModal } from '../database/ProductionDataHubModal';
 import { UniversalDocumentExtractorModal } from '../common/UniversalDocumentExtractorModal';
 import { CorporateAvatar } from '../common/CorporateAvatar';
+import { EmployeePhotoAvatar } from '../auth/EmployeePhotoAvatar';
 import { BusinessIllustration } from '../common/BusinessIllustration';
 import { EnterpriseErrorMonitorPanel } from '../monitoring/EnterpriseErrorMonitorPanel';
 import { errorMonitorService } from '../../services/errorMonitorService';
@@ -51,14 +52,14 @@ export const SLUG_ARABIC_TITLES: Record<string, string> = {
   dashboard: 'الرئيسية (لوحة المؤشرات التنفيذية)',
   'group-command-center': 'مركز القيادة الموحد للمجموعة',
   'admin-dashboard': 'لوحة الرقابة العليا والحوكمة',
-  'smacc-accounting': 'مركز نظام سماك المحاسبي الموحد (SMACC 6)',
-  'smacc-gl-tree': 'شجرة الحسابات والأستاذ العام (SMACC GL)',
+  'smacc-accounting': 'مركز الإدارة المالية والمحاسبية الموحد',
+  'smacc-gl-tree': 'شجرة الحسابات والأستاذ العام',
   'smacc-vouchers': 'سندات القبض والصرف والتسويات البنكية',
-  'smacc-inventory': 'إدارة المخزون والأصول الثابتة (SMACC)',
-  'smacc-modules': 'الأقسام الـ 6 لنظام سماك المحاسبي',
-  'smacc-employees': 'إعدادات موظفي وصلاحيات سماك',
+  'smacc-inventory': 'إدارة المخزون والأصول الثابتة',
+  'smacc-modules': 'الأقسام المالية والمحاسبية الستة',
+  'smacc-employees': 'إعدادات موظفي وصلاحيات المالية',
   'finance-home': 'لوحة المؤشرات والقوائم المالية',
-  finance: 'الإدارة المالية والمحاسبة العامة (SMACC)',
+  finance: 'الإدارة المالية والمحاسبة العامة',
   'trial-balance': 'ميزان المراجعة بالمجاميع والأرصدة',
   'income-statement': 'قائمة الدخل والأرباح والخسائر',
   zatca: 'الفوترة الإلكترونية ZATCA المرحلة الثانية',
@@ -572,8 +573,16 @@ export const Header: React.FC<HeaderProps> = ({
                 setShowNotifDropdown(false);
                 setShowLangDropdown(false);
               }}
-              className="flex items-center gap-2 bg-[#f3f3f3] hover:bg-[#e0e0e0] rounded-full px-3 py-1.5 transition-colors shrink-0 cursor-pointer"
+              className="flex items-center gap-2 bg-[#f3f3f3] hover:bg-[#e0e0e0] rounded-full px-2.5 py-1 transition-colors shrink-0 cursor-pointer"
             >
+              <EmployeePhotoAvatar
+                name={displayName}
+                email={displayEmail}
+                role={effectiveProfile?.role}
+                departmentId={resolvedScope.departmentId}
+                size="xs"
+                status="online"
+              />
               <div className="text-right">
                 <div className="text-[11px] font-semibold text-[#141414] leading-tight truncate max-w-[110px] sm:max-w-[160px]">
                   {displayName}
@@ -588,7 +597,7 @@ export const Header: React.FC<HeaderProps> = ({
             {showUserDropdown && (
               <div className="fixed inset-x-3 top-[calc(var(--header-height,64px)+8px)] sm:absolute sm:inset-x-auto sm:top-full sm:mt-2 sm:left-0 bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] sm:w-72 max-w-[calc(100vw-24px)] z-[350] p-3 space-y-1.5">
                 <div className="p-3 bg-[#f3f3f3] rounded-[16px] mb-1 flex items-center gap-2.5">
-                  <CorporateAvatar
+                  <EmployeePhotoAvatar
                     name={displayName}
                     email={displayEmail}
                     role={effectiveProfile?.role}
@@ -718,7 +727,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] max-w-md w-full p-6 space-y-4 text-right">
             <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-3">
               <div className="flex items-center gap-2.5">
-                <CorporateAvatar
+                <EmployeePhotoAvatar
                   name={displayName}
                   email={displayEmail}
                   role={effectiveProfile?.role}
@@ -742,7 +751,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="p-4 rounded-[16px] bg-[#f3f3f3] space-y-2.5 text-xs">
               <div className="flex items-center justify-between pb-2.5 mb-2 border-b border-[#e0e0e0]">
                 <div className="flex items-center gap-2.5">
-                  <CorporateAvatar
+                  <EmployeePhotoAvatar
                     name={displayName}
                     email={displayEmail}
                     role={effectiveProfile?.role}

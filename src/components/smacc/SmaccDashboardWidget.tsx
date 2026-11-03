@@ -21,11 +21,11 @@ export const SmaccDashboardWidget: React.FC = () => {
       <div className="card-pricing" style={{ padding: '16px 20px', borderRadius: '24px', background: '#ffffff', border: '1px solid #e0e0e0', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#f3f3f3', color: '#141414', border: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '11px' }}>
-            SMACC
+            FIN
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#141414', margin: 0 }}>لوحة التحكم الهيكلية (نظام SMACC للمحاسبة)</h3>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#141414', margin: 0 }}>لوحة التحكم الهيكلية للنظام المالي والمحاسبي</h3>
               <span className="pill-tag-mint" style={{ fontSize: '10.5px' }}>
                 مطابق 100%
               </span>

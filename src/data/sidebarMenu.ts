@@ -36,7 +36,7 @@ export const SIDEBAR_MENU: NavItem[] = [
     icon: 'Wallet',
     href: 'smacc-accounting',
     children: [
-      { id: 'smacc-accounting', title: 'مركز نظام سماك المحاسبي الموحد (SMACC)', icon: 'Sliders', href: 'smacc-accounting', badge: 'SMACC', badgeType: 'primary' },
+      { id: 'smacc-accounting', title: 'مركز النظام المالي والمحاسبي الموحد', icon: 'Sliders', href: 'smacc-accounting', badge: 'ERP', badgeType: 'primary' },
       { id: 'finance-home', title: 'الإدارة المالية والقوائم الختامية', icon: 'BarChart4', href: 'finance-home' },
       { id: 'zatca', title: 'الفاتورة الإلكترونية ZATCA المرحلة 2', icon: 'ShieldCheck', href: 'zatca', badge: 'Phase 2', badgeType: 'success' },
       { id: 'invoices', title: 'فواتير المبيعات والعقود الضريبية', icon: 'FileText', href: 'invoices' },
@@ -55,7 +55,7 @@ export const SIDEBAR_MENU: NavItem[] = [
       { id: 'financial-requests', title: 'المطالبات وأوامر الصرف المعتمدة', icon: 'Receipt', href: 'financial-requests' },
       { id: 'cost-centers', title: 'شجرة مراكز التكلفة التحليلية', icon: 'FolderKanban', href: 'cost-centers' },
       { id: 'smacc-inventory', title: 'سجل الأصول الثابتة والمخزون', icon: 'Package', href: 'smacc-inventory' },
-      { id: 'financial-reports', title: 'التقارير والكشوفات الختامية (سماك)', icon: 'BarChart3', href: 'financial-reports' },
+      { id: 'financial-reports', title: 'التقارير والكشوفات المالية الختامية', icon: 'BarChart3', href: 'financial-reports' },
     ],
   },
   {

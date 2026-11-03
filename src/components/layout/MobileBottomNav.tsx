@@ -92,8 +92,8 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       case 'finance':
         return {
           href: 'finance-home',
-          label: 'سماك المحاسبي',
-          title: 'الأستاذ العام والمحاسبة (SMACC)',
+          label: 'المالية والمحاسبة',
+          title: 'الأستاذ العام والمحاسبة العامة',
           icon: Wallet,
         };
       case 'rental':
