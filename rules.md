@@ -1,79 +1,67 @@
 # ميثاق القواعد والمعايير الهندسية (Engineering Rules & Architecture Governance)
-## منظومة ERP مجموعة خالد السليم القابضة
+## منظومة ERP مجموعة خالد السليم القابضة (`خالد السليم | Al-Sulaim`)
 
 ---
 
 ### 1. سياسة الواقعية ومنع المحاكاة الوهمية (Zero-Mock Infrastructure Policy)
-1.1. **منع الموك والتأخيرات المصطنعة**: يُحظر تماماً استخدام دوال `setTimeout` المصطنعة أو المصفوفات الثابتة المعزولة كبديل للخدمات الخلفية الحقيقية في بيئات التشغيل والإنتاج.
-1.2. **الاعتماد الكلي على Supabase و PostgreSQL**:
-   - جميع عمليات القراءة والكتابة للبيانات يجب أن تمر عبر استعلامات حقيقية مؤمنة بقواعد `Row-Level Security (RLS)`.
-   - لا يجوز إنشاء واجهات تعرض نجاحاً وهمياً لعمليات حرجة (مثل: إصدار فاتورة ضريبية، تسوية قيد مالي، أو تعديل حالة عقد بمساند).
+1.1. **محركات أعمال حتمية ومختبرة**: كافة العمليات المالية، والضريبية، والتعاقدية تمر عبر محركات منطق أعمال حقيقية مختبرة آلياً في [`src/services/`](src/services/).
+1.2. **الاعتماد على Supabase و PostgreSQL مع طبقة الصمود الهجينة**:
+   - جميع عمليات القراءة والكتابة للبيانات تمر عبر استعلامات مؤمنة بقواعد `Row-Level Security (RLS)` مع دعم طابور المزامنة غير المتصل ([`offlineQueueService.ts`](src/services/offlineQueueService.ts)) وصندوق الصادر التبادلي ([`domainEventBus.ts`](src/services/domainEventBus.ts)).
 1.3. **التوقيع والتشفير الحقيقي**:
-   - الفوترة الإلكترونية (ZATCA) تستخدم التوليد الحقيقي لشفرات TLV والهاش المشفر SHA-256 وشهادات التشفير الرقمية.
-   - التحقق البيومتري (WebAuthn / Passkeys) يعتمد حصراً على واجهات برمجة تطبيقات المتصفح والأجهزة العتادية الموثقة (FIDO2 / Platform Authenticators).
+   - الفوترة الإلكترونية (`ZATCA Phase 2`) تستخدم التوليد الفعلي لشفرات `TLV Base64` ووثائق `UBL 2.1 XML` وسلسلة الهاش المشفر `SHA-256 (PIH)` في [`zatcaPhase2Service.ts`](src/services/zatcaPhase2Service.ts).
+   - بوابات الدفع تتحقق رياضياً من تواقيع `HMAC-SHA256` ومفاتيح عدم التكرار (`Idempotency-Key`) في [`paymentOrchestratorService.ts`](src/services/paymentOrchestratorService.ts) و[`idempotencyService.ts`](src/services/idempotencyService.ts).
 
 ---
 
 ### 2. قواعد العزل الصارم بين الشركات التابعة (Multi-Tenancy Isolation Invariants)
 2.1. **إلزامية معرّف الشركة (`company_id`)**:
-   - كل جدول تشغيلي يحتوي على حقل `company_id` إلزامي غير قابل للقيمة الفارغة (`NOT NULL`).
-   - لا يجوز لأي استعلام قراءة أو كتابة تجاهل شرط العزل المؤسسي:
+   - كل سجل تشغيلي ومالي يحمل حقل `company_id` إلزامياً ينتمي لأحد الكيانات الخمسة المعتمدة (`SAF`, `YAQ`, `TOP`, `KAS`, `DAR`).
+   - تُطبق سياسة العزل في قاعدة البيانات وفي طبقة التطبيق عبر [`CompanyContext.tsx`](src/contexts/CompanyContext.tsx) و[`iamPolicyEngine.ts`](src/services/iamPolicyEngine.ts):
      ```sql
-     -- مثال لسياسة RLS الإلزامية
-     CREATE POLICY "Tenant Isolation Policy" ON recruitment_contracts
+     CREATE POLICY "Optimal_Tenant_Isolation" ON recruitment_contracts
      FOR ALL TO authenticated
      USING (
-       company_id = (auth.jwt() -> 'app_metadata' ->> 'company_id')
-       OR (auth.jwt() -> 'app_metadata' ->> 'role') IN ('رئيس المجموعة', 'مدير نظام')
+       company_id = (SELECT (auth.jwt() -> 'app_metadata' ->> 'company_id'))
+       OR (SELECT (auth.jwt() -> 'app_metadata' ->> 'role')) IN ('رئيس المجموعة', 'مدير نظام')
      );
      ```
-2.2. **حظر تسريب البيانات العابر للفروع (Cross-Tenant Leakage)**:
-   - يُمنع منعاً باتاً ظهور عقود أو فواتير أو أسماء عملاء شركة تابعة (مثل "الياقوت") لموظفي شركة أخرى (مثل "الصفا" أو "كاس").
-   - الوحيدون المخولون بالرؤية الموحدة المشتركة هم أعضاء "الإدارة المركزية والسيطرة العليا" المصرح لهم صراحة في الـ `app_metadata`.
+2.2. **حظر تسريب البيانات العابر للشركات (Zero Cross-Tenant Leakage)**:
+   - يُمنع ظهور عقود أو فواتير أو وحدات حصرية لشركة تابعة (مثل وحدات `exclusiveToCompany: 'KAS'` الخاصة بشركة كاس للمنافسات) لموظفي شركات الاستقدام أو التأجير (`SAF`, `YAQ`, `TOP`).
+   - يُقفل حساب الموظف غير التنفيذي على شركته المعينة (`getLockedSessionCompany`) ويُرفض دخوله لأي بوابة شركة أخرى عبر [`authService.validateCompanyAccess`](src/services/authService.ts).
 
 ---
 
-### 3. معايير هندسة الكود والتايب سكريبت (TypeScript & Code Quality Standards)
-3.1. **الصرامة النوعية (Strict Typing)**:
-   - منع استخدام النوع `any` كلياً. كل كائن، حدث، أو استجابة API يجب أن يمتلك واجهة أو نوعاً صريحاً في مجلد `src/types/`.
-   - تفعيل وضع `strict: true` في إعدادات مترجم التايب سكريبت `tsconfig.json`.
-3.2. **فصل طبقات التصميم (Clean Architecture Separation)**:
-   - **واجهة المستخدم (UI Layer)**: في `src/components/` و `src/pages/` - مسؤولة فقط عن العرض وتجربة المستخدم وردود الفعل الحركية.
-   - **طبقة الخدمات (Services Layer)**: في `src/services/` - تحتوي على منطق العمل الصرف (Business Logic)، والتحقق من الشروط، والاتصال بقاعدة البيانات.
-   - **طبقة الحالة المدارة (State & Stores)**: في `src/contexts/` و `src/stores/` (Zustand) لإدارة الجلسة العامة وتفضيلات الواجهة والتنبيهات.
+### 3. معايير هندسة الكود، عدم التكرار، والتايب سكريبت (TypeScript & Idempotency Standards)
+3.1. **الصرامة النوعية (`tsc --noEmit` = 0 Errors)**:
+   - جميع العقود البرمجية، الكيانات، والأحداث النطاقية معرفة بأنواع صارمة في [`src/types/`](src/types/).
+3.2. **فصل طبقات التصميم (Clean Modular Architecture)**:
+   - **طبقة العرض (`src/pages/` و`src/components/`)**: تلتزم حصرياً بنظام تصميم `DESIGN-mobbin.md` الأحادي النقي، وتفوض جميع العمليات لطبقة الخدمات.
+   - **طبقة النطاق والخدمات (`src/services/`)**: تضم محركات النطاق المستقلة (`musanedLifecycleEngine`, `fleetDispatchEngine`, `paymentOrchestratorService`, `inventoryReservationService`, `journalEngine`, `zatcaPhase2Service`, `iamPolicyEngine`).
+   - **طبقة الحالة والجلسة (`src/contexts/` و`src/stores/`)**: تدير جلسة الـ IAM، الشركة النشطة، والإشعارات اللحظية.
+3.3. **حتمية عدم التكرار (`Idempotency-Key` Enforcement)**:
+   - كل عملية تحصيل مالي أو حجز ضمان في [`paymentOrchestratorService.ts`](src/services/paymentOrchestratorService.ts) تمر وجوباً عبر [`idempotencyService.executeWithIdempotency`](src/services/idempotencyService.ts) لمنع الازدواج المالي عند تذبذب الشبكة.
 
 ---
 
-### 4. أمن المعلومات وحوكمة الهوية (IAM & Security Governance)
-4.1. **حماية مفتاح الخدمة الفائق (Service Role Key)**:
-   - يُحظر تضمين `SUPABASE_SERVICE_ROLE_KEY` في أي كود من جهة العميل (Client-side bundle).
-   - العمليات الحساسة التي تتطلب صلاحيات عليا (مثل تعيين أدوار الموظفين أو التعديل المالي الإداري) تتم حصراً عبر Supabase Edge Functions أو RPC Functions محمية بكلمة سر.
-4.2. **فصل بيانات الاعتماد (`app_metadata` مقابل `user_metadata`)**:
-   - الأدوار الوظيفية والصلاحيات والفرع تُخزن حصراً في `app_metadata` الخاضعة للسيطرة المركزية، ولا يمكن للمستخدم تعديلها بنفسه.
-   - `user_metadata` يُخصص فقط للتفضيلات الشخصية (مثل الصورة الرمزية، اللغة المفضلة، والمظهر).
-4.3. **الامتثال لنظام حماية البيانات الشخصية (PDPL & SDAIA)**:
-   - تعتيم أرقام الهويات الوطنية وأرقام الجوازات في السجلات غير المصرح بها (Masking: e.g. `1010****56`).
-   - تشفير أرقام الهواتف وبيانات الدفع وفق معايير PCI-DSS.
+### 4. حوكمة الأستاذ العام وحسابات الضمان (Ledger & Escrow Invariants)
+4.1. **دفتر أستاذ غير قابل للتعديل أو الحذف (`Append-Only General Ledger`)**:
+   - يُحظر تعديل (`updateJournalEntry`) أو حذف (`deleteJournalEntry`) أي قيد يومية بعد ترحيله (`status === 'POSTED'`).
+   - التصحيح المحاسبي يتم حصراً عبر إصدار قيد عكسي متوازن (`reverseJournalEntry`) يعكس أطراف المدين والدائن ويسم القيد الأصلي بالحالة `REVERSED`.
+4.2. **شرط الفحص الطبي لتحرير الضمان (`Escrow Medical Clearance Gate`)**:
+   - تُحتجز مبالغ العقود المحصلة في حساب التزامات الضمان (`2105`)، ويُحظر تحرير عمولة الوكالة الخارجية أو إثبات الإيراد المحقق قبل توثيق اجتياز الفحص الطبي (`releaseToAgencyAfterMedical`).
 
 ---
 
-### 5. حوكمة آلات الحالة والعمليات التشغيلية (Finite State Machines Invariants)
-5.1. **الانتقال الحتمي بين الحالات (Deterministic State Transitions)**:
-   - لا يجوز لأي عقد استقدام أو تأجير أو طلب مالي الانتقال إلى حالة تالية دون استيفاء الشروط المسبقة (Guards).
-   - مثال: لا يجوز نقل العقد إلى مرحلة "تفييز" إلا بعد وجود "رقم تفويض مساند" ساري المفعول وفحص طبي لائق.
-5.2. **توثيق تاريخ التغيير (Audit Trail)**:
-   - كل حركة أو تغيير في حالة السجل يجب أن تُسجل تلقائياً في جدول `audit_logs` متضمناً:
-     `(record_id, previous_state, new_state, actor_id, timestamp, ip_address, reason)`.
+### 5. أمن المعلومات وحوكمة الهوية والـ PDPL (IAM & Security Governance)
+5.1. **سياسة المنع الافتراضي (`Deny by Default`)**:
+   - يرفض [`iamPolicyEngine.evaluateAccessDecision`](src/services/iamPolicyEngine.ts) أي طلب غير مصادق عليه، أو صادر من حساب موقوف، أو يفتقر لرمز الصلاحية الصريح، أو يحاول الوصول لسجل خارج `company_id` أو `DataScopeLevel`.
+5.2. **الامتثال لنظام حماية البيانات الشخصية السعودي (`PDPL`)**:
+   - تُعمّى أرقام الهويات الوطنية (`10******32`)، الجوازات (`P*****43`)، الآيبان (`SA44****************1234`)، والجوالات للأدوار غير المخولة عبر [`src/utils/pdplMasking.ts`](src/utils/pdplMasking.ts).
+5.3. **الهوية البصرية المؤسسية الموحدة (`Mobbin Monochrome UI Rules`)**:
+   - التزام كامل بلوحة الألوان الأحادية (`#ffffff`, `#f3f3f3`, `#141414`, `#707070`, `#0066ff`)، ومنع الرموز التعبيرية العشوائية (Emojis) في مكونات الواجهة، ومنع تكرار الترويسات أو القوائم الجانبية داخل الصفحات الفرعية.
 
 ---
 
-### 6. حوكمة فروع Git والدمج والنشر (Git & Release Standards)
-6.1. **تسمية الفروع**:
-   - الميزات: `feat/feature-name`
-   - الإصلاحات: `fix/bug-description`
-   - البنية التحتية: `chore/task-name`
-6.2. **رسائل الالتزام الدلالية (Conventional Commits)**:
-   - `feat(ui): ...`, `fix(auth): ...`, `refactor(accounting): ...`, `perf(isr): ...`.
-6.3. **بوابات الجودة الإلزامية قبل الرفع (Pre-Push Quality Gates)**:
-   - نجاح التحقق من الأنواع `tsc --noEmit` بنسبة 100% بدون أي أخطاء.
-   - نجاح تجميع الحزم والإنتاج `npm run build` بنجاح كامل.
+### 6. بوابات الجودة الإلزامية قبل الرفع (Pre-Push Quality Gates)
+6.1. نجاح فحص الأنواع `npx tsc --noEmit` بنسبة 100% بدون أي أخطاء.
+6.2. نجاح حزمة الاختبارات الآلية `npx vitest run` (20 ملف اختبار / 97 اختباراً للوحدات والتكامل).
