@@ -3,7 +3,7 @@
  * Version: 3.0.0 — Mobile Native Push, App Badging, Background Sync & Periodic Sync Engine
  */
 
-const CACHE_NAME = 'khalid-erp-pwa-v10-20261019';
+const CACHE_NAME = 'khalid-erp-pwa-v15-mobbin-light-20261103';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/logo.png',
@@ -14,6 +14,9 @@ const STATIC_ASSETS = [
 // Install Event: Activate immediately without pre-caching HTML shell
 self.addEventListener('install', (event) => {
   self.skipWaiting();
+  if (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1') {
+    return;
+  }
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(STATIC_ASSETS).catch(() => {});
@@ -23,16 +26,20 @@ self.addEventListener('install', (event) => {
 
 // Activate Event: Purge ALL legacy caches (including v1, v2, v3, v4, v5) & claim all clients immediately
 self.addEventListener('activate', (event) => {
+  const isLocal = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) {
+          if (isLocal || key !== CACHE_NAME) {
             return caches.delete(key);
           }
         })
       );
     }).then(() => self.clients.claim()).then(() => {
+      if (isLocal && self.registration) {
+        self.registration.unregister().catch(() => {});
+      }
       return self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
         windowClients.forEach((client) => {
           client.postMessage({
@@ -67,6 +74,8 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   if (
+    url.hostname === 'localhost' ||
+    url.hostname === '127.0.0.1' ||
     url.pathname.startsWith('/api') ||
     url.pathname.startsWith('/src/') ||
     url.pathname.startsWith('/@') ||

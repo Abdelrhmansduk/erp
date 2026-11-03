@@ -1022,24 +1022,24 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
               setIsOpen(true);
               setShowTooltip(false);
             }}
-            className="group flex items-center gap-2 px-3.5 py-2 bg-[#141414] border border-[#262626] rounded-full hover:bg-[#262626] transition-colors cursor-pointer"
+            className="group flex items-center gap-2 px-3.5 py-2 bg-[#ffffff] border border-[#e0e0e0] rounded-full hover:bg-[#f3f3f3] hover:border-[#141414] shadow-md transition-all cursor-pointer"
             title={`التحدث مع ${persona === 'noura' ? 'نُورة' : 'فارس'}`}
           >
-            <div className="relative w-7 h-7 flex-shrink-0 rounded-full bg-[#ffffff] p-0.5">
+            <div className="relative w-7 h-7 flex-shrink-0 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] p-0.5">
               <img
                 src={persona === 'noura' ? '/noura.png' : '/mascot.png'}
                 alt={persona === 'noura' ? 'نُورة' : 'فارس'}
                 className="w-full h-full object-contain"
               />
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#0066ff] border-2 border-[#141414]" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#0066ff] border-2 border-[#ffffff]" />
             </div>
 
             <div className="flex flex-col text-right">
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-[#ffffff]">
+                <span className="text-xs font-bold text-[#141414]">
                   {persona === 'noura' ? 'نُورة' : 'فارس'}
                 </span>
-                <span className="text-[10px] text-[#ffffff] font-semibold bg-[#0066ff] px-2 py-0.5 rounded-full">
+                <span className="text-[10px] text-[#141414] font-semibold bg-[#f3f3f3] border border-[#e0e0e0] px-2 py-0.5 rounded-full">
                   AI
                 </span>
               </div>
@@ -1059,21 +1059,21 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
           {/* Floating Greeting Bubble with Persona Switcher & Dismiss/Dock Button */}
           {showTooltip && (
             <div
-              className="speech-bubble-anim relative mb-2 max-w-[280px] bg-white border border-[#CFA64A] rounded-2xl p-3 shadow-xl select-none"
+              className="speech-bubble-anim relative mb-2 max-w-[280px] bg-[#ffffff] border border-[#e0e0e0] rounded-[20px] p-3 shadow-xl select-none"
             >
               {/* Top Control Bar: Persona Switcher & Minimize to Dock */}
-              <div className="flex items-center justify-between gap-2 pb-1.5 mb-1.5 border-b border-[#E4E4E7] text-[10.5px]">
-                <div className="inline-flex items-center bg-[#FBFBF5] rounded-full p-0.5 border border-[#E4E4E7]">
+              <div className="flex items-center justify-between gap-2 pb-1.5 mb-1.5 border-b border-[#f0f0f0] text-[10.5px]">
+                <div className="inline-flex items-center bg-[#f3f3f3] rounded-full p-0.5 border border-[#e0e0e0]">
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       switchPersona('faris');
                     }}
-                    className={`px-2.5 py-0.5 rounded-full font-black transition-all cursor-pointer ${
+                    className={`px-2.5 py-0.5 rounded-full font-bold transition-all cursor-pointer ${
                       persona === 'faris'
-                        ? 'bg-black text-[#CFA64A] shadow-xs'
-                        : 'text-zinc-600 hover:text-black'
+                        ? 'bg-[#141414] text-[#ffffff]'
+                        : 'text-[#707070] hover:text-[#141414]'
                     }`}
                   >
                     فارس
@@ -1084,10 +1084,10 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                       e.stopPropagation();
                       switchPersona('noura');
                     }}
-                    className={`px-2.5 py-0.5 rounded-full font-black transition-all cursor-pointer ${
+                    className={`px-2.5 py-0.5 rounded-full font-bold transition-all cursor-pointer ${
                       persona === 'noura'
-                        ? 'bg-[#CFA64A] text-black shadow-xs'
-                        : 'text-zinc-600 hover:text-black'
+                        ? 'bg-[#141414] text-[#ffffff]'
+                        : 'text-[#707070] hover:text-[#141414]'
                     }`}
                   >
                     نُورة
@@ -1102,7 +1102,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                     setIsDocked(true);
                     localStorage.setItem('assistant_mascot_docked', 'true');
                   }}
-                  className="text-zinc-400 hover:text-black p-1 rounded-full hover:bg-zinc-100 transition-colors cursor-pointer"
+                  className="text-[#707070] hover:text-[#141414] p-1 rounded-full hover:bg-[#f3f3f3] transition-colors cursor-pointer"
                   title="تصغير إلى الشريط الجانبي"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -1117,14 +1117,14 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                 }}
                 className="cursor-pointer hover:opacity-90 transition-opacity"
               >
-                <p className="text-xs font-black text-black leading-snug m-0">
+                <p className="text-xs font-bold text-[#141414] leading-snug m-0">
                   {persona === 'noura'
                     ? 'أهلاً بكِ! أنا نُورة، المستشارة المؤسسية'
                     : 'أهلاً بك! أنا فارس، المستشار التنفيذي'}
                 </p>
-                <p className="text-[11px] text-zinc-600 mt-1 mb-0 flex items-center gap-1">
+                <p className="text-[11px] text-[#707070] mt-1 mb-0 flex items-center gap-1">
                   <span>انقر للمحادثة أو نادني صوتياً: </span>
-                  <strong className="text-[#8C681E] font-black whitespace-nowrap">
+                  <strong className="text-[#141414] font-bold whitespace-nowrap">
                     {persona === 'noura' ? '"يا نُورة"' : '"يا فارس"'}
                   </strong>
                 </p>
@@ -1139,8 +1139,8 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                   width: '12px',
                   height: '12px',
                   backgroundColor: '#ffffff',
-                  borderRight: '1px solid #CFA64A',
-                  borderBottom: '1px solid #CFA64A',
+                  borderRight: '1px solid #e0e0e0',
+                  borderBottom: '1px solid #e0e0e0',
                   transform: 'rotate(45deg)',
                 }}
               />
@@ -1162,7 +1162,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                 alt={persona === 'noura' ? 'نُورة - المستشارة المؤسسية' : 'فارس - المستشار التنفيذي'}
                 className="w-auto h-32 sm:h-36 object-contain pointer-events-auto"
                 style={{
-                  filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.18)) drop-shadow(0 0 12px rgba(207, 166, 74, 0.25))',
+                  filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.12))',
                 }}
                 loading="eager"
               />
@@ -1175,7 +1175,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                   width: '12px',
                   height: '12px',
                   borderRadius: '50%',
-                  backgroundColor: '#047857',
+                  backgroundColor: '#0066ff',
                   border: '2px solid #ffffff',
                 }}
                 title="متصل بالخدمة"
@@ -1185,53 +1185,50 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
             <div
               className="mascot-shadow w-24 h-3.5 rounded-full pointer-events-none -mt-1"
               style={{
-                background: 'radial-gradient(ellipse at center, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.08) 55%, transparent 75%)',
+                background: 'radial-gradient(ellipse at center, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.05) 55%, transparent 75%)',
               }}
             />
           </div>
         </div>
       )}
 
-      {/* 3. Institutional Shopifi + Warm Champagne Gold Advisor Window */}
+      {/* 3. Mobbin Light Mode Institutional Advisor Window */}
       {isOpen && (
         <div
-          className="speech-bubble-anim fixed inset-x-2.5 bottom-[calc(70px+env(safe-area-inset-bottom,0px))] lg:inset-x-auto lg:bottom-6 lg:left-6 lg:w-[450px] max-w-[calc(100vw-20px)] h-[calc(100dvh-86px-env(safe-area-inset-bottom,0px))] lg:h-[84vh] lg:max-h-[680px] z-[9999] flex flex-col overflow-hidden rounded-3xl"
+          className="speech-bubble-anim fixed inset-x-2.5 bottom-[calc(70px+env(safe-area-inset-bottom,0px))] lg:inset-x-auto lg:bottom-6 lg:left-6 lg:w-[450px] max-w-[calc(100vw-20px)] h-[calc(100dvh-86px-env(safe-area-inset-bottom,0px))] lg:h-[84vh] lg:max-h-[680px] z-[9999] flex flex-col overflow-hidden rounded-[24px] bg-[#ffffff] border border-[#e0e0e0] shadow-2xl"
           style={{
-            backgroundColor: '#FFFFFF',
-            boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.26), 0 0 0 1px rgba(207, 166, 74, 0.45)',
-            border: '1.5px solid #CFA64A',
             fontFamily: 'var(--font-family-ui)',
             direction: 'rtl',
           }}
         >
-          {/* Header - Obsidian Black & Warm Champagne Gold Institutional Bar */}
-          <div className="p-3.5 sm:p-4 bg-[#1D2428] text-white border-b border-[#CFA64A]/40 shrink-0">
+          {/* Header - Clean Mobbin Gallery-White Bar */}
+          <div className="p-3.5 sm:p-4 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5] shrink-0">
             {/* Row 1: Identity & Controls */}
             <div className="flex items-center justify-between gap-3">
               {/* Avatar & Title */}
               <div className="flex items-center gap-3 min-w-0">
-                <div className="relative w-11 h-11 rounded-2xl p-0.5 shrink-0 bg-[#CFA64A] shadow-sm">
-                  <div className="w-full h-full rounded-[14px] bg-[#FBFBF5] flex items-center justify-center overflow-hidden">
+                <div className="relative w-11 h-11 rounded-[14px] p-0.5 shrink-0 bg-[#f3f3f3] border border-[#e0e0e0]">
+                  <div className="w-full h-full rounded-[12px] bg-[#ffffff] flex items-center justify-center overflow-hidden">
                     <img
                       src={persona === 'noura' ? '/noura.png' : '/mascot.png'}
                       alt={persona === 'noura' ? 'نُورة' : 'فارس'}
                       className="w-full h-full object-contain p-0.5"
                     />
                   </div>
-                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#1D2428]" />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#0066ff] border-2 border-[#ffffff]" />
                 </div>
 
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <h4 className="font-black text-[14.5px] text-white tracking-tight m-0 truncate">
+                    <h4 className="font-bold text-[14.5px] text-[#141414] tracking-tight m-0 truncate">
                       {persona === 'noura' ? 'نُورة • المستشارة المؤسسية' : 'فارس • المستشار التنفيذي'}
                     </h4>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full font-black bg-[#CFA64A] text-black shrink-0">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] shrink-0">
                       {persona === 'noura' ? 'نُورة' : 'فارس'}
                     </span>
                   </div>
-                  <p className="text-[11px] text-[#F5EDDC] m-0 truncate flex items-center gap-1 mt-0.5">
-                    <ShieldCheck className="w-3 h-3 text-[#CFA64A] shrink-0 inline" />
+                  <p className="text-[11px] text-[#707070] m-0 truncate flex items-center gap-1 mt-0.5">
+                    <ShieldCheck className="w-3 h-3 text-[#141414] shrink-0 inline" />
                     <span>نظام التوجيه والحوكمة المؤسسية المعزول</span>
                   </p>
                 </div>
@@ -1244,10 +1241,10 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                   type="button"
                   onClick={toggleVoice}
                   title={voiceEnabled ? 'تعطيل القراءة الصوتية' : 'تفعيل القراءة الصوتية'}
-                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                     voiceEnabled
-                      ? 'bg-[#CFA64A] text-black font-bold shadow-xs'
-                      : 'text-zinc-400 hover:text-white hover:bg-white/10'
+                      ? 'bg-[#141414] text-[#ffffff] font-bold'
+                      : 'bg-[#f3f3f3] text-[#707070] hover:text-[#141414] hover:bg-[#e5e5e5]'
                   }`}
                 >
                   {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -1258,10 +1255,10 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                   type="button"
                   onClick={() => setShowVoiceGuide((prev) => !prev)}
                   title={showVoiceGuide ? 'إخفاء دليل الأوامر الصوتية' : 'عرض دليل الأوامر الصوتية'}
-                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                     showVoiceGuide
-                      ? 'bg-[#F5EDDC] text-black font-bold shadow-xs'
-                      : 'text-zinc-400 hover:text-white hover:bg-white/10'
+                      ? 'bg-[#141414] text-[#ffffff] font-bold'
+                      : 'bg-[#f3f3f3] text-[#707070] hover:text-[#141414] hover:bg-[#e5e5e5]'
                   }`}
                 >
                   <Radio className="w-4 h-4" />
@@ -1272,10 +1269,10 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                   type="button"
                   onClick={toggleWakeWord}
                   title={wakeWordEnabled ? 'المناداة الصوتية مفعلة (يا فارس / يا نُورة)' : 'تفعيل المناداة الصوتية التلقائية'}
-                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                     wakeWordEnabled
-                      ? 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/50'
-                      : 'text-zinc-400 hover:text-white hover:bg-white/10'
+                      ? 'bg-[#0066ff] text-[#ffffff]'
+                      : 'bg-[#f3f3f3] text-[#707070] hover:text-[#141414] hover:bg-[#e5e5e5]'
                   }`}
                 >
                   {wakeWordEnabled ? <Mic className="w-4 h-4 animate-pulse" /> : <MicOff className="w-4 h-4" />}
@@ -1290,7 +1287,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                     localStorage.setItem('assistant_mascot_docked', 'true');
                   }}
                   title="تصغير إلى الشاشة"
-                  className="w-8 h-8 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+                  className="w-8 h-8 rounded-full flex items-center justify-center bg-[#f3f3f3] text-[#707070] hover:text-[#141414] hover:bg-[#e5e5e5] transition-all cursor-pointer"
                 >
                   <Minimize2 className="w-4 h-4" />
                 </button>
@@ -1300,7 +1297,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                   type="button"
                   onClick={() => setIsOpen(false)}
                   title="إغلاق"
-                  className="w-8 h-8 rounded-xl flex items-center justify-center text-zinc-400 hover:text-rose-400 hover:bg-white/10 transition-all cursor-pointer"
+                  className="w-8 h-8 rounded-full flex items-center justify-center bg-[#f3f3f3] text-[#707070] hover:text-[#141414] hover:bg-[#e5e5e5] transition-all cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1308,16 +1305,16 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
             </div>
 
             {/* Row 2: Persona Switcher & Company Scope Badges */}
-            <div className="flex items-center justify-between gap-2 mt-3 pt-2.5 border-t border-white/10">
+            <div className="flex items-center justify-between gap-2 mt-3 pt-2.5 border-t border-[#f0f0f0]">
               {/* Persona Switcher Pill */}
-              <div className="inline-flex items-center bg-black/50 p-0.5 rounded-full border border-white/15">
+              <div className="inline-flex items-center bg-[#f3f3f3] p-0.5 rounded-full border border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => switchPersona('faris')}
-                  className={`px-3 py-1 rounded-full text-xs font-black transition-all flex items-center gap-1 cursor-pointer ${
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                     persona === 'faris'
-                      ? 'bg-[#CFA64A] text-black shadow-xs'
-                      : 'text-zinc-300 hover:text-white'
+                      ? 'bg-[#141414] text-[#ffffff]'
+                      : 'text-[#707070] hover:text-[#141414]'
                   }`}
                 >
                   <span>فارس (تنفيذي)</span>
@@ -1325,10 +1322,10 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                 <button
                   type="button"
                   onClick={() => switchPersona('noura')}
-                  className={`px-3 py-1 rounded-full text-xs font-black transition-all flex items-center gap-1 cursor-pointer ${
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                     persona === 'noura'
-                      ? 'bg-[#CFA64A] text-black shadow-xs'
-                      : 'text-zinc-300 hover:text-white'
+                      ? 'bg-[#141414] text-[#ffffff]'
+                      : 'text-[#707070] hover:text-[#141414]'
                   }`}
                 >
                   <span>نُورة (مؤسسي)</span>
@@ -1337,10 +1334,10 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
 
               {/* Company Data Isolation Badge */}
               <div
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#F5EDDC] text-black border border-[#CFA64A] truncate max-w-[220px]"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] truncate max-w-[220px]"
                 title={`عزل بيانات الشركة: ${activeCompany.name}`}
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-[#047857] shrink-0" />
+                <ShieldCheck className="w-3.5 h-3.5 text-[#141414] shrink-0" />
                 <span className="truncate">{activeCompany.name}</span>
               </div>
             </div>
@@ -1356,19 +1353,15 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                       }
                     : undefined
                 }
-                className={`mt-2.5 px-3 py-1.5 rounded-xl border flex items-center justify-between gap-2 cursor-pointer transition-all ${
-                  isSpeaking
-                    ? 'bg-[#F5EDDC] border-[#CFA64A] text-black'
-                    : 'bg-emerald-950/80 border-emerald-500/50 text-emerald-200'
-                }`}
+                className="mt-2.5 px-3 py-1.5 rounded-[14px] border border-[#e0e0e0] bg-[#f3f3f3] text-[#141414] flex items-center justify-between gap-2 cursor-pointer transition-all"
               >
                 <div className="flex items-center gap-2">
                   {isSpeaking ? (
-                    <Volume2 className="w-4 h-4 text-[#8C681E] animate-pulse shrink-0" />
+                    <Volume2 className="w-4 h-4 text-[#141414] animate-pulse shrink-0" />
                   ) : (
-                    <Mic className="w-4 h-4 text-emerald-400 animate-pulse shrink-0" />
+                    <Mic className="w-4 h-4 text-[#0066ff] animate-pulse shrink-0" />
                   )}
-                  <span className="text-xs font-bold">
+                  <span className="text-xs font-semibold">
                     {isSpeaking
                       ? `${persona === 'noura' ? 'نُورة' : 'فارس'} يتحدث الآن... (انقر للإيقاف)`
                       : 'جاري الاستماع لصوتك عبر المايكروفون...'}
@@ -1376,18 +1369,18 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                 </div>
 
                 <div className="flex items-center gap-0.5 h-5 px-1">
-                  <span className={`w-1 rounded-full ${isSpeaking ? 'bg-[#8C681E] anim-wave-1' : 'bg-emerald-400 anim-wave-1'}`} />
-                  <span className={`w-1 rounded-full ${isSpeaking ? 'bg-[#8C681E] anim-wave-2' : 'bg-emerald-400 anim-wave-2'}`} />
-                  <span className={`w-1 rounded-full ${isSpeaking ? 'bg-[#8C681E] anim-wave-3' : 'bg-emerald-400 anim-wave-3'}`} />
-                  <span className={`w-1 rounded-full ${isSpeaking ? 'bg-[#8C681E] anim-wave-4' : 'bg-emerald-400 anim-wave-4'}`} />
-                  <span className={`w-1 rounded-full ${isSpeaking ? 'bg-[#8C681E] anim-wave-5' : 'bg-emerald-400 anim-wave-5'}`} />
+                  <span className="w-1 rounded-full bg-[#141414] anim-wave-1" />
+                  <span className="w-1 rounded-full bg-[#141414] anim-wave-2" />
+                  <span className="w-1 rounded-full bg-[#141414] anim-wave-3" />
+                  <span className="w-1 rounded-full bg-[#141414] anim-wave-4" />
+                  <span className="w-1 rounded-full bg-[#141414] anim-wave-5" />
                 </div>
               </div>
             )}
           </div>
 
           {/* Employee Identity & Co-Pilot Task Bar */}
-          <div className="px-3.5 py-2 bg-[#F5EDDC] border-b border-[#CFA64A]/50 flex items-center justify-between gap-2 shrink-0">
+          <div className="px-3.5 py-2 bg-[#f3f3f3] border-b border-[#e5e5e5] flex items-center justify-between gap-2 shrink-0">
             <div className="flex items-center gap-2 min-w-0">
               <CorporateAvatar
                 name={currentUserProfile?.full_name || 'موظف المجموعة'}
@@ -1397,10 +1390,10 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                 size="xs"
                 status="online"
               />
-              <span className="text-[11px] font-black text-black truncate">
+              <span className="text-[11px] font-bold text-[#141414] truncate">
                 {currentUserProfile?.full_name || 'موظف المجموعة'}
               </span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white text-[#8C681E] border border-[#CFA64A]/60 truncate">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#ffffff] text-[#707070] border border-[#e0e0e0] truncate">
                 {departmentPlaybook.departmentNameAr}
               </span>
             </div>
@@ -1410,9 +1403,9 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                 type="button"
                 onClick={handleDailyBriefing}
                 title="إيجاز مهامي اليومي ومؤشرات القسم"
-                className="px-2.5 py-1 rounded-full text-[11px] font-black bg-black text-[#CFA64A] border border-[#CFA64A] hover:bg-zinc-900 transition-all flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#141414] text-[#ffffff] hover:bg-[#262626] transition-all flex items-center gap-1 cursor-pointer"
               >
-                <ClipboardList className="w-3 h-3 text-[#CFA64A]" />
+                <ClipboardList className="w-3 h-3 text-[#ffffff]" />
                 <span>إيجاز مهامي</span>
               </button>
               <button
@@ -1422,22 +1415,22 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                   setIsOpen(false);
                 }}
                 title="فتح مستخرج الـ 100 فاتورة ومستندات PDF/Word/Excel الذكي"
-                className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white text-black border border-[#CFA64A] hover:bg-[#FBFBF5] transition-all flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#ffffff] text-[#141414] border border-[#e0e0e0] hover:bg-[#e5e5e5] transition-all flex items-center gap-1 cursor-pointer"
               >
-                <Paperclip className="w-3 h-3 text-[#8C681E]" />
+                <Paperclip className="w-3 h-3 text-[#141414]" />
                 <span>مستخرج المستندات</span>
               </button>
             </div>
           </div>
 
           {/* Contextual Department Task Playbook Pill Bar */}
-          <div className="px-3.5 py-2.5 bg-[#FBFBF5] border-b border-[#E4E4E7] flex gap-2 overflow-x-auto thin-scrollbar shrink-0">
+          <div className="px-3.5 py-2.5 bg-[#ffffff] border-b border-[#f0f0f0] flex gap-2 overflow-x-auto thin-scrollbar shrink-0">
             {getContextualPrompts().map((qp, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={() => handleSendMessage(qp.query)}
-                className="px-3 py-1.5 rounded-full text-xs font-bold bg-white text-black border border-[#E4E4E7] hover:border-[#CFA64A] hover:bg-[#F5EDDC] transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer"
+                className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:border-[#141414] hover:bg-[#e5e5e5] transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer"
               >
                 <span>{qp.label}</span>
               </button>
@@ -1446,27 +1439,27 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
 
           {/* Voice Commands Guide Panel (When toggled) */}
           {showVoiceGuide && (
-            <div className="p-3.5 bg-[#F5EDDC] border-b border-[#CFA64A] text-black shrink-0 text-xs">
+            <div className="p-3.5 bg-[#f3f3f3] border-b border-[#e5e5e5] text-[#141414] shrink-0 text-xs">
               <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-1.5 font-black text-black">
-                  <Radio className="w-4 h-4 text-[#8C681E] animate-pulse" />
+                <div className="flex items-center gap-1.5 font-bold text-[#141414]">
+                  <Radio className="w-4 h-4 text-[#0066ff] animate-pulse" />
                   <span>دليل الأوامر الصوتية المباشرة (تحدث بالمايكروفون)</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowVoiceGuide(false)}
-                  className="text-zinc-600 hover:text-black p-1 rounded-md"
+                  className="text-[#707070] hover:text-[#141414] p-1 rounded-full"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
               <div className="space-y-2 max-h-48 overflow-y-auto thin-scrollbar pr-1">
                 {VOICE_COMMANDS_GUIDE.map((cat, idx) => (
-                  <div key={idx} className="bg-white p-2.5 rounded-xl border border-[#CFA64A]/40">
-                    <div className="flex items-center justify-between font-bold text-black mb-1 text-[11px]">
+                  <div key={idx} className="bg-[#ffffff] p-2.5 rounded-[14px] border border-[#e0e0e0]">
+                    <div className="flex items-center justify-between font-bold text-[#141414] mb-1 text-[11px]">
                       <span>{cat.category}</span>
                       {cat.badge && (
-                        <span className="text-[10px] bg-[#F5EDDC] text-[#8C681E] px-1.5 py-0.5 rounded font-black border border-[#CFA64A]/40">
+                        <span className="text-[10px] bg-[#f3f3f3] text-[#141414] px-2 py-0.5 rounded-full font-semibold border border-[#e0e0e0]">
                           {cat.badge}
                         </span>
                       )}
@@ -1480,7 +1473,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                             setShowVoiceGuide(false);
                             handleSendMessage(phrase);
                           }}
-                          className="text-[11px] bg-[#FBFBF5] hover:bg-[#F5EDDC] border border-[#E4E4E7] px-2 py-0.5 rounded-lg text-black transition-all text-right cursor-pointer"
+                          className="text-[11px] bg-[#f3f3f3] hover:bg-[#e5e5e5] border border-[#e0e0e0] px-2.5 py-0.5 rounded-full text-[#141414] transition-all text-right cursor-pointer"
                         >
                           "{phrase}"
                         </button>
@@ -1493,7 +1486,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
           )}
 
           {/* Chat Messages Section */}
-          <div className="flex-1 p-3.5 sm:p-4 overflow-y-auto flex flex-col gap-3.5 bg-[#FBFBF5]">
+          <div className="flex-1 p-3.5 sm:p-4 overflow-y-auto flex flex-col gap-3.5 bg-[#ffffff]">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -1503,7 +1496,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
               >
                 {/* Advisor Avatar */}
                 {msg.sender === 'ai' && (
-                  <div className="w-7 h-7 rounded-xl bg-white border border-[#CFA64A] p-0.5 shrink-0 overflow-hidden mt-1 shadow-xs">
+                  <div className="w-7 h-7 rounded-[10px] bg-[#f3f3f3] border border-[#e0e0e0] p-0.5 shrink-0 overflow-hidden mt-1">
                     <img
                       src={persona === 'noura' ? '/noura.png' : '/mascot.png'}
                       alt={persona === 'noura' ? 'نُورة' : 'فارس'}
@@ -1515,10 +1508,10 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                 <div className="flex flex-col gap-1.5 flex-1 min-w-0">
                   {/* Message Bubble */}
                   <div
-                    className={`p-3.5 text-xs sm:text-[13px] leading-relaxed shadow-xs transition-all ${
+                    className={`p-3.5 text-xs sm:text-[13px] leading-relaxed transition-all ${
                       msg.sender === 'user'
-                        ? 'bg-[#1D2428] text-white rounded-2xl rounded-tl-xs border border-black'
-                        : 'bg-white text-black border border-[#E4E4E7] rounded-2xl rounded-tr-xs'
+                        ? 'bg-[#141414] text-[#ffffff] rounded-[20px] rounded-tl-xs'
+                        : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] rounded-[20px] rounded-tr-xs'
                     }`}
                   >
                     {msg.sender === 'user' ? (
@@ -1531,8 +1524,8 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                             const content = trimmed.replace(/^[•\-\*]\s*/, '');
                             return (
                               <div key={lIdx} className="flex items-start gap-2 my-0.5 pr-0.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#CFA64A] mt-2 shrink-0" />
-                                <span className="leading-relaxed text-zinc-900">{content}</span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#141414] mt-2 shrink-0" />
+                                <span className="leading-relaxed text-[#141414]">{content}</span>
                               </div>
                             );
                           }
@@ -1540,7 +1533,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                             return <div key={lIdx} className="h-1.5" />;
                           }
                           return (
-                            <p key={lIdx} className="m-0 leading-relaxed text-zinc-900 font-medium">
+                            <p key={lIdx} className="m-0 leading-relaxed text-[#141414] font-medium">
                               {line}
                             </p>
                           );
@@ -1558,11 +1551,11 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                           handleTriggerActionButton(msg.actionButton.actionKey, msg.actionButton.label);
                         }
                       }}
-                      className="self-start mt-1 px-4 py-2 rounded-full bg-black hover:bg-zinc-900 text-[#CFA64A] font-black text-xs border border-[#CFA64A] shadow-xs flex items-center gap-2 transition-all cursor-pointer"
+                      className="self-start mt-1 px-4 py-2 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer"
                     >
-                      <Zap className="w-3.5 h-3.5 text-[#CFA64A]" />
+                      <Zap className="w-3.5 h-3.5 text-[#ffffff]" />
                       <span>{msg.actionButton.label}</span>
-                      <ArrowLeft className="w-3.5 h-3.5 text-[#CFA64A]" />
+                      <ArrowLeft className="w-3.5 h-3.5 text-[#ffffff]" />
                     </button>
                   )}
 
@@ -1575,9 +1568,9 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                           switchPersona(msg.suggestedPersonaHandoff.persona);
                         }
                       }}
-                      className="self-start mt-1 px-3.5 py-1.5 rounded-full bg-[#F5EDDC] hover:bg-[#CFA64A] text-black font-bold text-[11px] border border-[#CFA64A] shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                      className="self-start mt-1 px-3.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] font-semibold text-[11px] border border-[#e0e0e0] flex items-center gap-1.5 transition-all cursor-pointer"
                     >
-                      <ArrowRightLeft className="w-3.5 h-3.5 text-[#8C681E]" />
+                      <ArrowRightLeft className="w-3.5 h-3.5 text-[#141414]" />
                       <span>
                         التحويل إلى {msg.suggestedPersonaHandoff.persona === 'noura' ? 'نُورة' : 'فارس'}: {msg.suggestedPersonaHandoff.reasonAr}
                       </span>
@@ -1585,7 +1578,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                   )}
 
                   {/* Timestamp, Copy Action & Speech Read Action */}
-                  <div className="flex items-center justify-between gap-2 px-1 text-[10.5px] text-zinc-500">
+                  <div className="flex items-center justify-between gap-2 px-1 text-[10.5px] text-[#707070]">
                     <span>{msg.timestamp}</span>
 
                     {msg.sender === 'ai' && (
@@ -1594,16 +1587,16 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                           type="button"
                           onClick={() => handleCopyMessage(msg.id, msg.text)}
                           title="نسخ النص أو الخطاب"
-                          className="flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold bg-white text-black border border-[#E4E4E7] hover:border-[#CFA64A] hover:bg-[#F5EDDC] transition-all cursor-pointer"
+                          className="flex items-center gap-1 px-2.5 py-0.5 rounded-full font-semibold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#e5e5e5] transition-all cursor-pointer"
                         >
                           {copiedMsgId === msg.id ? (
                             <>
-                              <Check className="w-3 h-3 text-emerald-700" />
-                              <span className="text-emerald-700">تم النسخ</span>
+                              <Check className="w-3 h-3 text-[#0066ff]" />
+                              <span className="text-[#0066ff]">تم النسخ</span>
                             </>
                           ) : (
                             <>
-                              <Copy className="w-3 h-3 text-[#8C681E]" />
+                              <Copy className="w-3 h-3 text-[#141414]" />
                               <span>نسخ</span>
                             </>
                           )}
@@ -1613,9 +1606,9 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                           type="button"
                           onClick={() => speakText(msg.spokenSummary || msg.text, persona, true)}
                           title={persona === 'noura' ? 'استمع لصوت نُورة' : 'استمع لصوت فارس'}
-                          className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-bold bg-[#F5EDDC] text-black border border-[#CFA64A]/60 hover:bg-[#CFA64A] transition-all cursor-pointer"
+                          className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-semibold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#e5e5e5] transition-all cursor-pointer"
                         >
-                          <Volume2 className="w-3 h-3 text-[#8C681E]" />
+                          <Volume2 className="w-3 h-3 text-[#141414]" />
                           <span>استمع</span>
                         </button>
                       </div>
@@ -1626,9 +1619,9 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
             ))}
 
             {isTyping && (
-              <div className="self-end flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-[#CFA64A] text-black text-xs shadow-xs">
-                <RefreshCw className="w-4 h-4 animate-spin text-[#8C681E] shrink-0" />
-                <span className="font-bold">
+              <div className="self-end flex items-center gap-2.5 p-3 rounded-[18px] bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] text-xs">
+                <RefreshCw className="w-4 h-4 animate-spin text-[#141414] shrink-0" />
+                <span className="font-semibold">
                   {persona === 'noura'
                     ? 'نُورة تراجع السجلات المؤسسية...'
                     : 'فارس يراجع السجلات والدفاتر المحاسبية...'}
@@ -1644,7 +1637,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
               e.preventDefault();
               handleSendMessage();
             }}
-            className="p-3 sm:p-3.5 bg-white border-t border-[#E4E4E7] flex items-center gap-2 shrink-0"
+            className="p-3 sm:p-3.5 bg-[#ffffff] border-t border-[#e5e5e5] flex items-center gap-2 shrink-0"
           >
             {/* Hidden File Input for Direct Invoice/CV/Contract Attachment */}
             <input
@@ -1661,9 +1654,9 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
               type="button"
               onClick={() => fileInputRef.current?.click()}
               title="إرفاق فاتورة أو سيرة ذاتية أو عقد (PDF, Excel, Word, صورة)"
-              className="w-10 h-10 rounded-xl flex items-center justify-center transition-all shrink-0 cursor-pointer bg-[#FBFBF5] text-black hover:bg-[#F5EDDC] border border-[#E4E4E7] hover:border-[#CFA64A]"
+              className="w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0 cursor-pointer bg-[#f3f3f3] text-[#141414] hover:bg-[#e5e5e5] border border-[#e0e0e0]"
             >
-              <Paperclip className="w-4 h-4 text-[#8C681E]" />
+              <Paperclip className="w-4 h-4 text-[#141414]" />
             </button>
 
             {/* Voice Dictation Button */}
@@ -1677,10 +1670,10 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                   ? 'تحدثي بالمايكروفون إلى نُورة'
                   : 'تحدث بالمايكروفون إلى فارس'
               }
-              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all shrink-0 cursor-pointer ${
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0 cursor-pointer ${
                 isListening
-                  ? 'bg-[#BE123C] text-white animate-pulse'
-                  : 'bg-[#FBFBF5] text-black hover:bg-[#F5EDDC] border border-[#E4E4E7]'
+                  ? 'bg-[#141414] text-[#ffffff] animate-pulse'
+                  : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#e5e5e5] border border-[#e0e0e0]'
               }`}
             >
               {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
@@ -1698,11 +1691,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                   ? 'اطلبي مهمة من نُورة (تسكين، عقد، خطاب، نهاية خدمة)...'
                   : 'اطلب مهمة من فارس (فاتورة، قيد، سند، عقد، BOQ)...'
               }
-              className={`flex-1 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-black placeholder:text-zinc-400 outline-none transition-all ${
-                isListening
-                  ? 'bg-rose-50 border border-rose-300'
-                  : 'bg-[#FBFBF5] border border-[#E4E4E7] focus:bg-white focus:border-[#CFA64A]'
-              }`}
+              className="flex-1 px-4 py-2.5 rounded-full text-xs sm:text-sm text-[#141414] placeholder:text-[#707070] outline-none transition-all bg-[#f3f3f3] border border-[#e0e0e0] focus:bg-[#ffffff] focus:border-[#141414]"
             />
 
             {/* Send Button */}
@@ -1710,10 +1699,10 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
               type="submit"
               disabled={!inputQuery.trim()}
               title="إرسال"
-              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all shrink-0 cursor-pointer ${
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0 cursor-pointer ${
                 inputQuery.trim()
-                  ? 'bg-black text-[#CFA64A] border border-[#CFA64A] hover:bg-zinc-900'
-                  : 'bg-zinc-100 text-zinc-300 cursor-not-allowed border border-zinc-200'
+                  ? 'bg-[#141414] text-[#ffffff] hover:bg-[#262626]'
+                  : 'bg-[#f3f3f3] text-[#adadad] cursor-not-allowed border border-[#e0e0e0]'
               }`}
             >
               <Send className="w-4 h-4 rotate-180" />
@@ -1732,7 +1721,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.55)',
+            backgroundColor: 'rgba(20, 20, 20, 0.55)',
             backdropFilter: 'blur(6px)',
             direction: 'rtl',
           }}
@@ -1740,43 +1729,38 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="speech-bubble-anim"
+            className="speech-bubble-anim bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] shadow-2xl overflow-hidden"
             style={{
               width: '420px',
               maxWidth: 'calc(100vw - 32px)',
-              backgroundColor: '#ffffff',
-              borderRadius: '24px',
-              boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px #CFA64A',
-              border: '1.5px solid #CFA64A',
-              overflow: 'hidden',
               fontFamily: 'var(--font-family-ui)',
             }}
           >
             {/* Header */}
-            <div className="px-5 py-4 flex items-center gap-3 bg-[#1D2428] text-white border-b border-[#CFA64A]/40">
-              <div className="w-10 h-10 rounded-2xl bg-[#F5EDDC] flex items-center justify-center">
+            <div className="px-5 py-4 flex items-center gap-3 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5]">
+              <div className="w-10 h-10 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center">
                 {pendingToolCall.tool.riskLevel === 'high' || pendingToolCall.tool.riskLevel === 'critical' ? (
-                  <ShieldAlert className="w-5 h-5 text-[#B45309]" />
+                  <ShieldAlert className="w-5 h-5 text-[#141414]" />
                 ) : (
-                  <ShieldCheck className="w-5 h-5 text-[#047857]" />
+                  <ShieldCheck className="w-5 h-5 text-[#141414]" />
                 )}
               </div>
               <div>
-                <h3 className="m-0 text-sm font-black text-white">تأكيد تنفيذ الأمر المؤسسي</h3>
-                <p className="m-0 text-xs text-[#CFA64A] font-bold">{pendingToolCall.tool.nameAr}</p>
+                <h3 className="m-0 text-sm font-bold text-[#141414]">تأكيد تنفيذ الأمر المؤسسي</h3>
+                <p className="m-0 text-xs text-[#707070] font-semibold">{pendingToolCall.tool.nameAr}</p>
               </div>
             </div>
 
             {/* Confirmation Summary */}
             <div className="px-5 py-4">
-              <div className="p-3.5 rounded-xl bg-[#FBFBF5] border border-[#E4E4E7] text-xs leading-relaxed text-black whitespace-pre-wrap">
+              <div className="p-3.5 rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] text-xs leading-relaxed text-[#141414] whitespace-pre-wrap">
                 {pendingToolCall.confirmationSummary}
               </div>
 
               {(pendingToolCall.tool.riskLevel === 'high' || pendingToolCall.tool.riskLevel === 'critical') && (
-                <div className="mt-3 p-3 rounded-xl bg-[#F5EDDC] border border-[#CFA64A] flex items-start gap-2.5">
-                  <AlertTriangle className="w-4 h-4 text-[#B45309] shrink-0 mt-0.5" />
-                  <p className="m-0 text-xs text-black font-bold leading-relaxed">
+                <div className="mt-3 p-3 rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-start gap-2.5">
+                  <AlertTriangle className="w-4 h-4 text-[#141414] shrink-0 mt-0.5" />
+                  <p className="m-0 text-xs text-[#141414] font-semibold leading-relaxed">
                     تنبيه حوكمة: هذا الإجراء يُعدّل سجلات رسمية. يرجى التحقق من التفاصيل قبل الاعتماد.
                   </p>
                 </div>
@@ -1789,7 +1773,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                 type="button"
                 onClick={handleConfirmToolCall}
                 disabled={isExecutingTool}
-                className="flex-1 px-4 py-2.5 rounded-full font-black text-sm bg-black text-[#CFA64A] border border-[#CFA64A] hover:bg-zinc-900 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-1 px-4 py-2.5 rounded-full font-semibold text-sm bg-[#141414] text-[#ffffff] hover:bg-[#262626] transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isExecutingTool ? (
                   <>
@@ -1808,7 +1792,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                 type="button"
                 onClick={handleCancelToolCall}
                 disabled={isExecutingTool}
-                className="px-4 py-2.5 rounded-full font-bold text-sm bg-[#FBFBF5] text-black border border-[#E4E4E7] hover:bg-zinc-100 transition-all cursor-pointer"
+                className="px-4 py-2.5 rounded-full font-semibold text-sm bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#e5e5e5] transition-all cursor-pointer"
               >
                 إلغاء
               </button>

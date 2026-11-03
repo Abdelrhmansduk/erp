@@ -102,27 +102,24 @@ export const ShelterNotificationDrawer: React.FC<ShelterNotificationDrawerProps>
         className="relative w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-200"
         style={{ fontFamily: 'var(--font-sans, inherit)' }}
       >
-        {/* 1. Header */}
+        {/* 1. Header — Mobbin Pure Light Mode */}
         <div 
-          className="p-5 text-white flex items-center justify-between border-b border-zinc-800 relative overflow-hidden"
-          style={{
-            background: 'linear-gradient(135deg, #091725 0%, #10263f 60%, #153254 100%)',
-          }}
+          className="p-5 bg-[#ffffff] text-[#141414] flex items-center justify-between border-b border-[#e5e5e5] relative overflow-hidden"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-400/20 text-amber-300 border border-amber-400/30 flex items-center justify-center shadow-inner">
-              <Bell className="w-5 h-5 animate-bounce" />
+            <div className="w-10 h-10 rounded-[14px] bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] flex items-center justify-center">
+              <Bell className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-black text-white font-display">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-lg font-bold text-[#141414] font-display m-0">
                   مركز الإشعارات والتنبيهات الاستباقية
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-rose-500 text-white shadow-sm">
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#141414] text-[#ffffff]">
                   {rawAlerts.length} تنبيه نشط
                 </span>
               </div>
-              <p className="text-xs text-zinc-300 mt-0.5">
+              <p className="text-xs text-[#707070] mt-0.5 m-0">
                 تنبيهات ما قبل الموعد (T-48h / T-24h) ومتابعة السكن ونقل الخدمات المشتركة
               </p>
             </div>
@@ -130,10 +127,10 @@ export const ShelterNotificationDrawer: React.FC<ShelterNotificationDrawerProps>
 
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
             title="إغلاق"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 

@@ -183,22 +183,22 @@ export const ShelterIntakeModal: React.FC<ShelterIntakeModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#141414]/60 backdrop-blur-sm p-4 overflow-y-auto">
       <div 
-        className="bg-[#14181c] rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/15 text-zinc-100 animate-in fade-in zoom-in-95 duration-200"
+        className="bg-[#ffffff] rounded-[24px] max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-[#e0e0e0] text-[#141414] animate-in fade-in zoom-in-95 duration-200"
         dir="rtl"
       >
-        {/* Header */}
-        <div className="p-6 border-b border-white/10 flex items-center justify-between sticky top-0 bg-[#182026]/95 backdrop-blur-md z-10">
+        {/* Header — Mobbin Pure Light Mode */}
+        <div className="p-5 sm:p-6 border-b border-[#e5e5e5] flex items-center justify-between sticky top-0 bg-[#ffffff] z-10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center font-bold">
               <Hotel className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white font-display">
+              <h2 className="text-lg font-bold text-[#141414] font-display m-0">
                 تسجيل دخول وتسكين نزيلة جديدة بالسكن المشترك
               </h2>
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-[#707070] m-0 mt-0.5">
                 توثيق حالة الدخول، بيانات الكفيل الأول (إن وجد)، وتخصيص الغرفة والسرير
               </p>
             </div>
@@ -206,27 +206,27 @@ export const ShelterIntakeModal: React.FC<ShelterIntakeModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6 bg-[#ffffff] text-[#141414]">
           {errorMsg && (
-            <div className="p-4 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2 font-medium">
-              <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+            <div className="p-4 rounded-[16px] bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2 font-medium">
+              <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {/* Mode Selector */}
-          <div className="flex items-center gap-2 p-1.5 bg-black/50 rounded-xl border border-white/10">
+          <div className="flex items-center gap-2 p-1.5 bg-[#f3f3f3] rounded-full border border-[#e0e0e0]">
             <button
               type="button"
               onClick={() => setIsNewWorker(false)}
-              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
-                !isNewWorker ? 'bg-amber-400 text-black shadow-md' : 'text-zinc-400 hover:text-white'
+              className={`flex-1 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                !isNewWorker ? 'bg-[#141414] text-[#ffffff]' : 'text-[#707070] hover:text-[#141414]'
               }`}
             >
               عاملة مسجلة مسبقاً بالنظام ({existingWorkers.length})
@@ -234,8 +234,8 @@ export const ShelterIntakeModal: React.FC<ShelterIntakeModalProps> = ({
             <button
               type="button"
               onClick={() => setIsNewWorker(true)}
-              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
-                isNewWorker ? 'bg-amber-400 text-black shadow-md' : 'text-zinc-400 hover:text-white'
+              className={`flex-1 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                isNewWorker ? 'bg-[#141414] text-[#ffffff]' : 'text-[#707070] hover:text-[#141414]'
               }`}
             >
               + تسجيل ملف عاملة جديدة لأول مرة
@@ -584,12 +584,12 @@ export const ShelterIntakeModal: React.FC<ShelterIntakeModalProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e5e5e5]">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-5 py-2.5 rounded-xl text-xs font-bold text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+              className="px-5 py-2.5 rounded-full text-xs font-bold text-[#141414] bg-[#f3f3f3] hover:bg-[#e5e5e5] transition-colors cursor-pointer"
             >
               إلغاء
             </button>
@@ -597,11 +597,11 @@ export const ShelterIntakeModal: React.FC<ShelterIntakeModalProps> = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2.5 rounded-xl text-xs font-black text-black bg-amber-400 hover:bg-amber-300 shadow-lg shadow-amber-400/20 transition-all flex items-center gap-2"
+              className="px-6 py-2.5 rounded-full text-xs font-bold text-[#ffffff] bg-[#141414] hover:bg-[#262626] transition-all flex items-center gap-2 cursor-pointer"
             >
               {isSubmitting ? (
                 <>
-                  <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  <span className="w-4 h-4 border-2 border-[#ffffff]/30 border-t-[#ffffff] rounded-full animate-spin" />
                   <span>جاري التسكين والحفظ...</span>
                 </>
               ) : (

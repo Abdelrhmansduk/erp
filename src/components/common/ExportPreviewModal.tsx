@@ -194,42 +194,42 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
       label: 'إكسل مؤسسي (.xlsx)',
       sub: 'ورقتا عمل + معادلات',
       icon: FileSpreadsheet,
-      style: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-500',
+      style: 'bg-[#141414] hover:bg-[#262626] text-[#ffffff] border-[#141414]',
     },
     {
       id: 'pdf',
       label: 'وثيقة PDF معتمدة',
       sub: 'دقة 300 DPI + ختم',
       icon: FileText,
-      style: 'bg-[#1D2428] hover:bg-[#273136] text-[#CFA64A] border-[#CFA64A]/60',
+      style: 'bg-[#141414] hover:bg-[#262626] text-[#ffffff] border-[#141414]',
     },
     {
       id: 'word',
       label: 'مستند Word (.doc)',
       sub: 'قابل للتحرير الرسمي',
       icon: FileEdit,
-      style: 'bg-blue-700 hover:bg-blue-600 text-white border-blue-500',
+      style: 'bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border-[#e0e0e0]',
     },
     {
       id: 'print',
       label: 'طباعة فورية A4',
       sub: 'معاينة طباعة مباشرة',
       icon: Printer,
-      style: 'bg-[#CFA64A] hover:bg-[#d8b25a] text-[#1D2428] border-[#8C681E]',
+      style: 'bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border-[#e0e0e0]',
     },
     {
       id: 'png',
       label: 'بطاقة مصورة (.png)',
       sub: 'صورة عالية الدقة 2x',
       icon: ImageIcon,
-      style: 'bg-amber-700 hover:bg-amber-600 text-white border-amber-500',
+      style: 'bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border-[#e0e0e0]',
     },
     {
       id: 'wps',
       label: 'حماية الأجور WPS',
       sub: 'ملف بنكي SAMA .sif',
       icon: Landmark,
-      style: 'bg-teal-700 hover:bg-teal-600 text-white border-teal-500',
+      style: 'bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border-[#e0e0e0]',
     },
   ];
 
@@ -249,36 +249,36 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
   return createPortal(
     <div
       data-no-dyn-enhancer="true"
-      className="fixed inset-0 z-[100000] bg-black/75 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 font-sans"
+      className="fixed inset-0 z-[100000] bg-[#141414]/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 font-sans"
       dir="rtl"
       onClick={onClose}
     >
       <div
-        className="bg-[#FBFBF5] dark:bg-zinc-950 border-2 border-[#CFA64A]/60 rounded-3xl shadow-2xl w-full max-w-[1440px] h-[94vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] shadow-2xl w-full max-w-[1440px] h-[94vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top Corporate Studio Header */}
-        <div className="bg-[#1D2428] text-white px-5 py-3.5 border-b-2 border-[#CFA64A] flex flex-wrap items-center justify-between gap-3 shrink-0">
+        {/* Top Corporate Studio Header — Mobbin Light Mode */}
+        <div className="bg-[#ffffff] text-[#141414] px-5 py-3.5 border-b border-[#e5e5e5] flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#CFA64A]/20 border border-[#CFA64A]/50 flex items-center justify-center text-[#CFA64A] shrink-0">
+            <div className="w-10 h-10 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center text-[#141414] shrink-0">
               <FileCheck2 className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-sm sm:text-base font-black text-white">
+                <h2 className="text-sm sm:text-base font-bold text-[#141414] m-0">
                   استوديو معاينة وتخصيص الوثائق المؤسسية المعتمدة (Enterprise Export Studio 4.0)
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]">
                   12 صيغة قياسية
                 </span>
               </div>
-              <div className="flex flex-wrap items-center gap-3 text-[11px] text-zinc-300 mt-0.5">
-                <span className="inline-flex items-center gap-1 text-[#E6D3A7] font-bold">
-                  <Building2 className="w-3.5 h-3.5 text-[#CFA64A]" />
+              <div className="flex flex-wrap items-center gap-3 text-[11px] text-[#707070] mt-0.5">
+                <span className="inline-flex items-center gap-1 text-[#141414] font-semibold">
+                  <Building2 className="w-3.5 h-3.5 text-[#141414]" />
                   <span>{companyInfo.nameAr}</span>
                 </span>
-                <span className="text-zinc-500">|</span>
-                <span className="inline-flex items-center gap-1 text-emerald-300 font-bold">
+                <span className="text-[#e0e0e0]">|</span>
+                <span className="inline-flex items-center gap-1 text-[#707070] font-semibold">
                   <UserCheck className="w-3.5 h-3.5" />
                   <span>المُصدِر: {exporterInfo.name} ({exporterInfo.branch})</span>
                 </span>
@@ -287,16 +287,16 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-xl bg-white/10 border border-white/15 text-xs font-black text-[#CFA64A]">
+            <span className="px-3 py-1 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-semibold text-[#141414]">
               {data.length} سجل جاهز للتصدير
             </span>
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl bg-white/10 hover:bg-rose-500/30 text-zinc-200 hover:text-white border border-white/10 transition-colors cursor-pointer"
+              className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
               title="إغلاق المعاينة"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -304,17 +304,17 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
         {/* Main Studio Body: Right Customization Sidebar + Left Live A4 Document Preview */}
         <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
           {/* Right Customization Sidebar */}
-          <div className="w-full lg:w-[360px] xl:w-[390px] bg-white dark:bg-zinc-900 border-b lg:border-b-0 lg:border-l border-zinc-200 dark:border-zinc-800 p-4 overflow-y-auto space-y-4 shrink-0">
-            <div className="flex items-center gap-2 pb-2 border-b border-zinc-100 dark:border-zinc-800">
-              <SlidersHorizontal className="w-4 h-4 text-[#8C681E]" />
-              <h3 className="text-xs font-black text-slate-900 dark:text-white">
+          <div className="w-full lg:w-[360px] xl:w-[390px] bg-[#ffffff] border-b lg:border-b-0 lg:border-l border-[#e5e5e5] p-4 overflow-y-auto space-y-4 shrink-0">
+            <div className="flex items-center gap-2 pb-2 border-b border-[#f0f0f0]">
+              <SlidersHorizontal className="w-4 h-4 text-[#141414]" />
+              <h3 className="text-xs font-bold text-[#141414] m-0">
                 إعدادات وتخصيص الوثيقة الرسمية
               </h3>
             </div>
 
             {/* 1. Custom Report Title */}
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-black text-slate-700 dark:text-zinc-300">
+              <label className="block text-[11px] font-bold text-[#141414]">
                 عنوان الوثيقة / الكشف الرسمي:
               </label>
               <input
@@ -322,13 +322,13 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                 value={titleInput}
                 onChange={(e) => setTitleInput(e.target.value)}
                 placeholder="أدخل عنوان التقرير..."
-                className="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-[#FBFBF5] dark:bg-zinc-800 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#CFA64A]"
+                className="w-full px-3 py-2 rounded-[14px] border border-[#e0e0e0] bg-[#f3f3f3] text-xs font-semibold text-[#141414] focus:outline-none focus:border-[#141414] focus:bg-[#ffffff]"
               />
             </div>
 
             {/* 2. Executive Note / Directive */}
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-black text-slate-700 dark:text-zinc-300">
+              <label className="block text-[11px] font-bold text-[#141414]">
                 مذكرة / توجيهات الإدارة التنفيذية (تظهر أعلى التقرير):
               </label>
               <textarea
@@ -336,16 +336,16 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                 value={executiveNote}
                 onChange={(e) => setExecutiveNote(e.target.value)}
                 placeholder="مثال: يعتمد الصرف بعد مطابقة الإدارة المالية ومراجعة العقود..."
-                className="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-[#FBFBF5] dark:bg-zinc-800 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-[#CFA64A] resize-none"
+                className="w-full px-3 py-2 rounded-[14px] border border-[#e0e0e0] bg-[#f3f3f3] text-xs font-semibold text-[#141414] focus:outline-none focus:border-[#141414] focus:bg-[#ffffff] resize-none"
               />
             </div>
 
             {/* 3. Page Orientation */}
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-black text-slate-700 dark:text-zinc-300">
+              <label className="block text-[11px] font-bold text-[#141414]">
                 اتجاه الصفحة وتخطيط الطباعة (A4):
               </label>
-              <div className="grid grid-cols-3 gap-1.5 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
+              <div className="grid grid-cols-3 gap-1.5 bg-[#f3f3f3] p-1 rounded-[14px] border border-[#e0e0e0]">
                 {(
                   [
                     { id: 'auto', label: 'تلقائي ذكي' },
@@ -357,10 +357,10 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                     key={opt.id}
                     type="button"
                     onClick={() => setOrientation(opt.id)}
-                    className={`py-1.5 px-2 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
+                    className={`py-1.5 px-2 rounded-[10px] text-[11px] font-semibold transition-all cursor-pointer ${
                       orientation === opt.id
-                        ? 'bg-[#1D2428] text-[#CFA64A] shadow-xs'
-                        : 'text-zinc-600 dark:text-zinc-400 hover:text-slate-900'
+                        ? 'bg-[#141414] text-[#ffffff]'
+                        : 'text-[#707070] hover:text-[#141414]'
                     }`}
                   >
                     {opt.label}
@@ -371,7 +371,7 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
 
             {/* 4. Governance & Official Stamp Toggles */}
             <div className="space-y-2 pt-1">
-              <label className="block text-[11px] font-black text-slate-700 dark:text-zinc-300">
+              <label className="block text-[11px] font-bold text-[#141414]">
                 عناصر الحوكمة والتوثيق الرسمي:
               </label>
               <div className="space-y-1.5">
@@ -399,17 +399,17 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                     key={item.id}
                     type="button"
                     onClick={item.onChange}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl border text-right text-xs font-bold transition-all cursor-pointer ${
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-[14px] border text-right text-xs font-semibold transition-all cursor-pointer ${
                       item.checked
-                        ? 'bg-[#FBFBF5] dark:bg-zinc-800/90 border-[#CFA64A] text-slate-900 dark:text-white'
-                        : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500'
+                        ? 'bg-[#f3f3f3] border-[#141414] text-[#141414]'
+                        : 'bg-[#ffffff] border-[#e0e0e0] text-[#707070]'
                     }`}
                   >
                     <span>{item.label}</span>
                     {item.checked ? (
-                      <CheckSquare className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <CheckSquare className="w-4 h-4 text-[#141414] shrink-0" />
                     ) : (
-                      <Square className="w-4 h-4 text-zinc-400 shrink-0" />
+                      <Square className="w-4 h-4 text-[#adadad] shrink-0" />
                     )}
                   </button>
                 ))}
@@ -419,29 +419,29 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
             {/* 5. Column Selection Checklist */}
             <div className="space-y-2 pt-1">
               <div className="flex items-center justify-between">
-                <label className="text-[11px] font-black text-slate-700 dark:text-zinc-300">
+                <label className="text-[11px] font-bold text-[#141414]">
                   الأعمدة الظاهرة ({selectedColumnIndices.length} من {baseConfig.headers.length}):
                 </label>
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"
                     onClick={selectAllColumns}
-                    className="text-[10px] font-black text-emerald-700 hover:underline cursor-pointer"
+                    className="text-[10px] font-semibold text-[#141414] hover:underline cursor-pointer"
                   >
                     تحديد الكل
                   </button>
-                  <span className="text-zinc-300">|</span>
+                  <span className="text-[#e0e0e0]">|</span>
                   <button
                     type="button"
                     onClick={selectCoreColumnsOnly}
-                    className="text-[10px] font-black text-[#8C681E] hover:underline cursor-pointer"
+                    className="text-[10px] font-semibold text-[#707070] hover:underline cursor-pointer"
                   >
                     الأعمدة الأساسية
                   </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-1.5 max-h-[210px] overflow-y-auto p-1 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-800">
+              <div className="grid grid-cols-2 gap-1.5 max-h-[210px] overflow-y-auto p-1.5 bg-[#f3f3f3] rounded-[14px] border border-[#e0e0e0]">
                 {baseConfig.headers.map((headerLabel, idx) => {
                   const isChecked = selectedColumnIndices.includes(idx);
                   return (
@@ -449,17 +449,17 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                       key={idx}
                       type="button"
                       onClick={() => toggleColumn(idx)}
-                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-right truncate transition-all cursor-pointer border ${
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] text-[11px] font-semibold text-right truncate transition-all cursor-pointer border ${
                         isChecked
-                          ? 'bg-white dark:bg-zinc-800 border-[#CFA64A]/70 text-slate-900 dark:text-white shadow-2xs'
-                          : 'bg-transparent border-transparent text-zinc-400 hover:bg-zinc-100'
+                          ? 'bg-[#ffffff] border-[#141414] text-[#141414]'
+                          : 'bg-transparent border-transparent text-[#707070] hover:bg-[#ffffff]/60'
                       }`}
                       title={headerLabel}
                     >
                       {isChecked ? (
-                        <CheckSquare className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <CheckSquare className="w-3.5 h-3.5 text-[#141414] shrink-0" />
                       ) : (
-                        <Square className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                        <Square className="w-3.5 h-3.5 text-[#adadad] shrink-0" />
                       )}
                       <span className="truncate">{headerLabel}</span>
                     </button>
@@ -470,16 +470,16 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
           </div>
 
           {/* Left/Center Live A4 Preview Pane */}
-          <div className="flex-1 flex flex-col bg-zinc-200/80 dark:bg-zinc-950 min-h-0 overflow-hidden">
+          <div className="flex-1 flex flex-col bg-[#f3f3f3] min-h-0 overflow-hidden">
             {/* KPI & Preview Toolbar Strip */}
-            <div className="bg-white dark:bg-zinc-900 px-4 py-2.5 border-b border-zinc-200 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-2 shrink-0">
+            <div className="bg-[#ffffff] px-4 py-2.5 border-b border-[#e5e5e5] flex flex-wrap items-center justify-between gap-2 shrink-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#1D2428] text-[#CFA64A] text-[11px] font-black">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-semibold">
                   <Eye className="w-3.5 h-3.5" />
                   <span>معاينة حية مطابقة للطباعة (Live A4 Preview)</span>
                 </span>
                 {kpis.hasFinancials && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-black">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold">
                     <span>الإجمالي المالي:</span>
                     <span>
                       {kpis.totalAmount.toLocaleString('en-US', {
@@ -491,8 +491,8 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                   </span>
                 )}
                 {kpis.hasFinancials && showTafqeet && (
-                  <span className="hidden xl:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#FBFBF5] text-[#8C681E] border border-[#CFA64A]/50 text-[10.5px] font-bold">
-                    <Sparkles className="w-3 h-3 text-[#CFA64A]" />
+                  <span className="hidden xl:inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#f3f3f3] text-[#707070] border border-[#e0e0e0] text-[10.5px] font-semibold">
+                    <Sparkles className="w-3 h-3 text-[#141414]" />
                     <span>{kpis.tafqeetAr || numberToArabicTafqeet(kpis.totalAmount)}</span>
                   </span>
                 )}
@@ -502,18 +502,18 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setZoomLevel((z) => Math.max(60, z - 10))}
-                  className="p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 cursor-pointer"
+                  className="p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] cursor-pointer"
                   title="تصغير المعاينة"
                 >
                   <ZoomOut className="w-3.5 h-3.5" />
                 </button>
-                <span className="text-[11px] font-mono font-black text-zinc-600 px-1.5">
+                <span className="text-[11px] font-mono font-bold text-[#141414] px-1.5">
                   {zoomLevel}%
                 </span>
                 <button
                   type="button"
                   onClick={() => setZoomLevel((z) => Math.min(115, z + 10))}
-                  className="p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 cursor-pointer"
+                  className="p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] cursor-pointer"
                   title="تكبير المعاينة"
                 >
                   <ZoomIn className="w-3.5 h-3.5" />
@@ -535,17 +535,17 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                     transformOrigin: 'top center',
                     transition: 'transform 0.15s ease, width 0.2s ease',
                   }}
-                  className="bg-white rounded-2xl shadow-2xl border border-zinc-300 overflow-hidden shrink-0"
+                  className="bg-[#ffffff] rounded-[20px] shadow-xl border border-[#e0e0e0] overflow-hidden shrink-0"
                 >
                   <iframe
                     title="معاينة الوثيقة الرسمية"
                     srcDoc={previewHtml}
-                    className="w-full h-[760px] border-0 bg-white"
+                    className="w-full h-[760px] border-0 bg-[#ffffff]"
                   />
                 </div>
               ) : (
-                <div className="my-auto text-center p-8 bg-white rounded-2xl border border-zinc-200 shadow-sm">
-                  <p className="text-sm font-black text-slate-800">
+                <div className="my-auto text-center p-8 bg-[#ffffff] rounded-[20px] border border-[#e0e0e0]">
+                  <p className="text-sm font-bold text-[#141414]">
                     لا توجد بيانات متاحة حالياً للمعاينة في هذا القسم
                   </p>
                 </div>
@@ -555,7 +555,7 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
         </div>
 
         {/* Bottom 12-Format Instant Export Action Bar */}
-        <div className="bg-white dark:bg-zinc-900 border-t-2 border-[#CFA64A]/50 px-4 py-3 space-y-2.5 shrink-0">
+        <div className="bg-[#ffffff] border-t border-[#e5e5e5] px-4 py-3 space-y-2.5 shrink-0">
           {/* Primary 6 Executive Formats */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
             {primaryFormats.map((fmt) => {
@@ -567,7 +567,7 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                   type="button"
                   disabled={Boolean(activeExportingFormat)}
                   onClick={() => handleRunExport(fmt.id)}
-                  className={`px-3 py-2 rounded-xl border font-bold text-right flex items-center gap-2.5 transition-all cursor-pointer shadow-xs active:scale-95 ${fmt.style} ${
+                  className={`px-3 py-2 rounded-[14px] border font-semibold text-right flex items-center gap-2.5 transition-all cursor-pointer active:scale-95 ${fmt.style} ${
                     activeExportingFormat && !isBusy ? 'opacity-60' : ''
                   }`}
                 >
@@ -575,8 +575,8 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                     <Icon className="w-4 h-4 shrink-0" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs font-black truncate">{fmt.label}</div>
-                    <div className="text-[9.5px] opacity-85 truncate">{fmt.sub}</div>
+                    <div className="text-xs font-bold truncate">{fmt.label}</div>
+                    <div className="text-[9.5px] opacity-80 truncate">{fmt.sub}</div>
                   </div>
                 </button>
               );
@@ -584,9 +584,9 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
           </div>
 
           {/* Secondary 6 Data & Integration Formats */}
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-zinc-100 dark:border-zinc-800">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-[#f0f0f0]">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[10.5px] font-black text-zinc-500 ml-1">
+              <span className="text-[10.5px] font-bold text-[#707070] ml-1">
                 صيغ التكامل والأرشفة الإضافية:
               </span>
               {secondaryFormats.map((fmt) => {
@@ -598,7 +598,7 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                     type="button"
                     disabled={Boolean(activeExportingFormat)}
                     onClick={() => handleRunExport(fmt.id)}
-                    className="px-2.5 py-1 rounded-lg bg-zinc-100 hover:bg-[#1D2428] text-slate-800 hover:text-[#CFA64A] border border-zinc-200 text-[11px] font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer"
+                    className="px-2.5 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] text-[11px] font-semibold inline-flex items-center gap-1.5 transition-all cursor-pointer"
                   >
                     <span className={`inline-flex shrink-0 ${isBusy ? 'animate-spin' : ''}`}>
                       <Icon className="w-3 h-3" />
@@ -609,8 +609,8 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
               })}
             </div>
 
-            <div className="hidden md:flex items-center gap-1.5 text-[10.5px] font-bold text-emerald-700">
-              <ShieldCheck className="w-3.5 h-3.5" />
+            <div className="hidden md:flex items-center gap-1.5 text-[10.5px] font-semibold text-[#707070]">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#141414]" />
               <span>يتم تسجيل كافة عمليات التصدير آلياً في سجل الرقابة والتدقيق (Audit Log)</span>
             </div>
           </div>

@@ -174,27 +174,27 @@ export const ProductionDataHubModal: React.FC<ProductionDataHubModalProps> = ({ 
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in font-sans">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#141414]/60 backdrop-blur-sm animate-fade-in font-sans">
       <div 
-        className="bg-white rounded-3xl border border-zinc-200 shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
         dir="rtl"
       >
-        {/* Header */}
-        <div className="p-6 bg-black text-white flex items-center justify-between flex-shrink-0">
+        {/* Header — Mobbin Pure Light Mode */}
+        <div className="p-5 sm:p-6 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5] flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-emerald-400 border border-white/20">
+            <div className="w-10 h-10 rounded-[14px] bg-[#f3f3f3] flex items-center justify-center text-[#141414] border border-[#e0e0e0]">
               <Database className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-white m-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-base font-bold text-[#141414] m-0">
                   مركز إدارة قواعد البيانات التشغيلية (Production Data Hub)
                 </h3>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${currentMode === 'production_real' ? 'bg-emerald-500 text-black' : 'bg-amber-500 text-black'}`}>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]">
                   {currentMode === 'production_real' ? 'نمط الإنتاج الفعلي' : 'نمط المعاينة'}
                 </span>
               </div>
-              <p className="text-xs text-zinc-400 m-0 mt-0.5">
+              <p className="text-xs text-[#707070] m-0 mt-0.5">
                 التحكم بالربط السحابي، إفراغ البيانات التجريبية، واستيراد البيانات الفعلية للشركة
               </p>
             </div>
@@ -202,7 +202,7 @@ export const ProductionDataHubModal: React.FC<ProductionDataHubModalProps> = ({ 
 
           <button 
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>

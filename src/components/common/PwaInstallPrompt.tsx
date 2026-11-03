@@ -91,31 +91,30 @@ export const PwaInstallPrompt: React.FC = () => {
   return (
     <div
       dir="rtl"
-      className="fixed bottom-[calc(74px+env(safe-area-inset-bottom,0px))] lg:bottom-4 inset-x-3 sm:inset-x-auto sm:start-4 z-[99998] sm:max-w-md w-auto sm:w-[calc(100%-2rem)] bg-slate-950/95 text-white backdrop-blur-xl border border-amber-400/40 rounded-2xl p-3.5 sm:p-4 shadow-2xl animate-in slide-in-from-bottom-4 duration-300"
-      style={{ filter: 'drop-shadow(0 16px 32px rgba(0,0,0,0.35))' }}
+      className="fixed bottom-[calc(74px+env(safe-area-inset-bottom,0px))] lg:bottom-4 inset-x-3 sm:inset-x-auto sm:start-4 z-[99998] sm:max-w-md w-auto sm:w-[calc(100%-2rem)] bg-[#ffffff] text-[#141414] border border-[#e0e0e0] rounded-[24px] p-4 shadow-xl animate-in slide-in-from-bottom-4 duration-300"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center shrink-0">
             {isIOS ? (
-              <Smartphone className="w-6 h-6 text-amber-400" />
+              <Smartphone className="w-5 h-5 text-[#141414]" />
             ) : (
-              <Download className="w-6 h-6 text-amber-400" />
+              <Download className="w-5 h-5 text-[#141414]" />
             )}
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h4 className="font-extrabold text-sm text-white m-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h4 className="font-bold text-sm text-[#141414] m-0">
                 تثبيت تطبيق خالد السليم ERP (WBA)
               </h4>
-              <span className="text-[10px] bg-amber-400/20 text-amber-300 font-black px-1.5 py-0.5 rounded border border-amber-400/30">
+              <span className="text-[10px] bg-[#f3f3f3] text-[#141414] font-semibold px-2 py-0.5 rounded-full border border-[#e0e0e0]">
                 نسخة الهاتف والكمبيوتر
               </span>
             </div>
-            <p className="text-xs text-slate-300 mt-1 mb-0 leading-relaxed">
+            <p className="text-xs text-[#707070] mt-1 mb-0 leading-relaxed">
               {isIOS ? (
                 <span>
-                  لتثبيت التطبيق على الآيفون: انقر على زر المشاركة <Share className="w-3.5 h-3.5 inline mx-1 text-amber-400" /> بالمتصفح ثم اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong>.
+                  لتثبيت التطبيق على الآيفون: انقر على زر المشاركة <Share className="w-3.5 h-3.5 inline mx-1 text-[#141414]" /> بالمتصفح ثم اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong>.
                 </span>
               ) : (
                 <span>
@@ -129,7 +128,7 @@ export const PwaInstallPrompt: React.FC = () => {
         <button
           type="button"
           onClick={handleDismiss}
-          className="text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors shrink-0"
+          className="text-[#707070] hover:text-[#141414] p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] transition-colors shrink-0 cursor-pointer"
           title="إغلاق"
         >
           <X className="w-4 h-4" />
@@ -137,12 +136,12 @@ export const PwaInstallPrompt: React.FC = () => {
       </div>
 
       {/* Buttons Action Bar */}
-      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-800/80">
+      <div className="flex items-center gap-2 mt-3.5 pt-3 border-t border-[#f0f0f0]">
         {!isIOS && deferredPrompt && (
           <button
             type="button"
             onClick={handleInstallClick}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-4 bg-[#141414] hover:bg-[#262626] text-[#ffffff] font-semibold text-xs rounded-full transition-all cursor-pointer"
           >
             <Download className="w-4 h-4" />
             <span>تثبيت التطبيق الآن</span>
@@ -153,7 +152,7 @@ export const PwaInstallPrompt: React.FC = () => {
           <button
             type="button"
             onClick={handleEnableNotifications}
-            className="flex items-center gap-1.5 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs rounded-xl border border-slate-700 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 py-2 px-3.5 bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] font-semibold text-xs rounded-full border border-[#e0e0e0] transition-all cursor-pointer"
             title="تفعيل إشعارات النظام المباشرة"
           >
             <Bell className="w-3.5 h-3.5" />
@@ -162,8 +161,8 @@ export const PwaInstallPrompt: React.FC = () => {
         )}
 
         {notificationsGranted && (
-          <div className="flex items-center gap-1 text-[11px] text-emerald-400 px-2 py-1 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-            <CheckCircle className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-1 text-[11px] text-[#141414] font-semibold px-3 py-1.5 bg-[#f3f3f3] rounded-full border border-[#e0e0e0]">
+            <CheckCircle className="w-3.5 h-3.5 text-[#0066ff]" />
             <span>الإشعارات مفعلة</span>
           </div>
         )}
@@ -171,7 +170,7 @@ export const PwaInstallPrompt: React.FC = () => {
         <button
           type="button"
           onClick={handleDismiss}
-          className="py-2 px-3 text-xs text-slate-400 hover:text-slate-200 font-medium rounded-xl hover:bg-slate-800 transition-all cursor-pointer"
+          className="py-2 px-3 text-xs text-[#707070] hover:text-[#141414] font-semibold rounded-full hover:bg-[#f3f3f3] transition-all cursor-pointer"
         >
           لاحقاً
         </button>

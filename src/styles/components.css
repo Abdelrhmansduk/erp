@@ -1388,9 +1388,9 @@ button[data-dyn-state="completed"] {
 }
 
 .content-body .pill-tag-shade {
-  background: #0066ff !important;
-  color: #ffffff !important;
-  border: 1px solid #0066ff !important;
+  background: #f3f3f3 !important;
+  color: #141414 !important;
+  border: 1px solid #e0e0e0 !important;
   border-radius: 9999px !important;
   padding: 2px 10px !important;
   font-weight: 600 !important;
@@ -1507,4 +1507,62 @@ button[data-dyn-state="completed"] {
   color: #ffffff !important;
   border: 1px solid #0066ff !important;
   border-radius: 9999px !important;
+}
+
+/* ==========================================================================
+   Global Modal & Popup Mobbin Light Mode Normalization
+   Ensures all fixed modals/drawers/popups across the entire ERP render in
+   pure #ffffff / #f3f3f3 / #141414 / #707070 Mobbin Light Mode.
+   ========================================================================== */
+div.fixed.inset-0 > div[class*="bg-[#14181c]"],
+div.fixed.inset-0 > div[class*="bg-[#182026]"],
+div.fixed.inset-0 > div[class*="bg-[#1D2428]"],
+div.fixed.inset-0 > div[class*="bg-zinc-950"],
+div.fixed.inset-0 > div[class*="bg-slate-900"] {
+  background: #ffffff !important;
+  color: #141414 !important;
+  border-color: #e0e0e0 !important;
+}
+
+div.fixed.inset-0 div[class*="bg-black/"]:not(.fixed):not([class*="inset-0"]),
+div.fixed.inset-0 div[class*="bg-white/5"]:not(.fixed),
+div.fixed.inset-0 div[class*="bg-blue-950/"],
+div.fixed.inset-0 div[class*="bg-amber-500/10"],
+div.fixed.inset-0 div[class*="bg-amber-400/10"] {
+  background: #f3f3f3 !important;
+  border-color: #e0e0e0 !important;
+  color: #141414 !important;
+}
+
+div.fixed.inset-0 input[class*="bg-black/"],
+div.fixed.inset-0 select[class*="bg-black/"],
+div.fixed.inset-0 textarea[class*="bg-black/"] {
+  background: #f3f3f3 !important;
+  color: #141414 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+div.fixed.inset-0 option[class*="bg-[#14181c]"] {
+  background: #ffffff !important;
+  color: #141414 !important;
+}
+
+div.fixed.inset-0 .text-zinc-200,
+div.fixed.inset-0 .text-zinc-300,
+div.fixed.inset-0 .text-amber-300,
+div.fixed.inset-0 .text-amber-400,
+div.fixed.inset-0 .text-blue-300,
+div.fixed.inset-0 .text-emerald-400,
+div.fixed.inset-0 h2.text-white,
+div.fixed.inset-0 h3.text-white,
+div.fixed.inset-0 div.text-white:not([class*="bg-"]) {
+  color: #141414 !important;
+}
+
+div.fixed.inset-0 .text-zinc-400 {
+  color: #707070 !important;
+}
+
+div.fixed.inset-0 [class*="border-white/"] {
+  border-color: #e5e5e5 !important;
 }

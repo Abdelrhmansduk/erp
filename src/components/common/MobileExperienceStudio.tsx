@@ -281,7 +281,7 @@ export const MobileExperienceStudio: React.FC = () => {
 
   return (
     <>
-      {/* Always-visible Floating Launcher Button on Desktop so user can open Mobile Version anytime */}
+      {/* Always-visible Floating Launcher Button on Desktop so user can open Mobile Version anytime — Mobbin Light Mode */}
       {!isOpen && (
         <div
           className="fixed bottom-5 left-5 z-[9990] flex items-center gap-2"
@@ -290,21 +290,21 @@ export const MobileExperienceStudio: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="group flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-gradient-to-l from-slate-900 via-amber-950 to-slate-900 text-white border border-amber-400/40 shadow-[0_12px_32px_-8px_rgba(15,23,42,0.75)] hover:shadow-[0_16px_40px_-6px_rgba(245,158,11,0.35)] hover:border-amber-400 transition-all duration-200 active:scale-95"
+            className="group flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-[#ffffff] text-[#141414] border border-[#e0e0e0] shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:border-[#141414] transition-all duration-200 active:scale-95 cursor-pointer"
             title="فتح نسخة الهاتف التفاعلية وإشعاراتها والعمل في الخلفية"
           >
-            <div className="relative flex items-center justify-center w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 group-hover:scale-110 transition-transform">
+            <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] group-hover:bg-[#141414] group-hover:text-[#ffffff] transition-colors">
               <Smartphone className="w-4 h-4" />
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-900 animate-pulse" />
+              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#0066ff] ring-2 ring-[#ffffff]" />
             </div>
             <div className="text-right">
-              <div className="text-xs font-black tracking-tight flex items-center gap-1.5">
+              <div className="text-xs font-bold tracking-tight flex items-center gap-1.5 text-[#141414]">
                 <span>نسخة الهاتف الجوال</span>
-                <span className="px-1.5 py-0.5 text-[9px] font-extrabold rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                <span className="px-2 py-0.5 text-[9px] font-bold rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]">
                   مباشر بالملي
                 </span>
               </div>
-              <div className="text-[10px] text-slate-300 font-medium">
+              <div className="text-[10px] text-[#707070] font-medium">
                 معاينة الشاشة + الإشعارات + الخلفية
               </div>
             </div>
@@ -312,30 +312,30 @@ export const MobileExperienceStudio: React.FC = () => {
         </div>
       )}
 
-      {/* Full Interactive Mobile Experience Studio Modal */}
+      {/* Full Interactive Mobile Experience Studio Modal — Mobbin Pure Light Mode */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-[10000] bg-slate-950/90 backdrop-blur-xl flex flex-col lg:flex-row items-center justify-center p-2 sm:p-4 overflow-y-auto"
+          className="fixed inset-0 z-[10000] bg-[#141414]/60 backdrop-blur-md flex flex-col lg:flex-row items-center justify-center p-2 sm:p-4 overflow-y-auto"
           dir="rtl"
         >
           <div className="w-full max-w-7xl flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-6 my-auto">
             {/* Right Panel: Controls, Notifications, Background Sync & Real Phone QR */}
-            <div className="w-full lg:w-[440px] bg-slate-900/95 border border-slate-800 rounded-3xl p-5 text-white flex flex-col justify-between shadow-2xl shrink-0">
+            <div className="w-full lg:w-[440px] bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-5 text-[#141414] flex flex-col justify-between shadow-2xl shrink-0">
               <div className="space-y-4">
                 {/* Header */}
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
+                <div className="flex items-center justify-between border-b border-[#e5e5e5] pb-3.5">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-slate-950 shadow-lg shadow-amber-500/20">
+                    <div className="w-10 h-10 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center text-[#141414]">
                       <Smartphone className="w-5 h-5" />
                     </div>
                     <div>
-                      <h2 className="text-base font-black text-white flex items-center gap-2">
+                      <h2 className="text-base font-bold text-[#141414] flex items-center gap-2 m-0">
                         <span>مركز نسخة الهاتف الذكي</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] font-bold">
                           PWA v3
                         </span>
                       </h2>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-[#707070] m-0 mt-0.5">
                         شاشة هاتف حقيقية بالملي + إشعارات فورية + مزامنة خلفية
                       </p>
                     </div>
@@ -343,16 +343,16 @@ export const MobileExperienceStudio: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setIsOpen(false)}
-                    className="p-2 rounded-xl bg-slate-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 transition-colors"
+                    className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
                     title="إغلاق معاينة الهاتف"
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
 
                 {/* 1. Device Size Selector */}
                 <div>
-                  <label className="text-[11px] font-bold text-slate-400 block mb-2">
+                  <label className="text-[11px] font-bold text-[#707070] block mb-2">
                     1. اختر مقاس شاشة الهاتف (أبعاد حقيقية بالملي):
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -363,13 +363,13 @@ export const MobileExperienceStudio: React.FC = () => {
                           key={dev.id}
                           type="button"
                           onClick={() => setSelectedDevice(dev)}
-                          className={`p-2 rounded-xl border text-right transition-all ${
+                          className={`p-2 rounded-[14px] border text-right transition-all cursor-pointer ${
                             active
-                              ? 'bg-amber-500/15 border-amber-400 text-amber-300 shadow-sm'
-                              : 'bg-slate-800/70 border-slate-700/70 text-slate-300 hover:bg-slate-800'
+                              ? 'bg-[#141414] border-[#141414] text-[#ffffff]'
+                              : 'bg-[#f3f3f3] border-[#e0e0e0] text-[#141414] hover:border-[#141414]'
                           }`}
                         >
-                          <div className="text-xs font-extrabold truncate">{dev.name}</div>
+                          <div className="text-xs font-bold truncate">{dev.name}</div>
                           <div className="text-[10px] opacity-75 mt-0.5">{dev.badge}</div>
                         </button>
                       );
@@ -379,7 +379,7 @@ export const MobileExperienceStudio: React.FC = () => {
 
                 {/* 2. Quick Portal Switcher inside the Phone */}
                 <div>
-                  <label className="text-[11px] font-bold text-slate-400 block mb-2">
+                  <label className="text-[11px] font-bold text-[#707070] block mb-2">
                     2. افتح أي بوابة شركة مباشرة داخل شاشة الهاتف:
                   </label>
                   <div className="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto pr-0.5">
@@ -390,13 +390,13 @@ export const MobileExperienceStudio: React.FC = () => {
                           key={portal.code}
                           type="button"
                           onClick={() => reloadPhoneFrame(portal.path)}
-                          className={`flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-[11px] font-bold border text-right transition-all ${
+                          className={`flex items-center gap-1.5 px-2.5 py-2 rounded-[14px] text-[11px] font-bold border text-right transition-all cursor-pointer ${
                             isCurrent
-                              ? 'bg-amber-600/30 border-amber-400 text-amber-200'
-                              : 'bg-slate-800/60 border-slate-700/60 text-slate-300 hover:bg-slate-800'
+                              ? 'bg-[#141414] border-[#141414] text-[#ffffff]'
+                              : 'bg-[#f3f3f3] border-[#e0e0e0] text-[#141414] hover:border-[#141414]'
                           }`}
                         >
-                          <Building2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                          <Building2 className={`w-3.5 h-3.5 shrink-0 ${isCurrent ? 'text-[#ffffff]' : 'text-[#141414]'}`} />
                           <span className="truncate">{portal.label}</span>
                         </button>
                       );
@@ -405,26 +405,26 @@ export const MobileExperienceStudio: React.FC = () => {
                 </div>
 
                 {/* 3. Live Mobile Notifications Tester */}
-                <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+                <div className="bg-[#f3f3f3] border border-[#e0e0e0] rounded-[18px] p-3.5 space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-amber-300 flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
                       <BellRing className="w-4 h-4" />
                       <span>اختبار إشعارات الهاتف الفورية (Push + اهتزاز)</span>
                     </span>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-bold">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[#141414] font-bold">
                         غير مقروء: {unreadCount}
                       </span>
                       <button
                         type="button"
                         onClick={handleToggleMute}
-                        className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white"
+                        className="p-1.5 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[#141414] hover:bg-[#e5e5e5] cursor-pointer"
                         title={isMuted ? 'تشغيل صوت الإشعارات' : 'كتم صوت الإشعارات'}
                       >
                         {isMuted ? (
-                          <VolumeX className="w-3.5 h-3.5 text-rose-400" />
+                          <VolumeX className="w-3.5 h-3.5 text-[#707070]" />
                         ) : (
-                          <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+                          <Volume2 className="w-3.5 h-3.5 text-[#141414]" />
                         )}
                       </button>
                     </div>
@@ -433,7 +433,7 @@ export const MobileExperienceStudio: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleTriggerMobileNotification('musaned')}
-                      className="px-2.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-200 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors"
+                      className="px-2.5 py-2 rounded-full bg-[#ffffff] hover:bg-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] text-[#141414] text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <Sparkles className="w-3.5 h-3.5" />
                       <span>إشعار عقد مساند</span>
@@ -441,7 +441,7 @@ export const MobileExperienceStudio: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleTriggerMobileNotification('zatca')}
-                      className="px-2.5 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-200 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors"
+                      className="px-2.5 py-2 rounded-full bg-[#ffffff] hover:bg-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] text-[#141414] text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <ShieldCheck className="w-3.5 h-3.5" />
                       <span>إشعار فاتورة ZATCA</span>
@@ -449,7 +449,7 @@ export const MobileExperienceStudio: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleTriggerMobileNotification('etimad')}
-                      className="px-2.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-200 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors"
+                      className="px-2.5 py-2 rounded-full bg-[#ffffff] hover:bg-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] text-[#141414] text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <Layers className="w-3.5 h-3.5" />
                       <span>إشعار منافسة اعتماد</span>
@@ -457,7 +457,7 @@ export const MobileExperienceStudio: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleTriggerMobileNotification('shelter')}
-                      className="px-2.5 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-200 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors"
+                      className="px-2.5 py-2 rounded-full bg-[#ffffff] hover:bg-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] text-[#141414] text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>إشعار إيواء ميداني</span>
@@ -466,47 +466,43 @@ export const MobileExperienceStudio: React.FC = () => {
                 </div>
 
                 {/* 4. Background Execution & Offline Sync Engine Controls */}
-                <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+                <div className="bg-[#f3f3f3] border border-[#e0e0e0] rounded-[18px] p-3.5 space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-emerald-300 flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
                       <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
                       <span>محرك العمل في الخلفية (Background Worker)</span>
                     </span>
                     <span
-                      className={`text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1 ${
-                        bgState.isOnline
-                          ? 'bg-emerald-500/20 text-emerald-300'
-                          : 'bg-amber-500/20 text-amber-300'
-                      }`}
+                      className="text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 bg-[#ffffff] border border-[#e0e0e0] text-[#141414]"
                     >
                       {bgState.isOnline ? (
                         <>
-                          <Wifi className="w-3 h-3" /> متصل
+                          <Wifi className="w-3 h-3 text-[#0066ff]" /> متصل
                         </>
                       ) : (
                         <>
-                          <WifiOff className="w-3 h-3" /> وضع عدم الاتصال
+                          <WifiOff className="w-3 h-3 text-[#707070]" /> وضع عدم الاتصال
                         </>
                       )}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 text-center bg-slate-900/90 rounded-xl p-2 border border-slate-800/80">
+                  <div className="grid grid-cols-3 gap-2 text-center bg-[#ffffff] rounded-[14px] p-2 border border-[#e0e0e0]">
                     <div>
-                      <div className="text-[10px] text-slate-400">طابور الخلفية</div>
-                      <div className="text-sm font-black text-amber-300">
+                      <div className="text-[10px] text-[#707070]">طابور الخلفية</div>
+                      <div className="text-sm font-bold text-[#141414]">
                         {bgState.pendingOfflineCount}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[10px] text-slate-400">مزامنات ناجحة</div>
-                      <div className="text-sm font-black text-emerald-400">
+                      <div className="text-[10px] text-[#707070]">مزامنات ناجحة</div>
+                      <div className="text-sm font-bold text-[#141414]">
                         {bgState.totalBackgroundSyncs}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[10px] text-slate-400">بقاء الشاشة</div>
-                      <div className="text-xs font-black text-sky-300">
+                      <div className="text-[10px] text-[#707070]">بقاء الشاشة</div>
+                      <div className="text-xs font-bold text-[#0066ff]">
                         {bgState.wakeLockActive ? 'مفعّل' : 'تلقائي'}
                       </div>
                     </div>
@@ -516,7 +512,7 @@ export const MobileExperienceStudio: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleSimulateOfflineEnqueue}
-                      className="px-2 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold transition-colors"
+                      className="px-2 py-2 rounded-full bg-[#ffffff] hover:bg-[#e5e5e5] border border-[#e0e0e0] text-[#141414] text-[10px] font-bold transition-colors cursor-pointer"
                     >
                       + عملية بالخلفية
                     </button>
@@ -524,7 +520,7 @@ export const MobileExperienceStudio: React.FC = () => {
                       type="button"
                       onClick={handleFlushBackgroundSync}
                       disabled={isSyncing}
-                      className="px-2 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center gap-1 transition-colors"
+                      className="px-2 py-2 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-[10px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
                     >
                       <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
                       <span>مزامنة الآن</span>
@@ -532,10 +528,10 @@ export const MobileExperienceStudio: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => backgroundExecutionService.toggleWakeLock()}
-                      className={`px-2 py-2 rounded-xl text-[10px] font-bold flex items-center justify-center gap-1 transition-colors ${
+                      className={`px-2 py-2 rounded-full text-[10px] font-bold flex items-center justify-center gap-1 transition-colors border cursor-pointer ${
                         bgState.wakeLockActive
-                          ? 'bg-amber-500 text-slate-950'
-                          : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
+                          ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                          : 'bg-[#ffffff] hover:bg-[#e5e5e5] text-[#141414] border-[#e0e0e0]'
                       }`}
                     >
                       <Sun className="w-3 h-3" />
@@ -546,31 +542,31 @@ export const MobileExperienceStudio: React.FC = () => {
               </div>
 
               {/* 5. Open on Real Physical Phone (QR Code + Copy URL) */}
-              <div className="mt-4 pt-3.5 border-t border-slate-800 flex items-center gap-3 bg-slate-950/60 p-3 rounded-2xl">
+              <div className="mt-4 pt-3.5 border-t border-[#e5e5e5] flex items-center gap-3 bg-[#f3f3f3] p-3 rounded-[18px]">
                 {qrCodeImageUrl && (
                   <img
                     src={qrCodeImageUrl}
                     alt="QR Code لفتح التطبيق على الهاتف"
-                    className="w-16 h-16 rounded-xl bg-white p-1 shrink-0"
+                    className="w-16 h-16 rounded-[12px] bg-[#ffffff] border border-[#e0e0e0] p-1 shrink-0"
                   />
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-extrabold text-white flex items-center gap-1.5">
-                    <QrCode className="w-3.5 h-3.5 text-amber-400" />
+                  <div className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
+                    <QrCode className="w-3.5 h-3.5 text-[#141414]" />
                     <span>افتحه على جوالك الحقيقي الآن</span>
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">
+                  <p className="text-[10px] text-[#707070] mt-0.5 leading-relaxed m-0">
                     امسح رمز QR بكاميرا الجوال أو انسخ الرابط لتثبيت تطبيق الـ PWA الأصلي.
                   </p>
                   <div className="flex items-center gap-1.5 mt-2">
                     <button
                       type="button"
                       onClick={handleCopyMobileUrl}
-                      className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-slate-200 flex items-center gap-1"
+                      className="px-3 py-1 rounded-full bg-[#ffffff] hover:bg-[#e5e5e5] border border-[#e0e0e0] text-[10px] font-bold text-[#141414] flex items-center gap-1 cursor-pointer"
                     >
                       {copiedUrl ? (
                         <>
-                          <Check className="w-3 h-3 text-emerald-400" />
+                          <Check className="w-3 h-3 text-[#141414]" />
                           <span>تم نسخ الرابط</span>
                         </>
                       ) : (
@@ -583,7 +579,7 @@ export const MobileExperienceStudio: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => reloadPhoneFrame()}
-                      className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-slate-200 flex items-center gap-1"
+                      className="px-3 py-1 rounded-full bg-[#ffffff] hover:bg-[#e5e5e5] border border-[#e0e0e0] text-[10px] font-bold text-[#141414] flex items-center gap-1 cursor-pointer"
                     >
                       <RotateCcw className="w-3 h-3" />
                       <span>تحديث الشاشة</span>

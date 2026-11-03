@@ -337,20 +337,20 @@ export const AppShell: React.FC<AppShellProps> = ({
       {/* Global Drag & Drop OCR File Overlay */}
       {isDraggingFile && (
         <div
-          className="fixed inset-0 z-[2500] bg-[#1D2428]/85 backdrop-blur-sm flex items-center justify-center p-6"
+          className="fixed inset-0 z-[2500] bg-[#141414]/60 backdrop-blur-sm flex items-center justify-center p-6"
           onClick={() => {
             dragCounterRef.current = 0;
             setIsDraggingFile(false);
           }}
         >
-          <div className="max-w-lg w-full rounded-3xl border-2 border-dashed border-[#CFA64A] bg-[#FBFBF5] p-8 text-center space-y-3 shadow-2xl">
-            <div className="w-16 h-16 rounded-2xl bg-[#1D2428] text-[#CFA64A] flex items-center justify-center mx-auto shadow-md">
+          <div className="max-w-lg w-full rounded-[24px] border-2 border-dashed border-[#141414] bg-[#ffffff] p-8 text-center space-y-3 shadow-2xl">
+            <div className="w-16 h-16 rounded-[18px] bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center mx-auto">
               <UploadCloud className="w-8 h-8" />
             </div>
-            <h3 className="text-lg font-black text-[#1D2428]">
+            <h3 className="text-lg font-bold text-[#141414]">
               أفلت الملفات هنا لتشغيل الماسح الذكي (100+ فاتورة ومستند)
             </h3>
-            <p className="text-xs text-zinc-600">
+            <p className="text-xs text-[#707070]">
               يدعم قراءة ملفات PDF، Excel، Word، وصور الفواتير الضريبية وجوازات السفر وترحيلها تلقائياً
             </p>
           </div>
@@ -360,34 +360,34 @@ export const AppShell: React.FC<AppShellProps> = ({
       {/* Keyboard Shortcuts Cheat-Sheet Modal (Shift + ?) */}
       {showShortcutsModal && (
         <div
-          className="fixed inset-0 z-[2200] bg-black/65 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-[2200] bg-[#141414]/60 backdrop-blur-xs flex items-center justify-center p-4"
           onClick={() => setShowShortcutsModal(false)}
           dir="rtl"
         >
           <div
-            className="w-full max-w-lg bg-[#FBFBF5] rounded-2xl border border-[#CFA64A]/50 shadow-2xl overflow-hidden"
+            className="w-full max-w-lg bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-4 bg-[#1D2428] text-white flex items-center justify-between">
+            <div className="p-4 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <span className="w-8 h-8 rounded-xl bg-[#CFA64A]/20 border border-[#CFA64A]/40 flex items-center justify-center">
-                  <Keyboard className="w-4 h-4 text-[#CFA64A]" />
+                <span className="w-9 h-9 rounded-[12px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center">
+                  <Keyboard className="w-4 h-4 text-[#141414]" />
                 </span>
                 <div>
-                  <h3 className="text-sm font-black">دليل اختصارات لوحة المفاتيح السريعة</h3>
-                  <p className="text-[11px] text-zinc-400">للتنقل والتنفيذ الفوري بسرعة المحترفين</p>
+                  <h3 className="text-sm font-bold text-[#141414] m-0">دليل اختصارات لوحة المفاتيح السريعة</h3>
+                  <p className="text-[11px] text-[#707070] m-0">للتنقل والتنفيذ الفوري بسرعة المحترفين</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowShortcutsModal(false)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-zinc-200 cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-4 space-y-2.5 bg-white">
+            <div className="p-4 space-y-2 bg-[#ffffff]">
               {[
                 { keys: 'Ctrl + K', desc: 'فتح لوحة الأوامر والبحث الشامل في الشاشات والسجلات الحية' },
                 { keys: 'Alt + I', desc: 'فتح الماسح الذكي لاستخلاص 100+ فاتورة وأي مستند (OCR)' },
@@ -399,19 +399,19 @@ export const AppShell: React.FC<AppShellProps> = ({
               ].map((sc) => (
                 <div
                   key={sc.keys}
-                  className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-[#FBFBF5] border border-zinc-200/80"
+                  className="flex items-center justify-between gap-3 p-2.5 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0]"
                 >
-                  <span className="text-xs font-bold text-[#1D2428]">{sc.desc}</span>
-                  <kbd className="px-2.5 py-1 rounded-lg bg-[#1D2428] text-[#CFA64A] text-xs font-black font-mono shrink-0">
+                  <span className="text-xs font-semibold text-[#141414]">{sc.desc}</span>
+                  <kbd className="px-2.5 py-1 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[#141414] text-xs font-bold font-mono shrink-0">
                     {sc.keys}
                   </kbd>
                 </div>
               ))}
             </div>
 
-            <div className="px-4 py-2.5 bg-[#FBFBF5] border-t border-zinc-200 flex items-center justify-between text-[11px] text-zinc-500">
-              <span className="inline-flex items-center gap-1 font-bold text-[#8C681E]">
-                <Zap className="w-3.5 h-3.5 text-[#CFA64A]" />
+            <div className="px-4 py-2.5 bg-[#f3f3f3] border-t border-[#e5e5e5] flex items-center justify-between text-[11px] text-[#707070]">
+              <span className="inline-flex items-center gap-1 font-semibold text-[#141414]">
+                <Zap className="w-3.5 h-3.5 text-[#0066ff]" />
                 <span>أزرار الدفع والاعتماد والترحيل تدعم الحالة التفاعلية الحية تلقائياً</span>
               </span>
               <span>UX 3.0</span>

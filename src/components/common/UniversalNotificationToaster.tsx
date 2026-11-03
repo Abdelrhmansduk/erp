@@ -119,9 +119,9 @@ export const UniversalNotificationToaster: React.FC<UniversalNotificationToaster
       className="fixed top-[calc(8px+env(safe-area-inset-top,0px))] inset-x-2.5 sm:inset-x-auto sm:top-4 sm:left-4 z-[99999] flex flex-col gap-2 sm:w-96 max-w-[calc(100vw-20px)] mx-auto sm:mx-0 pointer-events-none select-none"
       style={{ filter: 'drop-shadow(0 12px 24px rgba(0,0,0,0.14))' }}
     >
-      {/* Sound Mute Toggle Bar when notifications are active */}
-      <div className="flex items-center justify-between px-2.5 py-1 rounded-full bg-slate-950/90 backdrop-blur-md text-[11px] text-white pointer-events-auto shadow-md border border-white/10">
-        <span className="font-bold text-amber-300">تنبيهات حية ({notifications.length})</span>
+      {/* Sound Mute Toggle Bar when notifications are active — Mobbin Light Mode */}
+      <div className="flex items-center justify-between px-3 py-1.5 rounded-full bg-[#ffffff] text-[11px] text-[#141414] pointer-events-auto shadow-md border border-[#e0e0e0]">
+        <span className="font-bold text-[#141414]">تنبيهات حية ({notifications.length})</span>
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -129,17 +129,17 @@ export const UniversalNotificationToaster: React.FC<UniversalNotificationToaster
               const next = notificationPopupEngine.toggleMute();
               setIsMuted(next);
             }}
-            className="flex items-center gap-1 hover:text-amber-300 px-1.5 py-0.5 rounded transition-colors"
+            className="flex items-center gap-1 hover:bg-[#f3f3f3] text-[#141414] px-2 py-0.5 rounded-full transition-colors cursor-pointer"
             title={isMuted ? 'تشغيل نغمة الإشعارات والاهتزاز' : 'كتم نغمة الإشعارات والاهتزاز'}
           >
-            {isMuted ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-400" />}
+            {isMuted ? <VolumeX className="w-3.5 h-3.5 text-[#707070]" /> : <Volume2 className="w-3.5 h-3.5 text-[#141414]" />}
             <span>{isMuted ? 'مكتوم' : 'صوت واهتزاز'}</span>
           </button>
           {notifications.length > 1 && (
             <button
               type="button"
               onClick={() => notificationPopupEngine.clearAll()}
-              className="text-[10px] text-slate-300 hover:text-white px-1.5 py-0.5 rounded bg-white/10"
+              className="text-[10px] text-[#707070] hover:text-[#141414] px-2 py-0.5 rounded-full bg-[#f3f3f3] cursor-pointer"
             >
               إغلاق الكل
             </button>
@@ -200,8 +200,7 @@ export const UniversalNotificationToaster: React.FC<UniversalNotificationToaster
               <button
                 type="button"
                 onClick={() => handleActionClick(notif)}
-                className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white rounded-lg transition-all cursor-pointer shadow-sm hover:opacity-95"
-                style={{ backgroundColor: meta.accent }}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#ffffff] bg-[#141414] hover:bg-[#262626] rounded-full transition-all cursor-pointer"
               >
                 <span>{notif.action.label}</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -210,9 +209,8 @@ export const UniversalNotificationToaster: React.FC<UniversalNotificationToaster
 
             {/* Bottom Progress Bar showing remaining time */}
             <div
-              className="absolute bottom-0 start-0 h-[2px] w-full"
+              className="absolute bottom-0 start-0 h-[2px] w-full bg-[#141414]"
               style={{
-                backgroundColor: meta.accent,
                 animation: `shrinkWidth ${notif.durationMs || 6500}ms linear forwards`,
               }}
             />

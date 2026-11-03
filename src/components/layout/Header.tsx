@@ -685,25 +685,27 @@ export const Header: React.FC<HeaderProps> = ({
           dir="rtl"
         >
           <div
-            className="w-full max-w-6xl bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden my-auto max-h-[92vh] flex flex-col"
+            className="w-full max-w-6xl bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-5 py-4 bg-[#141414] text-[#ffffff] flex items-center justify-between shrink-0">
+            <div className="px-5 py-4 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5] flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
-                <Activity className="w-5 h-5 text-[#0066ff]" />
-                <span className="text-sm font-semibold text-[#ffffff]">
-                  مركز مراقبة وتشخيص الأخطاء المباشر والإصلاح الذاتي.
+                <div className="w-9 h-9 rounded-[12px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center text-[#141414]">
+                  <Activity className="w-4 h-4 text-[#0066ff]" />
+                </div>
+                <span className="text-sm font-bold text-[#141414]">
+                  مركز مراقبة وتشخيص الأخطاء المباشر والإصلاح الذاتي
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setShowErrorMonitorModal(false)}
-                className="p-1.5 rounded-full bg-[#262626] hover:bg-[#3f3f46] text-[#ffffff] cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center cursor-pointer transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="p-4 sm:p-6 overflow-y-auto flex-1">
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1 bg-[#ffffff]">
               <EnterpriseErrorMonitorPanel
                 onNavigate={(href, title) => {
                   setShowErrorMonitorModal(false);

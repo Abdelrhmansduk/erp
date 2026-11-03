@@ -157,22 +157,22 @@ export const TransferBookingModal: React.FC<TransferBookingModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#141414]/60 backdrop-blur-sm p-4 overflow-y-auto">
       <div 
-        className="bg-[#14181c] rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/15 text-zinc-100 animate-in fade-in zoom-in-95 duration-200"
+        className="bg-[#ffffff] rounded-[24px] max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-[#e0e0e0] text-[#141414] animate-in fade-in zoom-in-95 duration-200"
         dir="rtl"
       >
-        {/* Modal Header */}
-        <div className="p-6 border-b border-white/10 flex items-center justify-between sticky top-0 bg-[#182026]/95 backdrop-blur-md z-10">
+        {/* Modal Header — Mobbin Pure Light Mode */}
+        <div className="p-5 sm:p-6 border-b border-[#e5e5e5] flex items-center justify-between sticky top-0 bg-[#ffffff] z-10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center font-bold">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white font-display">
+              <h2 className="text-lg font-bold text-[#141414] font-display m-0">
                 حجز عاملة لتجربة ونقل خدمات لعميل
               </h2>
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-[#707070] m-0 mt-0.5">
                 تسجيل العقد المؤقت، بدء فترة التجربة، وربط المكاتب المنفذة
               </p>
             </div>
@@ -180,49 +180,42 @@ export const TransferBookingModal: React.FC<TransferBookingModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Worker Overview Card */}
-        <div className="p-6 bg-black/40 border-b border-white/10">
+        <div className="p-5 sm:p-6 bg-[#f3f3f3] border-b border-[#e5e5e5]">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-3">
               {worker.photoUrl ? (
                 <img 
                   src={worker.photoUrl} 
                   alt={worker.fullNameAr} 
-                  className="w-12 h-12 rounded-xl object-cover border border-white/15"
+                  className="w-12 h-12 rounded-[14px] object-cover border border-[#e0e0e0]"
                 />
               ) : (
-                <div className="w-12 h-12 rounded-xl bg-zinc-800 text-amber-400 border border-amber-500/20 flex items-center justify-center font-bold text-sm">
+                <div className="w-12 h-12 rounded-[14px] bg-[#ffffff] text-[#141414] border border-[#e0e0e0] flex items-center justify-center font-bold text-sm">
                   {(worker.fullNameAr || 'ع').slice(0, 2)}
                 </div>
               )}
               <div>
-                <div className="font-extrabold text-white text-base">{worker.fullNameAr}</div>
-                <div className="text-xs text-zinc-400 flex items-center gap-2 mt-0.5">
+                <div className="font-bold text-[#141414] text-base">{worker.fullNameAr}</div>
+                <div className="text-xs text-[#707070] flex items-center gap-2 mt-0.5">
                   <span>{worker.nationality}</span>
                   <span>•</span>
-                  <span>جواز: <span className="font-mono text-zinc-300">{worker.passportNumber}</span></span>
+                  <span>جواز: <span className="font-mono text-[#141414]">{worker.passportNumber}</span></span>
                   <span>•</span>
-                  <span>الراتب: <span className="font-mono text-amber-400 font-bold">{worker.requestedSalary} ر.س</span></span>
+                  <span>الراتب: <span className="font-mono text-[#141414] font-bold">{worker.requestedSalary} ر.س</span></span>
                 </div>
               </div>
             </div>
 
             <div className="text-left">
-              <div className="text-[11px] text-zinc-400 font-medium">المكتب الأصلي للعاملة:</div>
-              <div 
-                className="px-3 py-1 rounded-xl text-xs font-black inline-block mt-0.5"
-                style={{ 
-                  backgroundColor: `${originalOffice?.brandColor || '#f59e0b'}20`, 
-                  color: originalOffice?.brandColor || '#f59e0b',
-                  border: `1px solid ${originalOffice?.brandColor || '#f59e0b'}40`
-                }}
-              >
+              <div className="text-[11px] text-[#707070] font-medium">المكتب الأصلي للعاملة:</div>
+              <div className="px-3 py-1 rounded-full text-xs font-bold inline-block mt-0.5 bg-[#ffffff] text-[#141414] border border-[#e0e0e0]">
                 {originalOffice?.name || worker.originalOfficeId}
               </div>
             </div>
@@ -472,12 +465,12 @@ export const TransferBookingModal: React.FC<TransferBookingModalProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e5e5e5]">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-5 py-2.5 rounded-xl text-xs font-bold text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+              className="px-5 py-2.5 rounded-full text-xs font-bold text-[#141414] bg-[#f3f3f3] hover:bg-[#e5e5e5] transition-colors cursor-pointer"
             >
               إلغاء
             </button>
@@ -485,11 +478,11 @@ export const TransferBookingModal: React.FC<TransferBookingModalProps> = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2.5 rounded-xl text-xs font-black text-black bg-amber-400 hover:bg-amber-300 shadow-lg shadow-amber-400/20 transition-all flex items-center gap-2"
+              className="px-6 py-2.5 rounded-full text-xs font-bold text-[#ffffff] bg-[#141414] hover:bg-[#262626] transition-all flex items-center gap-2 cursor-pointer"
             >
               {isSubmitting ? (
                 <>
-                  <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  <span className="w-4 h-4 border-2 border-[#ffffff]/30 border-t-[#ffffff] rounded-full animate-spin" />
                   <span>جاري تسجيل الحجز...</span>
                 </>
               ) : (

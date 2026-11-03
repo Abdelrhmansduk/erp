@@ -442,18 +442,18 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
 
   return (
     <div
-      className="fixed inset-0 bg-black/65 backdrop-blur-xs z-[2000] flex items-start justify-center pt-12 sm:pt-16 p-3 sm:p-4"
+      className="fixed inset-0 bg-[#141414]/60 backdrop-blur-xs z-[2000] flex items-start justify-center pt-12 sm:pt-16 p-3 sm:p-4"
       onClick={() => setQuickSearchOpen(false)}
       dir="rtl"
     >
       <div
-        className="w-full max-w-3xl bg-[#FBFBF5] rounded-2xl shadow-2xl border border-[#CFA64A]/45 overflow-hidden"
+        className="w-full max-w-3xl bg-[#ffffff] rounded-[24px] shadow-2xl border border-[#e0e0e0] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top Command Input Bar */}
-        <div className="p-3.5 sm:p-4 bg-[#1D2428] text-white border-b border-[#CFA64A]/30 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#CFA64A]/20 border border-[#CFA64A]/40 flex items-center justify-center shrink-0">
-            <Search className="w-4 h-4 text-[#CFA64A]" />
+        {/* Top Command Input Bar — Mobbin Light Mode */}
+        <div className="p-3.5 sm:p-4 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5] flex items-center gap-3">
+          <div className="w-9 h-9 rounded-[12px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center shrink-0">
+            <Search className="w-4 h-4 text-[#141414]" />
           </div>
           <input
             ref={inputRef}
@@ -465,24 +465,24 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
             }}
             onKeyDown={handleKeyDownInInput}
             placeholder="ابحث عن أي شاشة، عميل، عقد مساند، سيرة ذاتية، فاتورة ZATCA، أو أمر سريع... (Ctrl + K)"
-            className="flex-1 text-white text-sm sm:text-base placeholder-zinc-400 outline-none bg-transparent font-bold"
+            className="flex-1 text-[#141414] text-sm sm:text-base placeholder-[#707070] outline-none bg-transparent font-semibold"
           />
           {searchTerm && (
             <button
               type="button"
               onClick={() => setSearchTerm('')}
-              className="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-xs text-zinc-200 cursor-pointer"
+              className="px-2.5 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-xs text-[#141414] font-semibold cursor-pointer"
             >
               مسح
             </button>
           )}
-          <kbd className="hidden sm:inline-block px-2.5 py-1 text-[11px] font-black text-[#E6D3A7] bg-white/10 border border-white/15 rounded-lg">
+          <kbd className="hidden sm:inline-block px-2.5 py-1 text-[11px] font-bold text-[#707070] bg-[#f3f3f3] border border-[#e0e0e0] rounded-full">
             ESC للإغلاق
           </kbd>
         </div>
 
         {/* Category Filter Tabs + Pinned / Recent Chips */}
-        <div className="px-4 py-2.5 bg-white border-b border-zinc-200 flex flex-wrap items-center justify-between gap-2">
+        <div className="px-4 py-2.5 bg-[#ffffff] border-b border-[#f0f0f0] flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 flex-wrap">
             {(
               [
@@ -502,10 +502,10 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
                     setCategoryFilter(tab.id);
                     setSelectedIndex(0);
                   }}
-                  className={`px-3 py-1 rounded-full text-xs font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
+                  className={`px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
                     active
-                      ? 'bg-[#1D2428] text-[#CFA64A] shadow-2xs'
-                      : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
+                      ? 'bg-[#141414] text-[#ffffff]'
+                      : 'bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0]'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -515,18 +515,18 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
             })}
           </div>
 
-          <span className="text-[11px] font-bold text-zinc-500 hidden md:inline">
+          <span className="text-[11px] font-semibold text-[#707070] hidden md:inline">
             اكتب اسم العميل أو رقم العقد للبحث الفوري في قاعدة البيانات
           </span>
         </div>
 
         {/* Pinned Favorites & Recent Visited Strip (shown when searchTerm is empty) */}
         {searchTerm.trim() === '' && (pinnedTabs.length > 0 || recentTabs.length > 0) && (
-          <div className="px-4 py-2.5 bg-[#FBFBF5] border-b border-[#E6DEC8] space-y-2">
+          <div className="px-4 py-2.5 bg-[#f3f3f3] border-b border-[#e5e5e5] space-y-2">
             {pinnedTabs.length > 0 && (
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-                <span className="inline-flex items-center gap-1 text-[11px] font-black text-[#8C681E] shrink-0 pl-2">
-                  <Star className="w-3.5 h-3.5 fill-[#CFA64A] text-[#CFA64A]" />
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#141414] shrink-0 pl-2">
+                  <Star className="w-3.5 h-3.5 fill-[#141414] text-[#141414]" />
                   <span>المفضلة المثبتة:</span>
                 </span>
                 {pinnedTabs.map((pin) => (
@@ -537,7 +537,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
                       onNavigate(pin.href, pin.title);
                       setQuickSearchOpen(false);
                     }}
-                    className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#1D2428] hover:text-[#CFA64A] text-[#1D2428] border border-[#CFA64A]/40 text-[11px] font-extrabold transition-all shrink-0 cursor-pointer shadow-2xs"
+                    className="px-2.5 py-1 rounded-full bg-[#ffffff] hover:bg-[#141414] hover:text-[#ffffff] text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold transition-all shrink-0 cursor-pointer"
                   >
                     {pin.title}
                   </button>
@@ -547,8 +547,8 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
 
             {recentTabs.length > 0 && (
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-zinc-500 shrink-0 pl-2">
-                  <Clock className="w-3.5 h-3.5 text-zinc-400" />
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#707070] shrink-0 pl-2">
+                  <Clock className="w-3.5 h-3.5 text-[#707070]" />
                   <span>زرتها مؤخراً:</span>
                 </span>
                 {recentTabs.map((rec) => (
@@ -559,7 +559,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
                       onNavigate(rec.href, rec.title);
                       setQuickSearchOpen(false);
                     }}
-                    className="px-2.5 py-0.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-[11px] font-bold transition-all shrink-0 cursor-pointer"
+                    className="px-2.5 py-0.5 rounded-full bg-[#ffffff] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold transition-all shrink-0 cursor-pointer"
                   >
                     {rec.title}
                   </button>
@@ -570,14 +570,14 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
         )}
 
         {/* Unified Results List */}
-        <div className="max-h-[55vh] overflow-y-auto p-2.5 space-y-1.5 bg-white">
+        <div className="max-h-[55vh] overflow-y-auto p-2.5 space-y-1.5 bg-[#ffffff]">
           {filteredItems.length === 0 ? (
             <div className="p-8 text-center">
               <BusinessIllustration type="empty-search" size="sm" className="mx-auto mb-3" />
-              <p className="text-sm font-black text-[#1D2428]">
+              <p className="text-sm font-bold text-[#141414]">
                 لا توجد شاشات أو سجلات مطابقة لـ "{searchTerm}"
               </p>
-              <p className="text-xs text-zinc-500 mt-1">
+              <p className="text-xs text-[#707070] mt-1">
                 جرّب البحث باسم العميل، رقم الهوية، اسم العاملة، أو اسأل المساعد الذكي فارس مباشرةً
               </p>
               <button
@@ -590,7 +590,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
                     })
                   );
                 }}
-                className="mt-3 px-4 py-2 rounded-xl bg-[#1D2428] text-[#CFA64A] text-xs font-black inline-flex items-center gap-1.5 cursor-pointer"
+                className="mt-3 px-4 py-2 rounded-full bg-[#141414] text-[#ffffff] text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>اسأل فارس ونُورة عن "{searchTerm}"</span>
@@ -606,10 +606,10 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
                   key={item.id}
                   onClick={() => handleExecuteItem(item)}
                   onMouseEnter={() => setSelectedIndex(idx)}
-                  className={`p-2.5 sm:p-3 rounded-xl flex items-center justify-between gap-3 cursor-pointer transition-all border ${
+                  className={`p-2.5 sm:p-3 rounded-[16px] flex items-center justify-between gap-3 cursor-pointer transition-all border ${
                     isSelected
-                      ? 'bg-[#1D2428] text-white border-[#CFA64A]'
-                      : 'bg-[#FBFBF5]/70 hover:bg-zinc-100 text-[#1D2428] border-zinc-200/70'
+                      ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                      : 'bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border-[#e0e0e0]'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
@@ -625,32 +625,33 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
                         type={illKey}
                         size="sm"
                         showBackground={false}
-                        className="!w-10 !h-10 rounded-xl bg-[#FBFBF5] border border-[#CFA64A]/40 p-1 shrink-0"
+                        className="!w-10 !h-10 rounded-[12px] bg-[#ffffff] border border-[#e0e0e0] p-1 shrink-0"
                       />
                     )}
 
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h4
-                          className={`font-black text-xs sm:text-sm truncate ${
-                            isSelected ? 'text-white' : 'text-[#1D2428]'
+                          className={`font-bold text-xs sm:text-sm truncate ${
+                            isSelected ? 'text-[#ffffff]' : 'text-[#141414]'
                           }`}
                         >
                           {item.title}
                         </h4>
                         {item.kind === 'action' && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-[#CFA64A] text-[#1D2428]">
-                            أمر سريع </span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#ffffff] text-[#141414] border border-[#e0e0e0]">
+                            أمر سريع
+                          </span>
                         )}
                         {item.kind === 'record' && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-600 text-white">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#0066ff] text-[#ffffff]">
                             سجل حي
                           </span>
                         )}
                       </div>
                       <span
                         className={`text-[11px] block truncate ${
-                          isSelected ? 'text-zinc-300' : 'text-zinc-500'
+                          isSelected ? 'text-[#adadad]' : 'text-[#707070]'
                         }`}
                       >
                         {item.subtitle}
@@ -661,17 +662,17 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
                   <div className="flex items-center gap-2 shrink-0">
                     {item.badge && (
                       <span
-                        className={`text-[10.5px] font-bold px-2 py-0.5 rounded-md font-mono ${
+                        className={`text-[10.5px] font-semibold px-2.5 py-0.5 rounded-full font-mono ${
                           isSelected
-                            ? 'bg-white/15 text-[#E6D3A7]'
-                            : 'bg-zinc-200/70 text-zinc-600'
+                            ? 'bg-[#ffffff]/15 text-[#ffffff]'
+                            : 'bg-[#ffffff] text-[#707070] border border-[#e0e0e0]'
                         }`}
                       >
                         {item.badge}
                       </span>
                     )}
                     <ArrowUpLeft
-                      className={`w-4 h-4 ${isSelected ? 'text-[#CFA64A]' : 'text-zinc-400'}`}
+                      className={`w-4 h-4 ${isSelected ? 'text-[#ffffff]' : 'text-[#707070]'}`}
                     />
                   </div>
                 </div>
@@ -681,14 +682,14 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
         </div>
 
         {/* Command Palette Footer */}
-        <div className="px-4 py-2.5 bg-[#1D2428] text-zinc-300 border-t border-[#CFA64A]/30 flex flex-wrap items-center justify-between gap-2 text-[11px]">
-          <div className="flex items-center gap-3 font-bold">
+        <div className="px-4 py-2.5 bg-[#f3f3f3] text-[#707070] border-t border-[#e5e5e5] flex flex-wrap items-center justify-between gap-2 text-[11px]">
+          <div className="flex items-center gap-3 font-semibold">
             <span>↑↓ للتنقل</span>
             <span>↵ للتنفيذ والانتقال</span>
-            <span className="hidden sm:inline text-[#CFA64A]">• Alt+I مستخرج الفواتير</span>
-            <span className="hidden sm:inline text-[#CFA64A]">• Alt+A المساعد الذكي</span>
+            <span className="hidden sm:inline text-[#141414]">• Alt+I مستخرج الفواتير</span>
+            <span className="hidden sm:inline text-[#141414]">• Alt+A المساعد الذكي</span>
           </div>
-          <span className="text-[10.5px] text-[#E6D3A7] font-bold">
+          <span className="text-[10.5px] text-[#707070] font-semibold">
             محرك الأوامر والبحث الموحد • مجموعة خالد السليم القابضة
           </span>
         </div>

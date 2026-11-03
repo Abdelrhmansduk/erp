@@ -182,26 +182,26 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
   const getSeverityBadgeStyle = (severity: ErrorSeverity) => {
     switch (severity) {
       case 'critical':
-        return 'bg-rose-100 text-rose-800 border-rose-300';
+        return 'bg-[#141414] text-[#ffffff] border-[#141414]';
       case 'high':
-        return 'bg-amber-100 text-amber-900 border-amber-300';
+        return 'bg-[#f3f3f3] text-[#141414] border-[#141414]';
       case 'medium':
-        return 'bg-[#F5EDDC] text-[#8C681E] border-[#CFA64A]/50';
+        return 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0]';
       default:
-        return 'bg-zinc-100 text-zinc-700 border-zinc-300';
+        return 'bg-[#f3f3f3] text-[#707070] border-[#e0e0e0]';
     }
   };
 
   const getStatusBadgeStyle = (status: ErrorStatus) => {
     switch (status) {
       case 'auto_healed':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        return 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0]';
       case 'resolved':
-        return 'bg-teal-100 text-teal-800 border-teal-300';
+        return 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0]';
       case 'open':
-        return 'bg-rose-100 text-rose-800 border-rose-300';
+        return 'bg-[#141414] text-[#ffffff] border-[#141414]';
       default:
-        return 'bg-zinc-100 text-zinc-600 border-zinc-200';
+        return 'bg-[#f3f3f3] text-[#707070] border-[#e0e0e0]';
     }
   };
 
@@ -331,23 +331,23 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
           {summary.checks.map((chk) => (
             <div
               key={chk.id}
-              className="p-4 rounded-2xl bg-white border border-zinc-200 shadow-xs flex flex-col justify-between gap-2"
+              className="p-4 rounded-[20px] bg-[#ffffff] border border-[#e0e0e0] flex flex-col justify-between gap-2"
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="text-xs font-black text-[#1D2428] leading-snug">
+                <span className="text-xs font-bold text-[#141414] leading-snug">
                   {chk.nameAr}
                 </span>
                 <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${
                     chk.status === 'healthy'
-                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                      : 'bg-amber-100 text-amber-900 border border-amber-300'
+                      ? 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
+                      : 'bg-[#141414] text-[#ffffff] border border-[#141414]'
                   }`}
                 >
                   {chk.statusLabelAr}
                 </span>
               </div>
-              <div className="text-xs font-mono font-black text-[#141414]">
+              <div className="text-xs font-mono font-bold text-[#141414]">
                 {chk.metricValue}
               </div>
               <p className="text-[11px] text-[#707070] m-0 leading-relaxed">{chk.detailsAr}</p>
@@ -357,11 +357,11 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
       )}
 
       {/* Simulation & Chaos Testing Bar + Filters */}
-      <div className="p-4 rounded-[24px] bg-white border border-[#e0e0e0] space-y-3">
+      <div className="p-4 rounded-[24px] bg-[#ffffff] border border-[#e0e0e0] space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#f0f0f0]">
           <div className="flex items-center gap-2">
             <Cpu className="w-4 h-4 text-[#141414]" />
-            <span className="text-xs font-black text-[#141414]">
+            <span className="text-xs font-bold text-[#141414]">
               مختبر فحص درع الحماية والاستجابة اللحظية (Chaos & Self-Healing Simulator):
             </span>
           </div>
@@ -369,21 +369,21 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
             <button
               type="button"
               onClick={() => handleSimulate('dom_reconciliation')}
-              className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-[11px] font-bold cursor-pointer transition-colors"
+              className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold cursor-pointer transition-colors"
             >
               + اختبار درع React Fiber
             </button>
             <button
               type="button"
               onClick={() => handleSimulate('network_timeout')}
-              className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-[11px] font-bold cursor-pointer transition-colors"
+              className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold cursor-pointer transition-colors"
             >
               + اختبار انقطاع الشبكة
             </button>
             <button
               type="button"
               onClick={() => handleSimulate('zatca_validation')}
-              className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-[11px] font-bold cursor-pointer transition-colors"
+              className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold cursor-pointer transition-colors"
             >
               + اختبار مدقق ZATCA
             </button>
@@ -397,7 +397,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
                   type: 'info',
                 });
               }}
-              className="px-3 py-1.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer transition-colors"
+              className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070] hover:text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>أرشفة السجلات المحلولة</span>
@@ -408,20 +408,20 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
         {/* Filter Controls */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-zinc-400 absolute right-3 top-2.5" />
+            <Search className="w-3.5 h-3.5 text-[#707070] absolute right-3 top-2.5" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="بحث برقم البلاغ، الكود، المكون، أو الرسالة..."
-              className="w-full h-9 pr-8 pl-3 rounded-xl bg-zinc-50 border border-zinc-200 text-xs text-black focus:border-black focus:outline-none"
+              className="w-full h-9 pr-8 pl-3 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] text-xs text-[#141414] focus:border-[#141414] focus:bg-[#ffffff] focus:outline-none"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="h-9 px-3 rounded-xl bg-zinc-50 border border-zinc-200 text-xs font-semibold text-zinc-800 focus:border-black focus:outline-none"
+            className="h-9 px-3 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-semibold text-[#141414] focus:border-[#141414] focus:bg-[#ffffff] focus:outline-none"
           >
             <option value="all">جميع الحالات ({incidents.length})</option>
             <option value="open">قيد المراقبة (يحتاج معالجة)</option>
@@ -432,7 +432,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
           <select
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value as any)}
-            className="h-9 px-3 rounded-xl bg-zinc-50 border border-zinc-200 text-xs font-semibold text-zinc-800 focus:border-black focus:outline-none"
+            className="h-9 px-3 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-semibold text-[#141414] focus:border-[#141414] focus:bg-[#ffffff] focus:outline-none"
           >
             <option value="all">جميع مستويات الخطورة</option>
             <option value="critical">حرج جداً (Critical)</option>
@@ -444,7 +444,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value as any)}
-            className="h-9 px-3 rounded-xl bg-zinc-50 border border-zinc-200 text-xs font-semibold text-zinc-800 focus:border-black focus:outline-none"
+            className="h-9 px-3 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-semibold text-[#141414] focus:border-[#141414] focus:bg-[#ffffff] focus:outline-none"
           >
             <option value="all">جميع التصنيفات التقنية</option>
             <option value="react_render">رندرة الواجهة (React Fiber)</option>
@@ -458,22 +458,22 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
       </div>
 
       {/* Incidents Table */}
-      <div className="rounded-3xl bg-white border border-zinc-200 shadow-xs overflow-hidden">
-        <div className="px-5 py-3.5 bg-[#FBFBF5] border-b border-zinc-200 flex items-center justify-between flex-wrap gap-2">
+      <div className="rounded-[24px] bg-[#ffffff] border border-[#e0e0e0] overflow-hidden">
+        <div className="px-5 py-3.5 bg-[#f3f3f3] border-b border-[#e0e0e0] flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
-            <Bug className="w-4 h-4 text-[#1D2428]" />
-            <h3 className="text-xs sm:text-sm font-black text-[#1D2428] m-0">
+            <Bug className="w-4 h-4 text-[#141414]" />
+            <h3 className="text-xs sm:text-sm font-bold text-[#141414] m-0">
               سجل الأخطاء والتشخيص الجذري المباشر ({filteredIncidents.length} سجل)
             </h3>
           </div>
-          <span className="text-[11px] text-zinc-500 font-semibold">
+          <span className="text-[11px] text-[#707070] font-semibold">
             يتم تحديث هذا السجل تلقائياً فور التقاط أي حدث في المتصفح أو الخادم
           </span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-right text-xs">
-            <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <thead className="bg-[#f3f3f3] text-[#707070] font-semibold border-b border-[#e0e0e0]">
               <tr>
                 <th className="p-3.5">البلاغ والكود</th>
                 <th className="p-3.5">الحدث والمكون المتأثر</th>
@@ -483,27 +483,27 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
                 <th className="p-3.5 text-center">الإجراءات التشخيصية</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-[#f0f0f0]">
               {filteredIncidents.map((inc) => (
-                <tr key={inc.id} className="hover:bg-[#FBFBF5] transition-colors">
+                <tr key={inc.id} className="hover:bg-[#f3f3f3] transition-colors">
                   <td className="p-3.5 align-top whitespace-nowrap">
-                    <div className="font-mono font-black text-[#1D2428] text-xs">{inc.id}</div>
-                    <div className="font-mono text-[10.5px] text-[#8C681E] font-bold mt-0.5">
+                    <div className="font-mono font-bold text-[#141414] text-xs">{inc.id}</div>
+                    <div className="font-mono text-[10.5px] text-[#707070] font-semibold mt-0.5">
                       {inc.code}
                     </div>
-                    <div className="text-[10px] text-zinc-400 mt-1">{inc.lastSeenAt}</div>
+                    <div className="text-[10px] text-[#707070] mt-1">{inc.lastSeenAt}</div>
                   </td>
 
                   <td className="p-3.5 align-top max-w-xs">
-                    <div className="font-black text-[#1D2428] leading-snug">{inc.title}</div>
+                    <div className="font-bold text-[#141414] leading-snug">{inc.title}</div>
                     <div
-                      className="font-mono text-[10.5px] text-zinc-500 mt-1 line-clamp-2 bg-zinc-50 p-1.5 rounded-lg border border-zinc-200/70"
+                      className="font-mono text-[10.5px] text-[#707070] mt-1 line-clamp-2 bg-[#f3f3f3] p-1.5 rounded-[10px] border border-[#e0e0e0]"
                       dir="ltr"
                     >
                       {inc.message}
                     </div>
-                    <div className="flex items-center gap-2 mt-1.5 text-[10.5px] text-zinc-500">
-                      <span className="font-bold text-zinc-700">{inc.moduleName}</span>
+                    <div className="flex items-center gap-2 mt-1.5 text-[10.5px] text-[#707070]">
+                      <span className="font-semibold text-[#141414]">{inc.moduleName}</span>
                       <span>•</span>
                       <span>التكرار: {inc.occurrences}x</span>
                       {inc.latencyMs && (
@@ -518,30 +518,30 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
                   <td className="p-3.5 align-top whitespace-nowrap space-y-1.5">
                     <div>
                       <span
-                        className={`inline-block px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border ${getSeverityBadgeStyle(
+                        className={`inline-block px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold border ${getSeverityBadgeStyle(
                           inc.severity
                         )}`}
                       >
                         {inc.severityLabelAr}
                       </span>
                     </div>
-                    <div className="text-[10.5px] text-zinc-600 font-semibold">
+                    <div className="text-[10.5px] text-[#707070] font-semibold">
                       {inc.categoryLabelAr}
                     </div>
                   </td>
 
                   <td className="p-3.5 align-top max-w-sm">
-                    <div className="text-zinc-700 leading-relaxed">
-                      <strong className="text-[#1D2428]">السبب: </strong>
+                    <div className="text-[#707070] leading-relaxed">
+                      <strong className="text-[#141414]">السبب: </strong>
                       {inc.diagnosisAr}
                     </div>
                     {inc.healingActionAr ? (
-                      <div className="mt-1.5 p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-[11px] font-bold flex items-start gap-1.5">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                      <div className="mt-1.5 p-2 rounded-[12px] bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] text-[11px] font-semibold flex items-start gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#0066ff] shrink-0 mt-0.5" />
                         <span>{inc.healingActionAr}</span>
                       </div>
                     ) : (
-                      <div className="mt-1 text-[11px] text-amber-800 font-semibold">
+                      <div className="mt-1 text-[11px] text-[#141414] font-semibold">
                         <strong>التوصية: </strong>
                         {inc.remediationAr}
                       </div>
@@ -550,7 +550,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
 
                   <td className="p-3.5 align-top whitespace-nowrap">
                     <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-black border ${getStatusBadgeStyle(
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-semibold border ${getStatusBadgeStyle(
                         inc.status
                       )}`}
                     >
@@ -569,7 +569,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
                         <button
                           type="button"
                           onClick={() => handleHealSingle(inc)}
-                          className="px-2.5 py-1.5 rounded-xl bg-[#1D2428] hover:bg-zinc-800 text-[#CFA64A] border border-[#CFA64A] text-[11px] font-black inline-flex items-center gap-1 cursor-pointer transition-all"
+                          className="px-3 py-1.5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer transition-all"
                         >
                           <Wrench className="w-3 h-3" />
                           <span>إصلاح ذاتي فوري</span>
@@ -578,7 +578,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
                       <button
                         type="button"
                         onClick={() => setSelectedIncident(inc)}
-                        className="px-2.5 py-1.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-[#1D2428] text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer transition-colors"
+                        className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors"
                         title="معاينة التفاصيل والـ Stack Trace"
                       >
                         <Eye className="w-3.5 h-3.5" />
@@ -587,11 +587,11 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
                       <button
                         type="button"
                         onClick={() => handleCopyDiagnostic(inc)}
-                        className="p-1.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 cursor-pointer transition-colors"
+                        className="p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] cursor-pointer transition-colors"
                         title="نسخ التقرير التشخيصي"
                       >
                         {copiedId === inc.id ? (
-                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          <Check className="w-3.5 h-3.5 text-[#0066ff]" />
                         ) : (
                           <Copy className="w-3.5 h-3.5" />
                         )}
@@ -608,29 +608,29 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
       {/* Deep Diagnostic & Stack Trace Inspector Modal */}
       {selectedIncident && (
         <div
-          className="fixed inset-0 z-[2400] bg-black/65 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-[2400] bg-[#141414]/60 backdrop-blur-xs flex items-center justify-center p-4"
           onClick={() => setSelectedIncident(null)}
         >
           <div
-            className="w-full max-w-2xl bg-[#FBFBF5] rounded-3xl border-2 border-[#CFA64A]/60 shadow-2xl overflow-hidden"
+            className="w-full max-w-2xl bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
             dir="rtl"
           >
-            <div className="p-5 bg-[#1D2428] text-white flex items-center justify-between">
+            <div className="p-5 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#CFA64A]/20 border border-[#CFA64A] flex items-center justify-center text-[#CFA64A]">
+                <div className="w-10 h-10 rounded-[12px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center text-[#141414]">
                   <Terminal className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-black text-[#CFA64A]">
+                    <span className="font-mono text-xs font-bold text-[#141414]">
                       {selectedIncident.id}
                     </span>
-                    <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-white/10 text-zinc-200">
+                    <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#707070]">
                       {selectedIncident.code}
                     </span>
                   </div>
-                  <h3 className="text-sm sm:text-base font-black text-white m-0 mt-0.5">
+                  <h3 className="text-sm sm:text-base font-bold text-[#141414] m-0 mt-0.5">
                     {selectedIncident.title}
                   </h3>
                 </div>
@@ -638,60 +638,60 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
               <button
                 type="button"
                 onClick={() => setSelectedIncident(null)}
-                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-200 cursor-pointer"
+                className="p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4 bg-white max-h-[75vh] overflow-y-auto text-xs">
+            <div className="p-6 space-y-4 bg-[#ffffff] max-h-[75vh] overflow-y-auto text-xs">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                <div className="p-2.5 rounded-xl bg-zinc-50 border border-zinc-200">
-                  <span className="text-[10.5px] text-zinc-500 block">الحالة التشغيلية</span>
-                  <span className="font-black text-[#1D2428] mt-0.5 block">
+                <div className="p-2.5 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0]">
+                  <span className="text-[10.5px] text-[#707070] block">الحالة التشغيلية</span>
+                  <span className="font-bold text-[#141414] mt-0.5 block">
                     {selectedIncident.statusLabelAr}
                   </span>
                 </div>
-                <div className="p-2.5 rounded-xl bg-zinc-50 border border-zinc-200">
-                  <span className="text-[10.5px] text-zinc-500 block">المكون / الوحدة</span>
-                  <span className="font-black text-[#1D2428] mt-0.5 block">
+                <div className="p-2.5 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0]">
+                  <span className="text-[10.5px] text-[#707070] block">المكون / الوحدة</span>
+                  <span className="font-bold text-[#141414] mt-0.5 block">
                     {selectedIncident.moduleName}
                   </span>
                 </div>
-                <div className="p-2.5 rounded-xl bg-zinc-50 border border-zinc-200">
-                  <span className="text-[10.5px] text-zinc-500 block">عدد مرات الرصد</span>
-                  <span className="font-mono font-black text-[#1D2428] mt-0.5 block">
+                <div className="p-2.5 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0]">
+                  <span className="text-[10.5px] text-[#707070] block">عدد مرات الرصد</span>
+                  <span className="font-mono font-bold text-[#141414] mt-0.5 block">
                     {selectedIncident.occurrences} مرة
                   </span>
                 </div>
-                <div className="p-2.5 rounded-xl bg-zinc-50 border border-zinc-200">
-                  <span className="text-[10.5px] text-zinc-500 block">وقت آخر رصد</span>
-                  <span className="font-mono font-bold text-zinc-700 mt-0.5 block">
+                <div className="p-2.5 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0]">
+                  <span className="text-[10.5px] text-[#707070] block">وقت آخر رصد</span>
+                  <span className="font-mono font-semibold text-[#707070] mt-0.5 block">
                     {selectedIncident.lastSeenAt}
                   </span>
                 </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-[#FBFBF5] border border-[#CFA64A]/40 space-y-2">
-                <div className="font-black text-[#1D2428]">التشخيص الجذري (Root-Cause Analysis):</div>
-                <p className="text-zinc-700 m-0 leading-relaxed">{selectedIncident.diagnosisAr}</p>
-                <div className="font-black text-[#8C681E] pt-1">بروتوكول المعالجة والوقاية:</div>
-                <p className="text-zinc-700 m-0 leading-relaxed">{selectedIncident.remediationAr}</p>
+              <div className="p-4 rounded-[18px] bg-[#f3f3f3] border border-[#e0e0e0] space-y-2">
+                <div className="font-bold text-[#141414]">التشخيص الجذري (Root-Cause Analysis):</div>
+                <p className="text-[#707070] m-0 leading-relaxed">{selectedIncident.diagnosisAr}</p>
+                <div className="font-bold text-[#141414] pt-1">بروتوكول المعالجة والوقاية:</div>
+                <p className="text-[#707070] m-0 leading-relaxed">{selectedIncident.remediationAr}</p>
                 {selectedIncident.healingActionAr && (
-                  <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 font-bold flex items-center gap-2 mt-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <div className="p-2.5 rounded-[12px] bg-[#ffffff] border border-[#e0e0e0] text-[#141414] font-semibold flex items-center gap-2 mt-2">
+                    <CheckCircle2 className="w-4 h-4 text-[#0066ff] shrink-0" />
                     <span>{selectedIncident.healingActionAr}</span>
                   </div>
                 )}
               </div>
 
               <div>
-                <div className="font-black text-[#1D2428] mb-1.5">
+                <div className="font-bold text-[#141414] mb-1.5">
                   رسالة المترجم والتتبع التقني (Technical Stack Trace):
                 </div>
                 <pre
                   dir="ltr"
-                  className="p-3.5 rounded-2xl bg-[#1D2428] text-[#F5EDDC] font-mono text-[11px] overflow-x-auto whitespace-pre-wrap leading-relaxed m-0"
+                  className="p-3.5 rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] font-mono text-[11px] overflow-x-auto whitespace-pre-wrap leading-relaxed m-0"
                 >
                   {selectedIncident.message}
                   {selectedIncident.stack ? `\n\n${selectedIncident.stack}` : ''}
@@ -702,11 +702,11 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
               </div>
             </div>
 
-            <div className="px-6 py-4 bg-[#FBFBF5] border-t border-zinc-200 flex items-center justify-between flex-wrap gap-2">
+            <div className="px-6 py-4 bg-[#ffffff] border-t border-[#e5e5e5] flex items-center justify-between flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => handleCopyDiagnostic(selectedIncident)}
-                className="px-4 py-2 rounded-xl bg-white border border-zinc-300 hover:bg-zinc-50 text-[#1D2428] text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] hover:bg-[#e5e5e5] text-[#141414] text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
               >
                 <Copy className="w-3.5 h-3.5" />
                 <span>نسخ التقرير التقني الكامل</span>
@@ -717,7 +717,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
                   <button
                     type="button"
                     onClick={() => handleHealSingle(selectedIncident)}
-                    className="px-4 py-2 rounded-xl bg-[#1D2428] text-[#CFA64A] border border-[#CFA64A] text-xs font-black inline-flex items-center gap-1.5 cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
                   >
                     <Wrench className="w-3.5 h-3.5" />
                     <span>تشغيل الإصلاح الذاتي الآن</span>
@@ -726,7 +726,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
                 <button
                   type="button"
                   onClick={() => setSelectedIncident(null)}
-                  className="px-4 py-2 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-[#1D2428] text-xs font-bold cursor-pointer"
+                  className="px-4 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] text-xs font-semibold cursor-pointer"
                 >
                   إغلاق النافذة
                 </button>

@@ -58,18 +58,18 @@ export const WorkerProfileDetailModal: React.FC<WorkerProfileDetailModalProps> =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto font-sans" dir="rtl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#141414]/60 backdrop-blur-sm p-4 overflow-y-auto font-sans" dir="rtl">
       <div 
-        className="bg-[#14181c] text-zinc-100 rounded-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-white/15 animate-in fade-in zoom-in-95 duration-200 flex flex-col"
+        className="bg-[#ffffff] text-[#141414] rounded-[24px] max-w-4xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-[#e0e0e0] animate-in fade-in zoom-in-95 duration-200 flex flex-col"
       >
-        {/* Header with Photo and Quick Badges */}
-        <div className="p-6 border-b border-white/10 bg-gradient-to-l from-[#182026] via-[#141a1f] to-[#101417] text-white rounded-t-2xl relative">
+        {/* Header with Photo and Quick Badges — Mobbin Pure Light Mode */}
+        <div className="p-6 border-b border-[#e5e5e5] bg-[#ffffff] text-[#141414] rounded-t-[24px] relative">
           <button
             type="button"
             onClick={onClose}
-            className="absolute left-6 top-6 p-2 rounded-xl bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className="absolute left-6 top-6 w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
 
           <div className="flex items-start gap-5 flex-wrap">
@@ -79,41 +79,41 @@ export const WorkerProfileDetailModal: React.FC<WorkerProfileDetailModalProps> =
                 <img 
                   src={worker.photoUrl} 
                   alt={worker.fullNameAr} 
-                  className="w-20 h-20 rounded-2xl object-cover border-2 border-amber-400/80 shadow-lg"
+                  className="w-20 h-20 rounded-[18px] object-cover border border-[#e0e0e0]"
                 />
               ) : (
-                <div className="w-20 h-20 rounded-2xl bg-black/60 text-amber-300 flex items-center justify-center font-bold text-2xl border-2 border-amber-400/50 shadow-lg">
+                <div className="w-20 h-20 rounded-[18px] bg-[#f3f3f3] text-[#141414] flex items-center justify-center font-bold text-2xl border border-[#e0e0e0]">
                   {(worker.fullNameAr || 'ع').slice(0, 2)}
                 </div>
               )}
-              <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-[#14181c]" />
+              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#0066ff] border-2 border-[#ffffff]" />
             </div>
 
             {/* Main Info */}
             <div className="flex-1 min-w-[240px]">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl font-bold tracking-tight font-display text-white m-0">
+                <h1 className="text-xl font-bold tracking-tight font-display text-[#141414] m-0">
                   {worker.fullNameAr}
                 </h1>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] font-mono">
                   {worker.operationalStatus}
                 </span>
               </div>
-              <p className="text-xs text-zinc-400 mt-0.5 font-sans dir-ltr text-right m-0">
+              <p className="text-xs text-[#707070] mt-0.5 font-sans dir-ltr text-right m-0">
                 {worker.fullNameEn}
               </p>
 
-              <div className="flex items-center gap-2 mt-3 text-xs text-zinc-300 flex-wrap">
-                <span className="bg-white/5 border border-white/10 px-2.5 py-1 rounded-xl">
-                  الجنسية: <strong className="text-white">{worker.nationality}</strong>
+              <div className="flex items-center gap-2 mt-3 text-xs text-[#707070] flex-wrap">
+                <span className="bg-[#f3f3f3] border border-[#e0e0e0] px-2.5 py-1 rounded-full">
+                  الجنسية: <strong className="text-[#141414]">{worker.nationality}</strong>
                 </span>
-                <span className="bg-white/5 border border-white/10 px-2.5 py-1 rounded-xl">
-                  جواز: <strong className="text-white font-mono">{worker.passportNumber}</strong>
+                <span className="bg-[#f3f3f3] border border-[#e0e0e0] px-2.5 py-1 rounded-full">
+                  جواز: <strong className="text-[#141414] font-mono">{worker.passportNumber}</strong>
                 </span>
-                <span className="bg-amber-400/15 text-amber-300 border border-amber-400/30 px-2.5 py-1 rounded-xl font-bold">
+                <span className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] px-2.5 py-1 rounded-full font-bold">
                   المكتب الأصلي: {originalOffice?.name || worker.originalOfficeId}
                 </span>
-                <span className="bg-amber-500/15 text-amber-300 border border-amber-500/30 px-2.5 py-1 rounded-xl font-bold">
+                <span className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] px-2.5 py-1 rounded-full font-bold">
                   تجارب العملاء السابقة: {worker.clientTrialsCount}
                 </span>
               </div>
@@ -122,14 +122,14 @@ export const WorkerProfileDetailModal: React.FC<WorkerProfileDetailModalProps> =
         </div>
 
         {/* Tab Navigation - Pill Style */}
-        <div className="flex items-center gap-2 px-6 py-2.5 border-b border-white/10 bg-[#101417] overflow-x-auto">
+        <div className="flex items-center gap-2 px-6 py-2.5 border-b border-[#e5e5e5] bg-[#f3f3f3] overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveTab('info')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'info'
-                ? 'bg-amber-400 text-black shadow-md shadow-amber-500/20'
-                : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                ? 'bg-[#141414] text-[#ffffff]'
+                : 'text-[#707070] hover:text-[#141414] bg-[#ffffff] border border-[#e0e0e0]'
             }`}
           >
             <User className="w-4 h-4" />
@@ -139,10 +139,10 @@ export const WorkerProfileDetailModal: React.FC<WorkerProfileDetailModalProps> =
           <button
             type="button"
             onClick={() => setActiveTab('sponsor')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'sponsor'
-                ? 'bg-amber-400 text-black shadow-md shadow-amber-500/20'
-                : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                ? 'bg-[#141414] text-[#ffffff]'
+                : 'text-[#707070] hover:text-[#141414] bg-[#ffffff] border border-[#e0e0e0]'
             }`}
           >
             <Briefcase className="w-4 h-4" />
@@ -152,10 +152,10 @@ export const WorkerProfileDetailModal: React.FC<WorkerProfileDetailModalProps> =
           <button
             type="button"
             onClick={() => setActiveTab('timeline')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'timeline'
-                ? 'bg-amber-400 text-black shadow-md shadow-amber-500/20'
-                : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                ? 'bg-[#141414] text-[#ffffff]'
+                : 'text-[#707070] hover:text-[#141414] bg-[#ffffff] border border-[#e0e0e0]'
             }`}
           >
             <History className="w-4 h-4" />
@@ -165,10 +165,10 @@ export const WorkerProfileDetailModal: React.FC<WorkerProfileDetailModalProps> =
           <button
             type="button"
             onClick={() => setActiveTab('trials')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'trials'
-                ? 'bg-amber-400 text-black shadow-md shadow-amber-500/20'
-                : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                ? 'bg-[#141414] text-[#ffffff]'
+                : 'text-[#707070] hover:text-[#141414] bg-[#ffffff] border border-[#e0e0e0]'
             }`}
           >
             <Sparkles className="w-4 h-4" />
@@ -421,13 +421,13 @@ export const WorkerProfileDetailModal: React.FC<WorkerProfileDetailModalProps> =
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 bg-[#101417] border-t border-white/10 flex items-center justify-between">
+        <div className="p-4 bg-[#f3f3f3] border-t border-[#e5e5e5] flex items-center justify-between">
           <button
             type="button"
             onClick={handlePrint}
-            className="px-4 py-2 rounded-xl text-xs font-bold text-zinc-300 bg-white/5 border border-white/10 hover:bg-white/10 transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2 rounded-full text-xs font-bold text-[#141414] bg-[#ffffff] border border-[#e0e0e0] hover:bg-[#e5e5e5] transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <Printer className="w-4 h-4 text-zinc-400" />
+            <Printer className="w-4 h-4 text-[#141414]" />
             <span>طباعة السيرة الذاتية (CV)</span>
           </button>
 
@@ -435,7 +435,7 @@ export const WorkerProfileDetailModal: React.FC<WorkerProfileDetailModalProps> =
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-full text-xs font-bold text-[#141414] bg-[#ffffff] border border-[#e0e0e0] hover:bg-[#e5e5e5] transition-colors cursor-pointer"
             >
               إغلاق
             </button>
@@ -447,9 +447,9 @@ export const WorkerProfileDetailModal: React.FC<WorkerProfileDetailModalProps> =
                   onClose();
                   onBookTransfer(worker);
                 }}
-                className="px-5 py-2 rounded-xl text-xs font-bold text-black bg-amber-400 hover:bg-amber-300 shadow-md shadow-amber-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                className="px-5 py-2 rounded-full text-xs font-bold text-[#ffffff] bg-[#141414] hover:bg-[#262626] transition-all flex items-center gap-1.5 cursor-pointer"
               >
-                <Sparkles className="w-4 h-4 text-black" />
+                <Sparkles className="w-4 h-4 text-[#ffffff]" />
                 <span>بدء حجز ونقل خدمات لعميل</span>
               </button>
             )}

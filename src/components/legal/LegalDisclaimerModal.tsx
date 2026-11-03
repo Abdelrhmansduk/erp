@@ -394,31 +394,35 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[9999] flex items-center justify-center p-3 md:p-6 overflow-y-auto">
-      <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans flex flex-col max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
-        {/* Header */}
-        <div className="bg-black text-white p-6 flex items-center justify-between border-b border-zinc-800">
+    <div className="fixed inset-0 bg-[#141414]/60 backdrop-blur-md z-[9999] flex items-center justify-center p-3 md:p-6 overflow-y-auto">
+      <div className="w-full max-w-4xl bg-[#ffffff] rounded-[24px] shadow-2xl border border-[#e0e0e0] overflow-hidden font-sans flex flex-col max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+        {/* Header — Mobbin Pure Light Mode */}
+        <div className="bg-[#ffffff] text-[#141414] p-5 sm:p-6 flex items-center justify-between border-b border-[#e5e5e5]">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+            <div className="w-12 h-12 rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center text-[#141414]">
               <Scale className="w-6 h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="pill-tag-mint text-[10px] font-bold">المملكة العربية السعودية • الامتثال الرقمي</span>
-                <span className="pill-tag-shade text-[10px] bg-zinc-800 text-zinc-300">إقرار إلزامي عند أول دخول</span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] text-[10px] font-bold">
+                  المملكة العربية السعودية • الامتثال الرقمي
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#141414] text-[#ffffff] text-[10px] font-bold">
+                  إقرار إلزامي عند أول دخول
+                </span>
               </div>
-              <h2 className="text-lg md:text-xl font-bold text-white mt-1">
+              <h2 className="text-lg md:text-xl font-bold text-[#141414] mt-1">
                 ميثاق التبرئة القانونية وسياسة استخدام منظومة الـ ERP
               </h2>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                مخصص لـ: <span className="font-bold text-emerald-400">{policy.departmentName}</span>
+              <p className="text-xs text-[#707070] mt-0.5">
+                مخصص لـ: <span className="font-bold text-[#141414]">{policy.departmentName}</span>
               </p>
             </div>
           </div>
 
           <button
             onClick={onLogout}
-            className="text-xs text-zinc-400 hover:text-rose-400 transition-colors p-2 rounded-xl hover:bg-zinc-900 flex items-center gap-1"
+            className="text-xs text-[#707070] hover:text-[#141414] transition-colors px-3 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] flex items-center gap-1 cursor-pointer"
             title="تسجيل الخروج والرجوع"
           >
             <span>تسجيل الخروج</span>

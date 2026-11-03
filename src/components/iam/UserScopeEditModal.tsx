@@ -127,22 +127,22 @@ export const UserScopeEditModal: React.FC<UserScopeEditModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in font-sans">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#141414]/60 backdrop-blur-sm animate-fade-in font-sans">
       <div 
-        className="bg-white rounded-3xl border border-zinc-200 shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden"
+        className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden"
         dir="rtl"
       >
-        {/* Header */}
-        <div className="p-6 bg-black text-white flex items-center justify-between flex-shrink-0">
+        {/* Header — Mobbin Pure Light Mode */}
+        <div className="p-5 sm:p-6 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5] flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-champagne-light border border-white/20">
+            <div className="w-10 h-10 rounded-[14px] bg-[#f3f3f3] flex items-center justify-center text-[#141414] border border-[#e0e0e0]">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white m-0">
+              <h3 className="text-base font-bold text-[#141414] m-0">
                 إدارة نطاقات الوصول والصلاحيات (Access Scope & Data Level)
               </h3>
-              <p className="text-xs text-zinc-400 m-0 mt-0.5">
+              <p className="text-xs text-[#707070] m-0 mt-0.5">
                 المستخدم: {user.fullName} • {user.employeeNumber}
               </p>
             </div>
@@ -151,7 +151,7 @@ export const UserScopeEditModal: React.FC<UserScopeEditModalProps> = ({
           <button 
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -223,10 +223,10 @@ export const UserScopeEditModal: React.FC<UserScopeEditModalProps> = ({
               {DATA_SCOPES.map(scope => (
                 <label
                   key={scope.level}
-                  className={`flex items-start gap-3 p-3 rounded-2xl border-2 cursor-pointer transition-all ${
+                  className={`flex items-start gap-3 p-3 rounded-[16px] border cursor-pointer transition-all ${
                     dataScope === scope.level 
-                      ? 'border-champagne bg-champagne-pale/50 shadow-xs' 
-                      : 'border-zinc-200 bg-white hover:border-zinc-300'
+                      ? 'border-[#141414] bg-[#f3f3f3] shadow-xs' 
+                      : 'border-[#e5e5e5] bg-[#ffffff] hover:border-[#141414]'
                   }`}
                 >
                   <input
@@ -234,11 +234,11 @@ export const UserScopeEditModal: React.FC<UserScopeEditModalProps> = ({
                     name="data_scope"
                     checked={dataScope === scope.level}
                     onChange={() => setDataScope(scope.level)}
-                    className="mt-0.5 text-champagne-dark accent-[#CFA64A]"
+                    className="mt-0.5 text-[#141414] accent-[#141414]"
                   />
                   <div>
-                    <div className="text-xs font-bold text-black">{scope.ar}</div>
-                    <div className="text-[11px] text-zinc-500">{scope.desc}</div>
+                    <div className="text-xs font-bold text-[#141414]">{scope.ar}</div>
+                    <div className="text-[11px] text-[#707070]">{scope.desc}</div>
                   </div>
                 </label>
               ))}

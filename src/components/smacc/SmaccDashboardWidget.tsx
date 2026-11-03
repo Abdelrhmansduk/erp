@@ -18,19 +18,19 @@ export const SmaccDashboardWidget: React.FC = () => {
   return (
     <div className="space-y-6 font-sans select-none dir-rtl text-right" style={{ fontFamily: 'var(--font-family-ui)', fontFeatureSettings: '"ss03" 1' }}>
       {/* Top Banner Header */}
-      <div className="card-pricing" style={{ padding: '16px 20px', borderRadius: '16px', background: '#ffffff', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="card-pricing" style={{ padding: '16px 20px', borderRadius: '24px', background: '#ffffff', border: '1px solid #e0e0e0', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '9999px', background: '#000000', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '12px' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#f3f3f3', color: '#141414', border: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '11px' }}>
             SMACC
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: 550, color: '#000000', margin: 0 }}>لوحة التحكم الهيكلية (نظام SMACC للمحاسبة)</h3>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#141414', margin: 0 }}>لوحة التحكم الهيكلية (نظام SMACC للمحاسبة)</h3>
               <span className="pill-tag-mint" style={{ fontSize: '10.5px' }}>
                 مطابق 100%
               </span>
             </div>
-            <p style={{ fontSize: '12px', color: '#71717a', margin: '2px 0 0 0' }}>الصفحة الرئيسية • متابعة الحركة المالية والأقسام التشغيلية</p>
+            <p style={{ fontSize: '12px', color: '#707070', margin: '2px 0 0 0' }}>الصفحة الرئيسية • متابعة الحركة المالية والأقسام التشغيلية</p>
           </div>
         </div>
 

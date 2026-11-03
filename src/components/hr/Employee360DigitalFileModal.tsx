@@ -111,12 +111,13 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
           border: '1px solid #e2e8f0',
         }}
       >
-        {/* Modal Header */}
+        {/* Modal Header — Mobbin Pure Light Mode */}
         <div
           style={{
-            background: 'linear-gradient(135deg, #000000 0%, #18181b 100%)',
+            background: '#ffffff',
             padding: '20px 24px',
-            color: '#FFFFFF',
+            color: '#141414',
+            borderBottom: '1px solid #e5e5e5',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -131,17 +132,17 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
               status="verified"
             />
             <div>
-              <div style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ fontSize: '18px', fontWeight: 700, color: '#141414', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <span>{employee.name}</span>
-                <span style={{ fontSize: '11px', backgroundColor: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '9999px', fontFamily: 'monospace' }}>
+                <span style={{ fontSize: '11px', backgroundColor: '#f3f3f3', color: '#141414', border: '1px solid #e0e0e0', padding: '2px 8px', borderRadius: '9999px', fontFamily: 'monospace' }}>
                   {employee.employee_code || employee.id}
                 </span>
-                <span style={{ fontSize: '11px', backgroundColor: 'rgba(16, 185, 129, 0.2)', color: '#34d399', padding: '2px 8px', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '11px', backgroundColor: '#f3f3f3', color: '#141414', border: '1px solid #e0e0e0', padding: '2px 8px', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <CheckCircle2 className="w-3 h-3" />
                   <span>توقيع موثق نظامياً</span>
                 </span>
               </div>
-              <div style={{ fontSize: '12px', color: '#a1a1aa', marginTop: '2px' }}>
+              <div style={{ fontSize: '12px', color: '#707070', marginTop: '2px' }}>
                 {employee.job_title} | {employee.department} | {employee.branch}
               </div>
             </div>
@@ -158,9 +159,9 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
             <button
               type="button"
               onClick={onClose}
-              style={{ backgroundColor: 'rgba(255,255,255,0.1)', border: 'none', color: '#FFFFFF', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+              style={{ backgroundColor: '#f3f3f3', border: '1px solid #e0e0e0', color: '#141414', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
