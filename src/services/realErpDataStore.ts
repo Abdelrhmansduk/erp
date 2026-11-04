@@ -68,6 +68,19 @@ function saveLocalStore<T>(key: string, data: T[]): void {
   }
 }
 
+function resolveSupabaseTableName(entityKey: string): string {
+  if (entityKey === 'hr_employees') return 'employees';
+  return entityKey;
+}
+
+function syncEmployeeMirrorStore<T>(entityKey: string, data: T[]): void {
+  if (entityKey === 'hr_employees') {
+    saveLocalStore('employees', data);
+  } else if (entityKey === 'employees') {
+    saveLocalStore('hr_employees', data);
+  }
+}
+
 export const realErpDataStore = {
   getDataMode,
   setDataMode,
@@ -79,7 +92,10 @@ export const realErpDataStore = {
   purgeAllDemoData(): void {
     const tables = [
       'contracts', 'recruitment-contracts', 'rent_contracts', 'rent-contracts',
-      'orders', 'clients', 'employees', 'cvs', 'shelter_inmates', 'shelter_records',
+      'orders', 'clients', 'employees', 'hr_employees', 'hr_promotions',
+      'hr_leave_requests', 'hr_advances', 'hr_sanctions', 'hr_permissions',
+      'hr_rewards', 'payroll_runs', 'eos_settlements', 'employee_contracts',
+      'cvs', 'shelter_inmates', 'shelter_records',
       'complaints', 'sponsorship_transfers', 'ingaz_delegations', 'flights',
       'finance_journals', 'finance_vouchers', 'company_journal_entries',
       'zatca_invoices', 'cost_centers', 'attendances', 'custodies', 'activity_log'
@@ -157,16 +173,18 @@ export const realErpDataStore = {
       undefined;
 
     const isTestOrDemo = import.meta.env.MODE === 'test' || getDataMode() === 'demo_preview';
+    const supabaseTable = resolveSupabaseTableName(entityKey);
 
     if (!isDummySupabase && !isTestOrDemo && entityKey !== 'employee_executed_ops') {
       try {
-        let query = supabase.from(entityKey).select('*').order('created_at', { ascending: false });
+        let query = supabase.from(supabaseTable).select('*').order('created_at', { ascending: false });
         if (activeCompany && activeCompany !== 'all') {
           query = query.eq('company_id', activeCompany);
         }
         const { data, error } = await query;
         if (!error && Array.isArray(data) && data.length > 0) {
           saveLocalStore(entityKey, data as unknown as T[]);
+          syncEmployeeMirrorStore(entityKey, data as unknown as T[]);
           return data as unknown as T[];
         }
       } catch (e) {
@@ -174,7 +192,18 @@ export const realErpDataStore = {
       }
     }
 
-    const localData = getLocalStore<T>(entityKey, initialSeed);
+    let localData = getLocalStore<T>(entityKey, []);
+    if (localData.length === 0 && (entityKey === 'hr_employees' || entityKey === 'employees')) {
+      const mirrorKey = entityKey === 'hr_employees' ? 'employees' : 'hr_employees';
+      const mirrorData = getLocalStore<T>(mirrorKey, []);
+      if (mirrorData.length > 0) {
+        localData = mirrorData;
+        saveLocalStore(entityKey, mirrorData);
+      }
+    }
+    if (localData.length === 0) {
+      localData = getLocalStore<T>(entityKey, initialSeed);
+    }
     if (activeCompany && activeCompany !== 'all') {
       return localData.filter((item: any) => {
         const recCompany = item.company_id || item.companyId;
@@ -206,14 +235,16 @@ export const realErpDataStore = {
 
     // 1. Local Storage Persistence
     const current = getLocalStore<T>(entityKey, initialSeed);
-    const updated = [scopedRecord, ...current];
+    const updated = [scopedRecord, ...current.filter((item) => item.id !== scopedRecord.id)];
     saveLocalStore(entityKey, updated);
+    syncEmployeeMirrorStore(entityKey, updated);
 
     // 2. Supabase Sync (if active)
     const isTestOrDemo = import.meta.env.MODE === 'test' || getDataMode() === 'demo_preview';
+    const supabaseTable = resolveSupabaseTableName(entityKey);
     if (!isDummySupabase && !isTestOrDemo) {
       try {
-        await supabase.from(entityKey).insert([scopedRecord]);
+        await supabase.from(supabaseTable).insert([scopedRecord]);
       } catch (e) {
         console.warn(`Could not sync new record for ${entityKey} to Supabase`, e);
       }
@@ -248,10 +279,12 @@ export const realErpDataStore = {
     const current = getLocalStore<T>(entityKey, initialSeed);
     const updated = current.map((item) => (item.id === id ? { ...item, ...patch } : item));
     saveLocalStore(entityKey, updated);
+    syncEmployeeMirrorStore(entityKey, updated);
 
+    const supabaseTable = resolveSupabaseTableName(entityKey);
     if (!isDummySupabase) {
       try {
-        await supabase.from(entityKey).update(patch as any).eq('id', id);
+        await supabase.from(supabaseTable).update(patch as any).eq('id', id);
       } catch (e) {
         console.warn(`Could not sync update for ${entityKey} to Supabase`, e);
       }
@@ -271,10 +304,12 @@ export const realErpDataStore = {
     const current = getLocalStore<T>(entityKey, initialSeed);
     const updated = current.filter((item) => item.id !== id);
     saveLocalStore(entityKey, updated);
+    syncEmployeeMirrorStore(entityKey, updated);
 
+    const supabaseTable = resolveSupabaseTableName(entityKey);
     if (!isDummySupabase) {
       try {
-        await supabase.from(entityKey).delete().eq('id', id);
+        await supabase.from(supabaseTable).delete().eq('id', id);
       } catch (e) {
         console.warn(`Could not sync delete for ${entityKey} to Supabase`, e);
       }

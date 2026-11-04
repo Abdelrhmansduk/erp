@@ -15,9 +15,14 @@ import {
   Briefcase, Building2, Star, CheckCircle2, UserCog, Edit3,
   FileSignature, Scale, Printer, Fingerprint, Eye, Download, Lock, Calculator
 } from 'lucide-react';
-import { WpsPayrollEngine, EmployeePayrollRecord, WpsSifHeader } from '../services/wpsPayrollEngine';
+import { WpsPayrollEngine, EmployeePayrollRecord, WpsSifHeader, DocumentExpiryAlert } from '../services/wpsPayrollEngine';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
+import {
+  EmployeePayslipModal,
+  HrOfficialLetterModal,
+  HrComplianceRadarPanel,
+} from '../components/hr/HrEnterpriseModals';
 
 export interface EmployeeRecord {
   id: string;
@@ -38,6 +43,10 @@ export interface EmployeeRecord {
   iban?: string;
   bank_name?: string;
   leave_balance?: number;
+  iqama_expiry_date?: string;
+  passport_expiry_date?: string;
+  contract_end_date?: string;
+  medical_insurance_expiry?: string;
   system_role?: string;
   signature_status?: 'موقّع ومعتمد' | 'بانتظار التوقيع';
   compliance_hash?: string;
@@ -69,57 +78,75 @@ export interface PromotionRecord {
 
 interface VacationRequest {
   id: string;
+  employee_id?: string;
   employee_name: string;
   vacation_type: string;
   balance: number;
   from_date: string;
   to_date: string;
   days_count: number;
+  pay_rate_percent?: number;
   notes: string;
   status: 'معتمد' | 'بانتظار الموافقة' | 'مرفوض';
 }
 
 interface AdvanceRequest {
   id: string;
+  employee_id?: string;
   employee_name: string;
   payment_method: string;
   amount: number;
+  paid_amount?: number;
+  remaining_amount?: number;
+  monthly_installment?: number;
   date: string;
   installments_count: number;
-  status: 'معتمد' | 'بانتظار الصرف' | 'مسدد';
+  reason?: string;
+  status: 'معتمد' | 'بانتظار الصرف' | 'مسدد' | 'مرفوض';
 }
 
 interface SanctionItem {
   id: string;
+  employee_id?: string;
   employee_name: string;
   sanction_type: string;
   amount: number;
   date: string;
   deduct_from_salary: boolean;
   reason: string;
-  status: 'معتمد' | 'قيد المراجعة';
+  status: 'معتمد' | 'قيد المراجعة' | 'ملغى';
 }
 
 interface PermissionRequest {
   id: string;
+  employee_id?: string;
   employee_name: string;
   permission_type: string;
   date: string;
   time: string;
   reason: string;
-  status: 'معتمد' | 'بانتظار المشرف';
+  status: 'معتمد' | 'بانتظار المشرف' | 'مرفوض';
 }
 
 interface RewardRequest {
   id: string;
+  employee_id?: string;
   employee_name: string;
   reward_type: string;
   salary: number;
   net_reward: number;
   payout_timing: string;
   date: string;
-  status: 'معتمد' | 'بانتظار الصرف';
+  status: 'معتمد' | 'بانتظار الصرف' | 'مرفوض';
 }
+
+export type PayrollLifecycleStage =
+  | 'DRAFT'
+  | 'UNDER_REVIEW'
+  | 'APPROVED'
+  | 'POSTED_TO_GL'
+  | 'PAID_WPS'
+  | 'LOCKED';
 
 const DEFAULT_MOCK_EMPLOYEES: EmployeeRecord[] = [
   {
@@ -132,8 +159,14 @@ const DEFAULT_MOCK_EMPLOYEES: EmployeeRecord[] = [
     department: 'التشغيل والاستقدام',
     branch: 'الإدارة العامة - الرياض',
     grade: 'الدرجة الخامسة (مدير إدارة)',
-    hire_date: '2022-01-15',
+    hire_date: '2020-01-15',
     salary: 12500,
+    leave_balance: 30,
+    iban: 'SA0380000000608010167519',
+    bank_name: 'مصرف الراجحي',
+    iqama_expiry_date: '2027-05-20',
+    contract_end_date: '2027-01-15',
+    medical_insurance_expiry: '2026-12-01',
     system_role: 'Operations Lead',
     signature_status: 'موقّع ومعتمد',
     compliance_hash: 'SA-COMPLIANCE-OPS-9932',
@@ -151,6 +184,12 @@ const DEFAULT_MOCK_EMPLOYEES: EmployeeRecord[] = [
     grade: 'الدرجة الرابعة (قائد فريق)',
     hire_date: '2023-03-01',
     salary: 9800,
+    leave_balance: 24,
+    iban: 'SA4420000001234567891234',
+    bank_name: 'بنك الرياض',
+    iqama_expiry_date: '2027-09-10',
+    contract_end_date: '2026-11-25',
+    medical_insurance_expiry: '2026-11-18',
     system_role: 'Shelter Supervisor',
     signature_status: 'موقّع ومعتمد',
     compliance_hash: 'SA-COMPLIANCE-SHL-4102',
@@ -168,6 +207,12 @@ const DEFAULT_MOCK_EMPLOYEES: EmployeeRecord[] = [
     grade: 'الدرجة الثالثة (أخصائي أول)',
     hire_date: '2023-06-10',
     salary: 8500,
+    leave_balance: 21,
+    iban: 'SA0380000000107728394012',
+    bank_name: 'مصرف الراجحي',
+    iqama_expiry_date: '2028-02-14',
+    contract_end_date: '2027-06-10',
+    medical_insurance_expiry: '2027-03-01',
     system_role: 'Financial Manager',
     signature_status: 'موقّع ومعتمد',
     compliance_hash: 'SA-COMPLIANCE-FIN-7719',
@@ -185,6 +230,12 @@ const DEFAULT_MOCK_EMPLOYEES: EmployeeRecord[] = [
     grade: 'الدرجة الثانية (أخصائي)',
     hire_date: '2024-01-10',
     salary: 7200,
+    leave_balance: 18,
+    iban: 'SA0310000000106628391015',
+    bank_name: 'البنك الأهلي السعودي',
+    iqama_expiry_date: '2027-11-30',
+    contract_end_date: '2027-01-10',
+    medical_insurance_expiry: '2026-11-12',
     system_role: 'Sales Agent',
     signature_status: 'موقّع ومعتمد',
     compliance_hash: 'SA-COMPLIANCE-CRM-5520',
@@ -239,7 +290,107 @@ const DEFAULT_MOCK_PROMOTIONS: PromotionRecord[] = [
   }
 ];
 
-export type HrSubTab = 'employees' | 'promotions' | 'signatures' | 'vacations' | 'advances' | 'sanctions' | 'permissions' | 'rewards' | 'payroll' | 'end-of-service' | 'gosi' | 'maids-hr';
+const DEFAULT_VACATIONS: VacationRequest[] = [
+  {
+    id: 'VAC-01',
+    employee_id: 'emp-102',
+    employee_name: 'فهد العتيبي',
+    vacation_type: 'إجازة اعتيادية سنوية',
+    balance: 24,
+    from_date: '2026-08-20',
+    to_date: '2026-08-27',
+    days_count: 7,
+    pay_rate_percent: 100,
+    notes: 'إجازة سنوية دورية (المادة 109)',
+    status: 'معتمد',
+  },
+  {
+    id: 'VAC-02',
+    employee_id: 'emp-104',
+    employee_name: 'سارة خالد',
+    vacation_type: 'إجازة اضطرارية',
+    balance: 18,
+    from_date: '2026-08-18',
+    to_date: '2026-08-19',
+    days_count: 2,
+    pay_rate_percent: 100,
+    notes: 'ظرف عائلي طارئ',
+    status: 'بانتظار الموافقة',
+  },
+];
+
+const DEFAULT_ADVANCES: AdvanceRequest[] = [
+  {
+    id: 'ADV-01',
+    employee_id: 'emp-103',
+    employee_name: 'إبراهيم الشمري',
+    payment_method: 'تحويل بنكي راتب',
+    amount: 3000,
+    paid_amount: 1000,
+    remaining_amount: 2000,
+    monthly_installment: 1000,
+    date: '2026-08-01',
+    installments_count: 3,
+    reason: 'سلفة شخصية مقسطة على 3 أشهر',
+    status: 'معتمد',
+  },
+];
+
+const DEFAULT_SANCTIONS: SanctionItem[] = [
+  {
+    id: 'SANC-01',
+    employee_id: 'emp-102',
+    employee_name: 'فهد العتيبي',
+    sanction_type: 'تأخير غير مبرر عن الدوام',
+    amount: 250,
+    date: '2026-08-12',
+    deduct_from_salary: true,
+    reason: 'تكرار التأخير الصباحي لأكثر من 45 دقيقة (وفق لائحة تنظيم العمل)',
+    status: 'معتمد',
+  },
+];
+
+const DEFAULT_PERMISSIONS: PermissionRequest[] = [
+  {
+    id: 'PERM-01',
+    employee_id: 'emp-104',
+    employee_name: 'سارة خالد',
+    permission_type: 'استئذان شخصي (ساعتان)',
+    date: '2026-08-17',
+    time: '12:00 - 14:00',
+    reason: 'مراجعة جهة حكومية رسمية',
+    status: 'معتمد',
+  },
+];
+
+const DEFAULT_REWARDS: RewardRequest[] = [
+  {
+    id: 'REW-01',
+    employee_id: 'emp-101',
+    employee_name: 'عبدالفتح (مسؤول الوكلاء)',
+    reward_type: 'مكافأة تميز وتحقيق مستهدف العقود',
+    salary: 12500,
+    net_reward: 2500,
+    payout_timing: 'مع راتب الشهر الحالي',
+    date: '2026-08-15',
+    status: 'معتمد',
+  },
+];
+
+export type HrSubTab =
+  | 'employees'
+  | 'promotions'
+  | 'signatures'
+  | 'vacations'
+  | 'advances'
+  | 'sanctions'
+  | 'permissions'
+  | 'rewards'
+  | 'payroll'
+  | 'end-of-service'
+  | 'gosi'
+  | 'compliance-radar'
+  | 'maids-hr';
 
 export const HRPage: React.FC = () => {
   const { activeCompanyId, activeCompany } = useCompany();
@@ -249,6 +400,11 @@ export const HRPage: React.FC = () => {
 
   const [employeesList, setEmployeesList] = useState<EmployeeRecord[]>(DEFAULT_MOCK_EMPLOYEES);
   const [promotions, setPromotions] = useState<PromotionRecord[]>(DEFAULT_MOCK_PROMOTIONS);
+  const [vacations, setVacations] = useState<VacationRequest[]>(DEFAULT_VACATIONS);
+  const [advances, setAdvances] = useState<AdvanceRequest[]>(DEFAULT_ADVANCES);
+  const [sanctions, setSanctions] = useState<SanctionItem[]>(DEFAULT_SANCTIONS);
+  const [permissions, setPermissions] = useState<PermissionRequest[]>(DEFAULT_PERMISSIONS);
+  const [rewards, setRewards] = useState<RewardRequest[]>(DEFAULT_REWARDS);
 
   useEffect(() => {
     const loadHrRecords = () => {
@@ -258,6 +414,11 @@ export const HRPage: React.FC = () => {
         realErpDataStore.getRecords<EmployeeRecord>('hr_employees', DEFAULT_MOCK_EMPLOYEES).then(d => setEmployeesList(d));
       }
       realErpDataStore.getRecords<PromotionRecord>('hr_promotions', DEFAULT_MOCK_PROMOTIONS).then(d => setPromotions(d));
+      realErpDataStore.getRecords<VacationRequest>('hr_leave_requests', DEFAULT_VACATIONS).then(d => setVacations(d));
+      realErpDataStore.getRecords<AdvanceRequest>('hr_advances', DEFAULT_ADVANCES).then(d => setAdvances(d));
+      realErpDataStore.getRecords<SanctionItem>('hr_sanctions', DEFAULT_SANCTIONS).then(d => setSanctions(d));
+      realErpDataStore.getRecords<PermissionRequest>('hr_permissions', DEFAULT_PERMISSIONS).then(d => setPermissions(d));
+      realErpDataStore.getRecords<RewardRequest>('hr_rewards', DEFAULT_REWARDS).then(d => setRewards(d));
     };
     loadHrRecords();
     window.addEventListener('erp-data-updated', loadHrRecords);
@@ -303,6 +464,9 @@ export const HRPage: React.FC = () => {
       case 'gosi-insurance':
       case 'gosi':
         return 'gosi';
+      case 'nitaqat':
+      case 'compliance-radar':
+        return 'compliance-radar';
       case 'maids-hr':
       case 'domestic-fleet':
         return 'maids-hr';
@@ -551,119 +715,420 @@ export const HRPage: React.FC = () => {
     }
   };
 
-  // Vacations Data
-  const [vacations] = useState<VacationRequest[]>([
-    {
-      id: 'VAC-01',
-      employee_name: 'فهد العتيبي',
-      vacation_type: 'إجازة اعتيادية سنوية',
-      balance: 24,
-      from_date: '2026-08-20',
-      to_date: '2026-08-27',
-      days_count: 7,
-      notes: 'إجازة سنوية دورية',
-      status: 'معتمد',
-    },
-    {
-      id: 'VAC-02',
-      employee_name: 'سارة خالد',
-      vacation_type: 'إجازة اضطرارية',
-      balance: 18,
-      from_date: '2026-08-18',
-      to_date: '2026-08-19',
-      days_count: 2,
-      notes: 'ظرف عائلي طارئ',
+  // Interactive Modals & Lifecycle States
+  const [showVacModal, setShowVacModal] = useState(false);
+  const [vacEmpId, setVacEmpId] = useState('emp-102');
+  const [vacType, setVacType] = useState('إجازة اعتيادية سنوية');
+  const [vacFrom, setVacFrom] = useState(new Date().toISOString().slice(0, 10));
+  const [vacTo, setVacTo] = useState(new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10));
+  const [vacNotes, setVacNotes] = useState('');
+
+  const [showAdvModal, setShowAdvModal] = useState(false);
+  const [advEmpId, setAdvEmpId] = useState('emp-103');
+  const [advAmount, setAdvAmount] = useState('3000');
+  const [advInstallments, setAdvInstallments] = useState('3');
+  const [advMethod, setAdvMethod] = useState('تحويل بنكي راتب');
+  const [advReason, setAdvReason] = useState('');
+
+  const [showSancModal, setShowSancModal] = useState(false);
+  const [sancEmpId, setSancEmpId] = useState('emp-102');
+  const [sancType, setSancType] = useState('تأخير غير مبرر عن الدوام');
+  const [sancAmount, setSancAmount] = useState('250');
+  const [sancDeduct, setSancDeduct] = useState(true);
+  const [sancReason, setSancReason] = useState('');
+
+  const [showPermModal, setShowPermModal] = useState(false);
+  const [permEmpId, setPermEmpId] = useState('emp-104');
+  const [permType, setPermType] = useState('استئذان شخصي (ساعتان)');
+  const [permDate, setPermDate] = useState(new Date().toISOString().slice(0, 10));
+  const [permTime, setPermTime] = useState('12:00 - 14:00');
+  const [permReason, setPermReason] = useState('');
+
+  const [showRewModal, setShowRewModal] = useState(false);
+  const [rewEmpId, setRewEmpId] = useState('emp-101');
+  const [rewType, setRewType] = useState('مكافأة تميز وتحقيق مستهدف العقود');
+  const [rewAmount, setRewAmount] = useState('1500');
+  const [rewTiming, setRewTiming] = useState('مع راتب الشهر الحالي');
+
+  // Payroll Lifecycle & Payslip / Official Letter States
+  const [payrollMonth, setPayrollMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [payrollRunStatus, setPayrollRunStatus] = useState<PayrollLifecycleStage>('APPROVED');
+  const [selectedPayslipRecord, setSelectedPayslipRecord] = useState<{
+    record: EmployeePayrollRecord;
+    department: string;
+    jobTitle: string;
+  } | null>(null);
+  const [selectedLetterModal, setSelectedLetterModal] = useState<{
+    employee: EmployeeRecord;
+    letterType: 'SALARY_CERTIFICATE' | 'CLEARANCE_CERTIFICATE';
+    clearanceSummary?: {
+      endDate: string;
+      separationReasonLabel: string;
+      eosAward: number;
+      leaveCompensation: number;
+      advanceDeduction: number;
+      netFinalPayable: number;
+    };
+  } | null>(null);
+
+  // End of Service Extended Clearance State
+  const [selectedEosEmpId, setSelectedEosEmpId] = useState<string>('emp-101');
+  const [eosUnusedLeaveDays, setEosUnusedLeaveDays] = useState<number>(15);
+  const [eosRemainingAdvance, setEosRemainingAdvance] = useState<number>(0);
+  const [eosCustodyCleared, setEosCustodyCleared] = useState<boolean>(true);
+
+  const handleSelectEosEmployee = (empId: string) => {
+    setSelectedEosEmpId(empId);
+    const emp = employeesList.find((e) => e.id === empId);
+    if (!emp) return;
+    setEosSalary(emp.salary);
+    if (emp.hire_date) {
+      const diffDays = Math.max(
+        0,
+        Math.floor((Date.now() - new Date(emp.hire_date).getTime()) / (1000 * 60 * 60 * 24))
+      );
+      setEosYears(Math.floor(diffDays / 365.25));
+      setEosMonths(Math.min(11, Math.floor((diffDays % 365.25) / 30.4375)));
+    }
+    setEosUnusedLeaveDays(emp.leave_balance ?? 21);
+    const empAdvances = advances
+      .filter((a) => (a.employee_id === emp.id || a.employee_name === emp.name) && a.status === 'معتمد')
+      .reduce((s, a) => s + (a.remaining_amount ?? a.amount), 0);
+    setEosRemainingAdvance(empAdvances);
+  };
+
+  // --- CRUD & Approval Handlers for Leaves, Advances, Sanctions, Permissions, Rewards ---
+  const handleCreateVacation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const emp = employeesList.find((x) => x.id === vacEmpId) || employeesList[0];
+    if (!emp) return;
+    const d1 = new Date(vacFrom);
+    const d2 = new Date(vacTo);
+    const days = Math.max(1, Math.ceil((d2.getTime() - d1.getTime()) / 86400000) + 1);
+    const entitlement = WpsPayrollEngine.calculateAnnualLeaveEntitlement(emp.hire_date || '2023-01-01');
+    const currentBal = emp.leave_balance ?? entitlement.annualEntitlementDays;
+
+    let payRate = 100;
+    if (vacType.includes('مرضية')) {
+      const sickCalc = WpsPayrollEngine.calculateSickLeavePay(emp.salary / 30, 0, days);
+      payRate = sickCalc.effectivePayPercent;
+    } else if (vacType.includes('بدون أجر')) {
+      payRate = 0;
+    }
+
+    const newVac: VacationRequest = {
+      id: `VAC-${String(vacations.length + 1).padStart(2, '0')}`,
+      employee_id: emp.id,
+      employee_name: emp.name,
+      vacation_type: vacType,
+      balance: currentBal,
+      from_date: vacFrom,
+      to_date: vacTo,
+      days_count: days,
+      pay_rate_percent: payRate,
+      notes: vacNotes || `${entitlement.legalArticle} (نسبة الأجر: ${payRate}%)`,
       status: 'بانتظار الموافقة',
-    },
-  ]);
+    };
+    const updated = await realErpDataStore.addRecord('hr_leave_requests', newVac, DEFAULT_VACATIONS);
+    setVacations(updated);
+    setShowVacModal(false);
+    setVacNotes('');
+    addNotification({
+      title: 'تسجيل طلب إجازة جديد',
+      message: `تم تسجيل طلب (${vacType}) للموظف ${emp.name} لمدة ${days} أيام بانتظار الاعتماد.`,
+      type: 'info',
+    });
+  };
 
-  // Advances Data
-  const [advances] = useState<AdvanceRequest[]>([
-    {
-      id: 'ADV-01',
-      employee_name: 'إبراهيم الشمري',
-      payment_method: 'تحويل بنكي راتب',
-      amount: 3000,
-      date: '2026-08-01',
-      installments_count: 3,
-      status: 'معتمد',
-    },
-  ]);
+  const handleUpdateVacationStatus = async (vac: VacationRequest, status: 'معتمد' | 'مرفوض') => {
+    const updated = await realErpDataStore.updateRecord('hr_leave_requests', vac.id, { status }, DEFAULT_VACATIONS);
+    setVacations(updated);
 
-  // Sanctions Data
-  const [sanctions] = useState<SanctionItem[]>([
-    {
-      id: 'SANC-01',
-      employee_name: 'أحمد التميمي',
-      sanction_type: 'تأخير غير مبرر عن الدوام',
-      amount: 250,
-      date: '2026-08-12',
-      deduct_from_salary: true,
-      reason: 'تكرار التأخير الصباحي لأكثر من 45 دقيقة',
-      status: 'معتمد',
-    },
-  ]);
+    if (status === 'معتمد') {
+      const emp = employeesList.find((e) => e.id === vac.employee_id || e.name === vac.employee_name);
+      if (emp) {
+        const newBalance = Math.max(0, (emp.leave_balance ?? vac.balance) - vac.days_count);
+        const patchedEmp = { ...emp, leave_balance: newBalance };
+        await realErpDataStore.updateRecord<EmployeeRecord>('hr_employees', emp.id, { leave_balance: newBalance });
+        setEmployeesList((prev) => prev.map((x) => (x.id === emp.id ? patchedEmp : x)));
+      }
+    }
 
-  // Permissions Data
-  const [permissions] = useState<PermissionRequest[]>([
-    {
-      id: 'PERM-01',
-      employee_name: 'سارة خالد',
-      permission_type: 'استئذان شخصي (ساعتان)',
-      date: '2026-08-17',
-      time: '12:00 - 14:00',
-      reason: 'مراجعة جهة حكومية رسمية',
-      status: 'معتمد',
-    },
-  ]);
+    addNotification({
+      title: status === 'معتمد' ? 'اعتماد الإجازة وخصم الرصيد' : 'رفض طلب الإجازة',
+      message:
+        status === 'معتمد'
+          ? `تم اعتماد إجازة ${vac.employee_name} وخصم (${vac.days_count} أيام) من رصيده السنوي.`
+          : `تم رفض طلب الإجازة للموظف ${vac.employee_name}.`,
+      type: status === 'معتمد' ? 'success' : 'warning',
+    });
+  };
 
-  // Rewards Data
-  const [rewards] = useState<RewardRequest[]>([
-    {
-      id: 'REW-01',
-      employee_name: 'عبدالفتح (مسؤول الوكلاء)',
-      reward_type: 'مكافأة تميز وتحقيق مستهدف العقود',
-      salary: 12500,
-      net_reward: 2500,
-      payout_timing: 'مع راتب الشهر الحالي',
-      date: '2026-08-15',
+  const handleCreateAdvance = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const emp = employeesList.find((x) => x.id === advEmpId) || employeesList[0];
+    if (!emp) return;
+    const amt = Math.max(100, parseFloat(advAmount) || 1000);
+    const months = Math.max(1, parseInt(advInstallments, 10) || 1);
+    const monthly = Number((amt / months).toFixed(2));
+
+    const newAdv: AdvanceRequest = {
+      id: `ADV-${String(advances.length + 1).padStart(2, '0')}`,
+      employee_id: emp.id,
+      employee_name: emp.name,
+      payment_method: advMethod,
+      amount: amt,
+      paid_amount: 0,
+      remaining_amount: amt,
+      monthly_installment: monthly,
+      date: new Date().toISOString().slice(0, 10),
+      installments_count: months,
+      reason: advReason || 'سلفة موظف مقسطة على مسير الرواتب',
+      status: 'بانتظار الصرف',
+    };
+    const updated = await realErpDataStore.addRecord('hr_advances', newAdv, DEFAULT_ADVANCES);
+    setAdvances(updated);
+    setShowAdvModal(false);
+    setAdvReason('');
+    addNotification({
+      title: 'تسجيل طلب سلفة وجدولة الأقساط',
+      message: `تم تسجيل سلفة بمبلغ ${amt.toLocaleString()} ⃁ للموظف ${emp.name} (القسط الشهري: ${monthly.toLocaleString()} ⃁).`,
+      type: 'info',
+    });
+  };
+
+  const handleApproveAdvance = async (adv: AdvanceRequest) => {
+    const updated = await realErpDataStore.updateRecord('hr_advances', adv.id, { status: 'معتمد' }, DEFAULT_ADVANCES);
+    setAdvances(updated);
+    addNotification({
+      title: 'اعتماد وصرف السلفة',
+      message: `تم اعتماد صرف السلفة (${adv.id}) للموظف ${adv.employee_name} وربط قسطها الشهري بمسير الرواتب آلياً.`,
+      type: 'success',
+    });
+  };
+
+  const handleCreateSanction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const emp = employeesList.find((x) => x.id === sancEmpId) || employeesList[0];
+    if (!emp) return;
+    const amt = Math.max(0, parseFloat(sancAmount) || 0);
+    const newSanc: SanctionItem = {
+      id: `SANC-${String(sanctions.length + 1).padStart(2, '0')}`,
+      employee_id: emp.id,
+      employee_name: emp.name,
+      sanction_type: sancType,
+      amount: amt,
+      date: new Date().toISOString().slice(0, 10),
+      deduct_from_salary: sancDeduct,
+      reason: sancReason || 'تطبيق جدول المخالفات والجزاءات المعتمد من وزارة الموارد البشرية',
       status: 'معتمد',
-    },
-  ]);
+    };
+    const updated = await realErpDataStore.addRecord('hr_sanctions', newSanc, DEFAULT_SANCTIONS);
+    setSanctions(updated);
+    setShowSancModal(false);
+    setSancReason('');
+    addNotification({
+      title: 'قيد جزاء إداري',
+      message: `تم قيد جزاء (${sancType}) على الموظف ${emp.name} بقيمة ${amt} ⃁.`,
+      type: 'warning',
+    });
+  };
+
+  const handleCreatePermission = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const emp = employeesList.find((x) => x.id === permEmpId) || employeesList[0];
+    if (!emp) return;
+    const newPerm: PermissionRequest = {
+      id: `PERM-${String(permissions.length + 1).padStart(2, '0')}`,
+      employee_id: emp.id,
+      employee_name: emp.name,
+      permission_type: permType,
+      date: permDate,
+      time: permTime,
+      reason: permReason || 'ظرف شخصي طارئ',
+      status: 'معتمد',
+    };
+    const updated = await realErpDataStore.addRecord('hr_permissions', newPerm, DEFAULT_PERMISSIONS);
+    setPermissions(updated);
+    setShowPermModal(false);
+    setPermReason('');
+    addNotification({
+      title: 'تسجيل إذن خروج',
+      message: `تم اعتماد إذن خروج للموظف ${emp.name} بتاريخ ${permDate} (${permTime}).`,
+      type: 'success',
+    });
+  };
+
+  const handleCreateReward = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const emp = employeesList.find((x) => x.id === rewEmpId) || employeesList[0];
+    if (!emp) return;
+    const amt = Math.max(50, parseFloat(rewAmount) || 500);
+    const newRew: RewardRequest = {
+      id: `REW-${String(rewards.length + 1).padStart(2, '0')}`,
+      employee_id: emp.id,
+      employee_name: emp.name,
+      reward_type: rewType,
+      salary: emp.salary,
+      net_reward: amt,
+      payout_timing: rewTiming,
+      date: new Date().toISOString().slice(0, 10),
+      status: 'معتمد',
+    };
+    const updated = await realErpDataStore.addRecord('hr_rewards', newRew, DEFAULT_REWARDS);
+    setRewards(updated);
+    setShowRewModal(false);
+    addNotification({
+      title: 'اعتماد مكافأة وحافز',
+      message: `تم اعتماد مكافأة (${rewType}) للموظف ${emp.name} بقيمة +${amt.toLocaleString()} ⃁.`,
+      type: 'success',
+    });
+  };
+
+  const handleRenewEmployeeDocument = async (
+    employeeId: string,
+    docType: DocumentExpiryAlert['documentType']
+  ) => {
+    const emp = employeesList.find((e) => e.id === employeeId);
+    if (!emp) return;
+    const nextYear = new Date();
+    nextYear.setFullYear(nextYear.getFullYear() + 1);
+    const newDateStr = nextYear.toISOString().slice(0, 10);
+
+    const patch: Partial<EmployeeRecord> = {};
+    if (docType === 'IQAMA_OR_ID') patch.iqama_expiry_date = newDateStr;
+    else if (docType === 'QIWA_CONTRACT') patch.contract_end_date = newDateStr;
+    else if (docType === 'MEDICAL_INSURANCE') patch.medical_insurance_expiry = newDateStr;
+    else if (docType === 'PASSPORT') patch.passport_expiry_date = newDateStr;
+
+    await realErpDataStore.updateRecord('hr_employees', emp.id, patch);
+    setEmployeesList((prev) => prev.map((x) => (x.id === emp.id ? { ...x, ...patch } : x)));
+    addNotification({
+      title: 'تجديد صلاحية الوثيقة الرسمية',
+      message: `تم تمديد صلاحية الوثيقة للموظف (${emp.name}) حتى تاريخ ${newDateStr} بنجاح.`,
+      type: 'success',
+    });
+  };
+
+  // Computed Comprehensive Payroll Items (incorporating Advances, Sanctions, Rewards & Art. 92 50% cap)
+  const computedPayrollRecords: EmployeePayrollRecord[] = employeesList.map((emp, idx) => {
+    const basic = emp.basic_salary || emp.salary * 0.7;
+    const housing = emp.housing_allowance || emp.salary * 0.2;
+    const transport = emp.transport_allowance || emp.salary * 0.1;
+    const other = emp.allowances || 0;
+    const isSaudi = emp.national_id ? emp.national_id.startsWith('1') : true;
+
+    const empAdvanceInstallment = advances
+      .filter(
+        (a) =>
+          (a.employee_id === emp.id || a.employee_name === emp.name) &&
+          a.status === 'معتمد' &&
+          (a.remaining_amount ?? a.amount) > 0
+      )
+      .reduce(
+        (sum, a) =>
+          sum +
+          Math.min(
+            a.remaining_amount ?? a.amount,
+            a.monthly_installment ?? Math.round(a.amount / Math.max(1, a.installments_count))
+          ),
+        0
+      );
+
+    const empSanctions = sanctions
+      .filter(
+        (s) =>
+          (s.employee_id === emp.id || s.employee_name === emp.name) &&
+          s.status === 'معتمد' &&
+          s.deduct_from_salary
+      )
+      .reduce((sum, s) => sum + s.amount, 0);
+
+    const empRewards = rewards
+      .filter(
+        (r) =>
+          (r.employee_id === emp.id || r.employee_name === emp.name) &&
+          r.status === 'معتمد' &&
+          r.payout_timing.includes('الشهر الحالي')
+      )
+      .reduce((sum, r) => sum + r.net_reward, 0);
+
+    return WpsPayrollEngine.calculateComprehensivePayrollItem({
+      employeeId: emp.id || `EMP-${idx + 1}`,
+      employeeNumber: emp.employee_code || `EMP${String(idx + 1).padStart(4, '0')}`,
+      nationalIdOrIqama: emp.national_id || `10${String(idx + 1).padStart(8, '0')}`,
+      employeeName: emp.name,
+      bankCode: 'ALRAJHI',
+      iban: emp.iban || `SA03800000000${emp.national_id || '1010101010'}12`,
+      isSaudi,
+      basicSalary: basic,
+      housingAllowance: housing,
+      transportAllowance: transport,
+      otherAllowances: other,
+      rewardsAmount: empRewards,
+      advanceInstallment: empAdvanceInstallment,
+      sanctionAmount: empSanctions,
+      workingDays: 30,
+    });
+  });
+
+  const handlePostPayrollToGL = async () => {
+    const companyCode = activeCompanyId !== 'all' ? activeCompanyId : 'SAF';
+    const glPayload = WpsPayrollEngine.buildPayrollGlJournalEntry(
+      payrollMonth,
+      companyCode,
+      computedPayrollRecords
+    );
+
+    const jvRecord = {
+      id: `jv-pay-${Date.now()}`,
+      company_id: companyCode,
+      ref_no: `JV-WPS-${payrollMonth.replace('-', '')}`,
+      date: glPayload.entryDate,
+      branch: 'الفرع الرئيسي - الرياض',
+      description: glPayload.description,
+      total_debit: glPayload.totalDebit,
+      total_credit: glPayload.totalCredit,
+      status: 'معتمد',
+      lines: glPayload.lines.map((l) => ({
+        accountCode: l.accountCode,
+        accountName: l.accountName,
+        debit: l.debit,
+        credit: l.credit,
+        memo: l.memo,
+        costCenter: 'CC-HR-WPS',
+      })),
+      created_at: new Date().toISOString(),
+    };
+
+    await realErpDataStore.addRecord('company_journal_entries', jvRecord);
+    await realErpDataStore.addRecord('payroll_runs', {
+      id: `PR-${companyCode}-${payrollMonth}`,
+      company_id: companyCode,
+      payroll_month: payrollMonth,
+      status: 'POSTED_TO_GL',
+      employees_count: computedPayrollRecords.length,
+      total_gross: glPayload.totalDebit,
+      total_net_payable: computedPayrollRecords.reduce((s, r) => s + r.netSalary, 0),
+      gl_journal_id: jvRecord.ref_no,
+      posted_at: new Date().toISOString(),
+    });
+
+    setPayrollRunStatus('POSTED_TO_GL');
+    addNotification({
+      title: 'ترحيل قيد الرواتب المزدوج للمالية (SMACC)',
+      message: `تم ترحيل قيد استحقاق وصرف الرواتب رقم (${jvRecord.ref_no}) بمبلغ متوازن (${glPayload.totalDebit.toLocaleString()} ⃁) بنجاح.`,
+      type: 'success',
+    });
+  };
 
   const handleExportWPS = (format: 'SIF' | 'CSV' = 'SIF') => {
     const today = new Date();
-    const monthYear = today.toISOString().slice(0, 7);
+    const monthYear = payrollMonth || today.toISOString().slice(0, 7);
     const dateStr = today.toISOString().slice(0, 10);
     const timeStr = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}`;
 
-    const payrollRecords: EmployeePayrollRecord[] = employeesList.map((emp, idx) => {
-      const basic = emp.basic_salary || emp.salary * 0.7;
-      const housing = emp.housing_allowance || emp.salary * 0.2;
-      const transport = emp.transport_allowance || emp.salary * 0.1;
-      const other = emp.allowances || 0;
-      const isSaudi = emp.national_id ? emp.national_id.startsWith('1') : true;
-      const gosi = WpsPayrollEngine.calculateGosi(basic, housing, isSaudi).employeeShare;
-      const net = basic + housing + transport + other - gosi;
-
-      return {
-        employeeId: emp.id || `EMP-${idx + 1}`,
-        employeeNumber: emp.employee_code || `EMP${String(idx + 1).padStart(4, '0')}`,
-        nationalIdOrIqama: emp.national_id || `10${String(idx + 1).padStart(8, '0')}`,
-        employeeName: emp.name,
-        bankCode: 'ALRAJHI',
-        iban: emp.iban || `SA03800000000${emp.national_id || '1010101010'}12`,
-        isSaudi,
-        basicSalary: basic,
-        housingAllowance: housing,
-        transportAllowance: transport,
-        otherAllowances: other,
-        deductions: 0,
-        gosiDeduction: gosi,
-        netSalary: net,
-        workingDays: 30,
-      };
-    });
+    const payrollRecords: EmployeePayrollRecord[] = computedPayrollRecords;
 
     const totalAmount = payrollRecords.reduce((sum, r) => sum + r.netSalary, 0);
 
@@ -862,9 +1327,10 @@ export const HRPage: React.FC = () => {
           { id: 'permissions', label: `طلبات الأذونات (${permissions.length})`, icon: Clock },
           { id: 'rewards', label: `طلبات المكافآت (${rewards.length})`, icon: Award },
           { id: 'payroll', label: 'مسير الرواتب (WPS)', icon: ShieldCheck },
-          { id: 'end-of-service', label: 'حاسبة نهاية الخدمة ', icon: Calculator },
-          { id: 'gosi', label: 'التأمينات الاجتماعية (GOSI) ', icon: ShieldCheck },
-          { id: 'maids-hr', label: 'أسطول العمالة والتشغيل ', icon: Users },
+          { id: 'end-of-service', label: 'حاسبة نهاية الخدمة والمخالصة', icon: Calculator },
+          { id: 'gosi', label: 'التأمينات الاجتماعية (GOSI)', icon: ShieldCheck },
+          { id: 'compliance-radar', label: 'نطاقات ورادار الوثائق', icon: Scale },
+          { id: 'maids-hr', label: 'أسطول العمالة والتشغيل', icon: Users },
         ].map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
@@ -976,7 +1442,21 @@ export const HRPage: React.FC = () => {
                     </td>
                     <td className="p-3.5"><Badge text={emp.status} type={emp.status === 'نشط' ? 'success' : 'warning'} /></td>
                     <td className="p-3.5 text-center">
-                      <div className="flex items-center justify-center gap-1.5">
+                      <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                        <button
+                          onClick={() =>
+                            setSelectedLetterModal({
+                              employee: emp,
+                              letterType: 'SALARY_CERTIFICATE',
+                            })
+                          }
+                          className="button-outline-on-light"
+                          style={{ padding: '3px 8px', fontSize: '11px', minHeight: '26px' }}
+                          title="إصدار وطباعة خطاب تعريف بالراتب"
+                        >
+                          <FileText className="w-3 h-3 ml-1 text-emerald-700" />
+                          <span>تعريف راتب</span>
+                        </button>
                         <button
                           onClick={() => setSelectedEmpForAgreement(emp)}
                           className="button-outline-on-light"
@@ -1270,8 +1750,18 @@ export const HRPage: React.FC = () => {
       {/* Tab: Vacations Requests */}
       {activeTab === 'vacations' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white">
-            <h3 className="text-sm font-bold text-black">طلبات الإجازات المسجلة</h3>
+          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-black">طلبات الإجازات والأرصدة السنوية (المادة 109 و117)</h3>
+              <p className="text-xs text-zinc-500 mt-0.5">احتساب استحقاق 21/30 يوماً سنوياً، وشرائح الإجازة المرضية والاضطرارية مع خصم الرصيد آلياً عند الاعتماد</p>
+            </div>
+            <button
+              onClick={() => setShowVacModal(true)}
+              className="button-primary-pill text-xs flex items-center gap-1.5 py-1.5 px-4"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ تقديم طلب إجازة</span>
+            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-right text-xs text-zinc-700">
@@ -1286,6 +1776,7 @@ export const HRPage: React.FC = () => {
                   <th className="p-3.5">عدد الأيام</th>
                   <th className="p-3.5">ملاحظات</th>
                   <th className="p-3.5">الحالة</th>
+                  <th className="p-3.5 text-center">إجراء الاعتماد</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
@@ -1299,7 +1790,32 @@ export const HRPage: React.FC = () => {
                     <td className="p-3.5 font-mono text-zinc-500">{vac.to_date}</td>
                     <td className="p-3.5 font-mono font-bold text-emerald-700">{vac.days_count} أيام</td>
                     <td className="p-3.5 text-zinc-600">{vac.notes}</td>
-                    <td className="p-3.5"><Badge text={vac.status} type={vac.status === 'معتمد' ? 'success' : 'warning'} /></td>
+                    <td className="p-3.5">
+                      <Badge
+                        text={vac.status}
+                        type={vac.status === 'معتمد' ? 'success' : vac.status === 'مرفوض' ? 'danger' : 'warning'}
+                      />
+                    </td>
+                    <td className="p-3.5 text-center">
+                      {vac.status === 'بانتظار الموافقة' ? (
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => handleUpdateVacationStatus(vac, 'معتمد')}
+                            className="px-2.5 py-1 rounded-full bg-emerald-600 text-white text-[11px] font-bold hover:bg-emerald-700"
+                          >
+                            اعتماد
+                          </button>
+                          <button
+                            onClick={() => handleUpdateVacationStatus(vac, 'مرفوض')}
+                            className="px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-[11px] font-bold hover:bg-rose-100"
+                          >
+                            رفض
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-zinc-400">مكتمل</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -1311,8 +1827,18 @@ export const HRPage: React.FC = () => {
       {/* Tab: Advances */}
       {activeTab === 'advances' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white">
-            <h3 className="text-sm font-bold text-black">طلبات السلف والعهد الشخصية</h3>
+          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-black">طلبات السلف وجدولة الأقساط الشهرية (المادة 92)</h3>
+              <p className="text-xs text-zinc-500 mt-0.5">استقطاع آلي للأقساط من مسير الرواتب الشهري مع مراعاة عدم تجاوز سقف 50% من الأجر</p>
+            </div>
+            <button
+              onClick={() => setShowAdvModal(true)}
+              className="button-primary-pill text-xs flex items-center gap-1.5 py-1.5 px-4"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ طلب سلفة جديدة</span>
+            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-right text-xs text-zinc-700">
@@ -1322,23 +1848,44 @@ export const HRPage: React.FC = () => {
                   <th className="p-3.5">اسم الموظف</th>
                   <th className="p-3.5">طريقة الصرف</th>
                   <th className="p-3.5">مبلغ السلفة</th>
+                  <th className="p-3.5">القسط الشهري</th>
+                  <th className="p-3.5">الرصيد المتبقي</th>
                   <th className="p-3.5">تاريخ التقديم</th>
                   <th className="p-3.5">عدد الأقساط</th>
                   <th className="p-3.5">الحالة</th>
+                  <th className="p-3.5 text-center">الإجراء</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
-                {advances.map((adv) => (
-                  <tr key={adv.id} className="hover:bg-zinc-50">
-                    <td className="p-3.5 font-mono font-bold text-black">{adv.id}</td>
-                    <td className="p-3.5 font-bold text-black">{adv.employee_name}</td>
-                    <td className="p-3.5">{adv.payment_method}</td>
-                    <td className="p-3.5 font-mono font-bold text-emerald-700">{adv.amount.toLocaleString()} ⃁</td>
-                    <td className="p-3.5 font-mono text-zinc-500">{adv.date}</td>
-                    <td className="p-3.5 font-mono">{adv.installments_count} أشهر</td>
-                    <td className="p-3.5"><Badge text={adv.status} type="success" /></td>
-                  </tr>
-                ))}
+                {advances.map((adv) => {
+                  const monthly = adv.monthly_installment ?? Math.round(adv.amount / Math.max(1, adv.installments_count));
+                  const rem = adv.remaining_amount ?? adv.amount;
+                  return (
+                    <tr key={adv.id} className="hover:bg-zinc-50">
+                      <td className="p-3.5 font-mono font-bold text-black">{adv.id}</td>
+                      <td className="p-3.5 font-bold text-black">{adv.employee_name}</td>
+                      <td className="p-3.5">{adv.payment_method}</td>
+                      <td className="p-3.5 font-mono font-bold text-emerald-700">{adv.amount.toLocaleString()} ⃁</td>
+                      <td className="p-3.5 font-mono font-bold text-black">{monthly.toLocaleString()} ⃁/شهر</td>
+                      <td className="p-3.5 font-mono text-rose-700 font-bold">{rem.toLocaleString()} ⃁</td>
+                      <td className="p-3.5 font-mono text-zinc-500">{adv.date}</td>
+                      <td className="p-3.5 font-mono">{adv.installments_count} أشهر</td>
+                      <td className="p-3.5"><Badge text={adv.status} type={adv.status === 'معتمد' ? 'success' : 'warning'} /></td>
+                      <td className="p-3.5 text-center">
+                        {adv.status === 'بانتظار الصرف' ? (
+                          <button
+                            onClick={() => handleApproveAdvance(adv)}
+                            className="px-2.5 py-1 rounded-full bg-emerald-600 text-white text-[11px] font-bold hover:bg-emerald-700"
+                          >
+                            اعتماد وصرف
+                          </button>
+                        ) : (
+                          <span className="text-[11px] text-emerald-700 font-semibold">مجدول بالمسير</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -1348,8 +1895,18 @@ export const HRPage: React.FC = () => {
       {/* Tab: Sanctions */}
       {activeTab === 'sanctions' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white">
-            <h3 className="text-sm font-bold text-black">سجل الجزاءات والخصومات الإدارية</h3>
+          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-black">سجل الجزاءات والخصومات الإدارية (لائحة تنظيم العمل)</h3>
+              <p className="text-xs text-zinc-500 mt-0.5">تطبيق جدول المخالفات والجزاءات التأديبية وربطها بالاستقطاع الشهري في مسير الرواتب</p>
+            </div>
+            <button
+              onClick={() => setShowSancModal(true)}
+              className="button-primary-pill text-xs flex items-center gap-1.5 py-1.5 px-4"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ قيد جزاء إداري</span>
+            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-right text-xs text-zinc-700">
@@ -1373,7 +1930,7 @@ export const HRPage: React.FC = () => {
                     <td className="p-3.5 font-semibold text-rose-700">{sanc.sanction_type}</td>
                     <td className="p-3.5 font-mono font-bold text-rose-700">{sanc.amount.toLocaleString()} ⃁</td>
                     <td className="p-3.5 font-mono text-zinc-500">{sanc.date}</td>
-                    <td className="p-3.5"><Badge text={sanc.deduct_from_salary ? 'نعم - آلي' : 'لا'} type={sanc.deduct_from_salary ? 'danger' : 'shade'} /></td>
+                    <td className="p-3.5"><Badge text={sanc.deduct_from_salary ? 'نعم - آلي' : 'إنذار فقط'} type={sanc.deduct_from_salary ? 'danger' : 'shade'} /></td>
                     <td className="p-3.5 text-zinc-600 max-w-xs leading-relaxed">{sanc.reason}</td>
                     <td className="p-3.5"><Badge text={sanc.status} type="danger" /></td>
                   </tr>
@@ -1387,8 +1944,18 @@ export const HRPage: React.FC = () => {
       {/* Tab: Permissions */}
       {activeTab === 'permissions' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white">
-            <h3 className="text-sm font-bold text-black">طلبات الاستئذان والخروج أثناء الدوام</h3>
+          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-black">طلبات الاستئذان والخروج أثناء الدوام</h3>
+              <p className="text-xs text-zinc-500 mt-0.5">توثيق ساعات الاستئذان الشخصي والرسمي ومتابعة رصيد الساعات الشهرية</p>
+            </div>
+            <button
+              onClick={() => setShowPermModal(true)}
+              className="button-primary-pill text-xs flex items-center gap-1.5 py-1.5 px-4"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ تسجيل إذن خروج</span>
+            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-right text-xs text-zinc-700">
@@ -1424,8 +1991,18 @@ export const HRPage: React.FC = () => {
       {/* Tab: Rewards */}
       {activeTab === 'rewards' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white">
-            <h3 className="text-sm font-bold text-black">سجل المكافآت والحوافز الاستثنائية</h3>
+          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-black">سجل المكافآت والحوافز والعمولات الاستثنائية</h3>
+              <p className="text-xs text-zinc-500 mt-0.5">تُدرج المكافآت المعتمدة تلقائياً ضمن مسير الرواتب الشهري (WPS) وقيد الاستحقاق المحاسبي</p>
+            </div>
+            <button
+              onClick={() => setShowRewModal(true)}
+              className="button-primary-pill text-xs flex items-center gap-1.5 py-1.5 px-4"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ اعتماد مكافأة جديدة</span>
+            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-right text-xs text-zinc-700">
@@ -1459,81 +2036,179 @@ export const HRPage: React.FC = () => {
       )}
 
       {/* Tab: Payroll WPS */}
-      {activeTab === 'payroll' && (
-        <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-white flex-wrap gap-3">
-            <div>
-              <h3 className="text-sm font-bold text-black">
-                مسير الرواتب المعتمد وحماية الأجور (WPS)
-              </h3>
-              <p className="text-xs text-zinc-500 mt-0.5">
-                احتساب التأمينات الاجتماعية (GOSI)، البدلات، والاستقطاعات البنكية المباشرة
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleExportWPS('SIF')}
-                className="button-primary-pill bg-emerald-700 hover:bg-emerald-800 text-white"
-                style={{ fontSize: '12px', padding: '6px 16px', minHeight: '34px' }}
-                title="توليد ملف حماية الأجور القياسي المعتمد للبنوك السعودية"
-              >
-                <ShieldCheck className="w-4 h-4 ml-1" />
-                <span>توليد ملف حماية الأجور (.SIF)</span>
-              </button>
-              <button
-                onClick={() => handleExportWPS('CSV')}
-                className="button-outline-on-dark text-slate-800 border-slate-300 hover:bg-slate-100"
-                style={{ fontSize: '12px', padding: '6px 14px', minHeight: '34px' }}
-                title="تصدير شيت الرواتب بصيغة إكسيل/CSV"
-              >
-                <FileSpreadsheet className="w-4 h-4 ml-1 text-emerald-600" />
-                <span>تصدير CSV</span>
-              </button>
-            </div>
-          </div>
+      {activeTab === 'payroll' && (() => {
+        const totalNet = computedPayrollRecords.reduce((s, r) => s + r.netSalary, 0);
+        const totalGosiEmp = computedPayrollRecords.reduce((s, r) => s + r.gosiDeduction, 0);
+        const totalGosiEmpr = computedPayrollRecords.reduce((s, r) => s + (r.gosiEmployerShare || 0), 0);
+        const totalDeductions = computedPayrollRecords.reduce((s, r) => s + (r.deductions || 0), 0);
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
-                <tr>
-                  <th className="p-3.5">الموظف</th>
-                  <th className="p-3.5">الراتب الأساسي (70%)</th>
-                  <th className="p-3.5">بدل السكن (20%)</th>
-                  <th className="p-3.5">بدل النقل (10%)</th>
-                  <th className="p-3.5">التأمينات GOSI (9.75%)</th>
-                  <th className="p-3.5">صافي المحول للبنك</th>
-                  <th className="p-3.5">الحالة</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100">
-                {employeesList.map((emp) => {
-                  const basic = emp.salary * 0.7;
-                  const housing = emp.salary * 0.2;
-                  const transport = emp.salary * 0.1;
-                  const gosi = (basic + housing) * 0.0975;
-                  const net = basic + housing + transport - gosi;
+        const stages: Array<{ id: PayrollLifecycleStage; label: string }> = [
+          { id: 'DRAFT', label: '1. مسودة الإعداد' },
+          { id: 'UNDER_REVIEW', label: '2. المراجعة والتدقيق' },
+          { id: 'APPROVED', label: '3. معتمد إدارياً' },
+          { id: 'POSTED_TO_GL', label: '4. مرحّل للمالية (SMACC)' },
+          { id: 'PAID_WPS', label: '5. تم التحويل (مدد WPS)' },
+          { id: 'LOCKED', label: '6. مقفل ومؤرشف' },
+        ];
+
+        return (
+          <div className="space-y-4">
+            {/* Payroll Run Lifecycle State Bar */}
+            <div className="p-4 rounded-2xl bg-white border border-zinc-200 flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-bold text-black ml-2">دورة حياة مسير شهر ({payrollMonth}):</span>
+                {stages.map((st) => {
+                  const isCurrent = payrollRunStatus === st.id;
                   return (
-                    <tr key={emp.id} className="hover:bg-zinc-50">
-                      <td className="p-3.5">
-                        <div className="font-bold text-black">{emp.name}</div>
-                        <div className="text-[11px] text-zinc-400">{emp.job_title}</div>
-                      </td>
-                      <td className="p-3.5 font-mono">{basic.toLocaleString()} ⃁</td>
-                      <td className="p-3.5 font-mono">{housing.toLocaleString()} ⃁</td>
-                      <td className="p-3.5 font-mono">{transport.toLocaleString()} ⃁</td>
-                      <td className="p-3.5 font-mono text-rose-700">‎- ⃁</td>
-                      <td className="p-3.5 font-mono font-bold text-emerald-700">{net.toFixed(2)} ⃁</td>
-                      <td className="p-3.5"><Badge text="جاهز للتحويل" type="success" /></td>
-                    </tr>
+                    <button
+                      key={st.id}
+                      onClick={() => setPayrollRunStatus(st.id)}
+                      className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-all ${
+                        isCurrent
+                          ? 'bg-black text-white border-black shadow-sm'
+                          : 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:bg-zinc-100'
+                      }`}
+                    >
+                      {st.label}
+                    </button>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="month"
+                  value={payrollMonth}
+                  onChange={(e) => setPayrollMonth(e.target.value)}
+                  className="bg-zinc-50 border border-zinc-200 rounded-xl px-2.5 py-1 text-xs font-mono font-bold text-black"
+                />
+                <button
+                  onClick={handlePostPayrollToGL}
+                  className="button-outline-on-light text-xs font-bold py-1.5 px-3 flex items-center gap-1"
+                >
+                  <Scale className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>ترحيل القيد المحاسبي المزدوج (GL)</span>
+                </button>
+              </div>
+            </div>
 
-      {/* Tab: End of Service Calculator (Articles 84 & 85) */}
+            {/* Summary Strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-4 rounded-2xl bg-white border border-zinc-200">
+                <span className="text-[11px] text-zinc-500 font-bold block">صافي الرواتب المحولة (WPS)</span>
+                <div className="text-lg font-extrabold font-mono text-emerald-700 mt-1">{totalNet.toFixed(2)} ⃁</div>
+              </div>
+              <div className="p-4 rounded-2xl bg-white border border-zinc-200">
+                <span className="text-[11px] text-zinc-500 font-bold block">استقطاع الموظفين GOSI (9.75%)</span>
+                <div className="text-lg font-extrabold font-mono text-rose-700 mt-1">-{totalGosiEmp.toFixed(2)} ⃁</div>
+              </div>
+              <div className="p-4 rounded-2xl bg-white border border-zinc-200">
+                <span className="text-[11px] text-zinc-500 font-bold block">حصة المنشأة GOSI (11.75%)</span>
+                <div className="text-lg font-extrabold font-mono text-black mt-1">{totalGosiEmpr.toFixed(2)} ⃁</div>
+              </div>
+              <div className="p-4 rounded-2xl bg-white border border-zinc-200">
+                <span className="text-[11px] text-zinc-500 font-bold block">إجمالي استرداد السلف والجزاءات</span>
+                <div className="text-lg font-extrabold font-mono text-amber-700 mt-1">-{totalDeductions.toFixed(2)} ⃁</div>
+              </div>
+            </div>
+
+            <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
+              <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-white flex-wrap gap-3">
+                <div>
+                  <h3 className="text-sm font-bold text-black">
+                    مسير الرواتب المعتمد وحماية الأجور (WPS) — مطابق لسقف المادة (92)
+                  </h3>
+                  <p className="text-xs text-zinc-500 mt-0.5">
+                    احتساب آلي للبدلات، المكافآت، التأمينات (GOSI)، وأقساط السلف والجزاءات مع إصدار قسيمة راتب لكل موظف
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      handleExportWPS('SIF');
+                      setPayrollRunStatus('PAID_WPS');
+                    }}
+                    className="button-primary-pill bg-emerald-700 hover:bg-emerald-800 text-white"
+                    style={{ fontSize: '12px', padding: '6px 16px', minHeight: '34px' }}
+                    title="توليد ملف حماية الأجور القياسي المعتمد للبنوك السعودية"
+                  >
+                    <ShieldCheck className="w-4 h-4 ml-1" />
+                    <span>توليد ملف حماية الأجور (.SIF)</span>
+                  </button>
+                  <button
+                    onClick={() => handleExportWPS('CSV')}
+                    className="button-outline-on-dark text-slate-800 border-slate-300 hover:bg-slate-100"
+                    style={{ fontSize: '12px', padding: '6px 14px', minHeight: '34px' }}
+                    title="تصدير شيت الرواتب بصيغة إكسيل/CSV"
+                  >
+                    <FileSpreadsheet className="w-4 h-4 ml-1 text-emerald-600" />
+                    <span>تصدير CSV</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-right text-xs text-zinc-700">
+                  <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+                    <tr>
+                      <th className="p-3.5">الموظف</th>
+                      <th className="p-3.5">الراتب الأساسي (70%)</th>
+                      <th className="p-3.5">بدل السكن والنقل (30%)</th>
+                      <th className="p-3.5">المكافآت والإضافي</th>
+                      <th className="p-3.5">التأمينات GOSI (9.75%)</th>
+                      <th className="p-3.5">السلف والجزاءات</th>
+                      <th className="p-3.5">صافي المحول للبنك</th>
+                      <th className="p-3.5 text-center">قسيمة الراتب</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-100">
+                    {computedPayrollRecords.map((rec, idx) => {
+                      const empObj = employeesList[idx];
+                      return (
+                        <tr key={rec.employeeId} className="hover:bg-zinc-50">
+                          <td className="p-3.5">
+                            <div className="font-bold text-black">{rec.employeeName}</div>
+                            <div className="text-[11px] text-zinc-400 font-mono">{rec.iban}</div>
+                          </td>
+                          <td className="p-3.5 font-mono">{rec.basicSalary.toLocaleString()} ⃁</td>
+                          <td className="p-3.5 font-mono">{(rec.housingAllowance + rec.transportAllowance).toLocaleString()} ⃁</td>
+                          <td className="p-3.5 font-mono text-emerald-700 font-bold">
+                            +{((rec.rewardsAmount || 0) + (rec.overtimePay || 0)).toLocaleString()} ⃁
+                          </td>
+                          <td className="p-3.5 font-mono text-rose-700">-{rec.gosiDeduction.toFixed(2)} ⃁</td>
+                          <td className="p-3.5 font-mono text-rose-700">
+                            -{(rec.deductions || 0).toFixed(2)} ⃁
+                            {rec.deductionCapApplied && (
+                              <span className="block text-[10px] text-amber-700 font-sans">سقف 50% (م92)</span>
+                            )}
+                          </td>
+                          <td className="p-3.5 font-mono font-bold text-emerald-700">{rec.netSalary.toFixed(2)} ⃁</td>
+                          <td className="p-3.5 text-center">
+                            <button
+                              onClick={() =>
+                                setSelectedPayslipRecord({
+                                  record: rec,
+                                  department: empObj?.department || 'الإدارة العامة',
+                                  jobTitle: empObj?.job_title || 'موظف',
+                                })
+                              }
+                              className="button-outline-on-light text-[11px] py-1 px-2.5 inline-flex items-center gap-1"
+                            >
+                              <Printer className="w-3 h-3 text-emerald-700" />
+                              <span>قسيمة PDF</span>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Tab: End of Service Calculator & Final Clearance (Articles 84, 85 & 88) */}
       {activeTab === 'end-of-service' && (() => {
         const totalYears = eosYears + eosMonths / 12;
         const first5Years = Math.min(totalYears, 5);
@@ -1565,6 +2240,9 @@ export const HRPage: React.FC = () => {
         }
 
         const finalAmount = fullAward * payoutPct;
+        const leaveEncashment = Number(((eosSalary / 30) * eosUnusedLeaveDays).toFixed(2));
+        const netFinalClearance = Number((finalAmount + leaveEncashment - eosRemainingAdvance).toFixed(2));
+        const selectedEosEmp = employeesList.find((e) => e.id === selectedEosEmpId) || employeesList[0];
 
         return (
           <div className="space-y-6 font-sans">
@@ -1576,32 +2254,68 @@ export const HRPage: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="font-bold text-base text-black">
-                      حاسبة مكافأة نهاية الخدمة المعتمدة (نظام العمل السعودي)
+                      حاسبة مكافأة نهاية الخدمة والمخالصة النهائية الشاملة (المواد 84، 85، 88)
                     </h3>
                     <p className="text-xs text-zinc-500">
-                      احتساب آلي دقيق متطابق 100% مع نصوص المواد (84، 85، 87) للوائح وزارة الموارد البشرية
+                      احتساب آلي لمكافأة نهاية الخدمة + تعويض رصيد الإجازات − السلف المتبقية مع إصدار شهادة إخلاء الطرف
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => window.print()}
-                    className="button-primary-pill text-xs font-bold inline-flex items-center gap-1.5"
-                    style={{ minHeight: '34px', padding: '6px 16px' }}
-                  >
-                    <Printer className="w-3.5 h-3.5" />
-                    <span>طباعة مسير المخالصة</span>
-                  </button>
+                  {selectedEosEmp && (
+                    <button
+                      onClick={() =>
+                        setSelectedLetterModal({
+                          employee: selectedEosEmp,
+                          letterType: 'CLEARANCE_CERTIFICATE',
+                          clearanceSummary: {
+                            endDate: new Date().toISOString().slice(0, 10),
+                            separationReasonLabel:
+                              eosReason === 'resignation'
+                                ? 'استقالة (المادة 85)'
+                                : eosReason === 'force_majeure'
+                                ? 'ظروف قاهرة (المادة 87)'
+                                : 'انتهاء عقد / إنهاء خدمة (المادة 84)',
+                            eosAward: finalAmount,
+                            leaveCompensation: leaveEncashment,
+                            advanceDeduction: eosRemainingAdvance,
+                            netFinalPayable: netFinalClearance,
+                          },
+                        })
+                      }
+                      disabled={!eosCustodyCleared}
+                      className="button-primary-pill text-xs font-bold inline-flex items-center gap-1.5 disabled:opacity-50"
+                      style={{ minHeight: '34px', padding: '6px 16px' }}
+                    >
+                      <FileSignature className="w-3.5 h-3.5" />
+                      <span>إصدار شهادة مخالصة نهائية وإخلاء طرف</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Inputs Column */}
-                <div className="space-y-4 md:col-span-1 p-5 bg-zinc-50 rounded-2xl border border-zinc-200">
-                  <h4 className="font-bold text-xs text-black border-b border-zinc-200 pb-2">بيانات احتساب التصفية</h4>
-                  
+                <div className="space-y-3.5 md:col-span-1 p-5 bg-zinc-50 rounded-2xl border border-zinc-200">
+                  <h4 className="font-bold text-xs text-black border-b border-zinc-200 pb-2">بيانات الموظف واحتساب التصفية</h4>
+
                   <div>
-                    <label className="block text-xs font-bold text-zinc-700 mb-1">الراتب الأساسي الأخير (شامل بدل السكن) *</label>
+                    <label className="block text-xs font-bold text-zinc-700 mb-1">اختيار موظف لتصفية مستحقاته تلقائياً</label>
+                    <select
+                      value={selectedEosEmpId}
+                      onChange={(e) => handleSelectEosEmployee(e.target.value)}
+                      className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-xs text-black font-bold focus:border-black focus:outline-none"
+                    >
+                      {employeesList.map((emp) => (
+                        <option key={emp.id} value={emp.id}>
+                          {emp.name} ({emp.employee_code}) — {emp.salary.toLocaleString()} ⃁
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-700 mb-1">الأجر الفعلي الأخير (شامل البدلات) *</label>
                     <div className="relative">
                       <input
                         type="number"
@@ -1637,6 +2351,29 @@ export const HRPage: React.FC = () => {
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-zinc-700 mb-1">رصيد الإجازات (أيام)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={eosUnusedLeaveDays}
+                        onChange={(e) => setEosUnusedLeaveDays(Math.max(0, Number(e.target.value)))}
+                        className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-xs font-mono font-bold text-black"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-zinc-700 mb-1">سلف متبقية للخصم (⃁)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={eosRemainingAdvance}
+                        onChange={(e) => setEosRemainingAdvance(Math.max(0, Number(e.target.value)))}
+                        className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-xs font-mono font-bold text-rose-700"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-xs font-bold text-zinc-700 mb-1">سبب انتهاء العلاقة العمالية *</label>
                     <select
@@ -1649,33 +2386,53 @@ export const HRPage: React.FC = () => {
                       <option value="force_majeure">ظروف قاهرة أو فسخ مشروع (المادة 87)</option>
                     </select>
                   </div>
+
+                  <label className="flex items-center gap-2 cursor-pointer pt-1">
+                    <input
+                      type="checkbox"
+                      checked={eosCustodyCleared}
+                      onChange={(e) => setEosCustodyCleared(e.target.checked)}
+                      className="rounded text-emerald-700 w-4 h-4"
+                    />
+                    <span className="text-xs font-bold text-zinc-800">
+                      تم تسليم وإخلاء كافة العهد العينية والمالية للموظف
+                    </span>
+                  </label>
                 </div>
 
                 {/* Calculation Results Column */}
                 <div className="md:col-span-2 space-y-4 flex flex-col justify-between">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-200">
-                      <span className="text-[11px] text-zinc-500 font-bold block">مكافأة السنوات الـ 5 الأولى</span>
+                      <span className="text-[11px] text-zinc-500 font-bold block">صافي مكافأة نهاية الخدمة</span>
                       <div className="text-lg font-extrabold font-mono text-black mt-1">
-                        {first5Award.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ⃁
+                        {finalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ⃁
                       </div>
-                      <span className="text-[10px] text-zinc-400">({first5Years.toFixed(1)} سنة × نصف راتب)</span>
+                      <span className="text-[10px] text-zinc-500">نسبة الاستحقاق: {Math.round(payoutPct * 100)}%</span>
                     </div>
 
                     <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-200">
-                      <span className="text-[11px] text-zinc-500 font-bold block">مكافأة ما بعد الـ 5 سنوات</span>
-                      <div className="text-lg font-extrabold font-mono text-black mt-1">
-                        {after5Award.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ⃁
+                      <span className="text-[11px] text-zinc-500 font-bold block">تعويض رصيد الإجازات ({eosUnusedLeaveDays} يوم)</span>
+                      <div className="text-lg font-extrabold font-mono text-emerald-700 mt-1">
+                        +{leaveEncashment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ⃁
                       </div>
-                      <span className="text-[10px] text-zinc-400">({after5Years.toFixed(1)} سنة × راتب كامل)</span>
+                      <span className="text-[10px] text-zinc-400">المادة (111) من نظام العمل</span>
+                    </div>
+
+                    <div className="p-4 bg-rose-50/60 rounded-2xl border border-rose-200">
+                      <span className="text-[11px] text-rose-800 font-bold block">خصم السلف المتبقية</span>
+                      <div className="text-lg font-extrabold font-mono text-rose-800 mt-1">
+                        -{eosRemainingAdvance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ⃁
+                      </div>
+                      <span className="text-[10px] text-rose-600">استرداد ذمم الموظف</span>
                     </div>
 
                     <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200">
-                      <span className="text-[11px] text-emerald-800 font-bold block">صافي المكافأة المستحقة للصرف</span>
+                      <span className="text-[11px] text-emerald-800 font-bold block">صافي المخالصة المستحق للصرف</span>
                       <div className="text-xl font-extrabold font-mono text-emerald-900 mt-1">
-                        {finalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ⃁
+                        {netFinalClearance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ⃁
                       </div>
-                      <span className="text-[10px] text-emerald-700 font-bold">نسبة الاستحقاق: {Math.round(payoutPct * 100)}%</span>
+                      <span className="text-[10px] text-emerald-700 font-bold">المادة (88): يصرف خلال أسبوع</span>
                     </div>
                   </div>
 
@@ -1693,8 +2450,8 @@ export const HRPage: React.FC = () => {
                   {/* Accounting Provision Action */}
                   <div className="p-4 bg-zinc-50 rounded-2xl border border-dashed border-zinc-300 flex items-center justify-between flex-wrap gap-2">
                     <div>
-                      <span className="font-bold text-xs text-black block">قيد مخصص نهاية الخدمة (SMACC)</span>
-                      <span className="text-[11px] text-zinc-500">حساب مدين: مصروف مكافأة نهاية الخدمة (5105) | حساب دائن: مخصص نهاية الخدمة (2104)</span>
+                      <span className="font-bold text-xs text-black block">قيد تسوية وصرف مخالصة نهاية الخدمة (SMACC)</span>
+                      <span className="text-[11px] text-zinc-500">حساب مدين: مخصص نهاية الخدمة وتعويض الإجازات (2104) | دائن: السلف والبنك (1102)</span>
                     </div>
                     <button
                       onClick={async () => {
@@ -1702,19 +2459,20 @@ export const HRPage: React.FC = () => {
                           id: `JV-${Date.now().toString().slice(-6)}`,
                           journal_number: `JV-EOSB-${Date.now().toString().slice(-4)}`,
                           date: new Date().toISOString().slice(0, 10),
-                          description: `قيد تسوية مخصص مكافأة نهاية الخدمة للموظف (مبلغ ${finalAmount.toFixed(2)} ⃁)`,
-                          debit: Number(finalAmount.toFixed(2)),
-                          credit: Number(finalAmount.toFixed(2)),
+                          description: `قيد تسوية مخالصة نهاية الخدمة للموظف ${selectedEosEmp?.name || ''} (صافي ${netFinalClearance.toFixed(2)} ⃁)`,
+                          debit: Number((finalAmount + leaveEncashment).toFixed(2)),
+                          credit: Number((finalAmount + leaveEncashment).toFixed(2)),
                           status: 'مرحل',
                           lines: [
-                            { account_code: '5105', account_name: 'مصروف مكافأة نهاية الخدمة', debit: Number(finalAmount.toFixed(2)), credit: 0 },
-                            { account_code: '2104', account_name: 'مخصص مكافأة نهاية الخدمة', debit: 0, credit: Number(finalAmount.toFixed(2)) }
+                            { account_code: '5105', account_name: 'مصروف ومخصص مكافأة نهاية الخدمة والإجازات', debit: Number((finalAmount + leaveEncashment).toFixed(2)), credit: 0 },
+                            { account_code: '1104', account_name: 'إقفال سلف الموظف المتبقية', debit: 0, credit: Number(eosRemainingAdvance.toFixed(2)) },
+                            { account_code: '1102', account_name: 'البنك / مستحقات المخالصة النهائية', debit: 0, credit: Number(netFinalClearance.toFixed(2)) }
                           ]
                         };
                         await realErpDataStore.addRecord('journals', jv);
                         addNotification({
-                          title: 'ترحيل مخصص نهاية الخدمة',
-                          message: `تم إنشاء وترحيل قيد محاسبي مزدوج رقم (${jv.journal_number}) بمبلغ (${finalAmount.toFixed(2)} ⃁) في قيود SMACC بنجاح.`,
+                          title: 'ترحيل قيد المخالصة النهائية',
+                          message: `تم إنشاء وترحيل قيد المخالصة رقم (${jv.journal_number}) بصافي (${netFinalClearance.toFixed(2)} ⃁) في قيود SMACC بنجاح.`,
                           type: 'success',
                         });
                       }}
@@ -1729,6 +2487,15 @@ export const HRPage: React.FC = () => {
           </div>
         );
       })()}
+
+      {/* Tab: Saudi Compliance, Nitaqat & Document Expiry Radar */}
+      {activeTab === 'compliance-radar' && (
+        <HrComplianceRadarPanel
+          nitaqat={WpsPayrollEngine.calculateNitaqatStatus(employeesList)}
+          alerts={WpsPayrollEngine.scanDocumentExpiries(employeesList)}
+          onRenewDocument={handleRenewEmployeeDocument}
+        />
+      )}
 
       {/* Tab: GOSI Social Insurance Calculator */}
       {activeTab === 'gosi' && (() => {
@@ -2429,6 +3196,427 @@ export const HRPage: React.FC = () => {
       {/* Employee 360 Digital File Modal */}
       {selectedEmpFor360 && (
         <Employee360DigitalFileModal employee={selectedEmpFor360 as any} onClose={() => setSelectedEmpFor360(null)} />
+      )}
+
+      {/* Payslip PDF Modal */}
+      {selectedPayslipRecord && (
+        <EmployeePayslipModal
+          record={selectedPayslipRecord.record}
+          department={selectedPayslipRecord.department}
+          jobTitle={selectedPayslipRecord.jobTitle}
+          payrollMonth={payrollMonth}
+          companyName={activeCompany.name}
+          onClose={() => setSelectedPayslipRecord(null)}
+        />
+      )}
+
+      {/* Official Salary Certificate / Clearance Letter Modal */}
+      {selectedLetterModal && (
+        <HrOfficialLetterModal
+          employee={selectedLetterModal.employee}
+          letterType={selectedLetterModal.letterType}
+          companyName={activeCompany.name}
+          clearanceSummary={selectedLetterModal.clearanceSummary}
+          onClose={() => setSelectedLetterModal(null)}
+        />
+      )}
+
+      {/* Modal: Create Leave / Vacation Request */}
+      {showVacModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2100] flex items-center justify-center p-4 font-sans">
+          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden">
+            <div className="p-4 bg-black text-white flex items-center justify-between">
+              <h3 className="font-bold text-sm text-white">تقديم طلب إجازة جديد (المادة 109 / 117)</h3>
+              <button onClick={() => setShowVacModal(false)} className="text-zinc-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateVacation} className="p-5 space-y-3.5 text-xs text-black">
+              <div>
+                <label className="block font-bold text-zinc-700 mb-1">الموظف *</label>
+                <select
+                  value={vacEmpId}
+                  onChange={(e) => setVacEmpId(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 font-bold"
+                >
+                  {employeesList.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.name} (الرصيد: {e.leave_balance ?? 21} يوم)
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold text-zinc-700 mb-1">نوع الإجازة النظامية *</label>
+                <select
+                  value={vacType}
+                  onChange={(e) => setVacType(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3"
+                >
+                  <option value="إجازة اعتيادية سنوية">إجازة اعتيادية سنوية (مدفوعة 100% - المادة 109)</option>
+                  <option value="إجازة مرضية بتقرير طبي">إجازة مرضية بتقرير طبي (شرائح المادة 117)</option>
+                  <option value="إجازة اضطرارية">إجازة اضطرارية / ظرف عائلي</option>
+                  <option value="إجازة زواج / مولود / وفاة">إجازة أحوال شخصية (5 أيام مدفوعة - المادة 113)</option>
+                  <option value="إجازة بدون أجر">إجازة استثنائية بدون أجر (المادة 116)</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-zinc-700 mb-1">من تاريخ *</label>
+                  <input
+                    type="date"
+                    required
+                    value={vacFrom}
+                    onChange={(e) => setVacFrom(e.target.value)}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-zinc-700 mb-1">إلى تاريخ *</label>
+                  <input
+                    type="date"
+                    required
+                    value={vacTo}
+                    onChange={(e) => setVacTo(e.target.value)}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 font-mono"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block font-bold text-zinc-700 mb-1">ملاحظات / الموظف البديل</label>
+                <input
+                  type="text"
+                  value={vacNotes}
+                  onChange={(e) => setVacNotes(e.target.value)}
+                  placeholder="مثال: تكليف الزميل بالمهام التشغيلية خلال فترة الإجازة..."
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">
+                <button type="button" onClick={() => setShowVacModal(false)} className="button-outline-on-light py-1.5 px-4">
+                  إلغاء
+                </button>
+                <button type="submit" className="button-primary-pill py-1.5 px-5">
+                  حفظ وتقديم الطلب
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Create Advance Request */}
+      {showAdvModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2100] flex items-center justify-center p-4 font-sans">
+          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden">
+            <div className="p-4 bg-black text-white flex items-center justify-between">
+              <h3 className="font-bold text-sm text-white">تسجيل طلب سلفة وجدولة الأقساط الشهرية</h3>
+              <button onClick={() => setShowAdvModal(false)} className="text-zinc-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateAdvance} className="p-5 space-y-3.5 text-xs text-black">
+              <div>
+                <label className="block font-bold text-zinc-700 mb-1">الموظف *</label>
+                <select
+                  value={advEmpId}
+                  onChange={(e) => setAdvEmpId(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 font-bold"
+                >
+                  {employeesList.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.name} — الراتب: {e.salary.toLocaleString()} ⃁
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-zinc-700 mb-1">مبلغ السلفة المطلوبة (⃁) *</label>
+                  <input
+                    type="number"
+                    required
+                    min="100"
+                    value={advAmount}
+                    onChange={(e) => setAdvAmount(e.target.value)}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-zinc-700 mb-1">عدد أقساط الاسترداد (أشهر) *</label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    max="24"
+                    value={advInstallments}
+                    onChange={(e) => setAdvInstallments(e.target.value)}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 font-mono font-bold"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block font-bold text-zinc-700 mb-1">طريقة الصرف</label>
+                <select
+                  value={advMethod}
+                  onChange={(e) => setAdvMethod(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3"
+                >
+                  <option value="تحويل بنكي راتب">تحويل بنكي لحساب الآيبان</option>
+                  <option value="سند صرف خزينة">سند صرف من الصندوق الرئيسي</option>
+                </select>
+              </div>
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900">
+                القسط الشهري المحسوب تلقائياً:{' '}
+                <strong className="font-mono">
+                  {((parseFloat(advAmount) || 0) / Math.max(1, parseInt(advInstallments, 10) || 1)).toFixed(2)} ⃁ / شهر
+                </strong>
+              </div>
+              <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">
+                <button type="button" onClick={() => setShowAdvModal(false)} className="button-outline-on-light py-1.5 px-4">
+                  إلغاء
+                </button>
+                <button type="submit" className="button-primary-pill py-1.5 px-5">
+                  تسجيل وجدولة السلفة
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Create Sanction */}
+      {showSancModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2100] flex items-center justify-center p-4 font-sans">
+          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden">
+            <div className="p-4 bg-black text-white flex items-center justify-between">
+              <h3 className="font-bold text-sm text-white">قيد مخالفة وجزاء إداري (لائحة تنظيم العمل)</h3>
+              <button onClick={() => setShowSancModal(false)} className="text-zinc-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateSanction} className="p-5 space-y-3.5 text-xs text-black">
+              <div>
+                <label className="block font-bold text-zinc-700 mb-1">الموظف *</label>
+                <select
+                  value={sancEmpId}
+                  onChange={(e) => setSancEmpId(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 font-bold"
+                >
+                  {employeesList.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.name} ({e.employee_code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold text-zinc-700 mb-1">نوع المخالفة الإدارية *</label>
+                <select
+                  value={sancType}
+                  onChange={(e) => setSancType(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3"
+                >
+                  <option value="تأخير غير مبرر عن الدوام">تأخير غير مبرر عن الدوام الرسمي</option>
+                  <option value="غياب يوم بدون عذر مشروع">غياب بدون إذن أو عذر مقبول (المادة 80)</option>
+                  <option value="مخالفة تعليمات السلامة والإيواء">مخالفة ضوابط التشغيل والسلامة المهنية</option>
+                  <option value="إنذار كتابي رسمي">إنذار كتابي لعدم الالتزام بمؤشرات الأداء</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold text-zinc-700 mb-1">مبلغ الخصم المالي (⃁) *</label>
+                <input
+                  type="number"
+                  min="0"
+                  required
+                  value={sancAmount}
+                  onChange={(e) => setSancAmount(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 font-mono font-bold"
+                />
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={sancDeduct}
+                  onChange={(e) => setSancDeduct(e.target.checked)}
+                  className="rounded text-rose-700 w-4 h-4"
+                />
+                <span className="font-bold text-zinc-800">استقطاع آلي مباشر من مسير الرواتب الشهري</span>
+              </label>
+              <div>
+                <label className="block font-bold text-zinc-700 mb-1">حيثيات المخالفة والمبررات النظامية</label>
+                <input
+                  type="text"
+                  value={sancReason}
+                  onChange={(e) => setSancReason(e.target.value)}
+                  placeholder="تفاصيل الواقعة..."
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">
+                <button type="button" onClick={() => setShowSancModal(false)} className="button-outline-on-light py-1.5 px-4">
+                  إلغاء
+                </button>
+                <button type="submit" className="button-primary-pill py-1.5 px-5">
+                  اعتماد وقيد الجزاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Create Permission */}
+      {showPermModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2100] flex items-center justify-center p-4 font-sans">
+          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden">
+            <div className="p-4 bg-black text-white flex items-center justify-between">
+              <h3 className="font-bold text-sm text-white">تسجيل إذن خروج واستئذان أثناء الدوام</h3>
+              <button onClick={() => setShowPermModal(false)} className="text-zinc-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleCreatePermission} className="p-5 space-y-3.5 text-xs text-black">
+              <div>
+                <label className="block font-bold text-zinc-700 mb-1">الموظف *</label>
+                <select
+                  value={permEmpId}
+                  onChange={(e) => setPermEmpId(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 font-bold"
+                >
+                  {employeesList.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold text-zinc-700 mb-1">نوع الاستئذان *</label>
+                <select
+                  value={permType}
+                  onChange={(e) => setPermType(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3"
+                >
+                  <option value="استئذان شخصي (ساعتان)">استئذان شخصي (ساعتان)</option>
+                  <option value="مهمة عمل خارجية / حكومية">مهمة عمل خارجية / مراجعة حكومية</option>
+                  <option value="موعد طبي">موعد طبي بمستشفى معتمد</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-zinc-700 mb-1">التاريخ *</label>
+                  <input
+                    type="date"
+                    required
+                    value={permDate}
+                    onChange={(e) => setPermDate(e.target.value)}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-zinc-700 mb-1">الفترة الزمنية *</label>
+                  <input
+                    type="text"
+                    required
+                    value={permTime}
+                    onChange={(e) => setPermTime(e.target.value)}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 font-mono"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block font-bold text-zinc-700 mb-1">السبب</label>
+                <input
+                  type="text"
+                  value={permReason}
+                  onChange={(e) => setPermReason(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">
+                <button type="button" onClick={() => setShowPermModal(false)} className="button-outline-on-light py-1.5 px-4">
+                  إلغاء
+                </button>
+                <button type="submit" className="button-primary-pill py-1.5 px-5">
+                  اعتماد الإذن
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Create Reward */}
+      {showRewModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2100] flex items-center justify-center p-4 font-sans">
+          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden">
+            <div className="p-4 bg-black text-white flex items-center justify-between">
+              <h3 className="font-bold text-sm text-white">اعتماد مكافأة مالية أو حافز أداء</h3>
+              <button onClick={() => setShowRewModal(false)} className="text-zinc-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateReward} className="p-5 space-y-3.5 text-xs text-black">
+              <div>
+                <label className="block font-bold text-zinc-700 mb-1">الموظف المستحق *</label>
+                <select
+                  value={rewEmpId}
+                  onChange={(e) => setRewEmpId(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 font-bold"
+                >
+                  {employeesList.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.name} ({e.job_title})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold text-zinc-700 mb-1">نوع المكافأة *</label>
+                <input
+                  type="text"
+                  required
+                  value={rewType}
+                  onChange={(e) => setRewType(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 font-bold"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-zinc-700 mb-1">صافي مبلغ المكافأة (⃁) *</label>
+                  <input
+                    type="number"
+                    required
+                    min="50"
+                    value={rewAmount}
+                    onChange={(e) => setRewAmount(e.target.value)}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 font-mono font-bold text-emerald-700"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-zinc-700 mb-1">آلية الصرف</label>
+                  <select
+                    value={rewTiming}
+                    onChange={(e) => setRewTiming(e.target.value)}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3"
+                  >
+                    <option value="مع راتب الشهر الحالي">مع راتب الشهر الحالي (WPS)</option>
+                    <option value="صرف فوري مستقل">تحويل فوري مستقل</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">
+                <button type="button" onClick={() => setShowRewModal(false)} className="button-outline-on-light py-1.5 px-4">
+                  إلغاء
+                </button>
+                <button type="submit" className="button-primary-pill py-1.5 px-5">
+                  اعتماد وإدراج بالمسير
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );
