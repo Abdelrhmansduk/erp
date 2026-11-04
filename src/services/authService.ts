@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured, supabaseConfigError } from './supabaseClient';
+import { DEMO_AUTH_ENABLED, DEMO_QUICK_LOGIN_SECRET } from '../config/authMode';
 
 export type DepartmentId =
   | 'finance'
@@ -925,6 +926,21 @@ const notConfiguredError = () => ({
   message: supabaseConfigError || 'قاعدة البيانات غير مُعدّة. لا يمكن تسجيل الدخول.',
 });
 
+const BROWSER_SESSION_FLAG = 'ALSULAIM_SESSION_AUTHENTICATED_V2';
+
+function markBrowserSessionAuthenticated(): void {
+  try {
+    sessionStorage.removeItem('ALSULAIM_EXPLICIT_LOGOUT');
+    sessionStorage.setItem(BROWSER_SESSION_FLAG, 'true');
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function authRedirectUrl(): string {
+  return `${window.location.origin}/login`;
+}
+
 function cacheProfile(profile: UserProfile | null): void {
   try {
     if (profile) localStorage.setItem(AUTH_USER_CACHE_KEY, JSON.stringify(profile));
@@ -1157,7 +1173,7 @@ export const authService = {
   isTabAuthorizedForUser(profile: UserProfile | null, tabHref: string): boolean {
     if (!tabHref) return false;
     if (tabHref === 'logout' || tabHref === 'profile' || tabHref === 'dashboard') return true;
-    if (!profile) return true;
+    if (!profile) return false;
     if (this.isAdmin(profile) || profile.department_id === 'executive' || profile.company_id === 'all') {
       return true;
     }
@@ -1232,13 +1248,6 @@ export const authService = {
       return { data: null, error: { message: 'يرجى إدخال البريد الوظيفي أو الرقم الوظيفي وكلمة المرور' }, mfa: 'none' };
     }
 
-    try {
-      sessionStorage.removeItem('ALSULAIM_EXPLICIT_LOGOUT');
-      sessionStorage.setItem('ALSULAIM_SESSION_AUTHENTICATED_V2', 'true');
-    } catch {
-      // ignore
-    }
-
     const cleanId = identifier.trim();
     const email = this.resolveEmail(cleanId);
     const throttle = checkThrottle(email);
@@ -1249,6 +1258,14 @@ export const authService = {
         mfa: 'none',
       };
     }
+
+    // PRODUCTION: real Supabase Auth — the password is verified server-side.
+    if (!DEMO_AUTH_ENABLED) {
+      return this.signInWithSupabasePassword(email, password);
+    }
+
+    // DEMO MODE ONLY (vite dev / VITE_DEMO_AUTH=true): built-in staff directory sign-in.
+    markBrowserSessionAuthenticated();
 
     // 1. Check Full Corporate Staff Directory (built-in + custom registered)
     const fullDir = getFullStaffDirectory();
@@ -1401,42 +1418,138 @@ export const authService = {
     }
   },
 
+  async signInWithSupabasePassword(
+    email: string,
+    password: string
+  ): Promise<{ data: UserProfile | null; error: { message: string } | null; mfa: MfaRequirement }> {
+    if (!isSupabaseConfigured) {
+      return { data: null, error: notConfiguredError(), mfa: 'none' };
+    }
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error || !data?.user) {
+        recordFailedAttempt(email);
+        const unconfirmed = error?.message?.toLowerCase().includes('not confirmed');
+        return {
+          data: null,
+          error: {
+            message: unconfirmed
+              ? 'لم يتم تأكيد البريد الإلكتروني بعد. تحقق من بريدك ثم حاول مجدداً.'
+              : 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
+          },
+          mfa: 'none',
+        };
+      }
+
+      clearFailedAttempts(email);
+      const { data: dbProfile } = await this.getUserProfile(data.user.id);
+      const profile = dbProfile || buildProfileFromAuthUser(data.user, email);
+      setLockedSessionCompany(profile.company_id || null);
+      setLockedSessionDepartment((profile.department_id as DepartmentId) || null);
+      cacheProfile(profile);
+      markBrowserSessionAuthenticated();
+      const mfa = await this.getMfaRequirement();
+      return { data: profile, error: null, mfa };
+    } catch (e: any) {
+      return { data: null, error: { message: e?.message || 'تعذّر الاتصال بخدمة المصادقة.' }, mfa: 'none' };
+    }
+  },
+
+  /** Passwordless e-mail sign-in link (existing accounts only). */
+  async sendMagicLink(identifier: string): Promise<{ error: string | null }> {
+    if (!isSupabaseConfigured) return { error: notConfiguredError().message };
+    const email = this.resolveEmail(identifier);
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: authRedirectUrl(), shouldCreateUser: false },
+    });
+    return { error: error ? 'تعذّر إرسال رابط الدخول. تأكد من أن البريد مسجّل في المنظومة.' : null };
+  },
+
+  /** Sends a password-recovery e-mail. */
+  async requestPasswordReset(identifier: string): Promise<{ error: string | null }> {
+    if (!isSupabaseConfigured) return { error: notConfiguredError().message };
+    const email = this.resolveEmail(identifier);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: authRedirectUrl() });
+    return { error: error ? 'تعذّر إرسال رابط استعادة كلمة المرور. حاول لاحقاً.' : null };
+  },
+
+  /** Sets a new password for the currently authenticated (or recovering) user. */
+  async updatePassword(newPassword: string): Promise<{ error: string | null }> {
+    if (!isSupabaseConfigured) return { error: notConfiguredError().message };
+    if (!newPassword || newPassword.length < 10) {
+      return { error: 'يجب ألا تقل كلمة المرور عن 10 أحرف.' };
+    }
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    return { error: error ? error.message : null };
+  },
+
   async signInWithGoogle(googleAccount?: {
     email?: string;
     full_name?: string;
     avatar_url?: string;
   }): Promise<{ data?: UserProfile | null; error: { message: string } | null }> {
-    const targetEmail = (googleAccount?.email || 'abdo12uk@gmail.com').trim().toLowerCase();
-    const res = await this.signIn(targetEmail, 'GoogleOAuth@2026');
-    if (res.data) {
-      if (googleAccount?.full_name) {
-        res.data.full_name = googleAccount.full_name;
+    // PRODUCTION: real Google OAuth via Supabase (browser redirects to Google).
+    if (!DEMO_AUTH_ENABLED) {
+      if (!isSupabaseConfigured) {
+        return { data: null, error: notConfiguredError() };
       }
-      if (googleAccount?.avatar_url) {
-        res.data.avatar_url = googleAccount.avatar_url;
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: authRedirectUrl() },
+        });
+        if (error) return { data: null, error: { message: error.message } };
+        return { data: null, error: null };
+      } catch (e: any) {
+        return { data: null, error: { message: e?.message || 'فشل الاتصال بخدمة Google' } };
       }
-      cacheProfile(res.data);
-      window.dispatchEvent(new CustomEvent('alsulaim-auth-updated', { detail: { profile: res.data } }));
-      return { data: res.data, error: null };
     }
-    if (!isSupabaseConfigured) {
-      return { data: null, error: notConfiguredError() };
+
+    // DEMO MODE ONLY: simulated Google account picker.
+    const targetEmail = googleAccount?.email?.trim().toLowerCase();
+    if (!targetEmail) {
+      return { data: null, error: { message: 'يرجى اختيار حساب Google للمتابعة.' } };
     }
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin,
-        },
-      });
-      if (error) return { data: null, error: { message: error.message } };
-      return { data: null, error: null };
-    } catch (e: any) {
-      return { data: null, error: { message: e?.message || 'فشل الاتصال بخدمة Google' } };
+    const res = await this.signIn(targetEmail, DEMO_QUICK_LOGIN_SECRET);
+    if (!res.data) {
+      return { data: null, error: res.error || { message: 'تعذّر تسجيل الدخول عبر Google.' } };
     }
+    if (googleAccount?.full_name) {
+      res.data.full_name = googleAccount.full_name;
+    }
+    if (googleAccount?.avatar_url) {
+      res.data.avatar_url = googleAccount.avatar_url;
+    }
+    cacheProfile(res.data);
+    window.dispatchEvent(new CustomEvent('alsulaim-auth-updated', { detail: { profile: res.data } }));
+    return { data: res.data, error: null };
   },
 
   async getSession() {
+    // PRODUCTION: only a live Supabase session counts — a cached profile alone is never trusted.
+    if (!DEMO_AUTH_ENABLED) {
+      if (!isSupabaseConfigured) return { session: null, error: null };
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (!session?.user) {
+          cacheProfile(null);
+          return { session: null, error };
+        }
+        const { data: profile } = await this.getUserProfile(session.user.id);
+        const resolvedProfile = profile || buildProfileFromAuthUser(session.user, session.user.email || '');
+        cacheProfile(resolvedProfile);
+        markBrowserSessionAuthenticated();
+        return {
+          session: { ...session, user: { ...session.user, profile: resolvedProfile } },
+          error,
+        };
+      } catch {
+        return { session: null, error: null };
+      }
+    }
+
+    // DEMO MODE: cached directory session
     // 1. Check cached verified corporate staff session
     const cached = this.getCurrentUser();
     if (cached) {
@@ -1478,7 +1591,7 @@ export const authService = {
     }
     return supabase.auth.onAuthStateChange((event, session) => {
       if (!session?.user) {
-        const cached = this.getCurrentUser();
+        const cached = DEMO_AUTH_ENABLED ? this.getCurrentUser() : null;
         if (cached && event !== 'SIGNED_OUT') {
           callback(event, { user: { id: cached.id, email: cached.email, profile: cached } });
           return;
@@ -1538,32 +1651,10 @@ export const authService = {
   },
 
   getCurrentUser(): UserProfile | null {
+    // A profile only exists after an explicit, successful sign-in. No automatic sessions.
     try {
       const raw = localStorage.getItem(AUTH_USER_CACHE_KEY);
-      if (raw) return JSON.parse(raw);
-
-      if (sessionStorage.getItem('ALSULAIM_EXPLICIT_LOGOUT') === 'true') {
-        return null;
-      }
-
-      // Default Executive Profile so workspace & all 9 departments open seamlessly
-      const defaultExec: UserProfile = {
-        id: 'USR-GRP-EXEC-01',
-        username: 'khalid.admin',
-        full_name: 'الشيخ خالد بن عبدالعزيز السليم',
-        email: 'chairman@alsulaim.sa',
-        role: 'رئيس مجلس الإدارة',
-        branch: 'المقر الرئيسي للمجموعة - الرياض',
-        company_id: 'all',
-        department_id: 'executive',
-        department_name_ar: CORPORATE_DEPARTMENTS.executive.nameAr,
-        default_tab: 'dashboard',
-        default_tab_title: 'لوحة القيادة التنفيذية',
-        status: 'نشط',
-        created_at: new Date().toISOString(),
-      };
-      localStorage.setItem(AUTH_USER_CACHE_KEY, JSON.stringify(defaultExec));
-      return defaultExec;
+      return raw ? (JSON.parse(raw) as UserProfile) : null;
     } catch {
       return null;
     }

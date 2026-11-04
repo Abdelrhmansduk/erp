@@ -35,14 +35,15 @@ interface WorkerProfileDetailModalProps {
   onBookTransfer?: (worker: WorkerProfile) => void;
 }
 
-export const WorkerProfileDetailModal: React.FC<WorkerProfileDetailModalProps> = ({
-  isOpen,
-  onClose,
-  worker,
-  onBookTransfer,
-}) => {
-  if (!isOpen || !worker) return null;
+export const WorkerProfileDetailModal: React.FC<WorkerProfileDetailModalProps> = (props) => {
+  // Early return lives in the wrapper so the inner component's hooks always run in the same order.
+  if (!props.isOpen || !props.worker) return null;
+  return <WorkerProfileDetailModalContent {...props} worker={props.worker} />;
+};
 
+const WorkerProfileDetailModalContent: React.FC<
+  Omit<WorkerProfileDetailModalProps, 'worker'> & { worker: WorkerProfile }
+> = ({ onClose, worker, onBookTransfer }) => {
   const [activeTab, setActiveTab] = useState<'info' | 'sponsor' | 'timeline' | 'trials'>('info');
 
   const state = shelterTransferStore.getState();

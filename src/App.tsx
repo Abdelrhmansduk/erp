@@ -22,6 +22,7 @@ import { QuickSearchModal } from './components/common/QuickSearchModal';
 import { UniversalNotificationToaster } from './components/common/UniversalNotificationToaster';
 import { PwaInstallPrompt } from './components/common/PwaInstallPrompt';
 import { AICopilotWidget } from './components/common/AICopilotWidget';
+import { useModuleVisibility } from './hooks/useModuleVisibility';
 import { ExecutiveWelcomeScreen } from './components/auth/ExecutiveWelcomeScreen';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LegalDisclaimerModal } from './components/legal/LegalDisclaimerModal';
@@ -142,6 +143,9 @@ const MainContent: React.FC = () => {
     syncFromUrlLocation,
   } = useAppStore();
   const { user, session, loading: authLoading, isAuthenticated, mfaRequirement, signOut } = useAuthContext();
+  const { isHrefBlocked, isPartHidden } = useModuleVisibility();
+  const isHrefBlockedRef = useRef(isHrefBlocked);
+  isHrefBlockedRef.current = isHrefBlocked;
 
   const [showLegalModal, setShowLegalModal] = useState(false);
 
@@ -248,6 +252,14 @@ const MainContent: React.FC = () => {
       return;
     }
 
+    if (isHrefBlockedRef.current(href)) {
+      notificationPopupEngine.warning(
+        'صفحة مخفية',
+        'هذه الصفحة مخفية حالياً من إعدادات «إظهار وإخفاء الأقسام». تواصل مع مدير النظام لإظهارها.'
+      );
+      return;
+    }
+
     setFlowState('workspace');
     setActiveTab(href, title || href);
   };
@@ -310,6 +322,23 @@ const MainContent: React.FC = () => {
 
   // Router Page Content Resolver
   const renderPage = () => {
+    if (isHrefBlocked(activeTab)) {
+      return (
+        <div className="max-w-md mx-auto mt-16 text-center bg-white border border-[#ececec] rounded-3xl p-8" dir="rtl">
+          <div className="text-sm font-black text-[#141414]">هذه الصفحة مخفية</div>
+          <p className="text-xs text-[#707070] mt-2 mb-5 leading-relaxed">
+            تم إخفاء هذا القسم من إعدادات «إظهار وإخفاء الأقسام». يمكن لمدير النظام إظهاره مجدداً.
+          </p>
+          <button
+            type="button"
+            onClick={() => handleSelectTab('dashboard', 'الرئيسية')}
+            className="h-10 px-5 rounded-full bg-[#141414] text-white text-xs font-bold cursor-pointer"
+          >
+            العودة للرئيسية
+          </button>
+        </div>
+      );
+    }
     switch (activeTab) {
       case 'dashboard':
         return <DashboardPage onNavigate={handleSelectTab} />;
@@ -578,6 +607,7 @@ const MainContent: React.FC = () => {
       case 'integrations':
       case 'quick-links-settings':
       case 'system-backup':
+      case 'module-visibility':
         return <SettingsPage />;
 
       case 'master-constants':
@@ -743,7 +773,7 @@ const MainContent: React.FC = () => {
         </>
       )}
 
-      {(flowState === 'workspace' || flowState === 'launcher') && (
+      {(flowState === 'workspace' || flowState === 'launcher') && !isPartHidden('part:ai-copilot') && (
         <AICopilotWidget
           onNavigate={(tabKey, title) => {
             if (flowState !== 'workspace') {

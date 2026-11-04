@@ -33,7 +33,7 @@ import {
   backgroundExecutionService,
   BackgroundExecutionState,
 } from '../../services/backgroundExecutionService';
-import { getPinnedTabs, PinnedTabItem } from '../common/QuickSearchModal';
+import { getPinnedTabs, type PinnedTabItem } from '../../utils/pinnedTabs';
 
 interface MobileBottomNavProps {
   activeTab: string;

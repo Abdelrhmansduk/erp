@@ -12,6 +12,7 @@ import {
   getFullStaffDirectory,
   resolveDepartmentAndCompany,
 } from '../services/authService';
+import { DEMO_AUTH_ENABLED, DEMO_QUICK_LOGIN_SECRET } from '../config/authMode';
 import { 
   ArrowLeft, Network, TrendingUp, Bot, ShieldCheck, 
   Menu, X, Building2, Sparkles, LogIn, CheckCircle2, Check,
@@ -32,7 +33,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
 
   // Interactive Login State inside Hero Split
   const [identifier, setIdentifier] = useState('chairman@alsulaim.sa');
-  const [password, setPassword] = useState('Alsulaim@2026');
+  const [password, setPassword] = useState(DEMO_AUTH_ENABLED ? DEMO_QUICK_LOGIN_SECRET : '');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -43,7 +44,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
   const staffDirectory = useMemo(() => getFullStaffDirectory(), []);
   const departmentsList = useMemo(() => Object.values(CORPORATE_DEPARTMENTS), []);
 
-  const executeQuickLogin = async (loginEmail: string, loginPass = 'Alsulaim@2026') => {
+  const executeQuickLogin = async (loginEmail: string, loginPass = DEMO_QUICK_LOGIN_SECRET) => {
     setErrorMsg(null);
     setSuccessMsg(null);
     setIdentifier(loginEmail);
@@ -84,13 +85,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
       setErrorMsg('يرجى إدخال البريد الإلكتروني أو الرقم الوظيفي');
       return;
     }
-    await executeQuickLogin(identifier, password || 'Alsulaim@2026');
+    const pass = password || (DEMO_AUTH_ENABLED ? DEMO_QUICK_LOGIN_SECRET : '');
+    if (!pass) {
+      setErrorMsg('يرجى إدخال كلمة المرور');
+      return;
+    }
+    await executeQuickLogin(identifier, pass);
   };
 
   const handleBiometricLogin = async () => {
     setErrorMsg(null);
-    setSuccessMsg('جاري التحقق من البصمة الحيوية عبر مفتاح الأمان (FIDO2 Passkey)...');
-    await executeQuickLogin(identifier || 'chairman@alsulaim.sa', 'Alsulaim@2026');
+    if (!DEMO_AUTH_ENABLED) {
+      setErrorMsg('الدخول بالبصمة (Passkey) غير مُفعّل بعد — استخدم كلمة المرور.');
+      return;
+    }
+    setSuccessMsg('جاري التحقق من البصمة الحيوية (وضع العرض التجريبي)...');
+    await executeQuickLogin(identifier || 'chairman@alsulaim.sa', DEMO_QUICK_LOGIN_SECRET);
   };
 
   const handleSelect = (id: CompanyId | string, portalCode?: string) => {
@@ -464,7 +474,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
 
                   <button
                     type="button"
-                    onClick={() => executeQuickLogin('chairman@alsulaim.sa', 'Alsulaim@2026')}
+                    onClick={() =>
+                      DEMO_AUTH_ENABLED
+                        ? executeQuickLogin('chairman@alsulaim.sa', DEMO_QUICK_LOGIN_SECRET)
+                        : setFlowState('login')
+                    }
                     disabled={loading}
                     className="w-full py-2.5 px-4 rounded-full bg-white hover:bg-[#f9f9f9] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
@@ -522,8 +536,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                       <button
                         type="button"
                         onClick={() => {
+                          if (!DEMO_AUTH_ENABLED) {
+                            setFlowState('login');
+                            return;
+                          }
                           setIdentifier('chairman@alsulaim.sa');
-                          setPassword('Alsulaim@2026');
+                          setPassword(DEMO_QUICK_LOGIN_SECRET);
                         }}
                         className="text-[11px] font-bold text-[#707070] hover:text-[#141414] transition-colors cursor-pointer"
                       >

@@ -43,8 +43,8 @@ import { realErpDataStore } from '../../services/realErpDataStore';
 import { ExportDropdown } from './ExportDropdown';
 import { useCompany } from '../../contexts/CompanyContext';
 import { useAppStore } from '../../stores/appStore';
-import { getPinnedTabs, togglePinnedTab, PinnedTabItem } from './QuickSearchModal';
-import { SLUG_ARABIC_TITLES } from '../layout/Header';
+import { getPinnedTabs, togglePinnedTab, type PinnedTabItem } from '../../utils/pinnedTabs';
+import { SLUG_ARABIC_TITLES } from '../../data/slugArabicTitles';
 
 interface DepartmentModuleBannerProps {
   activeTab: string;

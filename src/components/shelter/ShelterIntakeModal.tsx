@@ -31,13 +31,16 @@ interface ShelterIntakeModalProps {
   onSuccess: (accommodationCaseId: string) => void;
 }
 
-export const ShelterIntakeModal: React.FC<ShelterIntakeModalProps> = ({
-  isOpen,
+export const ShelterIntakeModal: React.FC<ShelterIntakeModalProps> = (props) => {
+  // Early return lives in the wrapper so the inner component's hooks always run in the same order.
+  if (!props.isOpen) return null;
+  return <ShelterIntakeModalContent {...props} />;
+};
+
+const ShelterIntakeModalContent: React.FC<ShelterIntakeModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  if (!isOpen) return null;
-
   const state = shelterTransferStore.getState();
   const existingWorkers = state.workers;
 

@@ -19,6 +19,7 @@ import {
   DepartmentId,
 } from '../services/authService';
 import { useCompany } from '../contexts/CompanyContext';
+import { useModuleVisibility } from '../hooks/useModuleVisibility';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { EmployeePhotoAvatar } from '../components/auth/EmployeePhotoAvatar';
 
@@ -845,12 +846,13 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
     CORPORATE_DEPARTMENTS[resolvedScope.departmentId as DepartmentId] ||
     CORPORATE_DEPARTMENTS.executive;
 
-  // Enforce strict department + company isolation on the App Launcher tiles
+  // Enforce strict department + company isolation (and admin visibility rules) on the App Launcher tiles
+  const { isHrefBlocked } = useModuleVisibility();
   const authorizedApps = useMemo(() => {
-    return ALL_SYSTEM_APPS.filter((app) =>
-      authService.isTabAuthorizedForUser(currentUser, app.href)
+    return ALL_SYSTEM_APPS.filter(
+      (app) => authService.isTabAuthorizedForUser(currentUser, app.href) && !isHrefBlocked(app.href)
     );
-  }, [currentUser]);
+  }, [currentUser, isHrefBlocked]);
 
   const filteredApps = useMemo(() => {
     return authorizedApps.filter((app) => {

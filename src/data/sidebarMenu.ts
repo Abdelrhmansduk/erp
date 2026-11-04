@@ -28,6 +28,7 @@ export const SIDEBAR_MENU: NavItem[] = [
       { id: 'microsoft-center', title: 'مركز تكامل Microsoft 365 & Teams', icon: 'Layers', href: 'microsoft-center' },
       { id: 'activity-log', title: 'سجل الرقابة والتدقيق الأمني للحركات', icon: 'History', href: 'activity-log' },
       { id: 'settings', title: 'إعدادات المنظومة والنسخ الاحتياطي', icon: 'Settings2', href: 'settings' },
+      { id: 'module-visibility', title: 'إظهار وإخفاء الأقسام والفروع', icon: 'Sliders', href: 'module-visibility' },
     ],
   },
   {

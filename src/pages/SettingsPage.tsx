@@ -9,8 +9,9 @@ import {
   Key, Search, MessageSquare, FileText, Check, Save, ExternalLink,
   Plus, Trash2, Globe, ShieldAlert, Sparkles, RefreshCw, Eye,
   ShoppingBag, Store, CreditCard, Layers, Zap, ScanFace, Laptop,
-  AlertCircle, CheckCircle2, Database, Download, UploadCloud, RotateCcw, HardDrive
+  AlertCircle, CheckCircle2, Database, Download, UploadCloud, RotateCcw, HardDrive, EyeOff
 } from 'lucide-react';
+import { ModuleVisibilityManager } from '../components/settings/ModuleVisibilityManager';
 import { 
   checkWebAuthnSupport, 
   getStoredBiometricCredentials, 
@@ -54,6 +55,7 @@ export const SettingsPage: React.FC = () => {
     if (tabKey === 'zoho') return 'zoho';
     if (tabKey === 'stipulations') return 'stipulations';
     if (tabKey === 'ecommerce' || tabKey === 'stores' || tabKey === 'smacc-modules') return 'ecommerce';
+    if (tabKey === 'module-visibility') return 'module-visibility';
     return 'security-2fa';
   };
 
@@ -260,10 +262,11 @@ export const SettingsPage: React.FC = () => {
   const [wooConsumerKey, setWooConsumerKey] = useState('ck_8892174910283746');
   const [wooConsumerSecret, setWooConsumerSecret] = useState('cs_9918237461928374');
 
-  const [moyasarPublishableKey, setMoyasarPublishableKey] = useState('pk_live_8829104719283746');
-  const [moyasarSecretKey, setMoyasarSecretKey] = useState('sk_live_9918237461928374');
+  const [moyasarPublishableKey, setMoyasarPublishableKey] = useState('');
+  const [moyasarSecretKey, setMoyasarSecretKey] = useState('');
 
   const SECTIONS = [
+    { id: 'module-visibility', name: 'إظهار وإخفاء الأقسام والواجهات', icon: EyeOff },
     { id: 'system-backup', name: 'النسخ الاحتياطي وقواعد البيانات والبيانات الحقيقية', icon: Database },
     { id: 'ecommerce', name: 'ربط المتاجر الإلكترونية وبوابات الدفع', icon: ShoppingBag },
     { id: 'security-2fa', name: 'أمان المصادقة والبصمة البيومترية', icon: Fingerprint },
@@ -525,6 +528,9 @@ export const SettingsPage: React.FC = () => {
         {/* Right Side Settings Form View */}
         <div className="card-pricing md:col-span-3" style={{ padding: '28px', borderRadius: '24px', background: '#ffffff' }}>
           
+          {/* 0. Module visibility (hide departments / sub-pages / UI parts) */}
+          {activeSection === 'module-visibility' && <ModuleVisibilityManager />}
+
           {/* 1. Security & 2FA */}
           {activeSection === 'security-2fa' && (
             <div className="space-y-5">

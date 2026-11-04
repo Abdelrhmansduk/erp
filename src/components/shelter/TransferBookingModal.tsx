@@ -32,14 +32,15 @@ interface TransferBookingModalProps {
   onSuccess: (transferCaseId: string) => void;
 }
 
-export const TransferBookingModal: React.FC<TransferBookingModalProps> = ({
-  isOpen,
-  onClose,
-  worker,
-  onSuccess,
-}) => {
-  if (!isOpen || !worker) return null;
+export const TransferBookingModal: React.FC<TransferBookingModalProps> = (props) => {
+  // Early return lives in the wrapper so the inner component's hooks always run in the same order.
+  if (!props.isOpen || !props.worker) return null;
+  return <TransferBookingModalContent {...props} worker={props.worker} />;
+};
 
+const TransferBookingModalContent: React.FC<
+  Omit<TransferBookingModalProps, 'worker'> & { worker: WorkerProfile }
+> = ({ onClose, worker, onSuccess }) => {
   // Form states
   const [executingOfficeId, setExecutingOfficeId] = useState<GroupOfficeId>(worker.originalOfficeId);
   const [newClientName, setNewClientName] = useState('');

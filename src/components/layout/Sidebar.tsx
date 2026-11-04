@@ -12,6 +12,7 @@ import {
   resolveDepartmentAndCompany,
 } from '../../services/authService';
 import { EmployeePhotoAvatar } from '../auth/EmployeePhotoAvatar';
+import { useModuleVisibility } from '../../hooks/useModuleVisibility';
 import {
   X, Search, ChevronDown, ChevronLeft, ChevronRight,
   ListTree, Columns, LayoutGrid, CircleDot, Folder,
@@ -99,6 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { isSuperAdmin, activeCompany } = useIamSession();
   const { activeCompanyId } = useCompany();
   const { user: authUser } = useAuthContext();
+  const { visibleMenu } = useModuleVisibility();
   const isRtl = currentLanguage.dir === 'rtl';
 
   const [displayMode, setDisplayMode] = useState<SidebarDisplayMode>('tree');
@@ -229,9 +231,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       return item;
     };
 
-    return SIDEBAR_MENU.map(filterItem).filter((item): item is NavItem => item !== null);
+    return visibleMenu.map(filterItem).filter((item): item is NavItem => item !== null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, effectiveProfile, resolvedScope, activeCompany, activeCompanyId, isSuperAdmin]);
+  }, [searchQuery, visibleMenu, effectiveProfile, resolvedScope, activeCompany, activeCompanyId, isSuperAdmin]);
 
   const hasActiveChild = (item: NavItem): boolean => {
     if (item.href === activeTab) return true;

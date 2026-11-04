@@ -42,7 +42,7 @@ function isFemaleEmployee(name: string, role?: string): boolean {
  * Generates a high-definition executive studio portrait SVG Data URI for the logged-in employee
  * when no external photo URL is uploaded.
  */
-export function buildExecutivePortraitDataUri(
+function buildExecutivePortraitDataUri(
   name: string,
   email?: string,
   role?: string,

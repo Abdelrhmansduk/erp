@@ -1,9 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuthContext } from '../contexts/AuthContext';
 import { useCompany } from '../contexts/CompanyContext';
 import { useAppStore } from '../stores/appStore';
 import {
+  authService,
   CORPORATE_DEPARTMENTS,
   COMPANY_AUTH_METADATA,
   DepartmentId,
@@ -12,6 +13,7 @@ import {
   registerCustomStaffAccount,
   resolveDepartmentAndCompany,
 } from '../services/authService';
+import { DEMO_AUTH_ENABLED, DEMO_QUICK_LOGIN_SECRET } from '../config/authMode';
 import { EmployeePhotoAvatar } from '../components/auth/EmployeePhotoAvatar';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import {
@@ -66,7 +68,7 @@ export interface PortalDefinition {
   quickRoles: { label: string; username: string; roleTitle: string; tab?: string; title?: string }[];
 }
 
-export const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
+const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
   ADMIN: {
     code: 'ADMIN',
     shortName: 'الإدارة المركزية والسيطرة العليا',
@@ -304,7 +306,13 @@ interface LoginPageProps {
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const { currentLanguage } = useLanguage();
-  const { signIn, signInWithGoogle } = useAuthContext();
+  const {
+    signIn,
+    signInWithGoogle,
+    user: authUser,
+    isAuthenticated,
+    loading: authLoading,
+  } = useAuthContext();
   const { setActiveCompanyId } = useCompany();
   const { setFlowState, loginPortalCode } = useAppStore();
 
@@ -326,11 +334,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [identifier, setIdentifier] = useState<string>(() =>
     getDefaultEmailForPortalCode(loginPortalCode)
   );
-  const [password, setPassword] = useState<string>('Alsulaim@2026');
+  const [password, setPassword] = useState<string>(DEMO_AUTH_ENABLED ? DEMO_QUICK_LOGIN_SECRET : '');
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
+  const autoForwardedRef = useRef(false);
+
+  // Password-recovery return (Supabase appends `type=recovery` to the redirect URL hash)
+  const [isRecoveryMode, setIsRecoveryMode] = useState<boolean>(() => {
+    try {
+      return window.location.hash.includes('type=recovery');
+    } catch {
+      return false;
+    }
+  });
+  const [newPassword, setNewPassword] = useState('');
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
 
   useEffect(() => {
     setCompanyFilter(getInitialCompanyFilterForPortalCode(loginPortalCode));
@@ -358,7 +379,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [regCompanyId, setRegCompanyId] = useState<'SAF' | 'YAQ' | 'TOP' | 'KAS' | 'DAR'>('SAF');
   const [regDepartmentId, setRegDepartmentId] = useState<DepartmentId>('finance');
   const [regJobTitle, setRegJobTitle] = useState('');
-  const [regPassword, setRegPassword] = useState('Alsulaim@2026');
+  const [regPassword, setRegPassword] = useState('');
   const [regOtpCode, setRegOtpCode] = useState('482910');
   const [generatedOtp] = useState('482910');
 
@@ -395,9 +416,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
   const executeUnifiedSignIn = async (targetIdentifier?: string, targetPass?: string) => {
     const finalId = (targetIdentifier ?? identifier).trim();
-    const finalPass = targetPass ?? password;
+    const finalPass = (targetPass ?? password) || (DEMO_AUTH_ENABLED ? DEMO_QUICK_LOGIN_SECRET : '');
     if (!finalId) {
       setErrorMsg('يرجى إدخال البريد الإلكتروني المؤسسي أو اسم المستخدم.');
+      return;
+    }
+    if (!finalPass) {
+      setErrorMsg('يرجى إدخال كلمة المرور.');
+      passwordInputRef.current?.focus();
       return;
     }
 
@@ -406,7 +432,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     setLoading(true);
 
     try {
-      const result = await signIn(finalId, finalPass || 'Alsulaim@2026');
+      const result = await signIn(finalId, finalPass);
       if (result.error) {
         setErrorMsg(result.error);
         setLoading(false);
@@ -440,16 +466,113 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
   const handleQuickAccountClick = (entry: StaffDirectoryEntry) => {
     setIdentifier(entry.email);
-    setPassword('Alsulaim@2026');
     setShowDirectoryModal(false);
-    void executeUnifiedSignIn(entry.email, 'Alsulaim@2026');
+    if (DEMO_AUTH_ENABLED) {
+      setPassword(DEMO_QUICK_LOGIN_SECRET);
+      void executeUnifiedSignIn(entry.email, DEMO_QUICK_LOGIN_SECRET);
+      return;
+    }
+    // Production: never auto-login — the employee must type their own password.
+    setPassword('');
+    setErrorMsg(null);
+    setSuccessMsg(`تم اختيار حساب ${entry.full_name} — أدخل كلمة المرور للمتابعة.`);
+    setTimeout(() => passwordInputRef.current?.focus(), 50);
   };
 
   const handleBiometricLogin = async () => {
     setErrorMsg(null);
-    setSuccessMsg('جاري التحقق من البصمة الحيوية عبر مفتاح الأمان (WebAuthn Passkey)...');
-    await executeUnifiedSignIn(identifier || 'chairman@alsulaim.sa', 'Alsulaim@2026');
+    if (!DEMO_AUTH_ENABLED) {
+      setSuccessMsg(null);
+      setErrorMsg('الدخول بالبصمة (Passkey) غير مُفعّل بعد لهذا الحساب — استخدم كلمة المرور أو Google.');
+      return;
+    }
+    setSuccessMsg('جاري التحقق من البصمة الحيوية (وضع العرض التجريبي)...');
+    await executeUnifiedSignIn(identifier || 'chairman@alsulaim.sa', DEMO_QUICK_LOGIN_SECRET);
   };
+
+  const handleGoogleButtonClick = async () => {
+    setErrorMsg(null);
+    if (DEMO_AUTH_ENABLED) {
+      setShowGoogleModal(true);
+      return;
+    }
+    setLoading(true);
+    setSuccessMsg('جاري تحويلك إلى Google لإتمام المصادقة...');
+    const result = await signInWithGoogle();
+    if (result.error) {
+      setSuccessMsg(null);
+      setErrorMsg(result.error);
+      setLoading(false);
+    }
+    // On success the browser redirects to Google, then back to /login.
+  };
+
+  const handleForgotPassword = async () => {
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    if (!identifier.trim()) {
+      setErrorMsg('أدخل بريدك الإلكتروني أولاً ثم اضغط «نسيت كلمة المرور؟».');
+      return;
+    }
+    if (DEMO_AUTH_ENABLED) {
+      setSuccessMsg('وضع العرض التجريبي: لا حاجة لكلمة مرور فعلية — اضغط «تسجيل الدخول».');
+      return;
+    }
+    setLoading(true);
+    const { error } = await authService.requestPasswordReset(identifier);
+    setLoading(false);
+    if (error) {
+      setErrorMsg(error);
+    } else {
+      setSuccessMsg('تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني.');
+    }
+  };
+
+  const handleSetNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    if (newPassword !== newPasswordConfirm) {
+      setErrorMsg('كلمتا المرور غير متطابقتين.');
+      return;
+    }
+    setLoading(true);
+    const { error } = await authService.updatePassword(newPassword);
+    setLoading(false);
+    if (error) {
+      setErrorMsg(error);
+      return;
+    }
+    setIsRecoveryMode(false);
+    setNewPassword('');
+    setNewPasswordConfirm('');
+    try {
+      window.history.replaceState(null, '', '/login');
+    } catch {
+      // ignore
+    }
+    setSuccessMsg('تم تحديث كلمة المرور بنجاح.');
+  };
+
+  // Production: after returning from Google OAuth / magic link, forward the verified session.
+  useEffect(() => {
+    if (DEMO_AUTH_ENABLED || isRecoveryMode || autoForwardedRef.current) return;
+    if (authLoading || !isAuthenticated || !authUser) return;
+    autoForwardedRef.current = true;
+    const routeInfo = resolveDepartmentAndCompany(
+      authUser.email,
+      authUser.role,
+      authUser.company_id,
+      authUser.department_id
+    );
+    const compUpper = routeInfo.companyId === 'all' ? 'all' : routeInfo.companyId.toUpperCase();
+    setActiveCompanyId((compUpper === 'all' ? 'SAF' : compUpper) as any);
+    useAppStore.getState().setActiveCompanyId(compUpper as any);
+    if (onLoginSuccess) {
+      onLoginSuccess(routeInfo.departmentDef.defaultTab, routeInfo.departmentDef.defaultTabTitle);
+    } else {
+      setFlowState('welcome');
+    }
+  }, [authLoading, isAuthenticated, authUser, isRecoveryMode, onLoginSuccess, setActiveCompanyId, setFlowState]);
 
   const handleGoogleAccountSelect = async (account: {
     email: string;
@@ -461,10 +584,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     setSuccessMsg(`تمت المصادقة عبر Google (${account.email}) — جاري فتح جلستك...`);
     setLoading(true);
     try {
-      const result = await signInWithGoogle(account);
+      const result = await signInWithGoogle({
+        email: account.email,
+        full_name: account.name,
+        avatar_url: account.picture,
+      });
       if (result.error) {
         setErrorMsg(result.error);
         setLoading(false);
+        return;
+      }
+      if (!result.user) {
+        // Real OAuth redirect in progress.
         return;
       }
       const routeInfo = resolveDepartmentAndCompany(account.email);
@@ -499,10 +630,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       return;
     }
     setErrorMsg(null);
-    setSuccessMsg(
-      `تم التحقق من بريد المشرف (${identifier}) وتفعيل الجلسة المباشرة بنجاح.`
-    );
-    await executeUnifiedSignIn(identifier, 'Alsulaim@2026');
+    if (DEMO_AUTH_ENABLED) {
+      setSuccessMsg(`وضع العرض التجريبي: تفعيل جلسة (${identifier}) مباشرة.`);
+      await executeUnifiedSignIn(identifier, DEMO_QUICK_LOGIN_SECRET);
+      return;
+    }
+    setLoading(true);
+    const { error } = await authService.sendMagicLink(identifier);
+    setLoading(false);
+    if (error) {
+      setSuccessMsg(null);
+      setErrorMsg(error);
+    } else {
+      setSuccessMsg(`تم إرسال رابط الدخول إلى ${identifier} — افتح بريدك واضغط الرابط لإكمال الدخول.`);
+    }
   };
 
   const handleSendOtpStep = (e: React.FormEvent) => {
@@ -746,8 +887,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   type="button"
                   disabled={loading}
                   onClick={() => {
-                    setErrorMsg(null);
-                    setShowGoogleModal(true);
+                    void handleGoogleButtonClick();
                   }}
                   className="w-full h-11 rounded-2xl bg-[#ffffff] hover:bg-[#f8f8f8] border border-[#e5e5e5] text-[#141414] text-xs font-bold flex items-center justify-center gap-2.5 transition-colors cursor-pointer shadow-2xs"
                 >
@@ -835,7 +975,44 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               )}
 
               {/* 6. Email & Password Form */}
-              {loginMethodTab === 'magic_link' ? (
+              {isRecoveryMode ? (
+                <form onSubmit={handleSetNewPassword} className="space-y-4">
+                  <p className="text-xs font-bold text-[#141414] text-right m-0">
+                    تعيين كلمة مرور جديدة لحسابك
+                  </p>
+                  <input
+                    id="recovery-new-password"
+                    type="password"
+                    dir="ltr"
+                    autoComplete="new-password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="كلمة المرور الجديدة (10 أحرف على الأقل)"
+                    aria-label="كلمة المرور الجديدة"
+                    className="w-full h-12 px-4 rounded-2xl bg-[#f0efec] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#999999] text-sm font-medium transition-all focus:outline-none"
+                    required
+                  />
+                  <input
+                    id="recovery-new-password-confirm"
+                    type="password"
+                    dir="ltr"
+                    autoComplete="new-password"
+                    value={newPasswordConfirm}
+                    onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                    placeholder="تأكيد كلمة المرور الجديدة"
+                    aria-label="تأكيد كلمة المرور الجديدة"
+                    className="w-full h-12 px-4 rounded-2xl bg-[#f0efec] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#999999] text-sm font-medium transition-all focus:outline-none"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-12 rounded-2xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>حفظ كلمة المرور الجديدة</span>}
+                  </button>
+                </form>
+              ) : loginMethodTab === 'magic_link' ? (
                 <form onSubmit={handleMagicLinkDispatch} className="space-y-4">
                   <div>
                     <label
@@ -911,10 +1088,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                       <button
                         type="button"
                         onClick={() => {
-                          setPassword('Alsulaim@2026');
-                          setSuccessMsg(
-                            'تم استعادة كلمة المرور المعتمدة تلقائياً — اضغط تسجيل الدخول.'
-                          );
+                          void handleForgotPassword();
                         }}
                         className="text-[11px] font-bold text-[#707070] hover:text-[#141414] transition-colors cursor-pointer"
                       >
@@ -924,6 +1098,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     <div className="relative">
                       <input
                         id="login-password-input"
+                        ref={passwordInputRef}
                         type={showPassword ? 'text' : 'password'}
                         dir="ltr"
                         autoComplete="current-password"

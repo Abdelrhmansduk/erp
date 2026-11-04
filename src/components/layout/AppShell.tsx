@@ -4,10 +4,11 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { MobileBottomNav } from './MobileBottomNav';
 import { DepartmentModuleBanner } from '../common/DepartmentModuleBanner';
-import { recordRecentTab } from '../common/QuickSearchModal';
+import { recordRecentTab } from '../../utils/pinnedTabs';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { employeeOperationsEngine } from '../../services/employeeOperationsEngine';
 import { authService } from '../../services/authService';
+import { useModuleVisibility } from '../../hooks/useModuleVisibility';
 
 interface AppShellProps {
   activeTab: string;
@@ -69,6 +70,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   children,
 }) => {
   const { currentLanguage, theme } = useLanguage();
+  const { isPartHidden } = useModuleVisibility();
   const [isDesktop, setIsDesktop] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       return window.innerWidth >= 1024;
@@ -487,23 +489,27 @@ export const AppShell: React.FC<AppShellProps> = ({
 
         {/* Content Body with Global Dynamic Button State Enhancer */}
         <main className="content-body" onClickCapture={handleWorkspaceClickCapture}>
-          <DepartmentModuleBanner
-            activeTab={activeTab}
-            activeTabTitle={activeTabTitle}
-            onSelectTab={handleSelectTab}
-          />
+          {!isPartHidden('part:department-banner') && (
+            <DepartmentModuleBanner
+              activeTab={activeTab}
+              activeTabTitle={activeTabTitle}
+              onSelectTab={handleSelectTab}
+            />
+          )}
           {children}
         </main>
 
         {/* Native-Feel Mobile Bottom Navigation Bar (< 1024px) */}
-        <MobileBottomNav
-          activeTab={activeTab}
-          onSelectTab={handleSelectTab}
-          onOpenAppLauncher={onOpenAppLauncher}
-          onToggleSidebar={handleToggleSidebar}
-          onToggleNotifications={handleToggleMobileNotifications}
-          isNotificationsOpen={mobileNotifOpen}
-        />
+        {!isPartHidden('part:mobile-bottom-nav') && (
+          <MobileBottomNav
+            activeTab={activeTab}
+            onSelectTab={handleSelectTab}
+            onOpenAppLauncher={onOpenAppLauncher}
+            onToggleSidebar={handleToggleSidebar}
+            onToggleNotifications={handleToggleMobileNotifications}
+            isNotificationsOpen={mobileNotifOpen}
+          />
+        )}
       </div>
     </div>
   );
