@@ -1,4 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import {
+  GitBranch,
+  Award,
+  RefreshCw,
+  CheckCircle2,
+  Circle,
+  TrendingUp,
+  UserPlus,
+  X,
+} from 'lucide-react';
 import { WpsPayrollEngine, EmployeePayrollRecord } from '../../services/wpsPayrollEngine';
 import { realErpDataStore } from '../../services/realErpDataStore';
 
@@ -406,8 +416,8 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                 : 'bg-body text-muted hover:text-main border border-border'
             }`}
           >
-            <span className="material-symbols-outlined text-[16px]">account_tree</span>
-            هيكلة الرواتب والقواعد (Odoo Payroll Rules)
+            <GitBranch className="w-3.5 h-3.5" />
+            <span>هيكلة الرواتب والقواعد (Odoo Payroll Rules)</span>
           </button>
           <button
             type="button"
@@ -418,8 +428,8 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                 : 'bg-body text-muted hover:text-main border border-border'
             }`}
           >
-            <span className="material-symbols-outlined text-[16px]">workspace_premium</span>
-            التأهيل 30/60/90 وتقييم الأداء (HR-Pro)
+            <Award className="w-3.5 h-3.5" />
+            <span>التأهيل 30/60/90 وتقييم الأداء (HR-Pro)</span>
           </button>
           <button
             type="button"
@@ -430,8 +440,8 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                 : 'bg-body text-muted hover:text-main border border-border'
             }`}
           >
-            <span className="material-symbols-outlined text-[16px]">sync_saved_locally</span>
-            التابعون والتأمين والمزامنة (BambooHR Hub)
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>التابعون والتأمين والمزامنة (BambooHR Hub)</span>
           </button>
         </div>
       </div>
@@ -853,9 +863,11 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                               : 'bg-surface border-border text-muted hover:text-main'
                           }`}
                         >
-                          <span className="material-symbols-outlined text-[15px]">
-                            {plan[step.key] ? 'check_circle' : 'radio_button_unchecked'}
-                          </span>
+                          {plan[step.key] ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          ) : (
+                            <Circle className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                          )}
                           <span className="truncate">{step.label}</span>
                         </button>
                       ))}
@@ -887,8 +899,8 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                 onClick={() => setShowNewReviewModal(true)}
                 className="px-3.5 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:opacity-95 flex items-center gap-1.5 self-start"
               >
-                <span className="material-symbols-outlined text-[16px]">add_chart</span>
-                تسجيل تقييم أداء / خطة PIP
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>تسجيل تقييم أداء / خطة PIP</span>
               </button>
             </div>
 
@@ -997,8 +1009,8 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                   onClick={handleTriggerIncrementalSync}
                   className="px-3.5 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:opacity-95 flex items-center gap-1.5"
                 >
-                  <span className="material-symbols-outlined text-[16px]">sync</span>
-                  تشغيل المزامنة التفاضلية الآن
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>تشغيل المزامنة التفاضلية الآن</span>
                 </button>
               </div>
             </div>
@@ -1041,8 +1053,8 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                 onClick={() => setShowAddDependentModal(true)}
                 className="px-3.5 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:opacity-95 flex items-center gap-1.5 self-start"
               >
-                <span className="material-symbols-outlined text-[16px]">person_add</span>
-                إضافة تابع وتغطية تأمينية
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>إضافة تابع وتغطية تأمينية</span>
               </button>
             </div>
 

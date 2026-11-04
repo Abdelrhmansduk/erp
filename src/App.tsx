@@ -589,6 +589,12 @@ const MainContent: React.FC = () => {
       case 'end-of-service':
       case 'gosi-insurance':
       case 'salaries':
+      case 'compliance-radar':
+      case 'nitaqat':
+      case 'hr-pro':
+      case 'odoo-payroll':
+      case 'bamboohr':
+      case 'hr-pro-hub':
       case 'hr':
         return <HRPage />;
 
