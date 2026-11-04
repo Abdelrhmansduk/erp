@@ -1123,7 +1123,7 @@ export const HRPage: React.FC = () => {
 
     setPayrollRunStatus('POSTED_TO_GL');
     addNotification({
-      title: 'ترحيل قيد الرواتب المزدوج للمالية (SMACC)',
+      title: 'ترحيل قيد الرواتب المزدوج للمالية',
       message: `تم ترحيل قيد استحقاق وصرف الرواتب رقم (${jvRecord.ref_no}) بمبلغ متوازن (${glPayload.totalDebit.toLocaleString()} ⃁) بنجاح.`,
       type: 'success',
     });
@@ -2063,7 +2063,7 @@ export const HRPage: React.FC = () => {
           { id: 'DRAFT', label: '1. مسودة الإعداد' },
           { id: 'UNDER_REVIEW', label: '2. المراجعة والتدقيق' },
           { id: 'APPROVED', label: '3. معتمد إدارياً' },
-          { id: 'POSTED_TO_GL', label: '4. مرحّل للمالية (SMACC)' },
+          { id: 'POSTED_TO_GL', label: '4. مرحّل للمالية (الأستاذ العام)' },
           { id: 'PAID_WPS', label: '5. تم التحويل (مدد WPS)' },
           { id: 'LOCKED', label: '6. مقفل ومؤرشف' },
         ];
@@ -2476,7 +2476,7 @@ export const HRPage: React.FC = () => {
                   {/* Accounting Provision Action */}
                   <div className="p-4 bg-zinc-50 rounded-2xl border border-dashed border-zinc-300 flex items-center justify-between flex-wrap gap-2">
                     <div>
-                      <span className="font-bold text-xs text-black block">قيد تسوية وصرف مخالصة نهاية الخدمة (SMACC)</span>
+                      <span className="font-bold text-xs text-black block">قيد تسوية وصرف مخالصة نهاية الخدمة</span>
                       <span className="text-[11px] text-zinc-500">حساب مدين: مخصص نهاية الخدمة وتعويض الإجازات (2104) | دائن: السلف والبنك (1102)</span>
                     </div>
                     <button
@@ -2498,7 +2498,7 @@ export const HRPage: React.FC = () => {
                         await realErpDataStore.addRecord('journals', jv);
                         addNotification({
                           title: 'ترحيل قيد المخالصة النهائية',
-                          message: `تم إنشاء وترحيل قيد المخالصة رقم (${jv.journal_number}) بصافي (${netFinalClearance.toFixed(2)} ⃁) في قيود SMACC بنجاح.`,
+                          message: `تم إنشاء وترحيل قيد المخالصة رقم (${jv.journal_number}) بصافي (${netFinalClearance.toFixed(2)} ⃁) في دفتر الأستاذ العام بنجاح.`,
                           type: 'success',
                         });
                       }}

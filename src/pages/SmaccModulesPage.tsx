@@ -1224,7 +1224,7 @@ export const SmaccModulesPage: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-zinc-200">
             <div className="flex justify-between items-center pb-3 mb-4 border-b border-zinc-100">
-              <h3 className="text-sm font-bold text-black m-0">إضافة أصل ثابت جديد في SMACC</h3>
+              <h3 className="text-sm font-bold text-black m-0">إضافة أصل ثابت جديد</h3>
               <button onClick={() => setShowAssetModal(false)} className="text-zinc-400 hover:text-black">
                 <X className="w-5 h-5" />
               </button>

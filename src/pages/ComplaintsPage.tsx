@@ -277,7 +277,7 @@ export const ComplaintsPage: React.FC = () => {
     await realErpDataStore.addRecord('payment_vouchers', newVoucher);
     addNotification({
       title: 'توليد سند صرف تسوية مالية',
-      message: `تم توليد سند الصرف رقم #${newVoucher.voucher_no} بمبلغ (1,500 ⃁) للعميل (${ticket.client_name}) وترحيله لمحاسبة SMACC.`,
+      message: `تم توليد سند الصرف رقم #${newVoucher.voucher_no} بمبلغ (1,500 ⃁) للعميل (${ticket.client_name}) وترحيله لدفتر الأستاذ العام.`,
       type: 'success',
     });
     setSelectedTicket(null);
@@ -1108,10 +1108,10 @@ export const ComplaintsPage: React.FC = () => {
                   className="button-outline-on-light text-emerald-700 border-emerald-300 hover:bg-emerald-50 flex items-center gap-1"
                   onClick={() => handleGeneratePaymentVoucher(selectedTicket)} 
                   style={{ minHeight: '36px', padding: '6px 12px', fontSize: '12px' }}
-                  title="توليد سند صرف مالي مباشر في قيود ومحاسبة SMACC"
+                  title="توليد سند صرف مالي مباشر في دفتر الأستاذ العام"
                 >
                   <Receipt className="w-3.5 h-3.5" />
-                  <span>توليد سند صرف تسوية (SMACC)</span>
+                  <span>توليد سند صرف تسوية</span>
                 </button>
                 <button className="button-outline-on-light text-rose-600 border-rose-200 hover:bg-rose-50" onClick={() => handleResolveTicket('مرفوعة للمشرف')} style={{ minHeight: '36px', padding: '6px 14px', fontSize: '12.5px' }}>
                   تصعيد للمشرف

@@ -682,7 +682,7 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
       <SmaccFormModal
         isOpen={isAssetModalOpen}
         onClose={() => setIsAssetModalOpen(false)}
-        title="تسجيل أصل ثابت جديد في SMACC"
+        title="تسجيل أصل ثابت جديد"
         subtitle="أدخل بيانات الشراء ونسبة الإهلاك السنوية لتوليد جدول الإهلاك وحفظه بقاعدة البيانات"
         onSubmit={handleSaveAsset}
       >

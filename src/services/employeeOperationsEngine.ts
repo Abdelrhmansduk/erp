@@ -65,13 +65,13 @@ const DEPARTMENT_OPERATION_BLUEPRINTS: Record<DepartmentId, DepartmentOperationB
   finance: [
     {
       targetTab: 'smacc-accounting',
-      buttonLabel: 'ترحيل قيد يومية مزدوج (SMACC GL)',
+      buttonLabel: 'ترحيل قيد يومية مزدوج (الأستاذ العام)',
       actionType: 'اعتماد مالي',
       moduleName: 'المالية والمحاسبة',
       buildOperation: (staff, refNo, seq) => {
         const amount = 14500 + (seq % 7) * 2300;
         return {
-          title: `ترحيل قيد يومية مزدوج #${refNo} في نظام سماك`,
+          title: `ترحيل قيد يومية مزدوج #${refNo} في دفتر الأستاذ العام`,
           details: `قام المحاسب (${staff.full_name}) في (${staff.branch}) بترحيل قيد يومية متوازن بمبلغ ${amount.toLocaleString()} ⃁ بين ح/ البنك الأهلي (110201) وح/ إيرادات العقود التشغيلية (410101).`,
           amountSar: amount,
           status: 'مرحّلة للدفتر العام',

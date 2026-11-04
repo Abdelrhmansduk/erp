@@ -263,7 +263,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
             [
               { id: 'all', label: 'الكل' },
               { id: 'urgent', label: 'عاجل / SLA' },
-              { id: 'finance', label: 'مالية وسماك' },
+              { id: 'finance', label: 'المالية والمحاسبة' },
               { id: 'operations', label: 'مساند والتشغيل' },
             ] as const
           ).map((tab) => (

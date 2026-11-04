@@ -94,7 +94,7 @@ export const ILLUSTRATION_METADATA: Record<IllustrationKey, IllustrationMetadata
   'ocr-extractor': {
     key: 'ocr-extractor',
     titleAr: 'محرك الاستخلاص الذكي (100+ فاتورة وأي مستند)',
-    subtitleAr: 'قراءة آلية لملفات PDF وExcel وWord وصور الفواتير وترحيلها مباشرة لدفتر سماك',
+    subtitleAr: 'قراءة آلية لملفات PDF وExcel وWord وصور الفواتير وترحيلها مباشرة لدفتر الأستاذ العام',
     badgeAr: 'ماسح OCR الذكي',
     accentHex: '#CFA64A',
     secondaryHex: '#1D2428',

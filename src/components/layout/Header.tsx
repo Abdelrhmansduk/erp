@@ -214,9 +214,9 @@ export const Header: React.FC<HeaderProps> = ({
       )}
 
       {/* Mobbin Clean Top Bar: #ffffff surface, 1px #f0f0f0 hairline, zero shadow, zero collision */}
-      <header className="h-16 bg-[#ffffff] border-b border-[#f0f0f0] px-3 sm:px-5 flex items-center justify-between sticky top-0 z-[90] gap-3">
-        {/* Right Section: Sidebar Toggle, App Launcher Pill, Active Title, Branch Switcher */}
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+      <header className="h-16 bg-[#ffffff] border-b border-[#f0f0f0] px-3 sm:px-5 flex items-center justify-between sticky top-0 z-[90] gap-4">
+        {/* Right Section: Sidebar Toggle, App Launcher Pill, Branch Switcher, Active Title */}
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           <button
             type="button"
             className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] flex items-center justify-center shrink-0 cursor-pointer transition-colors"
@@ -237,21 +237,16 @@ export const Header: React.FC<HeaderProps> = ({
             <span>شاشات القسم</span>
           </button>
 
-          <div className="min-w-0 shrink overflow-hidden">
-            <h1 className="text-sm sm:text-[15px] font-bold text-[#141414] m-0 truncate">
-              {resolvedTabTitle}
-            </h1>
-          </div>
-
-          {/* Active Branch Switcher — Full width without truncation */}
-          <div className="relative hidden lg:block shrink-0">
+          {/* Active Branch Switcher — Responsive width with safe truncation & zero overflow */}
+          <div className="relative hidden md:block min-w-0 shrink">
             <button
               type="button"
               onClick={() => setShowBranchDropdown(!showBranchDropdown)}
-              className="px-3.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] cursor-pointer flex items-center gap-1.5 text-xs font-semibold whitespace-nowrap shrink-0 transition-colors"
+              className="max-w-full px-3.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] cursor-pointer flex items-center gap-1.5 text-xs font-semibold transition-colors overflow-hidden"
+              title={selectedBranch}
             >
               <MapPin className="w-3.5 h-3.5 text-[#141414] shrink-0" />
-              <span className="whitespace-nowrap">{selectedBranch}</span>
+              <span className="truncate">{selectedBranch}</span>
               <ChevronDown className="w-3.5 h-3.5 text-[#707070] shrink-0" />
             </button>
 
@@ -281,6 +276,12 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
           </div>
+
+          <div className="hidden 2xl:block min-w-0 flex-1 overflow-hidden">
+            <h1 className="text-sm font-bold text-[#141414] m-0 truncate">
+              {resolvedTabTitle}
+            </h1>
+          </div>
         </div>
 
         {/* Left Section: Clean Non-Overlapping Mobbin Pills */}
@@ -301,14 +302,14 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={() => setShowErrorMonitorModal(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer whitespace-nowrap"
             title="رادار مراقبة وتشخيص الأخطاء المباشر ومحرك الإصلاح الذاتي"
           >
             <Activity className="w-3.5 h-3.5 text-[#141414] shrink-0" />
-            <span className="hidden xl:inline">
+            <span className="hidden 2xl:inline">
               {openErrorCount > 0 ? 'الأخطاء' : 'سلامة النظام'}
             </span>
-            <span className="mobbin-badge-popular">
+            <span className="px-2 py-0.5 rounded-full bg-[#141414] text-[#ffffff] text-[10px] font-bold font-mono leading-none">
               {openErrorCount > 0 ? openErrorCount : '100%'}
             </span>
           </button>
@@ -317,7 +318,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={() => setShowUniversalExtractor(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#141414] hover:bg-[#262626] text-[#ffffff] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#141414] hover:bg-[#262626] text-[#ffffff] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer whitespace-nowrap"
             title="رفع واستخلاص آلي لأي مستند (100 صورة فاتورة / PDF / Word / Excel)"
           >
             <UploadCloud className="w-3.5 h-3.5 text-[#ffffff] shrink-0" />
@@ -330,7 +331,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => {
               window.dispatchEvent(new CustomEvent('open-faris-assistant'));
             }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer whitespace-nowrap"
             title="استدعاء المستشار المؤسسي الصوتي والنصي (فارس / نُورة)"
           >
             <Sparkles className="w-3.5 h-3.5 text-[#141414] shrink-0" />
@@ -462,7 +463,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-[#0066ff] text-[#ffffff] rounded-full px-1.5 py-0.2 text-[9px] font-semibold">
+                <span className="absolute -top-0.5 -right-0.5 bg-[#141414] text-[#ffffff] rounded-full px-1.5 py-0.2 text-[9px] font-semibold">
                   {unreadCount}
                 </span>
               )}
@@ -493,11 +494,11 @@ export const Header: React.FC<HeaderProps> = ({
                 size="xs"
                 status="online"
               />
-              <div className="text-right">
-                <div className="text-[11px] font-semibold text-[#141414] leading-tight truncate max-w-[110px] sm:max-w-[160px]">
+              <div className="text-right hidden sm:block">
+                <div className="text-[11px] font-semibold text-[#141414] leading-tight truncate max-w-[110px] xl:max-w-[150px]">
                   {displayName}
                 </div>
-                <div className="hidden sm:block text-[10px] text-[#707070] font-medium truncate max-w-[160px]">
+                <div className="hidden lg:block text-[10px] text-[#707070] font-medium truncate max-w-[110px] xl:max-w-[150px]">
                   {departmentDef.badgeText}
                 </div>
               </div>

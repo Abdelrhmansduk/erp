@@ -68,8 +68,8 @@ export const AI_TOOL_REGISTRY: AiToolDefinition[] = [
   },
   {
     id: 'create_journal_entry',
-    nameAr: 'إنشاء قيد يومية مزدوج متوازن (سماك SMACC)',
-    descriptionAr: 'تسجيل قيد يومية محاسبي مزدوج (مدين/دائن) في دفتر الأستاذ العام للشركة وفق معيار سماك SMACC.',
+    nameAr: 'إنشاء قيد يومية مزدوج متوازن',
+    descriptionAr: 'تسجيل قيد يومية محاسبي مزدوج (مدين/دائن) في دفتر الأستاذ العام للشركة وفق المعايير المحاسبية.',
     companyScope: [],
     departmentScope: ['finance', 'executive'],
     requiredPermission: 'finance.journal.create',
@@ -467,7 +467,7 @@ export const AI_TOOL_REGISTRY: AiToolDefinition[] = [
   {
     id: 'navigate_to_page',
     nameAr: 'الانتقال المباشر إلى شاشة أو قسم',
-    descriptionAr: 'التنقل مباشرة إلى صفحة أو قسم محدد في النظام (مثال: لوحة المؤشرات، سماك، الفوترة، مراكز الإيواء).',
+    descriptionAr: 'التنقل مباشرة إلى صفحة أو قسم محدد في النظام (مثال: لوحة المؤشرات، المحاسبة، الفوترة، مراكز الإيواء).',
     companyScope: [],
     departmentScope: ['finance', 'recruitment', 'rental', 'ats', 'hr', 'crm', 'shelter', 'tenders', 'executive'],
     requiredPermission: 'system.navigate',

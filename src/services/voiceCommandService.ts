@@ -253,7 +253,7 @@ export async function dispatchVoiceCommand(
 
   if (isNav || /(?:ماليه|محاسبه|سماك|دليل محاسبي|حسابات)/.test(norm)) {
     if (norm.includes('مالي') || norm.includes('محاسب') || norm.includes('سماك') || norm.includes('دليل')) {
-      callbacks.onNavigate?.('finance-home', 'الإدارة المالية والمحاسبة SMACC');
+      callbacks.onNavigate?.('finance-home', 'الإدارة المالية والمحاسبة');
       const resp = 'تم فتح شاشة الإدارة المالية والدليل المحاسبي الموحد.';
       return {
         isCommand: true,

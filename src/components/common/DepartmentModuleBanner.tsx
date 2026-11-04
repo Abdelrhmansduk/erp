@@ -737,7 +737,7 @@ export const DepartmentModuleBanner: React.FC<DepartmentModuleBannerProps> = ({
           <span className="text-[#141414] font-bold truncate max-w-[260px]">{currentTitle}</span>
 
           <div className="hidden xl:flex items-center gap-1 shrink-0 mr-2 pr-2 border-r border-[#e0e0e0]">
-            <MapPin className="w-3 h-3 text-[#0066ff]" />
+            <MapPin className="w-3 h-3 text-[#141414]" />
             {[
               { id: 'all', label: 'المجموعة' },
               { id: 'SAF', label: 'السفير الماسي' },
@@ -754,7 +754,7 @@ export const DepartmentModuleBanner: React.FC<DepartmentModuleBannerProps> = ({
                   onClick={() => setActiveCompanyId(comp.id as any)}
                   className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all cursor-pointer shrink-0 ${
                     isSelected
-                      ? 'bg-[#0066ff] text-white'
+                      ? 'bg-[#141414] text-white'
                       : 'bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#707070] border border-[#e0e0e0]'
                   }`}
                 >

@@ -98,10 +98,10 @@ const PRESET_CONFIG: Record<
     defaultIcon: <ShieldCheck className="w-3.5 h-3.5" />,
   },
   'journal-post': {
-    defaultLabel: 'ترحيل القيود لسماك',
+    defaultLabel: 'ترحيل القيود للأستاذ العام',
     verifying: 'جاري فحص توازن المدين والدائن...',
     executing: 'جاري الترحيل لدفتر الأستاذ العام...',
-    success: 'تم ترحيل القيد لسماك ✓',
+    success: 'تم ترحيل القيد المحاسبي ✓',
     defaultIcon: <Lock className="w-3.5 h-3.5" />,
   },
   'musaned-auth': {

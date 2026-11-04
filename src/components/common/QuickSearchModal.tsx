@@ -107,7 +107,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
       {
         id: 'act-ocr-extractor',
         title: 'فتح الماسح الذكي لاستخلاص 100+ فاتورة وأي مستند (OCR)',
-        subtitle: 'قراءة ملفات PDF وExcel وWord وصور الفواتير وترحيلها لدفتر سماك',
+        subtitle: 'قراءة ملفات PDF وExcel وWord وصور الفواتير وترحيلها لدفتر الأستاذ العام',
         kind: 'action',
         badge: 'Alt + I',
         onExecute: () => {

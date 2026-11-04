@@ -286,7 +286,7 @@ function cleanSpeechText(text: string): string {
     .replace(/\{[\s\S]*?\}/g, '')
     .replace(/```[\s\S]*?```/g, '')
     .replace(/\bZATCA\b/gi, 'زاتكا')
-    .replace(/\bSMACC\b/gi, 'سماك')
+    .replace(/\bSMACC\b/gi, 'المحاسبة')
     .replace(/\bBOQ\b/gi, 'جدول الكميات')
     .replace(/\bHRSD\b/gi, 'وزارة الموارد البشرية')
     .replace(/\bWPS\b/gi, 'نظام حماية الأجور')

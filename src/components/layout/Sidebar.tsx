@@ -444,7 +444,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <Lock className="w-3.5 h-3.5 text-[#707070] shrink-0" />
               <span className="truncate">{departmentDef.nameAr}</span>
             </span>
-            <span className="mobbin-badge-popular shrink-0">
+            <span className="px-2 py-0.5 rounded-full bg-[#141414] text-[#ffffff] text-[10px] font-bold font-mono shrink-0">
               {companyMeta.code === 'all' ? 'GROUP' : companyMeta.code}
             </span>
           </div>

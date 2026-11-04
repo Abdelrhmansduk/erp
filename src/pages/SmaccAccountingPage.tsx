@@ -415,7 +415,7 @@ export const SmaccAccountingPage: React.FC = () => {
       setIsAccountModalOpen(false);
       addNotification({
         title: 'إضافة حساب جديد',
-        message: `تمت إضافة الحساب (${newAccount.name} - #${newAccount.code}) في دليل SMACC بنجاح.`,
+        message: `تمت إضافة الحساب (${newAccount.name} - #${newAccount.code}) في شجرة الحسابات بنجاح.`,
         type: 'success',
       });
       setNewAccount({
@@ -961,7 +961,7 @@ export const SmaccAccountingPage: React.FC = () => {
                     'المستوى': a.level,
                     'الرصيد': a.balance || 0
                   }));
-                  exportData(flattened, `دليل_حسابات_سماك_${activeCompany.code}`, 'excel');
+                  exportData(flattened, `دليل_الحسابات_${activeCompany.code}`, 'excel');
                   addNotification({ title: 'تصدير الدليل', message: 'تم تصدير دليل الحسابات بنجاح إلى ملف Excel.', type: 'success' });
                 }}
                 className="button-outline-on-light"
@@ -1112,7 +1112,7 @@ export const SmaccAccountingPage: React.FC = () => {
               <ExportDropdown
                 sectionKey="vouchers"
                 data={vouchers}
-                customTitle={`سندات القبض والصرف (SMACC) - ${activeCompany.name}`}
+                customTitle={`سندات القبض والصرف - ${activeCompany.name}`}
                 buttonLabel="تصدير السندات (10 صيغ)"
               />
             </div>
@@ -1492,7 +1492,7 @@ export const SmaccAccountingPage: React.FC = () => {
       <SmaccFormModal
         isOpen={isAccountModalOpen}
         onClose={() => setIsAccountModalOpen(false)}
-        title="إضافة حساب جديد في شجرة SMACC"
+        title="إضافة حساب جديد في شجرة الحسابات"
         subtitle="حدد الرمز والاسم والحساب الأب وطبيعة الحساب"
         onSubmit={handleSaveAccount}
       >

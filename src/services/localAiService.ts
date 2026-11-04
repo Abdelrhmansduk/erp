@@ -232,7 +232,7 @@ export function getDepartmentTaskPlaybook(
         departmentId: 'finance',
         departmentNameAr: deptDef.nameAr,
         recommendedPersona: 'faris',
-        roleSummaryAr: 'مساعد المحاسب في قيود سماك، سندات القبض والصرف، والفوترة الضريبية ZATCA.',
+        roleSummaryAr: 'مساعد المحاسب في قيود اليومية، سندات القبض والصرف، والفوترة الضريبية ZATCA.',
         tasks: [
           {
             id: 'fin-jv',
@@ -259,7 +259,7 @@ export function getDepartmentTaskPlaybook(
             id: 'fin-extract',
             label: 'استخلاص 100 فاتورة ومستند',
             badge: 'استخلاص ذكي',
-            prompt: 'أريد رفع واستخلاص 100 صورة فاتورة أو ملف Excel وترحيلها لدفتر سماك',
+            prompt: 'أريد رفع واستخلاص 100 صورة فاتورة أو ملف Excel وترحيلها لدفتر الأستاذ العام',
           },
           {
             id: 'fin-cash',
@@ -552,7 +552,7 @@ export function getDepartmentTaskPlaybook(
           },
           {
             id: 'exec-jv',
-            label: 'تسجيل قيد يومية مزدوج في سماك',
+            label: 'تسجيل قيد يومية مزدوج في الأستاذ العام',
             badge: 'تنفيذ مباشر',
             prompt: 'سجل قيد يومية تحصيل عقود بمبلغ 45000 ريال',
             isActionTool: true,
@@ -601,7 +601,7 @@ export function generateEmployeeDailyBriefing(
 
   return `${header}
 • **القسم النشط:** ${playbook.departmentNameAr}
-• **حالة الدفتر المحاسبي (سماك SMACC):** ${live.journalsCount} قيد يومية متوازن | ${live.invoicesCount} فاتورة ضريبية بإجمالي ${live.totalSalesFormatted} ⃁ (${live.clearedCount} معتمدة في ZATCA) | ${live.vouchersCount} سند قبض/صرف.
+• **حالة الدفتر المحاسبي والأستاذ العام:** ${live.journalsCount} قيد يومية متوازن | ${live.invoicesCount} فاتورة ضريبية بإجمالي ${live.totalSalesFormatted} ⃁ (${live.clearedCount} معتمدة في ZATCA) | ${live.vouchersCount} سند قبض/صرف.
 • **المؤشرات التشغيلية الحية:** ${live.contractsCount} عقد استقدام مساند | ${live.rentCount} عقد تأجير مرن | ${live.cvsCount} سيرة ذاتية في بنك ATS | ${live.shelterCount} نزيلة بمركز الإيواء | ${live.complaintsCount} تذاكر شكاوى نشطة.
 • **توصيات إنجاز المهام اليوم:**
   1) يمكنك الضغط على أي زر في شريط **"مهام قسمي السريعة"** بالأسفل لتنفيذ المعاملات بضغطة واحدة.
@@ -623,7 +623,7 @@ function buildCompanyIsolationContext(company: CompanyScopeContext, persona: Ass
 مهمتك: مساعدة الموظف في إنجاز مهامه اليومية بسرعة ودقة ضمن نطاق شركته وقسمه.
 الأرقام الحية في قاعدة البيانات الآن:
 - فواتير ZATCA: ${live.invoicesCount} فاتورة بإجمالي ${live.totalSalesFormatted} ⃁ وضريبة ${live.totalVatFormatted} ⃁.
-- قيود اليومية (سماك): ${live.journalsCount} قيد محاسبي | السندات: ${live.vouchersCount} سند.
+- قيود اليومية (الأستاذ العام): ${live.journalsCount} قيد محاسبي | السندات: ${live.vouchersCount} سند.
 - عقود الاستقدام: ${live.contractsCount} عقد | عقود التأجير: ${live.rentCount} عقد | السير الذاتية: ${live.cvsCount}.
 - نزيلات الإيواء: ${live.shelterCount} نزيلة | الموظفون: ${live.employeesCount} | العملاء: ${live.clientsCount} | الشكاوى: ${live.complaintsCount}.
 الشخصية المطلوبة في الرد: أنت "${persona === 'noura' ? 'نُورة (المستشارة المؤسسية والتشغيلية)' : 'فارس (المستشار التنفيذي والمالي للمجموعة)'}".`;
@@ -679,7 +679,7 @@ export function determineActionButton(
     lower.includes('أرباح')
   ) {
     return {
-      label: 'فتح منظومة محاسبة سماك (SMACC 6-Divisions)',
+      label: 'فتح منظومة المحاسبة والأستاذ العام',
       actionKey: 'smacc-accounting',
     };
   }

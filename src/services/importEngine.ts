@@ -455,7 +455,7 @@ function generateDocumentPreviewSvgDataUrl(title: string, formatBadge: string, r
     <text x="530" y="315" fill="#71717A" font-family="Arial, sans-serif" font-size="14" text-anchor="end">القيمة المالية / البيان المستخلص:</text>
     <text x="530" y="365" fill="#000000" font-family="monospace" font-size="28" font-weight="bold" text-anchor="end">${amountText}</text>
     <rect x="40" y="440" width="520" height="200" fill="#FFFFFF" stroke="#E4E4E7" stroke-width="1.5" rx="12"/>
-    <text x="530" y="480" fill="#09090B" font-family="Arial, sans-serif" font-size="15" font-weight="bold" text-anchor="end">ختم الاعتماد والأرشفة الرقمية (SMACC &amp; ZATCA)</text>
+    <text x="530" y="480" fill="#09090B" font-family="Arial, sans-serif" font-size="15" font-weight="bold" text-anchor="end">ختم الاعتماد والأرشفة الرقمية (ZATCA)</text>
     <text x="530" y="515" fill="#52525B" font-family="Arial, sans-serif" font-size="13" text-anchor="end">• تم التعرف على المستند وتوجيهه للقسم المعني تلقائياً</text>
     <text x="530" y="545" fill="#52525B" font-family="Arial, sans-serif" font-size="13" text-anchor="end">• معزول محاسبياً ضمن دفاتر شركة: ${companyCode}</text>
     <text x="530" y="575" fill="#059669" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="end">✓ مطابق ومؤرشف إلكترونياً</text>
@@ -1243,7 +1243,7 @@ export function autoClassifyDocument(
   let sourceSystemLabel = 'مستند مؤسسي مهيكل';
 
   if (combinedText.includes('smacc') || combinedText.includes('سماك')) {
-    sourceSystemLabel = 'نظام سماك المحاسبي (SMACC Export)';
+    sourceSystemLabel = 'النظام المحاسبي المالي (ERP Export)';
   } else if (combinedText.includes('qoyod') || combinedText.includes('قيود') || combinedText.includes('daftra') || combinedText.includes('دفترة') || combinedText.includes('odoo') || combinedText.includes('sap')) {
     sourceSystemLabel = 'نظام محاسبي خارجي مستقل (External ERP)';
   } else if (combinedText.includes('zatca') || combinedText.includes('ubl') || combinedText.includes('ضريب')) {
@@ -1286,12 +1286,12 @@ export function autoClassifyDocument(
     deptAr: string;
     smaccBadge: string;
   }> = {
-    invoices: { deptId: 'finance', deptAr: 'قسم المحاسبة والمالية (نظام سماك SMACC)', smaccBadge: '[3-SMACC] حسابات العملاء والفوترة الضريبية ZATCA' },
-    journal_entries: { deptId: 'finance', deptAr: 'قسم المحاسبة والمالية (نظام سماك SMACC)', smaccBadge: '[1-SMACC] الأستاذ العام وقيود اليومية (نظام محاسبي منفصل)' },
-    chart_of_accounts: { deptId: 'finance', deptAr: 'قسم المحاسبة والمالية (نظام سماك SMACC)', smaccBadge: '[1-SMACC] شجرة ودليل الحسابات (نظام محاسبي منفصل)' },
-    financial_requests: { deptId: 'finance', deptAr: 'قسم المحاسبة والمالية (نظام سماك SMACC)', smaccBadge: '[4-SMACC] حسابات الموردين والمشتريات وسندات الصرف' },
-    cost_centers: { deptId: 'finance', deptAr: 'قسم المحاسبة والمالية (نظام سماك SMACC)', smaccBadge: '[5-SMACC] مراكز التكلفة والموازنات' },
-    custodies: { deptId: 'finance', deptAr: 'قسم المحاسبة والمالية (نظام سماك SMACC)', smaccBadge: '[5-SMACC] الأصول الثابتة والعهد والمستودعات' },
+    invoices: { deptId: 'finance', deptAr: 'قسم المحاسبة والمالية', smaccBadge: '[3-المحاسبة] حسابات العملاء والفوترة الضريبية ZATCA' },
+    journal_entries: { deptId: 'finance', deptAr: 'قسم المحاسبة والمالية', smaccBadge: '[1-المحاسبة] الأستاذ العام وقيود اليومية (نظام محاسبي منفصل)' },
+    chart_of_accounts: { deptId: 'finance', deptAr: 'قسم المحاسبة والمالية', smaccBadge: '[1-المحاسبة] شجرة ودليل الحسابات (نظام محاسبي منفصل)' },
+    financial_requests: { deptId: 'finance', deptAr: 'قسم المحاسبة والمالية', smaccBadge: '[4-المحاسبة] حسابات الموردين والمشتريات وسندات الصرف' },
+    cost_centers: { deptId: 'finance', deptAr: 'قسم المحاسبة والمالية', smaccBadge: '[5-المحاسبة] مراكز التكلفة والموازنات' },
+    custodies: { deptId: 'finance', deptAr: 'قسم المحاسبة والمالية', smaccBadge: '[5-المحاسبة] الأصول الثابتة والعهد والمستودعات' },
     contracts: { deptId: 'recruitment', deptAr: 'قسم الاستقدام وعقود مساند والتأشيرات', smaccBadge: '[2-الحركات اليومية] عقود الاستقدام الموثقة' },
     sponsorship_transfers: { deptId: 'recruitment', deptAr: 'قسم الاستقدام وعقود مساند والتأشيرات', smaccBadge: '[3-الاعتمادات] نقل الخدمات والكفالات' },
     rent_contracts: { deptId: 'rental', deptAr: 'قسم التأجير والتشغيل المرن', smaccBadge: '[2-الحركات اليومية] عقود التأجير الشهرية وبالساعة' },
@@ -1456,7 +1456,7 @@ export function generateSimulatedBatchRecords(
     IMAGE: { ext: 'jpg', badge: 'Image OCR / QR', sys: 'ماسح صور الفواتير والباركود الضريبي (ZATCA QR + OCR)' },
     PDF: { ext: 'pdf', badge: 'PDF Document', sys: 'مستخلص مستندات PDF متعددة الصفحات' },
     WORD: { ext: 'docx', badge: 'Word (.docx)', sys: 'مستخلص جداول ومستندات Microsoft Word' },
-    EXCEL_ERP: { ext: 'xlsx', badge: 'Excel / External ERP', sys: 'استيراد من نظام محاسبي منفصل للشركة (SMACC / Qoyod / Odoo)' },
+    EXCEL_ERP: { ext: 'xlsx', badge: 'Excel / External ERP', sys: 'استيراد من نظام محاسبي منفصل للشركة (Qoyod / Odoo / ERP)' },
   };
   const fmt = formatLabels[formatType];
 

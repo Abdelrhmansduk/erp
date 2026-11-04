@@ -155,7 +155,7 @@ class IamPolicyEngine {
       fullName: 'أ. محمد مصطفى',
       email: 'accounting@saf-rec.sa',
       phone: '+966501112233',
-      jobTitle: 'المدير المالي ورئيس حسابات المجموعة (SMACC)',
+      jobTitle: 'المدير المالي ورئيس حسابات المجموعة (SOCPA)',
       accountType: 'Department Manager',
       status: 'نشط',
       mfaEnabled: true,
@@ -231,7 +231,7 @@ class IamPolicyEngine {
     {
       id: 'role-fin-dir',
       code: 'FINANCE_DIRECTOR',
-      name: 'المدير المالي ورئيس الحسابات (SOCPA / SMACC 6)',
+      name: 'المدير المالي ورئيس الحسابات (SOCPA)',
       description: 'إدارة الأستاذ العام، قيود اليومية، سندات القبض والصرف، إقرارات ضريبة القيمة المضافة، والفوترة الإلكترونية ZATCA',
       roleType: 'Department',
       isSystemRole: true,

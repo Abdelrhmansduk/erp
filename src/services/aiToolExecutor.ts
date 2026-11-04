@@ -563,7 +563,7 @@ function executeNavigate(
   const pageKey = String(params.page_key || 'dashboard');
   const pageTitles: Record<string, string> = {
     'dashboard': 'لوحة المؤشرات التنفيذية',
-    'smacc-accounting': 'نظام سماك المحاسبي (SMACC)',
+    'smacc-accounting': 'النظام المحاسبي والأستاذ العام',
     'kas-suite': 'جناح كاس للمنافسات',
     'tenders-boq': 'منافسات اعتماد وجداول الكميات BOQ',
     'recruitment-contracts': 'عقود استقدام مساند',
@@ -668,7 +668,7 @@ async function executeCreateJournalEntry(
     amount,
     status: 'مرحّل (Posted)',
     company_id: companyId,
-    created_by: authService.getCurrentUser()?.full_name || 'المساعد الذكي (سماك)',
+    created_by: authService.getCurrentUser()?.full_name || 'المساعد الذكي للمحاسبة',
   };
 
   await realErpDataStore.addRecord('company_journal_entries', newEntry);
@@ -676,8 +676,8 @@ async function executeCreateJournalEntry(
 
   return {
     success: true,
-    message: `تم تسجيل وترحيل قيد اليومية المزدوج في نظام سماك (${companyId}):\n• رقم القيد: ${entryNumber}\n• من حـ/ (مدين): ${debitAccount} — ${amount.toLocaleString('en-US')} ⃁\n• إلى حـ/ (دائن): ${creditAccount} — ${amount.toLocaleString('en-US')} ⃁\n• البيان: ${description}\n• الحالة: مرحّل ومتوازن 100%`,
-    spokenSummary: `تم تسجيل وترحيل قيد اليومية المزدوج رقم ${entryNumber} بمبلغ ${amount.toLocaleString('ar-SA')} ريال سعودي في دفتر سماك بنجاح.`,
+    message: `تم تسجيل وترحيل قيد اليومية المزدوج في الأستاذ العام (${companyId}):\n• رقم القيد: ${entryNumber}\n• من حـ/ (مدين): ${debitAccount} — ${amount.toLocaleString('en-US')} ⃁\n• إلى حـ/ (دائن): ${creditAccount} — ${amount.toLocaleString('en-US')} ⃁\n• البيان: ${description}\n• الحالة: مرحّل ومتوازن 100%`,
+    spokenSummary: `تم تسجيل وترحيل قيد اليومية المزدوج رقم ${entryNumber} بمبلغ ${amount.toLocaleString('ar-SA')} ريال سعودي في دفتر الأستاذ العام بنجاح.`,
     data: newEntry,
   };
 }
@@ -818,7 +818,7 @@ async function executeCreateRecruitmentContract(
 
   return {
     success: true,
-    message: `تم تسجيل وتوثيق عقد استقدام مساند جديد (${contractNo}) بنجاح:\n• العميل: ${clientName}\n• الجنسية والمهنة: ${profession} (${nationality})\n• القيمة الإجمالية شاملة الضريبة: ${amount.toLocaleString('en-US')} ⃁\n• تم توليد القيد المحاسبي والفاتورة الضريبية آلياً في نظام سماك.`,
+    message: `تم تسجيل وتوثيق عقد استقدام مساند جديد (${contractNo}) بنجاح:\n• العميل: ${clientName}\n• الجنسية والمهنة: ${profession} (${nationality})\n• القيمة الإجمالية شاملة الضريبة: ${amount.toLocaleString('en-US')} ⃁\n• تم توليد القيد المحاسبي والفاتورة الضريبية آلياً في النظام المحاسبي.`,
     spokenSummary: `تم تسجيل عقد استقدام مساند للعميل ${clientName} بقيمة ${amount.toLocaleString('ar-SA')} ريال وتوليد قيده المحاسبي تلقائياً.`,
     data: newContract,
   };
@@ -853,7 +853,7 @@ async function executeCreateRentContract(
 
   return {
     success: true,
-    message: `تم إنشاء عقد التأجير والتشغيل المرن (${contractNo}) بنجاح:\n• العميل: ${clientName}\n• نوع الباقة: ${packageType}\n• الكادر المخصص: ${workerName}\n• القيمة: ${monthlyRate.toLocaleString('en-US')} ⃁\n• تم ترحيل القيد والفاتورة الضريبية في نظام سماك.`,
+    message: `تم إنشاء عقد التأجير والتشغيل المرن (${contractNo}) بنجاح:\n• العميل: ${clientName}\n• نوع الباقة: ${packageType}\n• الكادر المخصص: ${workerName}\n• القيمة: ${monthlyRate.toLocaleString('en-US')} ⃁\n• تم ترحيل القيد والفاتورة الضريبية في النظام المحاسبي.`,
     spokenSummary: `تم إنشاء عقد التأجير للعميل ${clientName} ضمن ${packageType} بقيمة ${monthlyRate.toLocaleString('ar-SA')} ريال سعودي.`,
     data: newRent,
   };

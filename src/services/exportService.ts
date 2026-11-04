@@ -1021,7 +1021,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
 
   // 40. دليل وشجرة الحسابات المحاسبية (SMACC Chart of Accounts)
   chart_of_accounts: {
-    sectionTitle: 'شجرة الحسابات والدليل المحاسبي الموحد (SMACC Chart of Accounts)',
+    sectionTitle: 'شجرة الحسابات والدليل المحاسبي الموحد (Chart of Accounts)',
     headers: ['رمز الحساب الهرمي', 'اسم الحساب بالعربية', 'الاسم اللاتيني (EN)', 'التصنيف المحاسبي', 'طبيعة الحساب', 'المستوى', 'الرصيد الدفتري (⃁)'],
     dataMapper: (r: any) => [
       r.code || r.account_code || r.id || '',
@@ -1034,7 +1034,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
     ]
   },
   'smacc-gl-tree': {
-    sectionTitle: 'شجرة الحسابات والدليل المحاسبي الموحد (SMACC Chart of Accounts)',
+    sectionTitle: 'شجرة الحسابات والدليل المحاسبي الموحد (Chart of Accounts)',
     headers: ['رمز الحساب الهرمي', 'اسم الحساب بالعربية', 'الاسم اللاتيني (EN)', 'التصنيف المحاسبي', 'طبيعة الحساب', 'المستوى', 'الرصيد الدفتري (⃁)'],
     dataMapper: (r: any) => [
       r.code || r.account_code || r.id || '',
@@ -1065,7 +1065,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
     ]
   },
   smacc_fixed_assets: {
-    sectionTitle: 'سجل الأصول الثابتة ومجمع الإهلاك وصافي القيمة الدفترية (SMACC Assets)',
+    sectionTitle: 'سجل الأصول الثابتة ومجمع الإهلاك وصافي القيمة الدفترية (Fixed Assets)',
     headers: ['كود الأصل', 'اسم الأصل الثابت', 'الفئة المحاسبية', 'تاريخ الشراء', 'التكلفة التاريخية (⃁)', 'مجمع الإهلاك (⃁)', 'صافي القيمة الدفترية (⃁)', 'الحالة التشغيلية'],
     dataMapper: (r: any) => [
       r.id || r.code || '',
@@ -1079,7 +1079,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
     ]
   },
   smacc_sales_reps: {
-    sectionTitle: 'كشف حسابات البائعين والمحصلين ومعدلات التحصيل (SMACC Sales & Collectors)',
+    sectionTitle: 'كشف حسابات البائعين والمحصلين ومعدلات التحصيل (Sales & Collectors)',
     headers: ['كود المندوب', 'اسم البائع / المحصل', 'الدور الوظيفي', 'رقم الجوال', 'إجمالي المبيعات (⃁)', 'المبالغ المحصلة (⃁)', 'الذمم المتبقية (⃁)', 'تحقيق المستهدف'],
     dataMapper: (r: any) => [
       r.id || '',
@@ -2432,7 +2432,7 @@ export function generateExecutiveReportHtml(
 
         <div class="sig-box">
           <div class="sig-title">مراجعة وتدقيق الإدارة المالية</div>
-          <div class="sig-role">المدير المالي التنفيذي (SMACC Group CFO)</div>
+          <div class="sig-role">المدير المالي التنفيذي (Group CFO)</div>
           <div class="sig-line"></div>
           <div class="sig-meta">الاسم: أ. محمد بن عبدالرحمن السليم</div>
           <div class="sig-meta">المطابقة الدفترية: ${isoDate}</div>
@@ -2886,7 +2886,7 @@ export function buildStyledExcelBuffer(
     [],
     ['مصفوفة الاعتمادات والتواقيع الرسمية', 'المسؤول المعتمد', 'الحالة والتاريخ'],
     ['1. إعداد واستخراج الكشف', `${exporter.name} (${exporter.role})`, `موثق إلكترونياً — ${isoDate}`],
-    ['2. المراجعة والتدقيق المالي', 'أ. محمد بن عبدالرحمن السليم (SMACC Group CFO)', `مطابق للدفاتر — ${isoDate}`],
+    ['2. المراجعة والتدقيق المالي', 'أ. محمد بن عبدالرحمن السليم (Group CFO)', `مطابق للدفاتر — ${isoDate}`],
     ['3. الاعتماد التنفيذي النهائي', 'الشيخ خالد بن عبدالعزيز السليم (رئيس مجلس الإدارة)', `معتمد ونافذ — ${isoDate}`],
   ];
 
@@ -3444,7 +3444,7 @@ export function exportToWord(
           </td>
           <td>
             <div style="font-weight: bold; font-size: 11pt; color: #141414;">تدقيق الإدارة المالية</div>
-            <div style="color: #707070; font-size: 9.5pt; margin-top: 3px;">أ. محمد بن عبدالرحمن السليم (SMACC CFO)</div>
+            <div style="color: #707070; font-size: 9.5pt; margin-top: 3px;">أ. محمد بن عبدالرحمن السليم (Group CFO)</div>
             <div style="margin-top: 20px; border-top: 1pt dashed #E0E0E0; padding-top: 6px; font-size: 9pt; color: #707070;">مطابق للدفاتر • التاريخ: ${isoDate}</div>
           </td>
           <td>
@@ -3674,7 +3674,7 @@ export function exportToMarkdown(
   md += `| مرحلة الاعتماد | المسؤول المختص | الفرع / الصفة | الحالة |\n`;
   md += `| :--- | :--- | :--- | :--- |\n`;
   md += `| **إعداد واستخراج** | ${exporter.name} | ${exporter.branch} (${exporter.role}) | ✓ موثق إلكترونياً |\n`;
-  md += `| **التدقيق المالي** | أ. محمد بن عبدالرحمن السليم | المدير المالي التنفيذي (SMACC CFO) | ✓ مطابق للدفاتر |\n`;
+  md += `| **التدقيق المالي** | أ. محمد بن عبدالرحمن السليم | المدير المالي التنفيذي (Group CFO) | ✓ مطابق للدفاتر |\n`;
   md += `| **اعتماد المجموعة** | الشيخ خالد بن عبدالعزيز السليم | رئيس مجلس الإدارة | ✓ معتمد ونافذ |\n\n`;
   md += `*تم استخراج هذا التقرير آلياً عبر منظومة تخطيط الموارد المؤسسية ERP لمجموعة خالد السليم التجارية — \`SHA256:${isoDate}-${sectionKey}\`*\n`;
 
