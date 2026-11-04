@@ -505,148 +505,147 @@ export const HrComplianceRadarPanel: React.FC<HrComplianceRadarPanelProps> = ({
   const urgentCount = alerts.filter((a) => a.severity !== 'VALID').length;
 
   return (
-    <div className="space-y-6 font-sans">
-      {/* Nitaqat & Compliance KPIs */}
+    <div data-slot="compliance-radar" className="space-y-6 font-sans">
+      {/* Pattern: stat-grid — Nitaqat & Compliance KPIs (Mobbin Monochrome) */}
       <div
+        data-slot="stat-grid"
         className="stat-card-grid"
         style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}
       >
-        <div className="card-pricing-featured p-5 rounded-2xl bg-black text-white">
-          <span className="text-xs text-zinc-400 font-semibold block">
-            تصنيف نطاقات التوطين (وزارة الموارد البشرية)
-          </span>
-          <div className="text-2xl font-extrabold text-emerald-400 mt-1">
+        <div className="stat-card">
+          <span className="stat-title">تصنيف نطاقات التوطين (وزارة الموارد البشرية)</span>
+          <div className="stat-value text-2xl mt-2">
             النطاق {nitaqat.nitaqatBand} ({nitaqat.saudizationPercentage}%)
           </div>
-          <span className="pill-tag-mint text-[11px] mt-2 inline-block">
-            {nitaqat.visasEligible ? 'مؤهل للتأشيرات الفورية ونقل الخدمات' : 'يحتاج رفع نسبة التوطين'}
-          </span>
-        </div>
-
-        <div className="card-pistachio-band p-5 rounded-2xl">
-          <span className="text-xs text-black font-semibold block">
-            الكوادر الوطنية السعودية (GOSI)
-          </span>
-          <div className="text-2xl font-extrabold text-black mt-1">
-            {nitaqat.saudiCount} موظف سعودي
+          <div className="stat-footer">
+            <span className="stat-badge up">
+              {nitaqat.visasEligible ? 'مؤهل للتأشيرات الفورية ونقل الخدمات' : 'يحتاج رفع نسبة التوطين'}
+            </span>
           </div>
-          <span className="pill-tag-mint text-[11px] mt-2 inline-block">
-            الوزن المحتسب في نطاقات: {nitaqat.effectiveSaudiWeight}
-          </span>
         </div>
 
-        <div className="card-pricing p-5 rounded-2xl bg-white border border-zinc-200">
-          <span className="text-xs text-zinc-500 font-semibold block">
-            الكوادر المقيمة وعقود قوى
-          </span>
-          <div className="text-2xl font-extrabold text-black mt-1">
+        <div className="stat-card">
+          <span className="stat-title">الكوادر الوطنية السعودية (GOSI)</span>
+          <div className="stat-value text-2xl mt-2">{nitaqat.saudiCount} موظف سعودي</div>
+          <div className="stat-footer">
+            <span className="stat-badge up">الوزن المحتسب في نطاقات: {nitaqat.effectiveSaudiWeight}</span>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <span className="stat-title">الكوادر المقيمة وعقود قوى</span>
+          <div className="stat-value text-2xl mt-2">
             {nitaqat.nonSaudiCount} مقيم • {nitaqat.totalEmployees} إجمالي
           </div>
-          <span className="pill-tag-shade text-[11px] mt-2 inline-block">
-            100% عقود موثقة في منصة قوى
-          </span>
+          <div className="stat-footer">
+            <span className="stat-badge up">100% عقود موثقة في منصة قوى</span>
+          </div>
         </div>
 
-        <div className="card-pricing p-5 rounded-2xl bg-white border border-zinc-200">
-          <span className="text-xs text-zinc-500 font-semibold block">
-            تنبيهات انتهاء الوثائق (مقيم / قوى / الضمان)
-          </span>
-          <div
-            className={`text-2xl font-extrabold mt-1 ${
-              urgentCount > 0 ? 'text-amber-600' : 'text-emerald-700'
-            }`}
-          >
+        <div className="stat-card">
+          <span className="stat-title">تنبيهات انتهاء الوثائق (مقيم / قوى / الضمان)</span>
+          <div className={`stat-value text-2xl mt-2 ${urgentCount > 0 ? 'text-[#ba1a1a]' : 'text-[#141414]'}`}>
             {urgentCount} تنبيهات نشطة
           </div>
-          <span className="pill-tag-shade text-[11px] mt-2 inline-block">
-            فحص استباقي (60 / 30 / 7 أيام)
-          </span>
+          <div className="stat-footer">
+            <span className="stat-badge up">فحص استباقي (60 / 30 / 7 أيام)</span>
+          </div>
         </div>
       </div>
 
-      {/* Document Expiry Radar Table */}
-      <div
-        className="card-pricing"
-        style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-white flex-wrap gap-3">
+      {/* Pattern: data-table — Document Expiry Radar Table */}
+      <div data-slot="data-table" className="table-card mb-0">
+        <div className="table-card-header">
           <div>
-            <h3 className="text-sm font-bold text-black flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <h3 className="table-card-title text-base">
+              <AlertTriangle className="size-4 text-[#141414]" />
               <span>رادار انتهاء الوثائق الحكومية والعقود والتأمين الطبي</span>
             </h3>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <p className="text-xs text-[#707070] mt-1">
               متابعة آلية لصلاحية الهويات/الإقامات، عقود قوى، جوازات السفر، والتأمين الطبي لمنع إيقاف الخدمات
             </p>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div
+            data-slot="filter-bar"
+            data-no-dyn-enhancer="true"
+            role="tablist"
+            className="flex items-center gap-1.5"
+          >
             {[
               { id: 'ALL', label: `الكل (${alerts.length})` },
               { id: 'URGENT', label: `تحتاج تجديد (${urgentCount})` },
               { id: 'VALID', label: 'سارية المفعول' },
-            ].map((btn) => (
-              <button
-                key={btn.id}
-                onClick={() => setFilterSeverity(btn.id as any)}
-                className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
-                  filterSeverity === btn.id
-                    ? 'bg-black text-white border-black'
-                    : 'bg-zinc-50 text-zinc-700 border-zinc-200'
-                }`}
-              >
-                {btn.label}
-              </button>
-            ))}
+            ].map((btn) => {
+              const isActive = filterSeverity === btn.id;
+              return (
+                <button
+                  key={btn.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setFilterSeverity(btn.id as any)}
+                  className={`min-h-[36px] px-3.5 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                    isActive
+                      ? 'bg-[#141414] text-white border-[#141414]'
+                      : 'bg-white text-[#141414] border-[#e0e0e0] hover:bg-[#f3f3f3]'
+                  }`}
+                >
+                  {btn.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-right text-xs text-zinc-700">
-            <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+        <div className="data-table-wrapper">
+          <table className="odoo-data-table text-xs">
+            <thead>
               <tr>
-                <th className="p-3.5">كود الموظف</th>
-                <th className="p-3.5">اسم الموظف</th>
-                <th className="p-3.5">نوع الوثيقة الرسمية</th>
-                <th className="p-3.5">تاريخ الانتهاء</th>
-                <th className="p-3.5">المدة المتبقية</th>
-                <th className="p-3.5">مستوى التنبيه</th>
-                <th className="p-3.5 text-center">إجراء التجديد الفوري</th>
+                <th>كود الموظف</th>
+                <th>اسم الموظف</th>
+                <th>نوع الوثيقة الرسمية</th>
+                <th>تاريخ الانتهاء</th>
+                <th>المدة المتبقية</th>
+                <th>مستوى التنبيه</th>
+                <th className="text-center">إجراء التجديد الفوري</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody>
               {filteredAlerts.map((alert, idx) => {
-                const badgeColor =
+                // Status color = severity, not decoration (UI Review §8): normal/valid is neutral monochrome
+                const badgeStyle =
                   alert.severity === 'EXPIRED' || alert.severity === 'CRITICAL_7D'
-                    ? 'bg-rose-100 text-rose-800 border-rose-200'
+                    ? 'bg-[#ffdad6] text-[#ba1a1a]'
                     : alert.severity === 'WARNING_30D' || alert.severity === 'UPCOMING_60D'
-                    ? 'bg-amber-100 text-amber-900 border-amber-200'
-                    : 'bg-emerald-50 text-emerald-800 border-emerald-200';
+                    ? 'bg-[#262626] text-white'
+                    : 'bg-[#f3f3f3] text-[#141414]';
 
                 return (
-                  <tr key={`${alert.employeeId}-${alert.documentType}-${idx}`} className="hover:bg-zinc-50">
-                    <td className="p-3.5 font-mono font-bold text-black">{alert.employeeCode}</td>
-                    <td className="p-3.5 font-bold text-black">{alert.employeeName}</td>
-                    <td className="p-3.5 font-semibold text-zinc-800">{alert.documentLabelAr}</td>
-                    <td className="p-3.5 font-mono text-zinc-600">{alert.expiryDate}</td>
-                    <td className="p-3.5 font-mono font-bold">
+                  <tr key={`${alert.employeeId}-${alert.documentType}-${idx}`}>
+                    <td className="font-mono font-bold text-[#141414]">{alert.employeeCode}</td>
+                    <td className="font-bold text-[#141414]">{alert.employeeName}</td>
+                    <td className="font-semibold text-[#141414]">{alert.documentLabelAr}</td>
+                    <td className="font-mono text-[#707070]">{alert.expiryDate}</td>
+                    <td className="font-mono font-bold text-[#141414]">
                       {alert.daysRemaining >= 0
                         ? `${alert.daysRemaining} يوم`
                         : `منتهي (${Math.abs(alert.daysRemaining)} يوم)`}
                     </td>
-                    <td className="p-3.5">
+                    <td>
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${badgeColor}`}
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold ${badgeStyle}`}
                       >
                         {alert.statusLabelAr}
                       </span>
                     </td>
-                    <td className="p-3.5 text-center">
+                    <td className="text-center">
                       <button
+                        type="button"
                         onClick={() => onRenewDocument(alert.employeeId, alert.documentType)}
-                        className="button-outline-on-light text-[11px] py-1 px-3 inline-flex items-center gap-1"
+                        className="btn-odoo btn-odoo-secondary text-xs py-1 px-3 min-h-[34px]"
                         title="تحديث وتمديد صلاحية الوثيقة لمدة سنة إضافية"
                       >
-                        <RefreshCw className="w-3 h-3 text-emerald-600" />
+                        <RefreshCw className="size-3 text-[#141414]" />
                         <span>تجديد (+1 سنة)</span>
                       </button>
                     </td>

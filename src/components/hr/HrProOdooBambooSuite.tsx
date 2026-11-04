@@ -295,7 +295,6 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
     simSanctionInput,
     simOvertimeHours,
     simUnpaidDays,
-    simPostJuly2024Gosi,
   ]);
 
   const toggleOnboardingStep = async (
@@ -391,58 +390,67 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
   };
 
   return (
-    <div className="space-y-6" dir="rtl">
-      {/* Top Sub-Navigation Header */}
-      <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-            <h3 className="text-base font-black text-main">
+    <div data-slot="hr-pro-suite" className="space-y-6" dir="rtl">
+      {/* Pattern: filter-bar — Mobbin Monochrome Card Header & Stadium Pill Tabs */}
+      <div
+        data-slot="filter-bar"
+        data-no-dyn-enhancer="true"
+        role="tablist"
+        aria-label="أقسام هيكلة الأجور والأداء والمزامنة"
+        className="mobbin-card p-6 space-y-4"
+      >
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 className="text-[18px] font-bold text-[#141414] leading-snug">
               منظومة هيكلة الأجور (Odoo Rules) وحوكمة الأداء (HR-Pro) والمزامنة المؤتمتة (BambooHR Sync)
             </h3>
+            <p className="text-xs text-[#707070] mt-1">
+              محرك القواعد الحسابية للرواتب والقيود، خطط التأهيل 30/60/90، مصفوفة الجدارات وخطط تحسين الأداء (PIP)، وسجل التابعين والتأمين الطبي.
+            </p>
           </div>
-          <p className="text-xs text-muted mt-1">
-            محرك القواعد الحسابية للرواتب والقيود، خطط التأهيل 30/60/90، مصفوفة الجدارات وخطط تحسين الأداء (PIP)، وسجل التابعين والتأمين الطبي.
-          </p>
+          <span className="px-3 py-1 rounded-full bg-[#f3f3f3] text-[#141414] text-xs font-semibold">
+            Mobbin Monochrome UI
+          </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setSubTab('odoo-rules')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-              subTab === 'odoo-rules'
-                ? 'bg-primary text-white shadow-sm'
-                : 'bg-body text-muted hover:text-main border border-border'
-            }`}
-          >
-            <GitBranch className="w-3.5 h-3.5" />
-            <span>هيكلة الرواتب والقواعد (Odoo Payroll Rules)</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setSubTab('hr-pro-playbook')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-              subTab === 'hr-pro-playbook'
-                ? 'bg-primary text-white shadow-sm'
-                : 'bg-body text-muted hover:text-main border border-border'
-            }`}
-          >
-            <Award className="w-3.5 h-3.5" />
-            <span>التأهيل 30/60/90 وتقييم الأداء (HR-Pro)</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setSubTab('bamboohr-sync')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-              subTab === 'bamboohr-sync'
-                ? 'bg-primary text-white shadow-sm'
-                : 'bg-body text-muted hover:text-main border border-border'
-            }`}
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>التابعون والتأمين والمزامنة (BambooHR Hub)</span>
-          </button>
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#f0f0f0]">
+          {[
+            {
+              id: 'odoo-rules' as const,
+              label: 'هيكلة الرواتب والقواعد (Odoo Payroll Rules)',
+              icon: GitBranch,
+            },
+            {
+              id: 'hr-pro-playbook' as const,
+              label: 'التأهيل 30/60/90 وتقييم الأداء (HR-Pro)',
+              icon: Award,
+            },
+            {
+              id: 'bamboohr-sync' as const,
+              label: 'التابعون والتأمين والمزامنة (BambooHR Hub)',
+              icon: RefreshCw,
+            },
+          ].map((tab) => {
+            const isActive = subTab === tab.id;
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setSubTab(tab.id)}
+                className={`min-h-[40px] px-4 py-1.5 rounded-full text-xs font-semibold transition-all inline-flex items-center gap-1.5 border ${
+                  isActive
+                    ? 'bg-[#141414] text-white border-[#141414]'
+                    : 'bg-white text-[#141414] border-[#e0e0e0] hover:bg-[#f3f3f3]'
+                }`}
+              >
+                <Icon className="size-3.5" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -450,349 +458,370 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
           SUB-TAB 1: ODOO HR PAYROLL SALARY STRUCTURE & RULE SIMULATOR
       ===================================================================== */}
       {subTab === 'odoo-rules' && simulatedPayslip && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left 7 Cols: Ordered Salary Structure Rules Table */}
-            <div className="lg:col-span-7 bg-surface border border-border rounded-2xl p-5 space-y-4">
-              <div className="flex items-center justify-between border-b border-border pb-3">
-                <div>
-                  <h4 className="text-sm font-black text-main">
-                    هيكل الرواتب المعتمد: <span className="font-mono text-primary">KSA_WPS_MONTHLY</span>
-                  </h4>
-                  <p className="text-[11px] text-muted">
-                    يتم تنفيذ القواعد تسلسلياً من الأعلى للأسفل (Top-to-Bottom Execution) مع ربط مباشر بحسابات الأستاذ العام GL
-                  </p>
-                </div>
-                <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 text-[11px] font-bold">
-                  12 قاعدة نشطة
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Pattern: data-table — Ordered Salary Structure Rules Table */}
+          <div data-slot="data-table" className="lg:col-span-7 table-card mb-0">
+            <div className="table-card-header">
+              <div>
+                <h4 className="table-card-title text-base">
+                  <span>هيكل الرواتب المعتمد:</span>
+                  <span className="font-mono text-sm bg-[#f3f3f3] px-3 py-1 rounded-full">
+                    KSA_WPS_MONTHLY
+                  </span>
+                </h4>
+                <p className="text-xs text-[#707070] mt-1">
+                  يتم تنفيذ القواعد تسلسلياً من الأعلى للأسفل (Top-to-Bottom Execution) مع ربط مباشر بحسابات الأستاذ العام GL
+                </p>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-[#f3f3f3] text-[#141414] text-xs font-semibold">
+                12 قاعدة نشطة
+              </span>
+            </div>
+
+            <div className="data-table-wrapper">
+              <table className="odoo-data-table text-xs">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>كود القاعدة</th>
+                    <th>البيان والفئة</th>
+                    <th>المعادلة البرمجية (Formula)</th>
+                    <th>حساب GL</th>
+                    <th className="text-left">ناتج المحاكاة</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    {
+                      seq: 10,
+                      code: 'BASIC',
+                      name: 'الراتب الأساسي (Basic)',
+                      cat: 'Basic',
+                      formula: 'contract.basic_salary',
+                      gl: '510101 (مدين)',
+                      val: simulatedPayslip.item.basicSalary,
+                      strong: false,
+                    },
+                    {
+                      seq: 20,
+                      code: 'HRA',
+                      name: 'بدل السكن (Housing)',
+                      cat: 'Allowance',
+                      formula: 'contract.housing_allowance',
+                      gl: '510102 (مدين)',
+                      val: simulatedPayslip.item.housingAllowance,
+                      strong: false,
+                    },
+                    {
+                      seq: 30,
+                      code: 'TRANS',
+                      name: 'بدل النقل والبدلات الأخرى',
+                      cat: 'Allowance',
+                      formula: 'contract.transport + contract.other',
+                      gl: '510103 (مدين)',
+                      val: simulatedPayslip.item.otherAllowances,
+                      strong: false,
+                    },
+                    {
+                      seq: 40,
+                      code: 'OT_107',
+                      name: 'عمل إضافي (مادة 107 — 150%)',
+                      cat: 'Allowance',
+                      formula: 'BASIC/240 * 0.5 + GROSS/240 * hrs',
+                      gl: '510101 (مدين)',
+                      val: simulatedPayslip.item.overtimePay || 0,
+                      strong: false,
+                    },
+                    {
+                      seq: 50,
+                      code: 'REWARD',
+                      name: 'المكافآت والحوافز المعتمدة',
+                      cat: 'Allowance',
+                      formula: 'inputs.REWARD.amount',
+                      gl: '510101 (مدين)',
+                      val: simulatedPayslip.item.rewardsAmount || 0,
+                      strong: false,
+                    },
+                    {
+                      seq: 100,
+                      code: 'GROSS',
+                      name: 'إجمالي الاستحقاقات (Gross Pay)',
+                      cat: 'Gross',
+                      formula: 'BASIC + HRA + TRANS + OT_107 + REWARD',
+                      gl: '—',
+                      val: simulatedPayslip.item.grossSalary || 0,
+                      strong: true,
+                    },
+                    {
+                      seq: 110,
+                      code: 'GOSI_EMP',
+                      name: 'حصة الموظف في التأمينات GOSI',
+                      cat: 'Deduction',
+                      formula: 'isSaudi ? -min(BASIC+HRA, 45000)*rate : 0',
+                      gl: '210302 (دائن)',
+                      val: -simulatedPayslip.item.gosiDeduction,
+                      strong: false,
+                    },
+                    {
+                      seq: 120,
+                      code: 'GOSI_COMP',
+                      name: 'حصة الشركة في التأمينات (أثر GL)',
+                      cat: 'Employer',
+                      formula: 'min(BASIC+HRA, 45000) * (isSaudi ? 11.75% : 2%)',
+                      gl: '510104 / 210302',
+                      val: simulatedPayslip.item.gosiEmployerShare || 0,
+                      strong: false,
+                    },
+                    {
+                      seq: 130,
+                      code: 'ADV_DED',
+                      name: 'استرداد قسط السلفة الشهرية',
+                      cat: 'Deduction',
+                      formula: '-inputs.ADVANCE.amount',
+                      gl: '110401 (دائن)',
+                      val: -(simulatedPayslip.item.advanceDeduction || 0),
+                      strong: false,
+                    },
+                    {
+                      seq: 140,
+                      code: 'SANC_DED',
+                      name: 'حسم الجزاءات والغياب (مادة 92)',
+                      cat: 'Deduction',
+                      formula: '-(inputs.SANCTION + UNPAID_LEAVE)',
+                      gl: '420105 (دائن)',
+                      val: -(
+                        (simulatedPayslip.item.sanctionDeduction || 0) +
+                        (simulatedPayslip.item.absenceDeduction || 0)
+                      ),
+                      strong: false,
+                    },
+                    {
+                      seq: 190,
+                      code: 'ART92_CAP',
+                      name: 'مرحل للشهر القادم (تجاوز سقف 50% م92)',
+                      cat: 'CarryForward',
+                      formula: 'max(0, TOTAL_RAW_DED - GROSS * 0.50)',
+                      gl: 'ذمم مؤجلة',
+                      val: simulatedPayslip.item.carriedForwardDeduction || 0,
+                      strong: (simulatedPayslip.item.carriedForwardDeduction || 0) > 0,
+                    },
+                    {
+                      seq: 200,
+                      code: 'NET',
+                      name: 'صافي الراتب للتحويل البنكي (WPS Net)',
+                      cat: 'Net',
+                      formula: 'GROSS - min(TOTAL_RAW_DED, GROSS * 0.50)',
+                      gl: '210301 (دائن)',
+                      val: simulatedPayslip.item.netSalary,
+                      strong: true,
+                    },
+                  ].map((r) => (
+                    <tr key={r.code} className={r.strong ? 'bg-[#f3f3f3]/60 font-bold' : ''}>
+                      <td className="font-mono text-[#707070]">{r.seq}</td>
+                      <td className="font-mono font-bold text-[#141414]">{r.code}</td>
+                      <td>
+                        <div className="font-semibold text-[#141414]">{r.name}</div>
+                        <span className="text-[11px] text-[#707070]">{r.cat}</span>
+                      </td>
+                      <td className="font-mono text-[11px] text-[#707070]" dir="ltr">
+                        {r.formula}
+                      </td>
+                      <td className="font-mono text-[11px] text-[#707070]">{r.gl}</td>
+                      <td className="font-mono text-left font-bold text-[#141414]">
+                        {r.val.toLocaleString()} ⃁
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Right 5 Cols: Interactive Payslip Rule Simulator & GL Journal Preview */}
+          <div className="lg:col-span-5 space-y-6">
+            {/* Pattern: form-section */}
+            <div data-slot="form-section" className="mobbin-card p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-3">
+                <h4 className="text-sm font-bold text-[#141414]">
+                  محاكي ومختبر قواعد الرواتب (Salary Rule Inputs)
+                </h4>
+                <span className="px-3 py-1 rounded-full bg-[#f3f3f3] text-[11px] font-mono text-[#707070]">
+                  Odoo Inputs
                 </span>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-right text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="sm:col-span-2">
+                  <label htmlFor="sim-emp-select" className="block text-[#707070] font-semibold mb-1.5">
+                    اختر الموظف للمحاكاة
+                  </label>
+                  <select
+                    id="sim-emp-select"
+                    value={selectedEmpId}
+                    onChange={(e) => setSelectedEmpId(e.target.value)}
+                    className="w-full min-h-[40px] bg-[#f0f0f0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-semibold text-[#141414]"
+                  >
+                    {employees.map((e) => (
+                      <option key={e.id} value={e.id}>
+                        {e.name} — {e.role} ({e.salary.toLocaleString()} ⃁)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="sim-ot-input" className="block text-[#707070] font-semibold mb-1.5">
+                    ساعات إضافية (Overtime)
+                  </label>
+                  <input
+                    id="sim-ot-input"
+                    type="number"
+                    min={0}
+                    max={120}
+                    value={simOvertimeHours}
+                    onChange={(e) => setSimOvertimeHours(Number(e.target.value) || 0)}
+                    className="w-full min-h-[40px] bg-[#f0f0f0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-mono text-[#141414]"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="sim-rew-input" className="block text-[#707070] font-semibold mb-1.5">
+                    مكافأة شهرية (inputs.REWARD)
+                  </label>
+                  <input
+                    id="sim-rew-input"
+                    type="number"
+                    min={0}
+                    step={100}
+                    value={simRewardInput}
+                    onChange={(e) => setSimRewardInput(Number(e.target.value) || 0)}
+                    className="w-full min-h-[40px] bg-[#f0f0f0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-mono text-[#141414]"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="sim-adv-input" className="block text-[#707070] font-semibold mb-1.5">
+                    قسط سلفة (inputs.ADVANCE)
+                  </label>
+                  <input
+                    id="sim-adv-input"
+                    type="number"
+                    min={0}
+                    step={100}
+                    value={simAdvanceInput}
+                    onChange={(e) => setSimAdvanceInput(Number(e.target.value) || 0)}
+                    className="w-full min-h-[40px] bg-[#f0f0f0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-mono text-[#141414]"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="sim-sanc-input" className="block text-[#707070] font-semibold mb-1.5">
+                    جزاء مالي (inputs.SANCTION)
+                  </label>
+                  <input
+                    id="sim-sanc-input"
+                    type="number"
+                    min={0}
+                    step={50}
+                    value={simSanctionInput}
+                    onChange={(e) => setSimSanctionInput(Number(e.target.value) || 0)}
+                    className="w-full min-h-[40px] bg-[#f0f0f0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-mono text-[#141414]"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="sim-unpaid-input" className="block text-[#707070] font-semibold mb-1.5">
+                    أيام غياب بدون أجر
+                  </label>
+                  <input
+                    id="sim-unpaid-input"
+                    type="number"
+                    min={0}
+                    max={30}
+                    value={simUnpaidDays}
+                    onChange={(e) => setSimUnpaidDays(Number(e.target.value) || 0)}
+                    className="w-full min-h-[40px] bg-[#f0f0f0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-mono text-[#141414]"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 pt-6">
+                  <input
+                    id="postJuly2024Toggle"
+                    type="checkbox"
+                    checked={simPostJuly2024Gosi}
+                    onChange={(e) => setSimPostJuly2024Gosi(e.target.checked)}
+                    className="size-4 accent-[#141414]"
+                  />
+                  <label htmlFor="postJuly2024Toggle" className="text-xs font-semibold text-[#141414] cursor-pointer">
+                    مشترك جديد بعد يوليو 2024 (تدرج GOSI)
+                  </label>
+                </div>
+              </div>
+
+              {(simulatedPayslip.item.carriedForwardDeduction || 0) > 0 && (
+                <div className="p-3 rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] text-xs text-[#141414]">
+                  <strong>تنبيه حماية الأجور (المادة 92):</strong> إجمالي الاستقطاعات المطلوبة تجاوز 50% من إجمالي الأجر. تم اكتفاء الحسم بمبلغ{' '}
+                  <span className="font-mono font-bold">
+                    {(simulatedPayslip.item.deductions + simulatedPayslip.item.gosiDeduction).toLocaleString()} ⃁
+                  </span>{' '}
+                  وترحيل{' '}
+                  <span className="font-mono font-bold">
+                    {(simulatedPayslip.item.carriedForwardDeduction || 0).toLocaleString()} ⃁
+                  </span>{' '}
+                  للشهر القادم تلقائياً.
+                </div>
+              )}
+            </div>
+
+            {/* Resulting GL Double-Entry Journal Entry Preview */}
+            <div data-slot="data-table" className="table-card mb-0">
+              <div className="table-card-header">
+                <h5 className="text-sm font-bold text-[#141414]">
+                  معاينة قيد اليومية المحاسبي الآلي (Payroll GL Entry)
+                </h5>
+                <span className="px-3 py-1 rounded-full bg-[#141414] text-white text-[11px] font-semibold">
+                  {simulatedPayslip.glEntry.isBalanced ? 'متوازن (Balanced)' : 'غير متوازن'}
+                </span>
+              </div>
+
+              <div className="data-table-wrapper">
+                <table className="odoo-data-table text-xs">
                   <thead>
-                    <tr className="border-b border-border text-muted bg-body/60">
-                      <th className="py-2.5 px-2 font-bold">#</th>
-                      <th className="py-2.5 px-2 font-bold">كود القاعدة</th>
-                      <th className="py-2.5 px-2 font-bold">البيان والفئة</th>
-                      <th className="py-2.5 px-2 font-bold">المعادلة البرمجية (Formula)</th>
-                      <th className="py-2.5 px-2 font-bold">حساب GL</th>
-                      <th className="py-2.5 px-2 font-bold text-left">ناتج المحاكاة</th>
+                    <tr>
+                      <th>الحساب</th>
+                      <th>البيان</th>
+                      <th className="text-left">مدين (Debit)</th>
+                      <th className="text-left">دائن (Credit)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border/60">
-                    {[
-                      {
-                        seq: 10,
-                        code: 'BASIC',
-                        name: 'الراتب الأساسي (Basic)',
-                        cat: 'Basic',
-                        formula: 'contract.basic_salary',
-                        gl: '510101 (مدين)',
-                        val: simulatedPayslip.item.basicSalary,
-                        color: 'text-main',
-                      },
-                      {
-                        seq: 20,
-                        code: 'HRA',
-                        name: 'بدل السكن (Housing)',
-                        cat: 'Allowance',
-                        formula: 'contract.housing_allowance',
-                        gl: '510102 (مدين)',
-                        val: simulatedPayslip.item.housingAllowance,
-                        color: 'text-main',
-                      },
-                      {
-                        seq: 30,
-                        code: 'TRANS',
-                        name: 'بدل النقل والبدلات الأخرى',
-                        cat: 'Allowance',
-                        formula: 'contract.transport + contract.other',
-                        gl: '510103 (مدين)',
-                        val: simulatedPayslip.item.otherAllowances,
-                        color: 'text-main',
-                      },
-                      {
-                        seq: 40,
-                        code: 'OT_107',
-                        name: 'عمل إضافي (مادة 107 — 150%)',
-                        cat: 'Allowance',
-                        formula: 'BASIC/240 * 0.5 + GROSS/240 * hrs',
-                        gl: '510101 (مدين)',
-                        val: simulatedPayslip.item.overtimePay || 0,
-                        color: 'text-emerald-600 font-bold',
-                      },
-                      {
-                        seq: 50,
-                        code: 'REWARD',
-                        name: 'المكافآت والحوافز المعتمدة',
-                        cat: 'Allowance',
-                        formula: 'inputs.REWARD.amount',
-                        gl: '510101 (مدين)',
-                        val: simulatedPayslip.item.rewardsAmount || 0,
-                        color: 'text-emerald-600 font-bold',
-                      },
-                      {
-                        seq: 100,
-                        code: 'GROSS',
-                        name: 'إجمالي الاستحقاقات (Gross Pay)',
-                        cat: 'Gross',
-                        formula: 'BASIC + HRA + TRANS + OT_107 + REWARD',
-                        gl: '—',
-                        val: simulatedPayslip.item.grossSalary || 0,
-                        color: 'text-primary font-black',
-                      },
-                      {
-                        seq: 110,
-                        code: 'GOSI_EMP',
-                        name: 'حصة الموظف في التأمينات GOSI',
-                        cat: 'Deduction',
-                        formula: 'isSaudi ? -min(BASIC+HRA, 45000)*rate : 0',
-                        gl: '210302 (دائن)',
-                        val: -simulatedPayslip.item.gosiDeduction,
-                        color: 'text-rose-600',
-                      },
-                      {
-                        seq: 120,
-                        code: 'GOSI_COMP',
-                        name: 'حصة الشركة في التأمينات (أثر GL)',
-                        cat: 'Employer',
-                        formula: 'min(BASIC+HRA, 45000) * (isSaudi ? 11.75% : 2%)',
-                        gl: '510104 / 210302',
-                        val: simulatedPayslip.item.gosiEmployerShare || 0,
-                        color: 'text-amber-700',
-                      },
-                      {
-                        seq: 130,
-                        code: 'ADV_DED',
-                        name: 'استرداد قسط السلفة الشهرية',
-                        cat: 'Deduction',
-                        formula: '-inputs.ADVANCE.amount',
-                        gl: '110401 (دائن)',
-                        val: -(simulatedPayslip.item.advanceDeduction || 0),
-                        color: 'text-rose-600',
-                      },
-                      {
-                        seq: 140,
-                        code: 'SANC_DED',
-                        name: 'حسم الجزاءات والغياب (مادة 92)',
-                        cat: 'Deduction',
-                        formula: '-(inputs.SANCTION + UNPAID_LEAVE)',
-                        gl: '420105 (دائن)',
-                        val: -((simulatedPayslip.item.sanctionDeduction || 0) + (simulatedPayslip.item.absenceDeduction || 0)),
-                        color: 'text-rose-600',
-                      },
-                      {
-                        seq: 190,
-                        code: 'ART92_CAP',
-                        name: 'مرحل للشهر القادم (تجاوز سقف 50% م92)',
-                        cat: 'CarryForward',
-                        formula: 'max(0, TOTAL_RAW_DED - GROSS * 0.50)',
-                        gl: 'ذمم مؤجلة',
-                        val: simulatedPayslip.item.carriedForwardDeduction || 0,
-                        color:
-                          (simulatedPayslip.item.carriedForwardDeduction || 0) > 0
-                            ? 'text-amber-600 font-black'
-                            : 'text-muted',
-                      },
-                      {
-                        seq: 200,
-                        code: 'NET',
-                        name: 'صافي الراتب للتحويل البنكي (WPS Net)',
-                        cat: 'Net',
-                        formula: 'GROSS - min(TOTAL_RAW_DED, GROSS * 0.50)',
-                        gl: '210301 (دائن)',
-                        val: simulatedPayslip.item.netSalary,
-                        color: 'text-emerald-700 font-black text-sm',
-                      },
-                    ].map((r) => (
-                      <tr key={r.code} className="hover:bg-body/40">
-                        <td className="py-2 px-2 font-mono text-muted">{r.seq}</td>
-                        <td className="py-2 px-2 font-mono font-bold text-main">{r.code}</td>
-                        <td className="py-2 px-2">
-                          <div className="font-bold text-main">{r.name}</div>
-                          <span className="text-[10px] text-muted">{r.cat}</span>
+                  <tbody>
+                    {simulatedPayslip.glEntry.lines.map((line, i) => (
+                      <tr key={i}>
+                        <td className="font-mono font-bold text-[#141414]">{line.accountCode}</td>
+                        <td className="text-[#141414]">{line.accountName}</td>
+                        <td className="font-mono text-left font-semibold text-[#141414]">
+                          {line.debit > 0 ? `${line.debit.toLocaleString()} ⃁` : '—'}
                         </td>
-                        <td className="py-2 px-2 font-mono text-[11px] text-muted" dir="ltr">
-                          {r.formula}
-                        </td>
-                        <td className="py-2 px-2 font-mono text-[11px] text-muted">{r.gl}</td>
-                        <td className={`py-2 px-2 font-mono text-left ${r.color}`}>
-                          {r.val.toLocaleString()} ⃁
+                        <td className="font-mono text-left font-semibold text-[#141414]">
+                          {line.credit > 0 ? `${line.credit.toLocaleString()} ⃁` : '—'}
                         </td>
                       </tr>
                     ))}
                   </tbody>
+                  <tfoot>
+                    <tr className="bg-[#f3f3f3] font-bold">
+                      <td colSpan={2} className="py-3 px-4 text-[#141414]">
+                        الإجمالي المطابق للأستاذ العام
+                      </td>
+                      <td className="py-3 px-4 font-mono text-left text-[#141414]">
+                        {simulatedPayslip.glEntry.totalDebit.toLocaleString()} ⃁
+                      </td>
+                      <td className="py-3 px-4 font-mono text-left text-[#141414]">
+                        {simulatedPayslip.glEntry.totalCredit.toLocaleString()} ⃁
+                      </td>
+                    </tr>
+                  </tfoot>
                 </table>
-              </div>
-            </div>
-
-            {/* Right 5 Cols: Interactive Payslip Rule Simulator & GL Journal Preview */}
-            <div className="lg:col-span-5 space-y-4">
-              <div className="bg-surface border border-border rounded-2xl p-5 space-y-4">
-                <div className="flex items-center justify-between border-b border-border pb-3">
-                  <h4 className="text-sm font-black text-main">
-                    محاكي ومختبر قواعد الرواتب (Salary Rule Inputs Debugger)
-                  </h4>
-                  <span className="text-[11px] font-mono text-muted">Odoo-Style Inputs</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div className="sm:col-span-2">
-                    <label className="block text-muted font-bold mb-1">اختر الموظف للمحاكاة</label>
-                    <select
-                      aria-label="اختر الموظف للمحاكاة"
-                      value={selectedEmpId}
-                      onChange={(e) => setSelectedEmpId(e.target.value)}
-                      className="w-full bg-body border border-border rounded-xl px-3 py-2 font-bold text-main"
-                    >
-                      {employees.map((e) => (
-                        <option key={e.id} value={e.id}>
-                          {e.name} — {e.role} ({e.salary.toLocaleString()} ⃁)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-muted font-bold mb-1">ساعات إضافية (Overtime)</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={120}
-                      value={simOvertimeHours}
-                      onChange={(e) => setSimOvertimeHours(Number(e.target.value) || 0)}
-                      className="w-full bg-body border border-border rounded-xl px-3 py-2 font-mono text-main"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-muted font-bold mb-1">مكافأة شهرية (inputs.REWARD)</label>
-                    <input
-                      type="number"
-                      min={0}
-                      step={100}
-                      value={simRewardInput}
-                      onChange={(e) => setSimRewardInput(Number(e.target.value) || 0)}
-                      className="w-full bg-body border border-border rounded-xl px-3 py-2 font-mono text-main"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-muted font-bold mb-1">قسط سلفة (inputs.ADVANCE)</label>
-                    <input
-                      type="number"
-                      min={0}
-                      step={100}
-                      value={simAdvanceInput}
-                      onChange={(e) => setSimAdvanceInput(Number(e.target.value) || 0)}
-                      className="w-full bg-body border border-border rounded-xl px-3 py-2 font-mono text-main"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-muted font-bold mb-1">جزاء مالي (inputs.SANCTION)</label>
-                    <input
-                      type="number"
-                      min={0}
-                      step={50}
-                      value={simSanctionInput}
-                      onChange={(e) => setSimSanctionInput(Number(e.target.value) || 0)}
-                      className="w-full bg-body border border-border rounded-xl px-3 py-2 font-mono text-main"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-muted font-bold mb-1">أيام غياب بدون أجر</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={30}
-                      value={simUnpaidDays}
-                      onChange={(e) => setSimUnpaidDays(Number(e.target.value) || 0)}
-                      className="w-full bg-body border border-border rounded-xl px-3 py-2 font-mono text-main"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2 pt-5">
-                    <input
-                      id="postJuly2024Toggle"
-                      type="checkbox"
-                      checked={simPostJuly2024Gosi}
-                      onChange={(e) => setSimPostJuly2024Gosi(e.target.checked)}
-                      className="rounded border-border"
-                    />
-                    <label htmlFor="postJuly2024Toggle" className="text-xs font-bold text-main cursor-pointer">
-                      مشترك جديد بعد يوليو 2024 (تدرج GOSI)
-                    </label>
-                  </div>
-                </div>
-
-                {(simulatedPayslip.item.carriedForwardDeduction || 0) > 0 && (
-                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-800">
-                    <strong>تنبيه حماية الأجور (المادة 92):</strong> إجمالي الاستقطاعات المطلوبة تجاوز 50% من إجمالي الأجر. تم اكتفاء الحسم بمبلغ{' '}
-                    <span className="font-mono font-bold">{(simulatedPayslip.item.deductions + simulatedPayslip.item.gosiDeduction).toLocaleString()} ⃁</span> وترحيل{' '}
-                    <span className="font-mono font-bold">{(simulatedPayslip.item.carriedForwardDeduction || 0).toLocaleString()} ⃁</span> للشهر القادم تلقائياً.
-                  </div>
-                )}
-              </div>
-
-              {/* Resulting GL Double-Entry Journal Entry Preview */}
-              <div className="bg-surface border border-border rounded-2xl p-5 space-y-3">
-                <div className="flex items-center justify-between border-b border-border pb-2">
-                  <h5 className="text-xs font-black text-main">
-                    معاينة قيد اليومية المحاسبي الآلي (Payroll Accounting Journal Entry)
-                  </h5>
-                  <span
-                    className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                      simulatedPayslip.glEntry.isBalanced
-                        ? 'bg-emerald-500/10 text-emerald-700'
-                        : 'bg-rose-500/10 text-rose-700'
-                    }`}
-                  >
-                    {simulatedPayslip.glEntry.isBalanced ? 'متوازن (Balanced)' : 'غير متوازن'}
-                  </span>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-right text-[11px]">
-                    <thead>
-                      <tr className="text-muted border-b border-border">
-                        <th className="py-1.5 px-2">الحساب</th>
-                        <th className="py-1.5 px-2">البيان</th>
-                        <th className="py-1.5 px-2 text-left">مدين (Debit)</th>
-                        <th className="py-1.5 px-2 text-left">دائن (Credit)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border/50">
-                      {simulatedPayslip.glEntry.lines.map((line, i) => (
-                        <tr key={i}>
-                          <td className="py-1.5 px-2 font-mono font-bold text-main">{line.accountCode}</td>
-                          <td className="py-1.5 px-2 text-main">{line.accountName}</td>
-                          <td className="py-1.5 px-2 font-mono text-left text-emerald-700">
-                            {line.debit > 0 ? `${line.debit.toLocaleString()} ⃁` : '—'}
-                          </td>
-                          <td className="py-1.5 px-2 font-mono text-left text-sky-700">
-                            {line.credit > 0 ? `${line.credit.toLocaleString()} ⃁` : '—'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                    <tfoot>
-                      <tr className="border-t-2 border-border font-black bg-body/60">
-                        <td colSpan={2} className="py-2 px-2">
-                          الإجمالي المطابق للأستاذ العام
-                        </td>
-                        <td className="py-2 px-2 font-mono text-left text-emerald-700">
-                          {simulatedPayslip.glEntry.totalDebit.toLocaleString()} ⃁
-                        </td>
-                        <td className="py-2 px-2 font-mono text-left text-sky-700">
-                          {simulatedPayslip.glEntry.totalCredit.toLocaleString()} ⃁
-                        </td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
               </div>
             </div>
           </div>
@@ -804,17 +833,15 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
       ===================================================================== */}
       {subTab === 'hr-pro-playbook' && (
         <div className="space-y-6">
-          {/* 30/60/90 Onboarding Section */}
-          <div className="bg-surface border border-border rounded-2xl p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <div>
-                <h4 className="text-sm font-black text-main">
-                  خطط التأهيل المؤسسي للموظفين الجدد (30 / 60 / 90 Day Onboarding Playbook)
-                </h4>
-                <p className="text-xs text-muted">
-                  متابعة استكمال الصلاحيات التقنية، توثيق عقد قوى، تسجيل التأمينات، ومراحل التمكين خلال أول 90 يوماً (فترة التجربة — المادة 53).
-                </p>
-              </div>
+          {/* Pattern: grid-2col — 30/60/90 Onboarding Section */}
+          <div data-slot="card-section" className="mobbin-card p-6 space-y-6">
+            <div className="border-b border-[#f0f0f0] pb-3">
+              <h4 className="text-[18px] font-bold text-[#141414] leading-snug">
+                خطط التأهيل المؤسسي للموظفين الجدد (30 / 60 / 90 Day Onboarding Playbook)
+              </h4>
+              <p className="text-xs text-[#707070] mt-1">
+                متابعة استكمال الصلاحيات التقنية، توثيق عقد قوى، تسجيل التأمينات، ومراحل التمكين خلال أول 90 يوماً (فترة التجربة — المادة 53).
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -831,49 +858,49 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                 const progressPct = Math.round((doneCount / steps.length) * 100);
 
                 return (
-                  <div key={plan.id} className="border border-border rounded-2xl p-4 bg-body/30 space-y-3">
+                  <div key={plan.id} className="mobbin-card-soft p-6 space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-sm font-black text-main">{plan.employee_name}</div>
-                        <div className="text-xs text-muted">
+                        <div className="text-sm font-bold text-[#141414]">{plan.employee_name}</div>
+                        <div className="text-xs text-[#707070]">
                           {plan.role} • {plan.department} • المباشرة: <span className="font-mono">{plan.start_date}</span>
                         </div>
                       </div>
-                      <span className="px-2.5 py-1 rounded-xl bg-primary/10 text-primary font-mono text-xs font-black">
+                      <span className="px-3 py-1 rounded-full bg-[#141414] text-white font-mono text-xs font-bold">
                         {progressPct}%
                       </span>
                     </div>
 
-                    <div className="w-full h-2 bg-border rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-[#e0e0e0] rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-emerald-500 transition-all"
+                        className="h-full bg-[#141414] transition-all"
                         style={{ width: `${progressPct}%` }}
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2" data-no-dyn-enhancer="true">
                       {steps.map((step) => (
                         <button
                           key={step.key}
                           type="button"
                           onClick={() => toggleOnboardingStep(plan, step.key)}
-                          className={`text-right px-2.5 py-1.5 rounded-xl border text-xs flex items-center gap-2 transition-all ${
+                          className={`min-h-[40px] text-right px-3 py-1.5 rounded-full border text-xs flex items-center gap-2 transition-all ${
                             plan[step.key]
-                              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 font-bold'
-                              : 'bg-surface border-border text-muted hover:text-main'
+                              ? 'bg-[#141414] border-[#141414] text-white font-semibold'
+                              : 'bg-white border-[#e0e0e0] text-[#707070] hover:text-[#141414]'
                           }`}
                         >
                           {plan[step.key] ? (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <CheckCircle2 className="size-3.5 shrink-0" />
                           ) : (
-                            <Circle className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                            <Circle className="size-3.5 shrink-0" />
                           )}
                           <span className="truncate">{step.label}</span>
                         </button>
                       ))}
                     </div>
 
-                    <div className="text-[11px] text-muted border-t border-border/60 pt-2 flex items-center justify-between">
+                    <div className="text-xs text-[#707070] border-t border-[#e0e0e0] pt-3 flex items-center justify-between flex-wrap gap-2">
                       <span>الزميل المرافق (Buddy): {plan.buddy_name}</span>
                       <span>{plan.notes}</span>
                     </div>
@@ -883,42 +910,42 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
             </div>
           </div>
 
-          {/* Performance Management Competency Matrix & PIP Section */}
-          <div className="bg-surface border border-border rounded-2xl p-5 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border pb-3">
+          {/* Pattern: data-table — Performance Management Competency Matrix & PIP Section */}
+          <div data-slot="data-table" className="table-card mb-0">
+            <div className="table-card-header">
               <div>
-                <h4 className="text-sm font-black text-main">
+                <h4 className="table-card-title text-base">
                   مصفوفة الجدارات وتقييم الأداء الموضوعي وخطط التحسين (Competency Matrix & PIP)
                 </h4>
-                <p className="text-xs text-muted">
+                <p className="text-xs text-[#707070] mt-1">
                   تقييم معياري من 1 إلى 5 مرتبط بمستهدفات SMART، مع تفعيل خطة تحسين الأداء (PIP) تلقائياً عند انخفاض المتوسط عن 3.0.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowNewReviewModal(true)}
-                className="px-3.5 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:opacity-95 flex items-center gap-1.5 self-start"
+                className="btn-odoo btn-odoo-primary"
               >
-                <TrendingUp className="w-3.5 h-3.5" />
+                <TrendingUp className="size-3.5" />
                 <span>تسجيل تقييم أداء / خطة PIP</span>
               </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs">
+            <div className="data-table-wrapper">
+              <table className="odoo-data-table text-xs">
                 <thead>
-                  <tr className="border-b border-border text-muted bg-body/60">
-                    <th className="py-2.5 px-3">الموظف والمسمى</th>
-                    <th className="py-2.5 px-2 text-center">إتقان العمل</th>
-                    <th className="py-2.5 px-2 text-center">جودة التنفيذ</th>
-                    <th className="py-2.5 px-2 text-center">الامتثال والانضباط</th>
-                    <th className="py-2.5 px-2 text-center">التعاون</th>
-                    <th className="py-2.5 px-2 text-center">المبادرة</th>
-                    <th className="py-2.5 px-2 text-center">المتوسط</th>
-                    <th className="py-2.5 px-3">مستهدفات SMART / حالة PIP</th>
+                  <tr>
+                    <th>الموظف والمسمى</th>
+                    <th className="text-center">إتقان العمل</th>
+                    <th className="text-center">جودة التنفيذ</th>
+                    <th className="text-center">الامتثال والانضباط</th>
+                    <th className="text-center">التعاون</th>
+                    <th className="text-center">المبادرة</th>
+                    <th className="text-center">المتوسط</th>
+                    <th>مستهدفات SMART / حالة PIP</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border/60">
+                <tbody>
                   {reviews.map((rev) => {
                     const avg =
                       (rev.job_mastery +
@@ -928,39 +955,37 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                         rev.leadership_initiative) /
                       5;
                     return (
-                      <tr key={rev.id} className="hover:bg-body/40">
-                        <td className="py-2.5 px-3">
-                          <div className="font-bold text-main">{rev.employee_name}</div>
-                          <div className="text-[11px] text-muted">
+                      <tr key={rev.id}>
+                        <td>
+                          <div className="font-bold text-[#141414]">{rev.employee_name}</div>
+                          <div className="text-[11px] text-[#707070]">
                             {rev.role} • {rev.cycle}
                           </div>
                         </td>
-                        <td className="py-2.5 px-2 text-center font-mono font-bold">{rev.job_mastery}/5</td>
-                        <td className="py-2.5 px-2 text-center font-mono font-bold">{rev.execution_quality}/5</td>
-                        <td className="py-2.5 px-2 text-center font-mono font-bold">{rev.compliance_discipline}/5</td>
-                        <td className="py-2.5 px-2 text-center font-mono font-bold">{rev.collaboration}/5</td>
-                        <td className="py-2.5 px-2 text-center font-mono font-bold">{rev.leadership_initiative}/5</td>
-                        <td className="py-2.5 px-2 text-center">
+                        <td className="text-center font-mono font-bold">{rev.job_mastery}/5</td>
+                        <td className="text-center font-mono font-bold">{rev.execution_quality}/5</td>
+                        <td className="text-center font-mono font-bold">{rev.compliance_discipline}/5</td>
+                        <td className="text-center font-mono font-bold">{rev.collaboration}/5</td>
+                        <td className="text-center font-mono font-bold">{rev.leadership_initiative}/5</td>
+                        <td className="text-center">
                           <span
-                            className={`px-2 py-0.5 rounded-lg font-mono font-black ${
-                              avg >= 4
-                                ? 'bg-emerald-500/10 text-emerald-700'
-                                : avg >= 3
-                                ? 'bg-sky-500/10 text-sky-700'
-                                : 'bg-rose-500/10 text-rose-700'
+                            className={`px-3 py-1 rounded-full font-mono font-bold text-xs ${
+                              avg < 3
+                                ? 'bg-[#ffdad6] text-[#ba1a1a]'
+                                : 'bg-[#f3f3f3] text-[#141414]'
                             }`}
                           >
                             {avg.toFixed(1)}
                           </span>
                         </td>
-                        <td className="py-2.5 px-3">
-                          <div className="text-main">{rev.smart_goal_summary}</div>
+                        <td>
+                          <div className="text-[#141414] font-medium">{rev.smart_goal_summary}</div>
                           {rev.pip_required ? (
-                            <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-rose-500/10 text-rose-700 text-[11px] font-bold">
+                            <div className="mt-1 inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-[#ffdad6] text-[#ba1a1a] text-[11px] font-semibold">
                               <span>خطة تحسين أداء نشطة (PIP): {rev.pip_coaching_plan}</span>
                             </div>
                           ) : (
-                            <span className="text-[10px] text-emerald-700 font-bold">أداء مستوفٍ للمعايير القياسية</span>
+                            <span className="text-[11px] text-[#707070]">أداء مستوفٍ للمعايير القياسية</span>
                           )}
                         </td>
                       </tr>
@@ -970,8 +995,8 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
               </table>
             </div>
 
-            <div className="p-3 rounded-xl bg-body border border-border text-[11px] text-muted">
-              <strong>إشعار الحوكمة والامتثال القانوني (HR-Pro Legal & Privacy Guardrail):</strong> تُستخدم نماذج تقييم الأداء وخطط التحسين (PIP) لأغراض التطوير المهني الموثق وفق نظام العمل السعودي ونظام حماية البيانات الشخصية (PDPL). في القرارات التعاقدية الحساسة (كالفسخ بموجب المادة 80 أو إنهاء العقد)، يجب دائماً استشارة الإدارة القانونية المختصة.
+            <div className="p-4 bg-[#f3f3f3] border-t border-[#f0f0f0] text-xs text-[#707070]">
+              <strong className="text-[#141414]">إشعار الحوكمة والامتثال القانوني (HR-Pro Legal & Privacy Guardrail):</strong> تُستخدم نماذج تقييم الأداء وخطط التحسين (PIP) لأغراض التطوير المهني الموثق وفق نظام العمل السعودي ونظام حماية البيانات الشخصية (PDPL). في القرارات التعاقدية الحساسة (كالفسخ بموجب المادة 80 أو إنهاء العقد)، يجب دائماً استشارة الإدارة القانونية المختصة.
             </div>
           </div>
         </div>
@@ -982,14 +1007,14 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
       ===================================================================== */}
       {subTab === 'bamboohr-sync' && (
         <div className="space-y-6">
-          {/* Incremental Sync Status Bar */}
-          <div className="bg-surface border border-border rounded-2xl p-5 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border pb-3">
+          {/* Pattern: stat-grid & filter-bar — Incremental Sync Status */}
+          <div data-slot="card-section" className="mobbin-card p-6 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#f0f0f0] pb-4">
               <div>
-                <h4 className="text-sm font-black text-main">
+                <h4 className="text-[18px] font-bold text-[#141414] leading-snug">
                   مركز رصد التغييرات التفاضلية والمزامنة الفورية (BambooHR `EMPLOYEE_GET_CHANGED` Pattern)
                 </h4>
-                <p className="text-xs text-muted">
+                <p className="text-xs text-[#707070] mt-1">
                   تتبع التعديلات على بيانات الموظفين والرواتب والتابعين منذ آخر طابع زمني (`since={lastSyncIso.slice(0, 19)}Z`) لمزامنتها مع الأنظمة الخارجية (BambooHR / قوى / مدد / التأمين الطبي).
                 </p>
               </div>
@@ -998,7 +1023,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                   aria-label="فلترة نوع التغيير"
                   value={changeFilterType}
                   onChange={(e) => setChangeFilterType(e.target.value as 'all' | 'inserted' | 'updated')}
-                  className="bg-body border border-border rounded-xl px-3 py-2 text-xs font-bold text-main"
+                  className="min-h-[40px] bg-[#f0f0f0] border-2 border-transparent focus:border-[#141414] rounded-full px-4 py-1.5 text-xs font-semibold text-[#141414]"
                 >
                   <option value="all">جميع التغييرات (All)</option>
                   <option value="inserted">إضافات جديدة (inserted)</option>
@@ -1007,88 +1032,84 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                 <button
                   type="button"
                   onClick={handleTriggerIncrementalSync}
-                  className="px-3.5 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:opacity-95 flex items-center gap-1.5"
+                  className="btn-odoo btn-odoo-primary"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
+                  <RefreshCw className="size-3.5" />
                   <span>تشغيل المزامنة التفاضلية الآن</span>
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-              <div className="p-3.5 rounded-xl bg-body border border-border">
-                <div className="text-muted">آخر طابع زمني للمزامنة (last_sync_timestamp)</div>
-                <div className="font-mono font-bold text-main mt-1" dir="ltr">
+            <div data-slot="stat-grid" className="stat-card-grid mb-0">
+              <div className="stat-card">
+                <div className="stat-title">آخر طابع زمني للمزامنة (last_sync_timestamp)</div>
+                <div className="font-mono font-bold text-[#141414] text-sm mt-2" dir="ltr">
                   {lastSyncIso}
                 </div>
               </div>
-              <div className="p-3.5 rounded-xl bg-body border border-border">
-                <div className="text-muted">إجمالي الموظفين المشمولين بالمزامنة</div>
-                <div className="font-mono font-black text-emerald-700 text-base mt-1">
-                  {employees.length} موظف نشط
-                </div>
+              <div className="stat-card">
+                <div className="stat-title">إجمالي الموظفين المشمولين بالمزامنة</div>
+                <div className="stat-value text-2xl mt-1">{employees.length} موظف نشط</div>
               </div>
-              <div className="p-3.5 rounded-xl bg-body border border-border">
-                <div className="text-muted">إجمالي التابعين والوثائق التأمينية</div>
-                <div className="font-mono font-black text-primary text-base mt-1">
-                  {dependents.length} تابع مسجل
-                </div>
+              <div className="stat-card">
+                <div className="stat-title">إجمالي التابعين والوثائق التأمينية</div>
+                <div className="stat-value text-2xl mt-1">{dependents.length} تابع مسجل</div>
               </div>
             </div>
           </div>
 
-          {/* Dependents & Medical Insurance Benefits Registry */}
-          <div className="bg-surface border border-border rounded-2xl p-5 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border pb-3">
+          {/* Pattern: data-table — Dependents & Medical Insurance Benefits Registry */}
+          <div data-slot="data-table" className="table-card mb-0">
+            <div className="table-card-header">
               <div>
-                <h4 className="text-sm font-black text-main">
+                <h4 className="table-card-title text-base">
                   سجل التابعين والتغطية التأمينية الطبية (`DEPENDENTS_GET_ALL` & `BENEFIT_GET_COVERAGES`)
                 </h4>
-                <p className="text-xs text-muted">
+                <p className="text-xs text-[#707070] mt-1">
                   إدارة تابعي الموظفين (الزوج/الزوجة والأبناء) وربطهم ببوالص التأمين الطبي الإلزامي ومجلس الضمان الصحي (CCHI).
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowAddDependentModal(true)}
-                className="px-3.5 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:opacity-95 flex items-center gap-1.5 self-start"
+                className="btn-odoo btn-odoo-primary"
               >
-                <UserPlus className="w-3.5 h-3.5" />
+                <UserPlus className="size-3.5" />
                 <span>إضافة تابع وتغطية تأمينية</span>
               </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs">
+            <div className="data-table-wrapper">
+              <table className="odoo-data-table text-xs">
                 <thead>
-                  <tr className="border-b border-border text-muted bg-body/60">
-                    <th className="py-2.5 px-3">الكود</th>
-                    <th className="py-2.5 px-3">الموظف الأساسي</th>
-                    <th className="py-2.5 px-3">اسم التابع</th>
-                    <th className="py-2.5 px-3">صلة القرابة</th>
-                    <th className="py-2.5 px-3">رقم الهوية / الإقامة</th>
-                    <th className="py-2.5 px-3">تاريخ الميلاد</th>
-                    <th className="py-2.5 px-3">فئة التأمين والبوليصة</th>
-                    <th className="py-2.5 px-3">الحالة</th>
+                  <tr>
+                    <th>الكود</th>
+                    <th>الموظف الأساسي</th>
+                    <th>اسم التابع</th>
+                    <th>صلة القرابة</th>
+                    <th>رقم الهوية / الإقامة</th>
+                    <th>تاريخ الميلاد</th>
+                    <th>فئة التأمين والبوليصة</th>
+                    <th>الحالة</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border/60">
+                <tbody>
                   {dependents.map((dep) => (
-                    <tr key={dep.id} className="hover:bg-body/40">
-                      <td className="py-2.5 px-3 font-mono font-bold text-muted">{dep.id}</td>
-                      <td className="py-2.5 px-3 font-bold text-main">{dep.employee_name}</td>
-                      <td className="py-2.5 px-3 font-bold text-main">{dep.dependent_name}</td>
-                      <td className="py-2.5 px-3">{dep.relationship}</td>
-                      <td className="py-2.5 px-3 font-mono">{dep.national_id}</td>
-                      <td className="py-2.5 px-3 font-mono">{dep.birth_date}</td>
-                      <td className="py-2.5 px-3">
-                        <span className="px-2 py-0.5 rounded bg-primary/10 text-primary font-bold">
+                    <tr key={dep.id}>
+                      <td className="font-mono font-bold text-[#707070]">{dep.id}</td>
+                      <td className="font-bold text-[#141414]">{dep.employee_name}</td>
+                      <td className="font-bold text-[#141414]">{dep.dependent_name}</td>
+                      <td>{dep.relationship}</td>
+                      <td className="font-mono">{dep.national_id}</td>
+                      <td className="font-mono">{dep.birth_date}</td>
+                      <td>
+                        <span className="px-3 py-1 rounded-full bg-[#f3f3f3] text-[#141414] font-bold">
                           {dep.insurance_plan}
                         </span>
-                        <span className="font-mono text-[11px] text-muted mr-2">{dep.policy_number}</span>
+                        <span className="font-mono text-[11px] text-[#707070] ms-2">{dep.policy_number}</span>
                       </td>
-                      <td className="py-2.5 px-3">
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 font-bold text-[11px]">
+                      <td>
+                        <span className="px-3 py-1 rounded-full bg-[#f3f3f3] text-[#141414] font-semibold text-[11px]">
                           {dep.status}
                         </span>
                       </td>
@@ -1103,26 +1124,29 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
 
       {/* Modal: New Performance Review / PIP */}
       {showNewReviewModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-surface border border-border rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h4 className="text-sm font-black text-main">تسجيل تقييم أداء معياري (1–5) / خطة تحسين PIP</h4>
+        <div className="fixed inset-0 z-[2100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#e0e0e0] rounded-[24px] max-w-lg w-full overflow-hidden shadow-[var(--elevation-modal)]">
+            <div className="p-4 bg-[#141414] text-white flex items-center justify-between">
+              <h4 className="text-sm font-bold text-white">تسجيل تقييم أداء معياري (1–5) / خطة تحسين PIP</h4>
               <button
                 type="button"
+                aria-label="إغلاق"
                 onClick={() => setShowNewReviewModal(false)}
-                className="text-muted hover:text-main"
+                className="text-[#adadad] hover:text-white"
               >
-                ✕
+                <X className="size-5" />
               </button>
             </div>
-            <form onSubmit={handleCreateReview} className="space-y-3 text-xs">
+            <form onSubmit={handleCreateReview} className="p-6 space-y-4 text-xs">
               <div>
-                <label className="block font-bold text-muted mb-1">الموظف</label>
+                <label htmlFor="rev-emp-select" className="block font-semibold text-[#707070] mb-1.5">
+                  الموظف
+                </label>
                 <select
-                  aria-label="الموظف"
+                  id="rev-emp-select"
                   value={revEmpId}
                   onChange={(e) => setRevEmpId(e.target.value)}
-                  className="w-full bg-body border border-border rounded-xl px-3 py-2 font-bold text-main"
+                  className="w-full min-h-[40px] bg-[#f0f0f0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-semibold text-[#141414]"
                 >
                   {employees.map((e) => (
                     <option key={e.id} value={e.id}>
@@ -1132,63 +1156,70 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {[
-                  { label: 'إتقان العمل (1-5)', val: revMastery, set: setRevMastery },
-                  { label: 'جودة التنفيذ (1-5)', val: revExec, set: setRevExec },
-                  { label: 'الامتثال والانضباط (1-5)', val: revComp, set: setRevComp },
-                  { label: 'التعاون الجماعي (1-5)', val: revCollab, set: setRevCollab },
-                  { label: 'المبادرة والقيادة (1-5)', val: revLead, set: setRevLead },
-                ].map((item, idx) => (
-                  <div key={idx}>
-                    <label className="block font-bold text-muted mb-1">{item.label}</label>
+                  { id: 'rev-m1', label: 'إتقان العمل (1-5)', val: revMastery, set: setRevMastery },
+                  { id: 'rev-m2', label: 'جودة التنفيذ (1-5)', val: revExec, set: setRevExec },
+                  { id: 'rev-m3', label: 'الامتثال والانضباط (1-5)', val: revComp, set: setRevComp },
+                  { id: 'rev-m4', label: 'التعاون الجماعي (1-5)', val: revCollab, set: setRevCollab },
+                  { id: 'rev-m5', label: 'المبادرة والقيادة (1-5)', val: revLead, set: setRevLead },
+                ].map((item) => (
+                  <div key={item.id}>
+                    <label htmlFor={item.id} className="block font-semibold text-[#707070] mb-1.5">
+                      {item.label}
+                    </label>
                     <input
+                      id={item.id}
                       type="number"
                       min={1}
                       max={5}
                       value={item.val}
                       onChange={(e) => item.set(Math.min(5, Math.max(1, Number(e.target.value) || 1)))}
-                      className="w-full bg-body border border-border rounded-xl px-3 py-1.5 font-mono text-main"
+                      className="w-full min-h-[40px] bg-[#f0f0f0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-1.5 font-mono text-[#141414]"
                     />
                   </div>
                 ))}
               </div>
 
               <div>
-                <label className="block font-bold text-muted mb-1">مستهدفات SMART للفترة القادمة</label>
+                <label htmlFor="rev-goal-input" className="block font-semibold text-[#707070] mb-1.5">
+                  مستهدفات SMART للفترة القادمة
+                </label>
                 <input
+                  id="rev-goal-input"
                   type="text"
                   value={revGoal}
                   onChange={(e) => setRevGoal(e.target.value)}
                   placeholder="مثال: إنجاز توثيق العقود بنسبة 100% خلال 30 يوماً..."
-                  className="w-full bg-body border border-border rounded-xl px-3 py-2 text-main"
+                  className="w-full min-h-[40px] bg-[#f0f0f0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 text-[#141414]"
                 />
               </div>
 
               {(revMastery + revExec + revComp + revCollab + revLead) / 5 < 3.0 && (
                 <div>
-                  <label className="block font-bold text-rose-600 mb-1">
+                  <label htmlFor="rev-pip-input" className="block font-semibold text-[#ba1a1a] mb-1.5">
                     خطة التوجيه وتحسين الأداء الإلزامية (PIP Coaching Plan)
                   </label>
                   <input
+                    id="rev-pip-input"
                     type="text"
                     value={revPipCoaching}
                     onChange={(e) => setRevPipCoaching(e.target.value)}
                     placeholder="حدد خطوات التطوير الأسبوعية ومعايير القياس الموضوعية..."
-                    className="w-full bg-rose-500/5 border border-rose-500/30 rounded-xl px-3 py-2 text-main"
+                    className="w-full min-h-[40px] bg-[#ffdad6]/40 border-2 border-[#fca5a5] rounded-[16px] px-3 py-2 text-[#141414]"
                   />
                 </div>
               )}
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-border">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#f0f0f0]">
                 <button
                   type="button"
                   onClick={() => setShowNewReviewModal(false)}
-                  className="px-4 py-2 rounded-xl border border-border text-muted font-bold"
+                  className="btn-odoo btn-odoo-secondary"
                 >
                   إلغاء
                 </button>
-                <button type="submit" className="px-4 py-2 rounded-xl bg-primary text-white font-bold">
+                <button type="submit" className="btn-odoo btn-odoo-primary">
                   حفظ واعتماد التقييم
                 </button>
               </div>
@@ -1199,26 +1230,29 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
 
       {/* Modal: Add Dependent & Medical Insurance Coverage */}
       {showAddDependentModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-surface border border-border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h4 className="text-sm font-black text-main">إضافة تابع وتفعيل التغطية التأمينية الطبية</h4>
+        <div className="fixed inset-0 z-[2100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#e0e0e0] rounded-[24px] max-w-md w-full overflow-hidden shadow-[var(--elevation-modal)]">
+            <div className="p-4 bg-[#141414] text-white flex items-center justify-between">
+              <h4 className="text-sm font-bold text-white">إضافة تابع وتفعيل التغطية التأمينية الطبية</h4>
               <button
                 type="button"
+                aria-label="إغلاق"
                 onClick={() => setShowAddDependentModal(false)}
-                className="text-muted hover:text-main"
+                className="text-[#adadad] hover:text-white"
               >
-                ✕
+                <X className="size-5" />
               </button>
             </div>
-            <form onSubmit={handleAddDependent} className="space-y-3 text-xs">
+            <form onSubmit={handleAddDependent} className="p-6 space-y-4 text-xs">
               <div>
-                <label className="block font-bold text-muted mb-1">الموظف الأساسي</label>
+                <label htmlFor="dep-emp-select" className="block font-semibold text-[#707070] mb-1.5">
+                  الموظف الأساسي
+                </label>
                 <select
-                  aria-label="الموظف الأساسي"
+                  id="dep-emp-select"
                   value={depEmpId}
                   onChange={(e) => setDepEmpId(e.target.value)}
-                  className="w-full bg-body border border-border rounded-xl px-3 py-2 font-bold text-main"
+                  className="w-full min-h-[40px] bg-[#f0f0f0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-semibold text-[#141414]"
                 >
                   {employees.map((e) => (
                     <option key={e.id} value={e.id}>
@@ -1229,25 +1263,30 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
               </div>
 
               <div>
-                <label className="block font-bold text-muted mb-1">اسم التابع رباعياً</label>
+                <label htmlFor="dep-name-input" className="block font-semibold text-[#707070] mb-1.5">
+                  اسم التابع رباعياً
+                </label>
                 <input
+                  id="dep-name-input"
                   type="text"
                   required
                   value={depName}
                   onChange={(e) => setDepName(e.target.value)}
                   placeholder="أدخل اسم التابع..."
-                  className="w-full bg-body border border-border rounded-xl px-3 py-2 text-main"
+                  className="w-full min-h-[40px] bg-[#f0f0f0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 text-[#141414]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-muted mb-1">صلة القرابة</label>
+                  <label htmlFor="dep-rel-select" className="block font-semibold text-[#707070] mb-1.5">
+                    صلة القرابة
+                  </label>
                   <select
-                    aria-label="صلة القرابة"
+                    id="dep-rel-select"
                     value={depRel}
                     onChange={(e) => setDepRel(e.target.value as DependentBenefitRecord['relationship'])}
-                    className="w-full bg-body border border-border rounded-xl px-3 py-2 text-main"
+                    className="w-full min-h-[40px] bg-[#f0f0f0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 text-[#141414]"
                   >
                     <option value="زوج/زوجة">زوج/زوجة</option>
                     <option value="ابن">ابن</option>
@@ -1256,12 +1295,14 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                   </select>
                 </div>
                 <div>
-                  <label className="block font-bold text-muted mb-1">فئة التأمين الطبي</label>
+                  <label htmlFor="dep-plan-select" className="block font-semibold text-[#707070] mb-1.5">
+                    فئة التأمين الطبي
+                  </label>
                   <select
-                    aria-label="فئة التأمين الطبي"
+                    id="dep-plan-select"
                     value={depPlan}
                     onChange={(e) => setDepPlan(e.target.value as DependentBenefitRecord['insurance_plan'])}
-                    className="w-full bg-body border border-border rounded-xl px-3 py-2 text-main"
+                    className="w-full min-h-[40px] bg-[#f0f0f0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 text-[#141414]"
                   >
                     <option value="VIP">VIP</option>
                     <option value="Class A">Class A</option>
@@ -1270,37 +1311,43 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-muted mb-1">رقم الهوية / الإقامة</label>
+                  <label htmlFor="dep-natid-input" className="block font-semibold text-[#707070] mb-1.5">
+                    رقم الهوية / الإقامة
+                  </label>
                   <input
+                    id="dep-natid-input"
                     type="text"
                     value={depNatId}
                     onChange={(e) => setDepNatId(e.target.value)}
                     placeholder="10xxxxxxxx"
-                    className="w-full bg-body border border-border rounded-xl px-3 py-2 font-mono text-main"
+                    className="w-full min-h-[40px] bg-[#f0f0f0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-mono text-[#141414]"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-muted mb-1">تاريخ الميلاد</label>
+                  <label htmlFor="dep-birth-input" className="block font-semibold text-[#707070] mb-1.5">
+                    تاريخ الميلاد
+                  </label>
                   <input
+                    id="dep-birth-input"
                     type="date"
                     value={depBirth}
                     onChange={(e) => setDepBirth(e.target.value)}
-                    className="w-full bg-body border border-border rounded-xl px-3 py-2 font-mono text-main"
+                    className="w-full min-h-[40px] bg-[#f0f0f0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-mono text-[#141414]"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-border">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#f0f0f0]">
                 <button
                   type="button"
                   onClick={() => setShowAddDependentModal(false)}
-                  className="px-4 py-2 rounded-xl border border-border text-muted font-bold"
+                  className="btn-odoo btn-odoo-secondary"
                 >
                   إلغاء
                 </button>
-                <button type="submit" className="px-4 py-2 rounded-xl bg-primary text-white font-bold">
+                <button type="submit" className="btn-odoo btn-odoo-primary">
                   تسجيل التابع وإصدار البوليصة
                 </button>
               </div>

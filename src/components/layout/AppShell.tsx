@@ -207,8 +207,9 @@ export const AppShell: React.FC<AppShellProps> = ({
     const btn = target.closest('button') as HTMLButtonElement | null;
     if (!btn || btn.disabled) return;
 
-    // Skip if already managed by <DynamicActionButton />, excluded via data-no-dyn-enhancer, or currently transitioning
+    // Skip if already managed by <DynamicActionButton />, excluded via data-no-dyn-enhancer, tab button, or currently transitioning
     if (btn.getAttribute('data-dynamic-button') === 'true') return;
+    if (btn.getAttribute('role') === 'tab' || btn.closest('[role="tablist"]')) return;
     if (btn.closest('[data-no-dyn-enhancer="true"]')) return;
     if (btn.getAttribute('data-dyn-state')) return;
 

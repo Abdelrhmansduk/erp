@@ -1322,8 +1322,14 @@ export const HRPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Sub Tabs Navigation */}
-      <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
+      {/* Sub Tabs Navigation — Pattern: filter-bar */}
+      <div
+        data-slot="filter-bar"
+        data-no-dyn-enhancer="true"
+        role="tablist"
+        aria-label="تبويبات قسم الموارد البشرية والرواتب"
+        className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3"
+      >
         {[
           { id: 'employees', label: `الموظفون (${employeesList.length})`, icon: Users },
           { id: 'signatures', label: `حافظة التواقيع والاتفاقيات (${employeesList.length})`, icon: FileSignature },
@@ -1345,6 +1351,9 @@ export const HRPage: React.FC = () => {
           return (
             <button
               key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
               onClick={() => setActiveTab(tab.id as any)}
               style={{
                 display: 'inline-flex',
@@ -1353,10 +1362,10 @@ export const HRPage: React.FC = () => {
                 padding: '6px 16px',
                 borderRadius: '9999px',
                 border: '1px solid',
-                borderColor: isActive ? '#000000' : '#e4e4e7',
-                backgroundColor: isActive ? '#000000' : '#ffffff',
-                color: isActive ? '#ffffff' : '#27272a',
-                fontWeight: isActive ? 550 : 420,
+                borderColor: isActive ? '#141414' : '#e0e0e0',
+                backgroundColor: isActive ? '#141414' : '#ffffff',
+                color: isActive ? '#ffffff' : '#141414',
+                fontWeight: isActive ? 600 : 456,
                 fontSize: '12.5px',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
@@ -2062,19 +2071,26 @@ export const HRPage: React.FC = () => {
         return (
           <div className="space-y-4">
             {/* Payroll Run Lifecycle State Bar */}
-            <div className="p-4 rounded-2xl bg-white border border-zinc-200 flex items-center justify-between flex-wrap gap-3">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-bold text-black ml-2">دورة حياة مسير شهر ({payrollMonth}):</span>
+            <div
+              data-slot="filter-bar"
+              data-no-dyn-enhancer="true"
+              className="mobbin-card p-4 flex items-center justify-between flex-wrap gap-3"
+            >
+              <div role="tablist" className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-bold text-[#141414] me-2">دورة حياة مسير شهر ({payrollMonth}):</span>
                 {stages.map((st) => {
                   const isCurrent = payrollRunStatus === st.id;
                   return (
                     <button
                       key={st.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={isCurrent}
                       onClick={() => setPayrollRunStatus(st.id)}
-                      className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-all ${
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all ${
                         isCurrent
-                          ? 'bg-black text-white border-black shadow-sm'
-                          : 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:bg-zinc-100'
+                          ? 'bg-[#141414] text-white border-[#141414]'
+                          : 'bg-white text-[#707070] border-[#e0e0e0] hover:bg-[#f3f3f3] hover:text-[#141414]'
                       }`}
                     >
                       {st.label}
@@ -2085,37 +2101,39 @@ export const HRPage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <input
                   type="month"
+                  aria-label="شهر مسير الرواتب"
                   value={payrollMonth}
                   onChange={(e) => setPayrollMonth(e.target.value)}
-                  className="bg-zinc-50 border border-zinc-200 rounded-xl px-2.5 py-1 text-xs font-mono font-bold text-black"
+                  className="bg-[#f0f0f0] border-2 border-transparent focus:border-[#141414] rounded-full px-3.5 py-1.5 text-xs font-mono font-bold text-[#141414]"
                 />
                 <button
+                  type="button"
                   onClick={handlePostPayrollToGL}
-                  className="button-outline-on-light text-xs font-bold py-1.5 px-3 flex items-center gap-1"
+                  className="btn-odoo btn-odoo-secondary text-xs py-1.5 px-3.5"
                 >
-                  <Scale className="w-3.5 h-3.5 text-emerald-600" />
+                  <Scale className="size-3.5 text-[#141414]" />
                   <span>ترحيل القيد المحاسبي المزدوج (GL)</span>
                 </button>
               </div>
             </div>
 
-            {/* Summary Strip */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="p-4 rounded-2xl bg-white border border-zinc-200">
-                <span className="text-[11px] text-zinc-500 font-bold block">صافي الرواتب المحولة (WPS)</span>
-                <div className="text-lg font-extrabold font-mono text-emerald-700 mt-1">{totalNet.toFixed(2)} ⃁</div>
+            {/* Summary Strip — Mobbin Monochrome Stat Grid */}
+            <div data-slot="stat-grid" className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="mobbin-card p-5">
+                <span className="text-xs text-[#707070] font-semibold block">صافي الرواتب المحولة (WPS)</span>
+                <div className="text-xl font-extrabold font-mono text-[#141414] mt-1.5">{totalNet.toFixed(2)} ⃁</div>
               </div>
-              <div className="p-4 rounded-2xl bg-white border border-zinc-200">
-                <span className="text-[11px] text-zinc-500 font-bold block">استقطاع الموظفين GOSI (9.75%)</span>
-                <div className="text-lg font-extrabold font-mono text-rose-700 mt-1">-{totalGosiEmp.toFixed(2)} ⃁</div>
+              <div className="mobbin-card p-5">
+                <span className="text-xs text-[#707070] font-semibold block">استقطاع الموظفين GOSI (9.75%)</span>
+                <div className="text-xl font-extrabold font-mono text-[#141414] mt-1.5">-{totalGosiEmp.toFixed(2)} ⃁</div>
               </div>
-              <div className="p-4 rounded-2xl bg-white border border-zinc-200">
-                <span className="text-[11px] text-zinc-500 font-bold block">حصة المنشأة GOSI (11.75%)</span>
-                <div className="text-lg font-extrabold font-mono text-black mt-1">{totalGosiEmpr.toFixed(2)} ⃁</div>
+              <div className="mobbin-card p-5">
+                <span className="text-xs text-[#707070] font-semibold block">حصة المنشأة GOSI (11.75%)</span>
+                <div className="text-xl font-extrabold font-mono text-[#141414] mt-1.5">{totalGosiEmpr.toFixed(2)} ⃁</div>
               </div>
-              <div className="p-4 rounded-2xl bg-white border border-zinc-200">
-                <span className="text-[11px] text-zinc-500 font-bold block">إجمالي استرداد السلف والجزاءات</span>
-                <div className="text-lg font-extrabold font-mono text-amber-700 mt-1">-{totalDeductions.toFixed(2)} ⃁</div>
+              <div className="mobbin-card p-5">
+                <span className="text-xs text-[#707070] font-semibold block">إجمالي استرداد السلف والجزاءات</span>
+                <div className="text-xl font-extrabold font-mono text-[#141414] mt-1.5">-{totalDeductions.toFixed(2)} ⃁</div>
               </div>
             </div>
 
@@ -2408,49 +2426,49 @@ export const HRPage: React.FC = () => {
                   </label>
                 </div>
 
-                {/* Calculation Results Column */}
+                {/* Calculation Results Column — Mobbin Monochrome Stat Grid */}
                 <div className="md:col-span-2 space-y-4 flex flex-col justify-between">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-200">
-                      <span className="text-[11px] text-zinc-500 font-bold block">صافي مكافأة نهاية الخدمة</span>
-                      <div className="text-lg font-extrabold font-mono text-black mt-1">
+                  <div data-slot="stat-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="mobbin-card p-4">
+                      <span className="text-[11px] text-[#707070] font-semibold block">صافي مكافأة نهاية الخدمة</span>
+                      <div className="text-lg font-extrabold font-mono text-[#141414] mt-1">
                         {finalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ⃁
                       </div>
-                      <span className="text-[10px] text-zinc-500">نسبة الاستحقاق: {Math.round(payoutPct * 100)}%</span>
+                      <span className="text-[10px] text-[#707070]">نسبة الاستحقاق: {Math.round(payoutPct * 100)}%</span>
                     </div>
 
-                    <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-200">
-                      <span className="text-[11px] text-zinc-500 font-bold block">تعويض رصيد الإجازات ({eosUnusedLeaveDays} يوم)</span>
-                      <div className="text-lg font-extrabold font-mono text-emerald-700 mt-1">
+                    <div className="mobbin-card p-4">
+                      <span className="text-[11px] text-[#707070] font-semibold block">تعويض رصيد الإجازات ({eosUnusedLeaveDays} يوم)</span>
+                      <div className="text-lg font-extrabold font-mono text-[#141414] mt-1">
                         +{leaveEncashment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ⃁
                       </div>
-                      <span className="text-[10px] text-zinc-400">المادة (111) من نظام العمل</span>
+                      <span className="text-[10px] text-[#707070]">المادة (111) من نظام العمل</span>
                     </div>
 
-                    <div className="p-4 bg-rose-50/60 rounded-2xl border border-rose-200">
-                      <span className="text-[11px] text-rose-800 font-bold block">خصم السلف المتبقية</span>
-                      <div className="text-lg font-extrabold font-mono text-rose-800 mt-1">
+                    <div className="mobbin-card p-4">
+                      <span className="text-[11px] text-[#707070] font-semibold block">خصم السلف المتبقية</span>
+                      <div className="text-lg font-extrabold font-mono text-[#141414] mt-1">
                         -{eosRemainingAdvance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ⃁
                       </div>
-                      <span className="text-[10px] text-rose-600">استرداد ذمم الموظف</span>
+                      <span className="text-[10px] text-[#707070]">استرداد ذمم الموظف</span>
                     </div>
 
-                    <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200">
-                      <span className="text-[11px] text-emerald-800 font-bold block">صافي المخالصة المستحق للصرف</span>
-                      <div className="text-xl font-extrabold font-mono text-emerald-900 mt-1">
+                    <div className="mobbin-card-soft p-4">
+                      <span className="text-[11px] text-[#141414] font-bold block">صافي المخالصة المستحق للصرف</span>
+                      <div className="text-xl font-extrabold font-mono text-[#141414] mt-1">
                         {netFinalClearance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ⃁
                       </div>
-                      <span className="text-[10px] text-emerald-700 font-bold">المادة (88): يصرف خلال أسبوع</span>
+                      <span className="text-[10px] text-[#707070] font-semibold">المادة (88): يصرف خلال أسبوع</span>
                     </div>
                   </div>
 
-                  {/* Legal Explanation Box */}
-                  <div className="p-4 bg-amber-50/60 rounded-2xl border border-amber-200 space-y-1">
-                    <div className="flex items-center gap-1.5 font-bold text-xs text-amber-950">
-                      <Scale className="w-4 h-4 text-amber-700" />
+                  {/* Legal Explanation Box — Mobbin Soft Card */}
+                  <div className="mobbin-card-soft p-4 space-y-1">
+                    <div className="flex items-center gap-1.5 font-bold text-xs text-[#141414]">
+                      <Scale className="w-4 h-4 text-[#141414]" />
                       <span>السند النظامي للحسبة:</span>
                     </div>
-                    <p className="text-xs text-amber-900 leading-relaxed font-sans">
+                    <p className="text-xs text-[#707070] leading-relaxed font-sans">
                       {legalArticle}
                     </p>
                   </div>
