@@ -23,6 +23,7 @@ import {
   HrOfficialLetterModal,
   HrComplianceRadarPanel,
 } from '../components/hr/HrEnterpriseModals';
+import { HrProOdooBambooSuite } from '../components/hr/HrProOdooBambooSuite';
 
 export interface EmployeeRecord {
   id: string;
@@ -390,6 +391,7 @@ export type HrSubTab =
   | 'end-of-service'
   | 'gosi'
   | 'compliance-radar'
+  | 'hr-pro-hub'
   | 'maids-hr';
 
 export const HRPage: React.FC = () => {
@@ -467,6 +469,11 @@ export const HRPage: React.FC = () => {
       case 'nitaqat':
       case 'compliance-radar':
         return 'compliance-radar';
+      case 'hr-pro':
+      case 'odoo-payroll':
+      case 'bamboohr':
+      case 'hr-pro-hub':
+        return 'hr-pro-hub';
       case 'maids-hr':
       case 'domestic-fleet':
         return 'maids-hr';
@@ -1330,6 +1337,7 @@ export const HRPage: React.FC = () => {
           { id: 'end-of-service', label: 'حاسبة نهاية الخدمة والمخالصة', icon: Calculator },
           { id: 'gosi', label: 'التأمينات الاجتماعية (GOSI)', icon: ShieldCheck },
           { id: 'compliance-radar', label: 'نطاقات ورادار الوثائق', icon: Scale },
+          { id: 'hr-pro-hub', label: 'هيكلة الأجور والأداء (Odoo & HR-Pro)', icon: Sparkles },
           { id: 'maids-hr', label: 'أسطول العمالة والتشغيل', icon: Users },
         ].map((tab) => {
           const isActive = activeTab === tab.id;
@@ -2494,6 +2502,36 @@ export const HRPage: React.FC = () => {
           nitaqat={WpsPayrollEngine.calculateNitaqatStatus(employeesList)}
           alerts={WpsPayrollEngine.scanDocumentExpiries(employeesList)}
           onRenewDocument={handleRenewEmployeeDocument}
+        />
+      )}
+
+      {/* Tab: HR-Pro, Odoo Salary Rules & BambooHR Sync Suite */}
+      {activeTab === 'hr-pro-hub' && (
+        <HrProOdooBambooSuite
+          employees={employeesList.map((e) => ({
+            id: e.id,
+            employee_code: e.employee_code,
+            name: e.name,
+            national_id: e.national_id,
+            role: e.job_title,
+            department: e.department,
+            salary: e.salary,
+            basic_salary: e.basic_salary,
+            housing_allowance: e.housing_allowance,
+            transport_allowance: e.transport_allowance,
+            allowances: e.allowances,
+            iban: e.iban,
+            hire_date: e.hire_date,
+            status: e.status,
+          }))}
+          payrollRecords={computedPayrollRecords}
+          onNotify={(title, message, type) =>
+            addNotification({
+              title,
+              message,
+              type: type || 'success',
+            })
+          }
         />
       )}
 
