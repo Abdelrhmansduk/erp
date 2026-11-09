@@ -125,6 +125,7 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'musaned-plan',
       'musaned-integration-plan',
       'contract-insurance',
+      'trial-period-90',
       'orders',
       'all-orders',
       'new-orders',

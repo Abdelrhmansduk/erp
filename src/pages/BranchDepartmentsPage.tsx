@@ -34,7 +34,7 @@ export interface SubDepartment {
   description: string;
   head: string;
   staff_count: number;
-  status: 'مفعل' | 'قيد التطوير';
+  status: 'مفعل' | 'قيد المراجعة';
   kpi: string;
   icon?: string;
 }
