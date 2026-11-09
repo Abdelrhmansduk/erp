@@ -3,6 +3,25 @@ import { SIDEBAR_MENU } from '../data/sidebarMenu';
 import { NavItem } from '../types';
 import { KAS_DEPARTMENTS, KAS_BRANCHES } from '../components/kas/KasNavigationSidebar';
 
+const isCompanyMatch = (item: NavItem, activeCompanyCode: string): boolean => {
+  if (!item.exclusiveToCompany) return true;
+  if (item.exclusiveToCompany === 'KAS') {
+    return activeCompanyCode.toUpperCase() === 'KAS';
+  }
+  return activeCompanyCode.toUpperCase() === item.exclusiveToCompany.toUpperCase();
+};
+
+const filterMenuForCompany = (items: NavItem[], activeCompanyCode: string): NavItem[] => {
+  return items
+    .filter(item => isCompanyMatch(item, activeCompanyCode))
+    .map(item => {
+      if (item.children) {
+        return { ...item, children: filterMenuForCompany(item.children, activeCompanyCode) };
+      }
+      return item;
+    });
+};
+
 describe('Multi-Company Isolation & KAS Standalone Security', () => {
   it('should verify KAS items in SIDEBAR_MENU have exclusiveToCompany set to KAS', () => {
     const findKasItems = (items: NavItem[]): NavItem[] => {
@@ -28,25 +47,6 @@ describe('Multi-Company Isolation & KAS Standalone Security', () => {
   });
 
   it('should completely exclude KAS items when active company is recruitment (SAF / YAQ / TOP)', () => {
-    const isCompanyMatch = (item: NavItem, activeCompanyCode: string): boolean => {
-      if (!item.exclusiveToCompany) return true;
-      if (item.exclusiveToCompany === 'KAS') {
-        return activeCompanyCode.toUpperCase() === 'KAS';
-      }
-      return activeCompanyCode.toUpperCase() === item.exclusiveToCompany.toUpperCase();
-    };
-
-    const filterMenuForCompany = (items: NavItem[], activeCompanyCode: string): NavItem[] => {
-      return items
-        .filter(item => isCompanyMatch(item, activeCompanyCode))
-        .map(item => {
-          if (item.children) {
-            return { ...item, children: filterMenuForCompany(item.children, activeCompanyCode) };
-          }
-          return item;
-        });
-    };
-
     // Test for SAF (الصفا الماسي)
     const safMenu = filterMenuForCompany(SIDEBAR_MENU, 'SAF');
     const safKasItems = safMenu.flatMap(i => (i.children || [])).filter(i => i.id === 'tenders-boq' || i.id === 'kas-etmad' || i.id === 'kas-suite');
@@ -64,25 +64,6 @@ describe('Multi-Company Isolation & KAS Standalone Security', () => {
   });
 
   it('should include KAS items when active company is KAS', () => {
-    const isCompanyMatch = (item: NavItem, activeCompanyCode: string): boolean => {
-      if (!item.exclusiveToCompany) return true;
-      if (item.exclusiveToCompany === 'KAS') {
-        return activeCompanyCode.toUpperCase() === 'KAS';
-      }
-      return activeCompanyCode.toUpperCase() === item.exclusiveToCompany.toUpperCase();
-    };
-
-    const filterMenuForCompany = (items: NavItem[], activeCompanyCode: string): NavItem[] => {
-      return items
-        .filter(item => isCompanyMatch(item, activeCompanyCode))
-        .map(item => {
-          if (item.children) {
-            return { ...item, children: filterMenuForCompany(item.children, activeCompanyCode) };
-          }
-          return item;
-        });
-    };
-
     const kasMenu = filterMenuForCompany(SIDEBAR_MENU, 'KAS');
     const kasItems = kasMenu.flatMap(i => (i.children || [])).filter(i => i.id === 'tenders-boq' || i.id === 'kas-etmad' || i.id === 'kas-suite');
     expect(kasItems.length).toBe(3);

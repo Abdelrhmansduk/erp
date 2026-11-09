@@ -21,9 +21,11 @@ const CHROME_PATHS = [
 const executablePath = CHROME_PATHS.find((p) => fs.existsSync(p));
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:5173';
 const LOGIN_SCREENSHOT_PATH =
-  'C:/Users/ALIENWARE/.gemini/antigravity/brain/b8b943dd-353e-4fa6-97d1-75d686eb4d3a/erp_browser_e2e_verified.png';
+  process.env.LOGIN_SCREENSHOT_PATH ||
+  'C:/Users/ALIENWARE/.gemini/antigravity/brain/5df4a61b-357a-4a2f-b0a6-497d375f0694/erp_browser_e2e_verified.png';
 const DASHBOARD_SCREENSHOT_PATH =
-  'C:/Users/ALIENWARE/.gemini/antigravity/brain/b8b943dd-353e-4fa6-97d1-75d686eb4d3a/erp_dashboard_e2e_verified.png';
+  process.env.DASHBOARD_SCREENSHOT_PATH ||
+  'C:/Users/ALIENWARE/.gemini/antigravity/brain/5df4a61b-357a-4a2f-b0a6-497d375f0694/erp_dashboard_e2e_verified.png';
 
 function checkServerReady(url) {
   return new Promise((resolve) => {
