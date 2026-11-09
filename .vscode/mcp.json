@@ -3,6 +3,14 @@
     "supabase": {
       "url": "http://127.0.0.1:54421/mcp?read_only=true&features=docs%2Cdatabase%2Cdebugging%2Cdevelopment"
     },
+    "firebase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "firebase-tools@latest",
+        "experimental:mcp"
+      ]
+    },
     "sentry": {
       "command": "npx",
       "args": [

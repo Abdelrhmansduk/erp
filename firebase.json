@@ -1,0 +1,9 @@
+{
+  "auth": {
+    "providers": {
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "ERP Group Khalid Al-Sulaim"
+      }
+    }
+  }
+}
