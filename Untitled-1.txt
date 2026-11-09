@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>نظام كليك للاستقدام | تسجيل الدخول</title>
+    <link rel="stylesheet" href="https://clickerp.com.sa/public/admin/login/css/style-dashboard.css?v=5">
+    <link rel="stylesheet" href="https://clickerp.com.sa/public/admin/login/css/fontawesome.min.css">
+    <link rel="stylesheet" href="https://clickerp.com.sa/public/admin/assets/vendor/toster/css/jquery.toast.css">
+    
+<script type="text/javascript" class="flasher-js">(function() {    var rootScript = 'https://cdn.jsdelivr.net/npm/@flasher/flasher@1.3.2/dist/flasher.min.js';    var FLASHER_FLASH_BAG_PLACE_HOLDER = {};    var options = mergeOptions([], FLASHER_FLASH_BAG_PLACE_HOLDER);    function mergeOptions(first, second) {        return {            context: merge(first.context || {}, second.context || {}),            envelopes: merge(first.envelopes || [], second.envelopes || []),            options: merge(first.options || {}, second.options || {}),            scripts: merge(first.scripts || [], second.scripts || []),            styles: merge(first.styles || [], second.styles || []),        };    }    function merge(first, second) {        if (Array.isArray(first) && Array.isArray(second)) {            return first.concat(second).filter(function(item, index, array) {                return array.indexOf(item) === index;            });        }        return Object.assign({}, first, second);    }    function renderOptions(options) {        if(!window.hasOwnProperty('flasher')) {            console.error('Flasher is not loaded');            return;        }        requestAnimationFrame(function () {            window.flasher.render(options);        });    }    function render(options) {        if ('loading' !== document.readyState) {            renderOptions(options);            return;        }        document.addEventListener('DOMContentLoaded', function() {            renderOptions(options);        });    }    if (1 === document.querySelectorAll('script.flasher-js').length) {        document.addEventListener('flasher:render', function (event) {            render(event.detail);        });            }    if (window.hasOwnProperty('flasher') || !rootScript || document.querySelector('script[src="' + rootScript + '"]')) {        render(options);    } else {        var tag = document.createElement('script');        tag.setAttribute('src', rootScript);        tag.setAttribute('type', 'text/javascript');        tag.onload = function () {            render(options);        };        document.head.appendChild(tag);    }})();</script>
+</head>
+
+<body  dir="rtl" >
+    <div class="auth-page" style="--login-bg-image: url('https://clickerp.com.sa/public/storage/images/settings/qDvxapJdIu1777494306.webp');">
+        <div class="auth-frame">
+            <div class="auth-card">
+                
+                                    <div class="auth-top-actions">
+                                                        <a href="https://clickerp.com.sa/public/index.php/ar/agent/login"
+        class="agent-login-icon"
+        title="تسجيل دخول الوكلاء"
+        aria-label="تسجيل دخول الوكلاء">
+        <i class="fa fa-user" aria-hidden="true"></i>
+    </a>
+                        
+                                                    <nav class="language-switcher"
+                                aria-label="تغيير اللغة">
+                                                                    <a href="https://clickerp.com.sa/public/index.php/ar/dashboard/login"
+                                        class="active"
+                                        hreflang="ar">
+                                        AR
+                                    </a>
+                                                                    <a href="https://clickerp.com.sa/public/index.php/en/dashboard/login"
+                                        class=""
+                                        hreflang="en">
+                                        EN
+                                    </a>
+                                                            </nav>
+                                            </div>
+                
+                <div class="brand-lockup">
+                    <div class="brand-logo">
+                        <img class="logo" src="https://clickerp.com.sa/public/storage/images/settings/WfCO4xBvlV1777494306.webp" alt="logo"
+                            onerror="this.onerror=null;this.src='https://clickerp.com.sa/public/site/assets/images/company_logo.png';">
+                    </div>
+                </div>
+
+                <div class="form-heading">
+                    <h1>تسجيل الدخول</h1>
+                                            <p class="subtitle">سجل دخولك للوصول السريع إلى لوحة التحكم.</p>
+                                    </div>
+
+                
+                
+                    <form id="loginForm" action="https://clickerp.com.sa/public/index.php/dashboard/login" method="POST" novalidate>
+        <input type="hidden" name="_token" value="0OX8skGoYMW3oFzRTyEgohkPaQhpyUH2eG0Zr2WL">        <div class="form-alert" role="alert" aria-live="assertive"></div>
+        <div class="form-group">
+            <div class="input-field">
+                <label for="email">البريد الإلكتروني أو اسم المستخدم*</label>
+                <div class="input-shell">
+                    <span class="input-icon">
+                        <img src="https://clickerp.com.sa/public/admin/login/imgs/email.svg" alt="email">
+                    </span>
+                    <input type="text" id="email" name="login" value=""
+                        placeholder="البريد الالكترونى" autocomplete="username" required>
+                </div>
+            </div>
+            <div class="input-field">
+                <label for="password">كلمة المرور.*</label>
+                <div class="input-shell">
+                    <span class="input-icon">
+                        <img src="https://clickerp.com.sa/public/admin/login/imgs/password.svg" alt="password">
+                    </span>
+                    <input type="password" id="password" name="password" class="password-text-input"
+                        placeholder="كلمة المرور" autocomplete="current-password" required>
+                    <button type="button" class="password-toggle" id="passwordToggle"
+                        aria-label="إظهار كلمة المرور"
+                        aria-pressed="false">
+                        <i class="fa fa-eye" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="form-meta">
+            <label for="rememberme" class="checkbox-control">
+                <input type="checkbox" name="rememberme" id="rememberme">
+                <span>تذكرني</span>
+            </label>
+            <span class="meta-hint">
+                يبقى الدخول فعالاً على أجهزتك الموثوقة.
+            </span>
+        </div>
+        <button type="submit" class="primary-btn">تسجيل الدخول.</button>
+    </form>
+
+                                    <div class="auth-links">
+                            <a class="secondary-link" href="https://clickerp.com.sa/public/index.php/dashboard/forgot-password">هل نسيت كلمة المرور؟</a>
+                    </div>
+                            </div>
+        </div>
+
+        <div class="footer">
+            <span class="footer-copy">جميع الحقوق محفوظة لـ</span>
+            <a href="https://clickerp.com.sa" target="_blank" rel="noopener" class="footer-brand" title="Click ERP">
+                <img src="https://clickerp.com.sa/public/site/assets/images/fav.png" alt="Click ERP"
+                    style="width:24px!important;height:24px!important;max-width:24px!important;max-height:24px!important;object-fit:contain!important;"
+                    onerror="this.onerror=null;this.style.display='none';">
+                <span>Click ERP</span>
+            </a>
+            <span class="footer-copy">© 2026</span>
+        </div>
+    </div>
+
+    <script src="https://clickerp.com.sa/public/admin/assets/js/plugins.js"></script>
+    <script src="https://clickerp.com.sa/public/admin/assets/js/theme.js"></script>
+    <script src="https://clickerp.com.sa/public/admin/assets/vendor/toster/js/jquery.toast.js"></script>
+    <script src="https://clickerp.com.sa/public/admin/assets/js/custom.js"></script>
+        <script type="text/javascript">
+        $(function() {
+            const passwordInput = document.getElementById('password');
+            const passwordToggle = document.getElementById('passwordToggle');
+
+            if (passwordInput && passwordToggle) {
+                const eyeIcon = passwordToggle.querySelector('i');
+                const showLabel = "\u0625\u0638\u0647\u0627\u0631 \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631";
+                const hideLabel = "\u0625\u062e\u0641\u0627\u0621 \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631";
+
+                passwordToggle.addEventListener('click', function() {
+                    const isHidden = passwordInput.type === 'password';
+
+                    passwordInput.type = isHidden ? 'text' : 'password';
+                    passwordToggle.setAttribute('aria-pressed', isHidden ? 'true' : 'false');
+                    passwordToggle.setAttribute('aria-label', isHidden ? hideLabel : showLabel);
+
+                    if (eyeIcon) {
+                        eyeIcon.className = isHidden ? 'fa fa-eye-slash' : 'fa fa-eye';
+                    }
+                });
+            }
+
+            $(document).on("submit", "#loginForm", function(e) {
+                e.preventDefault();
+                let formObj = $(this);
+                formObj.find("[type='submit']").html("تسجيل الدخول....");
+                $.ajax({
+                    url: formObj.attr('action'),
+                    data: formObj.serialize(),
+                    type: "POST",
+                    dataType: 'json',
+                    success: function(result) {
+                        formObj.find("[type='submit']").html("تسجيل الدخول.");
+                        $('.form-alert').html(result.message)
+                        if (result.code === 200) {
+                            successToster('تم بنجاح', result
+                            .message);
+                            window.location.href = result.data.url;
+                        } else if (result.code === 401) {
+                            warningToster('حدث خطأ', result.message)
+                        } else {
+                            warningToster('حدث خطأ', result.message)
+                        }
+                    },
+                    error: function(errorObj) {
+                        formObj.find("[type='submit']").html("تسجيل الدخول.");
+                        if (errorObj.status === 500) {
+                            errorToster('حدث خطأ',
+                                "لا تمتلك الصلاحية ");
+                        } else if (errorObj.status == 422) {
+                            let errorsObj = $.parseJSON(errorObj.responseText);
+                            let listObject = errorsObj.errors;
+                            let testArr = [];
+                            $.each(listObject, function(errorKey, errorArr) {
+                                $.each(errorArr, function(key, value) {
+                                    testArr.push(value);
+                                });
+                            });
+                            validToster('حدث خطأ', testArr)
+                        }
+                    }
+                });
+                return false;
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,63 @@
+# منظومة تخطيط الموارد المؤسسية الموحدة — مجموعة خالد السليم القابضة
+## Khalid Al-Sulaim Holding Group — Enterprise ERP & SMACC Cloud v4.2
+
+منظومة سحابية متكاملة (Multi-Tenant Enterprise ERP) مبنية بـ **React 19 + TypeScript + Vite 6 + Tailwind CSS + Supabase PostgreSQL**، مصممة لإدارة وتشغيل شركات وقطاعات مجموعة خالد السليم القابضة بعزل مؤسسي صارم (Row-Level Security & Department RBAC) ورصد حي للأخطاء مع استشفاء ذاتي (Self-Healing Runtime Monitor).
+
+---
+
+## 1. الشركات والكيانات المشمولة (Group Entities & Portals)
+
+| الرمز | الكيان المؤسسي | الاختصاص التشغيلي |
+| :--- | :--- | :--- |
+| **`HQ / ALL`** | **الإدارة المركزية والسيطرة العليا** | مركز القيادة التنفيذي، توحيد القوائم المالية، حوكمة الصلاحيات (`IAM`)، والمرصد الحي للأخطاء |
+| **`SAF`** | **شركة السفير / الصفا الماسي للاستقدام** | إدارة عقود الاستقدام عبر منصة مساند، التفييز، التذاكر، والضمان (90 يوماً) |
+| **`YAQ`** | **شركة الياقوت الشرقية للتشغيل والتأجير** | عقود التأجير بالساعة والشهر، حركة الأسطول والسائقين، ومراكز التسكين |
+| **`TOP`** | **شركة توب تالنت الدولية للتوظيف (ATS)** | مسار الفرز الذكي، بنك السير الذاتية، والمقابلات المسجلة |
+| **`KAS`** | **شركة كاس للمنافسات والتجارة (`KAS Suite`)** | منافسات منصة اعتماد، تحليل جداول الكميات (`BOQ`)، والضمانات البنكية |
+| **`DAR`** | **مراكز دار الرواد للإيواء والرعاية (`HRSD`)** | إدارة التسكين، الإعاشة، الرعاية الصحية، والترحيل النظامي |
+
+---
+
+## 2. أبرز المزايا المعمارية والتشغيلية (Core Capabilities)
+
+- **بوابة مصادقة الإدارة العليا (`KASSR.ID` Executive Login)**:
+  - واجهة دخول تنفيذية موحدة ([`src/pages/LoginPage.tsx`](src/pages/LoginPage.tsx)) تدعم 3 أنماط مصادقة: **كلمة المرور**، **رابط المشرف الموثق**، و**البصمة الحيوية (`WebAuthn Passkey`)**، مع دليل نفاذ سريع لـ 15 حساباً متخصصاً للأقسام والشركات وتفعيل حسابات الموظفين الجدد.
+- **مرصد الأخطاء الحي والاستشفاء الذاتي (`Enterprise Live Error Monitor`)**:
+  - محرك رصد لحظي ([`src/services/errorMonitorService.ts`](src/services/errorMonitorService.ts) + [`src/components/monitoring/EnterpriseErrorMonitorPanel.tsx`](src/components/monitoring/EnterpriseErrorMonitorPanel.tsx)) يلتقط أخطاء `window.onerror` و `unhandledrejection` وفشل الشبكة، وينفذ استشفاءً تلقائياً (تطهير الكاش التالف، إعادة المزامنة مع المتجر المحلي، وجدولة الرفع لجدول `public.system_error_logs` في Supabase).
+- **المحاسبة المركزية والفوترة الإلكترونية (`SMACC v6 & ZATCA Phase 2`)**:
+  - دفتر أستاذ عام مزدوج القيد، سندات قبض وصرف، تسويات بنكية، ومولد فواتير ضريبية ومبسطة مختومة بشفرة `TLV Base64 QR` والهاش المتسلسل `SHA-256`.
+- **المستشار الذكي الصوتي (`فارس` و `نُورة`)**:
+  - توجيه صوتي ونصي فوري مع مستخرج ذكي لبيانات الفواتير والعقود والجوازات (`Universal Document Extractor`).
+
+---
+
+## 3. التشغيل السريع وبوابات الجودة (Quick Start & Quality Gates)
+
+```bash
+# 1. تثبيت الحزم
+npm install
+
+# 2. تشغيل خادم التطوير المحلي (المنفذ 5180)
+npx vite --port 5180 --host 0.0.0.0
+
+# 3. فحص الأنواع الصارم (TypeScript Strict Check)
+npx tsc --noEmit
+
+# 4. تشغيل الاختبارات الآلية (Vitest)
+npx vitest run
+
+# 5. بناء نسخة الإنتاج (Production Bundle)
+npm run build
+```
+
+---
+
+## 4. الوثائق المرجعية ومهارات التصميم (Documentation & Design Skills)
+
+- [`design.md`](design.md) — الدليل الشامل لنظام التصميم الدلالي، الألوان (`#1D2428`, `#CFA64A`, `#FBFBF5`, `#FAF9F5`)، ومواصفات بوابة `KASSR.ID`.
+- [`.agents/skills/ui-ux-design-system/SKILL.md`](.agents/skills/ui-ux-design-system/SKILL.md) — مهارة ومعايير فحص UI/UX وإمكانية الوصول (`WCAG 2.1 AA`) وقواعد الاتجاه العربي (`RTL`).
+- [`architecture.md`](architecture.md) — الميثاق المعماري المؤسسي (`DDD`, `State Machines`, `Outbox Pattern`, `Ledger`).
+- [`prd.md`](prd.md) — وثيقة متطلبات المنتج ومصفوفة الصلاحيات (`RBAC`).
+- [`rules.md`](rules.md) — ميثاق القواعد الهندسية وعزل الشركات (`RLS Invariants`).
+- [`memory.md`](memory.md) — دليل الأداء العالي والتخزين المؤقت متعدد الطبقات (`Multi-Tier Caching`).
+- [`docs/FIX_PLAN.md`](docs/FIX_PLAN.md) — سجل المراجعة الشاملة وخطة الإصلاح المكتملة (54/54 تبويب بدون أخطاء).

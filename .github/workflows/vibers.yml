@@ -1,0 +1,25 @@
+name: Vibers Spec & Security Code Review
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  review:
+    name: Spec Compliance & OWASP Security Review
+    runs-on: ubuntu-latest
+    # Runs automatically when VIBERS_SPEC_URL is configured in repository variables, or manually via workflow_dispatch
+    if: github.event_name == 'workflow_dispatch' || vars.VIBERS_SPEC_URL != ''
+    steps:
+      - name: Checkout Repository (with commit diff history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Run Vibers Code Review Action
+        uses: marsiandeployer/vibers-action@v1
+        with:
+          spec_url: ${{ vars.VIBERS_SPEC_URL || 'https://erp.alsulaim.sa/erp-site-architecture-plan.md' }}
+          review_scope: 'full'
+          telegram_contact: ${{ vars.VIBERS_TELEGRAM_CONTACT || '' }}

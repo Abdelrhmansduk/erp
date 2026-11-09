@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /api/private/
+
+Sitemap: https://erp.alsulaim.sa/sitemap.xml

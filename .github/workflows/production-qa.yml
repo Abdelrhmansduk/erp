@@ -1,0 +1,39 @@
+name: 13-Phase Production QA Validator
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  production-qa:
+    name: Typecheck, Unit Tests & Production Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Phase 1 — TypeScript Strict Typecheck (tsc --noEmit)
+        run: npx tsc --noEmit
+
+      - name: Phase 1 — Accounting & IFRS Engine Unit Tests (Vitest)
+        run: npx vitest run src/services/accounting/journalEngine.test.ts
+
+      - name: Phase 2 — Production Bundle & Public Assets Verification
+        run: |
+          npm run build
+          test -f dist/index.html
+          test -f dist/robots.txt
+          test -f dist/sitemap.xml
+          test -f dist/manifest.json

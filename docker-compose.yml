@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # 1. Enterprise ERP Web Application Container
+  erp-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: erp_alsulaim_web
+    restart: always
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_APP_TITLE=ERP Group Khalid Al-Sulaim
+      - VITE_SUPABASE_URL=http://localhost:5432
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY:-}
+    depends_on:
+      - supabase-db
+    networks:
+      - erp-network
+
+  # 2. Local Supabase / PostgreSQL Database Container
+  supabase-db:
+    image: postgres:15-alpine
+    container_name: erp_alsulaim_postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./supabase/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - erp-network
+
+networks:
+  erp-network:
+    driver: bridge
+
+volumes:
+  pgdata:
+    driver: local

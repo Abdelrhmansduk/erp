@@ -1,0 +1,1648 @@
+/* Mobbin Design System Components (DESIGN-mobbin.md Specification)
+   - Three-Radius Geometry: {rounded.sm}=16px, {rounded.md}=24px, {rounded.full}=9999px, squircle=30%
+   - Shadow-Free Elevation: 0px drop-shadow, 1px #f0f0f0 / #e0e0e0 hairlines & #f3f3f3 tonal surfaces
+   - 95% Achromatic Ink-on-Canvas (#141414 / #ffffff / #f3f3f3) + 5% Electric Blue (#0066ff)
+*/
+
+/* KPI Stat Cards Widget — Shadow-Free 24px Radius */
+.stat-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--color-canvas);
+  border-radius: var(--rounded-md);
+  padding: 24px;
+  border: 1px solid var(--color-hairline-soft);
+  box-shadow: none !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  font-family: var(--font-family-ui);
+}
+
+.stat-card:hover {
+  border-color: var(--color-hairline);
+  transform: none;
+  box-shadow: none !important;
+}
+
+.stat-card-accent-bar {
+  display: none;
+}
+
+.stat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.stat-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  letter-spacing: 0px;
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 30%;
+  background: var(--color-canvas-soft);
+  color: var(--color-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.stat-value {
+  font-family: var(--font-family-display);
+  font-size: 32px;
+  font-weight: 652;
+  letter-spacing: 0px;
+  color: var(--color-ink);
+  line-height: 1.13;
+}
+
+.stat-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.stat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--rounded-full);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.stat-badge.up {
+  background: var(--color-canvas-soft);
+  color: var(--color-ink);
+  border: none;
+}
+
+.stat-badge.down {
+  background: var(--color-canvas-soft);
+  color: var(--color-text-muted);
+}
+
+/* Table Card Container — Pure Mobbin #ffffff Surface with 1px #f0f0f0 Hairline & Zero Shadow */
+.table-card {
+  background: var(--color-canvas);
+  border-radius: var(--rounded-md);
+  border: 1px solid var(--color-hairline-soft);
+  box-shadow: none !important;
+  overflow: hidden;
+  margin-bottom: 24px;
+  font-family: var(--font-family-ui);
+  transition: border-color 0.15s ease;
+}
+
+.table-card:hover {
+  border-color: var(--color-hairline);
+  box-shadow: none !important;
+}
+
+.table-card-header {
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-hairline-soft);
+  flex-wrap: wrap;
+  gap: 12px;
+  background: var(--color-canvas);
+}
+
+.table-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0px;
+}
+
+.table-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Modern Action Buttons — Mobbin Stadium Pill Geometry (9999px) */
+.btn-odoo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: var(--rounded-full);
+  font-family: var(--font-family-ui);
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  cursor: pointer;
+  min-height: 40px;
+  user-select: none;
+  border: 1px solid var(--color-hairline);
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  box-shadow: none !important;
+}
+
+.btn-odoo:active {
+  transform: scale(0.99);
+}
+
+.btn-odoo-primary,
+.btn-odoo-purple {
+  background: #141414;
+  color: #ffffff;
+  border: 1px solid #141414;
+  box-shadow: none !important;
+}
+
+.btn-odoo-primary:hover,
+.btn-odoo-purple:hover {
+  background: #262626;
+  border-color: #262626;
+  color: #ffffff;
+}
+
+.btn-odoo-secondary {
+  background: #ffffff;
+  border: 1px solid var(--color-hairline);
+  color: #141414;
+}
+
+.btn-odoo-secondary:hover {
+  background: var(--color-canvas-soft);
+  border-color: var(--color-hairline);
+}
+
+.btn-odoo-mint {
+  background: var(--color-canvas-soft);
+  color: #141414;
+  border: none;
+}
+
+.btn-odoo-mint:hover {
+  background: var(--color-hairline);
+}
+
+.btn-odoo-danger {
+  background: #ffffff;
+  color: #141414;
+  border: 1px solid #141414;
+}
+
+.btn-odoo-danger:hover {
+  background: #141414;
+  color: #ffffff;
+}
+
+/* Data Table Element — Mobbin Clean Hairlines & Zero Tracking */
+.data-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.odoo-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: right;
+  font-size: 14px;
+  font-family: var(--font-family-ui);
+}
+
+.odoo-data-table th {
+  background: var(--color-canvas-soft);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-hairline-soft);
+  white-space: nowrap;
+}
+
+.odoo-data-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-hairline-soft);
+  color: var(--color-ink);
+  font-weight: 456;
+  vertical-align: middle;
+}
+
+.odoo-data-table tbody tr {
+  background: #ffffff;
+  transition: background 0.15s ease;
+}
+
+.odoo-data-table tbody tr:hover {
+  background: var(--color-canvas-soft);
+}
+
+/* Status Badges — Mobbin Pill Tags */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--rounded-full);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-pill.success {
+  background: var(--color-canvas-soft);
+  color: #141414;
+  border: 1px solid var(--color-hairline);
+}
+
+.badge-pill.warning {
+  background: var(--color-canvas-soft);
+  color: #707070;
+  border: 1px solid var(--color-hairline);
+}
+
+.badge-pill.danger {
+  background: #141414;
+  color: #ffffff;
+  border: 1px solid #141414;
+}
+
+.badge-pill.info,
+.badge-pill.purple {
+  background: #141414;
+  color: #ffffff;
+  border: none;
+}
+
+/* Filter Card Drawer — Mobbin #f3f3f3 Soft Track + 16px Inputs */
+.filter-panel {
+  background: var(--color-canvas-soft);
+  border-bottom: 1px solid var(--color-hairline-soft);
+  padding: 16px 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #141414;
+  letter-spacing: 0px;
+}
+
+.filter-input,
+.filter-select {
+  height: 42px;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: var(--rounded-sm);
+  border: 2px solid transparent;
+  background: #ffffff;
+  color: #141414;
+  font-size: 13.5px;
+  font-family: var(--font-family-ui);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  border-color: #141414;
+  box-shadow: none;
+}
+
+/* App Launcher Portal Styles */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-stagger {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Pulsing Live Dot Effect */
+@keyframes pulseDot {
+  0% { transform: scale(0.95); opacity: 0.85; }
+  70% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.85; }
+}
+
+.live-pulse-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #141414;
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulseDot 2s infinite ease-in-out;
+  margin-left: 6px;
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f3f3f3;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d4d4d4;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a3a3a3;
+}
+
+/* Global Responsive Adjustments */
+@media (max-width: 768px) {
+  .stat-card-grid {
+    grid-template-columns: 1fr;
+  }
+  .filter-panel {
+    grid-template-columns: 1fr;
+  }
+  .table-card {
+    padding: 14px !important;
+  }
+}
+
+/* ==========================================================================
+   Finance & Accounting Suite (SOCPA / IFRS Professional Mobbin Styling)
+   ========================================================================== */
+.finance-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  background: #f3f3f3;
+  padding: 16px;
+  border-radius: 24px;
+  border: 1px solid #f0f0f0;
+  box-shadow: none;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 1024px) {
+  .finance-nav-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .finance-nav-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.finance-category-box {
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.finance-category-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #707070;
+  padding: 0 4px 6px 4px;
+  border-bottom: 1px solid #f0f0f0;
+  font-family: var(--font-family-ui);
+}
+
+.finance-tab-pill {
+  width: 100%;
+  text-align: right;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: #f3f3f3;
+  border: 1px solid transparent;
+  color: #141414;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.15s ease;
+  font-family: var(--font-family-ui);
+}
+
+.finance-tab-pill:hover {
+  background: #e0e0e0;
+  color: #141414;
+}
+
+.finance-tab-pill.active {
+  background: #141414;
+  color: #ffffff;
+  border-color: #141414;
+  box-shadow: none;
+}
+
+.finance-table {
+  width: 100%;
+  text-align: right;
+  font-size: 13px;
+  border-collapse: collapse;
+}
+
+.finance-table thead th {
+  background: #f3f3f3;
+  color: #707070;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.finance-table tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #141414;
+  font-weight: 456;
+}
+
+.finance-table tbody tr:hover {
+  background: #f3f3f3;
+}
+
+/* ==========================================================================
+   Mobbin Canonical Buttons & Surfaces (DESIGN-mobbin.md Specification)
+   ========================================================================== */
+
+button svg,
+a svg,
+.button-primary-pill svg,
+.button-white-pill svg,
+.button-outline-on-dark svg,
+.button-outline-on-light svg,
+.button-aloe-pill svg,
+.btn-odoo svg {
+  flex-shrink: 0;
+}
+
+/* button-primary-pill: #141414 fill, #ffffff text, 9999px stadium */
+:where(.button-primary-pill) {
+  font-size: 14px;
+  padding: 10px 20px;
+  min-height: 40px;
+}
+
+.button-primary-pill, button.button-primary-pill, a.button-primary-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #141414;
+  color: #ffffff;
+  font-family: var(--font-family-ui);
+  font-weight: 600;
+  line-height: 1.38;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: none !important;
+  transition: background-color 0.15s ease;
+  user-select: none;
+}
+
+.button-primary-pill:hover {
+  background-color: #262626;
+  color: #ffffff;
+}
+
+.button-primary-pill:active, .button-primary-pill-pressed {
+  background-color: #141414;
+  transform: scale(0.99);
+}
+
+/* button-white-pill: Solid white pill with #141414 text */
+:where(.button-white-pill) {
+  font-size: 14px;
+  padding: 10px 20px;
+  min-height: 40px;
+}
+
+.button-white-pill, button.button-white-pill, a.button-white-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #ffffff !important;
+  color: #141414 !important;
+  font-family: var(--font-family-ui);
+  font-weight: 600;
+  line-height: 1.38;
+  border-radius: 9999px;
+  border: 1px solid #e0e0e0;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: none !important;
+  transition: background-color 0.15s ease;
+  user-select: none;
+}
+
+.button-white-pill:hover {
+  background-color: #f3f3f3 !important;
+  color: #141414 !important;
+}
+
+/* button-outline-on-dark */
+:where(.button-outline-on-dark) {
+  font-size: 14px;
+  padding: 10px 22px;
+  min-height: 40px;
+}
+
+.button-outline-on-dark, button.button-outline-on-dark, a.button-outline-on-dark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #262626;
+  color: #ffffff !important;
+  font-family: var(--font-family-ui);
+  font-weight: 600;
+  line-height: 1.38;
+  border-radius: 9999px;
+  border: 1px solid #3f3f46;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+  user-select: none;
+}
+
+.button-outline-on-dark:hover {
+  background-color: #ffffff;
+  color: #141414 !important;
+}
+
+/* button-outline-on-light: #ffffff fill, 1px solid #e0e0e0 border, 9999px radius */
+:where(.button-outline-on-light) {
+  font-size: 14px;
+  padding: 10px 20px;
+  min-height: 40px;
+}
+
+.button-outline-on-light, button.button-outline-on-light, a.button-outline-on-light {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #ffffff;
+  color: #141414 !important;
+  font-family: var(--font-family-ui);
+  font-weight: 600;
+  line-height: 1.38;
+  border-radius: 9999px;
+  border: 1px solid #e0e0e0;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: none !important;
+  transition: background-color 0.15s ease;
+  user-select: none;
+}
+
+.button-outline-on-light:hover {
+  background-color: #f3f3f3;
+  color: #141414 !important;
+}
+
+/* button-aloe-pill -> mapped to Mobbin button-pill-soft (#f3f3f3 fill) */
+:where(.button-aloe-pill) {
+  font-size: 14px;
+  padding: 10px 20px;
+  min-height: 40px;
+}
+
+.button-aloe-pill, button.button-aloe-pill, a.button-aloe-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #f3f3f3;
+  color: #141414 !important;
+  font-family: var(--font-family-ui);
+  font-weight: 600;
+  line-height: 1.38;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+  user-select: none;
+}
+
+.button-aloe-pill:hover {
+  background-color: #e0e0e0;
+}
+
+/* 2. CARDS & CONTAINERS — Shadow-Free 24px Radius */
+.card-pricing {
+  background-color: #ffffff;
+  color: #141414;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid #f0f0f0;
+  box-shadow: none !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-family: var(--font-family-ui);
+  transition: border-color 0.15s ease;
+}
+
+.card-pricing:hover {
+  border-color: #e0e0e0;
+  transform: none;
+  box-shadow: none !important;
+}
+
+.card-pricing-featured {
+  background-color: #f3f3f3;
+  color: #141414;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid #f0f0f0;
+  box-shadow: none !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-family: var(--font-family-ui);
+}
+
+.card-feature-cinematic {
+  background-color: #141414;
+  color: #ffffff;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid #262626;
+  box-shadow: none !important;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-family-ui);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-pistachio-band {
+  background-color: #f3f3f3;
+  color: #141414;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid #f0f0f0;
+  font-family: var(--font-family-ui);
+}
+
+.card-photo-frame {
+  background-color: #141414;
+  color: #ffffff;
+  padding: 0;
+  border-radius: 24px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 3. INPUTS & FORMS — 16px Radius, #f0f0f0 Field Fill, 2px #141414 Focus Ring */
+.text-input, input.text-input, select.text-input, textarea.text-input {
+  background-color: #f0f0f0;
+  color: #141414;
+  font-family: var(--font-family-ui);
+  font-size: 15px;
+  font-weight: 456;
+  line-height: 1.38;
+  padding: 10px 14px;
+  border-radius: 16px;
+  border: 2px solid transparent;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  min-height: 44px;
+}
+
+.text-input:focus, input.text-input:focus {
+  background-color: #ffffff;
+  border-color: #141414;
+  box-shadow: none;
+}
+
+/* 4. PILLS, TAGS & CHIPS — Mobbin Neutral Soft Pills & #0066ff Popular Badge */
+.pill-tag-mint, .pill-tag-champagne, .pill-tag-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #f3f3f3;
+  color: #141414;
+  border: 1px solid #e0e0e0;
+  font-family: var(--font-family-ui);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.33;
+  letter-spacing: 0px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  box-shadow: none !important;
+}
+
+.pill-tag-shade {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #f3f3f3;
+  color: #141414;
+  font-family: var(--font-family-ui);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.33;
+  letter-spacing: 0px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+/* 5. NAVIGATION BARS */
+.nav-bar-dark {
+  background-color: #141414;
+  color: #ffffff;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #262626;
+  font-family: var(--font-family-ui);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.nav-bar-light {
+  background-color: #ffffff;
+  color: #141414;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f0f0f0;
+  font-family: var(--font-family-ui);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* 6. FOOTERS — Mobbin Full-Bleed #141414 Inverse Footer with 24px Top Corners */
+.footer-dark {
+  background-color: #141414;
+  color: #ffffff;
+  padding: 48px 24px;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  font-family: var(--font-family-ui);
+  font-size: 14px;
+  font-weight: 456;
+  line-height: 1.43;
+}
+
+.footer-light {
+  background-color: #f3f3f3;
+  color: #141414;
+  padding: 48px 24px;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  font-family: var(--font-family-ui);
+  font-size: 14px;
+  font-weight: 456;
+  line-height: 1.43;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* 7. LINKS ON DARK */
+.link-on-dark {
+  color: #ffffff;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.link-on-dark:hover {
+  color: #adadad;
+}
+
+/* 8. LUXURY / FEATURE CARDS -> Mapped to Mobbin Shadow-Free 24px Cards */
+.luxury-white-card {
+  background-color: #ffffff !important;
+  color: #141414 !important;
+  border: 1px solid #f0f0f0;
+  border-radius: 24px;
+  transition: border-color 0.15s ease;
+  box-shadow: none !important;
+}
+
+.luxury-white-card:hover {
+  transform: none;
+  border-color: #e0e0e0;
+  box-shadow: none !important;
+}
+
+.white-feature-card {
+  background-color: #ffffff !important;
+  color: #141414 !important;
+  border: 1px solid #f0f0f0;
+  border-radius: 24px;
+  padding: 24px;
+  transition: border-color 0.15s ease;
+  box-shadow: none !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.white-feature-card:hover {
+  transform: none;
+  border-color: #e0e0e0;
+  box-shadow: none !important;
+}
+
+/* 9. MASCOT & DOCK ANIMATIONS */
+@keyframes floatMascot {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes shadowPulse {
+  0%, 100% { transform: scale(1); opacity: 0.24; }
+  50% { transform: scale(0.9); opacity: 0.14; }
+}
+
+@keyframes speechBubbleIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.mascot-float {
+  animation: floatMascot 4.5s ease-in-out infinite;
+}
+
+.mascot-shadow {
+  animation: shadowPulse 4.5s ease-in-out infinite;
+}
+
+.speech-bubble-anim {
+  animation: speechBubbleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes dockSlideIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.dock-pill-slide-in {
+  animation: dockSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes mascotPopIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.mascot-pop-in {
+  animation: mascotPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ==========================================================================
+   Dynamic Interactive Button States (Mobbin #141414 & #0066ff Discipline)
+   ========================================================================== */
+@keyframes dynProgressFill {
+  0% { width: 12%; }
+  55% { width: 68%; }
+  100% { width: 100%; }
+}
+
+@keyframes dynSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes dynSuccessPop {
+  0% { transform: scale(0.98); }
+  50% { transform: scale(1.01); }
+  100% { transform: scale(1); }
+}
+
+button[data-dyn-state="processing"] {
+  position: relative !important;
+  overflow: hidden !important;
+  min-width: 170px !important;
+  background-color: #141414 !important;
+  color: transparent !important;
+  border-color: #141414 !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease !important;
+}
+
+button[data-dyn-state="processing"] > *,
+button[data-dyn-state="completed"] > * {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+button[data-dyn-state="processing"]::before {
+  content: attr(data-dyn-label);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  color: #ffffff !important;
+  font-weight: 600;
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 2;
+}
+
+button[data-dyn-state="completed"]::before {
+  content: attr(data-dyn-label);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  color: #ffffff !important;
+  font-weight: 600;
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 2;
+}
+
+button[data-dyn-state="processing"]::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  height: 3px;
+  background: #ffffff;
+  animation: dynProgressFill 0.65s ease-out forwards;
+}
+
+button[data-dyn-state="completed"] {
+  position: relative !important;
+  overflow: hidden !important;
+  min-width: 170px !important;
+  background-color: #141414 !important;
+  color: transparent !important;
+  border-color: #141414 !important;
+  box-shadow: none !important;
+  animation: dynSuccessPop 0.25s ease-out forwards;
+}
+
+.dyn-inline-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 9999px;
+  animation: dynSpin 0.65s linear infinite;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+
+
+/* ==========================================================================
+   Mobbin Gallery Surface Normalization (100% Monochrome #141414 / #ffffff / #f3f3f3)
+   Normalizes legacy dark-gold hero banners, navy KPI cards, and amber buttons
+   across all 9 corporate department pages into sunlit Mobbin gallery surfaces.
+   ========================================================================== */
+.content-body .card-feature-cinematic,
+.content-body .bg-charcoal,
+.content-body div[class*="bg-[#1D2428]"],
+.content-body div[style*="207, 166, 74"],
+.content-body div[style*="background: rgb(0, 0, 0)"],
+.content-body div[style*="background-color: rgb(0, 0, 0)"],
+.content-body div[style*="rgb(9, 23, 37)"],
+.content-body div[style*="#091725"],
+.content-body div[style*="#132a44"],
+.content-body div[class*="from-[#1D2428]"],
+.content-body div[class*="from-[#14181B]"],
+.content-body div[class*="from-[#182026]"],
+.content-body div[class*="from-[#0F172A]"],
+.content-body div[class*="from-slate-900"],
+.content-body div[class*="from-zinc-900"] {
+  background: #f3f3f3 !important;
+  background-image: none !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 24px !important;
+  box-shadow: none !important;
+  color: #141414 !important;
+}
+
+/* Uniform Elevated #ffffff Mobbin KPI Cards inside Grids across all 9 Departments */
+.content-body .stat-card-grid > div,
+.content-body .grid > .card-pricing,
+.content-body .grid > .card-pistachio-band,
+.content-body .grid > .card-pricing-featured {
+  background: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 24px !important;
+  box-shadow: none !important;
+  color: #141414 !important;
+}
+
+.content-body .stat-card-grid > div:hover,
+.content-body .grid > .card-pricing:hover,
+.content-body .grid > .card-pistachio-band:hover,
+.content-body .grid > .card-pricing-featured:hover {
+  border-color: #141414 !important;
+}
+
+.content-body .stat-card-grid > div .display-sm,
+.content-body .grid > .card-pricing .display-sm,
+.content-body .grid > .card-pistachio-band .display-sm,
+.content-body .grid > .card-pricing-featured .display-sm {
+  font-family: var(--font-family-display) !important;
+  font-size: 24px !important;
+  font-weight: 652 !important;
+  color: #141414 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.2 !important;
+  margin-top: 8px !important;
+  margin-bottom: 4px !important;
+  font-variant-numeric: tabular-nums !important;
+  white-space: nowrap !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+
+.content-body .stat-card-grid > div > span:first-child,
+.content-body .stat-card-grid > div > div:first-child:not(.flex) {
+  color: #707070 !important;
+  font-weight: 600 !important;
+  font-size: 12.5px !important;
+}
+
+.content-body .stat-card-grid > div div[class*="rounded-full"][class*="w-8"],
+.content-body .stat-card-grid > div div[class*="rounded-lg"][class*="w-7"] {
+  background: #f3f3f3 !important;
+  color: #141414 !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 30% !important;
+}
+
+.content-body .stat-card-grid > div .pill-tag-mint,
+.content-body .stat-card-grid > div .pill-tag-shade {
+  width: fit-content !important;
+  margin-top: 10px !important;
+}
+
+/* Normalize standalone dark portal wrappers & cards (KAS, Shelter, Sponsorship, Tenders, Monitoring, IAM, Offices) into Mobbin White/Soft surfaces */
+.content-body div[class*="bg-[#0d1013]"],
+.content-body div[class*="bg-[#0f1316]"],
+.content-body div[class*="bg-[#101417]"],
+.content-body div[class*="bg-[#0b0e11]"],
+.content-body div[class*="bg-[#14181c]"],
+.content-body div[class*="bg-[#121619]"],
+.content-body div[class*="bg-[#182026]"],
+.content-body div[class*="bg-[#171c20]"],
+.content-body div[class*="bg-[#1a2126]"],
+.content-body div[class*="bg-[#1d252c]"],
+.content-body aside[class*="bg-[#0"],
+.content-body aside[class*="bg-[#10"],
+.content-body aside[class*="bg-[#12"],
+.content-body aside[class*="bg-[#1418"],
+.content-body aside[class*="bg-[#17"],
+.content-body aside[class*="bg-[#18"],
+.content-body header[class*="bg-[#0"],
+.content-body header[class*="bg-[#10"],
+.content-body header[class*="bg-[#12"],
+.content-body header[class*="bg-[#1418"],
+.content-body header[class*="bg-[#17"],
+.content-body header[class*="bg-[#18"] {
+  background: #ffffff !important;
+  border-color: #e0e0e0 !important;
+  color: #141414 !important;
+  box-shadow: none !important;
+}
+
+/* Normalize inner dark sub-cards (bg-black/20..60) to Mobbin Soft Neutral (#f3f3f3) while preserving fixed modal backdrops */
+.content-body div[class*="bg-black/"]:not(.fixed):not([class*="inset-0"]),
+.content-body div[class*="bg-white/5"]:not(.fixed) {
+  background: #f3f3f3 !important;
+  border-color: #e0e0e0 !important;
+  color: #141414 !important;
+  box-shadow: none !important;
+}
+
+/* Normalize legacy dark table headers, dividers, and borders (while preserving intentional #141414 table headers) */
+.content-body thead[class*="bg-black/"],
+.content-body thead[class*="bg-white/"],
+.content-body thead[class*="bg-[#10"],
+.content-body thead[class*="bg-[#12"],
+.content-body thead[class*="bg-[#1418"],
+.content-body thead[class*="bg-[#17"],
+.content-body thead[class*="bg-[#18"],
+.content-body thead[class*="bg-[#1a"],
+.content-body thead[class*="bg-[#1d"],
+.content-body thead[class*="bg-[#1D"],
+.content-body thead[class*="bg-[#0"] {
+  background: #f3f3f3 !important;
+  color: #141414 !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+.content-body thead[class*="bg-black/"] th,
+.content-body thead[class*="bg-white/"] th,
+.content-body thead[class*="bg-[#10"] th,
+.content-body thead[class*="bg-[#12"] th,
+.content-body thead[class*="bg-[#1418"] th,
+.content-body thead[class*="bg-[#17"] th,
+.content-body thead[class*="bg-[#18"] th,
+.content-body thead[class*="bg-[#0"] th {
+  color: #141414 !important;
+}
+
+.content-body [class*="border-white/"] {
+  border-color: #e0e0e0 !important;
+}
+
+.content-body [class*="divide-white/"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e0e0e0 !important;
+}
+
+/* Normalize legacy dark inputs, selects, and textareas into Mobbin Soft Neutral inputs */
+.content-body input[class*="bg-black/"],
+.content-body select[class*="bg-black/"],
+.content-body textarea[class*="bg-black/"],
+.content-body input[class*="bg-[#10"],
+.content-body input[class*="bg-[#12"],
+.content-body input[class*="bg-[#1418"],
+.content-body input[class*="bg-[#17"],
+.content-body input[class*="bg-[#18"],
+.content-body select[class*="bg-[#10"],
+.content-body select[class*="bg-[#12"],
+.content-body select[class*="bg-[#1418"],
+.content-body select[class*="bg-[#17"],
+.content-body select[class*="bg-[#18"],
+.content-body textarea[class*="bg-[#10"],
+.content-body textarea[class*="bg-[#12"],
+.content-body textarea[class*="bg-[#1418"],
+.content-body textarea[class*="bg-[#17"],
+.content-body textarea[class*="bg-[#18"],
+.content-body input[class*="bg-[#0"],
+.content-body select[class*="bg-[#0"],
+.content-body div[class*="bg-[#0d1013]"] select,
+.content-body div[class*="bg-[#101417]"] select {
+  background: #f3f3f3 !important;
+  color: #141414 !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 14px !important;
+}
+
+/* Normalize legacy dark/amber buttons inside content-body to Mobbin Pill buttons */
+.content-body button[class*="bg-amber-400"],
+.content-body button[class*="bg-amber-500"] {
+  background: #141414 !important;
+  color: #ffffff !important;
+  border: 1px solid #141414 !important;
+  border-radius: 9999px !important;
+  box-shadow: none !important;
+}
+
+.content-body button[class*="bg-amber-400"] svg,
+.content-body button[class*="bg-amber-500"] svg {
+  color: #ffffff !important;
+}
+
+.content-body div[class*="bg-[#0d1013]"] button[class*="bg-white/"],
+.content-body div[class*="bg-[#0d1013]"] button[class*="bg-[#10"],
+.content-body div[class*="bg-[#0d1013]"] button[class*="bg-[#1418"],
+.content-body div[class*="bg-[#101417]"] button[class*="bg-white/"],
+.content-body div[class*="bg-[#101417]"] button[class*="bg-[#10"],
+.content-body div[class*="bg-[#101417]"] button[class*="bg-[#1418"],
+.content-body div[class*="bg-[#14181c]"] button[class*="bg-white/"],
+.content-body div[class*="bg-[#14181c]"] button[class*="bg-black/"],
+.content-body div[class*="bg-[#14181c]"] button[class*="bg-[#1418"],
+.content-body div[class*="bg-[#1D2428]"] button[class*="bg-white/"],
+.content-body button[class*="bg-[#1d252c]"] {
+  background: #ffffff !important;
+  color: #141414 !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 9999px !important;
+  box-shadow: none !important;
+}
+
+.content-body div[class*="bg-[#0d1013]"] div[class*="bg-white/"],
+.content-body div[class*="bg-[#101417]"] div[class*="bg-white/"],
+.content-body .card-feature-cinematic div[class*="bg-white/10"] {
+  background: #ffffff !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 9999px !important;
+  color: #141414 !important;
+  box-shadow: none !important;
+}
+
+/* High-contrast text normalization inside normalized cards (excluding intentional dark buttons & pills) */
+.content-body div[class*="bg-[#14181c]"] h1,
+.content-body div[class*="bg-[#14181c]"] h2,
+.content-body div[class*="bg-[#14181c]"] h3,
+.content-body div[class*="bg-[#14181c]"] h4,
+.content-body div[class*="bg-[#14181c]"] .text-white:not(button):not([class*="bg-"]),
+.content-body div[class*="bg-[#14181c]"] .text-zinc-100,
+.content-body div[class*="bg-[#14181c]"] .text-zinc-200,
+.content-body div[class*="bg-[#14181c]"] .text-zinc-300,
+.content-body div[class*="bg-[#121619]"] .text-white:not(button):not([class*="bg-"]),
+.content-body div[class*="bg-[#121619]"] .text-zinc-100,
+.content-body div[class*="bg-[#121619]"] .text-zinc-200,
+.content-body div[class*="bg-[#121619]"] .text-zinc-300,
+.content-body div[class*="bg-[#182026]"] h3,
+.content-body div[class*="bg-[#182026]"] .text-white:not(button):not([class*="bg-"]),
+.content-body div[class*="bg-[#182026]"] .text-zinc-200,
+.content-body div[class*="bg-[#171c20]"] h3,
+.content-body div[class*="bg-[#171c20]"] .text-white:not(button):not([class*="bg-"]),
+.content-body div[class*="bg-[#171c20]"] .text-zinc-200,
+.content-body div[class*="bg-[#171c20]"] .text-zinc-300,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-white:not(button):not([class*="bg-"]),
+.content-body div[class*="bg-black/"]:not(.fixed) .text-zinc-100,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-zinc-200,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-zinc-300 {
+  color: #141414 !important;
+}
+
+.content-body div[class*="bg-[#14181c]"] .text-zinc-400,
+.content-body div[class*="bg-[#14181c]"] .text-zinc-500,
+.content-body div[class*="bg-[#121619]"] .text-zinc-400,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-zinc-400,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-zinc-500 {
+  color: #707070 !important;
+}
+
+.content-body div[class*="bg-[#14181c]"] .text-amber-300,
+.content-body div[class*="bg-[#14181c]"] .text-amber-400,
+.content-body div[class*="bg-[#121619]"] .text-amber-300,
+.content-body div[class*="bg-[#121619]"] .text-amber-400,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-amber-300,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-amber-400,
+.content-body div[class*="bg-[#14181c]"] .text-emerald-300,
+.content-body div[class*="bg-[#14181c]"] .text-emerald-400,
+.content-body div[class*="bg-[#121619]"] .text-emerald-400,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-emerald-300,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-emerald-400,
+.content-body div[class*="bg-[#14181c]"] .text-cyan-300,
+.content-body div[class*="bg-[#14181c]"] .text-cyan-400,
+.content-body div[class*="bg-[#14181c]"] .text-blue-300,
+.content-body div[class*="bg-[#14181c]"] .text-blue-400,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-cyan-400,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-blue-400,
+.content-body div[class*="bg-[#14181c]"] .text-rose-300,
+.content-body div[class*="bg-[#14181c]"] .text-rose-400,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-rose-300,
+.content-body div[class*="bg-black/"]:not(.fixed) .text-rose-400 {
+  color: #141414 !important;
+}
+
+/* Hide duplicate legacy 44x44 icon circle when BusinessIllustration is present in hero banners */
+.content-body .card-feature-cinematic .mobbin-illustration-card + div[style*="44px"],
+.content-body .card-feature-cinematic div:has(> .mobbin-illustration-card) + div[style*="44px"],
+.content-body .card-feature-cinematic div.sm\:hidden[style*="44px"] {
+  display: none !important;
+}
+
+.content-body .card-feature-cinematic div.hidden.sm\:block:has(> .mobbin-illustration-card) {
+  display: block !important;
+}
+
+.content-body .card-feature-cinematic h1,
+.content-body .card-feature-cinematic h2,
+.content-body .card-feature-cinematic h3,
+.content-body .card-feature-cinematic strong,
+.content-body .card-feature-cinematic .display-sm,
+.content-body .card-feature-cinematic .text-white:not(button):not([class*="bg-[#141414]"]):not([class*="bg-[#262626]"]):not([class*="bg-black"]):not([class*="bg-zinc-9"]):not(.button-primary-pill),
+.content-body .bg-charcoal .text-white:not(button):not([class*="bg-[#141414]"]):not([class*="bg-black"]):not(.button-primary-pill),
+.content-body .bg-charcoal strong,
+.content-body .text-\[\#F5EDDC\],
+.content-body .text-\[\#E6D3A7\],
+.content-body div[style*="background: rgb(0, 0, 0)"] h1,
+.content-body div[style*="background: rgb(0, 0, 0)"] h2,
+.content-body div[style*="background: rgb(0, 0, 0)"] h3,
+.content-body div[style*="background: rgb(0, 0, 0)"] .display-sm,
+.content-body div[style*="background: rgb(0, 0, 0)"] .text-white:not(button):not([class*="bg-[#141414]"]),
+.content-body div[style*="207, 166, 74"] h1,
+.content-body div[style*="207, 166, 74"] h2,
+.content-body div[style*="207, 166, 74"] h3,
+.content-body div[style*="207, 166, 74"] .text-white:not(button):not([class*="bg-[#141414]"]),
+.content-body div[style*="#091725"] .text-white:not(button):not([class*="bg-[#141414]"]),
+.content-body div[style*="#091725"] .text-amber-300,
+.content-body div[style*="rgb(9, 23, 37)"] .text-white:not(button):not([class*="bg-[#141414]"]),
+.content-body div[style*="rgb(9, 23, 37)"] .text-amber-300,
+.content-body div[style*="rgb(9, 23, 37)"] .text-zinc-300,
+.content-body div[class*="from-[#1D2428]"] h1,
+.content-body div[class*="from-[#1D2428]"] h2,
+.content-body div[class*="from-[#1D2428]"] h3,
+.content-body div[class*="from-[#1D2428]"] .text-white:not(button):not([class*="bg-[#141414]"]),
+.content-body div[class*="from-[#14181B]"] h1,
+.content-body div[class*="from-[#14181B]"] h2,
+.content-body div[class*="from-[#14181B]"] .text-white:not(button):not([class*="bg-[#141414]"]),
+.content-body div[class*="from-[#182026]"] h1,
+.content-body div[class*="from-[#182026]"] h2,
+.content-body div[class*="from-[#182026]"] .text-white:not(button):not([class*="bg-[#141414]"]),
+.content-body div[class*="from-[#0F172A]"] h1,
+.content-body div[class*="from-[#0F172A]"] h2,
+.content-body div[class*="from-[#0F172A]"] .text-white:not(button):not([class*="bg-[#141414]"]),
+.content-body div[class*="from-slate-900"] h1,
+.content-body div[class*="from-slate-900"] h2,
+.content-body div[class*="from-slate-900"] .text-white:not(button):not([class*="bg-[#141414]"]),
+.content-body div[class*="from-zinc-900"] h1,
+.content-body div[class*="from-zinc-900"] h2,
+.content-body div[class*="from-zinc-900"] .text-white:not(button):not([class*="bg-[#141414]"]),
+.content-body div[class*="bg-[#0d1013]"] h1,
+.content-body div[class*="bg-[#0d1013]"] h2,
+.content-body div[class*="bg-[#0d1013]"] h3,
+.content-body div[class*="bg-[#0d1013]"] .text-white:not(button):not([class*="bg-[#141414]"]),
+.content-body div[class*="bg-[#0d1013]"] .text-zinc-100,
+.content-body div[class*="bg-[#0d1013]"] .text-zinc-200,
+.content-body div[class*="bg-[#0d1013]"] .text-emerald-400,
+.content-body div[class*="bg-[#101417]"] h1,
+.content-body div[class*="bg-[#101417]"] h2,
+.content-body div[class*="bg-[#101417]"] h3,
+.content-body div[class*="bg-[#101417]"] .text-white:not(button):not([class*="bg-[#141414]"]),
+.content-body div[class*="bg-[#101417]"] .text-zinc-100,
+.content-body div[class*="bg-[#101417]"] .text-zinc-200 {
+  color: #141414 !important;
+}
+
+/* Guarantee crisp #ffffff text and icons inside intentional #141414 primary buttons, active pills, dark badges, and dark table headers */
+.content-body .button-primary-pill,
+.content-body .button-primary-pill *,
+.content-body button[class*="bg-[#141414]"],
+.content-body button[class*="bg-[#141414]"] *,
+.content-body [class*="bg-[#141414]"].text-white,
+.content-body [class*="bg-[#141414]"].text-\[\#ffffff\],
+.content-body [class*="bg-[#141414]"] > .text-white,
+.content-body [class*="bg-[#141414]"] > .text-\[\#ffffff\],
+.content-body thead[class*="bg-[#141414]"],
+.content-body thead[class*="bg-[#141414]"] th,
+.content-body thead[class*="bg-[#141414]"] tr {
+  color: #ffffff !important;
+}
+
+.content-body .pill-tag-shade {
+  background: #f3f3f3 !important;
+  color: #141414 !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 9999px !important;
+  padding: 2px 10px !important;
+  font-weight: 600 !important;
+}
+
+.content-body .card-feature-cinematic p,
+.content-body .bg-charcoal p,
+.content-body div[style*="background: rgb(0, 0, 0)"] p,
+.content-body div[style*="207, 166, 74"] p,
+.content-body div[style*="207, 166, 74"] .text-zinc-300,
+.content-body div[style*="207, 166, 74"] .text-zinc-400,
+.content-body div[style*="#091725"] .text-zinc-300,
+.content-body div[class*="from-[#1D2428]"] p,
+.content-body div[class*="from-[#1D2428]"] .text-zinc-300,
+.content-body div[class*="from-[#1D2428]"] .text-zinc-400,
+.content-body div[class*="from-[#14181B]"] p,
+.content-body div[class*="from-[#182026]"] p,
+.content-body div[class*="from-[#0F172A]"] p,
+.content-body div[class*="from-slate-900"] p,
+.content-body div[class*="from-zinc-900"] p,
+.content-body div[class*="bg-[#0d1013]"] .text-zinc-400,
+.content-body div[class*="bg-[#0d1013]"] .text-zinc-500,
+.content-body div[class*="bg-[#101417]"] .text-zinc-400,
+.content-body div[class*="bg-[#101417]"] .text-zinc-500 {
+  color: #707070 !important;
+}
+
+.content-body div[style*="207, 166, 74"] strong,
+.content-body div[style*="207, 166, 74"] .text-amber-300,
+.content-body div[style*="207, 166, 74"] .text-amber-200,
+.content-body div[style*="#091725"] .text-amber-200\/80,
+.content-body div[class*="from-[#1D2428]"] strong,
+.content-body div[class*="from-[#1D2428]"] [class*="text-[#CFA64A]"],
+.content-body div[class*="from-[#1D2428]"] [class*="text-[#E6D3A7]"] {
+  color: #141414 !important;
+}
+
+/* Convert legacy gold/amber primary buttons to Mobbin #141414 pill buttons */
+.content-body button[class*="bg-[#CFA64A]"],
+.content-body button[class*="from-amber-400"],
+.content-body button[class*="bg-amber-400"],
+.content-body button[class*="bg-amber-500"] {
+  background: #141414 !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  border: 1px solid #141414 !important;
+  border-radius: 9999px !important;
+  box-shadow: none !important;
+}
+
+.content-body button[class*="bg-[#CFA64A]"] *,
+.content-body button[class*="from-amber-400"] *,
+.content-body button[class*="bg-amber-400"] *,
+.content-body button[class*="bg-amber-500"] * {
+  color: #ffffff !important;
+}
+
+/* Convert secondary dark buttons inside normalized hero banners to white Mobbin pills (excluding intentional #141414 primary buttons) */
+.content-body button[class*="bg-[#1D2428]"],
+.content-body button[class*="bg-[#14181B]"],
+.content-body div[style*="background: rgb(0, 0, 0)"] button:not([class*="bg-[#141414]"]):not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]):not(.button-primary-pill),
+.content-body div[style*="207, 166, 74"] button:not([class*="bg-[#141414]"]):not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]):not(.button-primary-pill),
+.content-body div[class*="from-[#1D2428]"] button:not([class*="bg-[#141414]"]):not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]):not(.button-primary-pill),
+.content-body div[class*="from-[#14181B]"] button:not([class*="bg-[#141414]"]):not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]):not(.button-primary-pill),
+.content-body div[class*="from-[#0F172A]"] button:not([class*="bg-[#141414]"]):not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]):not(.button-primary-pill) {
+  background: #ffffff !important;
+  color: #141414 !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 9999px !important;
+  box-shadow: none !important;
+}
+
+.content-body button[class*="bg-[#1D2428]"] *,
+.content-body button[class*="bg-[#14181B]"] *,
+.content-body div[style*="background: rgb(0, 0, 0)"] button:not([class*="bg-[#141414]"]):not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]):not(.button-primary-pill) *,
+.content-body div[style*="207, 166, 74"] button:not([class*="bg-[#141414]"]):not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]):not(.button-primary-pill) *,
+.content-body div[class*="from-[#1D2428]"] button:not([class*="bg-[#141414]"]):not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]):not(.button-primary-pill) *,
+.content-body div[class*="from-[#14181B]"] button:not([class*="bg-[#141414]"]):not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]):not(.button-primary-pill) *,
+.content-body div[class*="from-[#0F172A]"] button:not([class*="bg-[#141414]"]):not([class*="bg-[#CFA64A]"]):not([class*="from-amber-"]):not([class*="bg-amber-"]):not(.button-primary-pill) * {
+  color: #141414 !important;
+  background-color: transparent !important;
+}
+
+.content-body .text-amber-200,
+.content-body .text-amber-300 {
+  color: #141414 !important;
+}
+
+.content-body div[style*="207, 166, 74"] div[class*="bg-zinc-950"],
+.content-body div[style*="207, 166, 74"] div[class*="bg-white/5"],
+.content-body div[class*="from-[#1D2428]"] div[class*="bg-zinc-950"],
+.content-body div[class*="from-[#1D2428]"] div[class*="bg-white/5"] {
+  background: #ffffff !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 16px !important;
+  color: #141414 !important;
+  box-shadow: none !important;
+}
+
+/* Normalize badges inside hero headers to Mobbin #ffffff and #141414 pills */
+.content-body div[style*="207, 166, 74"] span[class*="bg-amber-"],
+.content-body div[style*="207, 166, 74"] span[class*="bg-[#CFA64A]"],
+.content-body div[class*="from-[#1D2428]"] span[class*="bg-amber-"],
+.content-body div[class*="from-[#1D2428]"] span[class*="bg-[#CFA64A]"] {
+  background: #ffffff !important;
+  color: #141414 !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 9999px !important;
+}
+
+.content-body div[style*="207, 166, 74"] span[class*="bg-emerald-"],
+.content-body div[class*="from-[#1D2428]"] span[class*="bg-emerald-"] {
+  background: #141414 !important;
+  color: #ffffff !important;
+  border: 1px solid #141414 !important;
+  border-radius: 9999px !important;
+}
+
+/* ==========================================================================
+   Global Modal & Popup Mobbin Light Mode Normalization & Z-Index Elevation
+   Ensures all fixed modals/drawers/popups across the entire ERP render above
+   the Sidebar (z-1000) & Header (z-100) and in pure #ffffff / #f3f3f3 / #141414.
+   ========================================================================== */
+.content-body div.fixed.inset-0,
+div.fixed.inset-0.z-50 {
+  z-index: 2100 !important;
+}
+
+div.fixed.inset-0 > div[class*="bg-[#14181c]"],
+div.fixed.inset-0 > div[class*="bg-[#171c20]"],
+div.fixed.inset-0 > div[class*="bg-[#182026]"],
+div.fixed.inset-0 > div[class*="bg-[#1D2428]"],
+div.fixed.inset-0 > div[class*="bg-zinc-950"],
+div.fixed.inset-0 > div[class*="bg-slate-900"] {
+  background: #ffffff !important;
+  color: #141414 !important;
+  border-color: #e0e0e0 !important;
+}
+
+div.fixed.inset-0 > div > div.bg-black.text-white,
+div.fixed.inset-0 > div > div.bg-zinc-950.text-white,
+div.fixed.inset-0 > div > div[class*="bg-[#141414]"].text-white,
+div.fixed.inset-0 > div > div[class*="bg-[#1a2126]"],
+div.fixed.inset-0 > div > div[class*="bg-[#181d22]"] {
+  background: #f3f3f3 !important;
+  color: #141414 !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+div.fixed.inset-0 > div > div.bg-black.text-white *:not(button[class*="bg-[#141414]"]),
+div.fixed.inset-0 > div > div.bg-zinc-950.text-white *:not(button[class*="bg-[#141414]"]),
+div.fixed.inset-0 > div > div[class*="bg-[#141414]"].text-white *:not(button[class*="bg-[#141414]"]),
+div.fixed.inset-0 > div > div[class*="bg-[#1a2126]"] *:not(button[class*="bg-[#141414]"]),
+div.fixed.inset-0 > div > div[class*="bg-[#181d22]"] *:not(button[class*="bg-[#141414]"]) {
+  color: #141414 !important;
+}
+
+div.fixed.inset-0 div[class*="bg-black/"]:not(.fixed):not([class*="inset-0"]),
+div.fixed.inset-0 div[class*="bg-white/5"]:not(.fixed),
+div.fixed.inset-0 div[class*="bg-blue-950/"],
+div.fixed.inset-0 div[class*="bg-amber-500/10"],
+div.fixed.inset-0 div[class*="bg-amber-400/10"] {
+  background: #f3f3f3 !important;
+  border-color: #e0e0e0 !important;
+  color: #141414 !important;
+}
+
+div.fixed.inset-0 input[class*="bg-black/"],
+div.fixed.inset-0 select[class*="bg-black/"],
+div.fixed.inset-0 textarea[class*="bg-black/"] {
+  background: #f3f3f3 !important;
+  color: #141414 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+div.fixed.inset-0 option[class*="bg-[#14181c]"] {
+  background: #ffffff !important;
+  color: #141414 !important;
+}
+
+div.fixed.inset-0 .text-zinc-200,
+div.fixed.inset-0 .text-zinc-300,
+div.fixed.inset-0 .text-amber-300,
+div.fixed.inset-0 .text-amber-400,
+div.fixed.inset-0 .text-blue-300,
+div.fixed.inset-0 .text-emerald-400,
+div.fixed.inset-0 h2.text-white,
+div.fixed.inset-0 h3.text-white,
+div.fixed.inset-0 h4.text-white,
+div.fixed.inset-0 div.text-white:not([class*="bg-"]) {
+  color: #141414 !important;
+}
+
+div.fixed.inset-0 button[class*="bg-[#141414]"],
+div.fixed.inset-0 button[class*="bg-[#141414]"] *,
+div.fixed.inset-0 .button-primary-pill,
+div.fixed.inset-0 .button-primary-pill * {
+  color: #ffffff !important;
+}
+
+div.fixed.inset-0 .text-zinc-400 {
+  color: #707070 !important;
+}
+
+div.fixed.inset-0 [class*="border-white/"] {
+  border-color: #e5e5e5 !important;
+}

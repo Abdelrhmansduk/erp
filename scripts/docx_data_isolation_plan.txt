@@ -1,0 +1,308 @@
+﻿خطة منع الخلط بين قواعد البيانات والمستخدمين والبيانات داخل ERP
+Khalid Group ERP — Data, User, Tenant & Environment Isolation Blueprint
+الغرض من هذا المستند هو وضع قواعد تقنية وتشغيلية صارمة تمنع اختلاط بيانات شركات المجموعة أو مستخدميها أو ملفاتها أو تقاريرها أو جلساتها أو سجلاتها، سواء بسبب خطأ برمجي أو صلاحية زائدة أو ربط غير صحيح بين قواعد البيانات.
+1. المبدأ الأساسي: لا توجد بيانات مشتركة افتراضياً
+• كل شركة تعامل كنطاق مستقل Tenant/Company Scope، ولا يجوز لأي استعلام أو خدمة أو تقرير العمل دون تحديد نطاق الشركة صراحة.
+• هوية المستخدم شيء مستقل عن عضويته داخل الشركات. امتلاك حساب واحد لا يعني امتلاك الوصول لكل الشركات.
+• أي بيانات مشتركة بين شركات المجموعة يجب أن تكون معرفة كـ Shared Master Data ومصرحاً بها صراحة، ولا يتم اعتبارها مشتركة تلقائياً.
+• يجب أن يكون المنع على مستوى الخادم وقاعدة البيانات، وليس فقط عبر إخفاء القوائم من الواجهة.
+2. الهيكل المقترح للبيانات
+الطبقة
+المعرف الإلزامي
+وظيفتها
+المجموعة
+group_id
+تجميع الشركات إدارياً فقط
+الشركة
+company_id / tenant_id
+العازل الرئيسي بين بيانات الشركات
+الفرع
+branch_id
+تحديد الموقع التشغيلي
+القسم
+department_id
+عزل بيانات الأقسام عند الحاجة
+المستخدم
+user_id
+الهوية المركزية
+العضوية
+membership_id
+تحدد علاقة المستخدم بشركة معينة
+السجل
+record_id
+السجل التشغيلي داخل نطاق الشركة
+3. خيار بنية قواعد البيانات
+الخيار
+الوصف
+الاستخدام المقترح
+قاعدة منفصلة لكل شركة
+Database مستقلة بالكامل
+أعلى مستوى عزل، مناسب للشركات القانونية المستقلة أو البيانات شديدة الحساسية
+Schema منفصل لكل شركة
+نفس DB Engine مع Schema مستقل
+عزل قوي مع إدارة مركزية أبسط
+قاعدة مشتركة + RLS
+نفس الجداول مع tenant_id/company_id
+أفضل للتوسع إذا طُبق RLS بصورة صحيحة وصارمة
+Hybrid
+بعض الشركات منفصلة وبعض البيانات المشتركة
+مناسب للمجموعة الكبيرة مع Shared Services
+التوصية العملية: استخدام Hybrid Architecture. تكون بيانات التشغيل والمالية والموارد البشرية معزولة على مستوى company_id مع RLS، بينما الخدمات المركزية المحددة فقط تستخدم طبقة Shared Services منفصلة.
+4. قواعد إلزامية لكل جدول
+• كل جدول أعمال Business Table يحتوي tenant_id وcompany_id كحقول غير قابلة لأن تكون NULL.
+• الجداول التابعة ترث company_id من السجل الأب ولا تسمح بتغييره من طلب المستخدم.
+• يمنع وجود سجل بدون مالك شركة واضح.
+• المفاتيح المركبة والـForeign Keys يجب أن تمنع ربط سجل من شركة A بسجل من شركة B.
+• لا تستخدم أسماء الشركات أو البريد أو أسماء الفروع كمرجع أمني؛ الاعتماد يكون على IDs ثابتة.
+• أي جدول Shared يجب أن يحمل تصنيفاً واضحاً shared_scope ولا يختلط بالجداول التشغيلية.
+5. منع الخلط في العلاقات بين الجداول
+العلاقة
+القاعدة
+Invoice → Vendor
+يجب أن يتطابق company_id في الطرفين
+Employee → Department
+الموظف والقسم من نفس الشركة
+Order → Customer
+الطلب مرتبط بشركة الطلب فقط
+Payment → Invoice
+لا يمكن دفع فاتورة شركة أخرى
+Asset → Branch
+الأصل والفرع يتبعان نفس الشركة
+User → Role
+الدور يمنح عبر Membership داخل شركة محددة
+Document → Record
+الملف يحمل company_id مطابقاً للسجل المرتبط
+6. فصل المستخدم عن الشركة
+يكون users جدول هوية مركزي فقط، بينما صلاحية المستخدم الفعلية تأتي من memberships. مثال: المستخدم U100 قد يملك Membership في شركة A كمدير موارد بشرية، وMembership أخرى في شركة B كقارئ فقط. لا يجوز حفظ role_id واحد مباشر داخل users لأنه يسبب خلط الصلاحيات بين الشركات.
+الجدول
+مثال حقول
+users
+id, email, identity_provider_id, status, mfa_enabled
+memberships
+id, user_id, company_id, branch_scope, department_scope, status
+user_roles
+membership_id, role_id, valid_from, valid_to
+role_permissions
+role_id, permission_id, constraints_json
+7. سياق الجلسة Session Context
+• بعد تسجيل الدخول لا تعتمد الجلسة على user_id فقط.
+• يجب أن تحتوي الجلسة الفعلية على active_membership_id وactive_company_id وallowed_branch_ids وallowed_department_ids.
+• عند تغيير الشركة يتم إنشاء/تحديث Context جديد وإعادة جلب البيانات من الصفر.
+• يمنع تمرير company_id من الواجهة واستخدامه مباشرة دون التحقق من Membership.
+• أي Token قديم يجب ألا يحتفظ بصلاحية لشركة تم سحب الوصول منها.
+8. Row-Level Security ومنع Cross-Tenant Leakage
+كل SELECT/INSERT/UPDATE/DELETE يجب أن يمر بسياسة عزل. المبدأ: record.company_id يجب أن يطابق active_company_id، وأن تكون Membership نشطة، وأن يمتلك المستخدم Permission المطلوبة.
+العملية
+التحقق الإلزامي
+SELECT
+company_id + branch/department scope + permission
+INSERT
+توليد company_id من الخادم وليس من المستخدم
+UPDATE
+مطابقة النطاق + صلاحية التعديل + حالة السجل
+DELETE
+صلاحية حذف مستقلة + Audit
+EXPORT
+نفس فلاتر RLS + permission خاصة بالتصدير
+SEARCH
+إرجاع نتائج من الشركة الحالية فقط
+9. منع الخلط في الـ API
+• كل Endpoint يعرف Resource + Action + Company Scope قبل تنفيذ Business Logic.
+• الـBackend لا يثق بـ company_id أو user_id أو role المرسل من Frontend.
+• يتم استخراج الهوية من Token ثم استخراج Membership من قاعدة موثوقة.
+• الاستعلامات Repository/ORM يجب أن تستخدم Scoped Query تلقائياً.
+• يمنع استخدام Service Role أو Admin Database Client داخل Endpoints العادية.
+• أي Internal API بين الخدمات يجب أن يحمل Service Identity وScope واضحين.
+10. منع الخلط في التخزين والملفات
+العنصر
+قاعدة العزل
+Object Storage
+مسار tenant/company/record/file
+Signed URL
+قصير العمر ويصدر بعد Authorization
+المرفقات
+لا يمكن تحميل ملف باستخدام URL فقط دون تحقق
+الصور
+Metadata تحتوي company_id
+الأرشيف
+Archive منفصل منطقياً لكل شركة
+النسخ الاحتياطي
+إمكانية استعادة بيانات شركة دون دمج سجلات شركة أخرى
+11. منع الخلط في التقارير ولوحات المؤشرات
+• كل Dashboard يجب أن يبدأ بفلتر company_id إلزامي على الخادم.
+• تجميع المجموعة Group Consolidation يكون في Dataset منفصل مخصص للإدارة العليا.
+• لا تستخدم Cache مشتركة دون إدخال company_id في Cache Key.
+• CSV/Excel/PDF exports تحمل اسم الشركة ونطاق التقرير.
+• Scheduled Reports ترسل فقط لمستلمين لديهم Membership نشطة في نفس النطاق.
+• أي AI Analytics أو BI Model يجب أن يستقبل بيانات مصفاة حسب الشركة قبل التحليل.
+12. منع الخلط في الكاش والـ Search Index
+المكون
+القاعدة
+Redis Cache
+المفتاح يبدأ company:{id}:...
+Search Index
+فهرس مستقل أو tenant filter إلزامي
+Queue Jobs
+كل رسالة تحمل company_id وcorrelation_id
+Notifications
+ترتبط بـ user + membership + company
+Webhooks
+Secret وEndpoint mapping لكل شركة/تكامل
+Feature Flags
+Scope حسب company وليس global افتراضياً
+13. منع الخلط في السجلات المحاسبية
+• Chart of Accounts يمكن أن يكون Template مشتركاً، لكن الحساب الفعلي Ledger Account يحمل company_id.
+• كل Journal Entry يجب أن يحتوي company_id ثابتاً لكل بنوده.
+• يمنع Journal متعدد الشركات في نفس القيد.
+• البنوك والصناديق ومراكز التكلفة والعملاء والموردون إما خاصة بالشركة أو معرفة بوضوح كـ shared master مع mapping مستقل.
+• التسلسلات Invoice Number / Voucher Number / PO Number تكون منفصلة لكل شركة.
+• أي Consolidation بين الشركات يتم بعد الترحيل إلى طبقة Consolidation وليس داخل دفاتر الشركات الأساسية.
+14. منع الخلط في الموارد البشرية
+• Employee Number لا يعتبر Global Identifier؛ يستخدم employee_id داخلي + company_id.
+• ملف الموظف والراتب والعقد والإجازات والحضور مرتبطة بعضوية الشركة.
+• نقل الموظف بين شركتين ينشئ Assignment/Membership جديداً ويحافظ على السجل التاريخي.
+• الرواتب لا تظهر لموظفي HR غير المخولين حتى داخل نفس الشركة.
+• المرفقات الشخصية تحفظ في مسارات معزولة ولا تدخل في Global Search.
+15. منع الخلط في الإشعارات والبريد
+• كل Notification يحمل company_id وmembership_id.
+• القوالب Templates قد تكون مشتركة، لكن المتغيرات والبيانات المرسلة تأتي من نطاق الشركة الحالية.
+• يمنع إرسال تقرير أو فاتورة لشخص اعتماداً على email فقط؛ يتم التحقق من علاقته بالسجل.
+• روابط البريد تكون Signed Deep Links وتعيد التحقق من الصلاحية عند فتحها.
+16. البيئات: Production / Staging / Development
+البيئة
+القاعدة
+Production
+بيانات حقيقية فقط، وصول مقيد
+Staging
+لا تستنسخ بيانات حقيقية حساسة دون Masking
+Development
+بيانات صناعية/وهمية فقط
+Testing
+Seed data منفصلة لكل Tenant لاختبار العزل
+يحظر استخدام نفس مفاتيح API أو Storage Buckets أو قاعدة البيانات بين Production وDevelopment. كل بيئة يجب أن تملك Secrets وURLs وحسابات خدمة مستقلة.
+17. النسخ الاحتياطي والاستعادة
+• توثيق الشركة ضمن Backup Metadata.
+• اختبار Point-in-Time Recovery دون فقد عزل tenant.
+• عند استعادة شركة واحدة إلى بيئة مؤقتة، يجب إزالة أو إخفاء بيانات الشركات الأخرى.
+• تشفير النسخ الاحتياطية وإدارة مفاتيح التشفير مركزياً مع صلاحيات محدودة.
+18. Audit Logs وسجل الوصول
+يسجل النظام: user_id، membership_id، company_id، branch_id، action، resource، record_id، timestamp، IP، device، result، previous_value وnew_value عند الحاجة. ويجب تسجيل محاولات الوصول إلى شركة أو سجل خارج النطاق حتى لو تم منعها.
+19. قواعد عدم الخلط في البرمجة
+• لا يوجد function مثل getAllInvoices() في طبقة المستخدم؛ بل getInvoices(context).
+• لا يتم بناء Query ثم إضافة company filter اختيارياً؛ الفلتر يكون جزءاً أساسياً من Repository.
+• لا تستخدم متغير global للشركة الحالية على الخادم.
+• لا يتم الاعتماد على UI state لتحديد Tenant.
+• لا تكتب SQL JOIN بين جداول أعمال دون شرط تطابق company_id عندما يكون ذلك مطلوباً.
+• تضاف Automated Tests لأي Endpoint جديد قبل الدمج.
+20. اختبارات إلزامية لمنع التسريب
+الاختبار
+النتيجة المطلوبة
+تغيير company_id في request
+403 أو تجاهل القيمة غير الموثوقة
+تغيير record ID في URL
+عدم كشف السجل
+مستخدم شركة A يبحث عن اسم من B
+صفر نتائج
+تصدير تقرير
+بيانات الشركة الحالية فقط
+Cache hit من شركة أخرى
+مستحيل بسبب tenant-aware key
+Direct storage URL
+لا يعمل دون authorization
+Role منتهي
+يمنع فوراً
+Membership موقوفة والجلسة مفتوحة
+الوصول يوقف فوراً
+Background job
+يعالج Tenant واحداً وفق الرسالة
+Group dashboard
+لا يظهر إلا للـGroup roles المخولة
+21. اختبارات قاعدة البيانات
+• Foreign Key/Constraint يمنع ربط سجلين من شركتين مختلفتين.
+• RLS Test Suite تنفذ كحسابات حقيقية وليس Database Owner.
+• اختبار SQL Injection وIDOR وHorizontal Privilege Escalation.
+• اختبار أن Service Accounts لا تستطيع الوصول إلا للـSchemas/جداول المطلوبة.
+• اختبار Migration على بيانات متعددة الشركات لضمان عدم فقد tenant_id.
+22. Shared Data المسموح به
+نوع البيانات
+هل يمكن مشاركته؟
+الشرط
+الدول والعملات
+نعم
+Reference data فقط
+قوالب الحسابات
+نعم
+Template وليس Ledger
+قائمة الوظائف
+نعم
+Master catalog إن رغبت المجموعة
+المورد
+مشروط
+Shared master + company-specific relationship
+العميل
+مشروط
+Shared identity مع حساب تجاري منفصل لكل شركة
+الموظف
+لا افتراضياً
+هوية مركزية فقط مع Assignments منفصلة
+الفواتير/القيود
+لا
+بيانات شركة صريحة
+الرواتب
+لا
+عزل شديد
+23. التعامل مع المورد أو العميل المشترك
+إذا تعامل نفس المورد مع أكثر من شركة، لا يتم إنشاء سجل مالي عالمي واحد. يمكن وجود master_party مركزي للبيانات العامة، ثم company_vendor_account لكل شركة يحتوي شروط الدفع والرصيد والضرائب والحسابات والبنك والتقييم والعقود الخاصة بتلك الشركة.
+24. الخدمات المشتركة Shared Services
+• المحاسب المركزي لا يمنح وصولاً عاماً؛ يملك Membership منفصلة لكل شركة.
+• يمكن إنشاء Portal للخدمات المشتركة يعرض قائمة الشركات المصرح بها فقط.
+• كل معاملة تبدأ باختيار الشركة ثم يتم تثبيت Context حتى انتهاء العملية.
+• لا يسمح بتنفيذ Bulk Action عبر شركات متعددة إلا في وظيفة مخصصة ومدققة.
+25. معايير التسمية لمنع الأخطاء
+العنصر
+مثال
+Company Code
+KSG-C01
+Database/Schema
+erp_c01 أو tenant_c01
+Storage Path
+companies/C01/...
+Cache Key
+company:C01:invoice:123
+Queue Topic
+erp.company.C01.events
+Log Field
+company_id=C01
+26. إجراءات عند اكتشاف خلط بيانات
+• إيقاف المسار/الخدمة المتسببة فوراً.
+• إلغاء الجلسات أو Tokens ذات العلاقة.
+• تحديد السجلات والمستخدمين المتأثرين من Audit Logs.
+• منع التعديل على الأدلة وسجلات الحادث.
+• إصلاح Policy/Query ثم تشغيل Regression Tests.
+• فحص ما إذا تم عرض أو تصدير أو إرسال بيانات خارج النطاق.
+• توثيق Root Cause وإضافة اختبار آلي يمنع تكرار الخطأ.
+27. خطة التنفيذ
+المرحلة
+الأعمال
+1 — Inventory
+حصر كل الجداول والـAPIs والملفات والكاش والـqueues والتقارير
+2 — Tenant Mapping
+تحديد company_id لكل سجل ومصدر بيانات
+3 — Constraints
+إضافة FK/Unique/Check Constraints المناسبة
+4 — RLS
+تطبيق سياسات العزل واختبارها
+5 — Identity
+فصل users عن memberships والأدوار
+6 — Backend
+تطبيق Tenant Context وScoped Repositories
+7 — Storage/Cache/Search
+إضافة tenant-aware isolation
+8 — Reporting
+عزل التقارير وإنشاء طبقة Consolidation
+9 — Test Automation
+Cross-tenant regression suite
+10 — Security Review
+مراجعة اختراق وصلاحيات قبل الإنتاج
+28. شرط القبول النهائي
+لا يعتبر النظام آمناً لمجموعة متعددة الشركات إلا إذا كان تغيير أي Company ID أو User ID أو Record ID أو URL أو Request Parameter غير قادر على إظهار بيانات شركة أخرى. يجب أن يكون العزل قائماً في قاعدة البيانات والـBackend والتخزين والكاش والبحث والتقارير والـQueues معاً، وأن يكون الوصول المتعدد للشركات استثناءً مصرحاً به وليس الوضع الافتراضي.

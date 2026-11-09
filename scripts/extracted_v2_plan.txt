@@ -1,0 +1,1369 @@
+﻿خطة الربط والتكامل الشاملبين ERP مجموعة خالد السليم ومنصة مساندلأربع شركات استقدام مستقلة
+Musaned Integration Master Plan
+النطاق: أربع شركات استقدام مستقلة داخل مجموعة واحدة — تشغيل، عقود، تأشيرات، مدفوعات، عمالة، شكاوى، محاسبة، تقارير، أمن وتدقيق
+المنصة المستهدفة: erpkhalid.vercel.app
+التاريخ: 31 أغسطس 2026
+ملاحظة حاكمة
+تفاصيل واجهات API الخاصة ببوابة تكامل مساند ليست منشورة للعامة. لذلك تميز هذه الوثيقة بوضوح بين الحقائق الموثقة رسميًا وبين عقد التكامل المقترح (Proposed Integration Contract) الذي يجب مطابقته لاحقًا مع وثائق الاعتماد وبيئة Sandbox/Production التي تمنحها مساند للشركة.
+فهرس الوثيقة
+• 1. الملخص التنفيذي ونطاق التكامل
+• 2. ما هو مؤكد رسميًا عن مساند
+• 3. مبادئ التصميم وحدود المسؤولية
+• 4. المعمارية التقنية المستهدفة
+• 5. نموذج البيانات الرئيسي MDM
+• 6. دورة حياة طلب الاستقدام
+• 7. إدارة العروض والعقود
+• 8. التأشيرات
+• 9. العمالة والسير الذاتية والترشيح
+• 10. المدفوعات والتسويات والمحاسبة
+• 11. التأمين والضمانات
+• 12. نقل الخدمات
+• 13. الرواتب والتوثيق
+• 14. الشكاوى والنزاعات وخدمة العملاء
+• 15. الإشعارات والاتصالات
+• 16. واجهات API المقترحة
+• 17. Webhooks والأحداث
+• 18. المطابقة والمزامنة وإدارة التعارض
+• 19. الأمن السيبراني وPDPL
+• 20. الهوية والصلاحيات والفصل بين الشركات
+• 21. السجلات والتدقيق وعدم الإنكار
+• 22. المراقبة والـObservability وSLA
+• 23. التقارير ولوحة مؤشرات مساند داخل ERP
+• 24. معالجة الأخطاء والاستثناءات
+• 25. الاختبارات والـSandbox
+• 26. خطة الإطلاق المرحلية
+• 27. نموذج التشغيل والدعم
+• 28. المخاطر والضوابط
+• 29. قائمة التحقق للحصول على اعتماد الربط
+• 30. معايير القبول
+• 31. الملاحق التقنية
+• 32. المصادر الرسمية
+1. الملخص التنفيذي ونطاق التكامل
+الهدف هو أن يصبح ERP هو مركز التشغيل الداخلي الوحيد للشركة، بينما تبقى مساند القناة النظامية المعتمدة للعمليات التي تتطلب تنفيذًا أو توثيقًا داخل المنصة. لا ينبغي بناء تكامل يكرر قواعد مساند أو يتجاوزها؛ بل طبقة تكامل ثنائية الاتجاه تحفظ رقم الطلب والعقد والتأشيرة والدفعة والحالة الرسمية، وتربطها بقيود ERP التشغيلية والمالية.
+• إنشاء سجل موحد للعميل، الطلب، العامل، العرض، العقد، التأشيرة، الدفع، التأمين، الشكوى ونقل الخدمة.
+• استقبال أي طلب/تحديث وارد من مساند وإسقاطه مباشرة على حالة داخل ERP.
+• إرسال العمليات المسموح بها من ERP إلى مساند بعد التحقق من الصلاحيات والبيانات.
+• منع الإدخال المكرر وتعارض الحالات عبر Idempotency Keys وExternal IDs.
+• توليد القيود المحاسبية والتسويات آليًا من أحداث العقد والدفع والاسترداد.
+• إتاحة لوحة متابعة تشغيلية تربط كل مرحلة بزمن SLA والمسؤول عنها والتنبيهات.
+• حفظ سجل تدقيق غير قابل للتعديل يثبت من قام بماذا، ومتى، وما الطلب والاستجابة.
+2. ما هو مؤكد رسميًا عن مساند
+وفق المصادر الرسمية المتاحة حتى 31 أغسطس 2026: منصة مساند منظومة رقمية لخدمات العمالة المنزلية، وهي القناة المعتمدة لتوثيق العلاقة بين شركات/مكاتب الاستقدام وأصحاب العمل وتنفيذ عمليات الاستقدام. الدليل العام يوضح دخول الشركات عبر نظام الدخول الموحد للوزارة، وجود لوحة بيانات للشركات، الدفع الإلكتروني، الإشعارات، قائمة الطلبات والتحقق اللحظي من المدخلات. كما توجد بوابة مستقلة باسم «بوابة تكامل مساند».
+العنصر
+المؤكد رسميًا
+أثره على ERP
+العلاقة النظامية
+مساند مسؤولة عن توثيق العلاقة وعمليات الاستقدام
+ERP لا يحل محل مساند في التوثيق؛ يحتفظ بنسخة مرجعية وحالة مزامنة
+دخول الشركات
+الدخول مرتبط بالنظام الموحد لوزارة الموارد البشرية
+لا نخزن بيانات دخول الموظف إلى مساند داخل ERP
+لوحة الشركات
+تعرض إشعارات ومؤشرات المنشأة وملخص الطلبات
+نبني لوحة Mirror تشغيلية مع Drill-down ومطابقة
+الدفع
+مدى/فيزا/ماستر/Apple Pay والتقسيط بحسب المشاركين
+الـERP يستقبل نتيجة الدفع/التسوية، لا يفترض أنه PSP بديل
+الطلبات
+قائمة طلبات حالية وسابقة وحالاتها
+External status + Internal workflow status
+التحقق
+تحقق تلقائي ولحظي من المدخلات
+Validation layer قبل الإرسال + التعامل مع أخطاء مساند
+العقود
+العلاقة والعقد عبر مساند
+تخزين Musaned Contract ID ونسخة PDF/hash إن أتيحت
+التأشيرات
+إرسال/قبول/رفض طلب إصدار التأشيرة ضمن رحلة الخدمة
+حالة تأشيرة وربط أسباب الرفض وخطة المعالجة
+3. مبادئ التصميم وحدود المسؤولية
+• System of Record: مساند للحالة النظامية الرسمية؛ ERP للسجل التشغيلي والمالي الداخلي.
+• Zero Trust Integration: كل طلب بين النظامين موقّع/موثق، وكل صلاحية بأقل امتياز.
+• Event-driven first: تحديث الحالات عبر Webhook/Event إن توفر، مع Polling reconciliation احتياطي فقط.
+• Idempotent by design: كل عملية قابلة لإعادة الإرسال دون تكرار النتائج.
+• Never overwrite silently: أي تعارض يذهب إلى Queue للمراجعة مع حفظ النسختين.
+• PII minimization: لا نخزن إلا البيانات اللازمة، مع تشفير الحقول الحساسة.
+• Tenant isolation: كل شركة/فرع/مكتب له نطاق بيانات وصلاحيات منفصل داخل ERP.
+• Auditability: كل تغيير حالة، إعادة إرسال، استثناء، تعديل يدوي أو تسوية له سجل مستقل.
+4. المعمارية التقنية المستهدفة
+المعمارية المقترحة تفصل طبقة التكامل عن وحدات ERP، بحيث لا تتصل المحاسبة أو CRM أو الموارد البشرية مباشرة بمساند.
+الطبقة
+المكوّن
+المسؤولية
+ERP UI
+Musaned Operations Center
+شاشة موحدة للطلبات والعقود والتأشيرات والدفع والمشكلات
+ERP Core
+Recruitment Domain Service
+قواعد العمل الداخلية والحالات والمهام
+Integration
+Musaned Adapter/API Gateway
+تحويل النماذج، التوقيع، OAuth/API Keys حسب الاعتماد
+Messaging
+Queue / Service Bus
+فصل العمليات، Retry، DLQ، ترتيب الأحداث
+Webhook
+Webhook Receiver
+استقبال أحداث مساند والتحقق من التوقيع ومنع replay
+Reconciliation
+Sync Worker
+مطابقة دورية للحالات والماليات
+Data
+Operational DB + Audit DB
+السجلات التشغيلية وسجل التدقيق
+Security
+Secrets Vault + KMS
+حفظ الأسرار والمفاتيح والتشفير
+Monitoring
+APM + Logs + Alerts
+مراقبة الفشل، التأخير، معدلات الأخطاء والـSLA
+تسلسل نموذجي: ERP → Integration Command → Validation → Queue → Musaned Adapter → Musaned → Response/Event → Webhook Receiver → Event Store → Domain Update → Accounting/CRM/Notifications → Audit Log.
+5. نموذج البيانات الرئيسي MDM
+الكيان
+حقول إلزامية مقترحة
+مفتاح الربط
+Company
+company_id, CR, license_no, branch_id, status
+musaned_establishment_id
+Customer
+customer_id, national_id_masked, mobile, email
+musaned_customer_ref إن أتيح
+Recruitment Request
+request_id, service_type, profession, nationality, destination, status
+musaned_request_id
+Offer
+offer_id, request_id, price, fees, expiry, status
+musaned_offer_id
+Contract
+contract_id, request_id, amount, VAT, signed_at, status
+musaned_contract_id
+Worker
+worker_id, passport_hash, nationality, profession, DOB, status
+musaned_worker_id
+Visa
+visa_id, request_id, profession, nationality, issue_status, rejection_reason
+musaned_visa_request_id / visa_no
+Payment
+payment_id, contract_id, amount, method, status, paid_at
+musaned_invoice/payment_ref
+Insurance
+insurance_id, contract_id, provider, policy_no, status
+musaned_policy_ref
+Transfer
+transfer_id, worker_id, from/to employer, status
+musaned_transfer_id
+Complaint
+case_id, contract_id, category, SLA, status
+musaned_case_id
+Sync Event
+event_id, entity_type, payload_hash, source, processed_at
+external_event_id
+يوصى بتخزين رقم الهوية/الإقامة والجواز وفق مبدأ تقليل البيانات: عرض مقنع Masked في الواجهات، وتشفير field-level عند الحاجة التشغيلية، وعدم استخدام هذه الأرقام كمفاتيح أساسية داخل قاعدة البيانات.
+6. دورة حياة طلب الاستقدام
+الحالة التقنية
+الوصف
+الإجراء
+DRAFT
+مسودة داخلية
+غير مرسل
+READY_TO_SUBMIT
+جاهز للإرسال
+نجح التحقق الداخلي
+SUBMITTED
+مرسل لمساند
+تم استلام External ID
+UNDER_REVIEW
+تحت الإجراء
+بانتظار نتيجة/عروض
+OFFER_AVAILABLE
+عرض متاح
+يتطلب متابعة العميل
+OFFER_ACCEPTED
+عرض مقبول
+ينتقل للدفع/العقد
+PAYMENT_PENDING
+بانتظار الدفع
+مراقبة مهلة الدفع
+PAID
+مدفوع
+إنشاء/تفعيل الالتزامات
+CONTRACT_ACTIVE
+عقد ساري
+بدء تنفيذ الاستقدام
+VISA_PENDING
+التأشيرة تحت الإجراء
+انتظار إصدار/رفض
+PROCESSING_ABROAD
+إجراءات خارجية
+فحص/سفارة/تذكرة حسب النموذج
+ARRIVAL_PENDING
+بانتظار الوصول
+التجهيز للاستقبال
+ARRIVED
+وصل العامل
+تسليم/إيواء/بدء الضمان
+COMPLETED
+مكتمل
+إقفال تشغيلي
+CANCELLED
+ملغي
+إلغاء وتصفية مالية
+REJECTED
+مرفوض
+سبب + إجراء تصحيحي
+DISPUTED
+نزاع
+تجميد بعض الإجراءات وإدارة الحالة
+يجب الاحتفاظ بحالتين منفصلتين: official_status_from_musaned و internal_operational_status. لا يتم مساواتهما دائمًا؛ فقد يكون العقد رسميًا «ساري» بينما توجد داخليًا حالة «بانتظار حجز التذكرة».
+7. إدارة العروض والعقود
+• استقبال العرض وربطه بطلب الاستقدام والعميل والفرع.
+• تخزين السعر الأساسي، الضريبة، التذكرة الداخلية إن وجدت، الرسوم، الإجمالي والمهلة.
+• تنبيه قبل انتهاء صلاحية العرض بمدد قابلة للضبط.
+• عند قبول العرض: إنشاء حدث ContractAcceptancePending ثم انتظار تأكيد مساند.
+• بعد الدفع/التفعيل: تثبيت نسخة العقد المرجعية وعدم السماح بتعديل قيمها يدويًا إلا عبر عملية تصحيح موثقة.
+• تخزين hash لملف العقد/المستند إن كان تنزيله متاحًا، لإثبات عدم تغييره.
+• إدارة حالات الإلغاء والاسترداد عبر workflow منفصل، وعدم حذف العقد أو الدفع من قاعدة البيانات.
+8. التأشيرات
+السيناريو
+منطق ERP
+البيانات المطلوبة
+رفع طلب إصدار
+تكوين payload بعد التحقق من أهلية الطلب
+المهنة، الجنسية، جهة القدوم، مرجع العقد/الطلب
+قبول
+تحديث الحالة وتسجيل رقم التأشيرة/الطلب وتاريخ القبول
+external ref, accepted_at
+رفض
+فتح Remediation Task تلقائي
+reason_code, reason_text, retry_allowed
+إعادة تقديم
+إنشاء attempt جديد لا تعديل المحاولة السابقة
+attempt_no, previous_ref
+انتهاء/إلغاء
+إيقاف الخطوات التابعة وتقييم الأثر المالي
+status, effective_date
+يجب أن تكون أسباب الرفض قائمة مرجعية قابلة للبحث والتحليل، لا نصًا حرًا فقط، حتى يمكن اكتشاف أكثر أسباب الرفض حسب الجنسية/المهنة/الفرع/الموظف.
+9. العمالة والسير الذاتية والترشيح
+• Worker Master مستقل عن Candidate Profile لتجنب خلط الشخص بالترشيحات المتعددة.
+• نسخة Snapshot من السيرة المستخدمة وقت العرض حتى لا يؤدي تعديل السيرة لاحقًا إلى تغيير ما قبله العميل.
+• Deduplication عبر مجموعة مؤشرات: passport hash + date of birth + nationality، بحسب ما يسمح به النظام واللوائح.
+• حالات: Available / Reserved / Offered / Selected / Contracted / Visa Processing / Arrived / Transferred / Inactive.
+• قفل الحجز Reservation Lock لمنع تقديم نفس العامل لأكثر من عميل في نفس اللحظة إذا كان النموذج التشغيلي يتطلب الحصرية.
+10. المدفوعات والتسويات والمحاسبة
+الهدف المحاسبي: تحويل الحدث التشغيلي في مساند إلى أثر مالي قابل للتدقيق، دون افتراض أن إشعار الدفع وحده يعني تسوية بنكية نهائية.
+الحدث
+القيد/الأثر المقترح
+ملاحظة
+إصدار فاتورة/التزام
+إثبات حساب عميل/التزام حسب السياسة المحاسبية
+يتحقق محاسب الشركة من توقيت الاعتراف
+دفع ناجح
+تسجيل Receipt Pending Settlement
+لا يعتبر تسوية بنكية قبل ملف/تأكيد التسوية
+تسوية بنكية
+Bank/Clearing ← Payment Clearing
+مطابقة يومية
+إلغاء قبل التنفيذ
+إلغاء الالتزام أو Credit Note حسب الحالة
+يحفظ المرجع الأصلي
+استرداد
+Refund Payable/Bank
+مرجع الاسترداد والسبب
+ضريبة
+VAT Output/Input وفق طبيعة البند
+تتوافق مع ZATCA وسياسة الشركة
+رسوم بوابة/تقسيط
+Payment Fees Expense/Payable
+حسب الجهة المتحملة
+يلزم جدول Settlement Batch يضم: settlement_date, provider_ref, gross_amount, fees, VAT_on_fees, net_amount, bank_reference, matched_count, unmatched_amount. ويُمنع إغلاق اليوم المالي إذا تجاوز فرق المطابقة حدًا ماليًا معتمدًا.
+11. التأمين والضمانات
+• ربط وثيقة التأمين بالعقد والعامل والعميل.
+• حالات Policy: Quoted / Issued / Active / Claimed / Expired / Cancelled.
+• فتح Claim Workflow عند تحقق حالة تستدعي مطالبة، مع مستندات وإثباتات وسجل زمني.
+• عدم اعتبار التأمين بديلًا عن إدارة الشكوى أو الالتزام التعاقدي.
+• مؤشرات: نسبة العقود المؤمّنة، زمن إصدار الوثيقة، عدد المطالبات، معدل قبول المطالبات وقيم التعويض.
+12. نقل الخدمات
+تدعم المنصة خدمات نقل الخدمات، لذلك يجب تخصيص Domain مستقل في ERP بدلاً من معاملتها كتعديل على عقد الاستقدام.
+المرحلة
+الحالة
+الضبط
+طلب نقل
+CREATED
+ربط العامل وصاحب العمل الحالي والجديد
+موافقة/انتظار
+PENDING_APPROVAL
+مهلة وتنبيهات
+دفع/رسوم
+PAYMENT_PENDING/PAID
+تسوية منفصلة
+تنفيذ
+TRANSFERRED
+تحديث علاقة العامل
+رفض
+REJECTED
+سبب قابل للتحليل
+إلغاء
+CANCELLED
+حفظ الأثر المالي والتشغيلي
+13. الرواتب والتوثيق
+تظهر المصادر الرسمية توسع مساند في قنوات دفع رواتب العمالة المساندة وتوثيق الالتزامات المالية. في ERP يفضل بناء سجل Payroll Evidence/Salary Compliance كمؤشر ومصدر متابعة، مع عدم ادعاء تنفيذ أو توثيق الراتب داخل مساند إلا إذا أتاحت وثائق التكامل الرسمية endpoint/خدمة مخصصة للشركة.
+• salary_month
+• due_date
+• paid_date
+• amount
+• payment_channel
+• external_reference
+• compliance_status
+• exception_reason
+14. الشكاوى والنزاعات وخدمة العملاء
+المكوّن
+الوظيفة
+Case Intake
+استقبال شكوى من مساند أو CRM وربطها بالعقد والعامل
+Classification
+تصنيف: تأخير، رفض عمل، تغيب، مالي، جودة، عقد، نقل خدمة، أخرى
+SLA Engine
+وقت استجابة وحل حسب الفئة والأولوية
+Evidence Vault
+مستندات، اتصالات، صور/محاضر بحسب الصلاحية
+Resolution
+حل، تعويض، استبدال، تصعيد، إغلاق
+Root Cause
+تحليل السبب الجذري وربطه بالفرع/المورد/الجنسية/المرحلة
+أي شكوى مرتبطة بحقوق أطراف العلاقة لا تُحذف. يتم إخفاؤها عن العرض الاعتيادي بعد الإغلاق ولكن تبقى في الأرشيف التدقيقي وفق سياسة الاحتفاظ.
+15. الإشعارات والاتصالات
+الدليل الرسمي يعرض رسائل عند إنشاء الطلب، إرسال العرض، قبول/رفض العرض، الدفع، انتهاء المهلة، الإلغاء وإجراءات التأشيرة. داخل ERP ننشئ Notification Orchestrator لا يعتمد على نصوص مساند حرفيًا، بل على أحداث موحدة.
+Event
+قناة داخلية
+المتلقي
+REQUEST_SUBMITTED
+In-app/Email
+موظف الطلب
+OFFER_RECEIVED
+In-app/SMS/WhatsApp حسب الموافقات
+الموظف/خدمة العميل
+OFFER_EXPIRING
+In-app + Escalation
+الموظف ثم المشرف
+PAYMENT_CONFIRMED
+In-app/Email
+المالية والعمليات
+VISA_REJECTED
+High Priority
+مسؤول التأشيرات والمشرف
+SYNC_FAILED
+Technical Alert
+فريق التقنية
+RECONCILIATION_MISMATCH
+Finance Alert
+المالية + التكامل
+16. واجهات API المقترحة
+الأسماء التالية عقد داخلي مقترح للـERP Adapter وليست أسماء Endpoints رسمية لمساند. عند استلام وثائق مساند يتم عمل Mapping Adapter دون تغيير بقية النظام.
+Method
+Internal Endpoint
+الغرض
+POST
+/integrations/musaned/requests
+إرسال طلب/أمر تكامل
+GET
+/integrations/musaned/requests/{id}
+قراءة الحالة الموحّدة
+POST
+/integrations/musaned/offers/{id}/accept
+طلب قبول عرض
+POST
+/integrations/musaned/offers/{id}/reject
+طلب رفض عرض
+GET
+/integrations/musaned/contracts/{id}
+مزامنة عقد
+POST
+/integrations/musaned/visa-applications
+رفع/مزامنة طلب تأشيرة
+GET
+/integrations/musaned/payments/{ref}
+قراءة حالة دفع
+POST
+/integrations/musaned/transfers
+إدارة نقل خدمة
+POST
+/integrations/musaned/webhooks
+نقطة استقبال الأحداث
+POST
+/integrations/musaned/reconcile
+تشغيل مطابقة يدوية بصلاحية
+نموذج Request Envelope
+{  "correlationId": "uuid",  "idempotencyKey": "company-request-action-v1",  "tenantId": "company/branch",  "action": "SUBMIT_RECRUITMENT_REQUEST",  "entityId": "ERP-REQ-000123",  "externalId": null,  "occurredAt": "ISO-8601",  "payloadVersion": "1.0",  "payload": { "...": "mapped fields" }}
+17. Webhooks والأحداث
+الحدث الموحّد
+التصرف داخل ERP
+request.status.changed
+تحديث الحالة + timeline + SLA
+offer.created
+إنشاء العرض والتنبيه
+offer.expired
+إغلاق العرض ومنع القبول
+contract.created/activated
+تثبيت العقد وإطلاق مهام التنفيذ
+invoice.created
+إنشاء مرجع مالي
+payment.succeeded
+تسجيل receipt pending reconciliation
+payment.refunded
+فتح refund reconciliation
+visa.status.changed
+تحديث التأشيرة/سبب الرفض
+worker.status.changed
+تحديث حالة العامل
+transfer.status.changed
+تحديث نقل الخدمة
+case.status.changed
+تحديث الشكوى
+ضوابط Webhook: HTTPS فقط، توقيع HMAC/Certificate حسب وثائق مساند، timestamp tolerance، nonce/replay protection، IP allowlist إذا توفر، body hash، تخزين payload الخام مشفرًا، رد سريع 2xx بعد التحقق والإيداع في Queue، والمعالجة غير المتزامنة.
+18. المطابقة والمزامنة وإدارة التعارض
+• Near-real-time: Webhooks للأحداث إذا كانت متاحة.
+• Incremental sync: مزامنة التغييرات منذ آخر cursor/timestamp.
+• Nightly reconciliation: مطابقة الطلبات المفتوحة والعقود والمدفوعات والتأشيرات.
+• Financial reconciliation: كل يوم مع settlement sources المتاحة.
+• Full audit reconciliation: أسبوعي/شهري لعينة أو كامل السجلات حسب الحجم.
+• Conflict precedence: الحالة الرسمية من مساند لا تُستبدل يدويًا، لكن يمكن وضع Internal Override Flag لأغراض التشغيل دون تغيير Official Status.
+• كل تعارض ينتج record في integration_conflicts مع owner وseverity وresolution.
+19. الأمن السيبراني وPDPL
+الضابط
+التنفيذ المقترح
+Encryption in transit
+TLS 1.2+ أو حسب متطلبات الجهة
+Encryption at rest
+قاعدة البيانات + object storage + backups
+Secrets
+Vault، تدوير المفاتيح، لا أسرار داخل الكود/CI logs
+PII
+field-level encryption/masking، least collection
+Access
+RBAC + MFA للعمليات الحساسة
+Privileged Actions
+Step-up authentication + approval لبعض العمليات
+Logs
+لا تسجل أرقام هوية/جواز/رموز وصول كاملة
+Retention
+سياسة احتفاظ حسب المتطلب النظامي والتعاقدي
+Data Subject
+آليات وصول/تصحيح/تقييد وفق الأدوار النظامية
+Incident
+Runbook للحوادث، عزل credential، rotate، التحقيق والإشعار حسب الالتزام
+قبل الإنتاج يجب إجراء DPIA/تقييم أثر خصوصية للتكامل، وتصنيف البيانات، وتحديد الأساس النظامي لكل عنصر، ومسؤولية المتحكم/المعالج بين الشركة ومزودي التقنية.
+20. الهوية والصلاحيات والفصل بين الشركات
+يجب منع خلط بيانات شركات/فروع المجموعة، خصوصًا مع وجود تكامل خارجي واحد أو أكثر. كل Credential خاص بمساند يُربط بكيان قانوني محدد ولا يستخدم عبر Tenant آخر.
+الدور
+صلاحيات مساند داخل ERP
+Integration Admin
+إدارة الإعدادات التقنية والأسرار بدون صلاحية مالية تنفيذية
+Recruitment Agent
+عرض/إنشاء إجراءات الطلبات ضمن فرعه
+Visa Officer
+إجراءات التأشيرات فقط
+Finance
+المدفوعات والتسويات والاستردادات دون تعديل الطلب التشغيلي
+Customer Service
+قراءة الحالة وفتح الحالات دون تغيير مالي
+Supervisor
+إعادة الإرسال/التصعيد واعتماد الاستثناءات
+Auditor
+قراءة كاملة لسجلات التدقيق دون تعديل
+Executive
+مؤشرات مجمعة فقط حسب النطاق
+ينفذ Row-Level Security حسب tenant_id وbranch_id، ويمنع المستخدم من تمرير tenant_id من الواجهة كقيمة موثوقة؛ يُستمد النطاق من Session/Token server-side.
+21. السجلات والتدقيق وعدم الإنكار
+الحقل
+الوصف
+audit_id
+UUID غير قابل للتعديل
+actor_type/id
+مستخدم/خدمة/تكامل
+tenant_id
+الشركة/الفرع
+action
+SUBMIT/ACCEPT/RETRY/OVERRIDE/...
+entity_type/id
+الكيان الداخلي
+external_id
+مرجع مساند إن وجد
+before_hash/after_hash
+بصمات التغيير
+request_hash/response_hash
+إثبات payload دون كشف حساس
+ip/device/session
+حيث يلزم ومسموح
+timestamp
+UTC + العرض بتوقيت السعودية
+reason/approval_ref
+سبب التعديل واعتماده
+يحظر تعديل سجل التدقيق من الواجهات. أي تصحيح يكون Event جديدًا يوضح التصحيح ولا يمحو السجل السابق.
+22. المراقبة والـObservability وSLA
+المؤشر
+الهدف المبدئي المقترح
+API success rate
+≥ 99.5% للعمليات القابلة للقياس داخليًا
+Webhook processing latency
+P95 أقل من 60 ثانية بعد الاستلام
+Queue age
+تنبيه عند تجاوز 5 دقائق للحرج
+Retry exhaustion
+0 عمليات حرجة دون Ticket
+Reconciliation mismatch
+أقل من 0.5% ثم اتجاه تنازلي
+Payment unmatched amount
+0 عند الإقفال أو ضمن حد اعتماد مالي
+Credential expiry
+تنبيه 30/14/7 أيام
+External outage
+فتح Incident وتفعيل وضع القراءة/الصف
+لا يمكن ضمان SLA لمنصة خارجية من ERP؛ لذلك تعرض اللوحة Internal SLA وExternal Dependency separately حتى لا تُنسب الأعطال الخارجية لفريق الشركة.
+23. التقارير ولوحة مؤشرات مساند داخل ERP
+• إجمالي الطلبات حسب الحالة/الشركة/الفرع/الموظف
+• معدل التحويل من طلب → عرض → دفع → عقد → وصول
+• متوسط زمن كل مرحلة وP50/P90
+• طلبات تجاوزت SLA
+• معدل قبول/رفض التأشيرات وأسباب الرفض
+• العقود النشطة/الملغاة/المستردة
+• قيمة العقود والمدفوع/المسترد/غير المطابق
+• العروض المنتهية دون قبول
+• العمالة حسب الجنسية والمهنة والحالة
+• نقل الخدمات حسب الحالة والزمن
+• الشكاوى حسب النوع والجذر والفرع
+• نسبة نجاح المزامنة وفشل الـAPI
+• عدد التعارضات المفتوحة
+• أقدم رسالة في DLQ
+• مطابقة Dashboard مساند مقابل ERP
+24. معالجة الأخطاء والاستثناءات
+الفئة
+مثال
+الإجراء
+Validation
+حقل ناقص/صيغة غير صحيحة
+رفض قبل الإرسال وإظهار الحقل
+Authentication
+Token/credential منتهي
+تجميد إرسال جديد + تنبيه أمني
+Authorization
+العملية غير مسموحة
+لا Retry آلي؛ مراجعة الإعدادات
+Rate Limit
+429
+Backoff + jitter واحترام Retry-After
+Transient
+5xx/timeout
+Retry 3-5 مرات حسب السياسة
+Business Reject
+مهنة/حالة غير مؤهلة
+لا Retry دون تصحيح بيانات
+Duplicate
+طلب مكرر
+تحقق idempotency/external ref
+Out-of-order Event
+حدث قديم بعد حدث أحدث
+قواعد version/timestamp
+Schema Change
+حقل/نسخة غير متوقعة
+Quarantine + alert + contract test
+Unknown
+غير مصنف
+DLQ + incident + correlation id
+25. الاختبارات والـSandbox
+لا يبدأ الإنتاج قبل توفير بيئة اختبار أو بيانات اختبار معتمدة من مساند إن كانت متاحة، وتوثيق السيناريوهات التالية.
+• Happy path كامل: طلب → عرض → قبول → دفع → عقد → تأشيرة → إكمال.
+• رفض العرض وانتهاء المهلة.
+• فشل الدفع ثم النجاح.
+• Refund جزئي/كامل إن كان مدعومًا.
+• رفض التأشيرة وإعادة التقديم.
+• تكرار نفس الطلب بنفس idempotency key.
+• Webhook مكرر، متأخر، out-of-order، وتوقيع خاطئ.
+• انقطاع مساند لمدة 30 دقيقة مع استمرار إدخال الأعمال في ERP.
+• عودة الخدمة وتصريف Queue دون مضاعفة العمليات.
+• Credential rotation.
+• تغيير schema غير متوافق.
+• اختبار عزل Tenant: مستخدم شركة A لا يرى أي external refs لشركة B.
+• اختبار صلاحيات المالية مقابل العمليات.
+• مطابقة مالية على 100+ عملية تجريبية.
+• اختبار أحمال حسب الحجم المتوقع ×3.
+• DR restore واختبار إعادة بناء حالة التكامل من Event Store.
+26. خطة الإطلاق المرحلية
+المرحلة
+المدة التقديرية
+المخرجات
+0 — Discovery &amp; Access
+1–2 أسبوع
+توثيق مساند، credentials، Sandbox، data dictionary
+1 — Read-only Sync
+2–3 أسابيع
+طلبات/عقود/حالات داخل ERP بدون إرسال
+2 — Core Commands
+3–5 أسابيع
+إرسال العمليات المعتمدة + Webhooks
+3 — Finance
+2–4 أسابيع
+الدفع والتسوية والقيود والمطابقة
+4 — Visa/Worker/Transfer
+3–5 أسابيع
+باقي المجالات التشغيلية
+5 — Automation
+2–3 أسابيع
+SLA، تنبيهات، auto-tasks، dashboards
+6 — Hardening
+2 أسبوع
+security, load, DR, audit, go-live
+المدد تقديرية وتعتمد أساسًا على وثائق التكامل التي تمنحها مساند، قائمة الخدمات المصرح بها للشركة، توافر Sandbox وآلية المصادقة.
+27. نموذج التشغيل والدعم
+المستوى
+المسؤولية
+L1 Operations
+المتابعة اليومية، إعادة المحاولة المسموحة، بيانات ناقصة
+L2 ERP Support
+أخطاء mapping/workflow/permissions
+L3 Integration Engineering
+API/Webhook/queue/schema/security
+Finance Ops
+التسويات والمبالغ غير المطابقة
+Compliance/Legal
+العقود، الخصوصية، حفظ الحقوق والإجراءات النظامية
+Vendor/Musaned Support
+أعطال أو تغييرات منصة مساند بحسب قناة الدعم الرسمية
+كل Incident يجب أن يملك: severity، affected tenants، external dependency، first seen، correlation IDs، workaround، root cause، corrective action، postmortem.
+28. المخاطر والضوابط
+الخطر
+الأثر
+الضابط
+عدم توافر API لبعض العمليات
+اعتماد يدوي
+تمييز Manual Bridge وعدم أتمتة غير رسمية
+تغيير API/Schema
+تعطل التكامل
+Versioned adapter + contract tests
+تكرار أحداث
+قيد/طلب مكرر
+Idempotency + event dedupe
+خلط الشركات
+مخالفة وخرق بيانات
+Tenant isolation + credential binding
+فشل التسوية
+فروقات مالية
+Clearing accounts + daily reconciliation
+كشف PII في Logs
+خرق خصوصية
+Redaction/masking
+اعتماد على Polling ثقيل
+Rate limits/تأخير
+Webhooks + delta sync
+تعديل يدوي للحالة الرسمية
+عدم اتساق
+Official status immutable internally
+Credential compromise
+وصول غير مصرح
+Vault, rotation, revoke runbook
+عمليات أثناء outage
+فقد طلبات
+Durable queue + replay
+29. قائمة التحقق للحصول على اعتماد الربط
+• ☐ تحديد الكيان القانوني/المنشأة المرخصة التي سيتم الربط باسمها.
+• ☐ الحصول على جهة الاتصال التقنية/التشغيلية الرسمية في مساند.
+• ☐ طلب وثائق API/Integration Guide الحالية ونسخة الـschema.
+• ☐ تحديد الخدمات المسموح بها للشركة: قراءة/إرسال/تعديل/دفع/تأشيرات/نقل خدمات...
+• ☐ الحصول على Sandbox/Test Credentials إن وجدت.
+• ☐ تحديد طريقة Authentication: OAuth2/mTLS/API Key/SSO أو غيرها رسميًا.
+• ☐ تحديد IP allowlisting ومتطلبات الشهادات.
+• ☐ تحديد Webhook URL requirements والتوقيع وإعادة الإرسال.
+• ☐ تحديد Rate Limits وTimeouts وRetry policy.
+• ☐ تحديد Error Codes وBusiness Validation Codes.
+• ☐ تحديد Data Retention واستخدام البيانات.
+• ☐ تحديد Production onboarding، UAT sign-off، Go-live window، Support escalation.
+30. معايير القبول
+المعيار
+النجاح
+Data Mapping
+100% من الحقول الإلزامية موثقة المصدر والاتجاه
+Traceability
+كل عملية لها correlationId + external ref عند توفره
+Idempotency
+إعادة نفس الأمر لا تنتج سجلًا نظاميًا مكررًا
+Security
+لا أسرار في المصدر/السجلات، MFA/RBAC مطبق
+Tenant Isolation
+اختبارات سلبية ناجحة 100%
+Reconciliation
+الفروق معروفة ومصفرة/مقبولة قبل الإقفال
+Audit
+كل override/retry/approval قابل للتتبع
+Resilience
+انقطاع خارجي لا يفقد البيانات
+UAT
+توقيع العمليات والمالية والتقنية والامتثال
+Rollback
+خطة رجوع مجربة قبل الإنتاج
+31. الملاحق التقنية
+31.1 جداول قاعدة البيانات المقترحة
+• integration_connections
+• integration_credentials_meta
+• musaned_requests
+• musaned_offers
+• musaned_contracts
+• musaned_workers
+• musaned_visas
+• musaned_payments
+• musaned_settlements
+• musaned_insurance
+• musaned_transfers
+• musaned_cases
+• integration_commands
+• integration_events
+• integration_webhooks_raw
+• integration_sync_runs
+• integration_conflicts
+• integration_dead_letters
+• audit_events
+• data_mapping_versions
+31.2 حقول integration_commands
+id, tenant_id, connection_id, action, entity_type, entity_id, external_id, idempotency_key, correlation_id, request_payload_encrypted, payload_version, status, attempt_count, next_retry_at, last_error_code, last_error_message_sanitized, created_by, approved_by, created_at, sent_at, completed_at.
+31.3 حقول integration_events
+id, source, tenant_id, external_event_id, event_type, entity_type, external_entity_id, internal_entity_id, occurred_at, received_at, schema_version, payload_encrypted, payload_hash, signature_valid, processing_status, processed_at, error_ref.
+31.4 قواعد الـRetry
+نوع الخطأ
+Retry
+Timeout/5xx
+نعم: exponential backoff + jitter
+429
+نعم: احترام Retry-After
+401/403
+لا تلقائي بعد محاولة refresh موثقة؛ تصعيد
+4xx Validation
+لا؛ تصحيح البيانات
+Business rejection
+لا؛ workflow معالجة
+Webhook processing internal failure
+نعم من Queue
+Unknown schema
+لا؛ quarantine
+31.5 مثال مصفوفة Mapping
+ERP Field
+Musaned Field
+Direction
+Transform
+Required
+request.id
+externalRequestId
+←
+store as external_id
+نعم بعد الإنشاء
+customer.nationality
+customerNationality
+→
+code mapping
+حسب الخدمة
+worker.profession_code
+professionCode
+↔
+lookup versioned
+نعم
+offer.total_amount
+totalAmount
+←
+decimal SAR
+نعم
+contract.status
+contractStatus
+←
+enum map
+نعم
+visa.rejection_reason
+rejectionReason
+←
+code + text
+عند الرفض
+payment.reference
+paymentReference
+←
+string
+عند الدفع
+32. المصادر الرسمية
+وزارة الموارد البشرية والتنمية الاجتماعية — قرار اعتماد عقد التوسط الإلكتروني الموحد واعتماد منصة مساندhttps://www.hrsd.gov.sa/knowledge-centre/decisions-and-regulations/ministerial-decisions/845692
+وزارة الموارد البشرية — «مساند ترفع كفاءة الاستقدام وتحفظ حقوق العمالة المساندة في 2026» (25 أغسطس 2026)https://www.hrsd.gov.sa/media-center/news/%D8%A7%D8%B3%D8%AA%D9%82%D8%AF%D8%A7%D9%85-%D8%A3%D8%B3%D9%87%D9%84-%D9%88%D8%AD%D9%82%D9%88%D9%82-%D9%85%D8%AD%D9%81%D9%88%D8%B8%D8%A9
+وزارة الموارد البشرية — منصات الوزارة / منصة مساندhttps://www.hrsd.gov.sa/ministry-platforms
+وزارة الموارد البشرية — التوثيق الإلكتروني لعقود العمالة المنزليةhttps://www.hrsd.gov.sa/ministry-services/services/833342
+دليل استخدام منصة مساند العام — بوابة مساند / تمكين للتقنياتhttps://www.hrsd.gov.sa/sites/default/files/2023-03/%D9%85%D8%B3%D8%A7%D9%86%D8%AF%20-%20%D8%A7%D9%84%D8%AF%D9%84%D9%8A%D9%84%20%D8%A7%D9%84%D8%B9%D8%A7%D9%85.pdf
+بوابة تكامل مساند — صفحة تسجيل الدخولhttps://visa.musaned.com.sa/takamol/auth/login
+ERP مجموعة خالد السليم — النظام المستهدفhttps://erpkhalid.vercel.app/
+ملاحظة ختامية تنفيذية
+الخطوة الأولى قبل البرمجة هي الحصول على وثائق «بوابة تكامل مساند» المخصصة للمنشأة. عند استلامها، يجب تحويل هذه الوثيقة إلى Integration Specification نهائية تضم أسماء الـEndpoints الرسمية، حقول request/response، authentication، error codes، rate limits، webhooks، أمثلة payloads، وشهادات UAT. البنية المقترحة هنا مصممة بحيث لا يتطلب ذلك إعادة هندسة ERP؛ بل تحديث Musaned Adapter وData Mapping فقط.
+33. معمارية مساند لأربع شركات استقدام — Multi-Company Architecture
+هذا الفصل يحول الخطة إلى نموذج تشغيل صريح لأربع شركات استقدام مستقلة قانونيًا وتشغيليًا داخل ERP واحد. المبدأ الحاكم: الكود والبنية التقنية يمكن أن تكون مشتركة، لكن الهوية النظامية والاتصال بمساند والبيانات والصلاحيات والقيود المحاسبية والتسويات وسجل التدقيق تكون منفصلة لكل شركة.
+المستوى
+المكوّن
+قاعدة العزل
+Group
+لوحة المجموعة القابضة
+تجميع مؤشرات فقط حسب الصلاحية، ولا تملك اتصالًا تشغيليًا بمساند نيابة عن الشركات إلا إذا كان ذلك مصرحًا رسميًا
+Company 1
+شركة استقدام 1
+Musaned Connection + Tenant + Ledger + Users مستقلة
+Company 2
+شركة استقدام 2
+Musaned Connection + Tenant + Ledger + Users مستقلة
+Company 3
+شركة استقدام 3
+Musaned Connection + Tenant + Ledger + Users مستقلة
+Company 4
+شركة استقدام 4
+Musaned Connection + Tenant + Ledger + Users مستقلة
+Shared Integration Platform
+Adapter/Queue/Monitoring مشتركة
+لا تقبل أي عملية بلا company_id + connection_id + authorization scope
+33.1 نموذج الشركات الأربع
+الرمز الداخلي
+الكيان
+Tenant Key
+اتصال مساند
+دفتر الأستاذ
+قاعدة الصلاحيات
+RC01
+شركة الاستقدام الأولى
+tenant_rc01
+connection_rc01
+ledger_rc01
+مستخدمو RC01 فقط
+RC02
+شركة الاستقدام الثانية
+tenant_rc02
+connection_rc02
+ledger_rc02
+مستخدمو RC02 فقط
+RC03
+شركة الاستقدام الثالثة
+tenant_rc03
+connection_rc03
+ledger_rc03
+مستخدمو RC03 فقط
+RC04
+شركة الاستقدام الرابعة
+tenant_rc04
+connection_rc04
+ledger_rc04
+مستخدمو RC04 فقط
+تستبدل الأسماء الرمزية RC01–RC04 بأسماء الشركات القانونية الفعلية داخل الإعدادات. لا تُكتب أسماء الشركات في الكود ولا في قواعد الـworkflow؛ بل تُدار من Company Master.
+33.2 قاعدة ذهبية لمنع الخلط
+• أي سجل متعلق بمساند يجب أن يحمل tenant_id وcompany_id وmusaned_connection_id وexternal_reference.
+• لا يقبل Backend قيمة company_id من واجهة المستخدم دون التحقق منها من Session/Token وصلاحية المستخدم.
+• لا يمكن لمستخدم شركة 1 اختيار اتصال مساند شركة 2 حتى لو عرف المعرف التقني.
+• كل Credential أو Certificate أو Webhook Secret يربط بكيان قانوني واحد، ما لم تنص وثائق مساند رسميًا على اتصال متعدد المنشآت.
+• كل قيد محاسبي ناتج عن مساند يرحل إلى Ledger الشركة صاحبة العقد فقط.
+• لوحة المجموعة لا تستخدم سجلات خام مشتركة دون Row-Level Security؛ التجميع يتم عبر طبقة تقارير محكومة.
+34. إدارة اتصالات مساند للشركات الأربع
+يجب إنشاء Musaned Connection Registry داخل ERP. وهو المصدر الوحيد الذي يحدد أي اتصال يستخدم لكل شركة وبيئة.
+الحقل
+الوصف
+مثال
+connection_id
+معرف داخلي غير قابل للتخمين
+msc_01_prod
+company_id
+الشركة المالكة للاتصال
+RC01
+legal_entity_name
+الاسم القانوني
+من Company Master
+commercial_registration
+السجل التجاري
+مشفر/مقنع حسب الحاجة
+recruitment_license_no
+رقم ترخيص الاستقدام
+مرجع نظامي
+musaned_establishment_id
+معرف المنشأة في مساند إن أتيح
+External ID
+environment
+TEST / SANDBOX / PROD
+PROD
+auth_type
+OAuth2 / mTLS / API Key / غيره
+حسب وثائق مساند
+secret_reference
+مرجع السر في Vault
+vault://musaned/rc01/prod
+certificate_reference
+مرجع الشهادة
+vault://certs/rc01
+webhook_secret_reference
+مرجع توقيع Webhook
+vault://webhook/rc01
+allowed_services
+الخدمات المفعلة
+requests, contracts, visa...
+status
+ACTIVE/SUSPENDED/EXPIRED
+ACTIVE
+last_health_check
+آخر اختبار اتصال
+timestamp
+credential_expiry
+انتهاء credential/cert
+date
+last_sync_at
+آخر مزامنة ناجحة
+timestamp
+34.1 حالتا الربط المحتملتان مع مساند
+يجب أن يدعم التصميم حالتين دون تغيير وحدات ERP:
+الحالة
+التصميم
+الضابط
+Credential مستقل لكل شركة
+4 Connections منفصلة
+الخيار الأكثر عزلاً ووضوحًا
+Credential مركزي متعدد المنشآت
+Connection رئيسي + establishment routing
+لا يستخدم إلا إذا أكدته مساند رسميًا؛ كل request يحمل establishment scope ومراجعة صارمة للصلاحية
+35. قاعدة البيانات متعددة الشركات
+الحد الأدنى المقترح للجداول ذات الصلة المباشرة بمساند هو التالي. يمكن تنفيذ العزل في قاعدة واحدة مع RLS أو قواعد منفصلة، لكن منطق العزل يجب أن يظل نفسه.
+الجدول
+الغرض
+مفاتيح العزل
+companies
+الكيانات القانونية
+company_id
+company_branches
+فروع كل شركة
+company_id, branch_id
+musaned_connections
+إعدادات الاتصال
+company_id, connection_id
+musaned_requests
+طلبات الاستقدام
+tenant_id, company_id, connection_id
+musaned_offers
+العروض
+tenant_id, company_id, request_id
+musaned_contracts
+العقود
+tenant_id, company_id, contract_id
+musaned_workers
+سجل العامل المرتبط بالعملية
+tenant_id, company_id
+musaned_visas
+طلبات/حالات التأشيرات
+tenant_id, company_id
+musaned_payments
+المدفوعات
+tenant_id, company_id, ledger_id
+musaned_settlements
+التسويات
+tenant_id, company_id, bank_account_id
+musaned_cases
+الشكاوى/النزاعات
+tenant_id, company_id
+integration_events
+الأحداث الواردة/الصادرة
+tenant_id, company_id, connection_id
+integration_commands
+الأوامر المرسلة
+tenant_id, company_id, connection_id
+integration_conflicts
+التعارضات
+tenant_id, company_id
+audit_events
+التدقيق
+tenant_id, company_id
+35.1 قواعد Constraints إلزامية
+• Unique(company_id, musaned_external_request_id) لمنع تكرار نفس طلب مساند داخل الشركة.
+• Unique(connection_id, external_event_id) لمنع تكرار Webhook.
+• Foreign Key يضمن أن connection.company_id = entity.company_id.
+• Foreign Key يضمن أن contract.company_id = payment.company_id = settlement.company_id.
+• Check يمنع تغيير company_id لسجل بعد إنشائه؛ النقل بين الشركات ليس Update بل عملية Migration نظامية منفصلة إن كانت مسموحة.
+• كل query تشغيلية تضيف company_id تلقائيًا من Security Context، وليس من form input.
+36. نموذج الصلاحيات للشركات الأربع
+الصلاحيات تكون على مستويين: Role يحدد ما يستطيع المستخدم فعله، وScope يحدد في أي شركة/فرع يستطيع فعله.
+الدور
+قراءة
+إنشاء/تعديل
+اعتماد
+النطاق
+Group Executive
+KPIs مجمعة
+لا
+لا
+الشركات المسموح بها
+Company GM
+كل بيانات شركته
+حسب السياسة
+اعتماد إداري
+شركة واحدة
+Recruitment Agent
+طلبات/عروض شركته
+نعم
+لا
+شركة + فرع
+Visa Officer
+التأشيرات
+نعم
+لا
+شركة + فرع/مكتب
+Finance Officer
+مدفوعات/تسويات
+نعم ماليًا
+لا/حسب الحد
+شركة واحدة
+Finance Manager
+مدفوعات/تسويات
+نعم
+اعتماد استرداد/فرق
+شركة واحدة أو أكثر بتكليف
+Integration Admin
+سجلات تقنية منزوعة الحساسية
+إعدادات تقنية
+اعتماد credential rotation
+نطاق تقني محدد
+Auditor
+قراءة + Audit
+لا
+لا
+نطاق تدقيق مصرح
+Customer Service
+حالة العميل/الشكوى
+فتح/تحديث case
+لا
+شركة + فرع
+36.1 الفصل بين المهام SoD
+• من ينشئ استردادًا لا يعتمد الاسترداد نفسه فوق حد مالي محدد.
+• Integration Admin لا يستطيع إنشاء قيد محاسبي أو تغيير قيمة عقد.
+• Finance لا يستطيع تغيير الحالة الرسمية الواردة من مساند.
+• موظف الفرع لا يستطيع تغيير Musaned Connection أو Establishment ID.
+• أي Override يدوي لحالة تشغيلية حرجة يتطلب سببًا وموافقة Supervisor.
+37. سيناريو التشغيل الكامل لشركة واحدة ثم تكراره على الأربع
+يطبق السيناريو نفسه على RC01–RC04، لكن كل خطوة تستخدم سياق الشركة واتصالها ودفترها المالي.
+#
+المرحلة
+ما يحدث داخل ERP
+التحقق قبل الانتقال
+1
+اختيار الشركة
+المستخدم يدخل Tenant شركته تلقائيًا
+صلاحية المستخدم على الشركة
+2
+إنشاء طلب
+إنشاء Internal Request
+اكتمال بيانات العميل والخدمة
+3
+تحديد Connection
+Backend يختار connection حسب company/environment
+connection ACTIVE وcredential صالح
+4
+Validation
+فحص الحقول والرموز
+mapping version صحيح
+5
+إرسال
+Command إلى Queue ثم Adapter
+idempotency key
+6
+استلام المرجع
+تخزين External Request ID
+مطابقة company/connection
+7
+العرض
+استقبال/مزامنة offer
+الطلب نفسه ونفس الشركة
+8
+القبول/الرفض
+عملية مسجلة ومصادق عليها
+الحالة تسمح بالفعل
+9
+الدفع
+تسجيل payment reference
+العقد/الشركة/الدفتر متطابق
+10
+العقد
+تثبيت contract snapshot
+External status confirmed
+11
+التأشيرة
+إنشاء/مزامنة visa workflow
+البيانات النظامية صحيحة
+12
+التنفيذ
+مهام خارجية/وصول
+SLA وowner
+13
+الإكمال
+إغلاق تشغيلي
+لا تعارضات حرجة مفتوحة
+14
+التسوية
+مطابقة مالية يومية
+Bank/settlement matched
+15
+الأرشفة
+Audit + retention
+السياسة مطبقة
+38. توجيه Webhooks للأربع شركات
+أفضل تصميم هو Endpoint واحد آمن مع Router داخلي، أو Endpoint منفصل لكل اتصال إذا كانت متطلبات مساند تسمح بذلك. في الحالتين يجب تحديد الشركة من بيانات موثوقة، لا من قيمة يرسلها المتصفح.
+التصميم
+مثال
+الميزة
+الضابط
+Endpoint موحد
+/webhooks/musaned
+إدارة أسهل
+router يطابق signature/key/connection ثم يستنتج company
+Endpoint لكل شركة
+/webhooks/musaned/rc01
+عزل أوضح
+URL لا يكفي؛ يجب التحقق من التوقيع والاتصال أيضًا
+• التحقق من signature وtimestamp وreplay protection قبل أي معالجة.
+• تحديد connection_id من secret/certificate المستخدم في التوقيع.
+• استخراج company_id من connection registry فقط.
+• رفض الحدث إذا أشار payload إلى منشأة لا تطابق connection.
+• تسجيل payload hash وإيداع الحدث في Queue ثم الرد سريعًا.
+• تطبيق deduplication على external_event_id + connection_id.
+39. المحاسبة والتسويات المنفصلة لكل شركة
+لا يوجد حساب Clearing واحد للمجموعة. لكل شركة حساباتها البنكية وحسابات التسوية والرسوم والضريبة والتزامات العملاء بحسب دليل الحسابات الخاص بها.
+الشركة
+Clearing Account
+Settlement Batch
+Bank Match
+VAT/Fees
+RC01
+Clearing-RC01
+Batch-RC01
+حساب RC01 فقط
+قيود RC01
+RC02
+Clearing-RC02
+Batch-RC02
+حساب RC02 فقط
+قيود RC02
+RC03
+Clearing-RC03
+Batch-RC03
+حساب RC03 فقط
+قيود RC03
+RC04
+Clearing-RC04
+Batch-RC04
+حساب RC04 فقط
+قيود RC04
+• لا يسمح بترحيل Payment لشركة مختلفة عن company_id للعقد.
+• أي Settlement File/Reference يمر عبر company resolver قبل المطابقة.
+• الفروقات المالية تعرض لكل شركة منفصلة ثم يمكن تجميعها في Group BI فقط.
+• إقفال اليوم المالي يتم لكل شركة بشكل مستقل.
+• الاسترداد يرتبط بالدفعة والعقد والشركة والمرجع الخارجي الأصلي.
+40. لوحة التحكم المقترحة داخل ERP
+تضاف وحدة رئيسية باسم «مركز تكامل مساند» وتبدأ بشاشة Group Overview ثم تبويبات الشركات الأربع.
+الشاشة
+المحتوى
+Group Overview
+4 بطاقات شركات + حالة الاتصال + الطلبات المفتوحة + قيمة العقود + أخطاء حرجة + فروقات مالية
+Company Dashboard
+KPIs الشركة فقط + آخر مزامنة + credential expiry + queue health
+Requests
+طلبات الشركة مع official/internal status
+Contracts
+العقود والنسخ والمبالغ والحالة
+Visas
+التأشيرات وأسباب الرفض والمهل
+Workers
+العمالة والترشيحات والحالة
+Payments
+المدفوعات والاستردادات
+Settlements
+Batch matching والفروقات
+Cases
+الشكاوى والنزاعات وSLA
+Integration Health
+API latency, failures, DLQ, retries
+Audit
+كل العمليات الحساسة والـoverrides
+40.1 بطاقات الشركات الأربع
+كل بطاقة تعرض: اسم الشركة، Musaned Connection Status، Environment، Last Sync، الطلبات المفتوحة، العقود النشطة، التأشيرات المرفوضة اليوم، الدفعات غير المطابقة، DLQ count، Credential Expiry. اللون التحذيري لا يعتمد على اسم الشركة بل على Severity.
+41. إدارة الأخطاء حسب الشركة
+المشكلة
+التصرف
+هل تؤثر على باقي الشركات؟
+Credential RC01 منتهي
+Suspend outbound RC01 فقط + تنبيه
+لا
+Webhook RC02 يفشل
+Queue/DLQ RC02 + Incident
+لا
+تغيير Schema عام
+تعليق العمليات المتأثرة لكل connections
+قد يؤثر على الأربع حسب endpoint
+Bank mismatch RC03
+إيقاف إقفال RC03 المالي
+لا
+مساند Outage عام
+Queue outbound لكل الشركات + status banner
+نعم
+تعارض External ID RC04
+Quarantine RC04 record
+لا
+42. سيناريو منع كارثة خلط الشركات
+مثال: موظف يعمل في RC01 يحاول — بقصد أو خطأ — إرسال طلب باستخدام connection_rc02. يجب إيقاف العملية في أكثر من طبقة:
+• واجهة المستخدم لا تعرض connection أصلًا للمستخدم التشغيلي.
+• API يستنتج company_id من session.
+• Integration Service يقرأ connection الافتراضي المربوط بـcompany_id.
+• Policy Engine يتحقق من connection.company_id == session.company_id.
+• قاعدة البيانات ترفض FK/constraint غير المتطابق.
+• Adapter يضيف establishment scope من connection registry فقط.
+• Audit يسجل محاولة التلاعب/التعارض ويرفع Security Alert إذا كانت متكررة.
+43. خطة الاختبار للأربع شركات
+يجب تكرار الاختبارات الحرجة على كل شركة، ثم تنفيذ اختبارات Cross-Tenant سلبية.
+المجموعة
+الاختبار
+النتيجة المطلوبة
+Isolation
+مستخدم RC01 يقرأ request RC02
+403/Not Found بدون كشف وجود السجل
+Isolation
+RC01 command مع connection RC02
+رفض قبل الإرسال
+Webhook
+حدث موقّع بـsecret RC03 ويحمل منشأة RC04
+رفض + security event
+Finance
+Payment RC02 يحاول الترحيل لledger RC01
+رفض constraint/policy
+Reporting
+Group user بلا صلاحية RC04
+لا يرى تفاصيل RC04
+Credential
+تعطيل RC01 credential
+RC02–RC04 تستمر طبيعيًا
+Load
+تشغيل متزامن للأربع
+لا queue starvation لشركة على حساب أخرى
+Recovery
+إعادة تشغيل worker
+لا تكرار أو خلط أحداث
+44. استراتيجية Queue متعددة الشركات
+لمنع شركة ذات حجم مرتفع أو خطأ متكرر من تعطيل الشركات الأخرى، يوصى بواحد من نموذجين: queues منفصلة لكل شركة، أو queue مشتركة مع partitions حسب connection_id. عند استخدام Queue مشتركة يجب تطبيق fair scheduling وحدود retry مستقلة.
+• Partition Key = connection_id أو company_id.
+• DLQ منفصل منطقيًا لكل شركة.
+• Rate Limit Counters لكل connection.
+• Circuit Breaker لكل connection؛ لا يفتح circuit لكل النظام بسبب شركة واحدة.
+• Metrics تحمل company_id label مع منع PII.
+45. خطة الإطلاق المتدرجة للأربع شركات
+الموجة
+النطاق
+شرط الانتقال
+Wave 0
+Sandbox + RC01 فقط
+نجاح UAT وعزل الصلاحيات والمطابقة
+Wave 1
+RC01 Production Read-only
+7 أيام دون تعارضات حرجة
+Wave 2
+RC01 Full + RC02 Read-only
+نجاح commands/finance RC01
+Wave 3
+RC02 Full + RC03 Read-only
+استقرار أسبوعي
+Wave 4
+RC03 Full + RC04 Read-only
+استقرار ومطابقة مالية
+Wave 5
+RC04 Full
+جميع معايير القبول
+Wave 6
+Group Consolidation
+تقارير المجموعة دون توسيع صلاحيات تشغيلية
+ميزة الإطلاق المتدرج أنه يكشف مشاكل الـmapping والـcredentials والتسويات على شركة واحدة قبل تعميمها، مع الاحتفاظ بنفس Adapter والإصدارات البرمجية.
+46. مسؤوليات الفرق RACI المختصرة
+المهمة
+تقنية التكامل
+عمليات الشركة
+المالية
+الامتثال
+إدارة المجموعة
+Musaned Credentials
+R
+C
+I
+A/C
+I
+Data Mapping
+R/A
+C
+C
+C
+I
+طلب/عقد
+C
+R/A
+I
+C
+I
+تسوية مالية
+C
+I
+R/A
+C
+I
+صلاحيات المستخدمين
+R
+A
+C
+C
+I
+Incident تقني
+R/A
+C
+C
+I
+I
+تغيير نظامي
+C
+C
+C
+R/A
+I
+Group KPI
+C
+I
+C
+I
+R/A
+47. قائمة Go-Live لكل شركة
+• ☐ تم التحقق من الاسم القانوني والسجل والترخيص وربطها بـcompany_id الصحيح.
+• ☐ تم الحصول على Credential/Certificate الرسمي وتخزينه في Vault.
+• ☐ تم اختبار connection health وexpiry alerts.
+• ☐ تم اعتماد Data Mapping للخدمات المفعلة.
+• ☐ تم اختبار Webhook signature والدوبلكيت وout-of-order.
+• ☐ تم اختبار 403 بين هذه الشركة وجميع الشركات الثلاث الأخرى.
+• ☐ تم اختبار الترحيل المحاسبي إلى Ledger الصحيح.
+• ☐ تم اختبار Settlement وRefund والمطابقة.
+• ☐ تم توقيع UAT من العمليات والمالية والتقنية والامتثال.
+• ☐ تم توثيق Support contacts وEscalation path.
+• ☐ تم تجهيز rollback/circuit breaker.
+• ☐ تم تفعيل monitoring وalerts الخاصة بالشركة.
+48. معايير قبول Multi-Company النهائية
+المعيار
+الهدف
+Cross-company data leakage
+0
+Cross-company command execution
+0
+Cross-company accounting posting
+0
+Credential sharing غير مصرح
+0
+Webhook misrouting
+0
+Untraceable operations
+0
+Company-specific outage blast radius
+محصور في الشركة المتأثرة
+Reconciliation visibility
+100% لكل شركة
+Group consolidation
+قراءة/BI فقط بحسب الصلاحية
+Audit evidence
+متاح لكل أمر/حدث/اعتماد
+49. قرار معماري موصى به
+للنظام الحالي الذي يضم أربع شركات استقدام، التصميم الموصى به هو: Shared ERP + Shared Integration Platform + Isolated Tenant Data + Isolated Musaned Connections + Isolated Ledgers + Group Read-Only Consolidation. هذا يحقق الاستفادة من كود واحد وصيانة واحدة، مع منع خلط الهوية القانونية والتشغيلية والمالية للشركات.
+ولا يتم تثبيت أسماء endpoints أو auth flows لمساند على أنها نهائية إلا بعد استلام وثائق بوابة التكامل الرسمية لكل منشأة. عندها يتم تحديث Musaned Adapter وMapping Registry فقط، بينما تبقى بنية الشركات الأربع والصلاحيات والمحاسبة والـaudit كما هي.

@@ -1,0 +1,7 @@
+{
+  "entries": [
+    { "path": "skills" },
+    { "path": "skills/awesome-skills/skills" },
+    { "path": "skills/community-skills/skills" }
+  ]
+}

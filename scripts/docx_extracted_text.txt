@@ -1,0 +1,291 @@
+﻿خطة إدارة الدخول والصلاحيات متعددة الشركات والأقسام
+ERP مجموعة خالد السليم — Multi-Company / Multi-Department Access Control
+الهدف: دخول مستقل وآمن لكل موظف بحيث يرى فقط الشركة، الفرع، القسم، البيانات والوظائف المخولة له، دون القدرة على رؤية بقية شركات المجموعة أو أقسامها إلا بتفويض صريح.
+مرجع النظام الحالي: erpkhalid.vercel.app/#capabilities
+1. الهدف المعماري
+• تحويل النظام إلى بنية Multi-Tenant حقيقية: كل شركة تعتبر Tenant مستقل منطقياً، مع إمكانية التجميع المركزي فقط للمخولين.
+• تطبيق مبدأ Least Privilege وNeed-to-Know: لا توجد صلاحيات ضمنية لمجرد كون المستخدم موظفاً في المجموعة.
+• الفصل بين: الشركة → الفرع/الموقع → القسم → الوحدة → الدور الوظيفي → نطاق البيانات → الإجراء.
+• منع التسرب عبر البحث، التقارير، الإشعارات، المرفقات، APIs، التصدير، الروابط المباشرة، لوحات المؤشرات ونتائج الذكاء الاصطناعي.
+2. نموذج العزل الهرمي
+المستوى
+مثال
+قاعدة الرؤية
+المجموعة
+مجموعة خالد السليم
+يظهر فقط لمجلس الإدارة/الإدارة المركزية المخولة
+الشركة
+شركة A / شركة B
+موظف الشركة A لا يرى B
+الفرع/الموقع
+الرياض / جدة / الشرقية / السكن
+يرى الموظف المواقع المسندة إليه فقط
+القسم
+HR / Finance / Operations / Procurement / IT
+لا يرى أقساماً أخرى إلا بصلاحية Cross-Department
+الوحدة
+Payroll / Recruitment / AP / AR
+تقييد أدق داخل القسم
+السجل
+موظف/فاتورة/طلب/مشروع
+Row-Level Security حسب tenant/company/department/owner
+3. رحلة تسجيل الدخول
+1. الموظف يدخل البريد/رقم الموظف وكلمة المرور أو SSO.
+2. النظام يحدد User Identity ثم Memberships المرتبطة به.
+3. إذا كان لديه شركة واحدة: يدخل مباشرة إلى بوابتها. إذا كان مخولاً لعدة شركات: تظهر شاشة اختيار الشركات المصرح بها فقط.
+4. بعد اختيار الشركة يتم إنشاء Session Context يحتوي tenant_id وcompany_id وbranch_ids وdepartment_ids وrole_ids وpermission_set.
+5. القائمة الجانبية، لوحة التحكم، البحث، KPIs والـAPIs تُبنى من الصلاحيات الفعلية، وليس بإخفاء الواجهة فقط.
+6. كل طلب Backend يعاد التحقق منه؛ تغيير URL أو API request لا يسمح بالوصول لبيانات خارج النطاق.
+7. عند تبديل الشركة يجب إصدار/تحديث سياق الجلسة وتسجيل الحدث في Audit Log.
+4. أنواع الحسابات المقترحة
+نوع الحساب
+النطاق
+الوصول
+Group Super Admin
+المجموعة
+إدارة تقنية شاملة، بحسابات محمية ومحدودة جداً
+Board / Group Executive
+المجموعة
+لوحات تجميعية حسب التفويض، دون صلاحيات تشغيلية افتراضياً
+Company Admin
+شركة واحدة
+إدارة مستخدمي وإعدادات الشركة فقط
+Branch Manager
+فروع محددة
+بيانات الفروع المسندة
+Department Manager
+قسم محدد
+بيانات وعمليات القسم
+Employee
+وظيفته/سجلاته
+أقل نطاق مطلوب للعمل
+Auditor
+نطاق محدد
+قراءة فقط + سجلات تدقيق، بلا تعديل
+Shared Services
+عدة شركات محددة
+صلاحيات محددة لكل شركة وليس وصولاً عاماً
+5. مصفوفة الصلاحيات الوظيفية
+الدور
+Dashboard
+HR
+Finance
+Procurement
+Operations
+Reports
+Users
+موظف HR
+HR فقط
+حسب النطاق
+—
+—
+—
+HR فقط
+—
+مدير HR
+HR KPI
+إدارة القسم
+رواتب محددة*
+—
+—
+HR Reports
+فريق HR فقط
+محاسب
+Finance KPI
+—
+إدخال/قراءة محددة
+—
+—
+Finance
+—
+مدير مالي
+Finance KPI
+قراءة مخولة
+اعتماد/تقارير
+مشتريات مالية
+—
+Finance
+فريق مالي محدود
+مشتريات
+Procurement KPI
+—
+طلبات مرتبطة
+إدارة مشتريات
+—
+Procurement
+—
+مدير شركة
+Company KPI
+حسب التفويض
+حسب التفويض
+حسب التفويض
+حسب التفويض
+Company Reports
+إدارة داخل الشركة
+* الرواتب والبيانات الحساسة تحتاج Permission منفصلة حتى داخل HR/Finance.
+6. نموذج RBAC + ABAC
+يُستخدم RBAC للأدوار الأساسية، وABAC لتحديد النطاق بالسمات. مثال قرار وصول:
+ALLOW إذا كان user.active=true AND membership.company_id=record.company_id AND permission='invoice.read' AND branch ضمن branch_scope، مع تطبيق شروط إضافية مثل ownership أو amount_limit أو confidentiality_level.
+أمثلة Permissions: employee.read, employee.salary.read, employee.edit, invoice.read, invoice.create, invoice.approve, payment.release, vendor.manage, report.export, user.invite, role.assign, audit.read.
+7. قاعدة البيانات المطلوبة
+الجدول
+الحقول الأساسية
+users
+id, identity_id, status, last_login, mfa_status
+tenants
+id, group_id, name, status
+companies
+id, tenant_id, legal_name, code
+branches
+id, company_id, name
+departments
+id, company_id, branch_id?, parent_id, name
+memberships
+user_id, company_id, branch_scope, department_scope, status
+roles
+id, company_id/null, name, type
+permissions
+id, resource, action, sensitivity
+role_permissions
+role_id, permission_id, constraints_json
+user_roles
+user_id, membership_id, role_id, valid_from, valid_to
+delegations
+from_user, to_user, scope, valid_from, valid_to
+audit_logs
+actor, company, action, resource, record_id, result, ip, device, timestamp
+كل جدول أعمال رئيسي يجب أن يحمل tenant_id وcompany_id، وعند الحاجة branch_id وdepartment_id وowner_user_id.
+8. سياسات Row-Level Security
+• SELECT: لا يُعاد أي سجل إلا إذا تطابق company_id مع إحدى عضويات المستخدم النشطة والنطاق المسموح.
+• INSERT: النظام يفرض company_id من Session Context ولا يقبل القيمة من الواجهة كمرجع موثوق.
+• UPDATE/DELETE: تحقق من permission + scope + حالة السجل + مستوى الاعتماد.
+• الاستعلامات التجميعية والتقارير يجب أن تمر بنفس RLS؛ لا تستخدم Service Role في واجهات المستخدم.
+• المرفقات تستخدم مسارات تخزين تحتوي tenant/company مع Signed URLs قصيرة العمر.
+9. الفصل في واجهة المستخدم
+• شعار واسم الشركة الحالية بوضوح في أعلى النظام.
+• Company Switcher لا يظهر إلا لمن لديه أكثر من Membership.
+• Sidebar ديناميكي بالكامل حسب Permissions.
+• عدم عرض أرقام إجمالية أو Widgets لأقسام غير مخولة.
+• Global Search يبحث فقط داخل النطاق المسموح.
+• صفحة 403 واضحة عند محاولة رابط غير مصرح، مع عدم كشف وجود السجل.
+• التصدير والطباعة والمشاركة أذونات مستقلة، مع Watermark اختياري باسم المستخدم والتاريخ للبيانات الحساسة.
+10. مسارات الأقسام
+القسم
+ما يراه افتراضياً
+ما لا يراه
+الموارد البشرية
+موظفو الشركة/الفرع المخول، الحضور، الإجازات
+حسابات الشركات الأخرى، المالية العامة
+المالية
+دفتر الشركة، AP/AR، البنوك المخولة، ZATCA
+ملفات HR السرية إلا بتفويض
+المشتريات
+طلبات وعروض وموردو الشركة
+رواتب/ملفات الموظفين
+التشغيل
+المشاريع/الأوامر/المواقع المسندة
+البيانات المالية الحساسة
+تقنية المعلومات
+إدارة الهوية والأجهزة حسب الدور
+محتوى HR/Finance افتراضياً
+الإدارة العليا
+KPIs وتجميعات مخولة
+السجلات التفصيلية الحساسة ما لم تُمنح
+11. دورة إنشاء الموظف وتغيير الصلاحيات
+• HR ينشئ ملف الموظف دون أن يمنحه تلقائياً صلاحيات نظام.
+• طلب Access Provisioning يحدد الشركة والفرع والقسم والمسمى والدور وتاريخ البداية والنهاية.
+• مدير القسم يعتمد نطاق العمل؛ مالك النظام/IT يعتمد الدور التقني؛ الأدوار الحساسة تحتاج موافقة إضافية.
+• عند النقل بين الشركات: إغلاق Membership القديمة وإنشاء الجديدة، وليس تعديل company_id للسجل التاريخي.
+• عند الاستقالة/الإيقاف: تعطيل الجلسات فوراً، إلغاء الرموز، إيقاف Delegations، ثم الاحتفاظ بالسجلات التاريخية.
+• مراجعة صلاحيات دورية وإعادة اعتماد Access Certification.
+12. الموافقات والفصل بين المهام SoD
+يجب منع جمع صلاحيات متعارضة مثل إنشاء المورد + اعتماد المورد + إنشاء الدفعة + إطلاق الدفعة في حساب واحد. تُعرّف قواعد SoD ويمنع النظام منح الدور المتعارض أو يطلب Exception موثقاً ومؤقتاً.
+العملية
+منشئ
+مراجع
+معتمد/منفذ
+مورد جديد
+Procurement
+Finance/Compliance
+Manager
+فاتورة مورد
+AP Accountant
+Finance Reviewer
+Finance Manager
+دفعة
+Treasury Maker
+Treasury Checker
+Authorized Approver
+موظف/راتب
+HR
+Payroll Reviewer
+Authorized HR/Finance
+13. الأمن
+• MFA إلزامي للأدوار الإدارية والمالية والحساسة.
+• Session timeout أقصر للأدوار الحساسة، وإعادة تحقق قبل إجراءات عالية الخطورة.
+• تسجيل IP/device/session وتسجيل محاولات الوصول المرفوضة.
+• تشفير البيانات أثناء النقل والتخزين، وإدارة Secrets خارج الكود.
+• منع IDOR عبر التحقق على الخادم لكل record ID.
+• Rate limiting وCSRF/XSS/SQL injection protections وسياسة CSP مناسبة.
+• حسابات الطوارئ Break-Glass منفصلة، مراقبة، ومراجعة بعد كل استخدام.
+14. سجل التدقيق Audit Trail
+يجب تسجيل: تسجيل الدخول والخروج، تبديل الشركة، القراءة الحساسة، الإنشاء والتعديل والحذف، الموافقات، التصدير، تغيير الأدوار، محاولات الوصول المرفوضة، تغيير إعدادات الأمان. السجل غير قابل للتعديل من المستخدمين العاديين ويحتفظ بالقيمة قبل/بعد عند التغيير.
+15. حالات خاصة
+• موظف يعمل لشركتين: Membership مستقلة لكل شركة، ويمكن أن يملك دوراً مختلفاً في كل واحدة.
+• مدير خدمات مشتركة: يرى فقط الشركات المحددة له، وبصلاحيات مختلفة لكل شركة.
+• مدير إقليمي: Branch Scope متعدد داخل شركة واحدة.
+• مراجع خارجي: Read-only مؤقت، نطاق محدد، تاريخ انتهاء إلزامي.
+• تفويض أثناء الإجازة: Delegation محددة الصلاحيات والمدة ولا تنقل صلاحيات غير قابلة للتفويض.
+16. API وBackend
+• Middleware مركزي Authorization Guard يقرأ Session Context ويطبق policy قبل الوصول للخدمة.
+• لا تعتمد الـAPI على companyId المرسل من العميل دون مطابقته بعضوية المستخدم.
+• كل endpoint يعرف resource/action المطلوبين.
+• استخدام Policy Engine أو طبقة Authorization موحدة بدلاً من شروط متفرقة داخل الصفحات.
+• Background jobs وAI/BI integrations تستخدم Service Accounts ذات scopes محدودة لكل وظيفة.
+17. خطة التنفيذ المرحلية
+المرحلة
+الأعمال
+المخرج
+1 — الجرد
+حصر الشركات والفروع والأقسام والمستخدمين والأنظمة والبيانات
+Access Inventory
+2 — التصميم
+Tenant model + RBAC/ABAC + SoD + data classification
+Security Model
+3 — البيانات
+إضافة tenant/company/department keys وRLS
+Data Isolation
+4 — الهوية
+Login/MFA/Memberships/Session Context
+Identity Layer
+5 — الصلاحيات
+Policy Engine + Permission Catalog
+Authorization Layer
+6 — الواجهة
+Dynamic navigation + scoped dashboards/search
+Isolated UX
+7 — التدقيق
+Audit/alerts/access reviews
+Governance
+8 — الاختبارات
+Unit/API/E2E/penetration/negative tests
+Security Acceptance
+9 — الترحيل
+Pilot شركة واحدة ثم باقي الشركات
+Controlled Rollout
+10 — التشغيل
+Quarterly access review + joiner/mover/leaver
+IAM Operations
+18. اختبارات قبول إلزامية
+• موظف شركة A لا يستطيع رؤية أو استنتاج أي سجل لشركة B حتى بتغيير URL/ID/API.
+• موظف HR لا يرى Finance إلا إذا مُنح Permission صريحة.
+• تبديل الشركة يعيد تحميل السياق والبيانات والقوائم بالكامل.
+• التقارير والتصدير والبحث لا تتجاوز Scope.
+• إلغاء Membership يمنع الوصول فوراً حتى لو كانت جلسة قديمة مفتوحة.
+• كل تغيير Role أو Permission يظهر في Audit Log.
+• اختبارات Horizontal/Vertical privilege escalation وIDOR تنجح بالمنع.
+19. الهيكل المقترح لشاشة إدارة الوصول
+Admin → Identity & Access: Users | Companies | Memberships | Roles | Permissions | Access Requests | Delegations | SoD Conflicts | Access Reviews | Sessions | Audit Logs.
+صفحة المستخدم تعرض مصفوفة واضحة: الشركة ← الفروع ← الأقسام ← الدور ← الصلاحيات ← تاريخ الانتهاء. ويجب ألا توجد خانة عامة مثل Full Access إلا للحسابات المركزية المحكومة.
+20. معيار النجاح
+يعتبر النظام مكتمل الفصل عندما يصبح الوصول إلى أي معلومة أو وظيفة قراراً Server-Side مبنياً على هوية المستخدم وعضويته ونطاقه وصلاحيته، وليس مجرد إخفاء عناصر الواجهة. يجب أن تكون كل شركة بيئة تشغيلية منطقية مستقلة، مع تجميع مركزي اختياري ومصرح فقط.

@@ -1,0 +1,74 @@
+{
+  "name": "erp-group-alsulaim",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build && node scripts/copy_public.js",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src",
+    "fetch-dash": "node get_dash.js"
+  },
+  "dependencies": {
+    "@microsoft/applicationinsights-web": "^3.4.6",
+    "@sentry/react": "^10.70.0",
+    "@supabase/supabase-js": "^2.111.0",
+    "@tanstack/react-query": "^5.101.4",
+    "chart.js": "^4.5.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
+    "i18next": "^26.3.6",
+    "jspdf": "^4.2.1",
+    "lucide-react": "^0.475.0",
+    "react": "^19.0.0",
+    "react-chartjs-2": "^5.3.1",
+    "react-dom": "^19.0.0",
+    "react-i18next": "^17.0.11",
+    "tailwind-merge": "^3.6.0",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "zod": "^4.6.7",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.14.0",
+    "jsdom": "^30.0.1",
+    "msedge-tts": "^2.0.7",
+    "postcss": "^8.4.49",
+    "puppeteer-core": "^25.7.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.72.1",
+    "vite": "^6.4.5",
+    "vitest": "^4.1.11"
+  },
+  "overrides": {
+    "dompurify": "^3.4.16",
+    "source-map-js": "^1.2.2",
+    "postcss-selector-parser": "^7.1.6",
+    "undici": "^8.10.2",
+    "vitest": "^4.1.11",
+    "@vitest/mocker": "^4.1.11",
+    "follow-redirects": "^1.16.3",
+    "vite": "^6.4.5",
+    "zod": "^4.6.7",
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.5"
+    }
+  }
+}

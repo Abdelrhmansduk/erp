@@ -1,0 +1,59 @@
+{
+  "name": "مجموعة خالد السليم ERP | Khalid Group",
+  "short_name": "خالد السليم ERP",
+  "description": "النظام المركزي الموحد لإدارة الاستقدام والمنافسات والتشغيل ومراكز الإيواء والفوترة الإلكترونية ZATCA",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "background_color": "#FBFBF5",
+  "theme_color": "#1D2428",
+  "lang": "ar-SA",
+  "dir": "rtl",
+  "orientation": "any",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "منصة اعتماد ومنافسات كاس",
+      "short_name": "كاس للمنافسات",
+      "description": "استعراض أحدث المنافسات وجداول الكميات",
+      "url": "/?tab=kas-suite",
+      "icons": [{ "src": "/logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "خط أنابيب استقدام مساند",
+      "short_name": "السفير الماسي مساند",
+      "description": "متابعة عقود مساند والتأشيرات",
+      "url": "/?tab=ats-pipeline",
+      "icons": [{ "src": "/logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "الفوترة الإلكترونية المشفرة ZATCA",
+      "short_name": "فوترة ZATCA",
+      "description": "فواتير المرحلة الثانية والربط المشفر",
+      "url": "/?tab=zatca",
+      "icons": [{ "src": "/logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "بوابة مراكز الإيواء HRSD",
+      "short_name": "مراكز الإيواء",
+      "description": "متابعة الطاقة الاستيعابية والتسكين",
+      "url": "/?tab=shelter",
+      "icons": [{ "src": "/logo.png", "sizes": "96x96" }]
+    }
+  ]
+}
