@@ -3341,7 +3341,7 @@ class _ErpMasterFlowHostState extends State<ErpMasterFlowHost> with WidgetsBindi
 
   void _openCreateRecordSheet() {
     final titleCtrl = TextEditingController();
-    final amountCtrl = TextEditingController(text: '17,250 ر.س');
+    final amountCtrl = TextEditingController(text: '17,250 ⃁');
 
     showModalBottomSheet(
       context: context,
@@ -3687,10 +3687,10 @@ class _ErpMasterFlowHostState extends State<ErpMasterFlowHost> with WidgetsBindi
                               title: i == 1 && batchCount > 1
                                   ? 'دفعة مستخلصة ($batchCount مستند/فاتورة) — #$invNum (${currentFmt.badge})'
                                   : 'مستند مستخلص #$invNum — ${currentFmt.badge}',
-                              subtitle: 'تم التعرف التلقائي وتوجيهه إلى ${currentFmt.deptName} • دفتر شركة [$targetCompanyCode] المستقل • صافي: $netVal ر.س + ضريبة: $vatVal ر.س',
+                              subtitle: 'تم التعرف التلقائي وتوجيهه إلى ${currentFmt.deptName} • دفتر شركة [$targetCompanyCode] المستقل • صافي: $netVal ⃁ + ضريبة: $vatVal ⃁',
                               status: 'مرحّل وموثق + مرفق محفوظ',
                               badgeText: '${currentFmt.badge} • $targetCompanyCode',
-                              amountOrMetric: '$totalVal ر.س (شامل 15%)',
+                              amountOrMetric: '$totalVal ⃁ (شامل 15%)',
                               updatedAt: 'الآن',
                               attachmentLabel: 'معاينة المرفق (${currentFmt.badge})',
                               sourceFormat: currentFmt.badge,
@@ -4000,7 +4000,7 @@ class _ErpMasterFlowHostState extends State<ErpMasterFlowHost> with WidgetsBindi
           subtitle: 'تم التنفيذ والاعتماد بواسطة $_authenticatedUserName عبر ${p == 'noura' ? 'نُورة' : 'فارس'} • شركة [$compCode]',
           status: 'معتمد ومرحّل',
           badgeText: 'تنفيذ ذكي • $compCode',
-          amountOrMetric: isFinance ? '5,750 ر.س (شامل 15%)' : 'مكتمل 100%',
+          amountOrMetric: isFinance ? '5,750 ⃁ (شامل 15%)' : 'مكتمل 100%',
           updatedAt: 'الآن',
         );
         setState(() {
@@ -4021,11 +4021,11 @@ class _ErpMasterFlowHostState extends State<ErpMasterFlowHost> with WidgetsBindi
         return {
           'text': '$intro\n'
               '🧮 حاسبة مستحقات نهاية الخدمة (نظام العمل السعودي - المادتان 84 و85):\n'
-              '• الراتب الأساسي مع البدلات الثابتة: 8,000 ر.س | مدة الخدمة: 6 سنوات\n'
-              '• السنوات الخمس الأولى (نصف راتب عن كل سنة): 20,000 ر.س\n'
-              '• السنوات التالية (راتب كامل عن كل سنة): 8,000 ر.س\n'
-              '• إجمالي الاستحقاق الكامل (انتهاء عقد - مادة 84): 28,000 ر.س\n'
-              '• في حال الاستقالة (مادة 85 - ثلثا المكافأة من 5 إلى 10 سنوات): 18,667 ر.س.',
+              '• الراتب الأساسي مع البدلات الثابتة: 8,000 ⃁ | مدة الخدمة: 6 سنوات\n'
+              '• السنوات الخمس الأولى (نصف راتب عن كل سنة): 20,000 ⃁\n'
+              '• السنوات التالية (راتب كامل عن كل سنة): 8,000 ⃁\n'
+              '• إجمالي الاستحقاق الكامل (انتهاء عقد - مادة 84): 28,000 ⃁\n'
+              '• في حال الاستقالة (مادة 85 - ثلثا المكافأة من 5 إلى 10 سنوات): 18,667 ⃁.',
           'actionLabel': 'فتح شاشة نهاية الخدمة والرواتب',
           'actionKey': 'hr',
         };

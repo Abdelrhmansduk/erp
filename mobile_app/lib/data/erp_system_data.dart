@@ -1710,7 +1710,7 @@ class ErpSystemData {
         subtitle: 'العميل: عبدالله بن محمد العتيبي • المرحلة: التفييز وإصدار التذكرة (5/8)',
         status: 'ساري • ضمان 90 يوم',
         badgeText: 'موثق بمساند',
-        amountOrMetric: '17,250 ر.س',
+        amountOrMetric: '17,250 ⃁',
         updatedAt: 'منذ 5 دقائق',
       ),
       ErpOperationalRecord(
@@ -1721,7 +1721,7 @@ class ErpSystemData {
         subtitle: 'العميل: فهد بن عبدالعزيز الشمري • المرحلة: وصول للمطار (7/8)',
         status: 'وصول مطار الملك خالد',
         badgeText: 'تحت الضمان (82 يوم متبقي)',
-        amountOrMetric: '9,890 ر.س',
+        amountOrMetric: '9,890 ⃁',
         updatedAt: 'منذ 18 دقيقة',
       ),
       ErpOperationalRecord(
@@ -1732,7 +1732,7 @@ class ErpSystemData {
         subtitle: 'حجز مؤقت 15 دقيقة • بانتظار سداد دفعة التعاقد وإصدار سند القبض',
         status: 'جديد • SLA نشط',
         badgeText: 'حجز 15 دقيقة',
-        amountOrMetric: '16,500 ر.س',
+        amountOrMetric: '16,500 ⃁',
         updatedAt: 'الآن',
       ),
       // YAQ Records
@@ -1744,7 +1744,7 @@ class ErpSystemData {
         subtitle: 'العميل: شركة المدار للضيافة • السائق: سليم خان • رمز التسليم OTP: 4829',
         status: 'نشط تحت التشغيل',
         badgeText: 'تم التحقق OTP',
-        amountOrMetric: '8,400 ر.س',
+        amountOrMetric: '8,400 ⃁',
         updatedAt: 'منذ 10 دقائق',
       ),
       ErpOperationalRecord(
@@ -1755,7 +1755,7 @@ class ErpSystemData {
         subtitle: 'الحي: الملقا - الرياض • المسار التشغيلي: نشط عبر الأسطول',
         status: 'جاري التسليم',
         badgeText: 'توجيه ميداني',
-        amountOrMetric: '450 ر.س',
+        amountOrMetric: '450 ⃁',
         updatedAt: 'منذ 22 دقيقة',
       ),
       // TOP Records
@@ -1767,7 +1767,7 @@ class ErpSystemData {
         subtitle: 'تقييم لجنة الفرز الفني: 94/100 • الخبرة: 8 سنوات • جاهز للمقابلة النهائية',
         status: 'مرشح معتمد للتعاقد',
         badgeText: 'تقييم 94%',
-        amountOrMetric: '28,000 ر.س/شهر',
+        amountOrMetric: '28,000 ⃁/شهر',
         updatedAt: 'منذ 12 دقيقة',
       ),
       // KAS Records
@@ -1779,7 +1779,7 @@ class ErpSystemData {
         subtitle: 'جدول الكميات BOQ: 42 بنداً مسعراً • الضمان الابتدائي البنكي: 5% جاهز',
         status: 'معتمد للترسية',
         badgeText: 'هامش ربح 18.4%',
-        amountOrMetric: '4,850,000 ر.س',
+        amountOrMetric: '4,850,000 ⃁',
         updatedAt: 'منذ 8 دقائق',
       ),
       ErpOperationalRecord(
@@ -1790,7 +1790,7 @@ class ErpSystemData {
         subtitle: 'الضمان النهائي: 10% • مطابقة التسعير المالي: معتمدة',
         status: 'قيد المراجعة الفنية',
         badgeText: 'ضمان بنكي ساري',
-        amountOrMetric: '2,190,000 ر.س',
+        amountOrMetric: '2,190,000 ⃁',
         updatedAt: 'منذ 35 دقيقة',
       ),
       // DAR Shelter Records
@@ -1814,7 +1814,7 @@ class ErpSystemData {
         subtitle: 'UBL 2.1 XML • التوقيع التشفيري ECDSA • الهاش التسلسلي PIH موثق في سماك',
         status: 'معتمدة من فاتورة ZATCA',
         badgeText: 'QR + PIH Verified',
-        amountOrMetric: '17,250 ر.س (شامل 15% VAT)',
+        amountOrMetric: '17,250 ⃁ (شامل 15% VAT)',
         updatedAt: 'منذ 6 دقائق',
       ),
     ];

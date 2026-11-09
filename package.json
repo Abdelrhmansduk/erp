@@ -14,7 +14,11 @@
     "test:watch": "vitest",
     "lint": "eslint src",
     "fetch-dash": "node get_dash.js",
-    "skills:verify": "node scripts/verify_skills_health.mjs"
+    "skills:verify": "node scripts/verify_skills_health.mjs",
+    "skills:audit": "node scripts/verify_skills_health.mjs --full",
+    "tts:start": "node src/services/voiceStudioTtsServer.mjs",
+    "tts:studio": "node src/services/voiceStudioTtsServer.mjs",
+    "tts:edge": "node src/services/saudiEdgeTtsServer.mjs"
   },
   "dependencies": {
     "@microsoft/applicationinsights-web": "^3.4.6",
