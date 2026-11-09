@@ -16,7 +16,7 @@
 | **المساعد الصوتي الذكي (فارس `salim_1` ونورة)** | [`.agents/skills/saudi-voice-copilot-tts/SKILL.md`](.agents/skills/saudi-voice-copilot-tts/SKILL.md) | `voice-agents` |
 | **التصدير (`23 قالب Excel/CSV/WPS`) والتتبع** | [`.agents/skills/saudi-erp-compliance/SKILL.md`](.agents/skills/saudi-erp-compliance/SKILL.md) | `xlsx-official`, `analytics-tracking` |
 | **تطبيق الجوال (`mobile_app/` Flutter)** | [`.agents/skills/ui-ux-design-system/SKILL.md`](.agents/skills/ui-ux-design-system/SKILL.md) | `flutter-expert`, `android_ui_verification` |
-| **الاختبارات الآلية وفحص الـ 77 وحدة والـ 58 صفحة** | [`.agents/skills/testing-and-qa/SKILL.md`](.agents/skills/testing-and-qa/SKILL.md)<br>[`.agents/skills/playwright-best-practices/SKILL.md`](.agents/skills/playwright-best-practices/SKILL.md)<br>[`.agents/skills/playwright-cli/SKILL.md`](.agents/skills/playwright-cli/SKILL.md) | `test-driven-development`, `webapp-testing` |
+| **الاختبارات الآلية، جودة الاختبارات، واختبار الحمل** | [`.agents/skills/testing-and-qa/SKILL.md`](.agents/skills/testing-and-qa/SKILL.md)<br>[`.agents/skills/playwright-best-practices/SKILL.md`](.agents/skills/playwright-best-practices/SKILL.md)<br>[`.agents/skills/playwright-cli/SKILL.md`](.agents/skills/playwright-cli/SKILL.md) | `brooks-test`, `k6-load-testing`, `test-driven-development`, `webapp-testing` |
 | **الأمان، حماية المفاتيح، وخصوصية البيانات `PDPL`** | [`.agents/skills/code-review-security-audit/SKILL.md`](.agents/skills/code-review-security-audit/SKILL.md) | `secrets-management`, `security-auditor`, `vercel-deployment` |
 
 ---
@@ -27,9 +27,17 @@
   ```bash
   npm run skills:verify
   ```
-- **تشغيل فحص الأنواع وحزم اختبارات Vitest (`27 حزمة / 204 اختبارات`)**:
+- **تشغيل فحص الأنواع وحزم اختبارات Vitest (`27 حزمة / 208 اختبارات`)**:
   ```bash
   npx tsc --noEmit && npx vitest run
+  ```
+- **تشغيل اختبار الحمل والأداء (`k6-load-testing` — 500 طلب متزامن عبر 3 مراحل)**:
+  ```bash
+  npm run test:load
+  ```
+- **تشغيل فحص المتصفح الآلي (`Chromium E2E Browser Verifier`)**:
+  ```bash
+  npm run test:browser
   ```
 - **تشغيل فحص الـ 77 وحدة تشغيلية وتدقيق الـ 58 صفحة**:
   ```bash

@@ -1,5 +1,5 @@
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "project": "erp-group-alsulaim",
   "entries": [
     { "path": "skills" },
@@ -85,6 +85,8 @@
     "android_ui_verification",
     "secrets-management",
     "security-auditor",
-    "vercel-deployment"
+    "vercel-deployment",
+    "k6-load-testing",
+    "brooks-test"
   ]
 }
