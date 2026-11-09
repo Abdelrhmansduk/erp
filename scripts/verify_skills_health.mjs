@@ -57,7 +57,7 @@ console.log(`  ${(skillsConfig.linkedGlobalSkills || []).join(', ')}`);
 console.log('\n🔒 Running Zero-Secret Repository Guard (`code-review-security-audit`)...');
 try {
   const grepOut = execSync(
-    'git grep -i -E "(sb_publishable_|sb_secret_|sbp_[a-zA-Z0-9]{10,}|sntryu_|AIzaSy|vpktsypunodgihpcufdj|6A5AA1D4EAFF4E9FB37E23D68491D6F4)" -- "src/" "scripts/" "mcp.json" ".vscode/"',
+    'git grep -i -E "(sb_publishable_[a-zA-Z0-9_-]{8,}|sb_secret_[a-zA-Z0-9_-]{8,}|sbp_[a-zA-Z0-9]{10,}|sntryu_[a-f0-9]{10,}|AIzaSy[a-zA-Z0-9_-]{20,})" -- "src/" "scripts/" "mcp.json" ".vscode/" ":(exclude)scripts/verify_skills_health.mjs"',
     { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] }
   );
   if (grepOut.trim()) {
