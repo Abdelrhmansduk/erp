@@ -1599,17 +1599,20 @@ export const authService = {
       }
     }
 
-    // 2. Production Supabase OAuth / Fallback to direct directory sign-in
+    // 2. Real Supabase OAuth
     const targetEmail = googleAccount?.email?.trim().toLowerCase();
-    if (!targetEmail && isSupabaseConfigured && !DEMO_AUTH_ENABLED) {
+    if (!targetEmail && isSupabaseConfigured) {
       try {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: { redirectTo: authRedirectUrl() },
         });
-        if (!error) return { data: null, error: null };
-      } catch {
-        // Fall back to direct account sign-in
+        if (error) {
+          return { data: null, error: { message: `فشل تسجيل الدخول عبر Google من Supabase: ${error.message}` } };
+        }
+        return { data: null, error: null };
+      } catch (e: any) {
+        return { data: null, error: { message: e?.message || 'فشل الاتصال بخدمة Google OAuth' } };
       }
     }
 

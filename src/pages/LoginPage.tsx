@@ -480,7 +480,42 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
   const handleGoogleButtonClick = async () => {
     setErrorMsg(null);
-    setShowGoogleModal(true);
+    setSuccessMsg('جاري الاتصال بخدمة Google وتسجيل الدخول الحقيقي...');
+    setLoading(true);
+    try {
+      const result = await signInWithGoogle();
+      if (result.error) {
+        setErrorMsg(result.error);
+        setLoading(false);
+        return;
+      }
+      if (!result.user) {
+        // Real OAuth redirect in progress
+        return;
+      }
+      const routeInfo = resolveDepartmentAndCompany(result.user.email);
+      const landingTab = routeInfo.departmentDef.defaultTab;
+      const landingTitle = routeInfo.departmentDef.defaultTabTitle;
+
+      if (routeInfo.companyId === 'all') {
+        setActiveCompanyId('SAF');
+        useAppStore.getState().setActiveCompanyId('all' as any);
+      } else {
+        const compUpper = routeInfo.companyId.toUpperCase();
+        setActiveCompanyId(compUpper as any);
+        useAppStore.getState().setActiveCompanyId(compUpper as any);
+      }
+
+      if (onLoginSuccess) {
+        onLoginSuccess(landingTab, landingTitle);
+      } else {
+        setFlowState('welcome');
+      }
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'تعذر إكمال تسجيل الدخول الحقيقي عبر Google.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEmailButtonClick = () => {
