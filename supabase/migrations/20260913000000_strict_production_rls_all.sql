@@ -64,7 +64,7 @@ DECLARE
   ];
 BEGIN
   FOREACH tbl IN ARRAY tables LOOP
-    IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = tbl) THEN
+    IF EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'public' AND table_name = tbl AND column_name = 'company_id') THEN
       EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', tbl);
       EXECUTE format('DROP POLICY IF EXISTS p_%I_select ON public.%I;', tbl, tbl);
       EXECUTE format('DROP POLICY IF EXISTS p_%I_insert ON public.%I;', tbl, tbl);
@@ -74,28 +74,28 @@ BEGIN
       -- Policy: SELECT (Read within same company or if super-admin)
       EXECUTE format(
         'CREATE POLICY p_%I_select ON public.%I FOR SELECT USING (' ||
-        '  is_super_admin() OR company_id = get_auth_company_id() OR company_id IS NULL' ||
+        '  is_super_admin() OR company_id::text = get_auth_company_id()::text OR company_id IS NULL' ||
         ');', tbl, tbl
       );
 
       -- Policy: INSERT (Insert stamped with caller company)
       EXECUTE format(
         'CREATE POLICY p_%I_insert ON public.%I FOR INSERT WITH CHECK (' ||
-        '  is_super_admin() OR company_id = get_auth_company_id()' ||
+        '  is_super_admin() OR company_id::text = get_auth_company_id()::text' ||
         ');', tbl, tbl
       );
 
       -- Policy: UPDATE (Update only own company records)
       EXECUTE format(
         'CREATE POLICY p_%I_update ON public.%I FOR UPDATE USING (' ||
-        '  is_super_admin() OR company_id = get_auth_company_id()' ||
+        '  is_super_admin() OR company_id::text = get_auth_company_id()::text' ||
         ');', tbl, tbl
       );
 
       -- Policy: DELETE (Only super-admin or authorized manager within company)
       EXECUTE format(
         'CREATE POLICY p_%I_delete ON public.%I FOR DELETE USING (' ||
-        '  is_super_admin() OR (company_id = get_auth_company_id() AND auth.role() = ''authenticated'')' ||
+        '  is_super_admin() OR (company_id::text = get_auth_company_id()::text AND auth.role() = ''authenticated'')' ||
         ');', tbl, tbl
       );
     END IF;

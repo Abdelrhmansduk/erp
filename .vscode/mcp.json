@@ -1,0 +1,21 @@
+{
+  "servers": {
+    "supabase": {
+      "url": "http://127.0.0.1:54421/mcp?read_only=true&features=docs%2Cdatabase%2Cdebugging%2Cdevelopment"
+    },
+    "sentry": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@sentry/mcp-server"
+      ],
+      "env": {
+        "SENTRY_ACCESS_TOKEN": "${SENTRY_ACCESS_TOKEN}"
+      }
+    },
+    "vercel": {
+      "type": "http",
+      "url": "https://mcp.vercel.com"
+    }
+  }
+}

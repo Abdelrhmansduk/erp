@@ -107,11 +107,11 @@ BEGIN
             'CREATE POLICY optimal_tenant_isolation_policy ON public.%I
              FOR ALL TO authenticated
              USING (
-               company_id = (SELECT public.current_user_company_id())
+               company_id::text = (SELECT public.current_user_company_id())
                OR (SELECT public.current_user_is_group_executive())
              )
              WITH CHECK (
-               company_id = (SELECT public.current_user_company_id())
+               company_id::text = (SELECT public.current_user_company_id())
                OR (SELECT public.current_user_is_group_executive())
              );',
             tbl.tablename

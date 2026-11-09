@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured, supabaseConfigError } from './supabaseClient';
+import { isFirebaseConfigured, signInWithGoogleFirebase } from './firebaseClient';
 import { DEMO_AUTH_ENABLED, DEMO_QUICK_LOGIN_SECRET } from '../config/authMode';
 
 export type DepartmentId =
@@ -124,7 +125,6 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'musaned-plan',
       'musaned-integration-plan',
       'contract-insurance',
-      'trial-period-90',
       'orders',
       'all-orders',
       'new-orders',
@@ -1545,6 +1545,60 @@ export const authService = {
     full_name?: string;
     avatar_url?: string;
   }): Promise<{ data?: UserProfile | null; error: { message: string } | null }> {
+    // 1. HYBRID ARCHITECTURE: If Firebase is configured, perform Google Sign-In via Firebase popup
+    if (isFirebaseConfigured) {
+      const fbResult = await signInWithGoogleFirebase();
+      if (fbResult.error) {
+        return { data: null, error: fbResult.error };
+      }
+      if (fbResult.data && fbResult.data.email) {
+        const targetEmail = fbResult.data.email.toLowerCase();
+
+        // If Supabase is also configured, attempt session establishment via ID Token
+        if (isSupabaseConfigured) {
+          try {
+            await supabase.auth.signInWithIdToken({
+              provider: 'google',
+              token: fbResult.data.idToken,
+            });
+          } catch (e) {
+            console.warn('[Hybrid Auth] Supabase ID token bridge skipped:', e);
+          }
+        }
+
+        // Fetch user permissions from Supabase system_users
+        let sysUser: any = null;
+        if (isSupabaseConfigured) {
+          try {
+            const { data } = await supabase
+              .from('system_users')
+              .select('*')
+              .ilike('email', targetEmail)
+              .maybeSingle();
+            sysUser = data;
+          } catch {}
+        }
+
+        const profile: UserProfile = {
+          id: sysUser?.id || fbResult.data.uid,
+          username: sysUser?.username || targetEmail.split('@')[0],
+          email: targetEmail,
+          full_name: sysUser?.full_name || fbResult.data.displayName || 'مستخدم Google',
+          role: sysUser?.role || 'مشاهد',
+          branch: sysUser?.branch || 'المقر الرئيسي',
+          company_id: sysUser?.company_id || 'SAF',
+          avatar_url: fbResult.data.photoURL || undefined,
+          status: sysUser?.status || 'نشط',
+          created_at: sysUser?.created_at || new Date().toISOString(),
+        };
+
+        cacheProfile(profile);
+        window.dispatchEvent(new CustomEvent('alsulaim-auth-updated', { detail: { profile } }));
+        return { data: profile, error: null };
+      }
+    }
+
+    // 2. Production Supabase OAuth / Fallback to direct directory sign-in
     const targetEmail = googleAccount?.email?.trim().toLowerCase();
     if (!targetEmail && isSupabaseConfigured && !DEMO_AUTH_ENABLED) {
       try {

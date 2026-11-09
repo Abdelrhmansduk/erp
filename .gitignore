@@ -6,13 +6,7 @@ dist/
 .vite/
 *.tsbuildinfo
 
-# Env files & secret configs (should never be committed)
-.env.*
-!.env.example
-*.pem
-*.key
-mcp.json
-.vscode/mcp.json
+# Env files (should never be committed)
 .env
 .env.local
 .env.development.local

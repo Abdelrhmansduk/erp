@@ -152,9 +152,12 @@ END $$;
 -- 8. Performance Composite, Partial & GIN Indexes (memory.md §4.3)
 DO $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'contracts') THEN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'contracts' AND column_name = 'status') THEN
         CREATE INDEX IF NOT EXISTS idx_contracts_lookup
             ON public.contracts (company_id, status, created_at DESC);
+    ELSIF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'contracts' AND column_name = 'stage') THEN
+        CREATE INDEX IF NOT EXISTS idx_contracts_lookup
+            ON public.contracts (company_id, stage, created_at DESC);
     END IF;
 
     IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'orders') THEN
@@ -189,12 +192,12 @@ BEGIN
             'CREATE POLICY optimal_tenant_isolation_policy ON public.%I
              FOR ALL TO authenticated
              USING (
-               company_id = (SELECT COALESCE(auth.jwt() -> ''app_metadata'' ->> ''company_id'', ''SAF''))
+               company_id::text = (SELECT COALESCE(auth.jwt() -> ''app_metadata'' ->> ''company_id'', ''SAF''))
                OR (SELECT (auth.jwt() -> ''app_metadata'' ->> ''company_id'')) = ''all''
                OR (SELECT (auth.jwt() -> ''app_metadata'' ->> ''role'')) IN (''رئيس المجموعة'', ''مدير نظام'', ''مدير تنفيذي'')
              )
              WITH CHECK (
-               company_id = (SELECT COALESCE(auth.jwt() -> ''app_metadata'' ->> ''company_id'', ''SAF''))
+               company_id::text = (SELECT COALESCE(auth.jwt() -> ''app_metadata'' ->> ''company_id'', ''SAF''))
                OR (SELECT (auth.jwt() -> ''app_metadata'' ->> ''company_id'')) = ''all''
                OR (SELECT (auth.jwt() -> ''app_metadata'' ->> ''role'')) IN (''رئيس المجموعة'', ''مدير نظام'', ''مدير تنفيذي'')
              );',

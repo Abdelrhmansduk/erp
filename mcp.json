@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "docker": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@thelord/mcp-server-docker-npx"
+      ]
+    },
+    "supabase": {
+      "url": "https://mcp.supabase.com/mcp?project_ref=vpktsypunodgihpcufdj&features=docs%2Caccount%2Cdatabase%2Cdebugging%2Cdevelopment%2Cfunctions%2Cbranching%2Cfeedback%2Cnotebooks"
+    },
+    "sentry": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@sentry/mcp-server"
+      ],
+      "env": {
+        "SENTRY_ACCESS_TOKEN": "${SENTRY_ACCESS_TOKEN}"
+      }
+    },
+    "vercel": {
+      "type": "http",
+      "url": "https://mcp.vercel.com"
+    }
+  }
+}

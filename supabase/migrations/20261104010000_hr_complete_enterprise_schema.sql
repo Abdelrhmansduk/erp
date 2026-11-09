@@ -192,6 +192,29 @@ CREATE TABLE IF NOT EXISTS public.payroll_runs (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Ensure all HR columns exist on payroll_runs even if table pre-existed
+ALTER TABLE public.payroll_runs ADD COLUMN IF NOT EXISTS payroll_month TEXT;
+ALTER TABLE public.payroll_runs ADD COLUMN IF NOT EXISTS total_overtime NUMERIC(14,2) NOT NULL DEFAULT 0;
+ALTER TABLE public.payroll_runs ADD COLUMN IF NOT EXISTS total_rewards NUMERIC(14,2) NOT NULL DEFAULT 0;
+ALTER TABLE public.payroll_runs ADD COLUMN IF NOT EXISTS total_gross NUMERIC(14,2) NOT NULL DEFAULT 0;
+ALTER TABLE public.payroll_runs ADD COLUMN IF NOT EXISTS total_gosi_employee NUMERIC(14,2) NOT NULL DEFAULT 0;
+ALTER TABLE public.payroll_runs ADD COLUMN IF NOT EXISTS total_gosi_employer NUMERIC(14,2) NOT NULL DEFAULT 0;
+ALTER TABLE public.payroll_runs ADD COLUMN IF NOT EXISTS total_advance_deductions NUMERIC(14,2) NOT NULL DEFAULT 0;
+ALTER TABLE public.payroll_runs ADD COLUMN IF NOT EXISTS total_sanction_deductions NUMERIC(14,2) NOT NULL DEFAULT 0;
+ALTER TABLE public.payroll_runs ADD COLUMN IF NOT EXISTS total_net_payable NUMERIC(14,2) NOT NULL DEFAULT 0;
+ALTER TABLE public.payroll_runs ADD COLUMN IF NOT EXISTS gl_journal_id TEXT;
+ALTER TABLE public.payroll_runs ADD COLUMN IF NOT EXISTS wps_sif_filename TEXT;
+ALTER TABLE public.payroll_runs ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ;
+ALTER TABLE public.payroll_runs ADD COLUMN IF NOT EXISTS posted_at TIMESTAMPTZ;
+ALTER TABLE public.payroll_runs ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ;
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'payroll_runs' AND column_name = 'month_year') THEN
+    UPDATE public.payroll_runs SET payroll_month = month_year WHERE payroll_month IS NULL;
+  END IF;
+END $$;
+
 -- 10. End of Service Final Settlements (مخالصات نهاية الخدمة وإبراء الذمة)
 CREATE TABLE IF NOT EXISTS public.eos_settlements (
   id TEXT PRIMARY KEY,
