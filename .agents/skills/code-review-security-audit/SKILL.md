@@ -1,18 +1,24 @@
 ---
 name: code-review-security-audit
-description: "Automated code review, vulnerability scanning, input validation, environment variable protection, and security audits."
+description: "Enterprise security audit, Saudi PDPL PII masking, zero-secret repository enforcement, telemetry URL scrubbing, and npm audit dependency hardening for Khalid Al-Sulaim ERP."
 ---
 
-# Code Review & Security Audit Skill
+# Code Review & Security Audit Skill (`code-review-security-audit`)
 
 ## Security & Quality Audit Checklist
 
-### 1. Code Review Checklist
-- Verify signature and prop types before invocation.
-- Ensure proper cleanup in hooks and event listeners (`removeEventListener`, `clearInterval`).
-- Check for dead code, unused imports, or duplicate dependencies.
+### 1. Zero Hardcoded Secrets & Keys Invariant
+- Never commit API keys, JWTs, `sb_publishable_*`, `sb_secret_*`, `sbp_*`, `sntryu_*`, `project_ref`, or hardcoded passwords in `src/`, `scripts/`, `mcp.json`, or `.vscode/mcp.json`.
+- Read all credentials exclusively from `import.meta.env.VITE_*` (frontend public config) or `process.env.*` (Node scripts).
+- Run secret pattern verification before pushing:
+  ```bash
+  node scripts/verify_skills_health.mjs
+  ```
 
-### 2. Vulnerability & Sanitization
-- Prevent XSS attacks by sanitizing any raw user input rendered in HTML.
-- Protect secrets, API keys, and sensitive tokens from being hardcoded or committed to VCS.
-- Use secure HTTP headers and CORS configurations.
+### 2. Saudi PDPL Data Masking & Telemetry Scrubbing
+- Mask National IDs, Iqama numbers, Passports, IBANs, and phone numbers for non-authorized roles using [`src/utils/pdplMasking.ts`](../../../src/utils/pdplMasking.ts).
+- Scrub sensitive query-string parameters (`token`, `sig`, `key`, `secret`, `password`, `apikey`, `access_token`, `auth`) in [`src/services/appInsightsService.ts`](../../../src/services/appInsightsService.ts) (`scrubUrlSecrets`).
+
+### 3. Dependency Vulnerability Hardening (`npm audit`)
+- Maintain `0 vulnerabilities` in `npm audit` using targeted version overrides in [`package.json`](../../../package.json) (`"overrides"`).
+- Remove OneDrive conflict files (`*-DESKTOP-*`) and keep them ignored in [`.gitignore`](../../../.gitignore).

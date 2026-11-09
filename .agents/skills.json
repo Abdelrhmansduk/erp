@@ -1,7 +1,90 @@
 {
+  "version": "2.0.0",
+  "project": "erp-group-alsulaim",
   "entries": [
     { "path": "skills" },
     { "path": "skills/awesome-skills/skills" },
     { "path": "skills/community-skills/skills" }
+  ],
+  "activeLocalSkills": [
+    {
+      "name": "ui-ux-design-system",
+      "path": ".agents/skills/ui-ux-design-system/SKILL.md",
+      "layer": "ui-design"
+    },
+    {
+      "name": "saudi-erp-compliance",
+      "path": ".agents/skills/saudi-erp-compliance/SKILL.md",
+      "layer": "finance-compliance-exports"
+    },
+    {
+      "name": "saudi-voice-copilot-tts",
+      "path": ".agents/skills/saudi-voice-copilot-tts/SKILL.md",
+      "layer": "voice-ai-copilot"
+    },
+    {
+      "name": "supabase-integration",
+      "path": ".agents/skills/supabase-integration/SKILL.md",
+      "layer": "data-hybrid-auth"
+    },
+    {
+      "name": "supabase",
+      "path": ".agents/skills/supabase/SKILL.md",
+      "layer": "data-hybrid-auth"
+    },
+    {
+      "name": "supabase-postgres-best-practices",
+      "path": ".agents/skills/supabase-postgres-best-practices/SKILL.md",
+      "layer": "database-rls-performance"
+    },
+    {
+      "name": "react-typescript-best-practices",
+      "path": ".agents/skills/react-typescript-best-practices/SKILL.md",
+      "layer": "frontend-architecture"
+    },
+    {
+      "name": "vercel-react-best-practices",
+      "path": ".agents/skills/vercel-react-best-practices/SKILL.md",
+      "layer": "frontend-performance"
+    },
+    {
+      "name": "testing-and-qa",
+      "path": ".agents/skills/testing-and-qa/SKILL.md",
+      "layer": "quality-assurance"
+    },
+    {
+      "name": "playwright-best-practices",
+      "path": ".agents/skills/playwright-best-practices/SKILL.md",
+      "layer": "e2e-verification"
+    },
+    {
+      "name": "playwright-cli",
+      "path": ".agents/skills/playwright-cli/SKILL.md",
+      "layer": "e2e-verification"
+    },
+    {
+      "name": "code-review-security-audit",
+      "path": ".agents/skills/code-review-security-audit/SKILL.md",
+      "layer": "security-pdpl"
+    },
+    {
+      "name": "find-skills",
+      "path": ".agents/skills/find-skills/SKILL.md",
+      "layer": "skill-discovery"
+    }
+  ],
+  "linkedGlobalSkills": [
+    "zustand-store-ts",
+    "react-component-performance",
+    "ui-a11y",
+    "ui-review",
+    "xlsx-official",
+    "analytics-tracking",
+    "voice-agents",
+    "flutter-expert",
+    "android_ui_verification",
+    "secrets-management",
+    "security-auditor",
+    "vercel-deployment"
   ]
 }
