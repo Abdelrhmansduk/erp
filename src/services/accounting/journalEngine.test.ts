@@ -310,5 +310,45 @@ describe('journalEngine (Double-Entry General Ledger & Auto-Posting Bridge)', ()
     expect(reconPost.netExpenseSar).toBe(25);
     expect(reconPost.inputVatSar).toBe(3.75);
     expect(reconPost.totalBankCreditSar).toBe(28.75);
+
+    // 4. MT940 & Saudi Bank CSV Statement Parser
+    const mt940Sample = `:20:ALRAJHI2026\n:61:2608120812D28,75NTRFSARIE-99\n:86:SARIE TRANSFER BANK FEE\n:61:2608130813D115,00NTRFMADA-01\n:86:MADA POS FEE SETTLEMENT`;
+    const parsedMt940 = odooAccountingConfigService.parseSaudiBankStatement(mt940Sample);
+    expect(parsedMt940.length).toBe(2);
+    expect(parsedMt940[0].amountSar).toBe(28.75);
+    expect(parsedMt940[0].matchedReconModelId).toBe('RECON-SARIE-FEE');
+    expect(parsedMt940[1].matchedReconModelId).toBe('RECON-MADA-SADAD');
+
+    // 5. IAS 7 Statement of Cash Flows (Indirect Method)
+    const cashFlow = odooAccountingConfigService.computeIas7CashFlowStatement({
+      netIncomeSar: 450000,
+      depreciationExpenseSar: 30000,
+      changeInReceivablesSar: 40000,
+      changeInPayablesSar: 25000,
+      changeInEscrowSar: 15000,
+      capexAdditionsSar: 100000,
+      loanProceedsOrRepaymentsSar: -50000,
+      dividendsPaidSar: 50000,
+      openingCashSar: 800000,
+    });
+    expect(cashFlow.operatingCashFlowSar).toBe(450000);
+    expect(cashFlow.investingCashFlowSar).toBe(-100000);
+    expect(cashFlow.financingCashFlowSar).toBe(-100000);
+    expect(cashFlow.netCashChangeSar).toBe(250000);
+    expect(cashFlow.closingCashSar).toBe(1050000);
+    expect(cashFlow.isReconciled).toBe(true);
+
+    // 6. Automated Monthly Fixed Asset Depreciation Run
+    const depRun = odooAccountingConfigService.postMonthlyAssetDepreciation('SAF', {
+      assetCode: 'FA-BUS-2026-01',
+      assetNameAr: 'حافلة نقل عمالة تويوتا كوستر 2026',
+      costSar: 250000,
+      salvageValueSar: 10000,
+      usefulLifeMonths: 60,
+      entryDate: '2026-08-31',
+    });
+    expect(depRun.monthlyDepreciationSar).toBe(4000);
+    expect(depRun.annualDepreciationSar).toBe(48000);
+    expect(depRun.entryNumber).toContain('SAF-JV-');
   });
 });

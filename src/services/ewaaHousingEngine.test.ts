@@ -30,6 +30,7 @@ import {
   deriveWorkerRouteFacts,
   determineWorkerJourneyState,
   computeHousingOperationalDistribution,
+  calculateShelterDailyCostAllocation,
 } from './ewaaHousingEngine';
 
 describe('Ewaa Housing & Shelter Operations Engine (100% Canonical Parity)', () => {
@@ -725,6 +726,21 @@ describe('Ewaa Housing & Shelter Operations Engine (100% Canonical Parity)', () 
       expect(dist.attentionCards.find((c) => c.key === 'action')?.count).toBe(2);
       expect(dist.attentionCards.find((c) => c.key === 'overdue')?.count).toBe(1);
       expect(dist.attentionCards.find((c) => c.key === 'residence')?.count).toBe(1);
+    });
+
+    it('allocates shelter daily housing/catering/medical costs and triggers overstay radar > 15 days', () => {
+      const alloc = calculateShelterDailyCostAllocation({
+        workerId: 'w-900',
+        checkInDate: '2026-10-01',
+        checkOutOrEvalDate: '2026-10-21',
+        admissionReason: 'warranty_agency_fault',
+      });
+      expect(alloc.daysInShelter).toBe(20);
+      expect(alloc.dailyRateSar).toBe(85); // 45 + 25 + 15
+      expect(alloc.totalShelterCostSar).toBe(1700);
+      expect(alloc.costBearer).toBe('FOREIGN_AGENT');
+      expect(alloc.isOverstayAlert).toBe(true);
+      expect(alloc.overstayDays).toBe(5);
     });
   });
 });

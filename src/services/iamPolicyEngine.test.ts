@@ -213,4 +213,64 @@ describe('IAM Policy & Multi-Entity Access Control Engine', () => {
       expect(check.conflicts[0].permissionB).toBe('payment.release');
     }, 10000);
   });
+
+  describe('5. Maker-Checker Dual Authorization & Immutable Audit Hash-Chaining', () => {
+    it('blocks self-approval when Maker and Checker are the same user and allows dual approval by CFO', () => {
+      const selfAttempt = iamPolicyEngine.evaluateMakerCheckerApproval({
+        makerUserId: 'usr-fin-001',
+        checkerUserId: 'usr-fin-001',
+        checkerRole: 'CFO',
+        actionCode: 'WPS_PAYROLL_RELEASE',
+        amountSar: 480000,
+      });
+      expect(selfAttempt.approved).toBe(false);
+      expect(selfAttempt.reasonAr).toContain('Maker-Checker');
+
+      const dualApproved = iamPolicyEngine.evaluateMakerCheckerApproval({
+        makerUserId: 'usr-fin-001',
+        checkerUserId: 'usr-cfo-002',
+        checkerRole: 'CFO',
+        actionCode: 'WPS_PAYROLL_RELEASE',
+        amountSar: 480000,
+      });
+      expect(dualApproved.approved).toBe(true);
+    });
+
+    it('verifies cryptographic audit hash-chain integrity and detects tampered records', () => {
+      const e1Base = {
+        actorId: 'usr-1',
+        action: 'CREATE_VOUCHER',
+        resource: 'finance',
+        createdAt: '2026-11-10T08:00:00Z',
+        prevHash: 'GENESIS',
+      };
+      const h1 = iamPolicyEngine.computeAuditChainHash('GENESIS', e1Base);
+      const e2Base = {
+        actorId: 'usr-2',
+        action: 'APPROVE_VOUCHER',
+        resource: 'finance',
+        createdAt: '2026-11-10T08:05:00Z',
+        prevHash: h1,
+      };
+      const h2 = iamPolicyEngine.computeAuditChainHash(h1, e2Base);
+
+      const validChain = [
+        { ...e1Base, hash: h1 },
+        { ...e2Base, hash: h2 },
+      ];
+      expect(iamPolicyEngine.verifyAuditChainIntegrity(validChain)).toEqual({
+        valid: true,
+        tamperedIndex: null,
+      });
+
+      const tamperedChain = [
+        { ...e1Base, action: 'TAMPERED_ACTION', hash: h1 },
+        { ...e2Base, hash: h2 },
+      ];
+      expect(iamPolicyEngine.verifyAuditChainIntegrity(tamperedChain)).toEqual({
+        valid: false,
+        tamperedIndex: 0,
+      });
+    });
+  });
 });

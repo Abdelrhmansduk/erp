@@ -100,4 +100,92 @@ describe('KasEtmadSuiteService', () => {
     });
     expect(cn.id).toBeDefined();
   });
+
+  it('should compute Interim Payment Certificate (IPC) progress billing with 10% retention and 15% VAT', () => {
+    const ipc = kasEtmadSuiteService.computeProgressBillingIPC({
+      contractValueSar: 1000000,
+      previousCompletionPct: 20,
+      currentCompletionPct: 50,
+      retentionRatePct: 10,
+      advanceRecoveryPct: 5,
+      vatRatePct: 15,
+    });
+
+    // Incremental 30% of 1,000,000 = 300,000 gross
+    // Retention 10% = 30,000; Advance recovery 5% = 15,000 -> Net taxable = 255,000
+    // VAT 15% = 38,250 -> Net payable IPC = 293,250
+    expect(ipc.incrementalCompletionPct).toBe(30);
+    expect(ipc.currentWorkGrossSar).toBe(300000);
+    expect(ipc.retentionHoldbackSar).toBe(30000);
+    expect(ipc.advanceRecoverySar).toBe(15000);
+    expect(ipc.netTaxableSar).toBe(255000);
+    expect(ipc.vatAmountSar).toBe(38250);
+    expect(ipc.netPayableIpcSar).toBe(293250);
+    expect(ipc.remainingContractBalanceSar).toBe(500000);
+  });
+
+  it('should evaluate LG bank credit line utilization, quarterly commission, and 15-day expiry alerts', () => {
+    const facility = kasEtmadSuiteService.evaluateLgBankFacility({
+      facilityLimitSar: 500000,
+      referenceDate: '2026-11-01',
+      guarantees: [
+        {
+          id: 'lg-1',
+          lgNumber: 'LG-RAJHI-101',
+          type: 'INITIAL',
+          amountSar: 100000,
+          expiryDate: '2026-11-10',
+          annualCommissionPct: 2,
+        },
+        {
+          id: 'lg-2',
+          lgNumber: 'LG-SNB-202',
+          type: 'FINAL',
+          amountSar: 200000,
+          expiryDate: '2027-03-01',
+          annualCommissionPct: 2,
+        },
+      ],
+    });
+
+    expect(facility.utilizedFacilitySar).toBe(300000);
+    expect(facility.availableHeadroomSar).toBe(200000);
+    expect(facility.utilizationPct).toBe(60);
+    expect(facility.exceedsCreditLimit).toBe(false);
+    expect(facility.quarterlyCommissionSar).toBe(1500);
+    expect(facility.expiringWithin15Days).toContain('LG-RAJHI-101');
+  });
+
+  it('should rank 3-quote supplier RFQs by weighted financial, technical, and delivery score', () => {
+    const comparison = kasEtmadSuiteService.compareSupplierRfqQuotes([
+      {
+        supplierId: 'sup-1',
+        supplierName: 'مصنع الجزيرة للتوريدات',
+        totalPriceSar: 120000,
+        deliveryDays: 14,
+        technicalScoreOutOf100: 85,
+        sasoCompliant: true,
+      },
+      {
+        supplierId: 'sup-2',
+        supplierName: 'شركة الرواد للصناعات الوطنية',
+        totalPriceSar: 95000,
+        deliveryDays: 7,
+        technicalScoreOutOf100: 94,
+        sasoCompliant: true,
+      },
+      {
+        supplierId: 'sup-3',
+        supplierName: 'مورد غير مطابق للمواصفات',
+        totalPriceSar: 70000,
+        deliveryDays: 5,
+        technicalScoreOutOf100: 90,
+        sasoCompliant: false,
+      },
+    ]);
+
+    expect(comparison.recommendedWinner?.supplierId).toBe('sup-2');
+    expect(comparison.savingsVsHighestSar).toBe(25000);
+    expect(comparison.rankedQuotes.length).toBe(2);
+  });
 });

@@ -398,6 +398,170 @@ class MusanedLifecycleEngine {
       decisionAr: `العقد سارٍ ضمن فترة الضمان النظامية (متبقي ${daysRemaining} يوماً من أصل 90 يوماً).`,
     };
   }
+
+  /**
+   * 5. محرك الفوترة الدورية والتجديد التلقائي لعقود التأجير (Recurring Rental Billing & Auto-Renewal)
+   * يولّد جدول دفعات شهرية مع ضريبة 15% وتاريخ تذكير آلي قبل الاستحقاق بـ 5 أيام.
+   */
+  public generateRecurringRentalSchedule(params: {
+    contractId: string;
+    startDate: string;
+    months: number;
+    monthlyBaseSar: number;
+    vatRate?: number;
+  }): Array<{
+    installmentNo: number;
+    dueDate: string;
+    reminderDate: string;
+    baseAmountSar: number;
+    vatAmountSar: number;
+    totalAmountSar: number;
+    status: 'SCHEDULED';
+  }> {
+    const vatRate = params.vatRate ?? 0.15;
+    const count = Math.max(1, Math.min(36, Math.floor(params.months)));
+    const schedule: Array<{
+      installmentNo: number;
+      dueDate: string;
+      reminderDate: string;
+      baseAmountSar: number;
+      vatAmountSar: number;
+      totalAmountSar: number;
+      status: 'SCHEDULED';
+    }> = [];
+
+    const start = new Date(`${params.startDate}T00:00:00Z`);
+    for (let i = 0; i < count; i++) {
+      const due = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + i, start.getUTCDate()));
+      const reminder = new Date(due.getTime() - 5 * 86_400_000);
+      const baseAmountSar = Math.round(params.monthlyBaseSar * 100) / 100;
+      const vatAmountSar = Math.round(baseAmountSar * vatRate * 100) / 100;
+      const totalAmountSar = Math.round((baseAmountSar + vatAmountSar) * 100) / 100;
+
+      schedule.push({
+        installmentNo: i + 1,
+        dueDate: due.toISOString().slice(0, 10),
+        reminderDate: reminder.toISOString().slice(0, 10),
+        baseAmountSar,
+        vatAmountSar,
+        totalAmountSar,
+        status: 'SCHEDULED',
+      });
+    }
+    return schedule;
+  }
+
+  /**
+   * 6. كاشف تعارض حجز العاملات والسائقين (Worker Availability & Buffer Conflict Detector)
+   * يمنع ازدواجية الحجز لنفس العاملة ويحتسب فترة الراحة والفحص الطبي بين العقود (Buffer Days).
+   */
+  public detectWorkerBookingConflict(params: {
+    workerId: string;
+    requestedStart: string;
+    requestedEnd: string;
+    existingBookings: Array<{ contractId: string; startDate: string; endDate: string }>;
+    bufferDays?: number;
+  }): {
+    hasConflict: boolean;
+    conflictingContractIds: string[];
+    bufferDaysApplied: number;
+  } {
+    const bufferDays = params.bufferDays ?? 2;
+    const bufferMs = bufferDays * 86_400_000;
+    const reqStartMs = new Date(`${params.requestedStart}T00:00:00Z`).getTime();
+    const reqEndMs = new Date(`${params.requestedEnd}T23:59:59Z`).getTime();
+
+    const conflictingContractIds: string[] = [];
+    for (const b of params.existingBookings) {
+      const bStartMs = new Date(`${b.startDate}T00:00:00Z`).getTime() - bufferMs;
+      const bEndMs = new Date(`${b.endDate}T23:59:59Z`).getTime() + bufferMs;
+      if (reqStartMs <= bEndMs && reqEndMs >= bStartMs) {
+        conflictingContractIds.push(b.contractId);
+      }
+    }
+
+    return {
+      hasConflict: conflictingContractIds.length > 0,
+      conflictingContractIds,
+      bufferDaysApplied: bufferDays,
+    };
+  }
+
+  /**
+   * 7. التحقق من رمز التسليم الرقمي (Digital Handover OTP Verification)
+   */
+  public verifyDigitalHandoverOtp(params: {
+    contractId: string;
+    clientPhone: string;
+    expectedOtp: string;
+    providedOtp: string;
+    expiresAtIso: string;
+    nowIso?: string;
+  }): {
+    verified: boolean;
+    reasonAr: string;
+    handoverStatus: 'DELIVERED_VERIFIED' | 'OTP_EXPIRED' | 'OTP_MISMATCH';
+  } {
+    const nowMs = params.nowIso ? new Date(params.nowIso).getTime() : Date.now();
+    const expMs = new Date(params.expiresAtIso).getTime();
+
+    if (nowMs > expMs) {
+      return {
+        verified: false,
+        reasonAr: 'انتهت صلاحية رمز التحقق (OTP) قبل إتمام التسليم.',
+        handoverStatus: 'OTP_EXPIRED',
+      };
+    }
+
+    if (params.expectedOtp.trim() !== params.providedOtp.trim()) {
+      return {
+        verified: false,
+        reasonAr: 'رمز التحقق المدخل غير مطابق للرمز المرسل لرقم جوال العميل.',
+        handoverStatus: 'OTP_MISMATCH',
+      };
+    }
+
+    return {
+      verified: true,
+      reasonAr: `تم توثيق محضر استلام العاملة للعقد (${params.contractId}) بنجاح عبر رمز التحقق الرقمي.`,
+      handoverStatus: 'DELIVERED_VERIFIED',
+    };
+  }
+
+  /**
+   * 8. التسوية المالية الثلاثية للرجيع والاستبدال (Three-Way Return Settlement: Client / Foreign Agency / Insurance)
+   */
+  public computeThreeWayReturnSettlement(params: {
+    contractAmountSar: number;
+    totalContractDays?: number;
+    daysWorked: number;
+    agencyFault: boolean;
+    insuranceCoveredSar?: number;
+  }): {
+    utilizedAmountSar: number;
+    clientRefundSar: number;
+    agencyDebitSar: number;
+    insuranceClaimSar: number;
+    officeNetImpactSar: number;
+  } {
+    const totalDays = params.totalContractDays || 720; // 24 months default
+    const dailyRate = params.contractAmountSar / totalDays;
+    const utilizedAmountSar = Math.round(dailyRate * Math.max(0, params.daysWorked) * 100) / 100;
+    const clientRefundSar = Math.max(0, Math.round((params.contractAmountSar - utilizedAmountSar) * 100) / 100);
+    const insuranceClaimSar = Math.max(0, Math.round((params.insuranceCoveredSar || 0) * 100) / 100);
+    const agencyDebitSar = params.agencyFault
+      ? Math.max(0, Math.round((clientRefundSar - insuranceClaimSar) * 100) / 100)
+      : 0;
+    const officeNetImpactSar = Math.round((clientRefundSar - agencyDebitSar - insuranceClaimSar) * 100) / 100;
+
+    return {
+      utilizedAmountSar,
+      clientRefundSar,
+      agencyDebitSar,
+      insuranceClaimSar,
+      officeNetImpactSar,
+    };
+  }
 }
 
 export const musanedLifecycleEngine = new MusanedLifecycleEngine();

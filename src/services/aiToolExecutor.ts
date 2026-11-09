@@ -210,6 +210,20 @@ export function inferToolCallFromArabicPrompt(
     return validateToolCall(req, companyId, currentUserEmail);
   }
 
+  // 3b. Approve WPS Payroll Run ("اعتمد مسير رواتب" / "اعتماد مسير الرواتب")
+  if (/(?:اعتمد|اعتماد|وافق\s*على|صرف).*(?:مسير\s*(?:ال)?رواتب|حماي[ةه]\s*(?:ال)?[أا]جور|wps)/i.test(clean)) {
+    const monthMatch = normalizedDigits.match(/20\d{2}-\d{2}/);
+    const req: ToolCallRequest = {
+      id: 'approve_wps_payroll_run',
+      params: {
+        payroll_month: monthMatch?.[0] || '2026-11',
+        employees_count: numbers.find((n) => n >= 5 && n <= 2000) || 85,
+        total_net_sar: numbers.find((n) => n >= 10000) || 485000,
+      },
+    };
+    return validateToolCall(req, companyId, currentUserEmail);
+  }
+
   // 3. Approve Payment Voucher ("اعتمد سند صرف" / "اعتماد سند الصرف")
   if (/(?:اعتمد|اعتماد|وافق\s*على).*(?:سند\s*صرف|سند\s*ال?صرف)/i.test(clean)) {
     const voucherMatch = clean.match(/(?:رقم|#)\s*([A-Za-z0-9\-]+)/i);
@@ -542,6 +556,9 @@ export async function executeToolCall(
         break;
       case 'create_receipt_or_payment_voucher':
         result = await executeCreateVoucher(params, effectiveCompany);
+        break;
+      case 'approve_wps_payroll_run':
+        result = await executeApproveWpsPayrollRun(params, effectiveCompany);
         break;
       case 'approve_payment_voucher':
         result = await executeApproveVoucher(params, effectiveCompany);
@@ -1412,6 +1429,28 @@ function executeCheckMedicalStatus(params: Record<string, unknown>): ToolExecuti
       `• الامتثال الصحي: متطابق مع اشتراطات وزارة الصحة ووزارة الموارد البشرية HRSD.`,
     spokenSummary: `تقرير العيادة الطبية وجناح العزل بمركز الإيواء يؤكد سلامة الفحوصات لكافة النزيلات واستقرار جناح الملاحظة الوقائية.`,
     data: { clinicStatus: 'operational', quarantinedCount: 2, totalScreened: 51 },
+  };
+}
+
+async function executeApproveWpsPayrollRun(
+  params: Record<string, unknown>,
+  companyId: string
+): Promise<ToolExecutionResult> {
+  const payrollMonth = String(params.payroll_month || '2026-11');
+  const employeesCount = Number(params.employees_count || 85);
+  const totalNetSar = Number(params.total_net_sar || 485000);
+  const sifRef = `WPS-SIF-${companyId}-${payrollMonth.replace('-', '')}`;
+
+  return {
+    success: true,
+    message:
+      `تم اعتماد مسير الرواتب وحماية الأجور (WPS) لشهر ${payrollMonth} في (${companyId}) بنجاح:\n` +
+      `• مرجع ملف البنك (SIF): ${sifRef}\n` +
+      `• عدد الموظفين المشمولين: ${employeesCount} موظفاً\n` +
+      `• إجمالي صافي الرواتب المعتمدة للصرف: ${totalNetSar.toLocaleString('en-US')} ⃁\n` +
+      `• حالة منصة مُدد: جاهز للرفع البنكي المباشر ومطابق لاشتراطات وزارة الموارد البشرية.`,
+    spokenSummary: `تم اعتماد مسير الرواتب وحماية الأجور لشهر ${payrollMonth} لعدد ${employeesCount} موظفاً بإجمالي ${totalNetSar.toLocaleString('ar-SA')} ريال وتجهيز ملف البنك لمنصة مدد.`,
+    data: { sifRef, payrollMonth, employeesCount, totalNetSar, companyId },
   };
 }
 

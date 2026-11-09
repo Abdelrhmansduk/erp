@@ -687,4 +687,189 @@ export const odooAccountingConfigService = {
       totalBankCreditSar,
     };
   },
+
+  // ─── 4. Saudi Bank Statement Parser (MT940 / CSV) ─────────────────────────
+  parseSaudiBankStatement(rawContent: string): Array<{
+    reference: string;
+    date: string;
+    amountSar: number;
+    direction: 'DEBIT' | 'CREDIT';
+    description: string;
+    matchedReconModelId: string | null;
+  }> {
+    const text = (rawContent || '').trim();
+    if (!text) return [];
+
+    // MT940 format detection (:61: statement line + :86: narrative)
+    if (text.includes(':61:')) {
+      const results: Array<{
+        reference: string;
+        date: string;
+        amountSar: number;
+        direction: 'DEBIT' | 'CREDIT';
+        description: string;
+        matchedReconModelId: string | null;
+      }> = [];
+      const blocks = text.split(':61:').slice(1);
+      blocks.forEach((block, index) => {
+        const [line61, rest] = block.split(':86:');
+        const clean61 = (line61 || '').trim();
+        // Example :61:2608120812D28,75NTRFSARIE-99
+        const dateMatch = clean61.match(/^(\d{2})(\d{2})(\d{2})/);
+        const isoDate = dateMatch
+          ? `20${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}`
+          : '2026-08-12';
+        const dcMatch = clean61.match(/^\d{6,10}([DC])([\d,.]+)/i);
+        const direction: 'DEBIT' | 'CREDIT' =
+          dcMatch && dcMatch[1].toUpperCase() === 'C' ? 'CREDIT' : 'DEBIT';
+        const amountSar = dcMatch
+          ? Number(dcMatch[2].replace(',', '.')) || 0
+          : 0;
+        const narrative = (rest || '').split(/\r?\n/)[0]?.trim() || clean61;
+        const matched = this.matchBankStatementLine(narrative, amountSar);
+        results.push({
+          reference: `MT940-${index + 1}`,
+          date: isoDate,
+          amountSar,
+          direction,
+          description: narrative,
+          matchedReconModelId: matched?.id || null,
+        });
+      });
+      return results;
+    }
+
+    // CSV format: date,reference,description,amount
+    const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+    const dataLines = lines[0]?.toLowerCase().includes('date') ? lines.slice(1) : lines;
+    return dataLines.map((line, idx) => {
+      const [datePart, refPart, descPart, amountPart] = line.split(',').map((s) => s?.trim() || '');
+      const rawNum = Number(amountPart) || 0;
+      const direction: 'DEBIT' | 'CREDIT' = rawNum < 0 ? 'DEBIT' : 'CREDIT';
+      const amountSar = Math.abs(rawNum);
+      const matched = this.matchBankStatementLine(descPart, amountSar);
+      return {
+        reference: refPart || `CSV-${idx + 1}`,
+        date: datePart || '2026-08-12',
+        amountSar,
+        direction,
+        description: descPart,
+        matchedReconModelId: matched?.id || null,
+      };
+    });
+  },
+
+  // ─── 5. IAS 7 Statement of Cash Flows (Indirect Method) ───────────────────
+  computeIas7CashFlowStatement(params: {
+    netIncomeSar: number;
+    depreciationExpenseSar: number;
+    changeInReceivablesSar: number;
+    changeInPayablesSar: number;
+    changeInEscrowSar?: number;
+    capexAdditionsSar: number;
+    loanProceedsOrRepaymentsSar: number;
+    dividendsPaidSar: number;
+    openingCashSar: number;
+  }): {
+    operatingCashFlowSar: number;
+    investingCashFlowSar: number;
+    financingCashFlowSar: number;
+    netCashChangeSar: number;
+    openingCashSar: number;
+    closingCashSar: number;
+    isReconciled: boolean;
+  } {
+    const operatingCashFlowSar = Number(
+      (
+        (Number(params.netIncomeSar) || 0) +
+        (Number(params.depreciationExpenseSar) || 0) -
+        (Number(params.changeInReceivablesSar) || 0) +
+        (Number(params.changeInPayablesSar) || 0) -
+        (Number(params.changeInEscrowSar) || 0)
+      ).toFixed(2)
+    );
+    const investingCashFlowSar = Number((-(Math.abs(Number(params.capexAdditionsSar) || 0))).toFixed(2));
+    const financingCashFlowSar = Number(
+      (
+        (Number(params.loanProceedsOrRepaymentsSar) || 0) -
+        Math.abs(Number(params.dividendsPaidSar) || 0)
+      ).toFixed(2)
+    );
+    const netCashChangeSar = Number(
+      (operatingCashFlowSar + investingCashFlowSar + financingCashFlowSar).toFixed(2)
+    );
+    const openingCashSar = Number((Number(params.openingCashSar) || 0).toFixed(2));
+    const closingCashSar = Number((openingCashSar + netCashChangeSar).toFixed(2));
+
+    return {
+      operatingCashFlowSar,
+      investingCashFlowSar,
+      financingCashFlowSar,
+      netCashChangeSar,
+      openingCashSar,
+      closingCashSar,
+      isReconciled: Math.abs(closingCashSar - (openingCashSar + netCashChangeSar)) < 0.01,
+    };
+  },
+
+  // ─── 6. Automated Monthly Fixed Asset Depreciation Run ────────────────────
+  postMonthlyAssetDepreciation(
+    companyId: CompanyId,
+    params: {
+      assetCode: string;
+      assetNameAr: string;
+      costSar: number;
+      salvageValueSar: number;
+      usefulLifeMonths: number;
+      entryDate?: string;
+    }
+  ): {
+    entryNumber: string;
+    monthlyDepreciationSar: number;
+    annualDepreciationSar: number;
+  } {
+    const depreciableBase = Math.max(
+      0,
+      (Number(params.costSar) || 0) - (Number(params.salvageValueSar) || 0)
+    );
+    const months = Math.max(1, Number(params.usefulLifeMonths) || 60);
+    const monthlyDepreciationSar = Number((depreciableBase / months).toFixed(2));
+    const annualDepreciationSar = Number((monthlyDepreciationSar * 12).toFixed(2));
+
+    const res = journalEngine.createJournalEntry(companyId, {
+      entryDate: params.entryDate || '2026-08-31',
+      entryType: 'AUTOMATIC',
+      sourceModule: 'FIXED_ASSETS_DEPRECIATION',
+      sourceReference: params.assetCode,
+      description: `قيد إهلاك شهري آلي للأصل الثابت (${params.assetCode}) — ${params.assetNameAr}`,
+      createdBy: 'محرك إهلاك الأصول الثابتة (IAS 16)',
+      autoPost: true,
+      lines: [
+        {
+          accountCode: '530301',
+          accountName: 'مصروف إهلاك الأصول الثابتة والسيارات والتجهيزات',
+          description: `إهلاك شهري (${params.assetNameAr})`,
+          debit: monthlyDepreciationSar,
+          credit: 0,
+        },
+        {
+          accountCode: '120201',
+          accountName: 'مجمع إهلاك الأصول الثابتة (Accumulated Depreciation)',
+          description: `مجمع إهلاك (${params.assetCode})`,
+          debit: 0,
+          credit: monthlyDepreciationSar,
+        },
+      ],
+    });
+
+    if (res.error || !res.entry) {
+      throw new Error(res.error || 'تعذر ترحيل قيد إهلاك الأصل الثابت');
+    }
+
+    return {
+      entryNumber: res.entry.entryNumber,
+      monthlyDepreciationSar,
+      annualDepreciationSar,
+    };
+  },
 };

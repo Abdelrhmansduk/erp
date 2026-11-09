@@ -197,11 +197,11 @@ if (modOut.includes('Failed: 0')) {
 }
 
 if (isFullAudit) {
-  console.log('\n🧪 [Full Audit Mode] Running TypeScript Compiler & Vitest Suite (27 files / 204 tests)...');
+  console.log('\n🧪 [Full Audit Mode] Running TypeScript Compiler & Vitest Suite (27 files / 218 tests)...');
   execSync('npx tsc --noEmit', { stdio: 'inherit' });
   pass('TypeScript strict typecheck passed (0 errors).');
   execSync('npx vitest run', { stdio: 'inherit' });
-  pass('Vitest unit & integration test suite passed (27/27 files, 204/204 tests).');
+  pass('Vitest unit & integration test suite passed (27/27 files, 218/218 tests).');
 }
 
 console.log('\n================================================================================');

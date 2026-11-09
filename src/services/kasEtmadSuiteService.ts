@@ -764,6 +764,185 @@ class KasEtmadSuiteService {
     XLSX.utils.book_append_sheet(wb, ws, 'العروض');
     XLSX.writeFile(wb, `KAS_Proposals_${new Date().toISOString().split('T')[0]}.xlsx`);
   }
+
+  /**
+   * 1. Interim Payment Certificate (IPC) Progress Billing Engine (محرك المستخلصات الجارية ونسب الإنجاز)
+   * Computes net payable government claim on Etmad with statutory 10% retention holdback & 15% ZATCA VAT.
+   */
+  public computeProgressBillingIPC(params: {
+    contractValueSar: number;
+    previousCompletionPct: number;
+    currentCompletionPct: number;
+    retentionRatePct?: number;
+    advanceRecoveryPct?: number;
+    vatRatePct?: number;
+  }): {
+    incrementalCompletionPct: number;
+    currentWorkGrossSar: number;
+    retentionHoldbackSar: number;
+    advanceRecoverySar: number;
+    netTaxableSar: number;
+    vatAmountSar: number;
+    netPayableIpcSar: number;
+    remainingContractBalanceSar: number;
+  } {
+    const contractVal = Math.max(0, Number(params.contractValueSar) || 0);
+    const prevPct = Math.max(0, Math.min(100, Number(params.previousCompletionPct) || 0));
+    const currPct = Math.max(prevPct, Math.min(100, Number(params.currentCompletionPct) || 0));
+    const retentionPct = params.retentionRatePct ?? 10;
+    const advancePct = params.advanceRecoveryPct ?? 0;
+    const vatPct = params.vatRatePct ?? 15;
+
+    const incrementalCompletionPct = Number((currPct - prevPct).toFixed(2));
+    const currentWorkGrossSar = Number(((contractVal * incrementalCompletionPct) / 100).toFixed(2));
+    const retentionHoldbackSar = Number(((currentWorkGrossSar * retentionPct) / 100).toFixed(2));
+    const advanceRecoverySar = Number(((currentWorkGrossSar * advancePct) / 100).toFixed(2));
+    const netTaxableSar = Math.max(
+      0,
+      Number((currentWorkGrossSar - retentionHoldbackSar - advanceRecoverySar).toFixed(2))
+    );
+    const vatAmountSar = Number(((netTaxableSar * vatPct) / 100).toFixed(2));
+    const netPayableIpcSar = Number((netTaxableSar + vatAmountSar).toFixed(2));
+    const remainingContractBalanceSar = Number(((contractVal * (100 - currPct)) / 100).toFixed(2));
+
+    return {
+      incrementalCompletionPct,
+      currentWorkGrossSar,
+      retentionHoldbackSar,
+      advanceRecoverySar,
+      netTaxableSar,
+      vatAmountSar,
+      netPayableIpcSar,
+      remainingContractBalanceSar,
+    };
+  }
+
+  /**
+   * 2. Letter of Guarantee (LG) Bank Credit Line & Expiry Radar (حاسبة التسهيلات والضمانات البنكية)
+   */
+  public evaluateLgBankFacility(params: {
+    facilityLimitSar: number;
+    guarantees: Array<{
+      id: string;
+      lgNumber: string;
+      type: 'INITIAL' | 'FINAL' | 'ADVANCE';
+      amountSar: number;
+      expiryDate: string;
+      annualCommissionPct?: number;
+    }>;
+    referenceDate?: string;
+  }): {
+    facilityLimitSar: number;
+    utilizedFacilitySar: number;
+    availableHeadroomSar: number;
+    utilizationPct: number;
+    exceedsCreditLimit: boolean;
+    quarterlyCommissionSar: number;
+    expiringWithin15Days: string[];
+  } {
+    const limit = Math.max(0, Number(params.facilityLimitSar) || 0);
+    const refMs = params.referenceDate ? new Date(params.referenceDate).getTime() : Date.now();
+
+    let utilizedFacilitySar = 0;
+    let quarterlyCommissionSar = 0;
+    const expiringWithin15Days: string[] = [];
+
+    for (const lg of params.guarantees || []) {
+      const amt = Math.max(0, Number(lg.amountSar) || 0);
+      utilizedFacilitySar += amt;
+      const annualRate = lg.annualCommissionPct ?? 1.5;
+      quarterlyCommissionSar += (amt * (annualRate / 100)) / 4;
+
+      const expMs = new Date(lg.expiryDate).getTime();
+      const daysLeft = Math.ceil((expMs - refMs) / (1000 * 60 * 60 * 24));
+      if (daysLeft >= 0 && daysLeft <= 15) {
+        expiringWithin15Days.push(lg.lgNumber);
+      }
+    }
+
+    utilizedFacilitySar = Number(utilizedFacilitySar.toFixed(2));
+    quarterlyCommissionSar = Number(quarterlyCommissionSar.toFixed(2));
+    const availableHeadroomSar = Math.max(0, Number((limit - utilizedFacilitySar).toFixed(2)));
+    const utilizationPct = limit > 0 ? Number(((utilizedFacilitySar / limit) * 100).toFixed(2)) : 0;
+
+    return {
+      facilityLimitSar: limit,
+      utilizedFacilitySar,
+      availableHeadroomSar,
+      utilizationPct,
+      exceedsCreditLimit: utilizedFacilitySar > limit,
+      quarterlyCommissionSar,
+      expiringWithin15Days,
+    };
+  }
+
+  /**
+   * 3. 3-Quote Supplier RFQ Financial & Technical Comparison Matrix (مصفوفة مفاضلة عروض أسعار الموردين)
+   */
+  public compareSupplierRfqQuotes(
+    quotes: Array<{
+      supplierId: string;
+      supplierName: string;
+      totalPriceSar: number;
+      deliveryDays: number;
+      technicalScoreOutOf100: number;
+      sasoCompliant: boolean;
+    }>
+  ): {
+    recommendedWinner: {
+      supplierId: string;
+      supplierName: string;
+      totalPriceSar: number;
+      compositeScore: number;
+    } | null;
+    savingsVsHighestSar: number;
+    rankedQuotes: Array<{
+      supplierId: string;
+      supplierName: string;
+      totalPriceSar: number;
+      compositeScore: number;
+      sasoCompliant: boolean;
+    }>;
+  } {
+    const eligible = (quotes || []).filter((q) => q.sasoCompliant && q.totalPriceSar > 0);
+    if (eligible.length === 0) {
+      return { recommendedWinner: null, savingsVsHighestSar: 0, rankedQuotes: [] };
+    }
+
+    const minPrice = Math.min(...eligible.map((q) => q.totalPriceSar));
+    const maxPrice = Math.max(...eligible.map((q) => q.totalPriceSar));
+    const minDays = Math.max(1, Math.min(...eligible.map((q) => Math.max(1, q.deliveryDays))));
+
+    const rankedQuotes = eligible
+      .map((q) => {
+        const priceScore = (minPrice / q.totalPriceSar) * 100;
+        const techScore = Math.max(0, Math.min(100, q.technicalScoreOutOf100));
+        const speedScore = (minDays / Math.max(1, q.deliveryDays)) * 100;
+        const compositeScore = Number((priceScore * 0.6 + techScore * 0.3 + speedScore * 0.1).toFixed(2));
+        return {
+          supplierId: q.supplierId,
+          supplierName: q.supplierName,
+          totalPriceSar: q.totalPriceSar,
+          compositeScore,
+          sasoCompliant: q.sasoCompliant,
+        };
+      })
+      .sort((a, b) => b.compositeScore - a.compositeScore);
+
+    const winner = rankedQuotes[0];
+    const savingsVsHighestSar = Number((maxPrice - winner.totalPriceSar).toFixed(2));
+
+    return {
+      recommendedWinner: {
+        supplierId: winner.supplierId,
+        supplierName: winner.supplierName,
+        totalPriceSar: winner.totalPriceSar,
+        compositeScore: winner.compositeScore,
+      },
+      savingsVsHighestSar,
+      rankedQuotes,
+    };
+  }
 }
 
 export const kasEtmadSuiteService = new KasEtmadSuiteService();

@@ -511,6 +511,23 @@ export const AI_TOOL_REGISTRY: AiToolDefinition[] = [
 /**
  * Get tools available for a specific company context.
  */
+AI_TOOL_REGISTRY.push({
+  id: 'approve_wps_payroll_run',
+  nameAr: 'اعتماد مسير الرواتب وحماية الأجور WPS',
+  descriptionAr: 'اعتماد مسير الرواتب الشهري وتجهيز ملف البنك SIF لمنصة مُدد وحماية الأجور WPS مع الترحيل المحاسبي.',
+  companyScope: [],
+  departmentScope: ['hr', 'finance', 'executive'],
+  requiredPermission: 'hr.payroll.approve',
+  riskLevel: 'high',
+  category: 'hr',
+  isMutating: true,
+  parameters: [
+    { name: 'payroll_month', type: 'string', description: 'شهر المسير بصيغة YYYY-MM', required: true },
+    { name: 'employees_count', type: 'number', description: 'عدد الموظفين المشمولين بالمسير', required: false },
+    { name: 'total_net_sar', type: 'number', description: 'إجمالي صافي الرواتب بالريال السعودي', required: false },
+  ],
+});
+
 export function getToolsForCompany(companyId: string): AiToolDefinition[] {
   const cid = companyId.toUpperCase();
   return AI_TOOL_REGISTRY.filter(

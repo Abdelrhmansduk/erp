@@ -89,4 +89,58 @@ describe('Musaned Lifecycle & Legal Refund Engine', () => {
     expect(action.auditAction).toBe('MUSANED_PAYMENT_CAPTURED');
     expect(action.notificationTitle).toContain('سداد رسوم الاستقدام');
   });
+
+  it('should generate recurring rental schedule with 15% VAT and 5-day reminder dates', () => {
+    const schedule = musanedLifecycleEngine.generateRecurringRentalSchedule({
+      contractId: 'RNT-2026-501',
+      startDate: '2026-09-10',
+      months: 3,
+      monthlyBaseSar: 3000,
+    });
+    expect(schedule).toHaveLength(3);
+    expect(schedule[0].dueDate).toBe('2026-09-10');
+    expect(schedule[0].reminderDate).toBe('2026-09-05');
+    expect(schedule[0].vatAmountSar).toBe(450);
+    expect(schedule[0].totalAmountSar).toBe(3450);
+  });
+
+  it('should detect worker booking overlaps including mandatory medical/rest buffer days', () => {
+    const conflict = musanedLifecycleEngine.detectWorkerBookingConflict({
+      workerId: 'W-900',
+      requestedStart: '2026-10-16',
+      requestedEnd: '2026-11-15',
+      existingBookings: [
+        { contractId: 'RNT-100', startDate: '2026-09-15', endDate: '2026-10-15' },
+      ],
+      bufferDays: 2,
+    });
+    expect(conflict.hasConflict).toBe(true);
+    expect(conflict.conflictingContractIds).toEqual(['RNT-100']);
+  });
+
+  it('should verify digital handover OTP and compute three-way return settlement accurately', () => {
+    const otpRes = musanedLifecycleEngine.verifyDigitalHandoverOtp({
+      contractId: 'MSN-2026-88990',
+      clientPhone: '0551234567',
+      expectedOtp: '482910',
+      providedOtp: '482910',
+      expiresAtIso: '2026-11-10T12:00:00Z',
+      nowIso: '2026-11-10T11:55:00Z',
+    });
+    expect(otpRes.verified).toBe(true);
+    expect(otpRes.handoverStatus).toBe('DELIVERED_VERIFIED');
+
+    const settlement = musanedLifecycleEngine.computeThreeWayReturnSettlement({
+      contractAmountSar: 14400,
+      totalContractDays: 720,
+      daysWorked: 45,
+      agencyFault: true,
+      insuranceCoveredSar: 2500,
+    });
+    // dailyRate = 20 SAR/day -> utilized = 900 SAR -> clientRefund = 13,500 SAR -> agencyDebit = 11,000 SAR
+    expect(settlement.utilizedAmountSar).toBe(900);
+    expect(settlement.clientRefundSar).toBe(13500);
+    expect(settlement.agencyDebitSar).toBe(11000);
+    expect(settlement.officeNetImpactSar).toBe(0);
+  });
 });

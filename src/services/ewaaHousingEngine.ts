@@ -3198,3 +3198,66 @@ export function workerOperationSummary(data: any, lang = 'ar', selectedAction?: 
     canonicalRequirements,
   };
 }
+
+/**
+ * احتساب وتحميل التكلفة اليومية للإيواء والإعاشة والرعاية الطبية + رادار تجاوز مدة الإيواء (> 15 يوماً)
+ */
+export function calculateShelterDailyCostAllocation(params: {
+  workerId: string;
+  checkInDate: string;
+  checkOutOrEvalDate: string;
+  admissionReason: 'warranty_agency_fault' | 'employer_delay_or_dispute' | 'internal_transfer_buffer';
+  dailyHousingSar?: number;
+  dailyCateringSar?: number;
+  dailyMedicalSar?: number;
+  overstayThresholdDays?: number;
+}): {
+  workerId: string;
+  daysInShelter: number;
+  dailyRateSar: number;
+  totalShelterCostSar: number;
+  costBearer: 'FOREIGN_AGENT' | 'EMPLOYER' | 'OPERATIONS_CENTER';
+  costBearerLabelAr: string;
+  isOverstayAlert: boolean;
+  overstayDays: number;
+  alertMessageAr: string | null;
+} {
+  const inMs = new Date(`${params.checkInDate.slice(0, 10)}T00:00:00Z`).getTime();
+  const outMs = new Date(`${params.checkOutOrEvalDate.slice(0, 10)}T00:00:00Z`).getTime();
+  const daysInShelter = Math.max(1, Math.round((outMs - inMs) / 86_400_000));
+
+  const housing = params.dailyHousingSar ?? 45;
+  const catering = params.dailyCateringSar ?? 25;
+  const medical = params.dailyMedicalSar ?? 15;
+  const dailyRateSar = Math.round((housing + catering + medical) * 100) / 100;
+  const totalShelterCostSar = Math.round(daysInShelter * dailyRateSar * 100) / 100;
+
+  let costBearer: 'FOREIGN_AGENT' | 'EMPLOYER' | 'OPERATIONS_CENTER' = 'OPERATIONS_CENTER';
+  let costBearerLabelAr = 'مركز تكلفة التشغيل ونقل الخدمات';
+
+  if (params.admissionReason === 'warranty_agency_fault') {
+    costBearer = 'FOREIGN_AGENT';
+    costBearerLabelAr = 'الوكيل الخارجي (ضمن فترة الضمان 90 يوماً)';
+  } else if (params.admissionReason === 'employer_delay_or_dispute') {
+    costBearer = 'EMPLOYER';
+    costBearerLabelAr = 'صاحب العمل / الكفيل (تأخر استلام أو نزاع تعاقدي)';
+  }
+
+  const threshold = params.overstayThresholdDays ?? 15;
+  const isOverstayAlert = daysInShelter > threshold;
+  const overstayDays = isOverstayAlert ? daysInShelter - threshold : 0;
+
+  return {
+    workerId: params.workerId,
+    daysInShelter,
+    dailyRateSar,
+    totalShelterCostSar,
+    costBearer,
+    costBearerLabelAr,
+    isOverstayAlert,
+    overstayDays,
+    alertMessageAr: isOverstayAlert
+      ? `تنبيه تجاوز سقف الإيواء المعياري: النزيلة أكملت ${daysInShelter} يوماً في السكن (تجاوز بـ ${overstayDays} يوماً) بتكلفة متراكمة ${totalShelterCostSar} ⃁ محملة على: ${costBearerLabelAr}.`
+      : null,
+  };
+}

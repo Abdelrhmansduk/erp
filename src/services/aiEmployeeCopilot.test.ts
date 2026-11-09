@@ -230,6 +230,15 @@ describe('Employee Task Co-Pilot 2.0 (فارس ونُورة لكل الموظف�
     expect(wakeNoura.directQuery).toBe('');
   });
 
+  it('infers and executes executive WPS payroll approval by voice (approve_wps_payroll_run)', async () => {
+    const parsed = inferToolCallFromArabicPrompt('اعتمد مسير رواتب شهر 2026-11 بمبلغ 485000', 'SAF');
+    expect(parsed).not.toBeNull();
+    expect(parsed?.tool.id).toBe('approve_wps_payroll_run');
+    const execRes = await executeToolCall(parsed!, 'SAF', 'ceo@alsulaim.sa');
+    expect(execRes.success).toBe(true);
+    expect(execRes.message).toContain('WPS-SIF-SAF-202611');
+  });
+
   it('maps IFRS 10, Odoo 16+, and Musaned Escrow topics to their respective action buttons', () => {
     expect(determineActionButton('توحيد القوائم المالية IFRS 10', 'SAF', 'faris')?.actionKey).toBe('ifrs-engine');
     expect(determineActionButton('أتمتة المحاسبة الذكية أودو Odoo', 'SAF', 'faris')?.actionKey).toBe('odoo-accounting');
