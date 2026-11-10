@@ -2,8 +2,10 @@
   "auth": {
     "providers": {
       "googleSignIn": {
-        "oAuthBrandDisplayName": "ERP Group Khalid Al-Sulaim"
+        "oAuthBrandDisplayName": "ERP Group Khalid Al-Sulaim",
+        "supportEmail": "shathervan.engineering@gmail.com"
       }
     }
   }
 }
+
