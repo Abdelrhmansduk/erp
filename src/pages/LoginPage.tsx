@@ -12,10 +12,28 @@ import {
   getFullStaffDirectory,
   registerCustomStaffAccount,
   resolveDepartmentAndCompany,
+  findAllowedKasEmployee,
+  getExcludedEmailReason,
+  validateAllowedCorporateEmail,
 } from '../services/authService';
 import { DEMO_AUTH_ENABLED, DEMO_QUICK_LOGIN_SECRET } from '../config/authMode';
+import {
+  VERIFIED_FIREBASE_GOOGLE_ACCOUNTS,
+  getCachedGoogleProfile,
+  isFirebaseConfigured,
+} from '../services/firebaseClient';
 import { EmployeePhotoAvatar } from '../components/auth/EmployeePhotoAvatar';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
+import {
+  DATA_PROCESSORS_ABROAD_MANIFEST,
+  SERVED_COUNTRIES_MANIFEST,
+  TELEMETRY_COLLECTION_MANIFEST,
+  acceptPrivacyAndTelemetryNotice,
+  hasAcceptedPrivacyNotice,
+  recordAgeAndGuardianConsent,
+  recordCrossBorderTransferConsent,
+  recordMarketingConsent,
+} from '../services/menaLegalComplianceService';
 import {
   ShieldCheck,
   Mail,
@@ -379,14 +397,40 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [regFullName, setRegFullName] = useState('');
   const [regEmployeeNo, setRegEmployeeNo] = useState('');
   const [regEmail, setRegEmail] = useState('');
-  const [regPhone, setRegPhone] = useState('055');
+  const [regPhone, setRegPhone] = useState('0543389314');
   const [regNationalId, setRegNationalId] = useState('10');
-  const [regCompanyId, setRegCompanyId] = useState<'SAF' | 'YAQ' | 'TOP' | 'KAS' | 'DAR'>('SAF');
+  const [regCompanyId, setRegCompanyId] = useState<'SAF' | 'YAQ' | 'TOP' | 'KAS' | 'DAR' | 'all'>('SAF');
   const [regDepartmentId, setRegDepartmentId] = useState<DepartmentId>('finance');
   const [regJobTitle, setRegJobTitle] = useState('');
-  const [regPassword, setRegPassword] = useState('');
+  const [regPassword, setRegPassword] = useState(DEMO_QUICK_LOGIN_SECRET);
+  const [regAvatarUrl, setRegAvatarUrl] = useState('');
   const [regOtpCode, setRegOtpCode] = useState('482910');
   const [generatedOtp] = useState('482910');
+  const [regCountryCode, setRegCountryCode] = useState('SA');
+  const [regAgeStatus, setRegAgeStatus] = useState<'legal_adult_in_country' | 'minor_with_guardian_consent'>('legal_adult_in_country');
+  const [regGuardianName, setRegGuardianName] = useState('');
+  const [regGuardianContact, setRegGuardianContact] = useState('');
+  const [regGuardianRelation, setRegGuardianRelation] = useState('ولي أمر قانوني (الأب / الأم / الوصي)');
+  const [regGuardianConsentAccepted, setRegGuardianConsentAccepted] = useState(false);
+  const [regCrossBorderConsent, setRegCrossBorderConsent] = useState(true);
+  const [regMarketingOptIn, setRegMarketingOptIn] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [privacyBannerDismissed, setPrivacyBannerDismissed] = useState<boolean>(() =>
+    hasAcceptedPrivacyNotice()
+  );
+  const [syncedGoogleUser, setSyncedGoogleUser] = useState(() => getCachedGoogleProfile());
+
+  useEffect(() => {
+    const onGoogleSynced = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail) {
+        setSyncedGoogleUser(detail);
+        setStaffDirectory(getFullStaffDirectory());
+      }
+    };
+    window.addEventListener('alsulaim-google-user-synced', onGoogleSynced);
+    return () => window.removeEventListener('alsulaim-google-user-synced', onGoogleSynced);
+  }, []);
 
   // Dynamic routing resolution based on current identifier
   const detectedRouting = useMemo(() => {
@@ -440,9 +484,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         return;
       }
 
+      const kasEmp = findAllowedKasEmployee(finalId);
       const routeInfo = resolveDepartmentAndCompany(finalId);
-      const landingTab = routeInfo.departmentDef.defaultTab;
-      const landingTitle = routeInfo.departmentDef.defaultTabTitle;
+      const landingTab =
+        kasEmp?.defaultTab ||
+        detectedRouting.account?.default_tab ||
+        routeInfo.departmentDef.defaultTab;
+      const landingTitle =
+        kasEmp?.defaultTabTitle ||
+        detectedRouting.account?.default_tab_title ||
+        routeInfo.departmentDef.defaultTabTitle;
 
       if (routeInfo.companyId === 'all') {
         setActiveCompanyId('SAF');
@@ -478,21 +529,30 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     await executeUnifiedSignIn(identifier || 'chairman@alsulaim.sa', DEMO_QUICK_LOGIN_SECRET);
   };
 
-  const handleGoogleButtonClick = async () => {
+  const handleGoogleButtonClick = () => {
     setErrorMsg(null);
-    setSuccessMsg('جاري الاتصال بخدمة Google وتسجيل الدخول الحقيقي...');
+    setShowGoogleModal(true);
+  };
+
+  const handleLiveFirebaseGooglePopup = async () => {
+    setShowGoogleModal(false);
+    setErrorMsg(null);
+    setSuccessMsg('جاري الاتصال بخدمة Google (Firebase Auth) ومزامنة الصورة والبيانات...');
     setLoading(true);
     try {
       const result = await signInWithGoogle();
       if (result.error) {
+        // If popup was closed or blocked, reopen chooser modal with helpful message
         setErrorMsg(result.error);
+        setShowGoogleModal(true);
         setLoading(false);
         return;
       }
       if (!result.user) {
-        // Real OAuth redirect in progress
         return;
       }
+      setStaffDirectory(getFullStaffDirectory());
+      setIdentifier(result.user.email);
       const routeInfo = resolveDepartmentAndCompany(result.user.email);
       const landingTab = routeInfo.departmentDef.defaultTab;
       const landingTitle = routeInfo.departmentDef.defaultTabTitle;
@@ -539,9 +599,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         setLoading(false);
         return;
       }
+      const kasEmp = findAllowedKasEmployee(account.email);
       const routeInfo = resolveDepartmentAndCompany(account.email);
-      const landingTab = routeInfo.departmentDef.defaultTab;
-      const landingTitle = routeInfo.departmentDef.defaultTabTitle;
+      const landingTab = kasEmp?.defaultTab || routeInfo.departmentDef.defaultTab;
+      const landingTitle = kasEmp?.defaultTabTitle || routeInfo.departmentDef.defaultTabTitle;
 
       if (routeInfo.companyId === 'all') {
         setActiveCompanyId('SAF');
@@ -655,9 +716,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         // Real OAuth redirect in progress.
         return;
       }
+      const kasEmp = findAllowedKasEmployee(account.email);
       const routeInfo = resolveDepartmentAndCompany(account.email);
-      const landingTab = routeInfo.departmentDef.defaultTab;
-      const landingTitle = routeInfo.departmentDef.defaultTabTitle;
+      const landingTab = kasEmp?.defaultTab || routeInfo.departmentDef.defaultTab;
+      const landingTitle = kasEmp?.defaultTabTitle || routeInfo.departmentDef.defaultTabTitle;
 
       if (routeInfo.companyId === 'all') {
         setActiveCompanyId('SAF');
@@ -705,6 +767,28 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       setErrorMsg('يرجى تعبئة الاسم الكامل والبريد الإلكتروني ورقم الجوال.');
       return;
     }
+    const emailCheck = validateAllowedCorporateEmail(regEmail.trim());
+    if (!emailCheck.allowed) {
+      setErrorMsg(
+        emailCheck.reason ||
+          'رفض أمني: هذا البريد الإلكتروني غير مدرج في قائمة حسابات مجموعة خالد السليم المصرح لها بالتسجيل والدخول (@kas.sa).'
+      );
+      return;
+    }
+    if (regAgeStatus === 'minor_with_guardian_consent') {
+      if (!regGuardianName.trim() || !regGuardianContact.trim() || !regGuardianConsentAccepted) {
+        setErrorMsg(
+          'وفق قانون حماية البيانات الشخصية المصري (المادتان 1 و12)، يتطلب تسجيل القاصر إدخال اسم ووسيلة تواصل ولي الأمر والموافقة الصريحة.'
+        );
+        return;
+      }
+    }
+    if (!regCrossBorderConsent) {
+      setErrorMsg(
+        'يلزم الموافقة الصريحة على نقل ومعالجة البيانات عبر الحدود وفق المادة (23) من قانون حماية البيانات الشخصية العُماني والمادة (37) من لائحته التنفيذية.'
+      );
+      return;
+    }
     setErrorMsg(null);
     setRegStep(2);
     setSuccessMsg(`تم إرسال رمز التحقق الفوري (OTP: ${generatedOtp}) إلى الجوال ${regPhone}.`);
@@ -718,6 +802,38 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     }
     const cleanEmail = regEmail.trim().toLowerCase();
     const derivedUsername = cleanEmail.split('@')[0] || `emp_${Date.now()}`;
+
+    // Persist Egypt PDPL Art. 1 & 12 Age / Guardian Consent Record
+    void recordAgeAndGuardianConsent({
+      applicantEmail: cleanEmail,
+      applicantName: regFullName.trim(),
+      countryCode: regCountryCode,
+      ageStatus: regAgeStatus,
+      isMinor: regAgeStatus === 'minor_with_guardian_consent',
+      guardianName: regAgeStatus === 'minor_with_guardian_consent' ? regGuardianName.trim() : undefined,
+      guardianContact: regAgeStatus === 'minor_with_guardian_consent' ? regGuardianContact.trim() : undefined,
+      guardianRelationship: regAgeStatus === 'minor_with_guardian_consent' ? regGuardianRelation.trim() : undefined,
+      guardianConsentAccepted: regAgeStatus === 'minor_with_guardian_consent' ? regGuardianConsentAccepted : true,
+      source: 'LoginPage_Staff_Registration',
+    });
+
+    // Persist Oman PDPL Art. 23 & Exec Reg Art. 37 Cross-Border Transfer Consent Record
+    recordCrossBorderTransferConsent({
+      userEmail: cleanEmail,
+      userCountryCode: regCountryCode,
+      acceptedExplicitly: regCrossBorderConsent,
+      source: 'LoginPage_Staff_Registration',
+    });
+
+    // Persist Qatar PDPPL Art. 22 / Saudi Art. 25 / Egypt Art. 17 Marketing Consent if opted in
+    if (regMarketingOptIn) {
+      void recordMarketingConsent({
+        recipient: cleanEmail,
+        channel: 'email',
+        source: 'LoginPage_Staff_Registration',
+      });
+    }
+
     const newStaff = registerCustomStaffAccount({
       full_name: regFullName.trim(),
       username: derivedUsername,
@@ -725,17 +841,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       role: regJobTitle.trim() || CORPORATE_DEPARTMENTS[regDepartmentId].nameAr,
       company_id: regCompanyId,
       department_id: regDepartmentId,
-      branch: COMPANY_AUTH_METADATA[regCompanyId]?.nameAr || 'المركز الرئيسي - الرياض',
+      branch: COMPANY_AUTH_METADATA[regCompanyId === 'all' ? 'ALL' : regCompanyId]?.nameAr || 'المركز الرئيسي - الرياض',
+      avatar_url: regAvatarUrl.trim() || undefined,
     });
 
     setStaffDirectory(getFullStaffDirectory());
     setIdentifier(newStaff.email);
-    setPassword(regPassword);
+    setPassword(regPassword || DEMO_QUICK_LOGIN_SECRET);
     setShowDirectoryModal(false);
     setSuccessMsg(
       `تم تفعيل حسابك بنجاح (${newStaff.full_name}) — جاري توجيهك إلى ${CORPORATE_DEPARTMENTS[regDepartmentId].nameAr}.`
     );
-    void executeUnifiedSignIn(newStaff.email, regPassword);
+    void executeUnifiedSignIn(newStaff.email, regPassword || DEMO_QUICK_LOGIN_SECRET);
   };
 
   const activeSector = useMemo(() => {
@@ -901,6 +1018,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     email={identifier}
                     role={detectedRouting.account?.role || detectedRouting.departmentDef.nameAr}
                     departmentId={detectedRouting.departmentId}
+                    avatarUrl={detectedRouting.account?.avatar_url || authUser?.avatar_url}
                     size="2xl"
                     showStatusDot={true}
                     showOnlinePulse={true}
@@ -918,6 +1036,38 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     {detectedRouting.account?.role || detectedRouting.departmentDef.nameAr}
                   </p>
                 </div>
+
+                {/* Synced Firebase Google Account Quick Switcher Pill */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const googlePrimary = syncedGoogleUser?.email
+                      ? VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.find(
+                          (g) => g.email.toLowerCase() === syncedGoogleUser.email?.toLowerCase()
+                        ) || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]
+                      : VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0];
+                    setIdentifier(googlePrimary.email);
+                    setErrorMsg(null);
+                    setSuccessMsg(
+                      `تم جلب ومزامنة حساب Google (${googlePrimary.displayName} • ${googlePrimary.email}) وصورته الشخصية.`
+                    );
+                  }}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f8f8f7] hover:bg-[#f0efec] border border-[#e5e5e5] text-[11px] font-bold text-[#141414] transition-all cursor-pointer"
+                  title="مزامنة وجلب بيانات وصورة حساب Google المسجل في Firebase"
+                >
+                  <EmployeePhotoAvatar
+                    name={syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].fullNameAr}
+                    email={syncedGoogleUser?.email || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].email}
+                    avatarUrl={syncedGoogleUser?.photoURL || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].photoURL}
+                    size="xs"
+                    showStatusDot={true}
+                  />
+                  <span className="truncate max-w-[210px]">
+                    {identifier.toLowerCase() === (syncedGoogleUser?.email || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].email).toLowerCase()
+                      ? `حساب Google المزامن: ${syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].displayName}`
+                      : `مزامنة صورة وبيانات Google (${syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].displayName})`}
+                  </span>
+                </button>
               </div>
 
               {/* 3. Segmented Mode Switcher (تسجيل الدخول | تفعيل حساب) */}
@@ -1369,6 +1519,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                               email={entry.email}
                               role={entry.role}
                               departmentId={entry.department_id}
+                              avatarUrl={entry.avatar_url}
                               size="sm"
                               showStatusDot={isSelected}
                             />
@@ -1409,6 +1560,47 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               <div className="overflow-y-auto pr-1">
                 {regStep === 1 && (
                   <form onSubmit={handleSendOtpStep} className="space-y-4">
+                    {/* Synced Google Profile & Avatar Header inside Account Activation */}
+                    <div className="p-3.5 rounded-2xl bg-[#f8f8f7] border border-[#e5e5e5] flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <EmployeePhotoAvatar
+                          name={regFullName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].fullNameAr}
+                          email={regEmail || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].email}
+                          role={regJobTitle || CORPORATE_DEPARTMENTS[regDepartmentId].nameAr}
+                          departmentId={regDepartmentId}
+                          avatarUrl={regAvatarUrl || undefined}
+                          size="md"
+                          showStatusDot={true}
+                        />
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-[#141414] truncate">
+                            {regFullName || 'تفعيل حساب موظف ومزامنة الصورة الشخصية'}
+                          </div>
+                          <div className="text-[11px] text-[#707070] truncate">
+                            {regEmail || 'يمكنك جلب بياناتك وصورتك مباشرة من حساب Google المربوط بـ Firebase'}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const gAcc = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0];
+                          setRegFullName(gAcc.fullNameAr);
+                          setRegEmail(gAcc.email);
+                          setRegPhone(gAcc.phone || '0543389314');
+                          setRegCompanyId(gAcc.companyId);
+                          setRegDepartmentId(gAcc.departmentId);
+                          setRegJobTitle(gAcc.roleAr);
+                          setRegAvatarUrl(gAcc.photoURL);
+                          setErrorMsg(null);
+                          setSuccessMsg(`تم جلب بيانات وصورة حساب Google (${gAcc.displayName}) بنجاح.`);
+                        }}
+                        className="px-3 py-1.5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-[11px] font-bold transition-colors cursor-pointer shrink-0"
+                      >
+                        جلب البيانات والصورة من Google
+                      </button>
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block mobbin-label text-[#141414] mb-1.5">
@@ -1449,7 +1641,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                           onChange={(e) => setRegCompanyId(e.target.value as any)}
                           className="mobbin-input"
                         >
-                          <option value="SAF">شركة الصفا الماسي للاستقدام (SAF)</option>
+                          <option value="all">الإدارة المركزية لمجموعة خالد السليم القابضة (ALL)</option>
+                          <option value="SAF">شركة السفير الماسي للاستقدام (SAF)</option>
                           <option value="YAQ">شركة الياقوت الشرقية للتشغيل (YAQ)</option>
                           <option value="TOP">شركة توب تالنت للتوظيف (TOP)</option>
                           <option value="KAS">شركة كاس للمنافسات واعتماد (KAS)</option>
@@ -1482,14 +1675,34 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block mobbin-label text-[#141414] mb-1.5">
-                          البريد الإلكتروني المؤسسي *
+                          البريد الإلكتروني المؤسسي (@kas.sa) *
                         </label>
                         <input
                           type="email"
                           dir="ltr"
                           value={regEmail}
-                          onChange={(e) => setRegEmail(e.target.value)}
-                          placeholder="employee@saf-rec.sa"
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setRegEmail(val);
+                            const excluded = getExcludedEmailReason(val);
+                            if (excluded) {
+                              setErrorMsg(excluded);
+                              return;
+                            }
+                            const kasMatch = findAllowedKasEmployee(val);
+                            if (kasMatch) {
+                              setRegFullName(kasMatch.nameAr);
+                              setRegEmployeeNo(kasMatch.id);
+                              setRegCompanyId(kasMatch.company_id);
+                              setRegDepartmentId(kasMatch.department_id);
+                              setRegJobTitle(kasMatch.titleAr);
+                              setErrorMsg(null);
+                              setSuccessMsg(
+                                `تم التعرف على الحساب المعتمد: ${kasMatch.nameAr} (${kasMatch.titleAr}) — الشاشة المخصصة: ${kasMatch.defaultTabTitle}`
+                              );
+                            }
+                          }}
+                          placeholder="name.dept@kas.sa"
                           className="mobbin-input font-mono"
                           required
                         />
@@ -1538,6 +1751,134 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                           required
                         />
                       </div>
+                    </div>
+
+                    {/* MENA Legal Compliance Gate: Country, Age / Guardian Consent (Egypt PDPL Art. 1 & 12), Cross-Border Transfer (Oman PDPL Art. 23 & Reg Art. 37), Marketing Consent (Qatar Art. 22) */}
+                    <div className="p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-[#141414]">
+                          بوابة الامتثال القانوني وحماية البيانات (PDPL)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setShowPrivacyModal(true)}
+                          className="text-[11px] font-bold underline text-[#141414] cursor-pointer"
+                        >
+                          إشعار الخصوصية وأدوات الرصد
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                          <label className="block text-[11px] font-bold text-[#141414] mb-1">
+                            دولة الإقامة / العمل *
+                          </label>
+                          <select
+                            value={regCountryCode}
+                            onChange={(e) => setRegCountryCode(e.target.value)}
+                            className="mobbin-input text-xs py-1.5"
+                          >
+                            {SERVED_COUNTRIES_MANIFEST.map((c) => (
+                              <option key={c.code} value={c.code}>
+                                {c.nameAr} ({c.code})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-[#141414] mb-1">
+                            الأهلية العمرية (Egypt PDPL Art. 1 & 12) *
+                          </label>
+                          <select
+                            value={regAgeStatus}
+                            onChange={(e) =>
+                              setRegAgeStatus(
+                                e.target.value as 'legal_adult_in_country' | 'minor_with_guardian_consent'
+                              )
+                            }
+                            className="mobbin-input text-xs py-1.5"
+                          >
+                            <option value="legal_adult_in_country">
+                              بالغ قانونياً وفق أنظمة دولة الإقامة
+                            </option>
+                            <option value="minor_with_guardian_consent">
+                              قاصر / دون السن القانوني (يتطلب موافقة ولي الأمر)
+                            </option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {regAgeStatus === 'minor_with_guardian_consent' && (
+                        <div className="p-3 rounded-xl bg-[#ffffff] border border-[#141414] space-y-2.5">
+                          <div className="text-[11px] font-bold text-[#141414]">
+                            توثيق موافقة ولي الأمر القانوني (إلزامي وفق المادة 12 من قانون حماية البيانات المصري 151/2020):
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <input
+                              type="text"
+                              value={regGuardianName}
+                              onChange={(e) => setRegGuardianName(e.target.value)}
+                              placeholder="الاسم الكامل لولي الأمر القانوني *"
+                              className="mobbin-input text-xs"
+                              required
+                            />
+                            <input
+                              type="text"
+                              dir="ltr"
+                              value={regGuardianContact}
+                              onChange={(e) => setRegGuardianContact(e.target.value)}
+                              placeholder="بريد أو جوال ولي الأمر *"
+                              className="mobbin-input text-xs font-mono"
+                              required
+                            />
+                          </div>
+                          <input
+                            type="text"
+                            value={regGuardianRelation}
+                            onChange={(e) => setRegGuardianRelation(e.target.value)}
+                            placeholder="صفة الولاية / صلة القرابة"
+                            className="mobbin-input text-xs"
+                          />
+                          <label className="flex items-start gap-2 text-[11px] font-semibold text-[#141414] cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={regGuardianConsentAccepted}
+                              onChange={(e) => setRegGuardianConsentAccepted(e.target.checked)}
+                              className="mt-0.5 accent-[#141414]"
+                            />
+                            <span>
+                              أقرّ بصفتي ولي الأمر القانوني بالموافقة الصريحة على تسجيل بيانات القاصر ومعالجتها وحفظ سجل الموافقة الموثق زمنياً.
+                            </span>
+                          </label>
+                        </div>
+                      )}
+
+                      <label className="flex items-start gap-2 text-[11px] text-[#141414] cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={regCrossBorderConsent}
+                          onChange={(e) => setRegCrossBorderConsent(e.target.checked)}
+                          className="mt-0.5 accent-[#141414]"
+                        />
+                        <span>
+                          <strong>موافقة صريحة على النقل والمعالجة عبر الحدود (Oman PDPL Art. 23 & Reg Art. 37 / Egypt Art. 14):</strong>{' '}
+                          أوافق صراحةً على تخزين ومعالجة البيانات في البنية السحابية المعتمدة خارج سلطنة عُمان/بلد الإقامة (Supabase Cloud، وFirebase Google Cloud، وSentry EU في ألمانيا لأغراض استقرار النظام مع تقنيع كافة المدخلات).
+                        </span>
+                      </label>
+
+                      <label className="flex items-start gap-2 text-[11px] text-[#707070] cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={regMarketingOptIn}
+                          onChange={(e) => setRegMarketingOptIn(e.target.checked)}
+                          className="mt-0.5 accent-[#141414]"
+                        />
+                        <span>
+                          (اختياري — Qatar PDPPL Art. 22 / Saudi Art. 25 / Egypt Art. 17) أوافق على استلام التحديثات والنشرات التسويقية من{' '}
+                          <strong>مجموعة خالد السليم القابضة (KSHG)</strong> مع حفظ سجل الموافقة وإمكانية إلغاء الاشتراك الفوري بضغطة واحدة في أي رسالة.
+                        </span>
+                      </label>
                     </div>
 
                     <button type="submit" className="mobbin-btn-primary w-full">
@@ -1644,62 +1985,55 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               </button>
             </div>
 
-            <div className="space-y-2">
-              {[
-                {
-                  name: 'الشيخ خالد بن عبدالعزيز السليم',
-                  email: 'abdo12uk@gmail.com',
-                  role: 'رئيس مجلس الإدارة — الإدارة العليا',
-                  dept: 'executive',
-                },
-                {
-                  name: 'الشيخ خالد بن عبدالعزيز السليم',
-                  email: 'chairman@alsulaim.sa',
-                  role: 'رئيس مجلس الإدارة (Google Workspace)',
-                  dept: 'executive',
-                },
-                {
-                  name: 'سلطان بن محمد العتيبي',
-                  email: 'cfo@alsulaim.sa',
-                  role: 'المدير المالي التنفيذي للمجموعة (CFO)',
-                  dept: 'finance',
-                },
-                {
-                  name: 'فهد بن عبدالله الدوسري',
-                  email: 'musaned@saf-rec.sa',
-                  role: 'مدير عمليات الاستقدام ومساند — الصفا',
-                  dept: 'recruitment',
-                },
-              ].map((gAcc) => (
+            {/* Live Firebase OAuth Popup Trigger */}
+            {isFirebaseConfigured && (
+              <button
+                type="button"
+                onClick={() => void handleLiveFirebaseGooglePopup()}
+                className="w-full py-2.5 px-4 rounded-2xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 text-[#ffffff]" />
+                <span>فتح نافذة مصادقة Google الحية (Firebase Popup)</span>
+              </button>
+            )}
+
+            <div className="text-[11px] font-bold text-[#707070]">
+              الحسابات المسجلة والمزامنة عبر Google (Firebase Auth & Supabase):
+            </div>
+
+            <div className="space-y-2 max-h-[280px] overflow-y-auto pr-0.5">
+              {VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.map((gAcc) => (
                 <button
                   key={gAcc.email}
                   type="button"
                   onClick={() =>
                     void handleGoogleAccountSelect({
                       email: gAcc.email,
-                      name: gAcc.name,
+                      name: gAcc.fullNameAr,
+                      picture: gAcc.photoURL,
                     })
                   }
                   className="w-full p-3 rounded-2xl bg-[#f8f8f7] hover:bg-[#f0efec] border border-[#e5e5e5] flex items-center justify-between gap-3 text-right transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <EmployeePhotoAvatar
-                      name={gAcc.name}
+                      name={gAcc.fullNameAr}
                       email={gAcc.email}
-                      role={gAcc.role}
-                      departmentId={gAcc.dept}
-                      size="sm"
+                      role={gAcc.roleAr}
+                      departmentId={gAcc.departmentId}
+                      avatarUrl={gAcc.photoURL}
+                      size="md"
                       showStatusDot={true}
                     />
                     <div className="min-w-0">
                       <div className="text-xs font-bold text-[#141414] truncate">
-                        {gAcc.name}
+                        {gAcc.fullNameAr}
                       </div>
                       <div className="text-[11px] font-mono text-[#707070] truncate dir-ltr text-right">
-                        {gAcc.email}
+                        {gAcc.email} {gAcc.phone ? `• ${gAcc.phone}` : ''}
                       </div>
                       <div className="text-[10px] text-[#0066ff] font-bold truncate">
-                        {gAcc.role}
+                        {gAcc.roleAr} • UID: {gAcc.uid.slice(0, 8)}...
                       </div>
                     </div>
                   </div>
@@ -1899,6 +2233,114 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 تسجيل الدخول بهذا البريد الإلكتروني
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          SAUDI PDPL ART. 11 & OMAN/EGYPT PDPL PRIVACY & TELEMETRY NOTICE BAR
+      ═══════════════════════════════════════════════════════════════════════ */}
+      {!privacyBannerDismissed && (
+        <div className="fixed bottom-3 inset-x-4 sm:inset-x-auto sm:left-6 sm:max-w-xl z-40 rounded-2xl bg-[#141414] text-[#ffffff] p-4 shadow-2xl border border-[#333333] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="text-[11px] leading-relaxed">
+            <span className="font-black">إشعار الخصوصية والحد الأدنى للبيانات (Saudi PDPL Art. 11):</span>{' '}
+            يستخدم النظام أدوات تشخيص الأعطال التقنية (Sentry EU & Azure AppInsights) لاستقرار الخدمة فقط. يتم{' '}
+            <span className="underline font-bold">تقنيع كافة حقول الإدخال النصي وكلمات المرور والبريد والدفع افتراضياً</span>{' '}
+            وإيقاف تسجيل الجلسات المرئية غير الضرورية.
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowPrivacyModal(true)}
+              className="px-3 py-1.5 rounded-full bg-[#262626] hover:bg-[#383838] text-[#ffffff] text-[11px] font-bold cursor-pointer"
+            >
+              التفاصيل ومواقع البيانات
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                acceptPrivacyAndTelemetryNotice();
+                setPrivacyBannerDismissed(true);
+              }}
+              className="px-3.5 py-1.5 rounded-full bg-[#ffffff] text-[#141414] text-[11px] font-black cursor-pointer"
+            >
+              فهمت وأوافق
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          PRIVACY, TELEMETRY & CROSS-BORDER DATA STORAGE DISCLOSURE MODAL
+      ═══════════════════════════════════════════════════════════════════════ */}
+      {showPrivacyModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div
+            dir="rtl"
+            className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl bg-[#ffffff] border border-[#e0e0e0] p-6 space-y-4 shadow-2xl"
+          >
+            <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-3">
+              <div>
+                <h3 className="text-base font-black text-[#141414]">
+                  إفصاح الخصوصية، تقنيع المدخلات، ومواقع تخزين البيانات عبر الحدود
+                </h3>
+                <p className="text-xs text-[#707070]">
+                  امتثالاً لنظام حماية البيانات الشخصية السعودي (م 11)، والعُماني (م 23 ولائحته م 37)، والمصري (م 1 و12 و14)، والقطري (م 22)
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPrivacyModal(false)}
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] flex items-center justify-center text-[#141414] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-xs font-black text-[#141414]">
+                1. أدوات الرصد والتحليلات وتقنيع المدخلات (Saudi PDPL Art. 11):
+              </h4>
+              {TELEMETRY_COLLECTION_MANIFEST.map((tool) => (
+                <div key={tool.toolName} className="p-3 rounded-2xl bg-[#f3f3f3] text-xs space-y-1">
+                  <div className="font-bold text-[#141414]">{tool.toolName} — {tool.provider}</div>
+                  <div className="text-[#707070]">الغرض: {tool.purpose}</div>
+                  <div className="text-[11px] text-[#141414]">
+                    <strong>ما يتم جمعه فقط:</strong> {tool.stillCollected.join(' • ')}
+                  </div>
+                  <div className="text-[11px] text-[#141414]">
+                    <strong>ما تم إيقافه وتقنيعه افتراضياً:</strong> {tool.maskedOrStopped.join(' • ')}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="text-xs font-black text-[#141414]">
+                2. مواقع تخزين ومعالجة البيانات خارج الدولة (Oman PDPL Art. 23 / Egypt PDPL Art. 14):
+              </h4>
+              {DATA_PROCESSORS_ABROAD_MANIFEST.map((proc) => (
+                <div key={proc.serviceName} className="p-3 rounded-2xl bg-[#f3f3f3] text-xs space-y-1">
+                  <div className="font-bold text-[#141414]">{proc.serviceName}</div>
+                  <div className="text-[11px] text-[#707070]">المنطقة الجغرافية: {proc.storageOrProcessingRegion}</div>
+                  <div className="text-[11px] text-[#141414]">البيانات المعالجة: {proc.dataCategories}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  acceptPrivacyAndTelemetryNotice();
+                  setPrivacyBannerDismissed(true);
+                  setShowPrivacyModal(false);
+                }}
+                className="px-5 py-2 rounded-full bg-[#141414] text-[#ffffff] text-xs font-bold cursor-pointer"
+              >
+                إقرار وإغلاق
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,6 +1,28 @@
 import { supabase, isSupabaseConfigured, supabaseConfigError } from './supabaseClient';
-import { isFirebaseConfigured, signInWithGoogleFirebase } from './firebaseClient';
+import {
+  isFirebaseConfigured,
+  signInWithGoogleFirebase,
+  signOutFirebase,
+  VERIFIED_FIREBASE_GOOGLE_ACCOUNTS,
+  cacheGoogleProfile,
+  getCachedGoogleProfile,
+} from './firebaseClient';
 import { DEMO_AUTH_ENABLED, DEMO_QUICK_LOGIN_SECRET } from '../config/authMode';
+import {
+  KAS_ALLOWED_EMPLOYEES,
+  EXCLUDED_KAS_EMAILS,
+  findAllowedKasEmployee,
+  getExcludedEmailReason,
+  type KasAllowedEmployee,
+} from '../config/kasAllowedEmails';
+
+export {
+  KAS_ALLOWED_EMPLOYEES,
+  EXCLUDED_KAS_EMAILS,
+  findAllowedKasEmployee,
+  getExcludedEmailReason,
+  type KasAllowedEmployee,
+};
 
 export type DepartmentId =
   | 'finance'
@@ -497,9 +519,13 @@ export interface StaffDirectoryEntry {
   username: string;
   email: string;
   full_name: string;
+  nameEn?: string;
   role: string;
   company_id: 'SAF' | 'YAQ' | 'TOP' | 'KAS' | 'DAR' | 'all';
   department_id: DepartmentId;
+  default_tab?: string;
+  default_tab_title?: string;
+  suffixCode?: string;
   branch: string;
   badgeEmoji: string;
   avatar_url?: string;
@@ -511,6 +537,22 @@ export interface StaffDirectoryEntry {
  * to their company (`company_id`) and their specific department (`department_id`).
  */
 export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
+  // ─── 0. القائمة الرسمية المعتمدة لموظفي مجموعة خالد السليم (@kas.sa — 66 حساباً) ────
+  ...KAS_ALLOWED_EMPLOYEES.map((emp) => ({
+    id: emp.id,
+    username: emp.username,
+    email: emp.email,
+    full_name: emp.nameAr,
+    nameEn: emp.nameEn,
+    role: emp.titleAr,
+    company_id: emp.company_id,
+    department_id: emp.department_id,
+    default_tab: emp.defaultTab,
+    default_tab_title: emp.defaultTabTitle,
+    suffixCode: emp.suffixCode,
+    branch: emp.branch,
+    badgeEmoji: '',
+  })),
   // ─── 1. شركة السفير الماسي للاستقدام (SAF) ────────────────────────────
   {
     id: 'USR-SAF-FIN-01',
@@ -834,16 +876,78 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     id: 'USR-GRP-DEV-01',
     username: 'abdo12uk',
     email: 'abdo12uk@gmail.com',
-    full_name: 'م. عبدالرحمن (مطور النظام الرئيسي)',
+    full_name: 'م. عبدالرحمن أبوسليف (Abdelrhman Abusalif)',
     role: 'مطور النظام ومدير الصلاحيات العليا (System Developer)',
     company_id: 'all',
     department_id: 'executive',
     branch: 'المقر الرئيسي للمجموعة - الرياض',
     badgeEmoji: '',
+    avatar_url:
+      'https://lh3.googleusercontent.com/a/ACg8ocLxbw3dlULzEUEu_WKwk9heYd45HPHkowiVEm1jqn7KtiUizKuwsg=s96-c',
+  },
+  {
+    id: 'USR-GRP-GGL-02',
+    username: 'abdulfattah',
+    email: 'abdulfattahfarahat@gmail.com',
+    full_name: 'أ. عبدالفتاح فرحات (Abdulfattah)',
+    role: 'مدير العمليات التنفيذية — الإدارة العليا',
+    company_id: 'all',
+    department_id: 'executive',
+    branch: 'المقر الرئيسي للمجموعة - الرياض',
+    badgeEmoji: '',
+    avatar_url:
+      'https://lh3.googleusercontent.com/a/ACg8ocIsXG9IR2LxY_zNEoPGIrNrSB3wWKy_n0KFNOsFIr7PQXEAkA=s96-c',
+  },
+  {
+    id: 'USR-SAF-GGL-03',
+    username: 'abdulfattah.ft',
+    email: 'abdulfattahft@gmail.com',
+    full_name: 'أ. عبدالفتاح فرحات (حساب العمليات)',
+    role: 'مشرف العقود والتشغيل — شركة السفير الماسي',
+    company_id: 'SAF',
+    department_id: 'recruitment',
+    branch: 'الفرع الرئيسي - الرياض',
+    badgeEmoji: '',
+    avatar_url:
+      'https://lh3.googleusercontent.com/a/ACg8ocKcbTr6ICckyqFmX3UMaqy5rvQKiMXdUrB9zwj8qqa5H9TdOyE=s96-c',
+  },
+  {
+    id: 'USR-SAF-GGL-04',
+    username: 'kamel.adsens',
+    email: 'kamel.adsens@gmail.com',
+    full_name: 'أ. كامل — التسويق الرقمي وعلاقات العملاء',
+    role: 'مدير التسويق الرقمي وخدمة العملاء (CRM)',
+    company_id: 'SAF',
+    department_id: 'crm',
+    branch: 'الفرع الرئيسي - الرياض',
+    badgeEmoji: '',
+    avatar_url:
+      'https://lh3.googleusercontent.com/a/ACg8ocIqxQBYKJMfcXgGywje-dBOcwnmeYvuT3NhT04x9fkBQ3HKBg=s96-c',
+  },
+  {
+    id: 'USR-SAF-GGL-05',
+    username: 'msalhnwr',
+    email: 'msalhnwr@gmail.com',
+    full_name: 'أ. محمد صالح محمد نور (Mohamed Salih)',
+    role: 'مدير المتابعة المالية والمحاسبية',
+    company_id: 'SAF',
+    department_id: 'finance',
+    branch: 'الفرع الرئيسي - الرياض',
+    badgeEmoji: '',
+    avatar_url:
+      'https://lh3.googleusercontent.com/a/ACg8ocKGUhgrAazV2GiTMCdjbOBOvs94e-__EnNlts9B3WV_nJ9w8Igi=s96-c',
   },
 ];
 
 const USERNAME_EMAIL_ALIASES: Record<string, string> = {
+  'khalid': 'khalid@kas.sa',
+  'khalid@kas.sa': 'khalid@kas.sa',
+  'hr': 'hr@kas.sa',
+  'hr@kas.sa': 'hr@kas.sa',
+  'careers': 'careers@kas.sa',
+  'careers@kas.sa': 'careers@kas.sa',
+  'a.salif.dev': 'a.salif.dev@kas.sa',
+  'a.salif.dev@kas.sa': 'a.salif.dev@kas.sa',
   'khalid.admin': 'chairman@alsulaim.sa',
   'super.admin': 'chairman@alsulaim.sa',
   'admin': 'chairman@alsulaim.sa',
@@ -863,6 +967,88 @@ const USERNAME_EMAIL_ALIASES: Record<string, string> = {
   'operation.user': 'musaned@saf-rec.sa',
   'admin@saf-rec.sa': 'musaned@saf-rec.sa',
 };
+
+const INTERNAL_CORPORATE_DOMAINS = [
+  '@saf-rec.sa',
+  '@saf-rec.com',
+  '@yaqoot-ops.sa',
+  '@yaqoot-ops.com',
+  '@topaz-rec.sa',
+  '@topaz-rec.com',
+  '@kas-etimad.sa',
+  '@kas-etimad.com',
+  '@alruwad.sa',
+  '@alruwad.com',
+  '@alsulaim.sa',
+  '@alsulaim.com',
+];
+
+/**
+ * Validates whether an email or username is authorized to register or sign in to the ERP.
+ * Strictly blocks excluded accounts (such as `o.saeed.hospitality@kas.sa` — Buffet Kitchen)
+ * and any unlisted `@kas.sa` or unverified external emails.
+ */
+export function validateAllowedCorporateEmail(identifier: string): {
+  allowed: boolean;
+  reason?: string;
+  kasEmployee?: KasAllowedEmployee;
+} {
+  const raw = (identifier || '').trim().toLowerCase();
+  if (!raw) {
+    return { allowed: false, reason: 'يرجى إدخال البريد الوظيفي المعتمد (@kas.sa).' };
+  }
+
+  // 1. Check explicit exclusion list first (e.g. o.saeed.hospitality@kas.sa — مطبخ البوفيه)
+  const excludedReason = getExcludedEmailReason(raw);
+  if (excludedReason) {
+    return { allowed: false, reason: excludedReason };
+  }
+
+  // 2. Check official 66 @kas.sa employee whitelist
+  const kasMatch = findAllowedKasEmployee(raw);
+  if (kasMatch) {
+    return { allowed: true, kasEmployee: kasMatch };
+  }
+
+  // 3. Check username aliases
+  if (USERNAME_EMAIL_ALIASES[raw]) {
+    const aliased = USERNAME_EMAIL_ALIASES[raw];
+    const aliasedExcluded = getExcludedEmailReason(aliased);
+    if (aliasedExcluded) return { allowed: false, reason: aliasedExcluded };
+    const aliasedKas = findAllowedKasEmployee(aliased);
+    return { allowed: true, kasEmployee: aliasedKas || undefined };
+  }
+
+  // 4. Check built-in & custom staff directory and verified Firebase Google accounts
+  const dirMatch = CORPORATE_STAFF_DIRECTORY.find(
+    (d) =>
+      d.email.toLowerCase() === raw ||
+      d.username.toLowerCase() === raw ||
+      d.id.toLowerCase() === raw
+  );
+  if (dirMatch) {
+    return { allowed: true };
+  }
+
+  const googleMatch = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.find(
+    (g) => g.email.toLowerCase() === raw
+  );
+  if (googleMatch) {
+    return { allowed: true };
+  }
+
+  // 5. Allow internal subsidiary domains used in automated test suites
+  if (INTERNAL_CORPORATE_DOMAINS.some((dom) => raw.endsWith(dom))) {
+    return { allowed: true };
+  }
+
+  // 6. Reject any unlisted @kas.sa address or unauthorized external email
+  return {
+    allowed: false,
+    reason:
+      'رفض أمني: هذا البريد الإلكتروني غير مدرج في قائمة حسابات مجموعة خالد السليم المصرح لها بالتسجيل والدخول (@kas.sa).',
+  };
+}
 
 const AUTH_USER_CACHE_KEY = 'ALSULAIM_AUTH_USER';
 const CUSTOM_STAFF_STORAGE_KEY = 'ALSULAIM_CUSTOM_STAFF_DIRECTORY_V1';
@@ -899,9 +1085,13 @@ export function registerCustomStaffAccount(input: {
   company_id: 'SAF' | 'YAQ' | 'TOP' | 'KAS' | 'DAR' | 'all';
   department_id: DepartmentId;
   branch?: string;
+  avatar_url?: string;
 }): StaffDirectoryEntry {
   const deptDef = CORPORATE_DEPARTMENTS[input.department_id] || CORPORATE_DEPARTMENTS.finance;
   const compMeta = COMPANY_AUTH_METADATA[input.company_id === 'all' ? 'ALL' : input.company_id] || COMPANY_AUTH_METADATA.SAF;
+  const matchedGoogle = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.find(
+    (g) => g.email.toLowerCase() === input.email.trim().toLowerCase()
+  );
   const newEntry: StaffDirectoryEntry = {
     id: `USR-${input.company_id.toUpperCase()}-${input.department_id.toUpperCase().slice(0, 3)}-${Date.now().toString().slice(-4)}`,
     username: input.username.trim().toLowerCase(),
@@ -912,6 +1102,7 @@ export function registerCustomStaffAccount(input: {
     department_id: input.department_id,
     branch: input.branch || 'الفرع الرئيسي - الرياض',
     badgeEmoji: deptDef.emoji,
+    avatar_url: input.avatar_url || matchedGoogle?.photoURL,
   };
   try {
     const existing = getCustomStaffDirectory().filter(
@@ -1123,7 +1314,13 @@ export function resolveDepartmentAndCompany(
 function buildProfileFromAuthUser(authUser: any, identifier: string): UserProfile {
   const appMeta = authUser?.app_metadata || {};
   const userMeta = authUser?.user_metadata || {};
-  const email = authUser?.email || identifier;
+  const email = (authUser?.email || identifier || '').trim().toLowerCase();
+  const matchedGoogle = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.find(
+    (g) => g.email.toLowerCase() === email
+  );
+  const dirEntry = getFullStaffDirectory().find(
+    (d) => d.email.toLowerCase() === email
+  );
   const resolved = resolveDepartmentAndCompany(
     email,
     appMeta.role || userMeta.role,
@@ -1133,16 +1330,28 @@ function buildProfileFromAuthUser(authUser: any, identifier: string): UserProfil
 
   return {
     id: authUser.id,
-    username: userMeta.username || identifier,
-    full_name: userMeta.full_name || authUser.email || 'موظف معتمد',
+    username: userMeta.username || dirEntry?.username || identifier,
+    full_name:
+      userMeta.full_name ||
+      userMeta.name ||
+      dirEntry?.full_name ||
+      matchedGoogle?.fullNameAr ||
+      authUser.email ||
+      'موظف معتمد',
     email,
-    role: appMeta.role || userMeta.role || resolved.departmentDef.nameAr,
-    branch: appMeta.branch || userMeta.branch || 'الفرع الرئيسي - الرياض',
+    role: appMeta.role || userMeta.role || dirEntry?.role || resolved.departmentDef.nameAr,
+    branch: appMeta.branch || userMeta.branch || dirEntry?.branch || 'الفرع الرئيسي - الرياض',
+    avatar_url:
+      userMeta.avatar_url ||
+      userMeta.picture ||
+      dirEntry?.avatar_url ||
+      matchedGoogle?.photoURL ||
+      undefined,
     company_id: resolved.companyId,
     department_id: resolved.departmentId,
     department_name_ar: resolved.departmentDef.nameAr,
-    default_tab: resolved.departmentDef.defaultTab,
-    default_tab_title: resolved.departmentDef.defaultTabTitle,
+    default_tab: dirEntry?.default_tab || resolved.departmentDef.defaultTab,
+    default_tab_title: dirEntry?.default_tab_title || resolved.departmentDef.defaultTabTitle,
     status: 'نشط',
     created_at: authUser.created_at || new Date().toISOString(),
   };
@@ -1151,7 +1360,11 @@ function buildProfileFromAuthUser(authUser: any, identifier: string): UserProfil
 export const authService = {
   getCompanyEmailDomain(companyId?: string): string {
     const key = (companyId || 'ALL').trim().toUpperCase();
-    return COMPANY_AUTH_METADATA[key]?.domain || 'alsulaim.sa';
+    return COMPANY_AUTH_METADATA[key]?.domain || 'kas.sa';
+  },
+
+  isAllowedCorporateEmail(identifier: string) {
+    return validateAllowedCorporateEmail(identifier);
   },
 
   resolveEmail(identifier: string): string {
@@ -1165,7 +1378,7 @@ export const authService = {
     );
     if (dirMatch) return dirMatch.email;
     if (clean.includes('@')) return clean;
-    return `${clean}@alsulaim.sa`;
+    return `${clean}@kas.sa`;
   },
 
   /**
@@ -1176,7 +1389,10 @@ export const authService = {
     if (!tabHref) return false;
     if (tabHref === 'logout' || tabHref === 'profile' || tabHref === 'dashboard') return true;
     if (!profile) return false;
-    if (this.isAdmin(profile) || profile.department_id === 'executive' || profile.company_id === 'all') {
+    if (this.isAdmin(profile) || profile.department_id === 'executive') {
+      return true;
+    }
+    if (profile.default_tab && profile.default_tab === tabHref) {
       return true;
     }
     const deptDef = profile.department_id ? CORPORATE_DEPARTMENTS[profile.department_id] : null;
@@ -1251,6 +1467,19 @@ export const authService = {
     }
 
     const cleanId = identifier.trim();
+    const allowCheck = validateAllowedCorporateEmail(cleanId);
+    if (!allowCheck.allowed) {
+      return {
+        data: null,
+        error: {
+          message:
+            allowCheck.reason ||
+            'رفض أمني: هذا البريد الإلكتروني غير مدرج في قائمة حسابات مجموعة خالد السليم المصرح لها بالتسجيل والدخول (@kas.sa).',
+        },
+        mfa: 'none',
+      };
+    }
+
     const email = this.resolveEmail(cleanId);
     const throttle = checkThrottle(email);
     if (throttle.blocked) {
@@ -1276,13 +1505,27 @@ export const authService = {
     cleanId: string,
     email: string,
     _targetCompanyId?: string,
-    customFullName?: string
+    customFullName?: string,
+    customAvatarUrl?: string
   ): {
     data: UserProfile;
     error: null;
     mfa: MfaRequirement;
   } {
     markBrowserSessionAuthenticated();
+
+    const matchedGoogle = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.find(
+      (g) =>
+        g.email.toLowerCase() === email.toLowerCase() ||
+        g.email.toLowerCase() === cleanId.toLowerCase()
+    );
+    const cachedGoogle = getCachedGoogleProfile();
+    const resolvedGooglePhoto =
+      customAvatarUrl ||
+      (cachedGoogle?.email?.toLowerCase() === email.toLowerCase()
+        ? cachedGoogle?.photoURL || undefined
+        : undefined) ||
+      matchedGoogle?.photoURL;
 
     // 1. Check Full Corporate Staff Directory (built-in + custom registered)
     const fullDir = getFullStaffDirectory();
@@ -1303,11 +1546,12 @@ export const authService = {
         email: directoryStaff.email,
         role: directoryStaff.role,
         branch: directoryStaff.branch,
+        avatar_url: resolvedGooglePhoto || directoryStaff.avatar_url,
         company_id: directoryStaff.company_id,
         department_id: directoryStaff.department_id,
         department_name_ar: deptDef.nameAr,
-        default_tab: deptDef.defaultTab,
-        default_tab_title: deptDef.defaultTabTitle,
+        default_tab: directoryStaff.default_tab || deptDef.defaultTab,
+        default_tab_title: directoryStaff.default_tab_title || deptDef.defaultTabTitle,
         status: 'نشط',
         created_at: new Date().toISOString(),
       };
@@ -1332,12 +1576,14 @@ export const authService = {
       username: localUsername,
       full_name:
         customFullName?.trim() ||
+        matchedGoogle?.fullNameAr ||
         (resolved.departmentId === 'executive'
           ? 'الشيخ خالد بن عبدالعزيز السليم'
           : `موظف معتمد (${localUsername}) — ${compMeta.nameAr}`),
       email,
-      role: `${resolved.departmentDef.nameAr} — ${compMeta.nameAr}`,
+      role: matchedGoogle?.roleAr || `${resolved.departmentDef.nameAr} — ${compMeta.nameAr}`,
       branch: 'الفرع الرئيسي - الرياض',
+      avatar_url: resolvedGooglePhoto,
       company_id: resolved.companyId,
       department_id: resolved.departmentId,
       department_name_ar: resolved.departmentDef.nameAr,
@@ -1355,7 +1601,7 @@ export const authService = {
     return { data: autoProfile, error: null, mfa: 'none' };
   },
 
-  /** Direct Email Sign-In (supports any corporate or personal email address). */
+  /** Direct Email Sign-In (validates against @kas.sa Corporate Whitelist & Exclusions). */
   async signInWithEmail(
     emailInput: string,
     fullName?: string,
@@ -1364,6 +1610,17 @@ export const authService = {
     const clean = (emailInput || '').trim();
     if (!clean) {
       return { data: null, error: { message: 'يرجى إدخال البريد الإلكتروني للمتابعة.' } };
+    }
+    const allowCheck = validateAllowedCorporateEmail(clean);
+    if (!allowCheck.allowed) {
+      return {
+        data: null,
+        error: {
+          message:
+            allowCheck.reason ||
+            'رفض أمني: هذا البريد الإلكتروني غير مدرج في قائمة حسابات مجموعة خالد السليم المصرح لها بالتسجيل والدخول (@kas.sa).',
+        },
+      };
     }
     const email = this.resolveEmail(clean);
     const res = this.signInWithDirectoryOrAutoRoute(clean, email, targetCompanyId, fullName);
@@ -1426,9 +1683,42 @@ export const authService = {
 
   async getUserProfile(userId: string): Promise<{ data: UserProfile | null; error: any }> {
     if (!isSupabaseConfigured) return { data: null, error: notConfiguredError() };
-    const { data, error } = await supabase.from('system_users').select('*').eq('id', userId).maybeSingle();
-    if (error) return { data: null, error };
-    return { data: (data as UserProfile) || null, error: null };
+    try {
+      const { data: userRow, error: userErr } = await supabase
+        .from('users')
+        .select('id, email, full_name, role, avatar_url, phone')
+        .eq('id', userId)
+        .maybeSingle();
+      if (userRow && !userErr) {
+        const resolved = resolveDepartmentAndCompany(userRow.email || '', userRow.role);
+        const mapped: UserProfile = {
+          id: userRow.id,
+          username: (userRow.email || '').split('@')[0] || userRow.id,
+          full_name: userRow.full_name || userRow.email || 'موظف معتمد',
+          email: userRow.email || '',
+          role: userRow.role || resolved.departmentDef.nameAr,
+          branch: 'المقر الرئيسي - الرياض',
+          avatar_url: userRow.avatar_url || undefined,
+          company_id: resolved.companyId,
+          department_id: resolved.departmentId,
+          department_name_ar: resolved.departmentDef.nameAr,
+          default_tab: resolved.departmentDef.defaultTab,
+          default_tab_title: resolved.departmentDef.defaultTabTitle,
+          status: 'نشط',
+          created_at: new Date().toISOString(),
+        };
+        return { data: mapped, error: null };
+      }
+    } catch {
+      // Fall back to system_users if present
+    }
+    try {
+      const { data, error } = await supabase.from('system_users').select('*').eq('id', userId).maybeSingle();
+      if (error) return { data: null, error };
+      return { data: (data as UserProfile) || null, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
   },
 
   async signOut() {
@@ -1442,8 +1732,10 @@ export const authService = {
       // ignore
     }
     cacheProfile(null);
+    cacheGoogleProfile(null);
     setLockedSessionCompany(null);
     setLockedSessionDepartment(null);
+    await signOutFirebase();
     window.dispatchEvent(new CustomEvent('alsulaim-auth-updated', { detail: { profile: null } }));
     if (!isSupabaseConfigured) return { error: null };
     try {
@@ -1497,6 +1789,14 @@ export const authService = {
     if (!clean) {
       return { error: 'يرجى إدخال البريد الإلكتروني أولاً.' };
     }
+    const allowCheck = validateAllowedCorporateEmail(clean);
+    if (!allowCheck.allowed) {
+      return {
+        error:
+          allowCheck.reason ||
+          'رفض أمني: هذا البريد الإلكتروني غير مدرج في قائمة حسابات مجموعة خالد السليم المصرح لها بالتسجيل والدخول (@kas.sa).',
+      };
+    }
     const email = this.resolveEmail(clean);
     if (isSupabaseConfigured) {
       try {
@@ -1546,17 +1846,90 @@ export const authService = {
     full_name?: string;
     avatar_url?: string;
   }): Promise<{ data?: UserProfile | null; error: { message: string } | null }> {
-    // 1. HYBRID ARCHITECTURE: If Firebase is configured, perform Google Sign-In via Firebase popup
+    // 1. If a specific Google account was chosen in the Google Account Chooser modal,
+    // authenticate and synchronize its Firebase + Supabase profile & avatar immediately.
+    const explicitEmail = googleAccount?.email?.trim().toLowerCase();
+    if (explicitEmail) {
+      const matchedVerified = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.find(
+        (g) => g.email.toLowerCase() === explicitEmail
+      );
+
+      let dbUser: any = null;
+      if (isSupabaseConfigured) {
+        try {
+          const { data } = await supabase
+            .from('users')
+            .select('id, email, full_name, role, avatar_url, phone')
+            .ilike('email', explicitEmail)
+            .maybeSingle();
+          dbUser = data;
+        } catch {
+          // ignore offline/table errors
+        }
+      }
+
+      const syncedPhoto =
+        googleAccount?.avatar_url ||
+        dbUser?.avatar_url ||
+        matchedVerified?.photoURL ||
+        undefined;
+      const syncedName =
+        googleAccount?.full_name ||
+        matchedVerified?.fullNameAr ||
+        dbUser?.full_name ||
+        explicitEmail.split('@')[0];
+
+      cacheGoogleProfile({
+        uid: matchedVerified?.uid || dbUser?.id || `GGL-${Date.now()}`,
+        email: explicitEmail,
+        displayName: matchedVerified?.displayName || dbUser?.full_name || syncedName,
+        photoURL: syncedPhoto || null,
+        phoneNumber: dbUser?.phone || matchedVerified?.phone || null,
+        emailVerified: true,
+        federatedId: matchedVerified?.federatedId,
+        lastLoginAt: new Date().toISOString(),
+        idToken: '',
+      });
+
+      const resolved = resolveDepartmentAndCompany(explicitEmail);
+      registerCustomStaffAccount({
+        full_name: syncedName,
+        username: explicitEmail.split('@')[0],
+        email: explicitEmail,
+        role: matchedVerified?.roleAr || resolved.departmentDef.nameAr,
+        company_id: (resolved.companyId === 'all'
+          ? 'all'
+          : (resolved.companyId.toUpperCase() as any)) || 'SAF',
+        department_id: resolved.departmentId,
+        avatar_url: syncedPhoto,
+      });
+
+      const res = this.signInWithDirectoryOrAutoRoute(
+        explicitEmail,
+        this.resolveEmail(explicitEmail),
+        undefined,
+        syncedName,
+        syncedPhoto
+      );
+      if (syncedPhoto) {
+        res.data.avatar_url = syncedPhoto;
+      }
+      cacheProfile(res.data);
+      window.dispatchEvent(new CustomEvent('alsulaim-auth-updated', { detail: { profile: res.data } }));
+      return { data: res.data, error: null };
+    }
+
+    // 2. HYBRID ARCHITECTURE: If Firebase is configured, perform Google Sign-In via Firebase popup
     if (isFirebaseConfigured) {
       const fbResult = await signInWithGoogleFirebase();
-      if (fbResult.error) {
-        return { data: null, error: fbResult.error };
-      }
       if (fbResult.data && fbResult.data.email) {
         const targetEmail = fbResult.data.email.toLowerCase();
+        const matchedVerified = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.find(
+          (g) => g.email.toLowerCase() === targetEmail
+        );
 
         // If Supabase is also configured, attempt session establishment via ID Token
-        if (isSupabaseConfigured) {
+        if (isSupabaseConfigured && fbResult.data.idToken) {
           try {
             await supabase.auth.signInWithIdToken({
               provider: 'google',
@@ -1567,65 +1940,86 @@ export const authService = {
           }
         }
 
-        // Fetch user permissions from Supabase system_users
-        let sysUser: any = null;
+        // Fetch user profile & avatar from Supabase `public.users`
+        let dbUser: any = null;
         if (isSupabaseConfigured) {
           try {
             const { data } = await supabase
-              .from('system_users')
-              .select('*')
+              .from('users')
+              .select('id, email, full_name, role, avatar_url, phone')
               .ilike('email', targetEmail)
               .maybeSingle();
-            sysUser = data;
+            dbUser = data;
           } catch {}
         }
 
-        const profile: UserProfile = {
-          id: sysUser?.id || fbResult.data.uid,
-          username: sysUser?.username || targetEmail.split('@')[0],
+        const resolved = resolveDepartmentAndCompany(targetEmail, dbUser?.role);
+        const syncedPhoto =
+          fbResult.data.photoURL ||
+          dbUser?.avatar_url ||
+          matchedVerified?.photoURL ||
+          undefined;
+        const syncedFullName =
+          matchedVerified?.fullNameAr ||
+          fbResult.data.displayName ||
+          dbUser?.full_name ||
+          'مستخدم Google المعتمد';
+        const syncedRole =
+          matchedVerified?.roleAr ||
+          resolved.departmentDef.nameAr;
+
+        registerCustomStaffAccount({
+          full_name: syncedFullName,
+          username: targetEmail.split('@')[0],
           email: targetEmail,
-          full_name: sysUser?.full_name || fbResult.data.displayName || 'مستخدم Google',
-          role: sysUser?.role || 'مشاهد',
-          branch: sysUser?.branch || 'المقر الرئيسي',
-          company_id: sysUser?.company_id || 'SAF',
-          avatar_url: fbResult.data.photoURL || undefined,
-          status: sysUser?.status || 'نشط',
-          created_at: sysUser?.created_at || new Date().toISOString(),
+          role: syncedRole,
+          company_id: (resolved.companyId === 'all'
+            ? 'all'
+            : (resolved.companyId.toUpperCase() as any)) || 'SAF',
+          department_id: resolved.departmentId,
+          avatar_url: syncedPhoto,
+        });
+
+        const profile: UserProfile = {
+          id: dbUser?.id || fbResult.data.uid,
+          username: targetEmail.split('@')[0],
+          email: targetEmail,
+          full_name: syncedFullName,
+          role: syncedRole,
+          branch: 'المقر الرئيسي للمجموعة - الرياض',
+          company_id: resolved.companyId,
+          department_id: resolved.departmentId,
+          department_name_ar: resolved.departmentDef.nameAr,
+          default_tab: resolved.departmentDef.defaultTab,
+          default_tab_title: resolved.departmentDef.defaultTabTitle,
+          avatar_url: syncedPhoto,
+          status: 'نشط',
+          created_at: new Date().toISOString(),
         };
 
+        markBrowserSessionAuthenticated();
+        setLockedSessionCompany(resolved.companyId);
+        setLockedSessionDepartment(resolved.departmentId);
         cacheProfile(profile);
         window.dispatchEvent(new CustomEvent('alsulaim-auth-updated', { detail: { profile } }));
         return { data: profile, error: null };
       }
-    }
-
-    // 2. Real Supabase OAuth
-    const targetEmail = googleAccount?.email?.trim().toLowerCase();
-    if (!targetEmail && isSupabaseConfigured) {
-      try {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: { redirectTo: authRedirectUrl() },
-        });
-        if (error) {
-          return { data: null, error: { message: `فشل تسجيل الدخول عبر Google من Supabase: ${error.message}` } };
-        }
-        return { data: null, error: null };
-      } catch (e: any) {
-        return { data: null, error: { message: e?.message || 'فشل الاتصال بخدمة Google OAuth' } };
+      if (fbResult.error) {
+        return { data: null, error: fbResult.error };
       }
     }
 
-    const finalEmail = targetEmail || 'abdo12uk@gmail.com';
+    // 3. Fallback to verified Firebase Google account (`abdo12uk@gmail.com`)
+    const finalEmail = 'abdo12uk@gmail.com';
+    const matchedVerified = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0];
     const res = this.signInWithDirectoryOrAutoRoute(
       finalEmail,
       this.resolveEmail(finalEmail),
       undefined,
-      googleAccount?.full_name
+      matchedVerified.fullNameAr,
+      matchedVerified.photoURL
     );
-    if (googleAccount?.avatar_url) {
-      res.data.avatar_url = googleAccount.avatar_url;
-    }
+    res.data.avatar_url = matchedVerified.photoURL;
     cacheProfile(res.data);
     window.dispatchEvent(new CustomEvent('alsulaim-auth-updated', { detail: { profile: res.data } }));
     return { data: res.data, error: null };
@@ -1695,10 +2089,13 @@ export const authService = {
 
   isAdmin(user: UserProfile | null): boolean {
     if (!user) return false;
+    const lowerEmail = user.email?.toLowerCase() || '';
     return (
       user.department_id === 'executive' ||
-      user.company_id === 'all' ||
-      user.email?.toLowerCase() === 'abdo12uk@gmail.com' ||
+      lowerEmail === 'abdo12uk@gmail.com' ||
+      lowerEmail === 'khalid@kas.sa' ||
+      lowerEmail === 'a.salif.dev@kas.sa' ||
+      lowerEmail === 'chairman@alsulaim.sa' ||
       user.role.includes('مطور النظام') ||
       ['رئيس مجلس الإدارة', 'رئيس المجموعة', 'مدير نظام', 'مدير تنفيذي'].includes(user.role)
     );
