@@ -1,6 +1,7 @@
 {
   "projects": {
-    "default": "erp-khalid"
+    "default": "kassr-platform-sa-e3e4a",
+    "erp-khalid": "erp-khalid"
   }
 }
 

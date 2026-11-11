@@ -84,9 +84,15 @@ export function ensureEmbeddedVoiceStudioServer() {
 
   try {
     const srv = http.createServer(async (req, res) => {
-      res.setHeader('Access-Control-Allow-Origin', '*');
+      const origin = req.headers.origin || '';
+      const allowedOrigin =
+        !origin || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)
+          ? origin || 'http://localhost:5173'
+          : 'http://localhost:5173';
+      res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
 
       if (req.method === 'OPTIONS') {
         res.statusCode = 204;
@@ -110,13 +116,24 @@ export function ensureEmbeddedVoiceStudioServer() {
 
       if (req.url?.startsWith('/v1/audio/speech') && req.method === 'POST') {
         try {
-          const body = await new Promise((resolve) => {
+          const MAX_BODY_BYTES = 64 * 1024;
+          const body = await new Promise((resolve, reject) => {
             let d = '';
-            req.on('data', (c) => { d += c; });
+            let bytes = 0;
+            req.on('data', (c) => {
+              bytes += c.length;
+              if (bytes > MAX_BODY_BYTES) {
+                reject(new Error('Payload Too Large'));
+                req.destroy();
+                return;
+              }
+              d += c;
+            });
             req.on('end', () => resolve(d));
+            req.on('error', reject);
           });
           const payload = JSON.parse(body || '{}');
-          const inputText = String(payload.input || payload.text || '').trim();
+          const inputText = String(payload.input || payload.text || '').trim().slice(0, 4096);
           const voiceId = String(payload.voice || '680a2504');
           const targetPersona = /noura|نور/i.test(voiceId) ? 'noura' : 'faris';
 

@@ -20,6 +20,7 @@ import {
   type ICustomProperties,
   type ITelemetryItem,
 } from '@microsoft/applicationinsights-web';
+import { maskSensitiveText, scrubTelemetryPayload } from './menaLegalComplianceService';
 
 export { SeverityLevel, DistributedTracingModes };
 
@@ -172,12 +173,21 @@ export function createErpTelemetryInitializer() {
       }
     }
 
-    // 4. Scrub query-string secrets from URI and dependency data
+    // 4. Scrub query-string secrets and mask user text/PII inputs (Saudi PDPL Art. 11)
     if (item.baseData?.uri) {
       item.baseData.uri = scrubUrlSecrets(String(item.baseData.uri));
     }
     if (item.baseData?.data && typeof item.baseData.data === 'string') {
-      item.baseData.data = scrubUrlSecrets(item.baseData.data);
+      item.baseData.data = maskSensitiveText(scrubUrlSecrets(item.baseData.data));
+    }
+    if (item.baseData?.message && typeof item.baseData.message === 'string') {
+      item.baseData.message = maskSensitiveText(item.baseData.message);
+    }
+    if (item.baseData?.properties) {
+      item.baseData.properties = scrubTelemetryPayload(item.baseData.properties);
+    }
+    if (item.data) {
+      item.data = scrubTelemetryPayload(item.data);
     }
   };
 }
@@ -210,8 +220,9 @@ export function initAppInsights(customConnectionString?: string): ApplicationIns
         // Manual trackErpPageView is used on SPA tab navigation to avoid duplicate pageviews
         enableAutoRouteTracking: false,
         enableCorsCorrelation: true,
-        enableRequestHeaderTracking: true,
-        enableResponseHeaderTracking: true,
+        // Saudi PDPL Art. 11: Stop recording request/response headers not needed by the app
+        enableRequestHeaderTracking: false,
+        enableResponseHeaderTracking: false,
         distributedTracingMode: DistributedTracingModes.AI_AND_W3C,
         autoTrackPageVisitTime: true,
         disableFetchTracking: false,
@@ -248,15 +259,16 @@ export function trackErpPageView(
   const effectiveUri = scrubUrlSecrets(
     uri || (typeof window !== 'undefined' ? window.location.pathname + window.location.search : `/${name}`)
   );
+  const safeProps = properties ? scrubTelemetryPayload(properties) : undefined;
   pushToLocalBuffer({
     kind: 'pageView',
     name,
-    properties: { uri: effectiveUri, ...properties },
+    properties: { uri: effectiveUri, ...safeProps },
   });
   appInsightsSingleton?.trackPageView({
     name,
     uri: effectiveUri,
-    properties,
+    properties: safeProps,
   });
 }
 
@@ -264,12 +276,13 @@ export function trackErpPageView(
  * Track custom business or UI event.
  */
 export function trackErpEvent(name: string, properties?: ICustomProperties): void {
+  const safeProps = properties ? scrubTelemetryPayload(properties) : undefined;
   pushToLocalBuffer({
     kind: 'event',
     name,
-    properties,
+    properties: safeProps,
   });
-  appInsightsSingleton?.trackEvent({ name }, properties);
+  appInsightsSingleton?.trackEvent({ name }, safeProps);
 }
 
 /**

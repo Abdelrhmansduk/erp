@@ -5,6 +5,7 @@
  */
 
 import { supabase, isDummySupabase } from './supabaseClient';
+import { KAS_ALLOWED_EMPLOYEES } from '../config/kasAllowedEmails';
 import {
   IamUser,
   IamCompany,
@@ -216,6 +217,32 @@ class IamPolicyEngine {
       lastLoginAt: '2026-10-17 09:10',
       lastLoginIp: '192.168.3.11',
     },
+    ...KAS_ALLOWED_EMPLOYEES.map((emp, idx): IamUser => ({
+      id: emp.id,
+      employeeNumber: emp.id,
+      fullName: emp.nameAr,
+      email: emp.email,
+      phone: `+96654${String(3380000 + idx * 17).slice(0, 7)}`,
+      jobTitle: `${emp.titleAr} (${emp.company_id === 'all' ? 'المجموعة' : emp.company_id})`,
+      accountType:
+        emp.department_id === 'executive'
+          ? 'Group Super Admin'
+          : emp.department_id === 'shelter'
+          ? 'Shelter Supervisor'
+          : emp.company_id === 'KAS'
+          ? 'KAS General Manager'
+          : emp.titleAr.includes('مدير') || emp.titleAr.includes('مشرف')
+          ? 'Department Manager'
+          : 'Employee',
+      status: 'نشط',
+      mfaEnabled: true,
+      mfaMethod: 'Google Authenticator',
+      biometricEnabled: emp.department_id === 'executive',
+      biometricType: emp.department_id === 'executive' ? 'Face ID' : undefined,
+      sessionTimeoutMinutes: emp.department_id === 'executive' ? 60 : 30,
+      lastLoginAt: '2026-11-11 09:00',
+      lastLoginIp: '192.168.1.10',
+    })),
   ];
 
   private static readonly DEFAULT_ROLES: IamRole[] = [

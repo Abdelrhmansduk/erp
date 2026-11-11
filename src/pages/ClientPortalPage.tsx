@@ -710,11 +710,21 @@ export const ClientPortalPage: React.FC = () => {
                   <span className="text-zinc-600">المسدد مسبقاً:</span>
                   <span className="font-mono font-bold text-zinc-700">{payingContract.paidAmount.toLocaleString()} ⃁</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-600">تاريخ بدء العقد وفترة الضمان:</span>
+                  <span className="font-mono font-bold text-slate-900">
+                    {payingContract.startDate} ({payingContract.guaranteeDaysLeft} يوم ضمان)
+                  </span>
+                </div>
                 <div className="flex justify-between pt-2 border-t border-[#e0e0e0]">
-                  <span className="text-[#141414] font-bold">المبلغ المطلوب سداده الآن:</span>
+                  <span className="text-[#141414] font-bold">المبلغ المطلوب سداده الآن (شامل الضريبة):</span>
                   <span className="text-sm font-bold text-[#141414] font-mono">
                     {(payingContract.amount - payingContract.paidAmount).toLocaleString()} ⃁
                   </span>
+                </div>
+                <div className="flex justify-between text-[11px] text-[#707070]">
+                  <span>الدفعات المستقبلية بعد هذه الدفعة:</span>
+                  <span className="font-mono font-bold text-[#141414]">0 ⃁ (دفعة ختامية غير متكررة)</span>
                 </div>
               </div>
 
@@ -732,11 +742,14 @@ export const ClientPortalPage: React.FC = () => {
                 </select>
               </div>
 
-              <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
-                <div className="flex items-center gap-2 text-[#707070]">
+              <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 space-y-1.5">
+                <div className="flex items-center gap-2 text-[#141414] font-bold">
                   <ShieldCheck className="w-4 h-4 text-[#141414]" />
-                  <span className="text-[11px]">بوابة دفع آمنة ومشفرة 256-bit بمعايير PCI-DSS</span>
+                  <span className="text-[11px]">إفصاح نظام التجارة الإلكترونية السعودي (Art. 18 & Reg Art. 7)</span>
                 </div>
+                <p className="text-[10.5px] text-zinc-600 leading-relaxed m-0">
+                  يحق للعميل إلغاء العقد واسترداد المبالغ وفق لائحة منصة مساند ووزارة الموارد البشرية قبل إصدار التأشيرة أو خلال فترة الضمان النظامية (90 يوماً) عبر تقديم طلب في بوابة الدعم أعلاه. النقر على زر الدفع أدناه يُنشئ التزاماً نظامياً بالسداد.
+                </p>
               </div>
 
               <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">
@@ -753,7 +766,7 @@ export const ClientPortalPage: React.FC = () => {
                   className="button-primary-pill text-xs font-bold"
                   style={{ padding: '8px 22px', background: '#141414', color: '#ffffff' }}
                 >
-                  تأكيد السداد وتوليد سند القبض
+                  تأكيد السداد والالتزام بالدفع ({(payingContract.amount - payingContract.paidAmount).toLocaleString()} ⃁)
                 </button>
               </div>
             </form>

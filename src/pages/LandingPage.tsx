@@ -9,10 +9,29 @@ import { useAuthContext } from '../contexts/AuthContext';
 import { useAppStore } from '../stores/appStore';
 import {
   CORPORATE_DEPARTMENTS,
+  COMPANY_AUTH_METADATA,
+  DepartmentId,
   getFullStaffDirectory,
+  registerCustomStaffAccount,
   resolveDepartmentAndCompany,
 } from '../services/authService';
+import {
+  VERIFIED_FIREBASE_GOOGLE_ACCOUNTS,
+  getCachedGoogleProfile,
+  isFirebaseConfigured,
+} from '../services/firebaseClient';
+import { EmployeePhotoAvatar } from '../components/auth/EmployeePhotoAvatar';
 import { DEMO_AUTH_ENABLED, DEMO_QUICK_LOGIN_SECRET } from '../config/authMode';
+import {
+  MARKETING_DISCLOSURE_LINE_AR,
+  MARKETING_SENDER_IDENTITY,
+  SERVED_COUNTRIES_MANIFEST,
+  processUrlUnsubscribeParam,
+  recordAgeAndGuardianConsent,
+  recordCrossBorderTransferConsent,
+  recordMarketingConsent,
+  unsubscribeMarketingImmediately,
+} from '../services/menaLegalComplianceService';
 import { 
   ArrowLeft, Network, TrendingUp, Bot, ShieldCheck, 
   Menu, X, Building2, Sparkles, LogIn, CheckCircle2, Check,
@@ -27,12 +46,12 @@ interface LandingPageProps {
 export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => {
   const { currentLanguage } = useLanguage();
   const { setActiveCompanyId } = useCompany();
-  const { signIn } = useAuthContext();
+  const { signIn, signInWithGoogle, user: authUser } = useAuthContext();
   const { setFlowState, setActiveTab } = useAppStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
   // Interactive Login State inside Hero Split
-  const [identifier, setIdentifier] = useState('chairman@alsulaim.sa');
+  const [identifier, setIdentifier] = useState('abdo12uk@gmail.com');
   const [password, setPassword] = useState(DEMO_QUICK_LOGIN_SECRET);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -40,9 +59,219 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [authTab, setAuthTab] = useState<'login' | 'activate'>('login');
   const [portalMode, setPortalMode] = useState<'staff' | 'companies'>('staff');
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
+  const [staffDirectory, setStaffDirectory] = useState(() => getFullStaffDirectory());
+  const [syncedGoogleUser, setSyncedGoogleUser] = useState(() => getCachedGoogleProfile());
 
-  const staffDirectory = useMemo(() => getFullStaffDirectory(), []);
+  // Account Activation / Registration State in Second Login Panel
+  const [actFullName, setActFullName] = useState('');
+  const [actEmail, setActEmail] = useState('');
+  const [actPhone, setActPhone] = useState('0543389314');
+  const [actCompanyId, setActCompanyId] = useState<'SAF' | 'YAQ' | 'TOP' | 'KAS' | 'DAR' | 'all'>('all');
+  const [actDepartmentId, setActDepartmentId] = useState<DepartmentId>('executive');
+  const [actPassword, setActPassword] = useState(DEMO_QUICK_LOGIN_SECRET);
+  const [actAvatarUrl, setActAvatarUrl] = useState('');
+  const [actCountryCode, setActCountryCode] = useState('SA');
+  const [actAgeStatus, setActAgeStatus] = useState<'legal_adult_in_country' | 'minor_with_guardian_consent'>('legal_adult_in_country');
+  const [actGuardianName, setActGuardianName] = useState('');
+  const [actGuardianContact, setActGuardianContact] = useState('');
+  const [actGuardianConsentAccepted, setActGuardianConsentAccepted] = useState(false);
+  const [actCrossBorderConsent, setActCrossBorderConsent] = useState(true);
+
+  // Waitlist & Marketing Compliance State (Qatar PDPPL Art. 22 / Egypt Art. 17 / Saudi Art. 25)
+  const [waitlistRecipient, setWaitlistRecipient] = useState('');
+  const [waitlistChannel, setWaitlistChannel] = useState<'email' | 'sms' | 'whatsapp' | 'waitlist'>('email');
+  const [waitlistConsentAccepted, setWaitlistConsentAccepted] = useState(false);
+  const [waitlistStatusMsg, setWaitlistStatusMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    void processUrlUnsubscribeParam().then((res) => {
+      if (res.triggered && res.recipient) {
+        setWaitlistStatusMsg(
+          `تم إلغاء اشتراكك التسويقي فوراً وبأثر فوري للعنوان (${res.recipient}) بتاريخ ${res.unsubscribedAt}.`
+        );
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    const onGoogleSynced = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail) {
+        setSyncedGoogleUser(detail);
+        setStaffDirectory(getFullStaffDirectory());
+      }
+    };
+    window.addEventListener('alsulaim-google-user-synced', onGoogleSynced);
+    return () => window.removeEventListener('alsulaim-google-user-synced', onGoogleSynced);
+  }, []);
+
   const departmentsList = useMemo(() => Object.values(CORPORATE_DEPARTMENTS), []);
+
+  const detectedRouting = useMemo(() => {
+    const clean = identifier.trim().toLowerCase();
+    const matchedAccount = staffDirectory.find(
+      (s) => s.email.toLowerCase() === clean || s.username.toLowerCase() === clean
+    );
+    if (matchedAccount) {
+      return {
+        account: matchedAccount,
+        departmentId: matchedAccount.department_id,
+        companyId: matchedAccount.company_id,
+        departmentDef:
+          CORPORATE_DEPARTMENTS[matchedAccount.department_id] ||
+          CORPORATE_DEPARTMENTS.executive,
+      };
+    }
+    const resolved = resolveDepartmentAndCompany(identifier);
+    return {
+      account: null,
+      departmentId: resolved.departmentId,
+      companyId: resolved.companyId,
+      departmentDef: resolved.departmentDef || CORPORATE_DEPARTMENTS.executive,
+    };
+  }, [identifier, staffDirectory]);
+
+  const handleGoogleAccountSelect = async (account: {
+    email: string;
+    name: string;
+    picture?: string;
+  }) => {
+    setShowGoogleModal(false);
+    setErrorMsg(null);
+    setIdentifier(account.email);
+    setSuccessMsg(`تمت المصادقة عبر Google (${account.email}) ومزامنة الصورة — جاري فتح جلستك...`);
+    setLoading(true);
+    try {
+      const result = await signInWithGoogle({
+        email: account.email,
+        full_name: account.name,
+        avatar_url: account.picture,
+      });
+      if (result.error) {
+        setErrorMsg(result.error);
+        setLoading(false);
+        return;
+      }
+      setStaffDirectory(getFullStaffDirectory());
+      const routeInfo = resolveDepartmentAndCompany(account.email);
+      const landingTab = routeInfo.departmentDef.defaultTab;
+      const landingTitle = routeInfo.departmentDef.defaultTabTitle;
+
+      if (routeInfo.companyId === 'all') {
+        setActiveCompanyId('SAF');
+        useAppStore.getState().setActiveCompanyId('all' as any);
+      } else {
+        const compUpper = routeInfo.companyId.toUpperCase() as CompanyId;
+        setActiveCompanyId(compUpper);
+        useAppStore.getState().setActiveCompanyId(compUpper as any);
+      }
+
+      setActiveTab(landingTab, landingTitle);
+      setFlowState('welcome');
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'تعذر إكمال تسجيل الدخول عبر Google.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLiveFirebaseGooglePopup = async () => {
+    setShowGoogleModal(false);
+    setErrorMsg(null);
+    setSuccessMsg('جاري الاتصال بخدمة Google (Firebase Auth) ومزامنة الصورة والبيانات...');
+    setLoading(true);
+    try {
+      const result = await signInWithGoogle();
+      if (result.error) {
+        setErrorMsg(result.error);
+        setShowGoogleModal(true);
+        setLoading(false);
+        return;
+      }
+      if (!result.user) return;
+      setStaffDirectory(getFullStaffDirectory());
+      setIdentifier(result.user.email);
+      const routeInfo = resolveDepartmentAndCompany(result.user.email);
+      const landingTab = routeInfo.departmentDef.defaultTab;
+      const landingTitle = routeInfo.departmentDef.defaultTabTitle;
+
+      if (routeInfo.companyId === 'all') {
+        setActiveCompanyId('SAF');
+        useAppStore.getState().setActiveCompanyId('all' as any);
+      } else {
+        const compUpper = routeInfo.companyId.toUpperCase() as CompanyId;
+        setActiveCompanyId(compUpper);
+        useAppStore.getState().setActiveCompanyId(compUpper as any);
+      }
+
+      setActiveTab(landingTab, landingTitle);
+      setFlowState('welcome');
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'تعذر الاتصال بنافذة Google.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleActivateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!actFullName.trim() || !actEmail.trim()) {
+      setErrorMsg('يرجى إدخال الاسم الكامل والبريد الإلكتروني لتفعيل الحساب.');
+      return;
+    }
+    if (actAgeStatus === 'minor_with_guardian_consent') {
+      if (!actGuardianName.trim() || !actGuardianContact.trim() || !actGuardianConsentAccepted) {
+        setErrorMsg(
+          'وفق المادة (12) من قانون حماية البيانات المصري 151/2020، يلزم إدخال بيانات ولي الأمر والموافقة الصريحة لتسجيل القاصر.'
+        );
+        return;
+      }
+    }
+    if (!actCrossBorderConsent) {
+      setErrorMsg(
+        'يلزم الموافقة الصريحة على نقل ومعالجة البيانات عبر الحدود (Oman PDPL Art. 23 & Exec Reg Art. 37).'
+      );
+      return;
+    }
+    const cleanEmail = actEmail.trim().toLowerCase();
+
+    void recordAgeAndGuardianConsent({
+      applicantEmail: cleanEmail,
+      applicantName: actFullName.trim(),
+      countryCode: actCountryCode,
+      ageStatus: actAgeStatus,
+      isMinor: actAgeStatus === 'minor_with_guardian_consent',
+      guardianName: actAgeStatus === 'minor_with_guardian_consent' ? actGuardianName.trim() : undefined,
+      guardianContact: actAgeStatus === 'minor_with_guardian_consent' ? actGuardianContact.trim() : undefined,
+      guardianConsentAccepted: actAgeStatus === 'minor_with_guardian_consent' ? actGuardianConsentAccepted : true,
+      source: 'LandingPage_Account_Activation',
+    });
+
+    recordCrossBorderTransferConsent({
+      userEmail: cleanEmail,
+      userCountryCode: actCountryCode,
+      acceptedExplicitly: actCrossBorderConsent,
+      source: 'LandingPage_Account_Activation',
+    });
+
+    const newStaff = registerCustomStaffAccount({
+      full_name: actFullName.trim(),
+      username: cleanEmail.split('@')[0] || `emp_${Date.now()}`,
+      email: cleanEmail,
+      role: CORPORATE_DEPARTMENTS[actDepartmentId].nameAr,
+      company_id: actCompanyId,
+      department_id: actDepartmentId,
+      branch:
+        COMPANY_AUTH_METADATA[actCompanyId === 'all' ? 'ALL' : actCompanyId]?.nameAr ||
+        'المقر الرئيسي - الرياض',
+      avatar_url: actAvatarUrl.trim() || undefined,
+    });
+    setStaffDirectory(getFullStaffDirectory());
+    setIdentifier(newStaff.email);
+    setAuthTab('login');
+    await executeQuickLogin(newStaff.email, actPassword || DEMO_QUICK_LOGIN_SECRET);
+  };
 
   const executeQuickLogin = async (loginEmail: string, loginPass = DEMO_QUICK_LOGIN_SECRET) => {
     setErrorMsg(null);
@@ -410,14 +639,74 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                   </button>
                 </div>
 
-                {/* Centered Welcome Title */}
-                <div className="text-center space-y-1 pt-1">
-                  <h2 className="text-2xl font-bold text-[#141414] tracking-tight">
-                    مرحباً بعودتك
-                  </h2>
-                  <p className="text-xs font-medium text-[#707070]">
-                    إدارة ملفك الوظيفي ومهام قسمك
-                  </p>
+                {/* Centered Welcome Title + Synced Google / Employee Avatar */}
+                <div
+                  key={detectedRouting.account?.email || identifier || 'default'}
+                  className="flex flex-col items-center text-center pt-1.5 pb-1 space-y-2.5 animate-in fade-in zoom-in-95 duration-300"
+                >
+                  <div className="relative flex items-center justify-center">
+                    <span
+                      aria-hidden="true"
+                      className="absolute -inset-2 rounded-full border border-[#141414]/15 animate-pulse"
+                    />
+                    <span
+                      aria-hidden="true"
+                      className="absolute -inset-1 rounded-full border border-[#141414]/25"
+                    />
+                    <EmployeePhotoAvatar
+                      name={detectedRouting.account?.full_name || 'الشيخ خالد بن عبدالعزيز السليم'}
+                      email={identifier}
+                      role={detectedRouting.account?.role || detectedRouting.departmentDef.nameAr}
+                      departmentId={detectedRouting.departmentId}
+                      avatarUrl={detectedRouting.account?.avatar_url || authUser?.avatar_url}
+                      size="2xl"
+                      showStatusDot={true}
+                      showOnlinePulse={true}
+                    />
+                  </div>
+
+                  <div className="space-y-0.5">
+                    <span className="text-[11px] font-semibold text-[#707070] block">
+                      مرحباً بعودتك
+                    </span>
+                    <h2 className="text-lg sm:text-xl font-bold text-[#141414] tracking-tight m-0">
+                      {detectedRouting.account?.full_name || 'الشيخ خالد بن عبدالعزيز السليم'}
+                    </h2>
+                    <p className="text-[11px] font-medium text-[#707070] m-0">
+                      {detectedRouting.account?.role || detectedRouting.departmentDef.nameAr}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const googlePrimary = syncedGoogleUser?.email
+                        ? VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.find(
+                            (g) => g.email.toLowerCase() === syncedGoogleUser.email?.toLowerCase()
+                          ) || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]
+                        : VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0];
+                      setIdentifier(googlePrimary.email);
+                      setErrorMsg(null);
+                      setSuccessMsg(
+                        `تم جلب ومزامنة حساب Google (${googlePrimary.displayName} • ${googlePrimary.email}) وصورته الشخصية.`
+                      );
+                    }}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f8f8f7] hover:bg-[#f0efec] border border-[#e5e5e5] text-[11px] font-bold text-[#141414] transition-all cursor-pointer"
+                  >
+                    <EmployeePhotoAvatar
+                      name={syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].fullNameAr}
+                      email={syncedGoogleUser?.email || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].email}
+                      avatarUrl={syncedGoogleUser?.photoURL || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].photoURL}
+                      size="xs"
+                      showStatusDot={true}
+                    />
+                    <span className="truncate max-w-[210px]">
+                      {identifier.toLowerCase() ===
+                      (syncedGoogleUser?.email || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].email).toLowerCase()
+                        ? `متصل بحساب Google: ${syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].displayName}`
+                        : `جلب ومزامنة حساب Google (${syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].displayName})`}
+                    </span>
+                  </button>
                 </div>
 
                 {/* Secondary Sub-tab Pill (تسجيل الدخول / تفعيل حساب) */}
@@ -452,13 +741,43 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                   </button>
                 </div>
 
-                {/* Quick Email, Biometric & Magic Link Outline Pill Buttons */}
+                {/* Quick Google, Email, Biometric & Magic Link Outline Pill Buttons */}
                 <div className="space-y-2.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setErrorMsg(null);
+                      setShowGoogleModal(true);
+                    }}
+                    disabled={loading}
+                    className="w-full py-2.5 px-4 rounded-full bg-white hover:bg-[#f9f9f9] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
+                  >
+                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        fill="#4285F4"
+                        d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 24c3.3 0 6.08-1.09 8.1-2.96l-3.88-3.05c-1.08.72-2.45 1.16-4.22 1.16-3.24 0-5.98-2.18-6.96-5.13H1.04v3.14C3.05 21.15 7.21 24 12 24z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.04 14.02c-.25-.72-.39-1.5-.39-2.32s.14-1.6.39-2.32V6.24H1.04C.38 7.56 0 9.05 0 11.7s.38 4.14 1.04 5.46l4-3.14z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.21 0 3.05 2.85 1.04 6.24l4 3.14c.98-2.95 3.72-4.63 6.96-4.63z"
+                      />
+                    </svg>
+                    <span>تسجيل الدخول عبر Google (Firebase)</span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={() =>
                       void executeQuickLogin(
-                        identifier.trim() || 'chairman@alsulaim.sa',
+                        identifier.trim() || 'abdo12uk@gmail.com',
                         password || DEMO_QUICK_LOGIN_SECRET
                       )
                     }
@@ -521,78 +840,282 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                   </div>
                 )}
 
-                {/* Email & Password Form */}
-                <form onSubmit={handleLoginSubmit} className="space-y-3.5">
-                  <div>
-                    <label className="block text-xs font-bold text-[#141414] mb-1.5">
-                      البريد الإلكتروني
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={identifier}
-                        onChange={(e) => setIdentifier(e.target.value)}
-                        placeholder="your@email.com"
-                        dir="ltr"
-                        className="w-full pl-4 pr-10 py-3 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-medium text-[#141414] placeholder:text-[#999999] outline-none transition-all text-left"
-                      />
-                      <Mail className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                {/* Email & Password Form OR Account Activation Form */}
+                {authTab === 'login' ? (
+                  <form onSubmit={handleLoginSubmit} className="space-y-3.5">
+                    <div>
+                      <label className="block text-xs font-bold text-[#141414] mb-1.5">
+                        البريد الإلكتروني
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={identifier}
+                          onChange={(e) => setIdentifier(e.target.value)}
+                          placeholder="your@email.com"
+                          dir="ltr"
+                          className="w-full pl-4 pr-10 py-3 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-medium text-[#141414] placeholder:text-[#999999] outline-none transition-all text-left"
+                        />
+                        <Mail className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs font-bold text-[#141414]">كلمة المرور</label>
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-bold text-[#141414]">كلمة المرور</label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!DEMO_AUTH_ENABLED) {
+                              setFlowState('login');
+                              return;
+                            }
+                            setIdentifier('abdo12uk@gmail.com');
+                            setPassword(DEMO_QUICK_LOGIN_SECRET);
+                          }}
+                          className="text-[11px] font-bold text-[#707070] hover:text-[#141414] transition-colors cursor-pointer"
+                        >
+                          نسيت كلمة المرور؟
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="••••••••"
+                          dir="ltr"
+                          className="w-full pl-10 pr-10 py-3 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-medium text-[#141414] placeholder:text-[#999999] outline-none transition-all text-left"
+                        />
+                        <Lock className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#707070] hover:text-[#141414] cursor-pointer"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-3.5 px-6 rounded-full bg-[#141414] hover:bg-[#262626] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-60 mt-1"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>جاري الدخول...</span>
+                        </>
+                      ) : (
+                        <span>تسجيل الدخول</span>
+                      )}
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleActivateSubmit} className="space-y-3">
+                    <div className="p-2.5 rounded-2xl bg-[#f8f8f7] border border-[#e5e5e5] flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-bold text-[#141414]">
+                        مزامنة سريعة من حساب Google:
+                      </span>
                       <button
                         type="button"
                         onClick={() => {
-                          if (!DEMO_AUTH_ENABLED) {
-                            setFlowState('login');
-                            return;
-                          }
-                          setIdentifier('chairman@alsulaim.sa');
-                          setPassword(DEMO_QUICK_LOGIN_SECRET);
+                          const gAcc = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0];
+                          setActFullName(gAcc.fullNameAr);
+                          setActEmail(gAcc.email);
+                          setActPhone(gAcc.phone || '0543389314');
+                          setActCompanyId(gAcc.companyId);
+                          setActDepartmentId(gAcc.departmentId);
+                          setActAvatarUrl(gAcc.photoURL);
+                          setIdentifier(gAcc.email);
+                          setSuccessMsg(`تم جلب بيانات وصورة ${gAcc.displayName} من Google.`);
                         }}
-                        className="text-[11px] font-bold text-[#707070] hover:text-[#141414] transition-colors cursor-pointer"
+                        className="px-2.5 py-1 rounded-full bg-[#141414] text-white text-[10px] font-bold cursor-pointer"
                       >
-                        نسيت كلمة المرور؟
+                        جلب بيانات وصورة Google
                       </button>
                     </div>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        dir="ltr"
-                        className="w-full pl-10 pr-10 py-3 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-medium text-[#141414] placeholder:text-[#999999] outline-none transition-all text-left"
-                      />
-                      <Lock className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#707070] hover:text-[#141414] cursor-pointer"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
 
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full py-3.5 px-6 rounded-full bg-[#141414] hover:bg-[#262626] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-60 mt-1"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>جاري الدخول...</span>
-                      </>
-                    ) : (
-                      <span>{authTab === 'login' ? 'تسجيل الدخول' : 'تفعيل الحساب'}</span>
-                    )}
-                  </button>
-                </form>
+                    <div>
+                      <label className="block text-xs font-bold text-[#141414] mb-1">
+                        الاسم الكامل للموظف *
+                      </label>
+                      <input
+                        type="text"
+                        value={actFullName}
+                        onChange={(e) => setActFullName(e.target.value)}
+                        placeholder="م. عبدالرحمن أبوسليف"
+                        className="w-full px-3.5 py-2.5 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-medium text-[#141414] outline-none"
+                        required
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="block text-xs font-bold text-[#141414] mb-1">
+                          البريد الإلكتروني *
+                        </label>
+                        <input
+                          type="email"
+                          dir="ltr"
+                          value={actEmail}
+                          onChange={(e) => setActEmail(e.target.value)}
+                          placeholder="abdo12uk@gmail.com"
+                          className="w-full px-3 py-2.5 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-mono text-[#141414] outline-none text-left"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-[#141414] mb-1">
+                          رقم الجوال
+                        </label>
+                        <input
+                          type="tel"
+                          dir="ltr"
+                          value={actPhone}
+                          onChange={(e) => setActPhone(e.target.value)}
+                          placeholder="0543389314"
+                          className="w-full px-3 py-2.5 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-mono text-[#141414] outline-none text-left"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="block text-xs font-bold text-[#141414] mb-1">
+                          الشركة
+                        </label>
+                        <select
+                          value={actCompanyId}
+                          onChange={(e) => setActCompanyId(e.target.value as any)}
+                          className="w-full px-3 py-2.5 rounded-2xl bg-[#f3f3f3] text-xs font-bold text-[#141414] outline-none"
+                        >
+                          <option value="all">الإدارة المركزية للمجموعة (ALL)</option>
+                          <option value="SAF">السفير الماسي للاستقدام (SAF)</option>
+                          <option value="YAQ">الياقوت للتشغيل والتأجير (YAQ)</option>
+                          <option value="TOP">توب تالنت للتوظيف (TOP)</option>
+                          <option value="KAS">كاس للمنافسات (KAS)</option>
+                          <option value="DAR">دار الرواد للإيواء (DAR)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-[#141414] mb-1">
+                          القسم المختص
+                        </label>
+                        <select
+                          value={actDepartmentId}
+                          onChange={(e) => setActDepartmentId(e.target.value as DepartmentId)}
+                          className="w-full px-3 py-2.5 rounded-2xl bg-[#f3f3f3] text-xs font-bold text-[#141414] outline-none"
+                        >
+                          <option value="executive">الإدارة التنفيذية العليا</option>
+                          <option value="finance">المالية والمحاسبة (ERP)</option>
+                          <option value="recruitment">الاستقدام ومساند</option>
+                          <option value="rental">التأجير والتشغيل</option>
+                          <option value="ats">التوظيف والسير الذاتية</option>
+                          <option value="hr">الموارد البشرية والرواتب</option>
+                          <option value="crm">خدمة العملاء (CRM)</option>
+                          <option value="tenders">المنافسات واعتماد</option>
+                          <option value="shelter">الإيواء والتسكين</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Age / Guardian Consent & Cross-Border Consent (Egypt PDPL Art. 1 & 12 / Oman PDPL Art. 23 & Reg Art. 37) */}
+                    <div className="p-3 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2 text-right">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[11px] font-bold text-[#141414] mb-1">
+                            دولة الإقامة *
+                          </label>
+                          <select
+                            value={actCountryCode}
+                            onChange={(e) => setActCountryCode(e.target.value)}
+                            className="w-full px-2.5 py-2 rounded-xl bg-white text-[11px] font-bold text-[#141414] outline-none"
+                          >
+                            {SERVED_COUNTRIES_MANIFEST.map((c) => (
+                              <option key={c.code} value={c.code}>
+                                {c.nameAr} ({c.code})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-[#141414] mb-1">
+                            الأهلية العمرية (Egypt Art. 1 & 12) *
+                          </label>
+                          <select
+                            value={actAgeStatus}
+                            onChange={(e) =>
+                              setActAgeStatus(
+                                e.target.value as 'legal_adult_in_country' | 'minor_with_guardian_consent'
+                              )
+                            }
+                            className="w-full px-2.5 py-2 rounded-xl bg-white text-[11px] font-bold text-[#141414] outline-none"
+                          >
+                            <option value="legal_adult_in_country">بالغ قانونياً في دولة الإقامة</option>
+                            <option value="minor_with_guardian_consent">قاصر (يتطلب موافقة ولي الأمر)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {actAgeStatus === 'minor_with_guardian_consent' && (
+                        <div className="p-2.5 rounded-xl bg-white border border-[#141414] space-y-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <input
+                              type="text"
+                              value={actGuardianName}
+                              onChange={(e) => setActGuardianName(e.target.value)}
+                              placeholder="اسم ولي الأمر القانوني *"
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-[#f3f3f3] text-[11px] text-[#141414]"
+                              required
+                            />
+                            <input
+                              type="text"
+                              dir="ltr"
+                              value={actGuardianContact}
+                              onChange={(e) => setActGuardianContact(e.target.value)}
+                              placeholder="بريد أو جوال ولي الأمر *"
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-[#f3f3f3] text-[11px] font-mono text-[#141414]"
+                              required
+                            />
+                          </div>
+                          <label className="flex items-start gap-1.5 text-[10.5px] font-bold text-[#141414] cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={actGuardianConsentAccepted}
+                              onChange={(e) => setActGuardianConsentAccepted(e.target.checked)}
+                              className="mt-0.5 accent-[#141414]"
+                            />
+                            <span>أقرّ بصفتي ولي الأمر القانوني بالموافقة الصريحة وتوثيقها في السجل.</span>
+                          </label>
+                        </div>
+                      )}
+
+                      <label className="flex items-start gap-1.5 text-[10.5px] text-[#141414] cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={actCrossBorderConsent}
+                          onChange={(e) => setActCrossBorderConsent(e.target.checked)}
+                          className="mt-0.5 accent-[#141414]"
+                        />
+                        <span>
+                          أوافق صراحةً على نقل ومعالجة البيانات عبر الحدود (Oman PDPL Art. 23 & Reg Art. 37 / Egypt Art. 14) في السحابة المعتمدة مع تقنيع كافة المدخلات النصية افتراضياً (Saudi PDPL Art. 11).
+                        </span>
+                      </label>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-3.5 px-6 rounded-full bg-[#141414] hover:bg-[#262626] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-60 mt-1"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>تفعيل الحساب والدخول الفوري</span>
+                    </button>
+                  </form>
+                )}
               </div>
             </div>
           </div>
@@ -964,6 +1487,107 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
           </div>
         </div>
 
+        {/* Qatar PDPPL Art. 22 / Egypt PDPL Art. 17 / Saudi PDPL Art. 25: Compliant Marketing & Waitlist Consent + Instant Unsubscribe */}
+        <div className="max-w-7xl mx-auto mb-8 p-5 rounded-3xl bg-[#ffffff] border border-[#e0e0e0] space-y-3">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+            <div>
+              <div className="text-xs font-black text-[#141414]">
+                القائمة البريدية والنشرات التسويقية الموثقة (Qatar PDPPL Art. 22 • Saudi PDPL Art. 25 • Egypt PDPL Art. 17)
+              </div>
+              <div className="text-[11px] text-[#707070]">
+                المرسل المعتمد: {MARKETING_SENDER_IDENTITY}
+              </div>
+              <div className="text-[10.5px] font-semibold text-[#141414] mt-0.5">
+                {MARKETING_DISCLOSURE_LINE_AR}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5 items-center">
+            <input
+              type="text"
+              dir="ltr"
+              value={waitlistRecipient}
+              onChange={(e) => setWaitlistRecipient(e.target.value)}
+              placeholder="البريد الإلكتروني أو رقم الجوال / واتساب"
+              className="px-3.5 py-2.5 rounded-2xl bg-[#f3f3f3] text-xs font-mono text-[#141414] outline-none md:col-span-2"
+            />
+            <select
+              value={waitlistChannel}
+              onChange={(e) =>
+                setWaitlistChannel(e.target.value as 'email' | 'sms' | 'whatsapp' | 'waitlist')
+              }
+              className="px-3 py-2.5 rounded-2xl bg-[#f3f3f3] text-xs font-bold text-[#141414] outline-none"
+            >
+              <option value="email">البريد الإلكتروني التسويقي (Email)</option>
+              <option value="whatsapp">رسائل واتساب التسويقية (WhatsApp)</option>
+              <option value="sms">الرسائل النصية (SMS)</option>
+              <option value="waitlist">قائمة الانتظار (Waitlist)</option>
+            </select>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!waitlistRecipient.trim()) {
+                    setWaitlistStatusMsg('يرجى إدخال البريد الإلكتروني أو رقم الجوال أولاً.');
+                    return;
+                  }
+                  if (!waitlistConsentAccepted) {
+                    setWaitlistStatusMsg('يلزم تحديد مربع الموافقة الصريحة قبل التسجيل في القائمة التسويقية.');
+                    return;
+                  }
+                  const rec = await recordMarketingConsent({
+                    recipient: waitlistRecipient.trim(),
+                    channel: waitlistChannel,
+                    source: 'LandingPage_Footer_Marketing_OptIn',
+                  });
+                  setWaitlistStatusMsg(
+                    `تم حفظ سجل الموافقة التسويقية (${rec.consentedAt}) والمصدر (${rec.source}). رابط إلغاء الاشتراك الفوري مضمّن في كل رسالة: ${rec.unsubscribeUrl}`
+                  );
+                }}
+                className="flex-1 py-2.5 px-3 rounded-2xl bg-[#141414] text-[#ffffff] text-[11px] font-bold cursor-pointer"
+              >
+                توثيق الموافقة والاشتراك
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!waitlistRecipient.trim()) {
+                    setWaitlistStatusMsg('أدخل بريدك أو رقم جوالك لإلغاء الاشتراك فوراً.');
+                    return;
+                  }
+                  const res = await unsubscribeMarketingImmediately(waitlistRecipient.trim());
+                  setWaitlistStatusMsg(
+                    `تم إلغاء الاشتراك التسويقي فوراً وبأثر فوري لـ (${res.recipient}) في ${res.unsubscribedAt}. لن تصلك أي رسائل تسويقية.`
+                  );
+                }}
+                className="py-2.5 px-3 rounded-2xl bg-[#f3f3f3] hover:bg-[#e5e5e5] border border-[#141414] text-[#141414] text-[11px] font-bold cursor-pointer"
+              >
+                إلغاء الاشتراك فوراً
+              </button>
+            </div>
+          </div>
+
+          <label className="flex items-start gap-2 text-[11px] text-[#141414] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={waitlistConsentAccepted}
+              onChange={(e) => setWaitlistConsentAccepted(e.target.checked)}
+              className="mt-0.5 accent-[#141414]"
+            />
+            <span>
+              أوافق صراحةً على استلام رسائل تسويقية وإعلانية من ({MARKETING_SENDER_IDENTITY}) مع حفظ الطابع الزمني ومصدر الموافقة، وأعلم أن بإمكاني إلغاء الاشتراك فوراً بضغطة واحدة عبر الرابط المرفق في كل رسالة أو عبر زر «إلغاء الاشتراك فوراً» أعلاه.
+            </span>
+          </label>
+
+          {waitlistStatusMsg && (
+            <div className="p-2.5 rounded-xl bg-[#f3f3f3] text-[11px] font-bold text-[#141414]">
+              {waitlistStatusMsg}
+            </div>
+          )}
+        </div>
+
         <div className="max-w-7xl mx-auto pt-8 border-t border-zinc-200/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#707070]">
           <span>
             © {new Date().getFullYear()} مجموعة خالد السليم (KSHG) • جميع الحقوق محفوظة ومحمية • رؤية 2030
@@ -978,6 +1602,113 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
           </div>
         </div>
       </footer>
+
+      {/* Google Account Chooser Modal on Landing Page */}
+      {showGoogleModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="landing-google-modal-title"
+          className="fixed inset-0 z-[200] bg-[#141414]/60 flex items-center justify-center p-4"
+          onClick={() => setShowGoogleModal(false)}
+        >
+          <div
+            className="bg-[#ffffff] border border-[#e0e0e0] rounded-[28px] max-w-md w-full p-6 sm:p-7 space-y-4 text-right shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-4">
+              <div className="flex items-center gap-2.5">
+                <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="#4285F4"
+                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 24c3.3 0 6.08-1.09 8.1-2.96l-3.88-3.05c-1.08.72-2.45 1.16-4.22 1.16-3.24 0-5.98-2.18-6.96-5.13H1.04v3.14C3.05 21.15 7.21 24 12 24z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.04 14.02c-.25-.72-.39-1.5-.39-2.32s.14-1.6.39-2.32V6.24H1.04C.38 7.56 0 9.05 0 11.7s.38 4.14 1.04 5.46l4-3.14z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.21 0 3.05 2.85 1.04 6.24l4 3.14c.98-2.95 3.72-4.63 6.96-4.63z"
+                  />
+                </svg>
+                <div>
+                  <h3 id="landing-google-modal-title" className="text-base font-bold text-[#141414] m-0">
+                    اختيار حساب Google للدخول
+                  </h3>
+                  <p className="text-[11px] text-[#707070] m-0">
+                    الحسابات المربوطة عبر Firebase Auth ومزامنة الصور الشخصية
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowGoogleModal(false)}
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] flex items-center justify-center text-[#141414] cursor-pointer"
+                aria-label="إغلاق"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {isFirebaseConfigured && (
+              <button
+                type="button"
+                onClick={() => void handleLiveFirebaseGooglePopup()}
+                className="w-full py-2.5 px-4 rounded-2xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 text-[#ffffff]" />
+                <span>فتح نافذة مصادقة Google الحية (Firebase Popup)</span>
+              </button>
+            )}
+
+            <div className="space-y-2 max-h-[280px] overflow-y-auto pr-0.5">
+              {VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.map((gAcc) => (
+                <button
+                  key={gAcc.email}
+                  type="button"
+                  onClick={() =>
+                    void handleGoogleAccountSelect({
+                      email: gAcc.email,
+                      name: gAcc.fullNameAr,
+                      picture: gAcc.photoURL,
+                    })
+                  }
+                  className="w-full p-3 rounded-2xl bg-[#f8f8f7] hover:bg-[#f0efec] border border-[#e5e5e5] flex items-center justify-between gap-3 text-right transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <EmployeePhotoAvatar
+                      name={gAcc.fullNameAr}
+                      email={gAcc.email}
+                      role={gAcc.roleAr}
+                      departmentId={gAcc.departmentId}
+                      avatarUrl={gAcc.photoURL}
+                      size="md"
+                      showStatusDot={true}
+                    />
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-[#141414] truncate">
+                        {gAcc.fullNameAr}
+                      </div>
+                      <div className="text-[11px] font-mono text-[#707070] truncate dir-ltr text-right">
+                        {gAcc.email} {gAcc.phone ? `• ${gAcc.phone}` : ''}
+                      </div>
+                      <div className="text-[10px] text-[#0066ff] font-bold truncate">
+                        {gAcc.roleAr} • UID: {gAcc.uid.slice(0, 8)}...
+                      </div>
+                    </div>
+                  </div>
+                  <ArrowLeft className="w-4 h-4 text-[#707070] shrink-0" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

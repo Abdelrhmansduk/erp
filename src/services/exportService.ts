@@ -2237,6 +2237,15 @@ export function calculateReportKpis(headers: string[], mappedRows: any[][]): Rep
   };
 }
 
+export function escapeHtmlReportText(val: unknown): string {
+  return String(val ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // ─── Executive HTML Report Template Builder (Used by PDF, Print, HTML, PNG) ───
 export function generateExecutiveReportHtml(
   sectionKey: string,
@@ -2246,9 +2255,19 @@ export function generateExecutiveReportHtml(
   options?: ExportCustomizationOptions
 ): string {
   const config = resolveConfig(sectionKey, data, customTitle, options);
-  const title = options?.customTitle || customTitle || config.sectionTitle;
+  const rawTitle = options?.customTitle || customTitle || config.sectionTitle;
+  const title = escapeHtmlReportText(rawTitle);
   const company = getActiveCompanyInfo();
-  const exporter = getAuthenticatedExporterInfo();
+  const rawExporter = getAuthenticatedExporterInfo();
+  const exporter = {
+    ...rawExporter,
+    name: escapeHtmlReportText(rawExporter.name),
+    role: escapeHtmlReportText(rawExporter.role),
+    branch: escapeHtmlReportText(rawExporter.branch),
+    department: escapeHtmlReportText(rawExporter.department),
+    email: escapeHtmlReportText(rawExporter.email),
+    id: escapeHtmlReportText(rawExporter.id),
+  };
   const monogramCode = company.code === 'ALL' ? 'KS' : company.code;
 
   const now = new Date();
@@ -2280,7 +2299,7 @@ export function generateExecutiveReportHtml(
     <th onclick="window.__sortTable && window.__sortTable(0)" style="padding: 10px 8px; background: #141414; color: #FFFFFF; border: 1px solid #262626; width: 44px; text-align: center; font-weight: 800; font-size: 11px; cursor: pointer;">#</th>
     ${config.headers.map((h, i) => `
       <th onclick="window.__sortTable && window.__sortTable(${i + 1})" style="padding: 10px 10px; background: #141414; color: #FFFFFF; border: 1px solid #262626; font-size: 11.5px; font-weight: 800; text-align: right; white-space: nowrap; cursor: pointer;">
-        ${h}
+        ${escapeHtmlReportText(h)}
       </th>
     `).join('')}
   `;
@@ -2296,11 +2315,12 @@ export function generateExecutiveReportHtml(
           const headerName = config.headers[cIdx] || '';
           const isIdOrPhone = /هاتف|جوال|هوية|سجل|كود|رقم|مرجع|iban/i.test(headerName);
           const align = isNum && !isIdOrPhone ? 'text-align: left; font-family: monospace; font-weight: 700;' : 'text-align: right;';
-          const displayVal = typeof val === 'number' ? val.toLocaleString('en-US') : String(val ?? '-');
+          const rawDisplayVal = typeof val === 'number' ? val.toLocaleString('en-US') : String(val ?? '-');
+          const displayVal = escapeHtmlReportText(rawDisplayVal || '-');
 
           return `
             <td style="padding: 7px 10px; border: 1px solid #E4E4E7; font-size: 11px; color: #141414; ${align}">
-              ${displayVal || '-'}
+              ${displayVal}
             </td>
           `;
         }).join('')}
@@ -2902,7 +2922,7 @@ export function generateExecutiveReportHtml(
 
       ${options?.executiveNote ? `
       <div class="executive-note-box">
-        <strong>توجيه / ملاحظة الإدارة التنفيذية:</strong> ${options.executiveNote}
+        <strong>توجيه / ملاحظة الإدارة التنفيذية:</strong> ${escapeHtmlReportText(options.executiveNote)}
       </div>
       ` : ''}
 
@@ -3705,7 +3725,7 @@ function triggerBlobDownload(blob: Blob, filename: string): void {
 
 export function sanitizeCSVField(val: any): string {
   const str = String(val ?? '');
-  if (/^[=+@-]/.test(str)) {
+  if (/^(?:[=+@\t\r-]|[\s]+[=+@-])/.test(str)) {
     return `'${str}`;
   }
   return str;

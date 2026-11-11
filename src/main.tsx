@@ -7,7 +7,15 @@ import App from './App.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { errorMonitorService } from './services/errorMonitorService';
 import { initAppInsights, trackErpPageView } from './services/appInsightsService';
+import {
+  maskSensitiveText,
+  processUrlUnsubscribeParam,
+  scrubTelemetryPayload,
+} from './services/menaLegalComplianceService';
 import './styles/index.css';
+
+// Immediately honor any 1-click marketing unsubscribe link (?unsubscribe=...) per Qatar PDPPL Art. 22 / Saudi PDPL Art. 25 / Egypt PDPL Art. 17
+void processUrlUnsubscribeParam();
 
 // Initialize Azure Application Insights RUM & OpenTelemetry GenAI Agent Tracing singleton early
 initAppInsights();
@@ -36,7 +44,23 @@ if (sentryDsn && !isLocalDev) {
   try {
     Sentry.init({
       dsn: sentryDsn,
-      integrations: [Sentry.browserTracingIntegration()],
+      // Saudi PDPL Art. 11: Collect only minimum necessary, disable default PII & session replay recording
+      sendDefaultPii: false,
+      replaysSessionSampleRate: 0,
+      replaysOnErrorSampleRate: 0,
+      integrations: [
+        Sentry.browserTracingIntegration(),
+        // If replay integration is ever enabled, mask all text, inputs, and media by default
+        ...(typeof Sentry.replayIntegration === 'function'
+          ? [
+              Sentry.replayIntegration({
+                maskAllText: true,
+                maskAllInputs: true,
+                blockAllMedia: true,
+              }),
+            ]
+          : []),
+      ],
       tracesSampleRate: import.meta.env.PROD ? 0.2 : 1.0,
       environment: import.meta.env.MODE || 'production',
       ignoreErrors: [
@@ -51,9 +75,43 @@ if (sentryDsn && !isLocalDev) {
         'ChunkLoadError',
         'The operation was aborted',
       ],
+      beforeBreadcrumb(breadcrumb) {
+        // Saudi PDPL Art. 11: Never record user text input breadcrumbs
+        if (breadcrumb.category === 'ui.input') {
+          return null;
+        }
+        if (breadcrumb.message) {
+          breadcrumb.message = maskSensitiveText(breadcrumb.message);
+        }
+        if (breadcrumb.data) {
+          breadcrumb.data = scrubTelemetryPayload(breadcrumb.data);
+        }
+        return breadcrumb;
+      },
       beforeSend(event) {
         if (event.exception?.values?.some(v => v.value?.includes('WebSocket') || v.value?.includes('extension'))) {
           return null;
+        }
+        // Strip user PII and sensitive request payloads (Saudi PDPL Art. 11)
+        if (event.user) {
+          event.user = { id: event.user.id ? '[MASKED_USER_ID]' : undefined };
+        }
+        if (event.request) {
+          delete event.request.cookies;
+          delete event.request.headers;
+          delete event.request.data;
+          if (event.request.query_string) {
+            event.request.query_string = '[MASKED_QUERY]';
+          }
+        }
+        if (event.extra) {
+          event.extra = scrubTelemetryPayload(event.extra);
+        }
+        if (event.exception?.values) {
+          event.exception.values = event.exception.values.map((ex) => ({
+            ...ex,
+            value: ex.value ? maskSensitiveText(ex.value) : ex.value,
+          }));
         }
         return event;
       },

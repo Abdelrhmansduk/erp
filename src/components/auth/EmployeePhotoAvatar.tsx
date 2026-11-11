@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { CheckCircle2, ShieldCheck } from 'lucide-react';
-import { DepartmentId } from '../../services/authService';
+import { DepartmentId, getFullStaffDirectory } from '../../services/authService';
+import {
+  VERIFIED_FIREBASE_GOOGLE_ACCOUNTS,
+  getCachedGoogleProfile,
+} from '../../services/firebaseClient';
 
 export interface EmployeePhotoAvatarProps {
   name: string;
@@ -144,7 +148,66 @@ export const EmployeePhotoAvatar: React.FC<EmployeePhotoAvatarProps> = ({
   status,
   className = '',
 }) => {
-  const resolvedSrc = avatarUrl || buildExecutivePortraitDataUri(name, email, role, departmentId);
+  const [imgError, setImgError] = useState(false);
+
+  const effectiveAvatarUrl = useMemo(() => {
+    if (avatarUrl && avatarUrl.trim()) return avatarUrl.trim();
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanName = (name || '').trim().toLowerCase();
+
+    const cachedGoogle = getCachedGoogleProfile();
+    if (
+      cachedGoogle?.photoURL &&
+      ((cleanEmail && cachedGoogle.email?.toLowerCase() === cleanEmail) ||
+        (cleanName && cachedGoogle.displayName?.toLowerCase() === cleanName))
+    ) {
+      return cachedGoogle.photoURL;
+    }
+
+    if (cleanEmail) {
+      const matchedVerified = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.find(
+        (g) => g.email.toLowerCase() === cleanEmail
+      );
+      if (matchedVerified?.photoURL) return matchedVerified.photoURL;
+
+      const staffMatch = getFullStaffDirectory().find(
+        (s) =>
+          s.email.toLowerCase() === cleanEmail ||
+          s.username.toLowerCase() === cleanEmail
+      );
+      if (staffMatch?.avatar_url) return staffMatch.avatar_url;
+    }
+
+    try {
+      const rawAuth = localStorage.getItem('ALSULAIM_AUTH_USER');
+      if (rawAuth) {
+        const parsed = JSON.parse(rawAuth);
+        if (
+          parsed?.avatar_url &&
+          ((cleanEmail && parsed.email?.toLowerCase() === cleanEmail) ||
+            (cleanName && parsed.full_name?.toLowerCase() === cleanName))
+        ) {
+          return parsed.avatar_url as string;
+        }
+      }
+    } catch {
+      // ignore storage errors
+    }
+
+    return undefined;
+  }, [avatarUrl, email, name]);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [effectiveAvatarUrl]);
+
+  const fallbackDataUri = useMemo(
+    () => buildExecutivePortraitDataUri(name, email, role, departmentId),
+    [name, email, role, departmentId]
+  );
+
+  const resolvedSrc =
+    !imgError && effectiveAvatarUrl ? effectiveAvatarUrl : fallbackDataUri;
   const dim = SIZE_MAP[size] || SIZE_MAP.md;
   const shouldShowBadge = status === 'none' ? false : showStatusDot ?? showVerifiedBadge;
   const shouldShowOnline = status === 'online' || showOnlinePulse;
@@ -155,6 +218,10 @@ export const EmployeePhotoAvatar: React.FC<EmployeePhotoAvatarProps> = ({
         <img
           src={resolvedSrc}
           alt={name}
+          referrerPolicy="no-referrer"
+          onError={() => {
+            if (!imgError) setImgError(true);
+          }}
           className="w-full h-full object-cover"
           loading="eager"
         />

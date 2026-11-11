@@ -32,6 +32,7 @@ import {
 import { HrProOdooBambooSuite } from '../components/hr/HrProOdooBambooSuite';
 import { journalEngine } from '../services/accounting/journalEngine';
 import { maskNationalId, maskIban } from '../utils/pdplMasking';
+import { KAS_ALLOWED_EMPLOYEES, CORPORATE_DEPARTMENTS } from '../services/authService';
 
 export interface EmployeeRecord {
   id: string;
@@ -179,100 +180,45 @@ export type PayrollLifecycleStage =
   | 'PAID_WPS'
   | 'LOCKED';
 
-const DEFAULT_MOCK_EMPLOYEES: EmployeeRecord[] = [
-  {
-    id: 'emp-101',
-    company_id: 'SAF',
-    employee_code: 'EMP-2026-001',
-    name: 'عبدالفتح (مسؤول الوكلاء)',
-    national_id: '1092837410',
-    job_title: 'مدير شؤون المكاتب الخارجية',
-    department: 'التشغيل والاستقدام',
-    branch: 'الإدارة العامة - الرياض',
-    grade: 'الدرجة الخامسة (مدير إدارة)',
-    hire_date: '2020-01-15',
-    salary: 12500,
+const DEFAULT_MOCK_EMPLOYEES: EmployeeRecord[] = KAS_ALLOWED_EMPLOYEES.map((emp, idx) => {
+  const deptName = CORPORATE_DEPARTMENTS[emp.department_id]?.nameAr || emp.titleAr;
+  const isManager =
+    emp.department_id === 'executive' ||
+    emp.titleAr.includes('مدير') ||
+    emp.titleAr.includes('رئيس') ||
+    emp.titleAr.includes('مشرف');
+  const baseSal =
+    emp.department_id === 'executive'
+      ? 18000
+      : isManager
+      ? 11500
+      : emp.department_id === 'finance'
+      ? 9200
+      : 6800;
+  return {
+    id: emp.id,
+    company_id: emp.company_id === 'all' ? 'SAF' : emp.company_id,
+    employee_code: emp.id,
+    name: `${emp.nameAr} (${emp.email})`,
+    national_id: `10${String(80000000 + idx * 13579).slice(0, 8)}`,
+    job_title: emp.titleAr,
+    department: deptName,
+    branch: emp.branch,
+    grade: isManager ? 'الدرجة الخامسة (قيادي / إشرافي)' : 'الدرجة الثالثة (أخصائي معتمد)',
+    hire_date: '2024-01-15',
+    salary: baseSal,
     leave_balance: 30,
-    iban: 'SA0380000000608010167519',
+    iban: `SA03800000006080${String(10000000 + idx * 97).slice(0, 8)}`,
     bank_name: 'مصرف الراجحي',
-    iqama_expiry_date: '2027-05-20',
-    contract_end_date: '2027-01-15',
-    medical_insurance_expiry: '2026-12-01',
-    system_role: 'Operations Lead',
+    iqama_expiry_date: '2027-09-15',
+    contract_end_date: '2027-12-31',
+    medical_insurance_expiry: '2027-06-30',
+    system_role: emp.titleAr,
     signature_status: 'موقّع ومعتمد',
-    compliance_hash: 'SA-COMPLIANCE-OPS-9932',
+    compliance_hash: `KAS-HR-${emp.id}`,
     status: 'نشط',
-  },
-  {
-    id: 'emp-102',
-    company_id: 'SAF',
-    employee_code: 'EMP-2026-002',
-    name: 'فهد العتيبي',
-    national_id: '1088273641',
-    job_title: 'مشرف التشغيل والإيواء',
-    department: 'إدارة الإيواء',
-    branch: 'فرع الرياض',
-    grade: 'الدرجة الرابعة (قائد فريق)',
-    hire_date: '2023-03-01',
-    salary: 9800,
-    leave_balance: 24,
-    iban: 'SA4420000001234567891234',
-    bank_name: 'بنك الرياض',
-    iqama_expiry_date: '2027-09-10',
-    contract_end_date: '2026-11-25',
-    medical_insurance_expiry: '2026-11-18',
-    system_role: 'Shelter Supervisor',
-    signature_status: 'موقّع ومعتمد',
-    compliance_hash: 'SA-COMPLIANCE-SHL-4102',
-    status: 'نشط',
-  },
-  {
-    id: 'emp-103',
-    company_id: 'SAF',
-    employee_code: 'EMP-2026-003',
-    name: 'إبراهيم الشمري',
-    national_id: '1077283940',
-    job_title: 'محاسب عام قيد وسندات',
-    department: 'الإدارة المالية',
-    branch: 'الإدارة العامة',
-    grade: 'الدرجة الثالثة (أخصائي أول)',
-    hire_date: '2023-06-10',
-    salary: 8500,
-    leave_balance: 21,
-    iban: 'SA0380000000107728394012',
-    bank_name: 'مصرف الراجحي',
-    iqama_expiry_date: '2028-02-14',
-    contract_end_date: '2027-06-10',
-    medical_insurance_expiry: '2027-03-01',
-    system_role: 'Financial Manager',
-    signature_status: 'موقّع ومعتمد',
-    compliance_hash: 'SA-COMPLIANCE-FIN-7719',
-    status: 'نشط',
-  },
-  {
-    id: 'emp-104',
-    company_id: 'SAF',
-    employee_code: 'EMP-2026-004',
-    name: 'سارة خالد',
-    national_id: '1066283910',
-    job_title: 'أخصائية خدمة عملاء وواتساب',
-    department: 'خدمة العملاء (CRM)',
-    branch: 'فرع جدة',
-    grade: 'الدرجة الثانية (أخصائي)',
-    hire_date: '2024-01-10',
-    salary: 7200,
-    leave_balance: 18,
-    iban: 'SA0310000000106628391015',
-    bank_name: 'البنك الأهلي السعودي',
-    iqama_expiry_date: '2027-11-30',
-    contract_end_date: '2027-01-10',
-    medical_insurance_expiry: '2026-11-12',
-    system_role: 'Sales Agent',
-    signature_status: 'موقّع ومعتمد',
-    compliance_hash: 'SA-COMPLIANCE-CRM-5520',
-    status: 'نشط',
-  },
-];
+  };
+});
 
 const DEFAULT_MOCK_PROMOTIONS: PromotionRecord[] = [
   {

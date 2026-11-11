@@ -1,8 +1,8 @@
 -- ============================================================================
 -- Migration: 20261110000000_kas_allowed_emails_whitelist.sql
 -- Purpose: Official @kas.sa Corporate Email Whitelist & Department Access Matrix
---          for Khalid Al-Sulaim Holding Group (66 Approved Employees +
---          Explicit Exclusion of o.saeed.hospitality@kas.sa — Buffet Kitchen)
+--          Synchronized 100% with src/config/kasAllowedEmails.ts (69 Approved
+--          Accounts + 1 Excluded Account: o.saeed.hospitality@kas.sa)
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.kas_allowed_emails (
@@ -54,104 +54,81 @@ CREATE POLICY "kas_allowed_emails_admin_write_policy"
     )
   );
 
--- Seed all 66 Approved @kas.sa Accounts + 1 Excluded Account (o.saeed.hospitality@kas.sa)
 INSERT INTO public.kas_allowed_emails (
   id, email, username, full_name_ar, full_name_en, job_title_ar,
   company_id, department_id, default_tab, default_tab_title, suffix_code,
   is_active, is_excluded, exclusion_reason
 ) VALUES
-  -- 1. Executive & IT
-  ('USR-KAS-001', 'khalid@kas.sa', 'khalid', 'أ. خالد السليم', 'Khalid Al-Sulaim', 'الرئيس التنفيذي', 'all', 'executive', 'dashboard', 'لوحة القيادة التنفيذية العليا للمجموعة', 'executive', true, false, NULL),
-  ('USR-KAS-069', 'a.salif.dev@kas.sa', 'a.salif.dev', 'عبدالله سالف', 'Abdullah Salif', 'مطور أنظمة', 'all', 'executive', 'dashboard', 'لوحة القيادة التنفيذية وإدارة الأنظمة', '.dev', true, false, NULL),
-
-  -- 2. HR & Careers
-  ('USR-KAS-002', 'hr@kas.sa', 'hr', 'فهد السحيباني', 'Fahad Al-Suhaibani', 'مدير الموارد البشرية', 'all', 'hr', 'hr-hierarchy', 'شؤون الموظفين والرواتب (WPS)', 'hr', true, false, NULL),
-  ('USR-KAS-070', 'careers@kas.sa', 'careers', 'بوابة التوظيف واستقطاب الكفاءات', 'KAS Careers Portal', 'بوابة التوظيف الرسمية واستقطاب الكفاءات', 'all', 'ats', 'ats-hub', 'بوابة التوظيف والفرز الذكي (ATS)', 'careers', true, false, NULL),
-
-  -- 3. Topaz (.topaz) & Follow-up (.followup)
-  ('USR-KAS-003', 'a.eissa.topaz@kas.sa', 'a.eissa.topaz', 'أحمد عيسى', 'Ahmed Eissa', 'مشرف توباز', 'TOP', 'ats', 'ats-hub', 'منظومة التوظيف والفرز الذكي (توباز)', '.topaz', true, false, NULL),
-  ('USR-KAS-007', 'm.fathy.topaz@kas.sa', 'm.fathy.topaz', 'محمد فتحي', 'Mohamed Fathy', 'مدير إدارة التشغيل (توباز)', 'TOP', 'ats', 'ats-hub', 'منظومة التوظيف والفرز الذكي (توباز)', '.topaz', true, false, NULL),
-  ('USR-KAS-009', 's.abdulwahed.topaz@kas.sa', 's.abdulwahed.topaz', 'سيد عبدالواحد', 'Sayed Abdulwahed', 'مساند توباز', 'TOP', 'ats', 'ats-hub', 'منظومة التوظيف والفرز الذكي (توباز)', '.topaz', true, false, NULL),
-  ('USR-KAS-014', 'm.azzam.topaz@kas.sa', 'm.azzam.topaz', 'محمد عزام', 'Mohamed Azzam', 'معقب توباز', 'TOP', 'ats', 'ats-hub', 'منظومة التوظيف والفرز الذكي (توباز)', '.topaz', true, false, NULL),
-  ('USR-KAS-020', 'w.fathy.topaz@kas.sa', 'w.fathy.topaz', 'وليد فتحي', 'Walid Fathy', 'خدمة عملاء توباز', 'TOP', 'crm', 'complaints-crm', 'منظومة خدمة عملاء توباز والشكاوى', '.topaz', true, false, NULL),
-  ('USR-KAS-030', 'h.abubakr.topaz@kas.sa', 'h.abubakr.topaz', 'هاجر أبوبكر', 'Hagar Abubakr', 'تشغيل توباز', 'TOP', 'ats', 'ats-hub', 'منظومة التوظيف والفرز الذكي (توباز)', '.topaz', true, false, NULL),
-  ('USR-KAS-031', 'd.elshahat.topaz@kas.sa', 'd.elshahat.topaz', 'دعاء الشحات', 'Doaa El-Shahat', 'كول سنتر توباز', 'TOP', 'crm', 'call-center-pbx', 'مركز الاتصال الموحد (كول سنتر توباز)', '.topaz', true, false, NULL),
-  ('USR-KAS-035', 'a.mostafa.topaz@kas.sa', 'a.mostafa.topaz', 'آية مصطفى', 'Aya Mostafa', 'توباز', 'TOP', 'ats', 'ats-hub', 'منظومة التوظيف والفرز الذكي (توباز)', '.topaz', true, false, NULL),
-  ('USR-KAS-041', 'z.ali.topaz@kas.sa', 'z.ali.topaz', 'زينب علي', 'Zainab Ali', 'توباز', 'TOP', 'ats', 'ats-hub', 'منظومة التوظيف والفرز الذكي (توباز)', '.topaz', true, false, NULL),
-  ('USR-KAS-005', 'm.fouda.followup@kas.sa', 'm.fouda.followup', 'محمد فوده', 'Mohamed Fouda', 'مدير قسم المتابعة والتطوير', 'all', 'ats', 'ats-hub', 'بوابة المتابعة والتطوير ومؤشرات الأداء', '.followup', true, false, NULL),
-  ('USR-KAS-036', 'b.ibrahim.followup@kas.sa', 'b.ibrahim.followup', 'بسنت ابراهيم', 'Basant Ibrahim', 'قسم المتابعة والتطوير', 'all', 'ats', 'ats-hub', 'بوابة المتابعة والتطوير ومؤشرات الأداء', '.followup', true, false, NULL),
-
-  -- 4. Al-Safir (.safir)
-  ('USR-KAS-006', 'h.hassan.safir@kas.sa', 'h.hassan.safir', 'حماده حسن', 'Hamada Hassan', 'مدير إدارة التشغيل (السفير)', 'SAF', 'recruitment', 'Foreign-Recruitment', 'منظومة الاستقدام الدولي وعقود مساند (السفير)', '.safir', true, false, NULL),
-  ('USR-KAS-010', 'o.shaaban.safir@kas.sa', 'o.shaaban.safir', 'عمر شعبان', 'Omar Shaaban', 'مشرف السفير', 'SAF', 'recruitment', 'Foreign-Recruitment', 'منظومة الاستقدام الدولي وعقود مساند (السفير)', '.safir', true, false, NULL),
-  ('USR-KAS-017', 'a.fathy.safir@kas.sa', 'a.fathy.safir', 'أحمد فتحي', 'Ahmed Fathy', 'معقب السفير', 'SAF', 'recruitment', 'visa-tracker', 'متابعة التأشيرات والتعقيب الحكومي (السفير)', '.safir', true, false, NULL),
-  ('USR-KAS-019', 's.salah.safir@kas.sa', 's.salah.safir', 'شعبان صلاح', 'Shaaban Salah', 'خدمة عملاء السفير', 'SAF', 'crm', 'complaints-crm', 'خدمة عملاء السفير والشكاوى (CRM)', '.safir', true, false, NULL),
-  ('USR-KAS-023', 'e.sayed.safir@kas.sa', 'e.sayed.safir', 'إسلام سيد', 'Islam Sayed', 'السفير مساند', 'SAF', 'recruitment', 'musaned-hub', 'بوابة عقود مساند والتفييز (السفير)', '.safir', true, false, NULL),
-  ('USR-KAS-029', 'i.ali.safir@kas.sa', 'i.ali.safir', 'إسراء علي', 'Esraa Ali', 'كول سنتر السفير', 'SAF', 'crm', 'call-center-pbx', 'مركز الاتصال الموحد (كول سنتر السفير)', '.safir', true, false, NULL),
-  ('USR-KAS-034', 's.adel.safir@kas.sa', 's.adel.safir', 'سارة عادل', 'Sara Adel', 'السفير', 'SAF', 'recruitment', 'Foreign-Recruitment', 'منظومة الاستقدام الدولي وعقود مساند (السفير)', '.safir', true, false, NULL),
-  ('USR-KAS-040', 'd.ashraf.safir@kas.sa', 'd.ashraf.safir', 'دينا أشرف', 'Dina Ashraf', 'السفير', 'SAF', 'recruitment', 'Foreign-Recruitment', 'منظومة الاستقدام الدولي وعقود مساند (السفير)', '.safir', true, false, NULL),
-
-  -- 5. Finance & Accounting (.acc)
-  ('USR-KAS-008', 'a.alkinani.acc@kas.sa', 'a.alkinani.acc', 'أحمد الكناني', 'Ahmed Al-Kinani', 'رئيس الحسابات', 'all', 'finance', 'finance-home', 'النظام المالي والمحاسبي الموحد (SMACC & ZATCA)', '.acc', true, false, NULL),
-  ('USR-KAS-011', 'y.mubarak.acc@kas.sa', 'y.mubarak.acc', 'ياسر مبارك', 'Yasser Mubarak', 'محاسب الياقوت', 'YAQ', 'finance', 'finance-home', 'النظام المالي والمحاسبي — شركة الياقوت', '.acc', true, false, NULL),
-  ('USR-KAS-012', 'a.farraj.acc@kas.sa', 'a.farraj.acc', 'أحمد فراج', 'Ahmed Farraj', 'محاسب دار الرواد', 'DAR', 'finance', 'finance-home', 'النظام المالي والمحاسبي — شركة دار الرواد', '.acc', true, false, NULL),
-  ('USR-KAS-013', 'm.salih.acc@kas.sa', 'm.salih.acc', 'محمد صالح', 'Mohamed Salih', 'محاسب توباز', 'TOP', 'finance', 'finance-home', 'النظام المالي والمحاسبي — شركة توباز', '.acc', true, false, NULL),
-  ('USR-KAS-027', 'a.gamal.acc@kas.sa', 'a.gamal.acc', 'عبدالرحمن جمال', 'Abdulrahman Gamal', 'محاسب (إمال + التجارة)', 'KAS', 'finance', 'finance-home', 'النظام المالي والمحاسبي — شركة إمال والتجارة', '.acc', true, false, NULL),
-
-  -- 6. Al-Yaqoot (.yaqoot)
-  ('USR-KAS-024', 'h.yousef.yaqoot@kas.sa', 'h.yousef.yaqoot', 'حماده يوسف', 'Hamada Yousef', 'مشرف الياقوت', 'YAQ', 'rental', 'Labor-Rental', 'منظومة عقود التأجير والتشغيل (الياقوت)', '.yaqoot', true, false, NULL),
-  ('USR-KAS-016', 'm.elshafey.yaqoot@kas.sa', 'm.elshafey.yaqoot', 'محمد الشافعي', 'Mohamed El-Shafey', 'مساند الياقوت', 'YAQ', 'rental', 'Labor-Rental', 'منظومة عقود التأجير ومساند (الياقوت)', '.yaqoot', true, false, NULL),
-  ('USR-KAS-018', 'a.abdelbadea.yaqoot@kas.sa', 'a.abdelbadea.yaqoot', 'أحمد عبدالبديع', 'Ahmed Abdelbadea', 'معقب الياقوت', 'YAQ', 'rental', 'Labor-Rental', 'منظومة عقود التأجير والتعقيب (الياقوت)', '.yaqoot', true, false, NULL),
-  ('USR-KAS-022', 'a.salah.yaqoot@kas.sa', 'a.salah.yaqoot', 'أحمد صلاح', 'Ahmed Salah', 'خدمة عملاء الياقوت', 'YAQ', 'crm', 'complaints-crm', 'خدمة عملاء الياقوت والشكاوى (CRM)', '.yaqoot', true, false, NULL),
-  ('USR-KAS-028', 's.hassan.yaqoot@kas.sa', 's.hassan.yaqoot', 'ساره حسن', 'Sara Hassan', 'تشغيل الياقوت', 'YAQ', 'rental', 'Labor-Rental', 'منظومة عقود التأجير والتشغيل (الياقوت)', '.yaqoot', true, false, NULL),
-  ('USR-KAS-032', 'k.mohamed.yaqoot@kas.sa', 'k.mohamed.yaqoot', 'خلود محمد', 'Kholoud Mohamed', 'كول سنتر الياقوت', 'YAQ', 'crm', 'call-center-pbx', 'مركز الاتصال الموحد (كول سنتر الياقوت)', '.yaqoot', true, false, NULL),
-  ('USR-KAS-039', 'y.ayman.yaqoot@kas.sa', 'y.ayman.yaqoot', 'ياسمين أيمن', 'Yasmin Ayman', 'الياقوت', 'YAQ', 'rental', 'Labor-Rental', 'منظومة عقود التأجير والتشغيل (الياقوت)', '.yaqoot', true, false, NULL),
-  ('USR-KAS-042', 'f.atef.yaqoot@kas.sa', 'f.atef.yaqoot', 'فاطمة عاطف', 'Fatma Atef', 'الياقوت', 'YAQ', 'rental', 'Labor-Rental', 'منظومة عقود التأجير والتشغيل (الياقوت)', '.yaqoot', true, false, NULL),
-
-  -- 7. Dar Al-Rowad (.daralrowad)
-  ('USR-KAS-025', 'a.abdelwahab.daralrowad@kas.sa', 'a.abdelwahab.daralrowad', 'أحمد عبدالوهاب', 'Ahmed Abdelwahab', 'مساند دار الرواد', 'DAR', 'recruitment', 'musaned-hub', 'بوابة مساند والاستقدام — شركة دار الرواد', '.daralrowad', true, false, NULL),
-  ('USR-KAS-026', 'a.elagamawy.daralrowad@kas.sa', 'a.elagamawy.daralrowad', 'أحمد العجماوي', 'Ahmed El-Agamawy', 'خدمة عملاء دار الرواد', 'DAR', 'crm', 'complaints-crm', 'خدمة عملاء دار الرواد والشكاوى (CRM)', '.daralrowad', true, false, NULL),
-  ('USR-KAS-033', 'g.mohamed.daralrowad@kas.sa', 'g.mohamed.daralrowad', 'جهاد محمد', 'Gehad Mohamed', 'تشغيل دار الرواد', 'DAR', 'recruitment', 'Foreign-Recruitment', 'منظومة التشغيل والاستقدام — شركة دار الرواد', '.daralrowad', true, false, NULL),
-  ('USR-KAS-038', 'a.ehab.daralrowad@kas.sa', 'a.ehab.daralrowad', 'أمل إيهاب', 'Amal Ehab', 'كول سنتر دار الرواد', 'DAR', 'crm', 'call-center-pbx', 'مركز الاتصال الموحد (كول سنتر دار الرواد)', '.daralrowad', true, false, NULL),
-  ('USR-KAS-043', 'n.medhat.daralrowad@kas.sa', 'n.medhat.daralrowad', 'ندى مدحت', 'Nada Medhat', 'دار الرواد', 'DAR', 'recruitment', 'Foreign-Recruitment', 'منظومة التشغيل والاستقدام — شركة دار الرواد', '.daralrowad', true, false, NULL),
-
-  -- 8. Marketing, Sales & Showrooms (.marketing, .sales, .showroom)
-  ('USR-KAS-007M', 'mustafa.marketing@kas.sa', 'mustafa.marketing', 'مصطفى جلال', 'Mustafa Galal', 'مدير قسم التسويق', 'all', 'crm', 'marketing-campaigns', 'إدارة الحملات التسويقية وعلاقات العملاء', '.marketing', true, false, NULL),
-  ('USR-KAS-037', 'r.sayed.marketing@kas.sa', 'r.sayed.marketing', 'روان سيد', 'Rawan Sayed', 'قسم التسويق', 'all', 'crm', 'marketing-campaigns', 'إدارة الحملات التسويقية وعلاقات العملاء', '.marketing', true, false, NULL),
-  ('USR-KAS-044', 'a.helmy.marketing@kas.sa', 'a.helmy.marketing', 'عبدالرحمن حلمي', 'Abdulrahman Helmy', 'قسم التسويق', 'all', 'crm', 'marketing-campaigns', 'إدارة الحملات التسويقية وعلاقات العملاء', '.marketing', true, false, NULL),
-  ('USR-KAS-021', 'm.khalifa.sales@kas.sa', 'm.khalifa.sales', 'محمد خليفة', 'Mohamed Khalifa', 'مدير صالة المبيعات', 'SAF', 'crm', 'sales-commissions', 'إدارة صالة المبيعات وعقود العملاء والعمولات', '.sales', true, false, NULL),
-  ('USR-KAS-045', 'm.medhat.sales@kas.sa', 'm.medhat.sales', 'مينا مدحت', 'Mina Medhat', 'مبيعات الصالة (توباز)', 'TOP', 'crm', 'sales-commissions', 'مبيعات الصالة وعقود العملاء — توباز', '.sales', true, false, NULL),
-  ('USR-KAS-046', 'a.antar.sales@kas.sa', 'a.antar.sales', 'أحمد عنتر', 'Ahmed Antar', 'مبيعات الصالة (السفير)', 'SAF', 'crm', 'sales-commissions', 'مبيعات الصالة وعقود العملاء — السفير', '.sales', true, false, NULL),
-  ('USR-KAS-047', 'm.rizk.sales@kas.sa', 'm.rizk.sales', 'محمد رزق', 'Mohamed Rizk', 'مبيعات الصالة (الياقوت)', 'YAQ', 'crm', 'sales-commissions', 'مبيعات الصالة وعقود العملاء — الياقوت', '.sales', true, false, NULL),
-  ('USR-KAS-048', 's.sami.sales@kas.sa', 's.sami.sales', 'سيف سامي', 'Seif Sami', 'مبيعات الصالة (دار الرواد)', 'DAR', 'crm', 'sales-commissions', 'مبيعات الصالة وعقود العملاء — دار الرواد', '.sales', true, false, NULL),
-  ('USR-KAS-049', 'm.atef.sales@kas.sa', 'm.atef.sales', 'محمود عاطف', 'Mahmoud Atef', 'مبيعات الصالة (دار الرواد)', 'DAR', 'crm', 'sales-commissions', 'مبيعات الصالة وعقود العملاء — دار الرواد', '.sales', true, false, NULL),
-  ('USR-KAS-015', 'a.shebl.showroom@kas.sa', 'a.shebl.showroom', 'أحمد شبل', 'Ahmed Shebl', 'معرض السفير', 'SAF', 'crm', 'branch-pos-hub', 'نقاط البيع وإدارة معرض السفير (POS)', '.showroom', true, false, NULL),
-
-  -- 9. Imal & Trade (.imal, .trade)
-  ('USR-KAS-004', 'o.allam.trade@kas.sa', 'o.allam.trade', 'أسامة علام', 'Osama Allam', 'مشرف شركة السليم للتجارة', 'KAS', 'tenders', 'etimad-tenders', 'منظومة المنافسات والعقود التجارية (السليم للتجارة)', '.trade', true, false, NULL),
-  ('USR-KAS-052', 'm.alsaleh.imal@kas.sa', 'm.alsaleh.imal', 'مازن الصالح', 'Mazen Al-Saleh', 'مدير العلاقات العامة (إمال)', 'KAS', 'tenders', 'kas-b2b-corporate', 'منظومة عقود الشركات والمنافسات (شركة إمال)', '.imal', true, false, NULL),
-  ('USR-KAS-053', 'k.alanzi.imal@kas.sa', 'k.alanzi.imal', 'خلود العنزي', 'Kholoud Al-Anzi', 'مديرة التوظيف (إمال)', 'KAS', 'tenders', 'kas-b2b-corporate', 'منظومة التوظيف وعقود الشركات (شركة إمال)', '.imal', true, false, NULL),
-  ('USR-KAS-054', 'm.abdelkader.imal@kas.sa', 'm.abdelkader.imal', 'محمد عبدالقادر', 'Mohamed Abdelkader', 'سيلز إمال', 'KAS', 'tenders', 'kas-b2b-corporate', 'منظومة مبيعات الشركات والمنافسات (شركة إمال)', '.imal', true, false, NULL),
-  ('USR-KAS-055', 'f.alrashidi.imal@kas.sa', 'f.alrashidi.imal', 'فيصل الرشيدي', 'Faisal Al-Rashidi', 'إمال', 'KAS', 'tenders', 'kas-b2b-corporate', 'منظومة عقود الشركات والمنافسات (شركة إمال)', '.imal', true, false, NULL),
-
-  -- 10. Shelter, Housing & Drivers (.housing, .driver)
-  ('USR-KAS-050', 'r.aljbr.housing@kas.sa', 'r.aljbr.housing', 'م. راكان الجبر', 'Eng. Rakan Al-Jbr', 'مدير إدارة السكن والنقل', 'DAR', 'shelter', 'shelter-suite', 'منظومة إدارة السكن والإيواء والنقل (دار الرواد)', '.housing', true, false, NULL),
-  ('USR-KAS-051', 'a.farahat@kas.sa', 'a.farahat', 'عبدالفتاح فرحات', 'Abdelfattah Farahat', 'السكن', 'all', 'shelter', 'shelter-suite', 'منظومة إدارة السكن والإيواء الموحدة', '.housing', true, false, NULL),
-  ('USR-KAS-056', 'c.manalo.housing@kas.sa', 'c.manalo.housing', 'كارلا مانالو', 'Carla Manalo', 'مشرفة السكن (توباز)', 'TOP', 'shelter', 'shelter-suite', 'منظومة إدارة السكن والإيواء — توباز', '.housing', true, false, NULL),
-  ('USR-KAS-057', 'j.delacruz.housing@kas.sa', 'j.delacruz.housing', 'جوسيل ديلا كروز', 'Jocel Dela Cruz', 'مشرفة السكن (الياقوت)', 'YAQ', 'shelter', 'shelter-suite', 'منظومة إدارة السكن والإيواء — الياقوت', '.housing', true, false, NULL),
-  ('USR-KAS-058', 's.ali.housing@kas.sa', 's.ali.housing', 'سميرة علي', 'Samira Ali', 'مشرفة السكن (السفير)', 'SAF', 'shelter', 'shelter-suite', 'منظومة إدارة السكن والإيواء — السفير', '.housing', true, false, NULL),
-  ('USR-KAS-059', 'h.abdu.housing@kas.sa', 'h.abdu.housing', 'حياة عبده', 'Hayat Abdu', 'مشرفة السكن (توباز)', 'TOP', 'shelter', 'shelter-suite', 'منظومة إدارة السكن والإيواء — توباز', '.housing', true, false, NULL),
-  ('USR-KAS-060', 's.barrios.housing@kas.sa', 's.barrios.housing', 'شيلا باريوس', 'Sheila Barrios', 'مشرفة السكن (توباز)', 'TOP', 'shelter', 'shelter-suite', 'منظومة إدارة السكن والإيواء — توباز', '.housing', true, false, NULL),
-  ('USR-KAS-061', 'k.hussein.housing@kas.sa', 'k.hussein.housing', 'كريمة حسين', 'Karima Hussein', 'مشرفة السكن (دار الرواد)', 'DAR', 'shelter', 'shelter-suite', 'منظومة إدارة السكن والإيواء — دار الرواد', '.housing', true, false, NULL),
-  ('USR-KAS-062', 'j.encajas.driver@kas.sa', 'j.encajas.driver', 'جويل إنكاخاس', 'Joel Encajas', 'سائق (توباز)', 'TOP', 'shelter', 'housing-Transport', 'منظومة النقل وحركة السائقين — توباز', '.driver', true, false, NULL),
-  ('USR-KAS-063', 'k.basha.driver@kas.sa', 'k.basha.driver', 'كريم باشا', 'Karim Basha', 'سائق (السفير)', 'SAF', 'shelter', 'housing-Transport', 'منظومة النقل وحركة السائقين — السفير', '.driver', true, false, NULL),
-  ('USR-KAS-064', 'h.mia.driver@kas.sa', 'h.mia.driver', 'هيرو ميا', 'Hero Mia', 'سائق (الياقوت)', 'YAQ', 'shelter', 'housing-Transport', 'منظومة النقل وحركة السائقين — الياقوت', '.driver', true, false, NULL),
-  ('USR-KAS-065', 's.miah.driver@kas.sa', 's.miah.driver', 'شابين مياه', 'Shabin Miah', 'سائق (السفير)', 'SAF', 'shelter', 'housing-Transport', 'منظومة النقل وحركة السائقين — السفير', '.driver', true, false, NULL),
-  ('USR-KAS-066', 'a.matubber.driver@kas.sa', 'a.matubber.driver', 'أيوب ماتوبر', 'Ayoub Matubber', 'سائق (دار الرواد)', 'DAR', 'shelter', 'housing-Transport', 'منظومة النقل وحركة السائقين — دار الرواد', '.driver', true, false, NULL),
-  ('USR-KAS-067', 'b.hossain.driver@kas.sa', 'b.hossain.driver', 'بلال حسين', 'Belal Hossain', 'سائق (توباز)', 'TOP', 'shelter', 'housing-Transport', 'منظومة النقل وحركة السائقين — توباز', '.driver', true, false, NULL),
-
-  -- EXPLICITLY EXCLUDED ACCOUNT (#68 Osama Saeed — Buffet Kitchen)
-  ('USR-KAS-068', 'o.saeed.hospitality@kas.sa', 'o.saeed.hospitality', 'أسامة سعيد', 'Osama Saeed', 'بوفيه (مطبخ البوفيه والضيافة)', 'all', 'excluded', 'none', 'مستبعد من الأنظمة', '.hospitality', false, true, 'رفض أمني: حساب مطبخ البوفيه والضيافة (أسامة سعيد — o.saeed.hospitality@kas.sa) مستبعد من صلاحيات الدخول لأنظمة ERP الإدارية والمالية.')
+  ('KAS-EMP-001', 'khalid@kas.sa', 'khalid', 'خالد عبدالعزيز السليم', 'Khalid Abdulaziz Al-Salim', 'المالك — رئيس مجلس الإدارة', 'all', 'executive', 'dashboard', 'لوحة القيادة التنفيذية العليا للمجموعة', 'group', true, false, NULL),
+  ('KAS-EMP-002', 'h.alsalim@kas.sa', 'h.alsalim', 'هاني عبدالله السليم', 'Hani Abdullah Al-Salim', 'استشاري تطوير أعمال', 'all', 'executive', 'dashboard', 'لوحة القيادة وتطوير الأعمال للمجموعة', 'group', true, false, NULL),
+  ('KAS-EMP-003', 'n.alshetwi@kas.sa', 'n.alshetwi', 'ناصر شتوى الشتوى', 'Nasser Shetwy Al-Shetwy', 'تطوير ومتابعة', 'all', 'executive', 'dashboard', 'لوحة التطوير والمتابعة التنفيذية', 'group', true, false, NULL),
+  ('KAS-EMP-034', 'a.salif.dev@kas.sa', 'a.salif.dev', 'عبدالرحمن أبو سالف', 'Abdulrahman Abu Salif', 'مبرمج النظام وتطوير الأنظمة', 'all', 'executive', 'dashboard', 'لوحة القيادة وإدارة الأنظمة والبرمجة', 'dev', true, false, NULL),
+  ('KAS-EMP-004', 'hr@kas.sa', 'hr', 'ريم احمد بن حسين', 'Reem Ahmed Bin Hussein', 'مديرة الموارد البشرية', 'all', 'hr', 'employees', 'بوابة الموارد البشرية ومسير الرواتب (WPS)', 'hr', true, false, NULL),
+  ('KAS-EMP-010', 'a.alanazi@kas.sa', 'a.alanazi', 'الجوري العنزي', 'Aljory Al-Anazi', 'خدمات حكومية', 'all', 'hr', 'employees', 'بوابة الخدمات الحكومية والموارد البشرية', 'group', true, false, NULL),
+  ('KAS-EMP-039', 'a.alkinani.acc@kas.sa', 'a.alkinani.acc', 'اكرم محمد الكناني', 'Akram Mohammed Al-Kinani', 'محاسب استقدام', 'SAF', 'finance', 'smacc-accounting', 'النظام المالي والمحاسبي — محاسبة الاستقدام', 'acc', true, false, NULL),
+  ('KAS-EMP-040', 'a.eissa.acc@kas.sa', 'a.eissa.acc', 'احمد حلمى عبدالمقصود عيسى', 'Ahmed Helmy Abdelmaksoud Eissa', 'محاسب استقدام', 'SAF', 'finance', 'smacc-accounting', 'النظام المالي والمحاسبي — محاسبة الاستقدام', 'acc', true, false, NULL),
+  ('KAS-EMP-041', 'm.aljarm.acc@kas.sa', 'm.aljarm.acc', 'محمد شعبان الجرم', 'Mohammed Shaaban Al-Jarm', 'محاسب استقدام', 'SAF', 'finance', 'smacc-accounting', 'النظام المالي والمحاسبي — محاسبة الاستقدام', 'acc', true, false, NULL),
+  ('KAS-EMP-042', 'a.ibrahim.acc@kas.sa', 'a.ibrahim.acc', 'عمرو المحمدي إبراهيم', 'Amr Al-Mohammadi Ibrahim', 'محاسب استقدام', 'SAF', 'finance', 'smacc-accounting', 'النظام المالي والمحاسبي — محاسبة الاستقدام', 'acc', true, false, NULL),
+  ('KAS-EMP-043', 'a.aljarm.imal@kas.sa', 'a.aljarm.imal', 'احمد شعبان الجرم', 'Ahmed Shaaban Al-gerem', 'محاسب الاميال', 'KAS', 'finance', 'smacc-accounting', 'النظام المالي والمحاسبي — محاسبة الأميال', 'imal', true, false, NULL),
+  ('KAS-EMP-044', 'm.alata.trade@kas.sa', 'm.alata.trade', 'محمود على محمد ابوالعطا', 'Mahmoud Ali Mohammed Abu Al-Ata', 'محاسب التجارة', 'KAS', 'finance', 'smacc-accounting', 'النظام المالي والمحاسبي — محاسبة التجارة', 'trade', true, false, NULL),
+  ('KAS-EMP-045', 'm.mohammed.acc@kas.sa', 'm.mohammed.acc', 'محمد خالد السيد', 'Mohammed Khalid El-Sayed', 'محاسب التجارة', 'KAS', 'finance', 'smacc-accounting', 'النظام المالي والمحاسبي — محاسبة التجارة', 'acc', true, false, NULL),
+  ('KAS-EMP-012', 'h.hassan.safir@kas.sa', 'h.hassan.safir', 'حذيفه رمضان على حسن', 'Huzaifa Ramadan Ali Hassan', 'مبيعات استقدام — السفير الماسي', 'SAF', 'recruitment', 'recruitment-contracts', 'بوابة عقود ومبيعات الاستقدام — شركة السفير الماسي', 'safir', true, false, NULL),
+  ('KAS-EMP-015', 'k.abdullatif.safir@kas.sa', 'k.abdullatif.safir', 'خالد على حسن عبداللطيف', 'Khalid Ali Hassan Abdullatif', 'مبيعات استقدام — السفير الماسي', 'SAF', 'recruitment', 'recruitment-contracts', 'بوابة عقود ومبيعات الاستقدام — شركة السفير الماسي', 'safir', true, false, NULL),
+  ('KAS-EMP-020', 's.ali.safir@kas.sa', 's.ali.safir', 'سمية محمد كمال علي', 'Somaya Mohammed Kamal Ali', 'مبيعات استقدام — السفير الماسي', 'SAF', 'recruitment', 'recruitment-contracts', 'بوابة عقود ومبيعات الاستقدام — شركة السفير الماسي', 'safir', true, false, NULL),
+  ('KAS-EMP-009', 'm.alabdullatif.topaz@kas.sa', 'm.alabdullatif.topaz', 'ملاك عبدالله العبداللطيف', 'Malak Abdullah Al-Abdullatif', 'مسؤولة مشتريات وعقود — توباز', 'TOP', 'recruitment', 'recruitment-contracts', 'بوابة المشتريات وعقود الاستقدام — شركة توباز', 'topaz', true, false, NULL),
+  ('KAS-EMP-013', 'a.eissa.topaz@kas.sa', 'a.eissa.topaz', 'امل سعيد عمر عيسى', 'Amal Saeed Omar Eissa', 'مبيعات استقدام — توباز', 'TOP', 'recruitment', 'recruitment-contracts', 'بوابة عقود ومبيعات الاستقدام — شركة توباز', 'topaz', true, false, NULL),
+  ('KAS-EMP-016', 'i.hamdy.topaz@kas.sa', 'i.hamdy.topaz', 'اسلام احمد حمدى', 'Islam Ahmed Hamdy', 'مبيعات استقدام — توباز', 'TOP', 'recruitment', 'recruitment-contracts', 'بوابة عقود ومبيعات الاستقدام — شركة توباز', 'topaz', true, false, NULL),
+  ('KAS-EMP-014', 'h.yousef.yaqoot@kas.sa', 'h.yousef.yaqoot', 'حسن يوسف', 'Hassan Yousef', 'مبيعات استقدام — ياقوت نجد', 'YAQ', 'recruitment', 'recruitment-contracts', 'بوابة عقود ومبيعات الاستقدام — شركة ياقوت نجد', 'yaqoot', true, false, NULL),
+  ('KAS-EMP-017', 'r.othman.yaqoot@kas.sa', 'r.othman.yaqoot', 'رابية محمد عثمان', 'Rabia Mohammed Othman', 'مبيعات استقدام — ياقوت نجد', 'YAQ', 'recruitment', 'recruitment-contracts', 'بوابة عقود ومبيعات الاستقدام — شركة ياقوت نجد', 'yaqoot', true, false, NULL),
+  ('KAS-EMP-018', 's.barakat.yaqoot@kas.sa', 's.barakat.yaqoot', 'سارة محمد مضوي بركات', 'Sara Mohammed Mudawi Barakat', 'مبيعات استقدام — ياقوت نجد', 'YAQ', 'recruitment', 'recruitment-contracts', 'بوابة عقود ومبيعات الاستقدام — شركة ياقوت نجد', 'yaqoot', true, false, NULL),
+  ('KAS-EMP-019', 'a.abdelwahab.daralrowad@kas.sa', 'a.abdelwahab.daralrowad', 'عمرو عبدالوهاب', 'Amr Abdelwahab', 'مبيعات استقدام — دار الرواد', 'DAR', 'recruitment', 'recruitment-contracts', 'بوابة عقود ومبيعات الاستقدام — شركة دار الرواد', 'daralrowad', true, false, NULL),
+  ('KAS-EMP-021', 'h.alansari.daralrowad@kas.sa', 'h.alansari.daralrowad', 'حمزة عبدالباقي محمد الانصاري', 'Hamza Abdelbagi Mohammed Al-Ansari', 'مبيعات استقدام — دار الرواد', 'DAR', 'recruitment', 'recruitment-contracts', 'بوابة عقود ومبيعات الاستقدام — شركة دار الرواد', 'daralrowad', true, false, NULL),
+  ('KAS-EMP-022', 'm.khalifa.sales@kas.sa', 'm.khalifa.sales', 'محمود على عبدالقوى خليفه', 'Mahmoud Ali Abdelkawi Khalifa', 'مبيعات تفاويض رجالي', 'SAF', 'recruitment', 'ingaz-delegations', 'بوابة مبيعات التفاويض الرجالي وتصديق إنجاز', 'sales', true, false, NULL),
+  ('KAS-EMP-023', 'm.alrahman.sales@kas.sa', 'm.alrahman.sales', 'محمد فواز العبد الرحمن', 'Mohammed Fawaz Al-Abd Al-Rahman', 'مبيعات تفاويض رجالي', 'SAF', 'recruitment', 'ingaz-delegations', 'بوابة مبيعات التفاويض الرجالي وتصديق إنجاز', 'sales', true, false, NULL),
+  ('KAS-EMP-024', 'a.abdulhakim.sales@kas.sa', 'a.abdulhakim.sales', 'عبدالحكيم', 'Abdulhakim', 'مبيعات تفاويض رجالي', 'SAF', 'recruitment', 'ingaz-delegations', 'بوابة مبيعات التفاويض الرجالي وتصديق إنجاز', 'sales', true, false, NULL),
+  ('KAS-EMP-025', 'r.elsayed.sales@kas.sa', 'r.elsayed.sales', 'رجب عبد اللاه على السيد', 'Ragab Abdel Allah Ali El-Sayed', 'مبيعات تفاويض رجالي', 'SAF', 'recruitment', 'ingaz-delegations', 'بوابة مبيعات التفاويض الرجالي وتصديق إنجاز', 'sales', true, false, NULL),
+  ('KAS-EMP-028', 'a.allah.sales@kas.sa', 'a.allah.sales', 'عمار الأمين النور عوض الله', 'Ammar Al-Amin Al-Noor Awad Allah', 'موظف تفاويض ومترجم', 'SAF', 'recruitment', 'ingaz-delegations', 'بوابة التفاويض والترجمة وتصديق إنجاز', 'sales', true, false, NULL),
+  ('KAS-EMP-056', 'm.hazzaa.sales@kas.sa', 'm.hazzaa.sales', 'مصطفي هزاع', 'Mostafa Hazzaa', 'مندوب في بنجلاديش', 'SAF', 'recruitment', 'ingaz-delegations', 'بوابة المندوب الدولي — بنجلاديش', 'sales', true, false, NULL),
+  ('KAS-EMP-057', 'a.abubakar.sales@kas.sa', 'a.abubakar.sales', 'عبدالرحمن ابوبكر', 'Abdulrahman Abubakar', 'مندوب في كينيا', 'SAF', 'recruitment', 'ingaz-delegations', 'بوابة المندوب الدولي — كينيا', 'sales', true, false, NULL),
+  ('KAS-EMP-026', 'm.fouda.followup@kas.sa', 'm.fouda.followup', 'محمود فودة', 'Mahmoud Fouda', 'متابعة المكاتب الخارجية', 'all', 'ats', 'cvs-recruitment', 'بوابة متابعة المكاتب الخارجية وبنك السير الذاتية', 'followup', true, false, NULL),
+  ('KAS-EMP-027', 'i.mahmoud.followup@kas.sa', 'i.mahmoud.followup', 'اسلام احمد عرفه محمود', 'Islam Ahmed Arafa Mahmoud', 'متابعة المكاتب الخارجية', 'all', 'ats', 'cvs-recruitment', 'بوابة متابعة المكاتب الخارجية وبنك السير الذاتية', 'followup', true, false, NULL),
+  ('KAS-EMP-070', 'careers@kas.sa', 'careers', 'بوابة التوظيف واستقطاب الكفاءات', 'KAS Careers & Talent Acquisition', 'إدارة التوظيف والسير الذاتية', 'all', 'ats', 'cvs-recruitment', 'بوابة التوظيف واستقطاب الكفاءات (Careers)', 'careers', true, false, NULL),
+  ('KAS-EMP-005', 'a.farahat@kas.sa', 'a.farahat', 'عبدالفتاح احمد فرحات', 'Abdulfattah Ahmed Farahat', 'خدمات لوجستية', 'all', 'shelter', 'shelter-suite', 'بوابة الخدمات اللوجستية وإدارة السكن والحركة', 'group', true, false, NULL),
+  ('KAS-EMP-011A', 'a.alazzam.housing@kas.sa', 'a.alazzam.housing', 'عبير العزام', 'Abeer Alazzam', 'خدمات مساندة — السكن', 'DAR', 'shelter', 'shelter-suite', 'منظومة مراكز الإيواء والسكن والخدمات المساندة', 'housing', true, false, NULL),
+  ('KAS-EMP-011B', 'r.aljbr.housing@kas.sa', 'r.aljbr.housing', 'رجاء الجبر', 'Rajaa AL Jabr', 'مشرفة سكن', 'DAR', 'shelter', 'shelter-suite', 'منظومة إشراف السكن والإيواء والتسكين', 'housing', true, false, NULL),
+  ('KAS-EMP-046', 'l.sharabi.housing@kas.sa', 'l.sharabi.housing', 'لين باسل شرابي', 'Leen Basel Sharabi', 'إدارة السكن', 'DAR', 'shelter', 'shelter-suite', 'منظومة مراكز الإيواء والتسكين (السكن)', 'housing', true, false, NULL),
+  ('KAS-EMP-047', 'r.mohammed.housing@kas.sa', 'r.mohammed.housing', 'رزان محمد', 'Razan Mohammed', 'إدارة السكن', 'DAR', 'shelter', 'shelter-suite', 'منظومة مراكز الإيواء والتسكين (السكن)', 'housing', true, false, NULL),
+  ('KAS-EMP-048', 'f.ethiopian.housing@kas.sa', 'f.ethiopian.housing', 'فانوس المترجمة الاثيوبية', 'Fanos Translator Ethiopian', 'مترجمة — السكن', 'DAR', 'shelter', 'shelter-suite', 'منظومة الإيواء والترجمة والرعاية بالسكن', 'housing', true, false, NULL),
+  ('KAS-EMP-049', 'c.gaspo.housing@kas.sa', 'c.gaspo.housing', 'كولين جاسبو', 'Colleen Gaspo', 'إدارة السكن', 'DAR', 'shelter', 'shelter-suite', 'منظومة مراكز الإيواء والتسكين (السكن)', 'housing', true, false, NULL),
+  ('KAS-EMP-050', 'k.karini.housing@kas.sa', 'k.karini.housing', 'كاريني', 'Karini', 'إدارة السكن', 'DAR', 'shelter', 'shelter-suite', 'منظومة مراكز الإيواء والتسكين (السكن)', 'housing', true, false, NULL),
+  ('KAS-EMP-052', 'm.housing.housing@kas.sa', 'm.housing.housing', 'مريم مشرفة سكن', 'Maryam Supervisor Housing', 'مشرفة سكن', 'DAR', 'shelter', 'shelter-suite', 'منظومة إشراف السكن والإيواء والتسكين', 'housing', true, false, NULL),
+  ('KAS-EMP-053', 'm.ahmed.housing@kas.sa', 'm.ahmed.housing', 'مريم احمد', 'Maryam Ahmed', 'مترجمة — السكن', 'DAR', 'shelter', 'shelter-suite', 'منظومة الإيواء والترجمة والرعاية بالسكن', 'housing', true, false, NULL),
+  ('KAS-EMP-058', 's.adebo.housing@kas.sa', 's.adebo.housing', 'شامم اديبو', 'Shamim Adebo', 'خدمات داخلية — المكاتب والسكن', 'DAR', 'shelter', 'profile', 'بوابة الخدمة الذاتية للموظف', 'housing', true, false, NULL),
+  ('KAS-EMP-060', 'l.lalis.housing@kas.sa', 'l.lalis.housing', 'لاليس', 'Lalis', 'خدمات داخلية — السكن', 'DAR', 'shelter', 'profile', 'بوابة الخدمة الذاتية للموظف', 'housing', true, false, NULL),
+  ('KAS-EMP-063', 'j.encajas.driver@kas.sa', 'j.encajas.driver', 'جوريل كونديس انكاجاس', 'Joriel Condes Encajas', 'سائق', 'DAR', 'shelter', 'travel', 'بوابة حركة النقل ورحلات المطار والتوصيل', 'driver', true, false, NULL),
+  ('KAS-EMP-064', 'm.rahman.driver@kas.sa', 'm.rahman.driver', 'منصور رحمن', 'Mansour Rahman', 'سائق', 'DAR', 'shelter', 'travel', 'بوابة حركة النقل ورحلات المطار والتوصيل', 'driver', true, false, NULL),
+  ('KAS-EMP-065', 'a.hindi.driver@kas.sa', 'a.hindi.driver', 'عبدالرحمن السائق', 'Abdulrahman Driver Hindi', 'سائق', 'DAR', 'shelter', 'travel', 'بوابة حركة النقل ورحلات المطار والتوصيل', 'driver', true, false, NULL),
+  ('KAS-EMP-066', 'm.soliman.driver@kas.sa', 'm.soliman.driver', 'محمود مصطفى سليمان', 'Mahmoud Mostafa Soliman', 'سائق', 'DAR', 'shelter', 'travel', 'بوابة حركة النقل ورحلات المطار والتوصيل', 'driver', true, false, NULL),
+  ('KAS-EMP-006', 'm.alsaleh.imal@kas.sa', 'm.alsaleh.imal', 'ماجد عبدالرحمن الصالح', 'Majed Abdulrahman Al-Saleh', 'مدير الاميال', 'KAS', 'tenders', 'kas-suite', 'بوابة إدارة قطاع الأميال والعقود التشغيلية', 'imal', true, false, NULL),
+  ('KAS-EMP-025A', 'g.hafez.imal@kas.sa', 'g.hafez.imal', 'جمال محمد حافظ', 'Gamal Mohammed Hafez', 'مبيعات الاميال', 'KAS', 'tenders', 'kas-suite', 'بوابة مبيعات وعقود قطاع الأميال', 'imal', true, false, NULL),
+  ('KAS-EMP-025B', 'm.elsayed.imal@kas.sa', 'm.elsayed.imal', 'محمد علي السيد', 'Mohammed Ali El-Sayed', 'مبيعات الاميال', 'KAS', 'tenders', 'kas-suite', 'بوابة مبيعات وعقود قطاع الأميال', 'imal', true, false, NULL),
+  ('KAS-EMP-007', 'f.alhassan.trade@kas.sa', 'f.alhassan.trade', 'فراس دحام الخلف الحسن', 'Firas Daham Al-Khalaf Al-Hassan', 'مدير التجارة', 'KAS', 'tenders', 'kas-suite', 'بوابة إدارة قطاع التجارة والمشتريات والمنافسات', 'trade', true, false, NULL),
+  ('KAS-EMP-008', 'b.allaboudi.showroom@kas.sa', 'b.allaboudi.showroom', 'باسل خالد محمد اللبودى', 'Basel Khalid Mohammed Al-Laboudi', 'مسؤول المعرض', 'KAS', 'tenders', 'kas-suite', 'بوابة إدارة المعرض والمبيعات التجارية', 'showroom', true, false, NULL),
+  ('KAS-EMP-029', 'm.ismail.trade@kas.sa', 'm.ismail.trade', 'محمد عبد الناقد اسماعيل', 'Mohammed Abdel Al-Naqid Ismail', 'داتا انتري', 'KAS', 'tenders', 'kas-suite', 'بوابة إدخال البيانات والعمليات التجارية (Data Entry)', 'trade', true, false, NULL),
+  ('KAS-EMP-030', 'h.salman.trade@kas.sa', 'h.salman.trade', 'حاتم سلمان ابوالذهب سلمان', 'Hatem Salman Abu Al-Dahab Salman', 'داتا انتري', 'KAS', 'tenders', 'kas-suite', 'بوابة إدخال البيانات والعمليات التجارية (Data Entry)', 'trade', true, false, NULL),
+  ('KAS-EMP-031', 'a.albashir.trade@kas.sa', 'a.albashir.trade', 'احمد جمال احمد البشير', 'Ahmed Gamal Ahmed Al-Bashir', 'داتا انتري', 'KAS', 'tenders', 'kas-suite', 'بوابة إدخال البيانات والعمليات التجارية (Data Entry)', 'trade', true, false, NULL),
+  ('KAS-EMP-054', 'g.ahmed.trade@kas.sa', 'g.ahmed.trade', 'جلال محمد جلال احمد', 'Galal Mohammed Galal Ahmed', 'مندوب مشتريات', 'KAS', 'tenders', 'kas-suite', 'بوابة المشتريات والتوريد التجاري', 'trade', true, false, NULL),
+  ('KAS-EMP-055', 'k.alshennawy.trade@kas.sa', 'k.alshennawy.trade', 'كريم طارق محمود الشناوى', 'Karim Tarek Mahmoud Al-Shennawy', 'مندوب مشتريات', 'KAS', 'tenders', 'kas-suite', 'بوابة المشتريات والتوريد التجاري', 'trade', true, false, NULL),
+  ('KAS-EMP-061', 'm.robel.trade@kas.sa', 'm.robel.trade', 'محمد روبل', 'Mohammed Robel', 'خدمات مكتبية — التجارة', 'KAS', 'tenders', 'profile', 'بوابة الخدمة الذاتية للموظف', 'trade', true, false, NULL),
+  ('KAS-EMP-062', 'b.pathan.trade@kas.sa', 'b.pathan.trade', 'بلال احمد باثان', 'Bilal Ahmed Pathan', 'خدمات مكتبية — التجارة', 'KAS', 'tenders', 'profile', 'بوابة الخدمة الذاتية للموظف', 'trade', true, false, NULL),
+  ('KAS-EMP-032', 'mustafa.marketing@kas.sa', 'mustafa.marketing', 'مصطفي عبدالرحيم جلال الدين', 'Mostafa Abdelrahim Galal Al-Din', 'مدير الدعاية والتسويق', 'all', 'crm', 'clients', 'بوابة إدارة الدعاية والتسويق وعلاقات العملاء (CRM)', 'marketing', true, false, NULL),
+  ('KAS-EMP-033', 'm.alkhader.marketing@kas.sa', 'm.alkhader.marketing', 'معاذ عبدالكريم علي الخضر', 'Moaz Abdulkarim Ali Al-Khader', 'موظف في الدعاية والتسويق', 'all', 'crm', 'clients', 'بوابة الدعاية والتسويق والتواصل الموحد', 'marketing', true, false, NULL),
+  ('KAS-EMP-035', 'nagati.marketing@kas.sa', 'nagati.marketing', 'محمد جمال احمد', 'Mohammed Gamal Ahmed', 'مصمم جرافيك', 'all', 'crm', 'clients', 'بوابة التصميم الإبداعي والدعاية والتسويق', 'marketing', true, false, NULL),
+  ('KAS-EMP-036', 'm.almontaser.marketing@kas.sa', 'm.almontaser.marketing', 'محمد المنتصر', 'Mohammed Al-Montaser', 'صانع محتوي مرئي ومصور', 'all', 'crm', 'clients', 'بوابة صناعة المحتوى المرئي والتسويق الرقمي', 'marketing', true, false, NULL),
+  ('KAS-EMP-037', 'a.magdy.marketing@kas.sa', 'a.magdy.marketing', 'عبدالرحمن مجدي', 'Abdulrahman Magdy', 'فريق مصطفي الدعاية', 'all', 'crm', 'clients', 'بوابة فريق الدعاية والتسويق والحملات', 'marketing', true, false, NULL),
+  ('KAS-EMP-038', 'a.mirghani.marketing@kas.sa', 'a.mirghani.marketing', 'عبدالرحمن مرغني', 'Abdulrahman Mirghani', 'فريق مصطفي الدعاية', 'all', 'crm', 'clients', 'بوابة فريق الدعاية والتسويق والحملات', 'marketing', true, false, NULL),
+  ('KAS-EMP-069', 'feras.marketing@kas.sa', 'feras.marketing', 'فراس شاكر', 'Feras Shaker', 'أخصائي تسويق ودعاية', 'all', 'crm', 'clients', 'بوابة الدعاية والتسويق وعلاقات العملاء', 'marketing', true, false, NULL),
+  ('KAS-EMP-068', 'o.saeed.hospitality@kas.sa', 'o.saeed.hospitality', 'أسامة سعيد', 'Osama Saeed', 'بوفيه', 'all', 'excluded', 'none', 'مستبعد من الأنظمة', 'hospitality', false, true, 'رفض أمني: هذا الحساب مخصص لمطبخ البوفيه ومستبعد نهائياً من الدخول على أنظمة المجموعة.')
 ON CONFLICT (id) DO UPDATE SET
   email = EXCLUDED.email,
   username = EXCLUDED.username,

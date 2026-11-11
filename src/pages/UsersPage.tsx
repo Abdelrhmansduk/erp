@@ -7,6 +7,7 @@ import { BusinessIllustration } from '../components/common/BusinessIllustration'
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { useAppStore } from '../stores/appStore';
+import { KAS_ALLOWED_EMPLOYEES, CORPORATE_DEPARTMENTS } from '../services/authService';
 import { 
   UserCheck, ShieldCheck, Plus, FileSpreadsheet, FileText, Search, 
   Fingerprint, Lock, Shield, X, Check, QrCode, Smartphone, MessageSquare, 
@@ -39,81 +40,21 @@ export interface UserAdmin {
   biometric_type?: 'Touch ID (بصمة إصبع)' | 'Face ID (بصمة وجه)' | 'بصمة مزدوجة';
 }
 
-const MOCK_USERS: UserAdmin[] = [
-  {
-    id: '1',
-    name: 'مشرف admin (خالد السليم)',
-    username: 'admin',
-    user_type: 'الإدارة العليا والتنفيذية',
-    role: 'Administrator',
-    branch: 'الفرع الرئيسي',
-    phone: '0512344321',
-    email: 'admin@alsulaim.sa',
-    status: 'نشط',
-    two_factor_enabled: true,
-    two_factor_method: 'Google Authenticator',
-    biometric_enabled: true,
-    biometric_type: 'بصمة مزدوجة'
-  },
-  {
-    id: '2',
-    name: 'محمد مصطفى',
-    username: 'mohammed',
-    user_type: 'الإدارة المالية',
-    role: 'Financial Manager',
-    branch: 'الفرع الرئيسي',
-    phone: '0509082341',
-    email: 'mohammed@alsulaim.sa',
-    status: 'نشط',
-    two_factor_enabled: true,
-    two_factor_method: 'بصمة بيومترية (FIDO2)',
-    biometric_enabled: true,
-    biometric_type: 'Touch ID (بصمة إصبع)'
-  },
-  {
-    id: '3',
-    name: 'سارة خالد السليم',
-    username: 'sara_hr',
-    user_type: 'الموارد البشرية',
-    role: 'HR Director',
-    branch: 'فرع الرياض - اليرموك',
-    phone: '0594249640',
-    email: 'sara@alsalim.sa',
-    status: 'نشط',
-    two_factor_enabled: true,
-    two_factor_method: 'SMS',
-    biometric_enabled: true,
-    biometric_type: 'Face ID (بصمة وجه)'
-  },
-  {
-    id: '4',
-    name: 'عبدالله الشمري',
-    username: 'abdullah_ops',
-    user_type: 'إدارة العمليات والتشغيل',
-    role: 'Operations Lead',
-    branch: 'فرع الخبر - الكورنيش',
-    phone: '0567112233',
-    email: 'abdullah@alsulaim.sa',
-    status: 'نشط',
-    two_factor_enabled: false,
-    biometric_enabled: false
-  },
-  {
-    id: '5',
-    name: 'ريم القحطاني',
-    username: 'reem_crm',
-    user_type: 'خدمة العملاء والـ CRM',
-    role: 'Customer Care Lead',
-    branch: 'فرع جدة - التحلية',
-    phone: '0543322114',
-    email: 'reem@alsulaim.sa',
-    status: 'نشط',
-    two_factor_enabled: true,
-    two_factor_method: 'WhatsApp',
-    biometric_enabled: true,
-    biometric_type: 'Face ID (بصمة وجه)'
-  }
-];
+const MOCK_USERS: UserAdmin[] = KAS_ALLOWED_EMPLOYEES.map((emp, idx) => ({
+  id: emp.id,
+  name: emp.nameAr,
+  username: emp.username,
+  user_type: CORPORATE_DEPARTMENTS[emp.department_id]?.nameAr || emp.titleAr,
+  role: emp.titleAr,
+  branch: emp.branch,
+  phone: `054${String(3380000 + idx * 17).slice(0, 7)}`,
+  email: emp.email,
+  status: 'نشط',
+  two_factor_enabled: true,
+  two_factor_method: emp.department_id === 'executive' ? 'بصمة بيومترية (FIDO2)' : 'Google Authenticator',
+  biometric_enabled: emp.department_id === 'executive',
+  biometric_type: emp.department_id === 'executive' ? 'بصمة مزدوجة' : undefined,
+}));
 
 export const UsersPage: React.FC = () => {
   const { addNotification } = useAppStore();

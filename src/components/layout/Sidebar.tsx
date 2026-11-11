@@ -657,6 +657,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 email={effectiveProfile?.email}
                 role={effectiveProfile?.role}
                 departmentId={resolvedScope.departmentId}
+                avatarUrl={effectiveProfile?.avatar_url}
                 size="sm"
                 status="online"
               />

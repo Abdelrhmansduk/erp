@@ -10,6 +10,7 @@ import {
 import { ProductionDataHubModal } from '../database/ProductionDataHubModal';
 import { UniversalDocumentExtractorModal } from '../common/UniversalDocumentExtractorModal';
 import { EnterpriseErrorMonitorPanel } from '../monitoring/EnterpriseErrorMonitorPanel';
+import { EmployeePhotoAvatar } from '../auth/EmployeePhotoAvatar';
 import { errorMonitorService } from '../../services/errorMonitorService';
 import { SIDEBAR_MENU } from '../../data/sidebarMenu';
 import { SLUG_ARABIC_TITLES } from '../../data/slugArabicTitles';
@@ -527,6 +528,28 @@ export const Header: React.FC<HeaderProps> = ({
             aria-label="البحث السريع"
           >
             <Search className="w-4 h-4" />
+          </button>
+
+          {/* Synced Google / Employee Profile Avatar Pill */}
+          <button
+            type="button"
+            onClick={() => navigateGuarded('profile', 'الملف الشخصي وصلاحيات الحساب')}
+            className="inline-flex items-center gap-1.5 p-1 pr-1.5 pl-2.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-xs font-bold transition-colors shrink-0 cursor-pointer"
+            title={`${effectiveProfile?.full_name || 'الشيخ خالد السليم'} (${effectiveProfile?.email || 'abdo12uk@gmail.com'})`}
+            aria-label="الملف الشخصي"
+          >
+            <EmployeePhotoAvatar
+              name={effectiveProfile?.full_name || 'الشيخ خالد بن عبدالعزيز السليم'}
+              email={effectiveProfile?.email}
+              role={effectiveProfile?.role}
+              departmentId={resolvedScope.departmentId}
+              avatarUrl={effectiveProfile?.avatar_url}
+              size="xs"
+              showVerifiedBadge={true}
+            />
+            <span className="hidden 2xl:inline max-w-[130px] truncate">
+              {effectiveProfile?.full_name || 'حسابي'}
+            </span>
           </button>
         </div>
       </header>

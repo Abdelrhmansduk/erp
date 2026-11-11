@@ -973,12 +973,16 @@ const INTERNAL_CORPORATE_DOMAINS = [
   '@saf-rec.com',
   '@yaqoot-ops.sa',
   '@yaqoot-ops.com',
+  '@yaqoot-east.sa',
+  '@yaqoot-east.com',
   '@topaz-rec.sa',
   '@topaz-rec.com',
   '@kas-etimad.sa',
   '@kas-etimad.com',
+  '@kas-cloud.sa',
   '@alruwad.sa',
   '@alruwad.com',
+  '@dar-alruwad.sa',
   '@alsulaim.sa',
   '@alsulaim.com',
 ];
@@ -1004,7 +1008,7 @@ export function validateAllowedCorporateEmail(identifier: string): {
     return { allowed: false, reason: excludedReason };
   }
 
-  // 2. Check official 66 @kas.sa employee whitelist
+  // 2. Check official 69 @kas.sa employee whitelist
   const kasMatch = findAllowedKasEmployee(raw);
   if (kasMatch) {
     return { allowed: true, kasEmployee: kasMatch };
@@ -1020,7 +1024,7 @@ export function validateAllowedCorporateEmail(identifier: string): {
   }
 
   // 4. Check built-in & custom staff directory and verified Firebase Google accounts
-  const dirMatch = CORPORATE_STAFF_DIRECTORY.find(
+  const dirMatch = getFullStaffDirectory().find(
     (d) =>
       d.email.toLowerCase() === raw ||
       d.username.toLowerCase() === raw ||

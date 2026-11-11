@@ -247,7 +247,10 @@ const MainContent: React.FC = () => {
       );
       if (deptMeta) {
         setFlowState('workspace');
-        setActiveTab(deptMeta.defaultTab, deptMeta.defaultTabTitle);
+        setActiveTab(
+          currentUser?.default_tab || deptMeta.defaultTab,
+          currentUser?.default_tab_title || deptMeta.defaultTabTitle
+        );
       }
       return;
     }

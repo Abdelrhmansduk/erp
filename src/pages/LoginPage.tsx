@@ -238,8 +238,8 @@ const MOBBIN_SECTOR_CHIPS: Array<{
   {
     code: 'HQ',
     label: 'الإدارة العليا',
-    sublabel: 'Group Command Center',
-    email: 'chairman@alsulaim.sa',
+    sublabel: 'Khalid@kas.sa',
+    email: 'khalid@kas.sa',
     portalTitle: 'تسجيل دخول الإدارة العليا.',
     metric: '360° الرقابة الشاملة',
     icon: ShieldCheck,
@@ -247,46 +247,46 @@ const MOBBIN_SECTOR_CHIPS: Array<{
   {
     code: 'FIN',
     label: 'الإدارة المالية',
-    sublabel: 'ZATCA Phase 2 & Ledger',
-    email: 'cfo@alsulaim.sa',
+    sublabel: 'a.alkinani.acc@kas.sa',
+    email: 'a.alkinani.acc@kas.sa',
     portalTitle: 'تسجيل دخول الإدارة المالية.',
     metric: '100% امتثال زاتكا',
     icon: FileSpreadsheet,
   },
   {
     code: 'SAF',
-    label: 'الصفا للاستقدام',
-    sublabel: 'Musaned & Visas',
-    email: 'musaned@saf-rec.sa',
-    portalTitle: 'تسجيل دخول قطاع الاستقدام.',
+    label: 'السفير الماسي',
+    sublabel: 'h.hassan.safir@kas.sa',
+    email: 'h.hassan.safir@kas.sa',
+    portalTitle: 'تسجيل دخول قطاع السفير الماسي.',
     metric: '1,420+ عقد نشط',
     icon: Building2,
   },
   {
     code: 'YAQ',
-    label: 'الياقوت للتشغيل',
-    sublabel: 'Fleet & Hourly Rental',
-    email: 'rent@yaqoot-east.sa',
-    portalTitle: 'تسجيل دخول قطاع التشغيل.',
-    metric: '890+ عقد تأجير',
+    label: 'ياقوت نجد',
+    sublabel: 'h.yousef.yaqoot@kas.sa',
+    email: 'h.yousef.yaqoot@kas.sa',
+    portalTitle: 'تسجيل دخول قطاع ياقوت نجد.',
+    metric: '890+ عقد استقدام وتأجير',
     icon: Layers,
   },
   {
     code: 'TOP',
-    label: 'توب تالنت ATS',
-    sublabel: 'Recruitment Pipeline',
-    email: 'talent@topaz-rec.sa',
-    portalTitle: 'تسجيل دخول استقطاب الكفاءات.',
-    metric: '3,250+ سيرة ذاتية',
+    label: 'شركة توباز',
+    sublabel: 'a.eissa.topaz@kas.sa',
+    email: 'a.eissa.topaz@kas.sa',
+    portalTitle: 'تسجيل دخول قطاع توباز.',
+    metric: '3,250+ سيرة وعقد',
     icon: Briefcase,
   },
   {
     code: 'KAS',
-    label: 'منافسات كاس',
-    sublabel: 'Etimad & BOQ Pricing',
-    email: 'tenders@kas-etimad.sa',
-    portalTitle: 'تسجيل دخول بوابة المنافسات.',
-    metric: '42 منافسة حكومية',
+    label: 'الأميال والتجارة',
+    sublabel: 'm.alsaleh.imal@kas.sa',
+    email: 'm.alsaleh.imal@kas.sa',
+    portalTitle: 'تسجيل دخول قطاع الأميال والتجارة.',
+    metric: '42 منافسة وعقد',
     icon: Scale,
   },
 ];
@@ -295,18 +295,18 @@ function getDefaultEmailForPortalCode(code?: string | null): string {
   const norm = (code || '').trim().toUpperCase();
   switch (norm) {
     case 'YAQ':
-      return 'rent@yaqoot-east.sa';
+      return 'h.yousef.yaqoot@kas.sa';
     case 'TOP':
-      return 'talent@topaz-rec.sa';
+      return 'a.eissa.topaz@kas.sa';
     case 'KAS':
-      return 'tenders@kas-etimad.sa';
+      return 'm.alsaleh.imal@kas.sa';
     case 'DAR':
     case 'SHELTER':
-      return 'warden@alruwad.sa';
+      return 'r.aljbr.housing@kas.sa';
     case 'SAF':
-      return 'musaned@saf-rec.sa';
+      return 'h.hassan.safir@kas.sa';
     default:
-      return 'chairman@alsulaim.sa';
+      return 'khalid@kas.sa';
   }
 }
 
@@ -2127,34 +2127,52 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             <div className="space-y-2 max-h-[260px] overflow-y-auto pr-0.5">
               {[
                 {
-                  name: 'الشيخ خالد بن عبدالعزيز السليم',
-                  email: 'chairman@alsulaim.sa',
-                  role: 'رئيس مجلس الإدارة — الإدارة العليا',
+                  name: 'خالد عبدالعزيز السليم',
+                  email: 'khalid@kas.sa',
+                  role: 'المالك — رئيس مجلس الإدارة',
                   dept: 'executive',
                 },
                 {
-                  name: 'الشيخ خالد بن عبدالعزيز السليم',
-                  email: 'abdo12uk@gmail.com',
-                  role: 'البريد الشخصي المعتمد — الإدارة العليا',
+                  name: 'عبدالرحمن أبو سالف',
+                  email: 'a.salif.dev@kas.sa',
+                  role: 'مبرمج النظام وتطوير الأنظمة',
                   dept: 'executive',
                 },
                 {
-                  name: 'سلطان بن محمد العتيبي',
-                  email: 'cfo@alsulaim.sa',
-                  role: 'المدير المالي التنفيذي للمجموعة (CFO)',
-                  dept: 'finance',
-                },
-                {
-                  name: 'تركي بن سعود القحطاني',
-                  email: 'hr@alsulaim.sa',
-                  role: 'مدير عام الموارد البشرية وشؤون الموظفين',
+                  name: 'ريم احمد بن حسين',
+                  email: 'hr@kas.sa',
+                  role: 'مديرة الموارد البشرية (HR & WPS)',
                   dept: 'hr',
                 },
                 {
-                  name: 'فهد بن عبدالله الدوسري',
-                  email: 'musaned@saf-rec.sa',
-                  role: 'مدير عمليات الاستقدام ومساند — الصفا',
+                  name: 'اكرم محمد الكناني',
+                  email: 'a.alkinani.acc@kas.sa',
+                  role: 'محاسب استقدام — الإدارة المالية',
+                  dept: 'finance',
+                },
+                {
+                  name: 'حذيفه رمضان على حسن',
+                  email: 'h.hassan.safir@kas.sa',
+                  role: 'مبيعات استقدام — السفير الماسي',
                   dept: 'recruitment',
+                },
+                {
+                  name: 'امل سعيد عمر عيسى',
+                  email: 'a.eissa.topaz@kas.sa',
+                  role: 'مبيعات استقدام — توباز',
+                  dept: 'recruitment',
+                },
+                {
+                  name: 'حسن يوسف',
+                  email: 'h.yousef.yaqoot@kas.sa',
+                  role: 'مبيعات استقدام — ياقوت نجد',
+                  dept: 'recruitment',
+                },
+                {
+                  name: 'رجاء الجبر',
+                  email: 'r.aljbr.housing@kas.sa',
+                  role: 'مشرفة سكن — دار الرواد للإيواء',
+                  dept: 'shelter',
                 },
               ].map((eAcc) => (
                 <button

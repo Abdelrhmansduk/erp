@@ -895,6 +895,7 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
             role={currentUser?.role || currentDeptMeta.nameAr}
             email={currentUser?.email}
             departmentId={currentDeptMeta.id}
+            avatarUrl={currentUser?.avatar_url}
             size="md"
             status="verified"
           />
@@ -931,7 +932,10 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
             type="button"
             className="bg-[#141414] hover:bg-[#262626] text-[#ffffff] border border-[#141414] flex items-center gap-1.5 text-xs px-4 py-2 rounded-full font-bold min-h-[36px] transition-all cursor-pointer"
             onClick={() =>
-              onSelectApp(currentDeptMeta.defaultTab, currentDeptMeta.defaultTabTitle)
+              onSelectApp(
+                currentUser?.default_tab || currentDeptMeta.defaultTab,
+                currentUser?.default_tab_title || currentDeptMeta.defaultTabTitle
+              )
             }
           >
             <LayoutDashboard className="w-3.5 h-3.5" />
@@ -965,6 +969,7 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
                 role={currentUser?.role || currentDeptMeta.nameAr}
                 email={currentUser?.email}
                 departmentId={currentDeptMeta.id}
+                avatarUrl={currentUser?.avatar_url}
                 size="lg"
                 status="verified"
               />

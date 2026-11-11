@@ -28,6 +28,15 @@ import { useCompany, COMPANIES_LIST as MAIN_SUBSIDIARY_COMPANIES } from '../../c
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useAppStore } from '../../stores/appStore';
 import { BusinessIllustration } from './BusinessIllustration';
+import {
+  UPLOAD_COPYRIGHT_TERMS_AR,
+  getCopyrightRemovalLogs,
+  getCopyrightReports,
+  removeReportedUploadQuickly,
+  submitCopyrightReport,
+  type CopyrightInfringementReport,
+  type CopyrightRemovalLog,
+} from '../../services/menaLegalComplianceService';
 
 interface UniversalDocumentExtractorModalProps {
   isOpen: boolean;
@@ -62,6 +71,21 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
   const [previewRecord, setPreviewRecord] = useState<StagedExtractedRecord | null>(null);
   const [batchCountInput, setBatchCountInput] = useState<number>(100);
 
+  // Saudi Copyright Law 2026 Art. 49: Upload Terms, Report Dialog, Admin Review Queue & Removal Logs
+  const [acceptedUploadTerms, setAcceptedUploadTerms] = useState<boolean>(true);
+  const [reportingTarget, setReportingTarget] = useState<StagedExtractedRecord | null>(null);
+  const [reportReason, setReportReason] = useState<string>(
+    'محتوى أو صورة مرفوعة دون ملكية حقوق المؤلف أو تصريح نظامي (مخالفة المادة 49)'
+  );
+  const [reporterContact, setReporterContact] = useState<string>(currentUser?.email || '');
+  const [showAdminCopyrightQueue, setShowAdminCopyrightQueue] = useState<boolean>(false);
+  const [copyrightReports, setCopyrightReports] = useState<CopyrightInfringementReport[]>(() =>
+    getCopyrightReports()
+  );
+  const [copyrightRemovalLogs, setCopyrightRemovalLogs] = useState<CopyrightRemovalLog[]>(() =>
+    getCopyrightRemovalLogs()
+  );
+
   if (!isOpen) return null;
 
   const targetCompanyObj =
@@ -72,6 +96,16 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
   const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
     if (!fileList || fileList.length === 0) return;
+
+    if (!acceptedUploadTerms) {
+      addNotification({
+        title: 'تنبيه شروط حقوق المؤلف (Saudi Copyright Law Art. 49)',
+        message: 'يلزم الإقرار بشروط حقوق الملكية الفكرية وحقوق المؤلف قبل رفع أي صور أو مستندات.',
+        type: 'error',
+      });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
 
     setIsProcessing(true);
     try {
@@ -281,6 +315,111 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* Saudi Copyright Law 2026 Art. 49: Upload Terms & Admin Review Queue Bar */}
+          <div className="p-3.5 rounded-[16px] bg-[#ffffff] border border-[#e0e0e0] space-y-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <label className="flex items-start gap-2 text-[11px] font-semibold text-[#141414] cursor-pointer max-w-3xl">
+                <input
+                  type="checkbox"
+                  checked={acceptedUploadTerms}
+                  onChange={(e) => setAcceptedUploadTerms(e.target.checked)}
+                  className="mt-0.5 accent-[#141414]"
+                />
+                <span>
+                  <strong className="font-black">شروط حقوق المؤلف والملكية الفكرية (Saudi Copyright Law Art. 49):</strong>{' '}
+                  {UPLOAD_COPYRIGHT_TERMS_AR}
+                </span>
+              </label>
+
+              <button
+                type="button"
+                onClick={() => setShowAdminCopyrightQueue(!showAdminCopyrightQueue)}
+                className="px-3 py-1.5 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold cursor-pointer shrink-0"
+              >
+                طابور بلاغات حقوق المؤلف وسجل الإزالة ({copyrightReports.filter((r) => r.status === 'pending').length} معلق / {copyrightRemovalLogs.length} محذوف)
+              </button>
+            </div>
+
+            {showAdminCopyrightQueue && (
+              <div className="p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-3 text-xs">
+                <div className="font-black text-[#141414]">
+                  طابور مراجعة بلاغات انتهاك حقوق المؤلف والإزالة الفورية (Admin Takedown Queue — Art. 49):
+                </div>
+
+                {copyrightReports.length === 0 ? (
+                  <div className="text-[11px] text-[#707070]">
+                    لا توجد بلاغات معلقة حالياً. يمكنك الإبلاغ عن أي صورة أو مستند مرفوع عبر زر «إبلاغ عن انتهاك (Report)» بجوار كل ملف.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {copyrightReports.map((rep) => (
+                      <div
+                        key={rep.id}
+                        className="p-2.5 rounded-xl bg-[#ffffff] border border-[#e0e0e0] flex flex-wrap items-center justify-between gap-2"
+                      >
+                        <div>
+                          <div className="font-bold text-[#141414]">
+                            {rep.fileName} <span className="font-mono text-[10px]">({rep.id})</span>
+                          </div>
+                          <div className="text-[11px] text-[#707070]">
+                            السبب: {rep.reason} • المُبلّغ: {rep.reporterContact} • وقت البلاغ: {rep.reportedAt}
+                          </div>
+                          {rep.removedAt && (
+                            <div className="text-[10.5px] font-bold text-[#141414]">
+                              تمت الإزالة الفورية في: {rep.removedAt} بواسطة: {rep.removedBy}
+                            </div>
+                          )}
+                        </div>
+                        {rep.status === 'pending' ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const { removalLog } = removeReportedUploadQuickly({
+                                reportId: rep.id,
+                                removedBy: currentUser?.email || 'Admin Compliance Officer',
+                              });
+                              setStagedRecords((prev) => prev.filter((item) => item.id !== rep.recordId));
+                              if (previewRecord?.id === rep.recordId) {
+                                setPreviewRecord(null);
+                              }
+                              setCopyrightReports(getCopyrightReports());
+                              setCopyrightRemovalLogs(getCopyrightRemovalLogs());
+                              addNotification({
+                                title: 'تمت إزالة المحتوى المخالف فوراً (Art. 49)',
+                                message: `تم حذف الملف (${removalLog.fileName}) وتوثيق سجل الحذف رقم (${removalLog.id}) بتاريخ ${removalLog.removedAt}.`,
+                                type: 'success',
+                              });
+                            }}
+                            className="px-3 py-1.5 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold cursor-pointer"
+                          >
+                            إزالة المحتوى فوراً وتسجيل الحذف
+                          </button>
+                        ) : (
+                          <span className="px-2.5 py-1 rounded-full bg-[#f3f3f3] text-[#141414] text-[10px] font-bold">
+                            تمت الإزالة وموثق بالسجل
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {copyrightRemovalLogs.length > 0 && (
+                  <div className="pt-2 border-t border-[#e0e0e0] space-y-1">
+                    <div className="font-black text-[11px] text-[#141414]">
+                      سجل الإزالة الموثق زمنياً (Immutable Removal Audit Log):
+                    </div>
+                    {copyrightRemovalLogs.slice(0, 5).map((log) => (
+                      <div key={log.id} className="text-[10.5px] font-mono text-[#707070]">
+                        [{log.removedAt}] حُذف ({log.fileName}) بناءً على البلاغ ({log.reportId}) بواسطة ({log.removedBy})
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* 2. Universal Drag & Drop Zone + 1-Click Multi-Format Batch Generators */}
@@ -539,14 +678,23 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
                           {rec.amountOrValue.toLocaleString()} ⃁
                         </td>
                         <td className="py-2 px-3">
-                          <button
-                            type="button"
-                            onClick={() => setPreviewRecord(rec)}
-                            className="px-2.5 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] text-[10px] font-semibold inline-flex items-center gap-1 cursor-pointer"
-                          >
-                            <Eye className="w-3 h-3 text-[#141414]" />
-                            عرض الصورة
-                          </button>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setPreviewRecord(rec)}
+                              className="px-2.5 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] text-[10px] font-semibold inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <Eye className="w-3 h-3 text-[#141414]" />
+                              عرض الصورة
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setReportingTarget(rec)}
+                              className="px-2.5 py-1 rounded-full bg-[#ffffff] hover:bg-[#f3f3f3] text-[#141414] border border-[#141414] text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              إبلاغ عن انتهاك (Report)
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -645,6 +793,105 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
                   <strong className="text-[#141414]">{previewRecord.templateName}</strong>
                 </div>
               </div>
+              <div className="w-full mt-3 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setReportingTarget(previewRecord)}
+                  className="px-3.5 py-1.5 rounded-full bg-[#141414] text-[#ffffff] text-xs font-bold cursor-pointer"
+                >
+                  إبلاغ عن انتهاك حقوق مؤلف في هذا المرفق (Saudi Copyright Law Art. 49)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Copyright Infringement Report Modal (Saudi Copyright Law 2026 Art. 49) */}
+      {reportingTarget && (
+        <div
+          className="fixed inset-0 z-[140] bg-[#141414]/60 flex items-center justify-center p-4"
+          onClick={() => setReportingTarget(null)}
+        >
+          <div
+            className="bg-[#ffffff] rounded-[24px] max-w-md w-full p-5 space-y-3.5 shadow-2xl border border-[#e0e0e0] text-right"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-2.5">
+              <div>
+                <h4 className="text-sm font-black text-[#141414]">
+                  بلاغ انتهاك حقوق المؤلف والملكية الفكرية (Art. 49)
+                </h4>
+                <p className="text-[11px] text-[#707070]">
+                  الملف المُبلّغ عنه: {reportingTarget.sourceFileName} ({reportingTarget.primaryRef})
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReportingTarget(null)}
+                className="w-7 h-7 rounded-full bg-[#f3f3f3] flex items-center justify-center text-[#141414] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2.5 text-xs">
+              <div>
+                <label className="block font-bold text-[#141414] mb-1">
+                  بريد أو وسيلة تواصل المُبلّغ:
+                </label>
+                <input
+                  type="text"
+                  dir="ltr"
+                  value={reporterContact}
+                  onChange={(e) => setReporterContact(e.target.value)}
+                  placeholder="copyright-owner@domain.com"
+                  className="w-full px-3 py-2 rounded-xl bg-[#f3f3f3] text-xs font-mono text-[#141414]"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-[#141414] mb-1">
+                  سبب البلاغ وتفاصيل الحقوق المنتهكة *:
+                </label>
+                <textarea
+                  rows={3}
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-[#f3f3f3] text-xs text-[#141414]"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-[#f0f0f0]">
+              <button
+                type="button"
+                onClick={() => setReportingTarget(null)}
+                className="px-4 py-2 rounded-full bg-[#f3f3f3] text-[#141414] text-xs font-bold cursor-pointer"
+              >
+                إلغاء
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const rep = submitCopyrightReport({
+                    recordId: reportingTarget.id,
+                    fileName: reportingTarget.sourceFileName,
+                    reporterContact,
+                    reason: reportReason,
+                  });
+                  setCopyrightReports(getCopyrightReports());
+                  setReportingTarget(null);
+                  setShowAdminCopyrightQueue(true);
+                  addNotification({
+                    title: 'تم تسجيل بلاغ حقوق المؤلف وإحالته لطابور المراجعة (Art. 49)',
+                    message: `رقم البلاغ (${rep.id}) — يمكن للمسؤول إزالة المحتوى فوراً من طابور البلاغات.`,
+                    type: 'success',
+                  });
+                }}
+                className="px-4 py-2 rounded-full bg-[#141414] text-[#ffffff] text-xs font-bold cursor-pointer"
+              >
+                إرسال البلاغ لطابور المراجعة
+              </button>
             </div>
           </div>
         </div>

@@ -427,6 +427,20 @@ export function encodeQrMatrix(payload: string): boolean[][] {
   return modules;
 }
 
+function escapeSvgAttr(raw: string): string {
+  return String(raw)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function sanitizeSvgColor(color: string | undefined, fallback: string): string {
+  if (!color) return fallback;
+  return /^#[0-9a-fA-F]{3,8}$|^[a-zA-Z]+$/.test(color.trim()) ? color.trim() : fallback;
+}
+
 /**
  * Generates a crisp, scannable ISO/IEC 18004 QR Code SVG string.
  */
@@ -439,9 +453,9 @@ export function generateRealQrSvg(
     borderStyle?: boolean;
   }
 ): string {
-  const sizePx = options?.sizePx ?? 88;
-  const darkColor = options?.darkColor ?? '#141414';
-  const lightColor = options?.lightColor ?? '#FFFFFF';
+  const sizePx = Math.max(16, Math.min(1024, Number(options?.sizePx) || 88));
+  const darkColor = sanitizeSvgColor(options?.darkColor, '#141414');
+  const lightColor = sanitizeSvgColor(options?.lightColor, '#FFFFFF');
   const borderStyle = options?.borderStyle !== false;
 
   const matrix = encodeQrMatrix(payload || 'KHALID-ALSULAIM-ERP-VERIFIED');
@@ -464,7 +478,7 @@ export function generateRealQrSvg(
     ? `background:${lightColor}; padding:3px; border:1px solid #e0e0e0; border-radius:10px; display:block;`
     : `background:${lightColor}; display:block;`;
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${sizePx}" height="${sizePx}" viewBox="0 0 ${totalModules} ${totalModules}" shape-rendering="crispEdges" style="${styleAttr}" role="img" aria-label="${i18n.t('common.qrCode', 'رمز الاستجابة السريعة')}"><rect width="${totalModules}" height="${totalModules}" fill="${lightColor}"/><path d="${pathData}" fill="${darkColor}"/></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${sizePx}" height="${sizePx}" viewBox="0 0 ${totalModules} ${totalModules}" shape-rendering="crispEdges" style="${styleAttr}" role="img" aria-label="${escapeSvgAttr(i18n.t('common.qrCode', 'رمز الاستجابة السريعة'))}"><rect width="${totalModules}" height="${totalModules}" fill="${lightColor}"/><path d="${pathData}" fill="${darkColor}"/></svg>`;
 }
 
 // ─── 3. Real ISO/IEC 15417 Code-128B Linear Barcode SVG Generator ────────────
@@ -500,10 +514,10 @@ export function generateRealCode128BarcodeSvg(
     .replace(/[^\x20-\x7E]/g, '-')
     .slice(0, 32);
 
-  const widthPx = options?.widthPx ?? 136;
-  const heightPx = options?.heightPx ?? 34;
-  const darkColor = options?.darkColor ?? '#141414';
-  const lightColor = options?.lightColor ?? '#FFFFFF';
+  const widthPx = Math.max(32, Math.min(1024, Number(options?.widthPx) || 136));
+  const heightPx = Math.max(12, Math.min(512, Number(options?.heightPx) || 34));
+  const darkColor = sanitizeSvgColor(options?.darkColor, '#141414');
+  const lightColor = sanitizeSvgColor(options?.lightColor, '#FFFFFF');
   const showText = options?.showText ?? false;
 
   // Code-128 Set B starts with value 104
@@ -538,9 +552,10 @@ export function generateRealCode128BarcodeSvg(
   }
 
   const totalWidthModules = currentX + quietZoneModules;
+  const escapedLabel = escapeSvgAttr(sanitized);
   const textNode = showText
-    ? `<text x="${totalWidthModules / 2}" y="${heightPx - 2}" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="${darkColor}">${sanitized}</text>`
+    ? `<text x="${totalWidthModules / 2}" y="${heightPx - 2}" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="${darkColor}">${escapedLabel}</text>`
     : '';
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${widthPx}" height="${heightPx}" viewBox="0 0 ${totalWidthModules} ${heightPx}" shape-rendering="crispEdges" style="background:${lightColor}; border:1px solid #e5e5e5; border-radius:6px; padding:2px 4px; display:block;" role="img" aria-label="Barcode ${sanitized}"><rect width="${totalWidthModules}" height="${heightPx}" fill="${lightColor}"/>${barsSvg}${textNode}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${widthPx}" height="${heightPx}" viewBox="0 0 ${totalWidthModules} ${heightPx}" shape-rendering="crispEdges" style="background:${lightColor}; border:1px solid #e5e5e5; border-radius:6px; padding:2px 4px; display:block;" role="img" aria-label="Barcode ${escapedLabel}"><rect width="${totalWidthModules}" height="${heightPx}" fill="${lightColor}"/>${barsSvg}${textNode}</svg>`;
 }

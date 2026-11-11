@@ -1115,6 +1115,7 @@ export const DepartmentModuleBanner: React.FC<DepartmentModuleBannerProps> = ({
                 role={currentUser?.role || deptDef.nameAr}
                 email={currentUser?.email}
                 departmentId={resolvedDeptId}
+                avatarUrl={currentUser?.avatar_url}
                 size="xs"
                 status="verified"
               />

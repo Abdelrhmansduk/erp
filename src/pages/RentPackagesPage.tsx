@@ -6,6 +6,11 @@ import { exportData } from '../services/exportService';
 import { Package, Calculator, FileText, Plus, Check, PenSquare, FileSignature, FileSpreadsheet, X } from 'lucide-react';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
+import {
+  buildRecurringCheckoutDisclosure,
+  recordCheckoutObligationAcceptance,
+  type RecurringCheckoutDisclosure,
+} from '../services/menaLegalComplianceService';
 
 export interface RentPackage {
   id: string;
@@ -149,6 +154,10 @@ export const RentPackagesPage: React.FC = () => {
   const [calcWorkersCount, setCalcWorkersCount] = useState<number>(1);
   const [calcBaseRate, setCalcBaseRate] = useState<number>(2200);
 
+  // Saudi E-Commerce Law Art. 18 & Reg Art. 7 Pre-Payment Subscription Checkout Modal State
+  const [checkoutDisclosure, setCheckoutDisclosure] = useState<RecurringCheckoutDisclosure | null>(null);
+  const [checkoutAcknowledged, setCheckoutAcknowledged] = useState<boolean>(false);
+
   // New/Edit Package Form
   const [formData, setFormData] = useState<{
     name: string;
@@ -215,11 +224,18 @@ export const RentPackagesPage: React.FC = () => {
   };
 
   const handleCreateContract = (pkg: RentPackage) => {
-    addNotification({
-      title: 'إنشاء عقد تأجير',
-      message: `تم فتح مسودة عقد تأجير جديد مبني على (${pkg.name}) بقيمة ${pkg.monthly_rate} ⃁/شهر.`,
-      type: 'success'
+    const disclosure = buildRecurringCheckoutDisclosure({
+      packageId: pkg.id,
+      packageName: pkg.name,
+      monthlyPricePerWorker: pkg.monthly_rate,
+      discountPct: pkg.discount_percentage,
+      vatPct: 15,
+      securityDepositPerWorker: pkg.security_deposit,
+      durationMonths: pkg.duration_months,
+      workersCount: 1,
     });
+    setCheckoutAcknowledged(false);
+    setCheckoutDisclosure(disclosure);
   };
 
   const calcSubtotal = calcBaseRate * calcDuration * calcWorkersCount;
@@ -459,32 +475,58 @@ export const RentPackagesPage: React.FC = () => {
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    const quoteRecord = [{
-                      'مدة العقد (أشهر)': calcDuration,
-                      'عدد الكوادر': calcWorkersCount,
-                      'السعر الشهري': calcBaseRate,
-                      'المبلغ قبل الخصم': calcSubtotal,
-                      'قيمة الخصم': calcDiscount,
-                      'الضريبة 15%': calcVat,
-                      'الإجمالي النهائي': calcGrandTotal,
-                      'تاريخ العرض': new Date().toISOString().split('T')[0]
-                    }];
-                    exportData(quoteRecord, 'عرض_سعر_ايجار_عمالة', 'csv');
-                    addNotification({
-                      title: 'تصدير عرض السعر',
-                      message: `تم تصدير عرض السعر الرسمي بقيمة ${calcGrandTotal.toLocaleString()} ⃁ بنجاح.`,
-                      type: 'success'
-                    });
-                  }}
-                  className="button-primary-pill w-full mt-4"
-                  style={{ minHeight: '38px', fontSize: '12.5px', padding: '8px 20px' }}
-                >
-                  <FileSpreadsheet className="w-4 h-4 ml-1.5" />
-                  <span>تصدير عرض سعر رسمي (PDF / Excel Quotation)</span>
-                </button>
+                <div className="flex flex-col gap-2 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const discPct = calcDuration >= 12 ? 20 : calcDuration >= 3 ? 10 : 0;
+                      const disclosure = buildRecurringCheckoutDisclosure({
+                        packageId: `CALC-${calcDuration}M`,
+                        packageName: `باقة مخصصة (${calcDuration} أشهر — ${calcWorkersCount} كادر)`,
+                        monthlyPricePerWorker: calcBaseRate,
+                        discountPct: discPct,
+                        vatPct: 15,
+                        securityDepositPerWorker: 1000,
+                        durationMonths: calcDuration,
+                        workersCount: calcWorkersCount,
+                      });
+                      setCheckoutAcknowledged(false);
+                      setCheckoutDisclosure(disclosure);
+                    }}
+                    className="button-primary-pill w-full"
+                    style={{ minHeight: '40px', fontSize: '12.5px', padding: '8px 20px' }}
+                  >
+                    <FileSignature className="w-4 h-4 ml-1.5" />
+                    <span>مراجعة شروط الاشتراك المتكرر والالتزام بالدفع (Art. 18)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const quoteRecord = [{
+                        'مدة العقد (أشهر)': calcDuration,
+                        'عدد الكوادر': calcWorkersCount,
+                        'السعر الشهري': calcBaseRate,
+                        'المبلغ قبل الخصم': calcSubtotal,
+                        'قيمة الخصم': calcDiscount,
+                        'الضريبة 15%': calcVat,
+                        'الإجمالي النهائي': calcGrandTotal,
+                        'تاريخ العرض': new Date().toISOString().split('T')[0]
+                      }];
+                      exportData(quoteRecord, 'عرض_سعر_ايجار_عمالة', 'csv');
+                      addNotification({
+                        title: 'تصدير عرض السعر',
+                        message: `تم تصدير عرض السعر الرسمي بقيمة ${calcGrandTotal.toLocaleString()} ⃁ بنجاح.`,
+                        type: 'success'
+                      });
+                    }}
+                    className="button-outline-on-light w-full"
+                    style={{ minHeight: '38px', fontSize: '12.5px', padding: '8px 20px' }}
+                  >
+                    <FileSpreadsheet className="w-4 h-4 ml-1.5" />
+                    <span>تصدير عرض سعر رسمي (PDF / Excel Quotation)</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -709,6 +751,150 @@ export const RentPackagesPage: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* SAUDI E-COMMERCE LAW ART. 18 & IMPLEMENTING REGULATION ART. 7 PRE-PAYMENT CHECKOUT MODAL */}
+      {checkoutDisclosure && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl border border-zinc-200 text-right">
+            <div className="p-5 border-b border-zinc-200 flex items-center justify-between bg-[#141414] text-white">
+              <div>
+                <h3 className="text-sm font-black m-0">
+                  إفصاح التعاقد والدفع المتكرر قبل السداد (Saudi E-Commerce Law Art. 18 & Reg Art. 7)
+                </h3>
+                <p className="text-[11px] text-zinc-300 m-0 mt-0.5">
+                  الباقة المختارة: {checkoutDisclosure.packageName} ({checkoutDisclosure.packageId})
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCheckoutDisclosure(null)}
+                className="p-1.5 rounded-full bg-zinc-800 text-white hover:bg-zinc-700 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 text-xs text-[#141414] max-h-[80vh] overflow-y-auto">
+              {/* 1. Full Price Including Future Charges */}
+              <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2">
+                <div className="font-black text-[#141414] text-xs border-b border-[#e0e0e0] pb-1.5">
+                  1. تفاصيل السعر الكامل والرسوم المستقبلية (شامل ضريبة القيمة المضافة 15% والتأمين):
+                </div>
+                <div className="flex justify-between">
+                  <span>الاشتراك الشهري قبل الضريبة ({checkoutDisclosure.workersCount} كادر):</span>
+                  <span className="font-mono font-bold">
+                    {checkoutDisclosure.monthlySubtotalBeforeVat.toLocaleString('en-US')} ⃁
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>ضريبة القيمة المضافة الشهرية (15% ZATCA):</span>
+                  <span className="font-mono font-bold">
+                    {checkoutDisclosure.monthlyVatAmount.toLocaleString('en-US')} ⃁
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>إجمالي الدفعة الشهرية الشاملة للضريبة:</span>
+                  <span className="font-mono font-bold">
+                    {checkoutDisclosure.monthlyTotalWithVat.toLocaleString('en-US')} ⃁ / شهرياً
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>مبلغ التأمين المسترد (يدفع مرة واحدة عند التعاقد):</span>
+                  <span className="font-mono font-bold">
+                    {checkoutDisclosure.securityDepositRefundable.toLocaleString('en-US')} ⃁
+                  </span>
+                </div>
+                <div className="flex justify-between pt-2 border-t border-[#e0e0e0] font-black text-sm">
+                  <span>المبلغ المستحق للدفع الآن (الدفعة الأولى + التأمين):</span>
+                  <span className="font-mono">
+                    {checkoutDisclosure.firstPaymentDueNow.toLocaleString('en-US')} ⃁
+                  </span>
+                </div>
+                <div className="flex justify-between text-[11px] text-[#707070] font-bold">
+                  <span>
+                    الدفعات المستقبلية المتكررة ({checkoutDisclosure.futureCyclesCount} دفعات قادمة):
+                  </span>
+                  <span className="font-mono text-[#141414]">
+                    {checkoutDisclosure.futureRecurringChargePerCycle.toLocaleString('en-US')} ⃁ لكل شهر
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs font-black text-[#141414] bg-white p-2.5 rounded-xl border border-[#e0e0e0]">
+                  <span>إجمالي الالتزام المالي الكلي طوال مدة العقد ({checkoutDisclosure.durationMonths} أشهر):</span>
+                  <span className="font-mono">
+                    {checkoutDisclosure.totalContractCommitmentWithVatAndDeposit.toLocaleString('en-US')} ⃁
+                  </span>
+                </div>
+              </div>
+
+              {/* 2. Recurring Payment Nature & Contract Duration / End Date */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-1">
+                  <div className="font-black text-[#141414]">2. دورية تكرار الدفع:</div>
+                  <div className="text-[11px] font-semibold text-[#141414]">
+                    {checkoutDisclosure.repeatFrequencyLabelAr}
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-1">
+                  <div className="font-black text-[#141414]">3. مدة العقد وتاريخ الانتهاء:</div>
+                  <div className="text-[11px] font-semibold text-[#141414]">
+                    المدة: {checkoutDisclosure.durationMonths} أشهر
+                  </div>
+                  <div className="text-[11px] font-mono text-[#141414]">
+                    من {checkoutDisclosure.startDateIso} إلى {checkoutDisclosure.endDateIso}
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. How to Cancel */}
+              <div className="p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-1">
+                <div className="font-black text-[#141414]">4. آلية وشروط إلغاء الاشتراك والتجديد:</div>
+                <p className="text-[11px] text-[#141414] leading-relaxed m-0">
+                  {checkoutDisclosure.cancellationTermsAr}
+                </p>
+              </div>
+
+              {/* 5. Explicit Obligation Checkbox & Button */}
+              <label className="flex items-start gap-2 text-xs font-bold text-[#141414] cursor-pointer p-3 rounded-2xl bg-zinc-50 border border-[#141414]">
+                <input
+                  type="checkbox"
+                  checked={checkoutAcknowledged}
+                  onChange={(e) => setCheckoutAcknowledged(e.target.checked)}
+                  className="mt-0.5 accent-[#141414]"
+                />
+                <span>
+                  أقرّ باطلاعي على السعر الكامل شامل الضريبة والدفعات الشهرية المستقبلية المتكررة، ومدة العقد وتاريخ انتهائه ({checkoutDisclosure.endDateIso})، وآلية الإلغاء، وأعلم أن النقر على الزر أدناه يُنشئ التزاماً نظامياً بالدفع.
+                </span>
+              </label>
+
+              <div className="flex flex-col sm:flex-row justify-end gap-2.5 pt-2 border-t border-zinc-200">
+                <button
+                  type="button"
+                  onClick={() => setCheckoutDisclosure(null)}
+                  className="px-4 py-2.5 rounded-full bg-[#f3f3f3] text-[#141414] text-xs font-bold cursor-pointer"
+                >
+                  تراجع وإلغاء
+                </button>
+                <button
+                  type="button"
+                  disabled={!checkoutAcknowledged}
+                  onClick={() => {
+                    const log = recordCheckoutObligationAcceptance(checkoutDisclosure);
+                    addNotification({
+                      title: 'تم توثيق الالتزام بالدفع وإنشاء العقد (Art. 18)',
+                      message: `تم توثيق إقرار الاشتراك المتكرر رقم (${log.id}) للباقة (${checkoutDisclosure.packageName}) حتى تاريخ ${checkoutDisclosure.endDateIso}.`,
+                      type: 'success',
+                    });
+                    setCheckoutDisclosure(null);
+                  }}
+                  className="px-5 py-2.5 rounded-full bg-[#141414] text-white text-xs font-black cursor-pointer disabled:opacity-40"
+                >
+                  {checkoutDisclosure.payButtonLabelAr}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

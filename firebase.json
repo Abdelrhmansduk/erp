@@ -5,6 +5,7 @@
         "oAuthBrandDisplayName": "ERP Group Khalid Al-Sulaim",
         "supportEmail": "shathervan.engineering@gmail.com",
         "authorizedRedirectUris": [
+          "https://kassr-platform-sa-e3e4a.firebaseapp.com/__/auth/handler",
           "https://erp-khalid.firebaseapp.com/__/auth/handler"
         ]
       }
