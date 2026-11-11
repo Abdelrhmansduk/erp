@@ -5,6 +5,8 @@ import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import { exportData } from '../services/exportService';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { useAppStore } from '../stores/appStore';
+import { useCompany } from '../contexts/CompanyContext';
+import { isKasTradeCompany, scopeRecordsForCompany, tagKasRecords } from '../services/kasTradeScope';
 import { MessageSquare, PhoneCall, Send, Search, FileSpreadsheet, FileText, CheckCheck, Sparkles, Plus, X, Users } from 'lucide-react';
 
 interface WhatsAppChat {
@@ -31,6 +33,19 @@ const PRESET_TEMPLATES = [
   { id: 't-4', title: 'تذكير انتهاء فترة التجربة (90 يوم)', text: 'نود تذكيركم بقرب انتهاء فترة الضمان والتجربة النظامية (90 يوماً). نرجو تقييم الخدمة أو إبلاغنا بأي ملاحظات.' }
 ];
 
+const KAS_MOCK_CHATS: WhatsAppChat[] = tagKasRecords([
+  { id: 'kas-wa-1', client_name: 'شركة المدار للتجهيزات التجارية', phone: '+966504411220', last_message: 'نرجو تزويدنا بعرض سعر رسمي لتوريد 40 جهاز تكييف لقطاع الأميال.', time: '10:45 ص', unread_count: 2, status: 'نشط' },
+  { id: 'kas-wa-2', client_name: 'مؤسسة النخبة للتوريدات المكتبية', phone: '+966553311889', last_message: 'تم استلام شحنة المعرض التجاري والفاتورة الضريبية بنجاح.', time: 'أمس', unread_count: 0, status: 'نشط' },
+  { id: 'kas-wa-3', client_name: 'إدارة المشتريات — مشروع تجهيز المكاتب', phone: '+966539900771', last_message: 'يرجى تأكيد موعد تسليم أمر الشراء رقم #PO-KAS-2026-881.', time: '29/07', unread_count: 1, status: 'نشط' },
+]);
+
+const KAS_PRESET_TEMPLATES = [
+  { id: 'kt-1', title: 'إرسال عرض سعر تجاري', text: 'عميلنا الكريم، مرفق لكم عرض السعر المعتمد من شركة كاس للتجارة والمنافسات رقم (#QT-KAS-2026) شاملاً ضريبة القيمة المضافة.' },
+  { id: 'kt-2', title: 'تأكيد شحن وتوريد الطلبية', text: 'نفيدكم بخروج شحنة التوريد من مستودعات كاس المركزية وجارٍ التسليم في الموعد المحدد.' },
+  { id: 'kt-3', title: 'إشعار فاتورة ضريبية ZATCA', text: 'تم إصدار الفاتورة الضريبية المعتمدة بمبلغ (%AMOUNT% ⃁) عبر منظومة ZATCA المرحلة الثانية.' },
+  { id: 'kt-4', title: 'تأكيد استلام دفعة تجارية', text: 'نشكر لكم سداد الدفعة المستحقة وتم قيد السند في حسابكم التجاري لدى شركة كاس.' },
+];
+
 const normalizeChat = (c: any): WhatsAppChat => ({
   id: String(c?.id || `chat-${Date.now()}`),
   client_name: String(c?.client_name || 'عميل واتساب'),
@@ -43,8 +58,12 @@ const normalizeChat = (c: any): WhatsAppChat => ({
 
 export const WhatsAppInboxPage: React.FC = () => {
   const { addNotification } = useAppStore();
-  const [chats, setChats] = useState<WhatsAppChat[]>(MOCK_CHATS.map(normalizeChat));
-  const [activeChat, setActiveChat] = useState<WhatsAppChat>(MOCK_CHATS[0]);
+  const { activeCompanyId } = useCompany();
+  const isKasTrade = isKasTradeCompany(activeCompanyId);
+  const activePresetTemplates = isKasTrade ? KAS_PRESET_TEMPLATES : PRESET_TEMPLATES;
+  const initialChatList = (isKasTrade ? KAS_MOCK_CHATS : MOCK_CHATS).map(normalizeChat);
+  const [chats, setChats] = useState<WhatsAppChat[]>(initialChatList);
+  const [activeChat, setActiveChat] = useState<WhatsAppChat>(initialChatList[0]);
   const [replyText, setReplyText] = useState('');
   const [searchFilter, setSearchFilter] = useState('');
   const [showNewChatModal, setShowNewChatModal] = useState(false);
@@ -52,26 +71,35 @@ export const WhatsAppInboxPage: React.FC = () => {
   const [newChatName, setNewChatName] = useState('');
   const [newChatPhone, setNewChatPhone] = useState('');
 
-  const [messages, setMessages] = useState([
-    { sender: 'client', text: 'السلام عليكم، هل وصلت التأشيرة من مساند؟', time: '10:45 ص' },
-    { sender: 'system', text: 'أهلاً بك أختي سارة! تم تفييز العقد رقم #594 ونحن بانتظار صدور التذكرة اليوم.', time: '10:47 ص' }
-  ]);
+  const [messages, setMessages] = useState(() =>
+    isKasTrade
+      ? [
+          { sender: 'client', text: 'السلام عليكم، نرجو تزويدنا بعرض سعر رسمي لتوريد 40 جهاز تكييف لقطاع الأميال.', time: '10:45 ص' },
+          { sender: 'system', text: 'أهلاً بكم في شركة كاس للتجارة! تم اعتماد عرض السعر رقم #QT-KAS-410 وجارٍ إرساله مع الفاتورة المبدئية.', time: '10:47 ص' },
+        ]
+      : [
+          { sender: 'client', text: 'السلام عليكم، هل وصلت التأشيرة من مساند؟', time: '10:45 ص' },
+          { sender: 'system', text: 'أهلاً بك أختي سارة! تم تفييز العقد رقم #594 ونحن بانتظار صدور التذكرة اليوم.', time: '10:47 ص' },
+        ]
+  );
 
   useEffect(() => {
-    realErpDataStore.getRecords<WhatsAppChat>('whatsapp_messages', MOCK_CHATS).then(data => {
-      if (Array.isArray(data) && data.length > 0) {
-        const normalized = data.map(normalizeChat);
+    realErpDataStore.getRecords<WhatsAppChat>('whatsapp_messages', MOCK_CHATS).then(raw => {
+      const scoped = scopeRecordsForCompany(raw, activeCompanyId, KAS_MOCK_CHATS);
+      if (Array.isArray(scoped) && scoped.length > 0) {
+        const normalized = scoped.map(normalizeChat);
         setChats(normalized);
         setActiveChat(normalized[0]);
       }
     });
 
     realErpDataStore.getRecords<any>('clients').then(clis => {
-      if (clis && clis.length > 0) {
-        setClientOptions(clis);
+      const scopedClients = scopeRecordsForCompany(clis || [], activeCompanyId, []);
+      if (scopedClients.length > 0) {
+        setClientOptions(scopedClients);
       }
     });
-  }, []);
+  }, [activeCompanyId]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,11 +126,12 @@ export const WhatsAppInboxPage: React.FC = () => {
     if (!newChatName || !newChatPhone) return;
 
     const formattedPhone = newChatPhone.startsWith('+') ? newChatPhone : `+966${newChatPhone.replace(/^0/, '')}`;
+    const brandGreeting = isKasTrade ? 'شركة كاس للتجارة والمنافسات' : 'مجموعة السليم للاستقدام';
     const newChat: WhatsAppChat = {
       id: `chat-${Date.now()}`,
       client_name: newChatName,
       phone: formattedPhone,
-      last_message: 'مرحباً بك في مجموعة السليم للاستقدام',
+      last_message: `مرحباً بك في ${brandGreeting}`,
       time: 'الآن',
       unread_count: 0,
       status: 'نشط',
@@ -112,7 +141,7 @@ export const WhatsAppInboxPage: React.FC = () => {
     setChats(updated);
     setActiveChat(newChat);
     setMessages([
-      { sender: 'system', text: `مرحباً ${newChatName}، يسعدنا تواصلك مع مجموعة السليم للاستقدام. كيف يمكننا مساعدتك اليوم؟`, time: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) }
+      { sender: 'system', text: `مرحباً ${newChatName}، يسعدنا تواصلك مع ${brandGreeting}. كيف يمكننا مساعدتك اليوم؟`, time: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) }
     ]);
     setShowNewChatModal(false);
     setNewChatName('');
@@ -228,7 +257,9 @@ export const WhatsAppInboxPage: React.FC = () => {
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>
             1,420 رسالة
           </div>
-          <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>قوالب معتمدة ZATCA & مساند</span>
+          <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>
+            {isKasTrade ? 'قوالب معتمدة ZATCA والمبيعات' : 'قوالب معتمدة ZATCA & مساند'}
+          </span>
         </div>
 
         {/* Card 4: White Card */}
@@ -250,7 +281,7 @@ export const WhatsAppInboxPage: React.FC = () => {
           <Sparkles className="w-3.5 h-3.5" />
           <span>قوالب سريعة:</span>
         </div>
-        {PRESET_TEMPLATES.map((tmpl) => (
+        {activePresetTemplates.map((tmpl) => (
           <button
             key={tmpl.id}
             onClick={() => handleSelectTemplate(tmpl.text)}
@@ -342,7 +373,7 @@ export const WhatsAppInboxPage: React.FC = () => {
             </div>
             <div className="flex items-center gap-2">
               <a
-                href={`https://wa.me/${activeChat.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(replyText || 'مرحباً بك من مجموعة السليم للاستقدام')}`}
+                href={`https://wa.me/${activeChat.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(replyText || (isKasTrade ? 'مرحباً بك من شركة كاس للتجارة والمنافسات' : 'مرحباً بك من مجموعة السليم للاستقدام'))}`}
                 target="_blank"
                 rel="noreferrer"
                 className="button-outline-on-light inline-flex items-center gap-1.5"

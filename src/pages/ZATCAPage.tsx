@@ -78,6 +78,46 @@ const DEFAULT_MOCK_INVOICES: ZatcaInvoiceRecord[] = [
     attachment_name: 'SAF-INV-2026-0002.jpg',
     created_at: new Date().toISOString(),
   },
+  {
+    id: 'z-kas-1',
+    company_id: 'KAS',
+    invoice_number: 'KAS-INV-2026-9901',
+    invoice_type: 'STANDARD',
+    issue_date: new Date().toISOString().slice(0, 10),
+    client_name: 'الهيئة العامة للموانئ — عقد توريد أجهزة وتجهيزات',
+    client_vat_number: '300088776600003',
+    subtotal: 82625.0,
+    vat_amount: 12393.75,
+    total_amount: 95018.75,
+    zatca_status: 'CLEARED',
+    qr_code_payload: 'AQxLQVMgVHJhZGluZwIKMzEwNTU0NDMzMjAwMDAzAxQyMDI2LTA4LTE4VDExOjAwOjAwWgQ5NTAxOC43NQUIMTIzOTMuNzU=',
+    cryptographic_stamp: 'MEQCIDkT991z...kasTradeClearedUBL21',
+    xml_hash: '9912a82063cd84097a65d1633f5c74f51928374109823889',
+    contract_ref: 'ETM-2026-90412',
+    file_format: 'PDF / ZATCA QR',
+    attachment_name: 'KAS-INV-2026-9901.pdf',
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'z-kas-2',
+    company_id: 'KAS',
+    invoice_number: 'KAS-INV-2026-9902',
+    invoice_type: 'STANDARD',
+    issue_date: new Date().toISOString().slice(0, 10),
+    client_name: 'شركة المدار للتجهيزات التجارية — قطاع الأميال والمعارض',
+    client_vat_number: '310442211900003',
+    subtotal: 56000.0,
+    vat_amount: 8400.0,
+    total_amount: 64400.0,
+    zatca_status: 'CLEARED',
+    qr_code_payload: 'AQxLQVMgVHJhZGluZwIKMzEwNTU0NDMzMjAwMDAzAxQyMDI2LTA4LTE4VDE0OjIwOjAwWgQ2NDQwMC4wMAU4NDAwLjAw',
+    cryptographic_stamp: 'MEQCIDkT992a...kasShowroomClearedUBL21',
+    xml_hash: '7741b82063cd84097a65d1633f5c74f51928374109823112',
+    contract_ref: 'KAS-SHW-2026-410',
+    file_format: 'PDF / ZATCA QR',
+    attachment_name: 'KAS-INV-2026-9902.pdf',
+    created_at: new Date().toISOString(),
+  },
 ];
 
 export const ZATCAPage: React.FC = () => {
@@ -178,7 +218,14 @@ export const ZATCAPage: React.FC = () => {
       grandTotal: totalAmount,
       items: [
         {
-          name: contractRef ? `خدمات استقدام/تشغيل (${contractRef})` : 'خدمات استقدام عمالة منزلية موثقة',
+          name:
+            activeCompanyId === 'KAS'
+              ? contractRef
+                ? `توريدات ومبيعات تجارية (${contractRef})`
+                : 'مبيعات سلع وتجهيزات تجارية معتمدة'
+              : contractRef
+                ? `خدمات استقدام/تشغيل (${contractRef})`
+                : 'خدمات استقدام عمالة منزلية موثقة',
           quantity: 1,
           unitPrice: subtotal,
           totalPrice: subtotal,

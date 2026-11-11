@@ -4,6 +4,7 @@ import { ExportDropdown } from '../components/common/ExportDropdown';
 import { useClients, useTableMutation } from '../hooks/queries/useErpQueries';
 import { useCompany } from '../contexts/CompanyContext';
 import { useAppStore } from '../stores/appStore';
+import { authService } from '../services/authService';
 import { 
   UserCheck, Plus, FileSpreadsheet, FileText, Printer, Search, 
   Upload, X, Check, MessageSquare, ShieldAlert, Trash2, Edit,
@@ -63,7 +64,7 @@ export const ClientsPage: React.FC = () => {
       account_code: `11020${clients.length + 5}`,
       client_activity: 'عميل جديد - بانتظار التعاقد',
       last_activity: 'إنشاء ملف العميل بالنظام',
-      added_by: 'عبد الفتاح (مشرف عام)',
+      added_by: authService.getCurrentUser()?.full_name || 'موظف علاقات العملاء',
       branch: addForm.branch,
       type: addForm.type,
       status: 'نشط',
@@ -342,7 +343,10 @@ export const ClientsPage: React.FC = () => {
                         <div>
                           <div className="font-bold text-[#141414]">{c.name}</div>
                           <div className="text-[11px] text-[#707070] font-mono mt-0.5">
-                            {c.phone} • هوية: {c.national_id || 'غير مسجلة'}
+                            {c.phone} • هوية:{' '}
+                            {c.national_id && String(c.national_id).length >= 6
+                              ? `${String(c.national_id).slice(0, 2)}••••••${String(c.national_id).slice(-2)}`
+                              : c.national_id || 'غير مسجلة'}
                           </div>
                         </div>
                       </div>

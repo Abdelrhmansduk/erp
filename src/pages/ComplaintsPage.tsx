@@ -116,6 +116,21 @@ export const ComplaintsPage: React.FC = () => {
     { id: 'CLM-2026-083', client: 'شركة دار الرواد', ref: 'RC-2026-0010', reason: 'استرجاع مبلغ تأمين سكن عقد منتهي', amount: 3000, iban: 'SA9050000004810294819203', status: 'معتمد بانتظار التحويل' },
   ]);
 
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      realErpDataStore.getRecords<InterCompanyDispute>('crm_inter_disputes', MOCK_INTER_DISPUTES),
+      realErpDataStore.getRecords<any>('crm_refund_claims', refundClaims),
+    ]).then(([disp, claims]) => {
+      if (!active) return;
+      if (disp?.length) setInterDisputes(disp);
+      if (claims?.length) setRefundClaims(claims);
+    }).catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const storeActiveTab = useAppStore(state => state.activeTab);
 
   const getMappedTab = (tabKey: string): 'tickets' | 'claims' | 'types' | 'inter-company' | 'escalated' | 'whatsapp' | 'analytics' => {
@@ -234,7 +249,9 @@ export const ComplaintsPage: React.FC = () => {
       details: disputeForm.details
     };
 
-    setInterDisputes([newDispute, ...interDisputes]);
+    const nextDisputes = [newDispute, ...interDisputes];
+    setInterDisputes(nextDisputes);
+    await realErpDataStore.saveRecords('crm_inter_disputes', nextDisputes);
     addNotification({
       title: 'رفع نزاع بين الشركات',
       message: `تم تسجيل النزاع #${disputeNo} ورفعه للإدارة العليا.`,
@@ -471,17 +488,21 @@ export const ComplaintsPage: React.FC = () => {
                     <td className="p-3.5 font-mono text-zinc-600">{c.ref}</td>
                     <td className="p-3.5 text-zinc-700">{c.reason}</td>
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{c.amount.toLocaleString()} ⃁</td>
-                    <td className="p-3.5 font-mono text-[11px] text-zinc-600">{c.iban}</td>
+                    <td className="p-3.5 font-mono text-[11px] text-zinc-600">
+                      {c.iban && c.iban.length >= 10
+                        ? `${c.iban.slice(0, 4)}••••••••••••${c.iban.slice(-4)}`
+                        : c.iban}
+                    </td>
                     <td className="p-3.5"><Badge text={c.status} type={c.status.includes('تم') ? 'success' : 'warning'} /></td>
                     <td className="p-3.5 text-center">
                       <button
                         disabled={c.status === 'تم التحويل والإيداع'}
                         onClick={async () => {
-                          setRefundClaims(prev =>
-                            prev.map(item =>
-                              item.id === c.id ? { ...item, status: 'تم التحويل والإيداع' } : item
-                            )
+                          const nextClaims = refundClaims.map(item =>
+                            item.id === c.id ? { ...item, status: 'تم التحويل والإيداع' } : item
                           );
+                          setRefundClaims(nextClaims);
+                          await realErpDataStore.saveRecords('crm_refund_claims', nextClaims);
                           await realErpDataStore.addRecord('vouchers', {
                             id: `PAY-${c.id}`,
                             company_id: activeCompanyId !== 'all' ? activeCompanyId : 'SAF',

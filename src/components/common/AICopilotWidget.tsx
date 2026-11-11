@@ -303,6 +303,14 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
   }, []);
 
   const getInitialWelcome = (p: AssistantPersona, compName: string) => {
+    if (activeCompany.id === 'KAS') {
+      if (p === 'noura') {
+        return `أهلاً بكِ في نطاق (${compName})! أنا "نُورة"، المستشارة التجارية والمالية لشركة كاس للتجارة والمنافسات.
+يسعدني مساعدتكِ في إدارة المعارض وقطاع الأميال، المخزون والمستودعات، الإدارة المالية وفوترة ZATCA، ومنافسات اعتماد وجداول الكميات BOQ.`;
+      }
+      return `أهلاً بك في نطاق (${compName})! أنا "فارس"، المستشار التنفيذي والتجاري لشركة كاس للتجارة والمنافسات.
+يسعدني مساعدتك في الإدارة المالية التجارية بـ 6 أنظمة، الفوترة الضريبية ZATCA، المعارض وقطاع الأميال، منافسات اعتماد وجداول BOQ، أو استخلاص حتى 100 فاتورة ومستند تلقائياً.`;
+    }
     if (p === 'noura') {
       return `أهلاً بكِ في نطاق (${compName})! أنا "نُورة"، المستشارة المؤسسية والتشغيلية لمجموعة خالد السليم.
 يسعدني مساعدتكِ في إدارة مراكز الإيواء والتسكين، عقود مساند والتأجير، الإدارة المالية والمحاسبة، أو رفع واستخلاص حتى 100 فاتورة ومستندات PDF وWord وExcel تلقائياً.`;
@@ -758,7 +766,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
   const currentUserProfile = authService.getCurrentUser();
   const employeeScope = useMemo(() => {
     return resolveDepartmentAndCompany(
-      currentUserProfile?.email || currentUserProfile?.username || 'accounting@saf-rec.sa',
+      currentUserProfile?.email || currentUserProfile?.username || 'a.alkinani.acc@kas.sa',
       currentUserProfile?.role,
       currentUserProfile?.company_id || activeCompany.id,
       currentUserProfile?.department_id

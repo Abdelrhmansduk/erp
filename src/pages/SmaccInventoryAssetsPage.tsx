@@ -20,6 +20,8 @@ import { ExportDropdown } from '../components/common/ExportDropdown';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import { realErpDataStore } from '../services/realErpDataStore';
+import { useCompany } from '../contexts/CompanyContext';
+import { isKasTradeCompany, scopeRecordsForCompany, tagKasRecords } from '../services/kasTradeScope';
 
 export interface FixedAsset {
   id: string;
@@ -75,8 +77,35 @@ const INITIAL_VOUCHERS: StockVoucher[] = [
   { id: 'STK-002', voucherNo: 'STK-2026-002', type: 'صرف', date: '2026-08-05', item: 'عقد تأجير شهري (عمالة مهنية)', qty: 5, reason: 'تسليم لشركة مقاولات شريكة' },
 ];
 
+// ── KAS Trade (standalone commercial company) seed data — zero recruitment content ──
+const KAS_INITIAL_ASSETS: FixedAsset[] = tagKasRecords([
+  { id: 'KAS-AST-001', code: 'KAS-AST-001', name: 'شاحنة توزيع إيسوزو 2024 (قطاع الأميال)', category: 'وسائل النقل والسيارات', purchaseDate: '2024-02-10', cost: 185000, depreciationRate: 20, accumulatedDepreciation: 37000, bookValue: 148000, status: 'نشط' },
+  { id: 'KAS-AST-002', code: 'KAS-AST-002', name: 'تجهيزات وديكورات المعرض التجاري الرئيسي', category: 'أثاث ومفروشات', purchaseDate: '2024-04-01', cost: 260000, depreciationRate: 10, accumulatedDepreciation: 26000, bookValue: 234000, status: 'نشط' },
+  { id: 'KAS-AST-003', code: 'KAS-AST-003', name: 'رافعات شوكية وأرفف المستودع المركزي', category: 'معدات وإلكترونيات', purchaseDate: '2023-09-15', cost: 98000, depreciationRate: 15, accumulatedDepreciation: 22050, bookValue: 75950, status: 'نشط' },
+  { id: 'KAS-AST-004', code: 'KAS-AST-004', name: 'أجهزة نقاط البيع (POS) وأنظمة الباركود', category: 'معدات وإلكترونيات', purchaseDate: '2024-01-20', cost: 42000, depreciationRate: 25, accumulatedDepreciation: 10500, bookValue: 31500, status: 'نشط' },
+]);
+
+const KAS_INITIAL_ITEMS: InventoryItem[] = tagKasRecords([
+  { id: 'KAS-INV-101', sku: 'KAS-INV-101', name: 'أجهزة تكييف سبليت 24 ألف وحدة', category: 'سلع وأجهزة تجارية', unit: 'جهاز', costPrice: 2100, salePrice: 2850, currentStock: 64, status: 'متوفر' },
+  { id: 'KAS-INV-102', sku: 'KAS-INV-102', name: 'أثاث مكتبي متكامل (مكتب + كرسي)', category: 'سلع وأجهزة تجارية', unit: 'طقم', costPrice: 1450, salePrice: 2100, currentStock: 38, status: 'متوفر' },
+  { id: 'KAS-INV-103', sku: 'KAS-INV-103', name: 'أجهزة حاسب محمول لتوريدات المنافسات', category: 'توريدات المنافسات الحكومية', unit: 'جهاز', costPrice: 3200, salePrice: 4150, currentStock: 120, status: 'متوفر' },
+  { id: 'KAS-INV-104', sku: 'KAS-INV-104', name: 'مستلزمات وأدوات مكتبية (كرتون)', category: 'مستهلكات ومواد تشغيل', unit: 'كرتون', costPrice: 85, salePrice: 140, currentStock: 450, status: 'متوفر' },
+]);
+
+const KAS_INITIAL_VOUCHERS: StockVoucher[] = tagKasRecords([
+  { id: 'KAS-STK-001', voucherNo: 'KAS-STK-2026-001', type: 'إضافة', date: '2026-08-03', item: 'أجهزة تكييف سبليت 24 ألف وحدة', qty: 40, reason: 'استلام أمر شراء من المورد #PO-KAS-2026-881' },
+  { id: 'KAS-STK-002', voucherNo: 'KAS-STK-2026-002', type: 'صرف', date: '2026-08-09', item: 'أجهزة حاسب محمول لتوريدات المنافسات', qty: 25, reason: 'توريد مستخلص منصة اعتماد #ETM-2026-88991' },
+]);
+
 export const SmaccInventoryAssetsPage: React.FC = () => {
   const { addNotification } = useAppStore();
+  const { activeCompanyId } = useCompany();
+  const isKasTrade = isKasTradeCompany(activeCompanyId);
+  const defaultItemCategory = isKasTrade ? 'سلع وأجهزة تجارية' : 'خدمات استقدام';
+  const defaultItemUnit = isKasTrade ? 'جهاز' : 'عقد';
+  const scopeAssets = (list: FixedAsset[]) => scopeRecordsForCompany(list, activeCompanyId, KAS_INITIAL_ASSETS);
+  const scopeItems = (list: InventoryItem[]) => scopeRecordsForCompany(list, activeCompanyId, KAS_INITIAL_ITEMS);
+  const scopeVouchers = (list: StockVoucher[]) => scopeRecordsForCompany(list, activeCompanyId, KAS_INITIAL_VOUCHERS);
   const [activeTab, setActiveTab] = useState<'fixed-assets' | 'inventory' | 'stock-vouchers'>('fixed-assets');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -107,8 +136,8 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
   const [newItem, setNewItem] = useState({
     sku: '',
     name: '',
-    category: 'خدمات استقدام',
-    unit: 'عقد',
+    category: defaultItemCategory,
+    unit: defaultItemUnit,
     costPrice: '10000',
     salePrice: '15000',
     currentStock: 10,
@@ -127,15 +156,17 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
 
   // Load Data on Mount
   useEffect(() => {
-    realErpDataStore.getRecords<FixedAsset>('fixed_assets', INITIAL_ASSETS).then(data => setAssets(data));
-    realErpDataStore.getRecords<InventoryItem>('inventory_items', INITIAL_ITEMS).then(data => {
+    realErpDataStore.getRecords<FixedAsset>('fixed_assets', INITIAL_ASSETS).then(data => setAssets(scopeAssets(data)));
+    realErpDataStore.getRecords<InventoryItem>('inventory_items', INITIAL_ITEMS).then(raw => {
+      const data = scopeItems(raw);
       setItems(data);
       if (data.length > 0 && !newStockVoucher.item) {
         setNewStockVoucher(prev => ({ ...prev, item: data[0].name }));
       }
     });
-    realErpDataStore.getRecords<StockVoucher>('stock_vouchers', INITIAL_VOUCHERS).then(data => setVouchers(data));
-  }, []);
+    realErpDataStore.getRecords<StockVoucher>('stock_vouchers', INITIAL_VOUCHERS).then(data => setVouchers(scopeVouchers(data)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCompanyId]);
 
   // Filtered Assets
   const filteredAssets = useMemo(() => {
@@ -194,7 +225,7 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
     };
 
     const updated = await realErpDataStore.addRecord<FixedAsset>('fixed_assets', assetRecord, INITIAL_ASSETS);
-    setAssets(updated);
+    setAssets(scopeAssets(updated));
     setIsAssetModalOpen(false);
     setNewAsset({
       code: '',
@@ -234,13 +265,13 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
     };
 
     const updated = await realErpDataStore.addRecord<InventoryItem>('inventory_items', itemRecord, INITIAL_ITEMS);
-    setItems(updated);
+    setItems(scopeItems(updated));
     setIsItemModalOpen(false);
     setNewItem({
       sku: '',
       name: '',
-      category: 'خدمات استقدام',
-      unit: 'عقد',
+      category: defaultItemCategory,
+      unit: defaultItemUnit,
       costPrice: '10000',
       salePrice: '15000',
       currentStock: 10,
@@ -271,7 +302,7 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
     };
 
     const updatedVouchers = await realErpDataStore.addRecord<StockVoucher>('stock_vouchers', voucherRecord, INITIAL_VOUCHERS);
-    setVouchers(updatedVouchers);
+    setVouchers(scopeVouchers(updatedVouchers));
 
     // Update item stock count if item exists
     const matchingItem = items.find(it => it.name === selectedItemName || it.sku === selectedItemName);
@@ -778,7 +809,7 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
             <input
               type="text"
               required
-              placeholder="مثال: عقد استقدام سائق خاص"
+              placeholder={isKasTrade ? 'مثال: أجهزة تكييف سبليت / أثاث مكتبي' : 'مثال: عقد استقدام سائق خاص'}
               value={newItem.name}
               onChange={e => setNewItem({ ...newItem, name: e.target.value })}
               className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] placeholder-zinc-400 focus:border-[#141414] focus:outline-none"
@@ -791,10 +822,21 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
               onChange={e => setNewItem({ ...newItem, category: e.target.value })}
               className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
             >
-              <option value="خدمات استقدام">خدمات استقدام</option>
-              <option value="تأجير تشغيلي">تأجير تشغيلي</option>
-              <option value="خدمات سريعة">خدمات سريعة</option>
-              <option value="مستلزمات وضيافة">مستلزمات وضيافة</option>
+              {isKasTrade ? (
+                <>
+                  <option value="سلع وأجهزة تجارية">سلع وأجهزة تجارية</option>
+                  <option value="توريدات المنافسات الحكومية">توريدات المنافسات الحكومية</option>
+                  <option value="معدات وأنظمة تقنية">معدات وأنظمة تقنية</option>
+                  <option value="مستهلكات ومواد تشغيل">مستهلكات ومواد تشغيل</option>
+                </>
+              ) : (
+                <>
+                  <option value="خدمات استقدام">خدمات استقدام</option>
+                  <option value="تأجير تشغيلي">تأجير تشغيلي</option>
+                  <option value="خدمات سريعة">خدمات سريعة</option>
+                  <option value="مستلزمات وضيافة">مستلزمات وضيافة</option>
+                </>
+              )}
             </select>
           </div>
           <div>

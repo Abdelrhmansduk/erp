@@ -4,6 +4,7 @@ import { exportData } from '../services/exportService';
 import { ExportDropdown } from '../components/common/ExportDropdown';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { useAppStore } from '../stores/appStore';
+import { useCompany } from '../contexts/CompanyContext';
 import { Stamp, Plus, FileSpreadsheet, FileText, Search, Printer, RefreshCw, X, CheckCircle, QrCode, Award } from 'lucide-react';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
@@ -66,24 +67,25 @@ const MOCK_INGAZ_DELEGATIONS: IngazDelegation[] = [
 
 export const IngazPage: React.FC = () => {
   const { addNotification } = useAppStore();
+  const { activeCompanyId, activeCompany } = useCompany();
   const [delegations, setDelegations] = useState<IngazDelegation[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedDelegationForPrint, setSelectedDelegationForPrint] = useState<IngazDelegation | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   const [chamberRecords, setChamberRecords] = useState([
-    { id: 'COC-2026-991', chamber: 'غرفة الرياض التجارية', name: 'شركة السليم الدولية للاستقدام', doc: 'تفويض استقدام عمالة منزلية لمكتب مانيلا', cr: '1010784920', fee: 35, date: '2026-08-30', status: 'مصدق إلكترونياً' },
-    { id: 'COC-2026-992', chamber: 'غرفة الرياض التجارية', name: 'شركة توباز المتميزة', doc: 'عقد إرسالية وكالة توظيف أديس أبابا', cr: '1010892011', fee: 35, date: '2026-08-29', status: 'مصدق إلكترونياً' },
-    { id: 'COC-2026-993', chamber: 'غرفة جدة التجارية', name: 'شركة ياقوت نجد للاستقدام', doc: 'تفويض وكالة كولومبو سريلانكا', cr: '4030192847', fee: 35, date: '2026-08-28', status: 'مصدق إلكترونياً' },
-    { id: 'COC-2026-994', chamber: 'غرفة الشرقية', name: 'شركة دار الرواد', doc: 'خطاب تفويض بنغلاديش دكا', cr: '2050119284', fee: 35, date: '2026-08-27', status: 'مصدق إلكترونياً' },
+    { id: 'COC-2026-991', company_id: 'SAF', chamber: 'غرفة الرياض التجارية', name: 'شركة السليم الدولية للاستقدام', doc: 'تفويض استقدام عمالة منزلية لمكتب مانيلا', cr: '1010784920', fee: 35, date: '2026-08-30', status: 'مصدق إلكترونياً' },
+    { id: 'COC-2026-992', company_id: 'TOP', chamber: 'غرفة الرياض التجارية', name: 'شركة توباز للاستقدام', doc: 'عقد إرسالية وكالة توظيف أديس أبابا', cr: '1010892011', fee: 35, date: '2026-08-29', status: 'مصدق إلكترونياً' },
+    { id: 'COC-2026-993', company_id: 'YAQ', chamber: 'غرفة جدة التجارية', name: 'شركة ياقوت نجد لتشغيل الكوادر والتأجير', doc: 'تفويض وكالة كولومبو سريلانكا', cr: '4030192847', fee: 35, date: '2026-08-28', status: 'مصدق إلكترونياً' },
+    { id: 'COC-2026-994', company_id: 'DAR', chamber: 'غرفة الشرقية', name: 'شركة دار الرواد للإيواء والعمليات', doc: 'خطاب تفويض بنغلاديش دكا', cr: '2050119284', fee: 35, date: '2026-08-27', status: 'مصدق إلكترونياً' },
   ]);
 
   const [readyVisas, setReadyVisas] = useState([
-    { visa: '1300984521', sponsor: 'نايف بن عبدالعزيز القحطاني', nat_id: '1098452391', job: 'عاملة منزلية', country: 'إثيوبيا', issue: '2026-07-28', exp: 'متبقي 88 يوماً', status: 'مفوضة وجاهزة' },
-    { visa: '1300762145', sponsor: 'سليمان بن فهد العتيبي', nat_id: '1029384756', job: 'سائق خاص', country: 'الهند', issue: '2026-07-29', exp: 'متبقي 89 يوماً', status: 'مفوضة وجاهزة' },
-    { visa: '1400293847', sponsor: 'شركة الخالد للتشغيل', nat_id: '7019283746', job: 'عامل مهني', country: 'الفلبين', issue: '2026-07-30', exp: 'متبقي 90 يوماً', status: 'مفوضة وجاهزة' },
-    { visa: '1300119283', sponsor: 'عبدالرحمن محمد السليم', nat_id: '1088273619', job: 'عاملة منزلية', country: 'الفلبين', issue: '2026-08-10', exp: 'متبقي 100 يوماً', status: 'بانتظار التفويض' },
-    { visa: '1300448192', sponsor: 'بندر صالح الهويريني', nat_id: '1055774494', job: 'عاملة منزلية', country: 'الفلبين', issue: '2026-08-12', exp: 'متبقي 102 يوماً', status: 'مفوضة وجاهزة' },
+    { id: '1300984521', visa: '1300984521', sponsor: 'نايف بن عبدالعزيز القحطاني', nat_id: '1098452391', job: 'عاملة منزلية', country: 'إثيوبيا', issue: '2026-07-28', exp: 'متبقي 88 يوماً', status: 'مفوضة وجاهزة' },
+    { id: '1300762145', visa: '1300762145', sponsor: 'سليمان بن فهد العتيبي', nat_id: '1029384756', job: 'سائق خاص', country: 'الهند', issue: '2026-07-29', exp: 'متبقي 89 يوماً', status: 'مفوضة وجاهزة' },
+    { id: '1400293847', visa: '1400293847', sponsor: 'شركة الخالد للتشغيل', nat_id: '7019283746', job: 'عامل مهني', country: 'الفلبين', issue: '2026-07-30', exp: 'متبقي 90 يوماً', status: 'مفوضة وجاهزة' },
+    { id: '1300119283', visa: '1300119283', sponsor: 'عبدالرحمن محمد السليم', nat_id: '1088273619', job: 'عاملة منزلية', country: 'الفلبين', issue: '2026-08-10', exp: 'متبقي 100 يوماً', status: 'بانتظار التفويض' },
+    { id: '1300448192', visa: '1300448192', sponsor: 'بندر صالح الهويريني', nat_id: '1055774494', job: 'عاملة منزلية', country: 'الفلبين', issue: '2026-08-12', exp: 'متبقي 102 يوماً', status: 'مفوضة وجاهزة' },
   ]);
 
   useEffect(() => {
@@ -103,7 +105,17 @@ export const IngazPage: React.FC = () => {
       }));
       setDelegations(normalized);
     });
+    realErpDataStore.getRecords<any>('ingaz_chamber_records', chamberRecords).then(data => {
+      if (data?.length) setChamberRecords(data);
+    });
+    realErpDataStore.getRecords<any>('ingaz_ready_visas', readyVisas).then(data => {
+      if (data?.length) setReadyVisas(data);
+    });
   }, []);
+
+  const visibleChamberRecords = activeCompanyId === 'all'
+    ? chamberRecords
+    : chamberRecords.filter((c: any) => !c.company_id || c.company_id === activeCompanyId);
 
   const storeActiveTab = useAppStore(state => state.activeTab);
 
@@ -313,21 +325,24 @@ export const IngazPage: React.FC = () => {
               <p className="text-xs text-[#707070] mt-0.5">توثيق طلبات الاستقدام وتفاويض المكاتب الخارجية بالغرف التجارية السعودية</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="pill-tag-mint" style={{ fontSize: '11px' }}>{chamberRecords.length} تصديقات موثقة</span>
+              <span className="pill-tag-mint" style={{ fontSize: '11px' }}>{visibleChamberRecords.length} تصديقات موثقة</span>
               <button
                 type="button"
-                onClick={() => {
+                onClick={async () => {
                   const newCoc = {
                     id: `COC-2026-${995 + chamberRecords.length}`,
+                    company_id: activeCompanyId === 'all' ? 'SAF' : activeCompanyId,
                     chamber: 'غرفة الرياض التجارية',
-                    name: 'مجموعة خالد السليم للاستقدام',
+                    name: activeCompany.name || 'مجموعة خالد السليم للاستقدام',
                     doc: `تصديق عقد وتفويض استقدام رقم #${995 + chamberRecords.length}`,
                     cr: '1010784920',
                     fee: 35,
                     date: new Date().toISOString().slice(0, 10),
                     status: 'مصدق إلكترونياً',
                   };
-                  setChamberRecords([newCoc, ...chamberRecords]);
+                  const nextCoc = [newCoc, ...chamberRecords];
+                  setChamberRecords(nextCoc);
+                  await realErpDataStore.saveRecords('ingaz_chamber_records', nextCoc);
                   addNotification({
                     title: 'تصديق الغرفة التجارية',
                     message: `تم إصدار تصديق إلكتروني فوري برقم ${newCoc.id} عبر بوابة غرفة الرياض.`,
@@ -357,7 +372,7 @@ export const IngazPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
-                {chamberRecords.map((c) => (
+                {visibleChamberRecords.map((c) => (
                   <tr key={c.id} className="hover:bg-zinc-50">
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{c.id}</td>
                     <td className="p-3.5 font-bold text-[#141414]">{c.chamber}</td>
@@ -408,7 +423,9 @@ export const IngazPage: React.FC = () => {
                   <tr key={v.visa} className="hover:bg-zinc-50">
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{v.visa}</td>
                     <td className="p-3.5 font-bold text-[#141414]">{v.sponsor}</td>
-                    <td className="p-3.5 font-mono text-zinc-600">{v.nat_id}</td>
+                    <td className="p-3.5 font-mono text-zinc-600">
+                      {v.nat_id && v.nat_id.length >= 6 ? `${v.nat_id.slice(0, 2)}••••••${v.nat_id.slice(-2)}` : v.nat_id}
+                    </td>
                     <td className="p-3.5 font-semibold text-[#141414]">{v.job}</td>
                     <td className="p-3.5 text-zinc-600">{v.country}</td>
                     <td className="p-3.5 font-mono text-[#707070]">{v.issue}</td>
@@ -417,7 +434,7 @@ export const IngazPage: React.FC = () => {
                     <td className="p-3.5 text-center">
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={async () => {
                           setFormData({
                             client_name: v.sponsor,
                             sponsor_id: v.nat_id,
@@ -427,7 +444,9 @@ export const IngazPage: React.FC = () => {
                             nationality: v.country,
                             fee_amount: '185.5',
                           });
-                          setReadyVisas(readyVisas.map(item => item.visa === v.visa ? { ...item, status: 'مفوضة وجاهزة' } : item));
+                          const nextVisas = readyVisas.map(item => item.visa === v.visa ? { ...item, status: 'مفوضة وجاهزة' } : item);
+                          setReadyVisas(nextVisas);
+                          await realErpDataStore.saveRecords('ingaz_ready_visas', nextVisas);
                           setShowModal(true);
                         }}
                         className="button-outline-on-light text-[11px] font-bold"

@@ -117,7 +117,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const effectiveProfile = authUser || authService.getCurrentUser();
   const resolvedScope = useMemo(() => {
     if (!effectiveProfile) {
-      return resolveDepartmentAndCompany('chairman@alsulaim.sa');
+      return resolveDepartmentAndCompany('khalid@kas.sa');
     }
     return resolveDepartmentAndCompany(
       effectiveProfile.email,
@@ -217,12 +217,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const filteredMenu = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
+    const isAdminUser = authService.isAdmin(effectiveProfile);
+    const userCompanyUpper = (resolvedScope.companyId || '').toUpperCase();
 
-    const filterItem = (item: NavItem): NavItem | null => {
+    const isItemCompanyAllowed = (item: NavItem): boolean => {
+      if (!item.exclusiveToCompany) return true;
+      if (isAdminUser) return true;
+      return userCompanyUpper === item.exclusiveToCompany.toUpperCase();
+    };
+
+    const filterLeafOrNode = (item: NavItem, ignoreSearchMatch = false): NavItem | null => {
+      if (!isItemCompanyAllowed(item)) return null;
+
       if (item.children && item.children.length > 0) {
         const selfMatches = query ? item.title.toLowerCase().includes(query) : false;
         const authorizedChildren = item.children
-          .map((child) => (selfMatches ? child : filterItem(child)))
+          .map((child) => filterLeafOrNode(child, selfMatches || ignoreSearchMatch))
           .filter((child): child is NavItem => child !== null);
 
         if (authorizedChildren.length === 0) return null;
@@ -230,13 +240,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
       }
 
       if (!item.href) return null;
-      if (query && !item.title.toLowerCase().includes(query)) {
+      if (!authService.isTabAuthorizedForUser(effectiveProfile, item.href)) {
+        return null;
+      }
+      if (query && !ignoreSearchMatch && !item.title.toLowerCase().includes(query)) {
         return null;
       }
       return item;
     };
 
-    return visibleMenu.map(filterItem).filter((item): item is NavItem => item !== null);
+    const authorizedList = visibleMenu
+      .map((item) => filterLeafOrNode(item))
+      .filter((item): item is NavItem => item !== null);
+
+    // Always provide Employee Self-Service portal entry, especially for support staff restricted to `['profile']`
+    if (
+      effectiveProfile &&
+      !isAdminUser &&
+      (!query || 'بوابة الخدمة الذاتية للموظف'.includes(query))
+    ) {
+      authorizedList.push({
+        id: 'ess-self-service',
+        title: 'بوابة الخدمة الذاتية للموظف',
+        icon: 'UserCheck',
+        href: 'profile',
+      });
+    }
+
+    return authorizedList;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, visibleMenu, effectiveProfile, resolvedScope, activeCompany, activeCompanyId, isSuperAdmin]);
 
@@ -399,15 +430,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-9 h-9 app-icon-squircle bg-[#141414] text-[#ffffff] flex items-center justify-center font-bold text-xs shrink-0">
-              KS
+              {resolvedScope.companyId.toUpperCase() === 'KAS' ? 'KAS' : 'KS'}
             </div>
             {effectiveMode !== 'compact' && (
               <div className="min-w-0">
                 <div className="font-semibold text-xs text-[#141414] truncate">
-                  {companyMeta.nameAr}
+                  {resolvedScope.companyId.toUpperCase() === 'KAS'
+                    ? 'شركة كاس للتجارة والمنافسات'
+                    : companyMeta.nameAr}
                 </div>
                 <div className="text-[11px] font-medium text-[#707070] truncate">
-                  {t('sidebar.nineDepartments', 'الأقسام الإدارية الـ 9')}
+                  {resolvedScope.companyId.toUpperCase() === 'KAS'
+                    ? 'منظومة التجارة والمنافسات والأميال'
+                    : t('sidebar.nineDepartments', 'الأقسام الإدارية الـ 9')}
                 </div>
               </div>
             )}

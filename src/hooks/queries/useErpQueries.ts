@@ -125,7 +125,13 @@ export function useTableMutation<T = Record<string, any>>(tableName: ErpTableNam
 
   const createItem = useMutation({
     mutationFn: async (newRecord: Record<string, any>) => {
-      const targetCompany = activeCompanyId === 'all' ? 'SAF' : activeCompanyId;
+      const explicitCompany = String(newRecord.company_id || newRecord.companyId || '').trim();
+      const targetCompany =
+        activeCompanyId === 'all'
+          ? explicitCompany && explicitCompany !== 'all'
+            ? (explicitCompany as typeof activeCompanyId)
+            : 'SAF'
+          : activeCompanyId;
       const scopedPayload = enforceCompanyScope(newRecord, targetCompany);
       const recordWithId = {
         id: (scopedPayload.id as string) || `${tableName.slice(0, 3).toUpperCase()}-${Date.now()}`,

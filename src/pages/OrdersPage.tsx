@@ -118,7 +118,12 @@ export const OrdersPage: React.FC = () => {
   const { createItem, updateItem, deleteItem } = useTableMutation('orders');
   const { addNotification, setActiveTab } = useAppStore();
 
-  const orders: OrderRecord[] = rawOrders.length > 0 ? (rawOrders as OrderRecord[]) : DEFAULT_MOCK_ORDERS;
+  const orders: OrderRecord[] =
+    rawOrders.length > 0
+      ? (rawOrders as OrderRecord[])
+      : activeCompanyId === 'all'
+        ? DEFAULT_MOCK_ORDERS
+        : DEFAULT_MOCK_ORDERS.filter((o: any) => !o.company_id || o.company_id === activeCompanyId);
 
   const storeActiveTab = useAppStore(state => state.activeTab);
 

@@ -4,6 +4,8 @@ import { Badge } from '../components/ui/Badge';
 import { exportData } from '../services/exportService';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { useAppStore } from '../stores/appStore';
+import { useCompany } from '../contexts/CompanyContext';
+import { isKasTradeCompany, scopeRecordsForCompany, tagKasRecords } from '../services/kasTradeScope';
 import { MessageSquare, Plus, FileSpreadsheet, FileText, Send, RotateCw, CheckCircle2, Clock, Layers, Server, Search, PhoneCall } from 'lucide-react';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
@@ -24,7 +26,7 @@ interface MessageTemplate {
   id: string;
   title: string;
   channel: 'SMS' | 'WhatsApp' | 'كلاهما';
-  category: 'مساند واستقدام' | 'تأجير وتشغيل' | 'مالية وفواتير' | 'إشعار إداري';
+  category: 'مساند واستقدام' | 'تأجير وتشغيل' | 'مالية وفواتير' | 'إشعار إداري' | 'مبيعات وتوريدات تجارية';
   text: string;
   variables: string[];
 }
@@ -122,8 +124,73 @@ const MOCK_TEMPLATES: MessageTemplate[] = [
   }
 ];
 
+const KAS_MOCK_MESSAGES: MessageLog[] = tagKasRecords([
+  {
+    id: 'KAS-MSG-901',
+    recipient_name: 'شركة المدار للتجهيزات التجارية',
+    phone: '+966504411220',
+    channel: 'WhatsApp',
+    template: 'اعتماد عرض سعر تجاري',
+    content: 'عميلنا الكريم، تم اعتماد عرض السعر رقم #QT-KAS-2026-410 لتوريد أجهزة ومعدات قطاع الأميال بمبلغ 64,400 ⃁ شامل الضريبة.',
+    status: 'تم التسليم',
+    cost_sar: 0.15,
+    sent_at: '2026-08-18 14:15',
+  },
+  {
+    id: 'KAS-MSG-902',
+    recipient_name: 'الهيئة العامة للموانئ — إدارة المشتريات',
+    phone: '+966553311889',
+    channel: 'SMS',
+    template: 'إشعار شحن أمر توريد اعتماد',
+    content: 'نفيدكم بخروج شحنة أمر التوريد رقم #ETM-2026-90412 من مستودعات شركة كاس المركزية وتسليمها في الموعد المحدد.',
+    status: 'تم التسليم',
+    cost_sar: 0.12,
+    sent_at: '2026-08-18 11:30',
+  },
+  {
+    id: 'KAS-MSG-903',
+    recipient_name: 'مؤسسة النخبة للتوريدات المكتبية',
+    phone: '+966539900771',
+    channel: 'WhatsApp',
+    template: 'إشعار فاتورة ضريبية ZATCA',
+    content: 'تم إصدار الفاتورة الضريبية المعتمدة رقم KAS-INV-2026-9902 بمبلغ 64,400 ⃁ عبر منظومة الفوترة الإلكترونية ZATCA.',
+    status: 'تم التسليم',
+    cost_sar: 0.15,
+    sent_at: '2026-08-17 16:10',
+  },
+]);
+
+const KAS_MOCK_TEMPLATES: MessageTemplate[] = [
+  {
+    id: 'KAS-TMP-1',
+    title: 'إرسال عرض سعر تجاري معتمد',
+    channel: 'كلاهما',
+    category: 'مبيعات وتوريدات تجارية',
+    text: 'عميلنا الكريم {{customer_name}}، مرفق لكم عرض السعر رقم {{quote_no}} من شركة كاس للتجارة والمنافسات بقيمة {{amount_sar}} ⃁.',
+    variables: ['customer_name', 'quote_no', 'amount_sar'],
+  },
+  {
+    id: 'KAS-TMP-2',
+    title: 'إشعار شحن وتسليم طلبية مستودعية',
+    channel: 'WhatsApp',
+    category: 'مبيعات وتوريدات تجارية',
+    text: 'نفيدكم بخروج طلبية التوريد رقم {{order_no}} من مستودعات كاس المركزية وموعد التسليم المتوقع {{delivery_date}}.',
+    variables: ['order_no', 'delivery_date'],
+  },
+  {
+    id: 'KAS-TMP-3',
+    title: 'إشعار فاتورة ZATCA المرحلة الثانية',
+    channel: 'كلاهما',
+    category: 'مالية وفواتير',
+    text: 'تم إصدار الفاتورة الضريبية المعتمدة رقم {{invoice_no}} بمبلغ {{amount_sar}} ⃁. شكراً لتعاملكم مع شركة كاس للتجارة.',
+    variables: ['invoice_no', 'amount_sar'],
+  },
+];
+
 export const SentMessagesPage: React.FC = () => {
   const storeActiveTab = useAppStore(state => state.activeTab);
+  const { activeCompanyId } = useCompany();
+  const isKasTrade = isKasTradeCompany(activeCompanyId);
 
   const getMappedState = (tabKey: string): { tab: 'logs' | 'compose' | 'templates' | 'gateways', channel: 'SMS' | 'WhatsApp' } => {
     if (tabKey === 'whatsapp-dispatch') return { tab: 'compose', channel: 'WhatsApp' };
@@ -145,7 +212,7 @@ export const SentMessagesPage: React.FC = () => {
   const [channelFilter, setChannelFilter] = useState<'all' | 'SMS' | 'WhatsApp'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [messages, setMessages] = useState<MessageLog[]>([]);
-  const [templates, setTemplates] = useState<MessageTemplate[]>(MOCK_TEMPLATES);
+  const [templates, setTemplates] = useState<MessageTemplate[]>(isKasTrade ? KAS_MOCK_TEMPLATES : MOCK_TEMPLATES);
 
   // Quick Composer State
   const [recipientName, setRecipientName] = useState('');
@@ -156,8 +223,11 @@ export const SentMessagesPage: React.FC = () => {
   const [sendSuccess, setSendSuccess] = useState(false);
 
   useEffect(() => {
-    realErpDataStore.getRecords<MessageLog>('sent_messages', MOCK_MESSAGES).then(data => setMessages(data));
-  }, []);
+    setTemplates(isKasTrade ? KAS_MOCK_TEMPLATES : MOCK_TEMPLATES);
+    realErpDataStore.getRecords<MessageLog>('sent_messages', MOCK_MESSAGES).then(raw => {
+      setMessages(scopeRecordsForCompany(raw, activeCompanyId, KAS_MOCK_MESSAGES));
+    });
+  }, [activeCompanyId, isKasTrade]);
 
   const handleTemplateSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const tmpId = e.target.value;
@@ -188,7 +258,7 @@ export const SentMessagesPage: React.FC = () => {
     };
 
     const updated = await realErpDataStore.addRecord<MessageLog>('sent_messages', newMsg, MOCK_MESSAGES);
-    setMessages(updated);
+    setMessages(scopeRecordsForCompany(updated, activeCompanyId, KAS_MOCK_MESSAGES));
     setIsSending(false);
     setSendSuccess(true);
     setRecipientName('');
@@ -239,7 +309,9 @@ export const SentMessagesPage: React.FC = () => {
               مركز الرسائل الموحد (SMS & WhatsApp Business)
             </h1>
             <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#a1a1aa', fontWeight: 420 }}>
-              إرسال إشعارات مساند، تذاكر الوصول، الفواتير الإلكترونية ZATCA، والحملات التسويقية
+              {isKasTrade
+                ? 'إرسال عروض الأسعار، إشعارات التوريد والشحن، الفواتير الإلكترونية ZATCA، والحملات التجارية'
+                : 'إرسال إشعارات مساند، تذاكر الوصول، الفواتير الإلكترونية ZATCA، والحملات التسويقية'}
             </p>
           </div>
         </div>
@@ -273,7 +345,9 @@ export const SentMessagesPage: React.FC = () => {
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
           <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>الرسائل المرسلة اليوم</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>{messages.length}</div>
-          <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>إشعارات مساند و ZATCA</span>
+          <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>
+            {isKasTrade ? 'إشعارات المبيعات و ZATCA' : 'إشعارات مساند و ZATCA'}
+          </span>
         </div>
 
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
@@ -636,7 +710,9 @@ export const SentMessagesPage: React.FC = () => {
               <Badge text="توثيق معتمد" type="gold" />
             </div>
             <p className="text-xs text-zinc-600 mb-3">
-              ربط مباشر وموثق بالعلامة الخضراء لإرسال قوالب التفييز والرحلات والفواتير الضريبية.
+              {isKasTrade
+                ? 'ربط مباشر وموثق بالعلامة الخضراء لإرسال عروض الأسعار وتأكيدات التوريد والفواتير الضريبية.'
+                : 'ربط مباشر وموثق بالعلامة الخضراء لإرسال قوالب التفييز والرحلات والفواتير الضريبية.'}
             </p>
             <div className="bg-zinc-50 p-3 rounded-xl text-xs text-zinc-700 space-y-1 border border-zinc-100">
               <div><strong>الرقم الموثق:</strong> +966 11 400 2026</div>

@@ -96,7 +96,7 @@ const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
     badgeIcon: '',
     accentHex: '#141414',
     accentLightHex: '#0066ff',
-    defaultUsername: 'chairman@alsulaim.sa',
+    defaultUsername: 'khalid@kas.sa',
     roleLabel: 'رئيس مجلس الإدارة / المشرف العام',
     targetTab: 'group-command-center',
     targetTitle: 'مركز قيادة المجموعة الموحد (Group Command Center)',
@@ -106,8 +106,8 @@ const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
       { label: 'الأقسام المعزولة', value: '6 أقسام' },
     ],
     quickRoles: [
-      { label: 'رئيس مجلس الإدارة', username: 'chairman@alsulaim.sa', roleTitle: 'صلاحية سيادية شاملة', tab: 'group-command-center', title: 'مركز قيادة المجموعة الموحد' },
-      { label: 'المدير المالي للمجموعة', username: 'cfo@alsulaim.sa', roleTitle: 'الإدارة المالية والمحاسبة العامة', tab: 'smacc-accounting', title: 'النظام المالي والمحاسبي الموحد' },
+      { label: 'المالك — رئيس مجلس الإدارة', username: 'khalid@kas.sa', roleTitle: 'المالك — رئيس مجلس الإدارة', tab: 'group-command-center', title: 'مركز قيادة المجموعة الموحد' },
+      { label: 'مبرمج النظام', username: 'a.salif.dev@kas.sa', roleTitle: 'مبرمج النظام وتطوير الأنظمة', tab: 'dashboard', title: 'لوحة القيادة التنفيذية' },
     ],
   },
   SAF: {
@@ -119,7 +119,7 @@ const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
     badgeIcon: '',
     accentHex: '#141414',
     accentLightHex: '#0066ff',
-    defaultUsername: 'musaned@saf-rec.sa',
+    defaultUsername: 'h.hassan.safir@kas.sa',
     roleLabel: 'مدير عمليات الاستقدام ومساند',
     targetTab: 'recruitment',
     targetTitle: 'إدارة عقود الاستقدام الموحدة (مساند)',
@@ -129,8 +129,8 @@ const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
       { label: 'نسبة الإنجاز', value: '98.4%' },
     ],
     quickRoles: [
-      { label: 'قسم الاستقدام (الصفا)', username: 'musaned@saf-rec.sa', roleTitle: 'مدير عقود مساند والتأشيرات', tab: 'recruitment', title: 'إدارة عقود الاستقدام الموحدة' },
-      { label: 'محاسبة شركة الصفا', username: 'accounting@saf-rec.sa', roleTitle: 'رئيس حسابات شركة الصفا', tab: 'smacc-accounting', title: 'النظام المالي والمحاسبي الموحد' },
+      { label: 'مبيعات استقدام (السفير الماسي)', username: 'h.hassan.safir@kas.sa', roleTitle: 'مبيعات استقدام — السفير الماسي', tab: 'recruitment-contracts', title: 'إدارة عقود الاستقدام الموحدة' },
+      { label: 'محاسب استقدام', username: 'a.alkinani.acc@kas.sa', roleTitle: 'محاسب استقدام', tab: 'smacc-accounting', title: 'النظام المالي والمحاسبي الموحد' },
     ],
   },
   YAQ: {
@@ -142,7 +142,7 @@ const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
     badgeIcon: '',
     accentHex: '#141414',
     accentLightHex: '#0066ff',
-    defaultUsername: 'rent@yaqoot-east.sa',
+    defaultUsername: 'h.yousef.yaqoot@kas.sa',
     roleLabel: 'مدير عقود التأجير والتشغيل',
     targetTab: 'rent',
     targetTitle: 'إدارة عقود التأجير والتشغيل (الياقوت)',
@@ -152,8 +152,8 @@ const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
       { label: 'نسبة التشغيل', value: '94.8%' },
     ],
     quickRoles: [
-      { label: 'قسم التأجير (الياقوت)', username: 'rent@yaqoot-east.sa', roleTitle: 'مدير عقود التأجير والأسطول', tab: 'rent', title: 'إدارة عقود التأجير والتشغيل' },
-      { label: 'محاسبة شركة الياقوت', username: 'accounting@yaqoot-east.sa', roleTitle: 'محاسب عام - الياقوت الشرقية', tab: 'smacc-accounting', title: 'النظام المالي والمحاسبي الموحد' },
+      { label: 'مبيعات ياقوت نجد', username: 'h.yousef.yaqoot@kas.sa', roleTitle: 'مبيعات التأجير والاستقدام — ياقوت نجد', tab: 'rent-contracts', title: 'إدارة عقود التأجير والتشغيل' },
+      { label: 'مبيعات ياقوت نجد', username: 'r.othman.yaqoot@kas.sa', roleTitle: 'مبيعات التأجير والاستقدام — ياقوت نجد', tab: 'rent-contracts', title: 'إدارة عقود التأجير والتشغيل' },
     ],
   },
   TOP: {
@@ -165,7 +165,7 @@ const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
     badgeIcon: '',
     accentHex: '#141414',
     accentLightHex: '#0066ff',
-    defaultUsername: 'talent@topaz-rec.sa',
+    defaultUsername: 'a.eissa.topaz@kas.sa',
     roleLabel: 'مدير استقطاب الكفاءات وبنك السير',
     targetTab: 'ats-pipeline',
     targetTitle: 'مسار التوظيف الذكي (ATS Pipeline)',
@@ -175,31 +175,32 @@ const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
       { label: 'سرعة التسكين', value: '48 ساعة' },
     ],
     quickRoles: [
-      { label: 'قسم التوظيف (توب تالنت)', username: 'talent@topaz-rec.sa', roleTitle: 'مدير الفرز وبنك السير', tab: 'ats-pipeline', title: 'مسار التوظيف الذكي (ATS)' },
-      { label: 'الموارد البشرية (توب تالنت)', username: 'hr@topaz-rec.sa', roleTitle: 'أخصائي شؤون الموظفين والرواتب', tab: 'hr', title: 'إدارة الموارد البشرية والرواتب' },
+      { label: 'مبيعات استقدام (توباز)', username: 'a.eissa.topaz@kas.sa', roleTitle: 'مبيعات استقدام — توباز', tab: 'recruitment-contracts', title: 'إدارة عقود الاستقدام الموحدة' },
+      { label: 'مشتريات وعقود (توباز)', username: 'm.alabdullatif.topaz@kas.sa', roleTitle: 'مسؤولة مشتريات وعقود — توباز', tab: 'recruitment-contracts', title: 'إدارة عقود الاستقدام الموحدة' },
     ],
   },
   KAS: {
     code: 'KAS',
-    shortName: 'شركة كاس للمنافسات والمشاريع الحكومية',
-    fullName: 'منظومة منافسات منصة اعتماد وجداول الكميات BOQ والضمانات البنكية',
-    tagline: 'تحليل كراسات الشروط، تسعير جداول الكميات، وإدارة خطابات الضمان البنكية.',
-    badgeText: 'قطاع المنافسات الحكومية • ETIMAD & BOQ',
+    shortName: 'شركة كاس للتجارة والمنافسات (نظام تجاري مستقل)',
+    fullName: 'المنظومة التجارية المستقلة لشركة كاس: المعارض، الأميال، المستودعات ومنافسات اعتماد',
+    tagline: 'نظام ERP تجاري مستقل 100% ومنفصل كلياً عن الاستقدام: إدارة المبيعات، المعارض، المخزون، زاتكا ومنافسات BOQ.',
+    badgeText: 'منظومة كاس للتجارة المستقلة • KAS COMMERCIAL & ETIMAD',
     badgeIcon: '',
     accentHex: '#141414',
     accentLightHex: '#0066ff',
-    defaultUsername: 'tenders@kas-etimad.sa',
-    roleLabel: 'مدير المنافسات وجداول الكميات',
-    targetTab: 'kas-etmad',
-    targetTitle: 'منصة كاس للمنافسات واعتماد (KAS Etimad Cloud)',
-    features: ['تفكيك وتسعير جداول الكميات BOQ', 'متابعة الضمانات الابتدائية والنهائية', 'تحليل هوامش الربح والمنافسين'],
+    defaultUsername: 'f.alhassan.trade@kas.sa',
+    roleLabel: 'مدير التجارة والمنافسات — شركة كاس للتجارة',
+    targetTab: 'kas-suite',
+    targetTitle: 'منظومة شركة كاس للتجارة والمنافسات المستقلة',
+    features: ['إدارة المعارض وقطاع الأميال والمستودعات', 'تفكيك وتسعير جداول الكميات BOQ واعتماد', 'محاسبة تجارية مستقلة وفوترة زاتكا المرحلة الثانية'],
     stats: [
-      { label: 'المنافسات النشطة', value: '42 منافسة' },
-      { label: 'قيمة المشاريع', value: '68M ⃁' },
+      { label: 'المنافسات والعقود', value: '42 عقداً تجارياً' },
+      { label: 'حجم الأعمال', value: '68M ⃁' },
     ],
     quickRoles: [
-      { label: 'منافسات اعتماد (كاس)', username: 'tenders@kas-etimad.sa', roleTitle: 'مدير المنافسات وجداول الكميات', tab: 'kas-etmad', title: 'منصة كاس للمنافسات واعتماد' },
-      { label: 'محاسبة شركة كاس', username: 'accounting@kas-etimad.sa', roleTitle: 'محاسب مشاريع وضمانات بنكية', tab: 'smacc-accounting', title: 'النظام المالي والمحاسبي الموحد' },
+      { label: 'التجارة والمنافسات (.trade)', username: 'f.alhassan.trade@kas.sa', roleTitle: 'مدير التجارة والمنافسات — شركة كاس للتجارة', tab: 'kas-suite', title: 'منظومة شركة كاس للتجارة والمنافسات المستقلة' },
+      { label: 'قطاع الأميال والمعرض (.imal)', username: 'm.alsaleh.imal@kas.sa', roleTitle: 'مدير الأميال — شركة كاس للتجارة', tab: 'kas-commercial', title: 'القطاعات التجارية: المعرض والأميال' },
+      { label: 'محاسبة التجارة (كاس)', username: 'm.alata.trade@kas.sa', roleTitle: 'محاسب التجارة — شركة كاس للتجارة', tab: 'smacc-accounting', title: 'النظام المالي والمحاسبي — محاسبة التجارة' },
     ],
   },
   SHELTER: {
@@ -211,7 +212,7 @@ const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
     badgeIcon: '',
     accentHex: '#141414',
     accentLightHex: '#0066ff',
-    defaultUsername: 'warden@alruwad.sa',
+    defaultUsername: 'r.aljbr.housing@kas.sa',
     roleLabel: 'مشرف مركز الإيواء والتسكين',
     targetTab: 'shelter',
     targetTitle: 'بوابة مراكز الإيواء والتسكين (دار الرواد)',
@@ -221,7 +222,7 @@ const SYSTEM_PORTALS: Record<string, PortalDefinition> = {
       { label: 'الامتثال النظامي', value: '100%' },
     ],
     quickRoles: [
-      { label: 'مشرف الإيواء (دار الرواد)', username: 'warden@alruwad.sa', roleTitle: 'مشرف مركز الإيواء والتسكين', tab: 'shelter', title: 'بوابة مراكز الإيواء والتسكين' },
+      { label: 'مشرفة سكن (دار الرواد)', username: 'r.aljbr.housing@kas.sa', roleTitle: 'مشرفة سكن', tab: 'shelter', title: 'بوابة مراكز الإيواء والتسكين' },
     ],
   },
 };
@@ -1055,6 +1056,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                           (g) => g.email.toLowerCase() === syncedGoogleUser.email?.toLowerCase()
                         ) || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]
                       : VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0];
+                    if (!googlePrimary) {
+                      setErrorMsg('لا يوجد حساب Google مربوط ضمن قائمة الموظفين المعتمدة (@kas.sa).');
+                      return;
+                    }
                     setIdentifier(googlePrimary.email);
                     setErrorMsg(null);
                     setSuccessMsg(
@@ -1065,16 +1070,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   title="مزامنة وجلب بيانات وصورة حساب Google المسجل في Firebase"
                 >
                   <EmployeePhotoAvatar
-                    name={syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].fullNameAr}
-                    email={syncedGoogleUser?.email || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].email}
-                    avatarUrl={syncedGoogleUser?.photoURL || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].photoURL}
+                    name={syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.fullNameAr || ''}
+                    email={syncedGoogleUser?.email || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.email || ''}
+                    avatarUrl={syncedGoogleUser?.photoURL || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.photoURL || ''}
                     size="xs"
                     showStatusDot={true}
                   />
                   <span className="truncate max-w-[210px]">
-                    {identifier.toLowerCase() === (syncedGoogleUser?.email || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].email).toLowerCase()
-                      ? `حساب Google المزامن: ${syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].displayName}`
-                      : `مزامنة صورة وبيانات Google (${syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].displayName})`}
+                    {identifier.toLowerCase() === (syncedGoogleUser?.email || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.email || '').toLowerCase()
+                      ? `حساب Google المزامن: ${syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.displayName || ''}`
+                      : `مزامنة صورة وبيانات Google (${syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.displayName || ''})`}
                   </span>
                 </button>
               </div>
@@ -1573,8 +1578,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     <div className="p-3.5 rounded-2xl bg-[#f8f8f7] border border-[#e5e5e5] flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <EmployeePhotoAvatar
-                          name={regFullName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].fullNameAr}
-                          email={regEmail || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].email}
+                          name={regFullName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.fullNameAr || ''}
+                          email={regEmail || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.email || ''}
                           role={regJobTitle || CORPORATE_DEPARTMENTS[regDepartmentId].nameAr}
                           departmentId={regDepartmentId}
                           avatarUrl={regAvatarUrl || undefined}
@@ -1594,6 +1599,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                         type="button"
                         onClick={() => {
                           const gAcc = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0];
+                          if (!gAcc) {
+                            setErrorMsg('لا يوجد حساب Google مربوط ضمن قائمة الموظفين المعتمدة (@kas.sa).');
+                            return;
+                          }
                           setRegFullName(gAcc.fullNameAr);
                           setRegEmail(gAcc.email);
                           setRegPhone(gAcc.phone || '0543389314');

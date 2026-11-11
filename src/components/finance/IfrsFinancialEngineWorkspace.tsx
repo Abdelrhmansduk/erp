@@ -48,8 +48,9 @@ import {
   resolveIfrsClassificationMetadata,
 } from '../../services/accounting/ifrsFinancialEngineService';
 import {
-  EXTENDED_IFRS_CLASSIFICATIONS,
-  EXCEL_ACCOUNTING_TREE,
+  isKasTradeCompany,
+  getCompanyIfrsClassifications,
+  getCompanyExcelAccountingTree,
   EXCEL_SEARCH_KEYWORDS,
   ARABIC_CODES_GUIDE,
   MOVEMENTS_AND_BALANCES_GUIDE,
@@ -81,7 +82,18 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
   initialStatementView = 'balance-sheet',
 }) => {
   const { activeCompanyId, activeCompany } = useCompany();
+  const isKasTrade = isKasTradeCompany(activeCompanyId);
   const { addNotification } = useAppStore();
+
+  // Company-scoped extended IFRS list (KAS Trade => commercial-only, no recruitment/shelter items)
+  const EXTENDED_IFRS_CLASSIFICATIONS = useMemo(
+    () => getCompanyIfrsClassifications(activeCompanyId),
+    [activeCompanyId]
+  );
+  const EXCEL_ACCOUNTING_TREE = useMemo(
+    () => getCompanyExcelAccountingTree(activeCompanyId),
+    [activeCompanyId]
+  );
 
   const [activeSubTab, setActiveSubTab] = useState<
     'overview' | 'trial-balance' | 'diagnostics' | 'statements' | 'ratios-plan' | 'mapping-settings' | 'coa-tree' | 'enterprise-suite'
@@ -1309,7 +1321,9 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
           'التغير (الفرق)': bs.current.inventory - bs.comparative.inventory,
         },
         {
-          'البند في قائمة المركز المالي': 'ذمم مدينة تجارية وحسابات ضمان مساند (بالصافي)',
+          'البند في قائمة المركز المالي': isKasTrade
+            ? 'ذمم مدينة تجارية ومستخلصات اعتماد (بالصافي)'
+            : 'ذمم مدينة تجارية وحسابات ضمان مساند (بالصافي)',
           'الرمز المعياري': 'A-07 / A-08',
           'المعيار المرجعي': 'IFRS 9 / IFRS 15',
           'السنة الحالية (2026)': bs.current.tradeReceivablesNet,
@@ -1564,15 +1578,40 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
         defaultBudget: number;
         defaultCostCenter: string;
       }> = [
-        { code: 'R-01', nameAr: 'الإيرادات من العقود مع العملاء (استقدام ومساند وتشغيل)', category: 'إيرادات', actual: inc.revenues, defaultBudget: Math.round(inc.revenues * 1.15) || 2500000, defaultCostCenter: 'مركز تكلفة الاستقدام ومساند' },
-        { code: 'R-02', nameAr: 'تكلفة الإيرادات المباشرة (الوكلاء، التذاكر، التأشيرات، الإيواء)', category: 'مصروفات', actual: inc.costOfRevenues, defaultBudget: Math.round(inc.costOfRevenues * 0.92) || 1200000, defaultCostCenter: 'مركز تكلفة التشغيل والإيواء' },
+        {
+          code: 'R-01',
+          nameAr: isKasTrade
+            ? 'الإيرادات من المبيعات التجارية والأميال ومنافسات اعتماد'
+            : 'الإيرادات من العقود مع العملاء (استقدام ومساند وتشغيل)',
+          category: 'إيرادات',
+          actual: inc.revenues,
+          defaultBudget: Math.round(inc.revenues * 1.15) || 2500000,
+          defaultCostCenter: isKasTrade ? 'المعرض التجاري وقطاع الأميال' : 'مركز تكلفة الاستقدام ومساند',
+        },
+        {
+          code: 'R-02',
+          nameAr: isKasTrade
+            ? 'تكلفة البضاعة المباعة والتوريدات المباشرة والشحن'
+            : 'تكلفة الإيرادات المباشرة (الوكلاء، التذاكر، التأشيرات، الإيواء)',
+          category: 'مصروفات',
+          actual: inc.costOfRevenues,
+          defaultBudget: Math.round(inc.costOfRevenues * 0.92) || 1200000,
+          defaultCostCenter: isKasTrade ? 'مستودعات كاس والتوريدات' : 'مركز تكلفة التشغيل والإيواء',
+        },
         { code: 'R-03', nameAr: 'مصروفات البيع والتسويق وعمولات المبيعات', category: 'مصروفات', actual: inc.sellingMarketingExp, defaultBudget: Math.round(inc.sellingMarketingExp * 0.95) || 180000, defaultCostCenter: 'مركز تكلفة التسويق والمبيعات' },
         { code: 'R-04', nameAr: 'المصروفات العمومية والإدارية والرواتب والإيجارات', category: 'مصروفات', actual: inc.generalAdminExp, defaultBudget: Math.round(inc.generalAdminExp * 0.94) || 450000, defaultCostCenter: 'مركز تكلفة الإدارة العامة والموارد البشرية' },
         { code: 'R-05', nameAr: 'مخصص الخسائر الائتمانية المتوقعة (IFRS 9 ECL)', category: 'مصروفات', actual: inc.otherExpenses, defaultBudget: Math.round(inc.otherExpenses * 0.9) || 35000, defaultCostCenter: 'الإدارة المالية والتحصيل' },
         { code: 'R-06', nameAr: 'الإيرادات التشغيلية الأخرى والتعويضات', category: 'إيرادات', actual: inc.otherIncome, defaultBudget: Math.round(inc.otherIncome * 1.1) || 60000, defaultCostCenter: 'الإدارة العامة' },
         { code: 'R-08', nameAr: 'تكاليف التمويل والعمولات البنكية وفوائد عقود الإيجار', category: 'مصروفات', actual: inc.financeCosts, defaultBudget: Math.round(inc.financeCosts * 0.9) || 40000, defaultCostCenter: 'الإدارة المالية والخزينة' },
         { code: 'R-09', nameAr: 'مصروف الزكاة الشرعية وضريبة الدخل', category: 'مصروفات', actual: inc.zakatAndTaxExpense, defaultBudget: Math.round(inc.zakatAndTaxExpense) || 55000, defaultCostCenter: 'الإدارة المالية والزكاة' },
-        { code: 'R-10', nameAr: 'مصروف الإهلاك والإطفاء للأصول الثابتة (IAS 16)', category: 'مصروفات', actual: inc.depreciationAmortization, defaultBudget: Math.round(inc.depreciationAmortization) || 85000, defaultCostCenter: 'مركز تكلفة الأصول والإيواء' },
+        {
+          code: 'R-10',
+          nameAr: 'مصروف الإهلاك والإطفاء للأصول الثابتة (IAS 16)',
+          category: 'مصروفات',
+          actual: inc.depreciationAmortization,
+          defaultBudget: Math.round(inc.depreciationAmortization) || 85000,
+          defaultCostCenter: isKasTrade ? 'المعارض والمستودعات وأسطول التوزيع' : 'مركز تكلفة الأصول والإيواء',
+        },
       ];
       return baseLines.map((item) => {
         const ov = budgetOverrides[item.code];
@@ -2789,7 +2828,9 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                   className="w-full accent-[#141414] cursor-pointer"
                 />
                 <div className="text-[10.5px] text-[#707070]">
-                  التوسع في عقود استقدام مساند والتأجير المرن ونقل الكفالة
+                  {isKasTrade
+                    ? 'التوسع في مبيعات المعرض التجاري وعقود قطاع الأميال ومنافسات اعتماد'
+                    : 'التوسع في عقود استقدام مساند والتأجير المرن ونقل الكفالة'}
                 </div>
               </div>
 
@@ -2809,7 +2850,9 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                   className="w-full accent-[#141414] cursor-pointer"
                 />
                 <div className="text-[10.5px] text-[#707070]">
-                  خصومات تذاكر الطيران وعمولات الوكلاء وترشيد الإعاشة
+                  {isKasTrade
+                    ? 'خصومات الشراء بالجملة من المصانع وترشيد تكاليف الشحن والمستودعات'
+                    : 'خصومات تذاكر الطيران وعمولات الوكلاء وترشيد الإعاشة'}
                 </div>
               </div>
 
@@ -2829,7 +2872,9 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                   className="w-full accent-[#141414] cursor-pointer"
                 />
                 <div className="text-[10.5px] text-[#707070]">
-                  تسريع تسويات حساب ضمان مساند وتحصيل ذمم العملاء
+                  {isKasTrade
+                    ? 'تسريع تحصيل مستخلصات منصة اعتماد وذمم العملاء التجاريين'
+                    : 'تسريع تسويات حساب ضمان مساند وتحصيل ذمم العملاء'}
                 </div>
               </div>
 
@@ -3380,7 +3425,16 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                     </tr>
                     {[
                       { label: 'المخزون وتكاليف العقود الجارية', codes: ['A-06'], ref: 'IAS 2', cur: engine.balanceSheet.current.inventory, comp: engine.balanceSheet.comparative.inventory, cat: 'أصول' as const },
-                      { label: 'ذمم مدينة تجارية وحسابات ضمان مساند (بالصافي بعد مخصص الائتمان)', codes: ['A-07', 'A-08'], ref: 'IFRS 9 / IFRS 15', cur: engine.balanceSheet.current.tradeReceivablesNet, comp: engine.balanceSheet.comparative.tradeReceivablesNet, cat: 'أصول' as const },
+                      {
+                        label: isKasTrade
+                          ? 'ذمم مدينة تجارية ومستخلصات اعتماد (بالصافي بعد مخصص الائتمان)'
+                          : 'ذمم مدينة تجارية وحسابات ضمان مساند (بالصافي بعد مخصص الائتمان)',
+                        codes: ['A-07', 'A-08'],
+                        ref: 'IFRS 9 / IFRS 15',
+                        cur: engine.balanceSheet.current.tradeReceivablesNet,
+                        comp: engine.balanceSheet.comparative.tradeReceivablesNet,
+                        cat: 'أصول' as const,
+                      },
                       { label: 'مدفوعات مقدمة، سلف، وأرصدة مدينة وأطراف ذات علاقة', codes: ['A-09', 'A-12'], ref: 'IAS 1.66 / IAS 24', cur: engine.balanceSheet.current.prepaymentsOtherRec, comp: engine.balanceSheet.comparative.prepaymentsOtherRec, cat: 'أصول' as const },
                       { label: 'النقد وما في حكمه (الصناديق والحسابات البنكية)', codes: ['A-10'], ref: 'IAS 7', cur: engine.balanceSheet.current.cashAndEquivalents, comp: engine.balanceSheet.comparative.cashAndEquivalents, cat: 'أصول' as const },
                     ].map((item) => {

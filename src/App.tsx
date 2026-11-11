@@ -116,6 +116,8 @@ const LegalCompliancePage = lazyWithRetry(() => import('./pages/LegalComplianceP
 const TendersBOQPage = lazyWithRetry(() => import('./pages/TendersBOQPage').then(m => ({ default: m.TendersBOQPage })));
 const KasEtimadCloudPage = lazyWithRetry(() => import('./pages/KasEtimadCloudPage').then(m => ({ default: m.KasEtimadCloudPage })));
 const KasSuitePortalPage = lazyWithRetry(() => import('./pages/KasSuitePortalPage').then(m => ({ default: m.KasSuitePortalPage })));
+const KasCommercialDivisionsPage = lazyWithRetry(() => import('./pages/KasCommercialDivisionsPage').then(m => ({ default: m.KasCommercialDivisionsPage })));
+const EmployeeSelfServicePage = lazyWithRetry(() => import('./pages/EmployeeSelfServicePage').then(m => ({ default: m.EmployeeSelfServicePage })));
 const IdentityAccessManagementPage = lazyWithRetry(() => import('./pages/IdentityAccessManagementPage').then(m => ({ default: m.IdentityAccessManagementPage })));
 const ClientPortalPage = lazyWithRetry(() => import('./pages/ClientPortalPage').then(m => ({ default: m.ClientPortalPage })));
 const ForeignAgencyPortalPage = lazyWithRetry(() => import('./pages/ForeignAgencyPortalPage').then(m => ({ default: m.ForeignAgencyPortalPage })));
@@ -636,6 +638,8 @@ const MainContent: React.FC = () => {
         return <ReportsPage />;
 
       case 'profile':
+        return <EmployeeSelfServicePage />;
+
       case 'settings':
       case 'general-settings':
       case 'company-profile':
@@ -643,7 +647,8 @@ const MainContent: React.FC = () => {
       case 'quick-links-settings':
       case 'system-backup':
       case 'module-visibility':
-        return <SettingsPage />;
+      case 'rbac-matrix':
+        return authService.isAdmin(user) ? <SettingsPage /> : <EmployeeSelfServicePage />;
 
       case 'master-constants':
       case 'nationalities-jobs':
@@ -721,13 +726,20 @@ const MainContent: React.FC = () => {
       case 'boq-analytics':
         return <TendersBOQPage />;
 
+      case 'kas-commercial':
+        return <KasCommercialDivisionsPage />;
+
       case 'kas-suite':
       case 'kas-portal':
       case 'kas-standalone':
       case 'kas-company':
         return (
-          <KasSuitePortalPage 
-            onReturnToErp={() => handleSelectTab('dashboard', 'الرئيسية والمؤشرات التشغيلية')} 
+          <KasSuitePortalPage
+            onReturnToErp={
+              authService.isAdmin(user)
+                ? () => handleSelectTab('dashboard', 'الرئيسية والمؤشرات التنفيذية')
+                : undefined
+            }
           />
         );
 
@@ -752,7 +764,11 @@ const MainContent: React.FC = () => {
         return <ForeignAgencyPortalPage />;
 
       default:
-        return <DashboardPage onNavigate={handleSelectTab} />;
+        return authService.isAdmin(user) ? (
+          <DashboardPage onNavigate={handleSelectTab} />
+        ) : (
+          <EmployeeSelfServicePage />
+        );
     }
   };
 

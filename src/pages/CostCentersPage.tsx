@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { journalEngine } from '../services/accounting/journalEngine';
+import { isKasTradeCompany, scopeRecordsForCompany } from '../services/kasTradeScope';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
 
@@ -57,14 +58,50 @@ const DEFAULT_MOCK_COST_CENTERS: CostCenterRecord[] = [
   },
 ];
 
+const KAS_DEFAULT_COST_CENTERS: CostCenterRecord[] = [
+  {
+    id: 'kas-cc-1',
+    company_id: 'KAS',
+    code: 'CC-KAS-SHW',
+    name: 'المعرض التجاري الرئيسي — الرياض',
+    manager_name: 'بلال اللبودي',
+    budget: 180000.0,
+    actual_spent: 142500.0,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'kas-cc-2',
+    company_id: 'KAS',
+    code: 'CC-KAS-IML',
+    name: 'قطاع الأميال والعقود التجارية',
+    manager_name: 'ماجد عبدالرحمن الصالح',
+    budget: 150000.0,
+    actual_spent: 118200.0,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'kas-cc-3',
+    company_id: 'KAS',
+    code: 'CC-KAS-ETM',
+    name: 'إدارة المنافسات وتوريدات اعتماد',
+    manager_name: 'فيصل الحسن',
+    budget: 240000.0,
+    actual_spent: 196000.0,
+    created_at: new Date().toISOString(),
+  },
+];
+
 export const CostCentersPage: React.FC = () => {
   const { activeCompanyId, activeCompany } = useCompany();
+  const isKasTrade = isKasTradeCompany(activeCompanyId);
   const { data: rawCostCenters = [], isLoading } = useCostCenters();
   const { createItem, updateItem, deleteItem } = useTableMutation('cost_centers');
   const { addNotification } = useAppStore();
 
-  const costCenters: CostCenterRecord[] = (
-    rawCostCenters.length > 0 ? rawCostCenters : DEFAULT_MOCK_COST_CENTERS
+  const costCenters: CostCenterRecord[] = scopeRecordsForCompany(
+    rawCostCenters.length > 0 ? rawCostCenters : DEFAULT_MOCK_COST_CENTERS,
+    activeCompanyId,
+    KAS_DEFAULT_COST_CENTERS
   ).map((c: any) => ({
     ...c,
     code: String(c.code || c.id || 'CC-00'),
@@ -499,7 +536,7 @@ export const CostCentersPage: React.FC = () => {
                 <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم مركز التكلفة *</label>
                 <input
                   type="text"
-                  placeholder="مثال: مركز تكلفة فرع جدة، إيواء الرياض..."
+                  placeholder={isKasTrade ? 'مثال: المعرض التجاري، مستودعات كاس، قطاع الأميال...' : 'مثال: مركز تكلفة فرع جدة، إيواء الرياض...'}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
@@ -599,7 +636,7 @@ export const CostCentersPage: React.FC = () => {
                 <input
                   type="text"
                   required
-                  placeholder="سداد فواتير، رسوم حكومية، مستلزمات إيواء..."
+                  placeholder={isKasTrade ? 'سداد فواتير موردين، شحن بضائع، مصاريف معارض...' : 'سداد فواتير، رسوم حكومية، مستلزمات إيواء...'}
                   value={expenseDescription}
                   onChange={(e) => setExpenseDescription(e.target.value)}
                   className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"

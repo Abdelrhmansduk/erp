@@ -801,7 +801,7 @@ export const CVsBankPage: React.FC = () => {
             className="button-outline-on-dark flex items-center gap-1.5"
             style={{ fontSize: '12px', padding: '6px 14px', minHeight: '40px' }}
           >
-            <Download className="w-4 h-4 text-[#141414]" />
+            <Download className="w-4 h-4 text-[#ffffff]" />
             <span>استيراد جماعي (Excel)</span>
           </button>
 
@@ -1048,7 +1048,11 @@ export const CVsBankPage: React.FC = () => {
                   </div>
                   <div>
                     <span className="text-[#707070] text-[10px] block">رقم الجواز</span>
-                    <strong className="font-mono text-zinc-800 text-[11px]">{cv.passport_number}</strong>
+                    <strong className="font-mono text-zinc-800 text-[11px]">
+                      {cv.passport_number && cv.passport_number.length > 4
+                        ? `${cv.passport_number.slice(0, 2)}••••${cv.passport_number.slice(-2)}`
+                        : cv.passport_number}
+                    </strong>
                   </div>
                   <div>
                     <span className="text-[#707070] text-[10px] block">الراتب / التكلفة</span>
@@ -1093,7 +1097,7 @@ export const CVsBankPage: React.FC = () => {
                       : 'bg-zinc-100 text-[#707070] cursor-not-allowed'
                   }`}
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-[#141414]" />
+                  <Sparkles className={`w-3.5 h-3.5 ${cv.status === 'متاح' ? 'text-white' : 'text-[#707070]'}`} />
                   <span>{cv.type === 'تأجير' ? 'حجز وتأجير فوري' : 'حجز وتعاقد'}</span>
                 </button>
 

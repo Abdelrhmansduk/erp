@@ -141,7 +141,7 @@ const DEPARTMENT_OPERATION_BLUEPRINTS: Record<DepartmentId, DepartmentOperationB
         const amount = 6500 + (seq % 4) * 1250;
         return {
           title: `اعتماد سند صرف وعهدة تشغيلية #${refNo}`,
-          details: `اعتمد (${staff.full_name}) في (${staff.branch}) سند صرف مالي بمبلغ ${amount.toLocaleString()} ⃁ لتغطية رسوم التأشيرات والتشغيل وربطه بمركز التكلفة.`,
+          details: `اعتمد (${staff.full_name}) في (${staff.branch}) سند صرف مالي بمبلغ ${amount.toLocaleString()} ⃁ ${staff.company_id === 'KAS' ? 'لتغطية مشتريات التوريدات والمعارض التجارية' : 'لتغطية رسوم التأشيرات والتشغيل'} وربطه بمركز التكلفة.`,
           amountSar: amount,
           status: 'مكتملة ومعتمدة',
         };
@@ -544,6 +544,8 @@ export const employeeOperationsEngine = {
     onNavigate?: (tab: string, title: string) => void
   ): void {
     const deptDef = CORPORATE_DEPARTMENTS[staff.department_id] || CORPORATE_DEPARTMENTS.executive;
+    const targetTab = staff.default_tab || deptDef.defaultTab;
+    const targetTitle = staff.default_tab_title || deptDef.defaultTabTitle;
     const profile = {
       id: staff.id,
       username: staff.username,
@@ -554,8 +556,10 @@ export const employeeOperationsEngine = {
       company_id: staff.company_id,
       department_id: staff.department_id,
       department_name_ar: deptDef.nameAr,
-      default_tab: deptDef.defaultTab,
-      default_tab_title: deptDef.defaultTabTitle,
+      default_tab: targetTab,
+      default_tab_title: targetTitle,
+      allowed_tabs_override: staff.allowed_tabs_override,
+      extra_allowed_departments: staff.extra_allowed_departments,
       status: 'نشط' as const,
       created_at: new Date().toISOString(),
     };
@@ -571,11 +575,11 @@ export const employeeOperationsEngine = {
     }
 
     if (onNavigate) {
-      onNavigate(deptDef.defaultTab, deptDef.defaultTabTitle);
+      onNavigate(targetTab, targetTitle);
     } else if (typeof window !== 'undefined') {
       window.dispatchEvent(
         new CustomEvent('alsulaim_navigate', {
-          detail: { tab: deptDef.defaultTab, title: deptDef.defaultTabTitle },
+          detail: { tab: targetTab, title: targetTitle },
         })
       );
     }

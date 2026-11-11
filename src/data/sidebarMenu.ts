@@ -146,6 +146,7 @@ export const SIDEBAR_MENU: NavItem[] = [
       { id: 'custodies', title: 'العهد العينية والأصول المسلمة', icon: 'Vault', href: 'custodies' },
       { id: 'end-of-service', title: 'تصفية ومستحقات نهاية الخدمة (EOSB)', icon: 'Receipt', href: 'end-of-service' },
       { id: 'gosi-insurance', title: 'التأمينات الاجتماعية (GOSI)', icon: 'ShieldCheck', href: 'gosi-insurance' },
+      { id: 'legal-compliance-hr', title: 'التراخيص والالتزام الحكومي (قوى/مدد)', icon: 'Scale', href: 'legal-compliance' },
     ],
   },
   {
@@ -154,6 +155,7 @@ export const SIDEBAR_MENU: NavItem[] = [
     icon: 'Contact',
     href: 'clients',
     children: [
+      { id: 'kas-commercial', title: 'منظومة المعرض التجاري وقطاع الأميال (كاس)', icon: 'Briefcase', href: 'kas-commercial', badge: 'تجاري مستقل', badgeType: 'primary', exclusiveToCompany: 'KAS' },
       { id: 'clients', title: 'سجل العملاء وأصحاب العمل', icon: 'Users', href: 'clients', badge: 241, badgeType: 'primary' },
       { id: 'new-client', title: 'تسجيل ملف عميل جديد', icon: 'UserPlus', href: 'new-client' },
       { id: 'complaints', title: 'سجل الشكاوى والتذاكر المفتوحة (SLA)', icon: 'AlertCircle', href: 'complaints', badge: 4, badgeType: 'danger' },
@@ -184,11 +186,13 @@ export const SIDEBAR_MENU: NavItem[] = [
   },
   {
     id: 'dept-9-tenders',
-    title: '9. المنافسات والمشاريع (كاس)',
+    title: '9. منظومة شركة كاس للتجارة والمنافسات المستقلة',
     icon: 'Briefcase',
     href: 'kas-suite',
+    exclusiveToCompany: 'KAS',
     children: [
-      { id: 'kas-suite', title: 'منظومة شركة كاس للمنافسات (KAS Suite)', icon: 'Briefcase', href: 'kas-suite', badge: 'KAS', badgeType: 'success', exclusiveToCompany: 'KAS' },
+      { id: 'kas-suite', title: 'منظومة شركة كاس للتجارة والمنافسات (اعتماد)', icon: 'Briefcase', href: 'kas-suite', badge: 'KAS', badgeType: 'success', exclusiveToCompany: 'KAS' },
+      { id: 'kas-commercial-sub', title: 'منظومة المعرض التجاري وقطاع الأميال (كاس)', icon: 'Package', href: 'kas-commercial', exclusiveToCompany: 'KAS' },
       { id: 'tenders-boq', title: 'منافسات اعتماد وجداول الكميات (BOQ)', icon: 'Scale', href: 'tenders-boq', exclusiveToCompany: 'KAS' },
       { id: 'kas-etmad', title: 'إدارة الضمانات البنكية والعطاءات (اعتماد)', icon: 'ShieldCheck', href: 'kas-etmad', exclusiveToCompany: 'KAS' },
     ],

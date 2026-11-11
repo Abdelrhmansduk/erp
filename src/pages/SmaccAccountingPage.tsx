@@ -40,7 +40,7 @@ import { chartOfAccountsService, AccountItem } from '../services/accounting/char
 import { journalEngine } from '../services/accounting/journalEngine';
 import { IFRS_MAPPING_CODES } from '../services/accounting/ifrsFinancialEngineService';
 import { enterpriseAccountingSuiteService } from '../services/accounting/enterpriseAccountingSuiteService';
-import { EXTENDED_IFRS_CLASSIFICATIONS } from '../services/accounting/ifrsExtendedReferenceData';
+import { getCompanyIfrsClassifications, isKasTradeCompany } from '../services/accounting/ifrsExtendedReferenceData';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { IfrsFinancialEngineWorkspace } from '../components/finance/IfrsFinancialEngineWorkspace';
 
@@ -132,6 +132,39 @@ const DEFAULT_MOCK_JOURNALS: JournalRecord[] = [
       { accountCode: '1101', accountName: 'الصندوق الرئيسي (Cash)', debit: 0, credit: 8500, memo: 'شيك مسحوب من الخزينة', costCenter: 'CC-SHL-01' }
     ],
     created_at: '2026-08-16T14:30:00Z'
+  },
+  {
+    id: 'jv-kas-1',
+    company_id: 'KAS',
+    ref_no: 'KAS-JV-2026-101',
+    date: '2026-08-17',
+    branch: 'المعرض التجاري الرئيسي — الرياض',
+    description: 'قيد إثبات مبيعات المعرض التجاري وتوريدات قطاع الأميال — دفعة شهر أغسطس',
+    total_debit: 96600,
+    total_credit: 96600,
+    status: 'معتمد',
+    lines: [
+      { accountCode: '110201', accountName: 'مصرف الراجحي - الحساب التشغيلي الرئيسي', debit: 96600, credit: 0, memo: 'تحصيل مبيعات نقاط البيع والتحويلات التجارية', costCenter: 'CC-KAS-SHW' },
+      { accountCode: '410101', accountName: 'مبيعات المعارض التجارية والسلع والأجهزة', debit: 0, credit: 84000, memo: 'صافي مبيعات المعرض والأميال', costCenter: 'CC-KAS-SHW' },
+      { accountCode: '210301', accountName: 'ضريبة القيمة المضافة للمخرجات (VAT 15%)', debit: 0, credit: 12600, memo: 'ضريبة مخرجات ZATCA المرحلة الثانية', costCenter: 'CC-KAS-SHW' }
+    ],
+    created_at: '2026-08-17T10:30:00Z'
+  },
+  {
+    id: 'jv-kas-2',
+    company_id: 'KAS',
+    ref_no: 'KAS-JV-2026-102',
+    date: '2026-08-18',
+    branch: 'إدارة المنافسات والتوريدات الحكومية',
+    description: 'قيد استحقاق مستخلص أمر توريد منصة اعتماد #ETM-2026-88991',
+    total_debit: 145000,
+    total_credit: 145000,
+    status: 'معتمد',
+    lines: [
+      { accountCode: '110402', accountName: 'ذمم عملاء قطاع الأميال والجهات الحكومية والشركات', debit: 145000, credit: 0, memo: 'مستخلص توريدات معتمد بمنصة اعتماد', costCenter: 'CC-KAS-ETM' },
+      { accountCode: '410201', accountName: 'إيرادات مستخلصات وأوامر توريد مشاريع المنافسات الحكومية', debit: 0, credit: 145000, memo: 'إيراد مشروع توريد أجهزة وتجهيزات', costCenter: 'CC-KAS-ETM' }
+    ],
+    created_at: '2026-08-18T12:15:00Z'
   }
 ];
 
@@ -165,12 +198,48 @@ const DEFAULT_MOCK_VOUCHERS: VoucherRecord[] = [
     notes: 'سداد فواتير التموين الغذائي لمركز الإيواء',
     status: 'معتمد',
     created_at: '2026-08-18T09:45:00Z'
+  },
+  {
+    id: 'vou-kas-1',
+    company_id: 'KAS',
+    voucher_no: 'KAS-RV-2026-201',
+    date: '2026-08-18',
+    type: 'قبض',
+    account_code: '110201',
+    amount: 64400,
+    payee: 'مجموعة النخبة للتجهيزات التجارية (قطاع الأميال)',
+    treasury: 'بنك الرياض - حساب التجارة والمنافسات',
+    cost_center: 'فرع قطاع الأميال التجاري',
+    notes: 'تحصيل دفعة عقد توريد بضائع وأجهزة تجارية شاملة الضريبة',
+    status: 'معتمد',
+    created_at: '2026-08-18T11:00:00Z'
+  },
+  {
+    id: 'vou-kas-2',
+    company_id: 'KAS',
+    voucher_no: 'KAS-PV-2026-109',
+    date: '2026-08-19',
+    type: 'صرف',
+    account_code: '210101',
+    amount: 38500,
+    payee: 'شركة التوريدات الصناعية المتحدة',
+    treasury: 'مصرف الراجحي الرئيسي',
+    cost_center: 'مستودعات كاس المركزية',
+    notes: 'سداد دفعة أمر شراء وتوريد بضائع للمستودع المركزي #PO-KAS-2026-881',
+    status: 'معتمد',
+    created_at: '2026-08-19T09:30:00Z'
   }
 ];
 
 export const SmaccAccountingPage: React.FC = () => {
   const { activeTab: storeActiveTab, setActiveTab: setGlobalActiveTab, addNotification } = useAppStore();
   const { activeCompanyId, activeCompany } = useCompany();
+  const isKasTrade = isKasTradeCompany(activeCompanyId);
+
+  const companyIfrsClassifications = useMemo(
+    () => getCompanyIfrsClassifications(activeCompanyId),
+    [activeCompanyId]
+  );
 
   const mapStoreTabToSmaccTab = (
     tabKey: string
@@ -849,7 +918,7 @@ export const SmaccAccountingPage: React.FC = () => {
               onChange={(e) => handleInlineUpdateSmaccAccount(node.code, { ifrsSubCode: e.target.value })}
               className="w-full bg-zinc-50 focus:bg-white border border-zinc-200 focus:border-[#141414] rounded-lg py-1 px-1.5 font-mono text-[11px] font-semibold text-[#141414]"
             >
-              {EXTENDED_IFRS_CLASSIFICATIONS.map((ext) => (
+              {companyIfrsClassifications.map((ext) => (
                 <option key={ext.code} value={ext.code}>
                   {ext.code} - {ext.nameAr}
                 </option>
@@ -1038,7 +1107,7 @@ export const SmaccAccountingPage: React.FC = () => {
           },
           {
             code: 'FIN-04',
-            title: '4. المشتريات والوكلاء',
+            title: isKasTrade ? '4. المشتريات والموردون التجاريون' : '4. المشتريات والوكلاء',
             subtitle: 'مستحقات الموردين وأوامر الصرف',
             emoji: '',
             onClick: () => setGlobalActiveTab('financial-requests', 'المطالبات وأوامر الصرف المعتمدة'),
@@ -1922,11 +1991,19 @@ export const SmaccAccountingPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <ExportDropdown
                 sectionKey="cost-centers"
-                data={[
-                  { 'كود المركز': 'CC-OPS-01', 'اسم مركز التكلفة': 'مركز عمليات الاستقدام والتفويج', 'النوع': 'تشغيلي', 'الموازنة المرصودة (⃁)': 120000, 'المنصرف الفعلي (⃁)': 95400, 'الوفر المتبقي (⃁)': 24600 },
-                  { 'كود المركز': 'CC-SHL-01', 'اسم مركز التكلفة': 'مركز تشغيل وإيواء الكوادر بالرياض', 'النوع': 'خدمي', 'الموازنة المرصودة (⃁)': 85000, 'المنصرف الفعلي (⃁)': 72100, 'الوفر المتبقي (⃁)': 12900 },
-                  { 'كود المركز': 'CC-RNT-01', 'اسم مركز التكلفة': 'مركز عقود التأجير والتشغيل المرن', 'النوع': 'استثماري', 'الموازنة المرصودة (⃁)': 110000, 'المنصرف الفعلي (⃁)': 88500, 'الوفر المتبقي (⃁)': 21500 },
-                ]}
+                data={
+                  isKasTrade
+                    ? [
+                        { 'كود المركز': 'CC-KAS-SHW', 'اسم مركز التكلفة': 'المعرض التجاري الرئيسي — الرياض', 'النوع': 'تجاري', 'الموازنة المرصودة (⃁)': 180000, 'المنصرف الفعلي (⃁)': 142500, 'الوفر المتبقي (⃁)': 37500 },
+                        { 'كود المركز': 'CC-KAS-IML', 'اسم مركز التكلفة': 'قطاع الأميال والعقود التجارية', 'النوع': 'تجاري', 'الموازنة المرصودة (⃁)': 150000, 'المنصرف الفعلي (⃁)': 118200, 'الوفر المتبقي (⃁)': 31800 },
+                        { 'كود المركز': 'CC-KAS-ETM', 'اسم مركز التكلفة': 'إدارة المنافسات وتوريدات اعتماد', 'النوع': 'مشاريع', 'الموازنة المرصودة (⃁)': 240000, 'المنصرف الفعلي (⃁)': 196000, 'الوفر المتبقي (⃁)': 44000 },
+                      ]
+                    : [
+                        { 'كود المركز': 'CC-OPS-01', 'اسم مركز التكلفة': 'مركز عمليات الاستقدام والتفويج', 'النوع': 'تشغيلي', 'الموازنة المرصودة (⃁)': 120000, 'المنصرف الفعلي (⃁)': 95400, 'الوفر المتبقي (⃁)': 24600 },
+                        { 'كود المركز': 'CC-SHL-01', 'اسم مركز التكلفة': 'مركز تشغيل وإيواء الكوادر بالرياض', 'النوع': 'خدمي', 'الموازنة المرصودة (⃁)': 85000, 'المنصرف الفعلي (⃁)': 72100, 'الوفر المتبقي (⃁)': 12900 },
+                        { 'كود المركز': 'CC-RNT-01', 'اسم مركز التكلفة': 'مركز عقود التأجير والتشغيل المرن', 'النوع': 'استثماري', 'الموازنة المرصودة (⃁)': 110000, 'المنصرف الفعلي (⃁)': 88500, 'الوفر المتبقي (⃁)': 21500 },
+                      ]
+                }
                 customTitle={`تقرير مراكز التكلفة التشغيلية - ${activeCompany.name}`}
                 buttonLabel="تصدير مراكز التكلفة (12 صيغة)"
                 variant="outline-light"
@@ -1935,11 +2012,18 @@ export const SmaccAccountingPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { code: 'CC-OPS-01', name: 'مركز عمليات الاستقدام والتفويج', budget: 120000, actual: 95400, type: 'تشغيلي' },
-              { code: 'CC-SHL-01', name: 'مركز تشغيل وإيواء الكوادر بالرياض', budget: 85000, actual: 72100, type: 'خدمي' },
-              { code: 'CC-RNT-01', name: 'مركز عقود التأجير والتشغيل المرن', budget: 110000, actual: 88500, type: 'استثماري' },
-            ].map(cc => (
+            {(isKasTrade
+              ? [
+                  { code: 'CC-KAS-SHW', name: 'المعرض التجاري الرئيسي — الرياض', budget: 180000, actual: 142500, type: 'تجاري' },
+                  { code: 'CC-KAS-IML', name: 'قطاع الأميال والعقود التجارية', budget: 150000, actual: 118200, type: 'تجاري' },
+                  { code: 'CC-KAS-ETM', name: 'إدارة المنافسات وتوريدات اعتماد', budget: 240000, actual: 196000, type: 'مشاريع' },
+                ]
+              : [
+                  { code: 'CC-OPS-01', name: 'مركز عمليات الاستقدام والتفويج', budget: 120000, actual: 95400, type: 'تشغيلي' },
+                  { code: 'CC-SHL-01', name: 'مركز تشغيل وإيواء الكوادر بالرياض', budget: 85000, actual: 72100, type: 'خدمي' },
+                  { code: 'CC-RNT-01', name: 'مركز عقود التأجير والتشغيل المرن', budget: 110000, actual: 88500, type: 'استثماري' },
+                ]
+            ).map(cc => (
               <div key={cc.code} className="card-pricing p-5 bg-white rounded-2xl border border-zinc-200">
                 <span className="pill-tag-shade text-[10.5px]">{cc.code}</span>
                 <h4 className="font-bold text-sm text-[#141414] mt-2">{cc.name}</h4>
@@ -2115,7 +2199,7 @@ export const SmaccAccountingPage: React.FC = () => {
                 ))}
               </optgroup>
               <optgroup label="دليل التصنيف الموسع التفصيلي (314 بنداً فرعياً)">
-                {EXTENDED_IFRS_CLASSIFICATIONS.filter(x => x.level === 3).map(x => (
+                {companyIfrsClassifications.filter(x => x.level === 3).map(x => (
                   <option key={x.code} value={x.code}>
                     {x.code} — {x.nameAr} [{x.ifrsRef}]
                   </option>
@@ -2323,7 +2407,9 @@ export const SmaccAccountingPage: React.FC = () => {
               className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-1.5 px-3 text-xs text-[#141414]"
             >
               <option value="بنك الراجحي الرئيسي">بنك الراجحي الرئيسي</option>
-              <option value="بنك الرياض - حساب الاستقدام">بنك الرياض - حساب الاستقدام</option>
+              <option value={isKasTrade ? 'بنك الرياض - حساب التجارة والمنافسات' : 'بنك الرياض - حساب الاستقدام'}>
+                {isKasTrade ? 'بنك الرياض - حساب التجارة والمنافسات' : 'بنك الرياض - حساب الاستقدام'}
+              </option>
               <option value="الصندوق الرئيسي (نقدي)">الصندوق الرئيسي (نقدي)</option>
             </select>
           </div>
@@ -2346,8 +2432,12 @@ export const SmaccAccountingPage: React.FC = () => {
               className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-1.5 px-3 text-xs text-[#141414]"
             >
               <option value="فرع الرياض الرئيسي">فرع الرياض الرئيسي</option>
-              <option value="فرع جدة">فرع جدة</option>
-              <option value="مركز الإيواء والضيافة">مركز الإيواء والضيافة</option>
+              <option value={isKasTrade ? 'المعرض التجاري الرئيسي' : 'فرع جدة'}>
+                {isKasTrade ? 'المعرض التجاري الرئيسي' : 'فرع جدة'}
+              </option>
+              <option value={isKasTrade ? 'قطاع الأميال والمستودعات' : 'مركز الإيواء والضيافة'}>
+                {isKasTrade ? 'قطاع الأميال والمستودعات' : 'مركز الإيواء والضيافة'}
+              </option>
             </select>
           </div>
           <div className="md:col-span-2">

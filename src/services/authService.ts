@@ -76,15 +76,20 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'finance-home',
       'finance',
       'finance-erp',
+      'ifrs-engine',
       'chart-accounts',
       'general-ledger',
       'journals',
+      'period-closing',
       'receipt-vouchers',
       'payment-vouchers',
       'vouchers',
       'receipts',
       'banks-boxes',
       'bank-reconciliation',
+      'musaned-escrow',
+      'suppliers-agents',
+      'odoo-accounting',
       'cost-centers',
       'invoices',
       'universal-extractor',
@@ -97,6 +102,20 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'trial-balance',
       'income-statement',
       'balance-sheet',
+      'cash-flow-statement',
+      'cash-flow',
+      'account-statements',
+      'opening-balances',
+      'ar-aging',
+      'ap-aging',
+      'aging',
+      'credit-debit-notes',
+      'eosb-zakat',
+      'financial-ratios',
+      'payment-terms',
+      'fiscal-positions',
+      'reconciliation-models',
+      'budget',
       'smacc-inventory',
       'smacc-inventory-assets',
       'smacc-employees',
@@ -105,6 +124,7 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'sales-collectors',
       'financial-requests',
       'cash-custody',
+      'custodies',
       'all-fin-requests',
       'create-fin-request',
       'petty-cash',
@@ -283,7 +303,12 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'employee-rewards',
       'employee-promotions',
       'end-of-service',
+      'hr-leaves',
+      'hr-contracts',
+      'hr-eosb',
       'gosi-insurance',
+      'gosi-integration',
+      'legal-compliance',
       'smacc-hr-settings',
       'smacc-employees',
       'profile',
@@ -300,6 +325,7 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
     descriptionAr: 'سجل العملاء، بوابة المستفيدين، معالجة الشكاوى والتعويضات، والتواصل المؤسسي.',
     allowedSections: ['crm-section', 'operations-section', 'complaints-group', 'messages-section'],
     allowedTabs: [
+      'kas-commercial',
       'clients',
       'client-list',
       'new-client',
@@ -354,6 +380,8 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'shelter-records',
       'shelter-classic',
       'travel',
+      'arrival-flights',
+      'airport-reception',
       'deportation-flights',
       'deportation-travel',
       'profile',
@@ -414,6 +442,8 @@ export interface UserProfile {
   department_name_ar?: string;
   default_tab?: string;
   default_tab_title?: string;
+  allowed_tabs_override?: string[];
+  extra_allowed_departments?: DepartmentId[];
   status: string;
   created_at: string;
 }
@@ -481,37 +511,37 @@ export const COMPANY_AUTH_METADATA: Record<string, CompanyAuthMetadata> = {
   SAF: {
     code: 'SAF',
     nameAr: 'شركة السفير الماسي للاستقدام',
-    domain: 'saf-rec.sa',
+    domain: 'kas.sa',
     emoji: '',
   },
   YAQ: {
     code: 'YAQ',
-    nameAr: 'شركة الياقوت الشرقية للتشغيل والتأجير',
-    domain: 'yaqoot-ops.sa',
+    nameAr: 'شركة ياقوت نجد لتشغيل الكوادر والتأجير',
+    domain: 'kas.sa',
     emoji: '',
   },
   TOP: {
     code: 'TOP',
-    nameAr: 'شركة توب تالنت الدولية للتوظيف',
-    domain: 'topaz-rec.sa',
+    nameAr: 'شركة توباز للاستقدام',
+    domain: 'kas.sa',
     emoji: '',
   },
   KAS: {
     code: 'KAS',
-    nameAr: 'شركة كاس للمنافسات والتشغيل',
-    domain: 'kas-etimad.sa',
+    nameAr: 'شركة كاس للتجارة والمنافسات (نظام تجاري مستقل)',
+    domain: 'kas.sa',
     emoji: '',
   },
   DAR: {
     code: 'DAR',
     nameAr: 'دار الرواد لمراكز الإيواء والخدمات اللوجستية',
-    domain: 'alruwad.sa',
+    domain: 'kas.sa',
     emoji: '',
   },
   ALL: {
     code: 'all',
     nameAr: 'الإدارة المركزية لمجموعة خالد السليم القابضة',
-    domain: 'alsulaim.sa',
+    domain: 'kas.sa',
     emoji: '',
   },
 };
@@ -527,6 +557,8 @@ export interface StaffDirectoryEntry {
   department_id: DepartmentId;
   default_tab?: string;
   default_tab_title?: string;
+  allowed_tabs_override?: string[];
+  extra_allowed_departments?: DepartmentId[];
   suffixCode?: string;
   branch: string;
   badgeEmoji: string;
@@ -551,394 +583,13 @@ export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
     department_id: emp.department_id,
     default_tab: emp.defaultTab,
     default_tab_title: emp.defaultTabTitle,
+    allowed_tabs_override: emp.allowedTabsOverride,
+    extra_allowed_departments: emp.extraAllowedDepartments,
     suffixCode: emp.suffixCode,
     branch: emp.branch,
     badgeEmoji: '',
   })),
-  // ─── 1. شركة السفير الماسي للاستقدام (SAF) ────────────────────────────
-  {
-    id: 'USR-SAF-FIN-01',
-    username: 'saf.accounting',
-    email: 'accounting@saf-rec.sa',
-    full_name: 'أ. عبدالرحمن بن فهد الدوسري',
-    role: 'رئيس الحسابات والإدارة المالية — شركة السفير الماسي',
-    company_id: 'SAF',
-    department_id: 'finance',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-SAF-REC-01',
-    username: 'saf.recruitment',
-    email: 'musaned@saf-rec.sa',
-    full_name: 'م. سلطان بن خالد السليم',
-    role: 'مدير قسم الاستقدام وعقود مساند',
-    company_id: 'SAF',
-    department_id: 'recruitment',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-SAF-HR-01',
-    username: 'saf.hr',
-    email: 'hr@saf-rec.sa',
-    full_name: 'أ. نايف بن محمد العتيبي',
-    role: 'مدير الموارد البشرية والرواتب — السفير الماسي',
-    company_id: 'SAF',
-    department_id: 'hr',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-SAF-CRM-01',
-    username: 'saf.crm',
-    email: 'crm@saf-rec.sa',
-    full_name: 'أ. ريم بنت عبدالله الحربي',
-    role: 'مسؤولة علاقات العملاء والشكاوى — السفير الماسي',
-    company_id: 'SAF',
-    department_id: 'crm',
-    branch: 'فرع الرياض (التخصصي)',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-SAF-RNT-01',
-    username: 'saf.rental',
-    email: 'rental@saf-rec.sa',
-    full_name: 'أ. فهد بن راشد الدوسري',
-    role: 'مشرف عقود التأجير الشهري — السفير الماسي',
-    company_id: 'SAF',
-    department_id: 'rental',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-SAF-ATS-01',
-    username: 'saf.ats',
-    email: 'cvs@saf-rec.sa',
-    full_name: 'أ. منى بنت عبدالرحمن السليم',
-    role: 'أخصائية بنك السير الذاتية والوكالات — السفير الماسي',
-    company_id: 'SAF',
-    department_id: 'ats',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-SAF-SHL-01',
-    username: 'saf.shelter',
-    email: 'shelter@saf-rec.sa',
-    full_name: 'أ. خالد بن ناصر القحطاني',
-    role: 'مشرف جناح الإيواء والاستلام — السفير الماسي',
-    company_id: 'SAF',
-    department_id: 'shelter',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-SAF-EXEC-01',
-    username: 'faris.saf',
-    email: 'faris@saf-rec.sa',
-    full_name: 'م. فارس بن خالد السليم',
-    role: 'المدير التنفيذي لقطاع الاستقدام — السفير الماسي',
-    company_id: 'SAF',
-    department_id: 'recruitment',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-
-  // ─── 2. شركة الياقوت الشرقية للتشغيل والتأجير (YAQ) ──────────────────
-  {
-    id: 'USR-YAQ-RNT-01',
-    username: 'yaq.rental',
-    email: 'ops@yaqoot-ops.sa',
-    full_name: 'أ. فيصل بن عبدالعزيز القحطاني',
-    role: 'مدير قسم التأجير والتشغيل المرن — الياقوت',
-    company_id: 'YAQ',
-    department_id: 'rental',
-    branch: 'فرع الدمام',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-YAQ-FIN-01',
-    username: 'yaq.accounting',
-    email: 'accounting@yaqoot-ops.sa',
-    full_name: 'أ. طارق بن سعد الغامدي',
-    role: 'محاسب عام وإدارة مالية — شركة الياقوت الشرقية',
-    company_id: 'YAQ',
-    department_id: 'finance',
-    branch: 'فرع الدمام',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-YAQ-HR-01',
-    username: 'yaq.hr',
-    email: 'hr@yaqoot-ops.sa',
-    full_name: 'أ. ماجد بن علي الزهراني',
-    role: 'مسؤول شؤون الموظفين وحماية الأجور — الياقوت',
-    company_id: 'YAQ',
-    department_id: 'hr',
-    branch: 'فرع الدمام',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-YAQ-CRM-01',
-    username: 'yaq.crm',
-    email: 'crm@yaqoot-ops.sa',
-    full_name: 'أ. لطيفة بنت محمد الدوسري',
-    role: 'مسؤولة خدمة عملاء التأجير — الياقوت الشرقية',
-    company_id: 'YAQ',
-    department_id: 'crm',
-    branch: 'فرع الدمام',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-YAQ-SHL-01',
-    username: 'yaq.shelter',
-    email: 'shelter@yaqoot-ops.sa',
-    full_name: 'أ. بدر بن سعيد الغامدي',
-    role: 'مشرف سكن الكوادر والتسليم — الياقوت الشرقية',
-    company_id: 'YAQ',
-    department_id: 'shelter',
-    branch: 'فرع الخبر',
-    badgeEmoji: '',
-  },
-
-  // ─── 3. شركة توب تالنت الدولية للتوظيف (TOP) ─────────────────────────
-  {
-    id: 'USR-TOP-ATS-01',
-    username: 'top.ats',
-    email: 'talent@topaz-rec.sa',
-    full_name: 'أ. نورة بنت سلطان العتيبي',
-    role: 'مديرة قسم التوظيف والسير الذاتية والوكلاء — توب تالنت',
-    company_id: 'TOP',
-    department_id: 'ats',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-TOP-FIN-01',
-    username: 'top.accounting',
-    email: 'accounting@topaz-rec.sa',
-    full_name: 'أ. وليد بن حمد الشمري',
-    role: 'محاسب عام وإدارة مالية — شركة توب تالنت',
-    company_id: 'TOP',
-    department_id: 'finance',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-TOP-HR-01',
-    username: 'top.hr',
-    email: 'hr@topaz-rec.sa',
-    full_name: 'أ. أمل بنت خالد الحربي',
-    role: 'مسؤولة شؤون الكفاءات والرواتب — توب تالنت',
-    company_id: 'TOP',
-    department_id: 'hr',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-TOP-CRM-01',
-    username: 'top.crm',
-    email: 'crm@topaz-rec.sa',
-    full_name: 'أ. تركي بن فهد المطيري',
-    role: 'مسؤول علاقات الشركات والتوظيف — توب تالنت',
-    company_id: 'TOP',
-    department_id: 'crm',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-
-  // ─── 4. شركة كاس للمنافسات والتشغيل (KAS) ────────────────────────────
-  {
-    id: 'USR-KAS-TND-01',
-    username: 'kas.tenders',
-    email: 'tenders@kas-etimad.sa',
-    full_name: 'م. عبدالرحمن بن صالح القحطاني',
-    role: 'مدير قسم منافسات اعتماد وجداول الكميات BOQ — كاس',
-    company_id: 'KAS',
-    department_id: 'tenders',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-KAS-FIN-01',
-    username: 'kas.accounting',
-    email: 'accounting@kas-etimad.sa',
-    full_name: 'أ. بندر بن محمد السبيعي',
-    role: 'مدير الحسابات والضمانات البنكية — شركة كاس',
-    company_id: 'KAS',
-    department_id: 'finance',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-KAS-HR-01',
-    username: 'kas.hr',
-    email: 'hr@kas-etimad.sa',
-    full_name: 'أ. سعود بن عبدالعزيز المالك',
-    role: 'مدير شؤون الكوادر الهندسية والرواتب — شركة كاس',
-    company_id: 'KAS',
-    department_id: 'hr',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-KAS-CRM-01',
-    username: 'kas.crm',
-    email: 'crm@kas-etimad.sa',
-    full_name: 'أ. نواف بن سلطان الشمري',
-    role: 'مدير علاقات الجهات الحكومية والموردين — شركة كاس',
-    company_id: 'KAS',
-    department_id: 'crm',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-KAS-BOQ-02',
-    username: 'faris.kas',
-    email: 'faris@kas-etimad.sa',
-    full_name: 'م. فارس بن خالد السليم',
-    role: 'المشرف العام على المنافسات الحكومية والتسعير — كاس',
-    company_id: 'KAS',
-    department_id: 'tenders',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-
-  // ─── 5. دار الرواد لمراكز الإيواء والتسكين (DAR) ─────────────────────
-  {
-    id: 'USR-DAR-SHL-01',
-    username: 'dar.shelter',
-    email: 'warden@alruwad.sa',
-    full_name: 'أ. سارة بنت عبدالله الشهري',
-    role: 'مديرة قسم الإيواء والتسكين والإعاشة — دار الرواد',
-    company_id: 'DAR',
-    department_id: 'shelter',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-DAR-FIN-01',
-    username: 'dar.accounting',
-    email: 'accounting@alruwad.sa',
-    full_name: 'أ. ياسر بن فهد المطيري',
-    role: 'محاسب عام وإدارة مالية — دار الرواد للإيواء',
-    company_id: 'DAR',
-    department_id: 'finance',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-DAR-HR-01',
-    username: 'dar.hr',
-    email: 'hr@alruwad.sa',
-    full_name: 'أ. حنان بنت محمد القحطاني',
-    role: 'مسؤولة مشرفات الإيواء وشؤون الموظفات — دار الرواد',
-    company_id: 'DAR',
-    department_id: 'hr',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-DAR-CRM-01',
-    username: 'dar.crm',
-    email: 'crm@alruwad.sa',
-    full_name: 'أ. عبير بنت سعد العتيبي',
-    role: 'مسؤولة التنسيق واستلام وتسليم الكوادر — دار الرواد',
-    company_id: 'DAR',
-    department_id: 'crm',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-  },
-
-  // ─── 6. الإدارة التنفيذية العليا للمجموعة (ALL) ──────────────────────
-  {
-    id: 'USR-GRP-EXEC-01',
-    username: 'khalid.admin',
-    email: 'chairman@alsulaim.sa',
-    full_name: 'الشيخ خالد بن عبدالعزيز السليم',
-    role: 'رئيس مجلس الإدارة',
-    company_id: 'all',
-    department_id: 'executive',
-    branch: 'المقر الرئيسي للمجموعة - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-GRP-FIN-01',
-    username: 'group.cfo',
-    email: 'cfo@alsulaim.sa',
-    full_name: 'أ. محمد بن عبدالرحمن السليم',
-    role: 'المدير المالي التنفيذي للمجموعة (Group CFO)',
-    company_id: 'all',
-    department_id: 'executive',
-    branch: 'المقر الرئيسي للمجموعة - الرياض',
-    badgeEmoji: '',
-  },
-  {
-    id: 'USR-GRP-DEV-01',
-    username: 'abdo12uk',
-    email: 'abdo12uk@gmail.com',
-    full_name: 'م. عبدالرحمن أبوسليف (Abdelrhman Abusalif)',
-    role: 'مطور النظام ومدير الصلاحيات العليا (System Developer)',
-    company_id: 'all',
-    department_id: 'executive',
-    branch: 'المقر الرئيسي للمجموعة - الرياض',
-    badgeEmoji: '',
-    avatar_url:
-      'https://lh3.googleusercontent.com/a/ACg8ocLxbw3dlULzEUEu_WKwk9heYd45HPHkowiVEm1jqn7KtiUizKuwsg=s96-c',
-  },
-  {
-    id: 'USR-GRP-GGL-02',
-    username: 'abdulfattah',
-    email: 'abdulfattahfarahat@gmail.com',
-    full_name: 'أ. عبدالفتاح فرحات (Abdulfattah)',
-    role: 'مدير العمليات التنفيذية — الإدارة العليا',
-    company_id: 'all',
-    department_id: 'executive',
-    branch: 'المقر الرئيسي للمجموعة - الرياض',
-    badgeEmoji: '',
-    avatar_url:
-      'https://lh3.googleusercontent.com/a/ACg8ocIsXG9IR2LxY_zNEoPGIrNrSB3wWKy_n0KFNOsFIr7PQXEAkA=s96-c',
-  },
-  {
-    id: 'USR-SAF-GGL-03',
-    username: 'abdulfattah.ft',
-    email: 'abdulfattahft@gmail.com',
-    full_name: 'أ. عبدالفتاح فرحات (حساب العمليات)',
-    role: 'مشرف العقود والتشغيل — شركة السفير الماسي',
-    company_id: 'SAF',
-    department_id: 'recruitment',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-    avatar_url:
-      'https://lh3.googleusercontent.com/a/ACg8ocKcbTr6ICckyqFmX3UMaqy5rvQKiMXdUrB9zwj8qqa5H9TdOyE=s96-c',
-  },
-  {
-    id: 'USR-SAF-GGL-04',
-    username: 'kamel.adsens',
-    email: 'kamel.adsens@gmail.com',
-    full_name: 'أ. كامل — التسويق الرقمي وعلاقات العملاء',
-    role: 'مدير التسويق الرقمي وخدمة العملاء (CRM)',
-    company_id: 'SAF',
-    department_id: 'crm',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-    avatar_url:
-      'https://lh3.googleusercontent.com/a/ACg8ocIqxQBYKJMfcXgGywje-dBOcwnmeYvuT3NhT04x9fkBQ3HKBg=s96-c',
-  },
-  {
-    id: 'USR-SAF-GGL-05',
-    username: 'msalhnwr',
-    email: 'msalhnwr@gmail.com',
-    full_name: 'أ. محمد صالح محمد نور (Mohamed Salih)',
-    role: 'مدير المتابعة المالية والمحاسبية',
-    company_id: 'SAF',
-    department_id: 'finance',
-    branch: 'الفرع الرئيسي - الرياض',
-    badgeEmoji: '',
-    avatar_url:
-      'https://lh3.googleusercontent.com/a/ACg8ocKGUhgrAazV2GiTMCdjbOBOvs94e-__EnNlts9B3WV_nJ9w8Igi=s96-c',
-  },
+  // لا توجد حسابات أخرى: الدخول مقصور على القائمة الرسمية (ايميلات_الموظفين.xlsx)
 ];
 
 const USERNAME_EMAIL_ALIASES: Record<string, string> = {
@@ -950,44 +601,8 @@ const USERNAME_EMAIL_ALIASES: Record<string, string> = {
   'careers@kas.sa': 'careers@kas.sa',
   'a.salif.dev': 'a.salif.dev@kas.sa',
   'a.salif.dev@kas.sa': 'a.salif.dev@kas.sa',
-  'khalid.admin': 'chairman@alsulaim.sa',
-  'super.admin': 'chairman@alsulaim.sa',
-  'admin': 'chairman@alsulaim.sa',
-  'admin@alsulaim.com': 'chairman@alsulaim.sa',
-  'admin@alsulaim.sa': 'chairman@alsulaim.sa',
-  'chairman@alsulaim.com': 'chairman@alsulaim.sa',
-  'ceo@alsulaim.com': 'chairman@alsulaim.sa',
-  'khalid@alsulaim.com': 'chairman@alsulaim.sa',
-  'chairman': 'chairman@alsulaim.sa',
-  'ceo': 'chairman@alsulaim.sa',
-  'developer': 'abdo12uk@gmail.com',
-  'dev': 'abdo12uk@gmail.com',
-  'abdo12uk': 'abdo12uk@gmail.com',
-  'abdo12uk@gmail.com': 'abdo12uk@gmail.com',
-  'finance.manager': 'accounting@saf-rec.sa',
-  'accounting': 'accounting@saf-rec.sa',
-  'operation.user': 'musaned@saf-rec.sa',
-  'admin@saf-rec.sa': 'musaned@saf-rec.sa',
 };
 
-const INTERNAL_CORPORATE_DOMAINS = [
-  '@saf-rec.sa',
-  '@saf-rec.com',
-  '@yaqoot-ops.sa',
-  '@yaqoot-ops.com',
-  '@yaqoot-east.sa',
-  '@yaqoot-east.com',
-  '@topaz-rec.sa',
-  '@topaz-rec.com',
-  '@kas-etimad.sa',
-  '@kas-etimad.com',
-  '@kas-cloud.sa',
-  '@alruwad.sa',
-  '@alruwad.com',
-  '@dar-alruwad.sa',
-  '@alsulaim.sa',
-  '@alsulaim.com',
-];
 
 /**
  * Validates whether an email or username is authorized to register or sign in to the ERP.
@@ -1043,11 +658,6 @@ export function validateAllowedCorporateEmail(identifier: string): {
     return { allowed: true };
   }
 
-  // 5. Allow internal subsidiary domains used in automated test suites
-  if (INTERNAL_CORPORATE_DOMAINS.some((dom) => raw.endsWith(dom))) {
-    return { allowed: true };
-  }
-
   // 6. Reject any unlisted @kas.sa address or unauthorized external email
   return {
     allowed: false,
@@ -1090,6 +700,8 @@ export function getFullStaffDirectory(): StaffDirectoryEntry[] {
         department_id: official.department_id,
         default_tab: official.defaultTab,
         default_tab_title: official.defaultTabTitle,
+        allowed_tabs_override: official.allowedTabsOverride,
+        extra_allowed_departments: official.extraAllowedDepartments,
         suffixCode: official.suffixCode,
         branch: official.branch,
       };
@@ -1427,23 +1039,130 @@ export const authService = {
 
   /**
    * Check whether a user profile is authorized to access a given tab/route
-   * based on BOTH their Company (`company_id`) AND their Department (`department_id`).
+   * based on BOTH their Company (`company_id`), their Department (`department_id`),
+   * and any specialized sub-role `allowed_tabs_override` (e.g. drivers, cleaners, standalone KAS competitions).
    */
   isTabAuthorizedForUser(profile: UserProfile | null, tabHref: string): boolean {
     if (!tabHref) return false;
-    if (tabHref === 'logout' || tabHref === 'profile' || tabHref === 'dashboard') return true;
+    if (tabHref === 'logout') return true;
     if (!profile) return false;
+    if (tabHref === 'profile') return true;
+
     if (this.isAdmin(profile) || profile.department_id === 'executive') {
       return true;
     }
-    if (profile.default_tab && profile.default_tab === tabHref) {
+
+    // Enrich from authoritative @kas.sa directory in case session was restored from older cache
+    const officialKas = profile.email ? findAllowedKasEmployee(profile.email) : null;
+    const effectiveOverride = officialKas?.allowedTabsOverride || profile.allowed_tabs_override;
+    const effectiveExtraDepts = officialKas?.extraAllowedDepartments || profile.extra_allowed_departments || [];
+    const effectiveDept = officialKas?.department_id || profile.department_id;
+    const effectiveCompany = (officialKas?.company_id || profile.company_id || '').toUpperCase();
+    const effectiveDefaultTab = officialKas?.defaultTab || profile.default_tab;
+
+    // Two-Way Strict Company System Separation:
+    // "شركة كاس شركة خاصة بالتجارة نظامها منفصل ليس له علاقة بالاستقدام"
+    // 1) KAS Trade Company (`effectiveCompany === 'KAS'`) has ZERO access to any Recruitment, Musaned,
+    //    Ingaz, Foreign Agencies, ATS CVs, Domestic Rental, Shelter, or Recruitment CRM screen.
+    const RECRUITMENT_AND_SHELTER_ONLY_TABS = new Set([
+      ...CORPORATE_DEPARTMENTS.recruitment.allowedTabs.filter((t) => t !== 'profile'),
+      ...CORPORATE_DEPARTMENTS.rental.allowedTabs.filter((t) => t !== 'profile'),
+      ...CORPORATE_DEPARTMENTS.ats.allowedTabs.filter((t) => t !== 'profile'),
+      ...CORPORATE_DEPARTMENTS.shelter.allowedTabs.filter((t) => t !== 'profile'),
+      'musaned-escrow',
+      'suppliers-agents',
+      'agent-accounts',
+      'clients',
+      'new-client',
+      'complaints',
+      'create-complaint',
+      'compensation-claims',
+      'client-portal',
+      'website-visitors',
+      'group-dispatch',
+      'branch-communication',
+    ]);
+
+    const KAS_TRADE_EXCLUSIVE_TABS = new Set([
+      'kas-suite',
+      'kas-portal',
+      'kas-standalone',
+      'kas-company',
+      'kas-commercial',
+      'tenders-boq',
+      'tenders',
+      'boq',
+      'kas-tenders',
+      'boq-analytics',
+      'kas-etmad',
+      'kas-etmad-cloud',
+      'etmad-cloud',
+      'etmad',
+      'kas-cloud-suite',
+    ]);
+
+    const KAS_COMPETITIONS_ONLY_TABS = new Set([
+      'kas-suite',
+      'kas-portal',
+      'kas-standalone',
+      'kas-company',
+      'tenders-boq',
+      'tenders',
+      'boq',
+      'kas-tenders',
+      'boq-analytics',
+      'kas-etmad',
+      'kas-etmad-cloud',
+      'etmad-cloud',
+      'etmad',
+      'kas-cloud-suite',
+    ]);
+
+    // Non-KAS employees (Recruitment / Shelter / Group Marketing) can NEVER access KAS Trade portals
+    if (KAS_TRADE_EXCLUSIVE_TABS.has(tabHref) && effectiveCompany !== 'KAS') {
+      return false;
+    }
+
+    // KAS Trade Company employees (`company_id === 'KAS'`) can NEVER access Recruitment/Shelter/Musaned screens
+    if (effectiveCompany === 'KAS') {
+      if (RECRUITMENT_AND_SHELTER_ONLY_TABS.has(tabHref)) {
+        return false;
+      }
+      // Within KAS Company: KAS Competitions (`kas-suite`, `tenders-boq`, `kas-etmad`) are restricted to
+      // `tenders` (.trade) staff and KAS Trade Accountants (`finance` on KAS), NOT `.imal`/`.showroom` sales
+      if (KAS_COMPETITIONS_ONLY_TABS.has(tabHref)) {
+        if (effectiveOverride && effectiveOverride.length > 0) {
+          return effectiveOverride.includes(tabHref);
+        }
+        return effectiveDept === 'tenders' || effectiveDept === 'finance';
+      }
+      // KAS Trade Accountants (`finance` on KAS) can also view `kas-commercial` commercial deals
+      if (tabHref === 'kas-commercial' && effectiveDept === 'finance') {
+        return true;
+      }
+    }
+
+    // Enforce sub-role strict tab whitelist when present (drivers, cleaners, marketing creatives, KAS trade/commercial)
+    if (effectiveOverride && effectiveOverride.length > 0) {
+      return effectiveOverride.includes(tabHref) || effectiveDefaultTab === tabHref;
+    }
+
+    if (effectiveDefaultTab && effectiveDefaultTab === tabHref) {
       return true;
     }
-    const deptDef = profile.department_id ? CORPORATE_DEPARTMENTS[profile.department_id] : null;
-    if (!deptDef) return true;
-    if (deptDef.allowedTabs.includes('*') || deptDef.allowedTabs.includes(tabHref)) {
+
+    const deptDef = effectiveDept ? CORPORATE_DEPARTMENTS[effectiveDept] : null;
+    if (deptDef && (deptDef.allowedTabs.includes('*') || deptDef.allowedTabs.includes(tabHref))) {
       return true;
     }
+
+    for (const extraDeptId of effectiveExtraDepts) {
+      const extraDef = CORPORATE_DEPARTMENTS[extraDeptId];
+      if (extraDef && (extraDef.allowedTabs.includes('*') || extraDef.allowedTabs.includes(tabHref))) {
+        return true;
+      }
+    }
+
     return false;
   },
 
@@ -1461,10 +1180,10 @@ export const authService = {
 
     const normalizedTarget = targetCompanyId.trim().toUpperCase();
     const normalizedUserCompany = (profile.company_id || 'SAF').trim().toUpperCase();
-    const isGroupAdmin = this.isAdmin(profile) || normalizedUserCompany === 'ALL';
+    const isGroupAdmin = this.isAdmin(profile);
 
     if (normalizedTarget === 'ALL') {
-      if (isGroupAdmin) return { allowed: true };
+      if (isGroupAdmin || normalizedUserCompany === 'ALL') return { allowed: true };
       const userCompName = COMPANY_AUTH_METADATA[normalizedUserCompany]?.nameAr || normalizedUserCompany;
       return {
         allowed: false,
@@ -1472,7 +1191,27 @@ export const authService = {
       };
     }
 
-    if (isGroupAdmin) return { allowed: true };
+    // Strict Standalone KAS Trade Company Isolation:
+    // Non-executive `company_id === 'all'` staff (e.g. recruitment followup / marketing) CANNOT enter KAS Trade portal
+    if (normalizedTarget === 'KAS') {
+      if (isGroupAdmin || normalizedUserCompany === 'KAS') {
+        return { allowed: true };
+      }
+      return {
+        allowed: false,
+        reason: 'رفض أمني (عزل الأنظمة): شركة كاس للتجارة نظام تجاري مستقل ومنفصل كلياً عن أنظمة الاستقدام.',
+      };
+    }
+
+    // Conversely, KAS Trade Company staff (`company_id === 'KAS'`) CANNOT enter Recruitment/Shelter portals
+    if (normalizedUserCompany === 'KAS' && normalizedTarget !== 'KAS' && !isGroupAdmin) {
+      return {
+        allowed: false,
+        reason: 'رفض أمني (عزل الأنظمة): حسابك تابع لمنظومة شركة كاس للتجارة المستقلة ولا يرتبط بأنظمة شركات الاستقدام.',
+      };
+    }
+
+    if (isGroupAdmin || normalizedUserCompany === 'ALL') return { allowed: true };
 
     const normalizedExtras = extraAllowedCompanies.map((c) => c.trim().toUpperCase());
     if (
@@ -1596,6 +1335,8 @@ export const authService = {
         department_name_ar: deptDef.nameAr,
         default_tab: directoryStaff.default_tab || deptDef.defaultTab,
         default_tab_title: directoryStaff.default_tab_title || deptDef.defaultTabTitle,
+        allowed_tabs_override: directoryStaff.allowed_tabs_override,
+        extra_allowed_departments: directoryStaff.extra_allowed_departments,
         status: 'نشط',
         created_at: new Date().toISOString(),
       };
@@ -1894,6 +1635,20 @@ export const authService = {
     // authenticate and synchronize its Firebase + Supabase profile & avatar immediately.
     const explicitEmail = googleAccount?.email?.trim().toLowerCase();
     if (explicitEmail) {
+      // Reject accounts outside the official list BEFORE caching any Google profile data
+      const allowCheck = validateAllowedCorporateEmail(explicitEmail);
+      if (!allowCheck.allowed) {
+        cacheGoogleProfile(null);
+        return {
+          data: null,
+          error: {
+            message:
+              allowCheck.reason ||
+              'رفض أمني: هذا البريد الإلكتروني غير مدرج في قائمة حسابات مجموعة خالد السليم المصرح لها بالتسجيل والدخول (@kas.sa).',
+          },
+        };
+      }
+
       const matchedVerified = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.find(
         (g) => g.email.toLowerCase() === explicitEmail
       );
@@ -1936,17 +1691,21 @@ export const authService = {
       });
 
       const resolved = resolveDepartmentAndCompany(explicitEmail);
-      registerCustomStaffAccount({
-        full_name: syncedName,
-        username: explicitEmail.split('@')[0],
-        email: explicitEmail,
-        role: matchedVerified?.roleAr || resolved.departmentDef.nameAr,
-        company_id: (resolved.companyId === 'all'
-          ? 'all'
-          : (resolved.companyId.toUpperCase() as any)) || 'SAF',
-        department_id: resolved.departmentId,
-        avatar_url: syncedPhoto,
-      });
+      try {
+        registerCustomStaffAccount({
+          full_name: syncedName,
+          username: explicitEmail.split('@')[0],
+          email: explicitEmail,
+          role: matchedVerified?.roleAr || resolved.departmentDef.nameAr,
+          company_id: (resolved.companyId === 'all'
+            ? 'all'
+            : (resolved.companyId.toUpperCase() as any)) || 'SAF',
+          department_id: resolved.departmentId,
+          avatar_url: syncedPhoto,
+        });
+      } catch {
+        //Official @kas.sa account already exists in authoritative directory
+      }
 
       const res = this.signInWithDirectoryOrAutoRoute(
         explicitEmail,
@@ -1968,6 +1727,20 @@ export const authService = {
       const fbResult = await signInWithGoogleFirebase();
       if (fbResult.data && fbResult.data.email) {
         const targetEmail = fbResult.data.email.toLowerCase();
+        const allowCheck = validateAllowedCorporateEmail(targetEmail);
+        if (!allowCheck.allowed) {
+          await signOutFirebase().catch(() => {});
+          cacheGoogleProfile(null);
+          return {
+            data: null,
+            error: {
+              message:
+                allowCheck.reason ||
+                'رفض أمني: حساب Google المختار غير مدرج في القائمة المعتمدة لموظفي مجموعة خالد السليم (@kas.sa).',
+            },
+          };
+        }
+
         const matchedVerified = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.find(
           (g) => g.email.toLowerCase() === targetEmail
         );
@@ -2004,38 +1777,46 @@ export const authService = {
           matchedVerified?.photoURL ||
           undefined;
         const syncedFullName =
+          allowCheck.kasEmployee?.nameAr ||
           matchedVerified?.fullNameAr ||
           fbResult.data.displayName ||
           dbUser?.full_name ||
           'مستخدم Google المعتمد';
         const syncedRole =
+          allowCheck.kasEmployee?.titleAr ||
           matchedVerified?.roleAr ||
           resolved.departmentDef.nameAr;
 
-        registerCustomStaffAccount({
-          full_name: syncedFullName,
-          username: targetEmail.split('@')[0],
-          email: targetEmail,
-          role: syncedRole,
-          company_id: (resolved.companyId === 'all'
-            ? 'all'
-            : (resolved.companyId.toUpperCase() as any)) || 'SAF',
-          department_id: resolved.departmentId,
-          avatar_url: syncedPhoto,
-        });
+        try {
+          registerCustomStaffAccount({
+            full_name: syncedFullName,
+            username: targetEmail.split('@')[0],
+            email: targetEmail,
+            role: syncedRole,
+            company_id: (resolved.companyId === 'all'
+              ? 'all'
+              : (resolved.companyId.toUpperCase() as any)) || 'SAF',
+            department_id: resolved.departmentId,
+            avatar_url: syncedPhoto,
+          });
+        } catch {
+          // Official @kas.sa account already exists in authoritative directory
+        }
 
         const profile: UserProfile = {
-          id: dbUser?.id || fbResult.data.uid,
-          username: targetEmail.split('@')[0],
+          id: allowCheck.kasEmployee?.id || dbUser?.id || fbResult.data.uid,
+          username: allowCheck.kasEmployee?.username || targetEmail.split('@')[0],
           email: targetEmail,
           full_name: syncedFullName,
           role: syncedRole,
-          branch: 'المقر الرئيسي للمجموعة - الرياض',
+          branch: allowCheck.kasEmployee?.branch || 'المقر الرئيسي للمجموعة - الرياض',
           company_id: resolved.companyId,
           department_id: resolved.departmentId,
           department_name_ar: resolved.departmentDef.nameAr,
-          default_tab: resolved.departmentDef.defaultTab,
-          default_tab_title: resolved.departmentDef.defaultTabTitle,
+          default_tab: allowCheck.kasEmployee?.defaultTab || resolved.departmentDef.defaultTab,
+          default_tab_title: allowCheck.kasEmployee?.defaultTabTitle || resolved.departmentDef.defaultTabTitle,
+          allowed_tabs_override: allowCheck.kasEmployee?.allowedTabsOverride,
+          extra_allowed_departments: allowCheck.kasEmployee?.extraAllowedDepartments,
           avatar_url: syncedPhoto,
           status: 'نشط',
           created_at: new Date().toISOString(),
@@ -2053,20 +1834,10 @@ export const authService = {
       }
     }
 
-    // 3. Fallback to verified Firebase Google account (`abdo12uk@gmail.com`)
-    const finalEmail = 'abdo12uk@gmail.com';
-    const matchedVerified = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0];
-    const res = this.signInWithDirectoryOrAutoRoute(
-      finalEmail,
-      this.resolveEmail(finalEmail),
-      undefined,
-      matchedVerified.fullNameAr,
-      matchedVerified.photoURL
-    );
-    res.data.avatar_url = matchedVerified.photoURL;
-    cacheProfile(res.data);
-    window.dispatchEvent(new CustomEvent('alsulaim-auth-updated', { detail: { profile: res.data } }));
-    return { data: res.data, error: null };
+    return {
+      data: null,
+      error: { message: 'يرجى اختيار حساب Google مؤسسي معتمد (@kas.sa) لإتمام تسجيل الدخول.' },
+    };
   },
 
   async getSession() {
@@ -2136,10 +1907,8 @@ export const authService = {
     const lowerEmail = user.email?.toLowerCase() || '';
     return (
       user.department_id === 'executive' ||
-      lowerEmail === 'abdo12uk@gmail.com' ||
       lowerEmail === 'khalid@kas.sa' ||
       lowerEmail === 'a.salif.dev@kas.sa' ||
-      lowerEmail === 'chairman@alsulaim.sa' ||
       user.role.includes('مطور النظام') ||
       ['رئيس مجلس الإدارة', 'رئيس المجموعة', 'مدير نظام', 'مدير تنفيذي'].includes(user.role)
     );
@@ -2178,7 +1947,26 @@ export const authService = {
     // A profile only exists after an explicit, successful sign-in. No automatic sessions.
     try {
       const raw = localStorage.getItem(AUTH_USER_CACHE_KEY);
-      return raw ? (JSON.parse(raw) as UserProfile) : null;
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as UserProfile;
+      if (parsed?.email && getExcludedEmailReason(parsed.email)) {
+        return null;
+      }
+      if (parsed?.email) {
+        const official = findAllowedKasEmployee(parsed.email);
+        if (official) {
+          return {
+            ...parsed,
+            company_id: official.company_id,
+            department_id: official.department_id,
+            default_tab: official.defaultTab,
+            default_tab_title: official.defaultTabTitle,
+            allowed_tabs_override: official.allowedTabsOverride,
+            extra_allowed_departments: official.extraAllowedDepartments,
+          };
+        }
+      }
+      return parsed;
     } catch {
       return null;
     }

@@ -40,7 +40,7 @@ describe('authService — session hardening & hybrid email auth characterization
 
   it('denies tab access when there is no profile', () => {
     expect(authService.isTabAuthorizedForUser(null, 'finance-home')).toBe(false);
-    expect(authService.isTabAuthorizedForUser(null, 'dashboard')).toBe(true);
+    expect(authService.isTabAuthorizedForUser(null, 'dashboard')).toBe(false);
   });
 
   it('rejects empty credentials', async () => {
@@ -53,36 +53,49 @@ describe('authService — session hardening & hybrid email auth characterization
     expect(DEMO_AUTH_ENABLED).toBe(true);
   });
 
-  it('characterize: signIn given executive identifier, returns executive profile and locks company session', async () => {
-    // Captures Hybrid Email Auth behavior for pre-registered executive account
-    const res = await authService.signIn('chairman@alsulaim.sa', 'ValidPass2026!');
+  it('characterize: signIn given the owner (khalid@kas.sa from the official list), returns executive profile', async () => {
+    const res = await authService.signIn('khalid@kas.sa', 'ValidPass2026!');
     expect(res.error).toBeNull();
     expect(res.data?.department_id).toBe('executive');
     expect(res.data?.company_id).toBe('all');
   });
 
-  it('characterize: signIn given subsidiary finance email (@saf-rec.sa), routes to finance department and authorizes finance tabs', async () => {
-    const res = await authService.signIn('finance.accountant@saf-rec.sa', 'SecurePass99');
+  it('characterize: signIn given an official list accountant (a.alkinani.acc@kas.sa), routes to SAF finance', async () => {
+    const res = await authService.signIn('a.alkinani.acc@kas.sa', 'SecurePass99');
     expect(res.error).toBeNull();
     expect(res.data?.company_id).toBe('SAF');
     expect(res.data?.department_id).toBe('finance');
-    expect(authService.isTabAuthorizedForUser(res.data, 'finance-home')).toBe(true);
-    expect(authService.isTabAuthorizedForUser(res.data, 'shelter-suite')).toBe(false);
   });
 
-  it('characterize: signInWithEmail rejects empty email and accepts valid corporate email with custom full name', async () => {
+  it('only accounts from the official employee list (ايميلات_الموظفين.xlsx) may sign in', async () => {
+    const removed = [
+      'chairman@alsulaim.sa',
+      'finance.accountant@saf-rec.sa',
+      'hr.lead@yaqoot-ops.sa',
+      'abdo12uk@gmail.com',
+      'msalhnwr@gmail.com',
+      'kamel.adsens@gmail.com',
+    ];
+    for (const email of removed) {
+      const res = await authService.signIn(email, 'SecurePass99');
+      expect(res.data, email).toBeNull();
+      expect(res.error, email).not.toBeNull();
+    }
+    expect(getFullStaffDirectory().every((e) => e.email.toLowerCase().endsWith('@kas.sa'))).toBe(true);
+  });
+
+  it('characterize: signInWithEmail rejects empty email and accepts an official list email', async () => {
     const emptyRes = await authService.signInWithEmail('   ');
     expect(emptyRes.data).toBeNull();
     expect(emptyRes.error).not.toBeNull();
 
-    const validRes = await authService.signInWithEmail('hr.lead@yaqoot-ops.sa', 'مدير الموارد البشرية', 'YAQ');
+    const validRes = await authService.signInWithEmail('hr@kas.sa', 'ريم احمد بن حسين');
     expect(validRes.error).toBeNull();
-    expect(validRes.data?.email).toBe('hr.lead@yaqoot-ops.sa');
-    expect(validRes.data?.full_name).toBe('مدير الموارد البشرية');
+    expect(validRes.data?.email).toBe('hr@kas.sa');
   });
 
   it('characterize: validateCompanyAccess enforces strict multi-company tenant isolation for subsidiary staff', async () => {
-    const safStaff = await authService.signIn('saf.specialist@saf-rec.sa', 'SecurePass99', 'SAF');
+    const safStaff = await authService.signIn('h.hassan.safir@kas.sa', 'SecurePass99', 'SAF');
     expect(safStaff.data).not.toBeNull();
 
     const sameComp = authService.validateCompanyAccess(safStaff.data, 'SAF');
@@ -117,24 +130,17 @@ describe('authService — session hardening & hybrid email auth characterization
     expect(sanitizeCSVField('  -1+1')).toBe("'  -1+1");
   });
 
-  it('synchronizes Firebase Google user info and avatar_url across signInWithGoogle and staff directory', async () => {
-    expect(VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.length).toBeGreaterThanOrEqual(5);
-    const primaryGoogle = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0];
-    expect(primaryGoogle.email).toBe('abdo12uk@gmail.com');
-    expect(primaryGoogle.photoURL).toContain('https://lh3.googleusercontent.com/');
+  it('has no verified Google accounts outside the official @kas.sa list, and rejects Google sign-in for removed Gmail accounts', async () => {
+    expect(VERIFIED_FIREBASE_GOOGLE_ACCOUNTS).toHaveLength(0);
 
     const res = await authService.signInWithGoogle({
-      email: primaryGoogle.email,
-      full_name: primaryGoogle.fullNameAr,
-      avatar_url: primaryGoogle.photoURL,
+      email: 'abdo12uk@gmail.com',
+      full_name: 'Abdelrhman Abusalif',
     });
-    expect(res.error).toBeNull();
-    expect(res.data?.email).toBe('abdo12uk@gmail.com');
-    expect(res.data?.avatar_url).toBe(primaryGoogle.photoURL);
-    expect(getCachedGoogleProfile()?.photoURL).toBe(primaryGoogle.photoURL);
-
-    const dirMatch = getFullStaffDirectory().find((e) => e.email === 'abdo12uk@gmail.com');
-    expect(dirMatch?.avatar_url).toBe(primaryGoogle.photoURL);
+    expect(res.data).toBeNull();
+    expect(res.error).not.toBeNull();
+    expect(getCachedGoogleProfile()).toBeNull();
+    expect(getFullStaffDirectory().some((e) => e.email === 'abdo12uk@gmail.com')).toBe(false);
   });
 
   it('enforces all 6 MENA legal compliance traps (Saudi PDPL Art. 11, Egypt Art. 1 & 12, Qatar Art. 22, Saudi E-Commerce Art. 18, Saudi Copyright Art. 49, Oman Art. 23)', async () => {
@@ -317,8 +323,10 @@ describe('authService — session hardening & hybrid email auth characterization
 
     const yaqootSup = await authService.signIn('h.yousef.yaqoot@kas.sa', 'Pass123!');
     expect(yaqootSup.data?.company_id).toBe('YAQ');
-    expect(yaqootSup.data?.department_id).toBe('recruitment');
-    expect(yaqootSup.data?.default_tab).toBe('recruitment-contracts');
+    expect(yaqootSup.data?.department_id).toBe('rental');
+    expect(yaqootSup.data?.default_tab).toBe('rent-contracts');
+    expect(authService.isTabAuthorizedForUser(yaqootSup.data, 'rent-contracts')).toBe(true);
+    expect(authService.isTabAuthorizedForUser(yaqootSup.data, 'recruitment-contracts')).toBe(true);
 
     const darMusaned = await authService.signIn('a.abdelwahab.daralrowad@kas.sa', 'Pass123!');
     expect(darMusaned.data?.company_id).toBe('DAR');
@@ -336,12 +344,18 @@ describe('authService — session hardening & hybrid email auth characterization
 
     const showroom = await authService.signIn('b.allaboudi.showroom@kas.sa', 'Pass123!');
     expect(showroom.data?.company_id).toBe('KAS');
-    expect(showroom.data?.default_tab).toBe('kas-suite');
+    expect(showroom.data?.department_id).toBe('crm');
+    expect(showroom.data?.default_tab).toBe('kas-commercial');
 
     const imalMgr = await authService.signIn('m.alsaleh.imal@kas.sa', 'Pass123!');
     expect(imalMgr.data?.company_id).toBe('KAS');
-    expect(imalMgr.data?.department_id).toBe('tenders');
-    expect(imalMgr.data?.default_tab).toBe('kas-suite');
+    expect(imalMgr.data?.department_id).toBe('crm');
+    expect(imalMgr.data?.default_tab).toBe('kas-commercial');
+
+    const tradeMgr = await authService.signIn('f.alhassan.trade@kas.sa', 'Pass123!');
+    expect(tradeMgr.data?.company_id).toBe('KAS');
+    expect(tradeMgr.data?.department_id).toBe('tenders');
+    expect(tradeMgr.data?.default_tab).toBe('kas-suite');
 
     const housingMgr = await authService.signIn('r.aljbr.housing@kas.sa', 'Pass123!');
     expect(housingMgr.data?.company_id).toBe('DAR');

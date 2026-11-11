@@ -6,6 +6,7 @@ import { BusinessIllustration } from '../components/common/BusinessIllustration'
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { employeeOperationsEngine } from '../services/employeeOperationsEngine';
+import { KAS_ALLOWED_EMPLOYEES } from '../config/kasAllowedEmails';
 import { useAppStore } from '../stores/appStore';
 import { 
   ShieldAlert, ShieldCheck, FileSpreadsheet, FileText, Search, 
@@ -192,7 +193,7 @@ export const ActivityLogPage: React.FC = () => {
   });
 
   const financialApprovalsCount = activities.filter(a => a.action_type === 'اعتماد مالي').length || 18;
-  const activeActorsCount = new Set(activities.map(a => a.user_name)).size || 28;
+  const activeActorsCount = new Set(activities.map(a => a.user_name)).size || KAS_ALLOWED_EMPLOYEES.length;
 
   return (
     <div className="space-y-6">
@@ -234,10 +235,10 @@ export const ActivityLogPage: React.FC = () => {
               onClick={handleExecuteAllEmployees}
               disabled={isExecutingBatch}
               style={{ fontSize: '12px', padding: '6px 14px', minHeight: '38px', borderColor: '#e0e0e0', background: '#ffffff', color: '#141414', fontWeight: 700 }}
-              title="تنفيذ عملية تشغيلية ومالية حية لكل موظف من موظفي المجموعة الـ 28"
+              title={`تنفيذ عملية تشغيلية ومالية حية لكل موظف من موظفي المجموعة الـ ${KAS_ALLOWED_EMPLOYEES.length}`}
             >
               <Zap className={`w-3.5 h-3.5 ml-1 text-[#141414] ${isExecutingBatch ? 'animate-spin' : ''}`} />
-              <span>{isExecutingBatch ? 'جاري التنفيذ...' : 'إجراء عملية حية لكل موظف (28 موظفاً)'}</span>
+              <span>{isExecutingBatch ? 'جاري التنفيذ...' : `إجراء عملية حية لكل موظف (${KAS_ALLOWED_EMPLOYEES.length} موظفاً)`}</span>
             </button>
             <button
               className="button-outline-on-dark"
@@ -246,10 +247,10 @@ export const ActivityLogPage: React.FC = () => {
                   detail: { tab: 'employee-monitoring', title: 'مراقبة الأداء والنشاط والمشاعر' } 
                 }));
               }}
-              style={{ fontSize: '12px', padding: '6px 14px', minHeight: '38px', borderColor: 'rgba(16, 185, 129, 0.4)', color: '#6ee7b7' }}
+              style={{ fontSize: '12px', padding: '6px 14px', minHeight: '38px', borderColor: '#3f3f46', color: '#ffffff' }}
               title="الانتقال إلى منظومة مراقبة الموظفين ونبض المشاعر"
             >
-              <Activity className="w-3.5 h-3.5 ml-1 text-[#141414]" />
+              <Activity className="w-3.5 h-3.5 ml-1 text-[#ffffff]" />
               <span>رادار المراقبة ونبض المشاعر</span>
             </button>
             <button

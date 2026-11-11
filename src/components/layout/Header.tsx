@@ -93,7 +93,7 @@ export const Header: React.FC<HeaderProps> = ({
   const effectiveProfile = authUser || authService.getCurrentUser();
   const resolvedScope = useMemo(() => {
     if (!effectiveProfile) {
-      return resolveDepartmentAndCompany('accounting@saf-rec.sa');
+      return resolveDepartmentAndCompany('a.alkinani.acc@kas.sa');
     }
     return resolveDepartmentAndCompany(
       effectiveProfile.email,
@@ -216,13 +216,22 @@ export const Header: React.FC<HeaderProps> = ({
     );
   };
 
-  const branches = [
-    { id: 'main', name: 'الفرع الرئيسي - الرياض', city: 'الرياض - طريق الملك فهد' },
-    { id: 'riyadh_takhassusi', name: 'فرع الرياض (التخصصي)', city: 'الرياض' },
-    { id: 'jeddah', name: 'فرع جدة', city: 'طريق المدينة المنورة' },
-    { id: 'dammam', name: 'فرع الدمام', city: 'شارع الملك سعود' },
-    { id: 'khamis', name: 'فرع خميس مشيط', city: 'طريق الملك فهد' },
-  ];
+  const isKasTradeStandalone = resolvedScope.companyId.toUpperCase() === 'KAS';
+
+  const branches = isKasTradeStandalone
+    ? [
+        { id: 'kas_hq', name: 'المقر الرئيسي لشركة كاس للتجارة - الرياض', city: 'الرياض - طريق الملك فهد' },
+        { id: 'kas_showroom', name: 'المعرض التجاري الرئيسي - الرياض', city: 'الرياض' },
+        { id: 'kas_imal', name: 'فرع قطاع الأميال التجاري - الرياض', city: 'الرياض' },
+        { id: 'kas_warehouse', name: 'مستودعات كاس المركزية - الرياض', city: 'الرياض - الصناعية' },
+      ]
+    : [
+        { id: 'main', name: 'الفرع الرئيسي - الرياض', city: 'الرياض - طريق الملك فهد' },
+        { id: 'riyadh_takhassusi', name: 'فرع الرياض (التخصصي)', city: 'الرياض' },
+        { id: 'jeddah', name: 'فرع جدة', city: 'طريق المدينة المنورة' },
+        { id: 'dammam', name: 'فرع الدمام', city: 'شارع الملك سعود' },
+        { id: 'khamis', name: 'فرع خميس مشيط', city: 'طريق الملك فهد' },
+      ];
 
   const filteredLanguages = availableLanguages.filter(
     (l) =>
@@ -328,22 +337,30 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <button
               type="button"
-              onClick={() => setActiveTab('dashboard', 'لوحة المؤشرات التنفيذية')}
+              onClick={() =>
+                navigateGuarded(
+                  effectiveProfile?.default_tab || (authService.isAdmin(effectiveProfile) ? 'dashboard' : 'profile'),
+                  effectiveProfile?.default_tab_title || 'الرئيسية'
+                )
+              }
               className="text-[#707070] hover:text-[#141414] font-medium shrink-0 cursor-pointer transition-colors"
             >
-              الرئيسية
+              {isKasTradeStandalone ? 'نظام كاس التجاري' : 'الرئيسية'}
             </button>
             {parentSection && (
               <>
                 <span className="text-[#d4d4d8] shrink-0">/</span>
                 <button
                   type="button"
-                  onClick={() =>
-                    setActiveTab(
-                      parentSection.href || parentSection.children?.[0]?.href || 'dashboard',
-                      parentSection.title
-                    )
-                  }
+                  onClick={() => {
+                    const targetHref =
+                      parentSection.href && authService.isTabAuthorizedForUser(effectiveProfile, parentSection.href)
+                        ? parentSection.href
+                        : parentSection.children?.find((c) =>
+                            c.href && authService.isTabAuthorizedForUser(effectiveProfile, c.href)
+                          )?.href || effectiveProfile?.default_tab || 'profile';
+                    navigateGuarded(targetHref, parentSection.title);
+                  }}
                   className="text-[#707070] hover:text-[#141414] font-medium truncate max-w-[180px] cursor-pointer transition-colors"
                   title={parentSection.title}
                 >
@@ -535,7 +552,7 @@ export const Header: React.FC<HeaderProps> = ({
             type="button"
             onClick={() => navigateGuarded('profile', 'الملف الشخصي وصلاحيات الحساب')}
             className="inline-flex items-center gap-1.5 p-1 pr-1.5 pl-2.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-xs font-bold transition-colors shrink-0 cursor-pointer"
-            title={`${effectiveProfile?.full_name || 'الشيخ خالد السليم'} (${effectiveProfile?.email || 'abdo12uk@gmail.com'})`}
+            title={`${effectiveProfile?.full_name || 'الشيخ خالد السليم'} (${effectiveProfile?.email || 'khalid@kas.sa'})`}
             aria-label="الملف الشخصي"
           >
             <EmployeePhotoAvatar

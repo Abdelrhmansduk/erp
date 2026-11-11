@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '../../stores/appStore';
 import { useModuleVisibility } from '../../hooks/useModuleVisibility';
+import { authService } from '../../services/authService';
 import { BusinessIllustration } from './BusinessIllustration';
 import { CorporateAvatar } from './CorporateAvatar';
 import { resolveIllustrationForTab } from '../../services/visualAssetsRegistry';
@@ -45,6 +46,13 @@ interface UnifiedCommandItem {
   onExecute?: () => void;
 }
 
+function maskSensitiveValue(value: string): string {
+  const clean = (value || '').trim();
+  if (!clean) return '—';
+  if (clean.length <= 4) return '••••';
+  return `${clean.slice(0, 3)}${'•'.repeat(Math.min(5, Math.max(3, clean.length - 5)))}${clean.slice(-2)}`;
+}
+
 export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }) => {
   const { isQuickSearchOpen, setQuickSearchOpen } = useAppStore();
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,12 +62,26 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
   const [recentTabs, setRecentTabs] = useState<PinnedTabItem[]>(() => getRecentTabs());
   const inputRef = useRef<HTMLInputElement>(null);
   const { visibleMenu } = useModuleVisibility();
+  const currentUser = authService.getCurrentUser();
+  const isAdminUser = authService.isAdmin(currentUser);
+  const userCompanyUpper = (currentUser?.company_id || '').toUpperCase();
 
-  // Flatten sidebar menu into searchable screens (hidden departments/pages excluded)
+  // Flatten sidebar menu into searchable screens strictly authorized for the current user & company
   const allScreenItems = useMemo<UnifiedCommandItem[]>(() => {
     const list: UnifiedCommandItem[] = [];
+    const seenHrefs = new Set<string>();
+
+    const canAccessItem = (href?: string, exclusiveToCompany?: string) => {
+      if (!href) return false;
+      if (exclusiveToCompany && !isAdminUser && userCompanyUpper !== exclusiveToCompany.toUpperCase()) {
+        return false;
+      }
+      return authService.isTabAuthorizedForUser(currentUser, href);
+    };
+
     visibleMenu.forEach((section) => {
-      if (section.href) {
+      if (section.href && canAccessItem(section.href, section.exclusiveToCompany) && !seenHrefs.has(section.href)) {
+        seenHrefs.add(section.href);
         list.push({
           id: `screen-${section.id}`,
           title: section.title,
@@ -71,7 +93,8 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
       }
       if (section.children) {
         section.children.forEach((item) => {
-          if (item.href) {
+          if (item.href && canAccessItem(item.href, item.exclusiveToCompany) && !seenHrefs.has(item.href)) {
+            seenHrefs.add(item.href);
             list.push({
               id: `screen-${item.id}`,
               title: item.title,
@@ -83,7 +106,12 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
           }
           if (item.children) {
             item.children.forEach((subItem) => {
-              if (subItem.href) {
+              if (
+                subItem.href &&
+                canAccessItem(subItem.href, subItem.exclusiveToCompany) &&
+                !seenHrefs.has(subItem.href)
+              ) {
+                seenHrefs.add(subItem.href);
                 list.push({
                   id: `screen-${subItem.id}`,
                   title: `${item.title} › ${subItem.title}`,
@@ -98,18 +126,31 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
         });
       }
     });
-    return list;
-  }, [visibleMenu]);
 
-  // Quick Executive Actions
-  const quickActionItems = useMemo<UnifiedCommandItem[]>(
-    () => [
+    if (currentUser && !seenHrefs.has('profile')) {
+      list.push({
+        id: 'screen-self-service',
+        title: 'بوابة الخدمة الذاتية للموظف',
+        subtitle: 'الملف الوظيفي وطلبات الإجازات والتعريف بالراتب',
+        href: 'profile',
+        kind: 'screen',
+        badge: '#profile',
+      });
+    }
+
+    return list;
+  }, [visibleMenu, currentUser, isAdminUser, userCompanyUpper]);
+
+  // Quick Executive Actions (strictly filtered by user RBAC)
+  const quickActionItems = useMemo<UnifiedCommandItem[]>(() => {
+    const rawActions: Array<UnifiedCommandItem & { requiredHref?: string }> = [
       {
         id: 'act-ocr-extractor',
         title: 'فتح الماسح الذكي لاستخلاص 100+ فاتورة وأي مستند (OCR)',
         subtitle: 'قراءة ملفات PDF وExcel وWord وصور الفواتير وترحيلها لدفتر الأستاذ العام',
         kind: 'action',
         badge: 'Alt + I',
+        requiredHref: 'universal-extractor',
         onExecute: () => {
           window.dispatchEvent(new CustomEvent('open-universal-extractor'));
         },
@@ -136,6 +177,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
         title: 'إصدار فاتورة ضريبية إلكترونية (ZATCA المرحلة الثانية)',
         subtitle: 'الانتقال المباشر لمنظومة الفوترة الإلكترونية والربط مع فاتورة',
         href: 'zatca',
+        requiredHref: 'zatca',
         kind: 'action',
         badge: 'ZATCA XML',
       },
@@ -144,6 +186,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
         title: 'إنشاء عقد استقدام جديد موثق (مساند)',
         subtitle: 'فتح شاشة عقود الاستقدام وتوليد عقد مساند وربطه بالعميل',
         href: 'recruitment-contracts',
+        requiredHref: 'recruitment-contracts',
         kind: 'action',
         badge: 'مساند',
       },
@@ -152,6 +195,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
         title: 'إضافة سيرة ذاتية جديدة / استخلاص جواز سفر مرشح',
         subtitle: 'فتح معالج إنشاء السيرة الذاتية مع المعاينة الحية للأفاتار',
         href: 'create-cv',
+        requiredHref: 'create-cv',
         kind: 'action',
         badge: 'ATS',
       },
@@ -165,14 +209,17 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
           window.dispatchEvent(new CustomEvent('alsulaim-open-shortcuts-modal'));
         },
       },
-    ],
-    []
-  );
+    ];
 
-  // Search Live ERP Records from localStorage when user types a query
+    return rawActions.filter(
+      (act) => !act.requiredHref || authService.isTabAuthorizedForUser(currentUser, act.requiredHref)
+    );
+  }, [currentUser]);
+
+  // Search Live ERP Records from localStorage — strictly isolated by Company + Department + PDPL PII Masking
   const liveRecordItems = useMemo<UnifiedCommandItem[]>(() => {
     const q = searchTerm.trim().toLowerCase();
-    if (q.length < 2) return [];
+    if (q.length < 2 || !currentUser) return [];
     const results: UnifiedCommandItem[] = [];
 
     const readTable = (tableKey: string): any[] => {
@@ -186,113 +233,165 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
       }
     };
 
-    // 1. Clients
-    readTable('clients').forEach((c) => {
-      const name = String(c.name || c.full_name || '');
-      const phone = String(c.phone || c.mobile || '');
-      const natId = String(c.national_id || c.id_number || '');
-      if (
-        name.toLowerCase().includes(q) ||
-        phone.toLowerCase().includes(q) ||
-        natId.toLowerCase().includes(q)
-      ) {
-        results.push({
-          id: `rec-client-${c.id}`,
-          title: `عميل: ${name}`,
-          subtitle: `هوية: ${natId || '—'} • جوال: ${phone || '—'} • ${c.city || 'الرياض'}`,
-          href: 'clients',
-          kind: 'record',
-          badge: 'سجل العملاء CRM',
-          personName: name,
-          personRole: 'عميل معتمد',
-        });
+    const matchesCompanyScope = (row: Record<string, any>): boolean => {
+      if (isAdminUser || userCompanyUpper === 'ALL') {
+        // Non-KAS group staff still must NEVER see KAS Trade records and vice versa
+        const rowComp = String(row.company_id || row.companyId || '').toUpperCase();
+        if (!isAdminUser && rowComp === 'KAS' && userCompanyUpper !== 'KAS') return false;
+        return true;
       }
-    });
+      const rowComp = String(row.company_id || row.companyId || '').toUpperCase();
+      if (!rowComp) return userCompanyUpper !== 'KAS';
+      return rowComp === userCompanyUpper;
+    };
 
-    // 2. Recruitment Contracts
-    readTable('recruitment_contracts').forEach((rc) => {
-      const num = String(rc.contract_number || rc.id || '');
-      const client = String(rc.client_name || '');
-      const worker = String(rc.worker_name || rc.maid_name || '');
-      if (
-        num.toLowerCase().includes(q) ||
-        client.toLowerCase().includes(q) ||
-        worker.toLowerCase().includes(q)
-      ) {
-        results.push({
-          id: `rec-contract-${rc.id}`,
-          title: `عقد استقدام #${num} — ${client}`,
-          subtitle: `العاملة: ${worker || '—'} • الدولة: ${rc.country || '—'} • الحالة: ${rc.status || 'نشط'}`,
-          href: 'recruitment-contracts',
-          kind: 'record',
-          badge: 'عقود مساند',
-          personName: client || worker,
-          personRole: rc.profession || 'عقد استقدام',
-        });
-      }
-    });
+    // 0. KAS Commercial Trade Deals (strictly for KAS Trade Company / Admin)
+    if (authService.isTabAuthorizedForUser(currentUser, 'kas-commercial')) {
+      readTable('kas_commercial_deals').forEach((deal) => {
+        const ref = String(deal.reference_no || deal.id || '');
+        const client = String(deal.client_name || '');
+        const item = String(deal.item_description || '');
+        if (
+          ref.toLowerCase().includes(q) ||
+          client.toLowerCase().includes(q) ||
+          item.toLowerCase().includes(q)
+        ) {
+          results.push({
+            id: `rec-kas-deal-${deal.id}`,
+            title: `عقد تجاري (${deal.division || 'كاس'}): ${client}`,
+            subtitle: `المرجع: ${ref} • الإجمالي: ${Number(deal.total_with_vat || 0).toLocaleString()} ⃁`,
+            href: 'kas-commercial',
+            kind: 'record',
+            badge: 'كاس للتجارة',
+            personName: client,
+            personRole: deal.division || 'عميل تجاري',
+          });
+        }
+      });
+    }
 
-    // 3. Candidate CVs
-    readTable('cvs').forEach((cv) => {
-      const name = String(cv.full_name || cv.name || '');
-      const pass = String(cv.passport_number || '');
-      const job = String(cv.job_title || cv.profession || '');
-      if (
-        name.toLowerCase().includes(q) ||
-        pass.toLowerCase().includes(q) ||
-        job.toLowerCase().includes(q)
-      ) {
-        results.push({
-          id: `rec-cv-${cv.id}`,
-          title: `سيرة ذاتية: ${name}`,
-          subtitle: `المهنة: ${job || 'عاملة منزلية'} • الجواز: ${pass || '—'} • الجنسية: ${cv.nationality || '—'}`,
-          href: 'cvs-recruitment',
-          kind: 'record',
-          badge: 'بنك السير ATS',
-          personName: name,
-          personRole: job || 'عاملة منزلية',
-        });
-      }
-    });
+    // 1. Clients (only if user is authorized for `clients` — NEVER KAS Trade)
+    if (authService.isTabAuthorizedForUser(currentUser, 'clients')) {
+      readTable('clients').forEach((c) => {
+        if (!matchesCompanyScope(c)) return;
+        const name = String(c.name || c.full_name || '');
+        const phone = String(c.phone || c.mobile || '');
+        const natId = String(c.national_id || c.id_number || '');
+        if (
+          name.toLowerCase().includes(q) ||
+          phone.toLowerCase().includes(q) ||
+          natId.toLowerCase().includes(q)
+        ) {
+          results.push({
+            id: `rec-client-${c.id}`,
+            title: `عميل: ${name}`,
+            subtitle: `هوية: ${maskSensitiveValue(natId)} • جوال: ${maskSensitiveValue(phone)} • ${c.city || 'الرياض'}`,
+            href: 'clients',
+            kind: 'record',
+            badge: 'سجل العملاء CRM',
+            personName: name,
+            personRole: 'عميل معتمد',
+          });
+        }
+      });
+    }
 
-    // 4. Employees
-    readTable('employees').forEach((emp) => {
-      const name = String(emp.name || emp.full_name || '');
-      const role = String(emp.job_title || emp.position || emp.department || '');
-      if (name.toLowerCase().includes(q) || role.toLowerCase().includes(q)) {
-        results.push({
-          id: `rec-emp-${emp.id}`,
-          title: `موظف: ${name}`,
-          subtitle: `المسمى: ${role || '—'} • القسم: ${emp.department || '—'}`,
-          href: 'employees',
-          kind: 'record',
-          badge: 'الموارد البشرية HR',
-          personName: name,
-          personRole: role || 'موظف',
-        });
-      }
-    });
+    // 2. Recruitment Contracts (only if user is authorized for `recruitment-contracts` — NEVER KAS Trade)
+    if (authService.isTabAuthorizedForUser(currentUser, 'recruitment-contracts')) {
+      readTable('recruitment_contracts').forEach((rc) => {
+        if (!matchesCompanyScope(rc)) return;
+        const num = String(rc.contract_number || rc.id || '');
+        const client = String(rc.client_name || '');
+        const worker = String(rc.worker_name || rc.maid_name || '');
+        if (
+          num.toLowerCase().includes(q) ||
+          client.toLowerCase().includes(q) ||
+          worker.toLowerCase().includes(q)
+        ) {
+          results.push({
+            id: `rec-contract-${rc.id}`,
+            title: `عقد استقدام #${num} — ${client}`,
+            subtitle: `العاملة: ${worker || '—'} • الدولة: ${rc.country || '—'} • الحالة: ${rc.status || 'نشط'}`,
+            href: 'recruitment-contracts',
+            kind: 'record',
+            badge: 'عقود مساند',
+            personName: client || worker,
+            personRole: rc.profession || 'عقد استقدام',
+          });
+        }
+      });
+    }
 
-    // 5. ZATCA Invoices
-    readTable('zatca_invoices').forEach((inv) => {
-      const num = String(inv.invoice_number || inv.id || '');
-      const client = String(inv.client_name || inv.customer || '');
-      if (num.toLowerCase().includes(q) || client.toLowerCase().includes(q)) {
-        results.push({
-          id: `rec-inv-${inv.id}`,
-          title: `فاتورة ضريبية #${num} — ${client}`,
-          subtitle: `الإجمالي: ${inv.total_amount || inv.total || ''} ⃁ • الحالة: ${inv.status || 'معتمدة ZATCA'}`,
-          href: 'zatca',
-          kind: 'record',
-          badge: 'فاتورة ZATCA',
-          personName: client,
-          personRole: 'عميل فاتورة ضريبية',
-        });
-      }
-    });
+    // 3. Candidate CVs (only if user is authorized for `cvs-recruitment` — NEVER KAS Trade)
+    if (authService.isTabAuthorizedForUser(currentUser, 'cvs-recruitment')) {
+      readTable('cvs').forEach((cv) => {
+        if (!matchesCompanyScope(cv)) return;
+        const name = String(cv.full_name || cv.name || '');
+        const pass = String(cv.passport_number || '');
+        const job = String(cv.job_title || cv.profession || '');
+        if (
+          name.toLowerCase().includes(q) ||
+          pass.toLowerCase().includes(q) ||
+          job.toLowerCase().includes(q)
+        ) {
+          results.push({
+            id: `rec-cv-${cv.id}`,
+            title: `سيرة ذاتية: ${name}`,
+            subtitle: `المهنة: ${job || 'عاملة منزلية'} • الجواز: ${maskSensitiveValue(pass)} • الجنسية: ${cv.nationality || '—'}`,
+            href: 'cvs-recruitment',
+            kind: 'record',
+            badge: 'بنك السير ATS',
+            personName: name,
+            personRole: job || 'عاملة منزلية',
+          });
+        }
+      });
+    }
+
+    // 4. Employees (only if user is authorized for `employees`)
+    if (authService.isTabAuthorizedForUser(currentUser, 'employees')) {
+      readTable('employees').forEach((emp) => {
+        if (!matchesCompanyScope(emp)) return;
+        const name = String(emp.name || emp.full_name || '');
+        const role = String(emp.job_title || emp.position || emp.department || '');
+        if (name.toLowerCase().includes(q) || role.toLowerCase().includes(q)) {
+          results.push({
+            id: `rec-emp-${emp.id}`,
+            title: `موظف: ${name}`,
+            subtitle: `المسمى: ${role || '—'} • القسم: ${emp.department || '—'}`,
+            href: 'employees',
+            kind: 'record',
+            badge: 'الموارد البشرية HR',
+            personName: name,
+            personRole: role || 'موظف',
+          });
+        }
+      });
+    }
+
+    // 5. ZATCA Invoices (only if user is authorized for `zatca` AND company matches)
+    if (authService.isTabAuthorizedForUser(currentUser, 'zatca')) {
+      readTable('zatca_invoices').forEach((inv) => {
+        if (!matchesCompanyScope(inv)) return;
+        const num = String(inv.invoice_number || inv.id || '');
+        const client = String(inv.client_name || inv.customer || '');
+        if (num.toLowerCase().includes(q) || client.toLowerCase().includes(q)) {
+          results.push({
+            id: `rec-inv-${inv.id}`,
+            title: `فاتورة ضريبية #${num} — ${client}`,
+            subtitle: `الإجمالي: ${inv.total_amount || inv.total || ''} ⃁ • الحالة: ${inv.status || 'معتمدة ZATCA'}`,
+            href: 'zatca',
+            kind: 'record',
+            badge: 'فاتورة ZATCA',
+            personName: client,
+            personRole: 'عميل فاتورة ضريبية',
+          });
+        }
+      });
+    }
 
     return results.slice(0, 10);
-  }, [searchTerm]);
+  }, [searchTerm, currentUser, isAdminUser, userCompanyUpper]);
 
   const filteredItems = useMemo<UnifiedCommandItem[]>(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -409,7 +508,11 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
               setSelectedIndex(0);
             }}
             onKeyDown={handleKeyDownInInput}
-            placeholder="ابحث عن أي شاشة، عميل، عقد مساند، سيرة ذاتية، فاتورة ZATCA، أو أمر سريع... (Ctrl + K)"
+            placeholder={
+              userCompanyUpper === 'KAS'
+                ? 'ابحث في منظومة شركة كاس للتجارة: المعارض، الأميال، المنافسات، الموردين، أو فواتير ZATCA... (Ctrl + K)'
+                : 'ابحث عن أي شاشة، عميل، عقد مساند، سيرة ذاتية، فاتورة ZATCA، أو أمر سريع... (Ctrl + K)'
+            }
             className="flex-1 text-[#141414] text-sm sm:text-base placeholder-[#707070] outline-none bg-transparent font-semibold"
           />
           {searchTerm && (
@@ -465,54 +568,61 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
           </span>
         </div>
 
-        {/* Pinned Favorites & Recent Visited Strip (shown when searchTerm is empty) */}
-        {searchTerm.trim() === '' && (pinnedTabs.length > 0 || recentTabs.length > 0) && (
-          <div className="px-4 py-2.5 bg-[#f3f3f3] border-b border-[#e5e5e5] space-y-2">
-            {pinnedTabs.length > 0 && (
-              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#141414] shrink-0 pl-2">
-                  <Star className="w-3.5 h-3.5 fill-[#141414] text-[#141414]" />
-                  <span>المفضلة المثبتة:</span>
-                </span>
-                {pinnedTabs.map((pin) => (
-                  <button
-                    key={pin.href}
-                    type="button"
-                    onClick={() => {
-                      onNavigate(pin.href, pin.title);
-                      setQuickSearchOpen(false);
-                    }}
-                    className="px-2.5 py-1 rounded-full bg-[#ffffff] hover:bg-[#262626] hover:text-[#ffffff] border border-[#e0e0e0] text-[11px] font-semibold transition-all shrink-0 cursor-pointer"
-                  >
-                    {pin.title}
-                  </button>
-                ))}
-              </div>
-            )}
+        {/* Pinned Favorites & Recent Visited Strip (shown when searchTerm is empty & authorized) */}
+        {(() => {
+          const authPinned = pinnedTabs.filter((p) => authService.isTabAuthorizedForUser(currentUser, p.href));
+          const authRecent = recentTabs.filter((r) => authService.isTabAuthorizedForUser(currentUser, r.href));
+          if (searchTerm.trim() !== '' || (authPinned.length === 0 && authRecent.length === 0)) {
+            return null;
+          }
+          return (
+            <div className="px-4 py-2.5 bg-[#f3f3f3] border-b border-[#e5e5e5] space-y-2">
+              {authPinned.length > 0 && (
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#141414] shrink-0 pl-2">
+                    <Star className="w-3.5 h-3.5 fill-[#141414] text-[#141414]" />
+                    <span>المفضلة المثبتة:</span>
+                  </span>
+                  {authPinned.map((pin) => (
+                    <button
+                      key={pin.href}
+                      type="button"
+                      onClick={() => {
+                        onNavigate(pin.href, pin.title);
+                        setQuickSearchOpen(false);
+                      }}
+                      className="px-2.5 py-1 rounded-full bg-[#ffffff] hover:bg-[#262626] hover:text-[#ffffff] border border-[#e0e0e0] text-[11px] font-semibold transition-all shrink-0 cursor-pointer"
+                    >
+                      {pin.title}
+                    </button>
+                  ))}
+                </div>
+              )}
 
-            {recentTabs.length > 0 && (
-              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#707070] shrink-0 pl-2">
-                  <Clock className="w-3.5 h-3.5 text-[#707070]" />
-                  <span>زرتها مؤخراً:</span>
-                </span>
-                {recentTabs.map((rec) => (
-                  <button
-                    key={rec.href}
-                    type="button"
-                    onClick={() => {
-                      onNavigate(rec.href, rec.title);
-                      setQuickSearchOpen(false);
-                    }}
-                    className="px-2.5 py-0.5 rounded-full bg-[#ffffff] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold transition-all shrink-0 cursor-pointer"
-                  >
-                    {rec.title}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+              {authRecent.length > 0 && (
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#707070] shrink-0 pl-2">
+                    <Clock className="w-3.5 h-3.5 text-[#707070]" />
+                    <span>زرتها مؤخراً:</span>
+                  </span>
+                  {authRecent.map((rec) => (
+                    <button
+                      key={rec.href}
+                      type="button"
+                      onClick={() => {
+                        onNavigate(rec.href, rec.title);
+                        setQuickSearchOpen(false);
+                      }}
+                      className="px-2.5 py-0.5 rounded-full bg-[#ffffff] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold transition-all shrink-0 cursor-pointer"
+                    >
+                      {rec.title}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Unified Results List */}
         <div className="max-h-[55vh] overflow-y-auto p-2.5 space-y-1.5 bg-[#ffffff]">

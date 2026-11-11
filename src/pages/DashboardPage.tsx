@@ -90,14 +90,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const activeRentCount = filteredRent.filter(r => r.status === 'نشط' || r.status === 'ساري').length || 16;
   const completedRentCount = filteredRent.filter(r => r.status === 'مكتمل' || r.status === 'منتهي').length || 8;
 
-  const totalCvsCount = cvs.length || 86;
-  const availableCvsCount = cvs.filter(c => c.status === 'متاح' || !c.status?.includes('محجوز')).length || 54;
-  const reservedCvsCount = cvs.filter(c => c.status?.includes('محجوز')).length || 32;
+  const totalCvsCount = filteredCvs.length || 86;
+  const availableCvsCount = filteredCvs.filter(c => c.status === 'متاح' || !c.status?.includes('محجوز')).length || 54;
+  const reservedCvsCount = filteredCvs.filter(c => c.status?.includes('محجوز')).length || 32;
 
-  const totalClientsCount = clients.length || 142;
-  const totalInmatesCount = inmates.length || 44;
-  const totalComplaintsCount = complaints.length || 8;
-  const totalTransfersCount = transfers.length || 17;
+  const totalClientsCount = filteredClients.length || 142;
+  const totalInmatesCount = filteredInmates.length || 44;
+  const totalComplaintsCount = filteredComplaints.length || 8;
+  const totalTransfersCount = filteredTransfers.length || 17;
 
   const baseStats = DASHBOARD_STATS_BY_PERIOD[selectedPeriod];
   const stats = {
@@ -134,21 +134,21 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     },
     clients: {
       total: totalClientsCount,
-      active: totalClientsCount - 14,
-      inactive: 14,
+      active: Math.max(0, totalClientsCount - 14),
+      inactive: Math.min(14, totalClientsCount),
       withOrders: Math.round(totalClientsCount * 0.7),
       withoutOrders: Math.round(totalClientsCount * 0.3),
     },
     shelter: {
       total: totalInmatesCount,
-      inside: totalInmatesCount - 5,
-      outside: 5,
+      inside: Math.max(0, totalInmatesCount - 5),
+      outside: Math.min(5, totalInmatesCount),
     },
     complaints: {
       total: totalComplaintsCount,
-      open: complaints.filter(c => c.status !== 'مغلقة' && c.status !== 'محلولة').length || 3,
-      resolved: complaints.filter(c => c.status === 'مغلقة' || c.status === 'محلولة').length || 5,
-      closed: complaints.filter(c => c.status === 'مغلقة' || c.status === 'محلولة').length || 5,
+      open: filteredComplaints.filter(c => c.status !== 'مغلقة' && c.status !== 'محلولة').length || 3,
+      resolved: filteredComplaints.filter(c => c.status === 'مغلقة' || c.status === 'محلولة').length || 5,
+      closed: filteredComplaints.filter(c => c.status === 'مغلقة' || c.status === 'محلولة').length || 5,
     },
     transfers: {
       total: totalTransfersCount,
@@ -265,8 +265,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     style={{
                       border: 'none',
                       backgroundColor: isActive ? '#ffffff' : 'transparent',
-                      color: isActive ? '#141414' : '#ffffff',
-                      fontWeight: isActive ? 600 : 420,
+                      color: isActive ? '#141414' : '#707070',
+                      fontWeight: isActive ? 600 : 450,
                       padding: '3px 12px',
                       borderRadius: '9999px',
                       fontSize: '11px',
@@ -282,15 +282,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           </div>
 
           <div className="flex gap-3">
-            <div className="bg-[#f3f3f3] rounded-xl px-3.5 py-1.5 flex items-center gap-2 text-xs">
+            <div className="bg-[#f3f3f3] text-[#141414] rounded-xl px-3.5 py-1.5 flex items-center gap-2 text-xs">
               <FileText className="w-3.5 h-3.5 text-[#141414]" />
-              <span className="font-bold">عقود اليوم:</span>
+              <span className="font-bold text-[#141414]">عقود اليوم:</span>
               <span className="font-mono font-bold text-[#141414]">{stats.todayContractsCount}</span>
             </div>
 
-            <div className="bg-[#f3f3f3] rounded-xl px-3.5 py-1.5 flex items-center gap-2 text-xs">
+            <div className="bg-[#f3f3f3] text-[#141414] rounded-xl px-3.5 py-1.5 flex items-center gap-2 text-xs">
               <ShoppingBag className="w-3.5 h-3.5 text-[#141414]" />
-              <span className="font-bold">طلبات اليوم:</span>
+              <span className="font-bold text-[#141414]">طلبات اليوم:</span>
               <span className="font-mono font-bold text-[#141414]">{stats.todayOrdersCount}</span>
             </div>
           </div>

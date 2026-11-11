@@ -84,10 +84,11 @@ function mapProfileToIamUser(profile: UserProfile | null): {
   let perms: string[] = [];
 
   const dept = profile.department_id;
+  const isCrossCompanyScope = (profile.company_id || '').toLowerCase() === 'all';
 
   if (
     dept === 'executive' ||
-    profile.company_id === 'all' ||
+    authService.isAdmin(profile) ||
     ['رئيس مجلس الإدارة', 'رئيس المجموعة', 'مدير نظام', 'مدير تنفيذي'].includes(profile.role)
   ) {
     accountType = 'Group Super Admin';
@@ -95,36 +96,41 @@ function mapProfileToIamUser(profile: UserProfile | null): {
     perms = ALL_ADMIN_PERMISSIONS;
   } else if (dept === 'finance' || authService.isFinance(profile)) {
     accountType = 'Department Manager';
-    scope = 3;
+    scope = isCrossCompanyScope ? 5 : 3;
     perms = ['finance.*', 'finance.view', 'finance.create', 'finance.edit', 'finance.approve', 'finance.export'];
   } else if (dept === 'recruitment') {
     accountType = 'Department Manager';
-    scope = 3;
+    scope = isCrossCompanyScope ? 5 : 3;
     perms = ['recruitment.*', 'recruitment.view', 'recruitment.create', 'recruitment.edit', 'travel.view', 'transfer.view'];
   } else if (dept === 'rental') {
     accountType = 'Department Manager';
-    scope = 3;
-    perms = ['rent.*', 'rent.view', 'rent.create', 'rent.edit'];
+    scope = isCrossCompanyScope ? 5 : 3;
+    perms = ['rent.*', 'rent.view', 'rent.create', 'rent.edit', 'recruitment.view', 'recruitment.create'];
   } else if (dept === 'ats') {
     accountType = 'Department Manager';
-    scope = 3;
+    scope = isCrossCompanyScope ? 5 : 3;
     perms = ['ats.view', 'agents.view'];
   } else if (dept === 'hr' || authService.isHR(profile)) {
     accountType = 'Department Manager';
-    scope = 3;
+    scope = isCrossCompanyScope ? 5 : 3;
     perms = ['hr.*', 'hr.view', 'hr.create', 'hr.edit', 'hr.export'];
   } else if (dept === 'crm' || authService.isCustomerService(profile)) {
     accountType = 'Department Manager';
-    scope = 3;
+    scope = isCrossCompanyScope ? 5 : 3;
     perms = ['crm.*', 'crm.view', 'crm.create', 'crm.edit'];
   } else if (dept === 'shelter') {
-    accountType = 'Department Manager';
-    scope = 3;
-    perms = ['shelter.*', 'shelter.view', 'shelter.create', 'shelter.edit'];
+    accountType = profile.allowed_tabs_override ? 'Employee' : 'Department Manager';
+    scope = isCrossCompanyScope ? 5 : 3;
+    perms = profile.allowed_tabs_override
+      ? ['travel.view']
+      : ['shelter.*', 'shelter.view', 'shelter.create', 'shelter.edit'];
   } else if (dept === 'tenders') {
-    accountType = 'Department Manager';
+    accountType = profile.allowed_tabs_override?.length === 1 ? 'Employee' : 'Department Manager';
     scope = 3;
-    perms = ['tenders.*', 'tenders.view', 'tenders.create', 'tenders.edit', 'tenders.approve'];
+    perms =
+      profile.allowed_tabs_override?.length === 1
+        ? []
+        : ['tenders.*', 'tenders.view', 'tenders.create', 'tenders.edit', 'tenders.approve'];
   } else {
     accountType = 'Employee';
     scope = 3;

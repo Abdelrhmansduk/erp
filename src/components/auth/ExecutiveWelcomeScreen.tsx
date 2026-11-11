@@ -23,7 +23,7 @@ export const ExecutiveWelcomeScreen: React.FC<ExecutiveWelcomeScreenProps> = ({
   const resolvedScope = useMemo(
     () =>
       resolveDepartmentAndCompany(
-        currentUser?.email || currentUser?.username || 'chairman@alsulaim.sa',
+        currentUser?.email || currentUser?.username || 'khalid@kas.sa',
         currentUser?.role,
         currentUser?.company_id,
         currentUser?.department_id
@@ -37,7 +37,7 @@ export const ExecutiveWelcomeScreen: React.FC<ExecutiveWelcomeScreenProps> = ({
 
   const displayName = currentUser?.full_name || 'الشيخ خالد بن عبدالعزيز السليم';
   const displayRole = currentUser?.role || deptMeta.nameAr;
-  const displayEmail = currentUser?.email || 'chairman@alsulaim.sa';
+  const displayEmail = currentUser?.email || 'khalid@kas.sa';
   const avatarUrl = (currentUser as any)?.avatar_url;
 
   const greetingText = useMemo(() => {

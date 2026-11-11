@@ -403,8 +403,57 @@ export const STANDARD_SMACC_COA: Omit<AccountItem, 'id' | 'companyId'>[] = [
   { code: '550301', nameAr: 'مصروف الزكاة الشرعية المقدر عن السنة المالية (بنسبة 2.5% من الوعاء)', nameEn: 'Annual Zakat Provision Expense (2.5%)', category: 'مصروفات', nature: 'مدين', statementType: 'قائمة الدخل (أرباح وخسائر)', level: 4, parentCode: '5503', balance: 65000, openingBalance: 0, currentDebit: 65000, currentCredit: 0, currency: 'SAR', isActive: true, isHeader: false, ifrsCode: 'R-09', ifrsSubCode: 'R-09-01' },
 ];
 
-const STORAGE_KEY_PREFIX = 'ALSULAIM_COA_V6_';
+const STORAGE_KEY_PREFIX = 'ALSULAIM_COA_V7_';
 const CUSTOM_FIELDS_KEY_PREFIX = 'ALSULAIM_COA_FIELDS_V1_';
+
+// Pure Commercial & Trade COA Overrides for Standalone KAS Company (`شركة كاس للتجارة والمنافسات`) — Zero Recruitment References
+const KAS_TRADE_ACCOUNT_OVERRIDES: Record<string, { nameAr: string; nameEn: string; ifrsSubCode?: string }> = {
+  '110102': { nameAr: 'عهد المعارض التجارية وقطاع الأميال والمستودعات', nameEn: 'Showrooms, Imal & Warehouses Petty Cash' },
+  '110202': { nameAr: 'بنك الرياض - حساب التجارة والمنافسات الحكومية', nameEn: 'Riyad Bank - Commercial & Tenders Account' },
+  '1103': { nameAr: 'الضمانات البنكية ومحتجزات مشاريع منصة اعتماد (Etimad Retentions)', nameEn: 'Bank Guarantees & Etimad Project Retentions', ifrsSubCode: 'A-07-01' },
+  '110301': { nameAr: 'خطابات الضمان البنكي الابتدائي والنهائي ومستخلصات اعتماد', nameEn: 'Bid & Performance Bank Guarantees - Etimad', ifrsSubCode: 'A-07-01' },
+  '110401': { nameAr: 'ذمم عملاء المعارض التجارية ومبيعات التجزئة', nameEn: 'Commercial Showrooms & Retail Receivables' },
+  '110402': { nameAr: 'ذمم عملاء قطاع الأميال والجهات الحكومية والشركات (B2B/B2G)', nameEn: 'Imal Division & B2B/B2G Trade Receivables' },
+  '1106': { nameAr: 'المخزون السلعي وبضائع المعارض والمستودعات (Trade Inventories — IAS 2)', nameEn: 'Commercial Merchandise & Warehouse Inventories', ifrsSubCode: 'A-06-01' },
+  '110601': { nameAr: 'مخزون البضائع التجارية والتجهيزات ومواد التوريد بالمستودعات', nameEn: 'Merchandise, Supplies & Tender Goods Inventory', ifrsSubCode: 'A-06-01' },
+  '110702': { nameAr: 'سلف الموظفين والدفعات المقدمة للمصانع والموردين التجاريين', nameEn: 'Staff Advances & Commercial Supplier Prepayments' },
+  '1201': { nameAr: 'الأراضي والمباني وتجهيزات المعارض والمستودعات التجارية', nameEn: 'Buildings, Showrooms & Warehouses Fit-out' },
+  '120101': { nameAr: 'مباني وتجهيزات المعارض التجارية ومستودعات كاس المركزية', nameEn: 'KAS Showrooms & Central Warehouses Fit-out' },
+  '1202': { nameAr: 'أسطول شاحنات التوزيع وسيارات النقل التجاري (Logistics Fleet — IAS 16)', nameEn: 'Commercial Distribution & Logistics Fleet' },
+  '120201': { nameAr: 'شاحنات ومركبات التوزيع اللوجستي وتوريد المشاريع', nameEn: 'Commercial Delivery Trucks & Supply Vans' },
+  '120701': { nameAr: 'حق استخدام عقود إيجار المعارض التجارية والمستودعات (IFRS 16)', nameEn: 'ROU Assets - Commercial Showrooms & Warehouses' },
+  '2101': { nameAr: 'الذمم الدائنة لموردي البضائع والمصانع والتوريدات (Trade Payables)', nameEn: 'Commercial Suppliers & Manufacturers Payables', ifrsSubCode: 'L-04-01' },
+  '210101': { nameAr: 'مستحقات المصانع والموردين المعتمدين للبضائع والمنافسات', nameEn: 'Approved Merchandise & Tender Suppliers Payables', ifrsSubCode: 'L-04-01' },
+  '210102': { nameAr: 'ذمم موردي الشحن اللوجستي والتغليف والخدمات اللوجستية', nameEn: 'Freight, Packaging & Logistics Suppliers Payables', ifrsSubCode: 'L-04-01' },
+  '210202': { nameAr: 'دفعات مقدمة من عملاء التوريدات وعقود الأميال التجارية (IFRS 15)', nameEn: 'Unearned Commercial & Supply Contract Revenue' },
+  '2105': { nameAr: 'مخصصات ضمان جودة البضائع وصيانة المشاريع التجارية (IAS 37)', nameEn: 'Product Warranty & Commercial Maintenance Provisions' },
+  '210501': { nameAr: 'مخصص ضمان الأجهزة والتوريدات التجارية ما بعد البيع', nameEn: 'Post-Sale Commercial Goods Warranty Provision' },
+  '220201': { nameAr: 'التزامات عقود إيجار المعارض والمستودعات غير المتداولة (IFRS 16)', nameEn: 'Non-Current Lease Liabilities - Showrooms & Warehouses' },
+  '4101': { nameAr: 'إيرادات مبيعات المعارض التجارية وقطاع الأميال (Commercial Sales)', nameEn: 'Showrooms & Imal Commercial Sales Revenues', ifrsSubCode: 'R-01-01' },
+  '410101': { nameAr: 'مبيعات المعارض التجارية والسلع والأجهزة (نقاط البيع والفواتير)', nameEn: 'Commercial Showroom & Merchandise Sales', ifrsSubCode: 'R-01-01' },
+  '410102': { nameAr: 'إيرادات عقود وتوريدات قطاع الأميال التجاري لقطاع الأعمال (B2B)', nameEn: 'Imal Division B2B Commercial Supply Revenues', ifrsSubCode: 'R-01-01' },
+  '4102': { nameAr: 'إيرادات عقود المنافسات والتوريدات الحكومية عبر منصة اعتماد (Etimad)', nameEn: 'Government Tenders & Etimad Supply Revenues', ifrsSubCode: 'R-01-01' },
+  '410201': { nameAr: 'إيرادات مستخلصات وأوامر توريد مشاريع المنافسات الحكومية', nameEn: 'Approved Etimad Tender & Project Billing Revenues', ifrsSubCode: 'R-01-01' },
+  '4201': { nameAr: 'إيرادات خدمات التوزيع اللوجستي والتركيب والصيانة التجارية', nameEn: 'Commercial Logistics, Installation & Maintenance Income' },
+  '420101': { nameAr: 'إيرادات خدمات التركيب والتشغيل الفني وعقود الصيانة السنوية', nameEn: 'Installation & Annual Maintenance Contract Fees' },
+  '5101': { nameAr: 'تكلفة البضاعة المباعة ومشتريات التوريدات التجارية (COGS — IAS 2)', nameEn: 'Cost of Goods Sold & Commercial Supplies (COGS)', ifrsSubCode: 'R-02-01' },
+  '510101': { nameAr: 'تكلفة شراء البضائع والأجهزة والمواد الموردة للمعارض والمشاريع', nameEn: 'Merchandise & Project Goods Purchase Cost', ifrsSubCode: 'R-02-01' },
+  '510102': { nameAr: 'تكاليف الشحن الجمركي والنقل اللوجستي ورسوم كراسات المنافسات', nameEn: 'Customs, Freight & Etimad Tender Booklet Fees', ifrsSubCode: 'R-02-01' },
+  '5102': { nameAr: 'تكاليف تشغيل المستودعات والمعارض التجارية والتغليف', nameEn: 'Warehouse & Commercial Showroom Operating Costs', ifrsSubCode: 'R-02-01' },
+  '510201': { nameAr: 'مصاريف التخزين والمناولة والتغليف وتشغيل المعارض التجارية', nameEn: 'Storage, Handling & Showroom Operations Expense', ifrsSubCode: 'R-02-01' },
+};
+
+function applyCompanyAccountOverrides<T extends Partial<AccountItem> & { code: string }>(acc: T, norm: CompanyId): T {
+  if (norm !== 'KAS') return acc;
+  const ov = KAS_TRADE_ACCOUNT_OVERRIDES[acc.code];
+  if (!ov) return acc;
+  return {
+    ...acc,
+    nameAr: ov.nameAr,
+    nameEn: ov.nameEn,
+    ifrsSubCode: ov.ifrsSubCode || acc.ifrsSubCode,
+  };
+}
 
 export const chartOfAccountsService = {
   /**
@@ -415,7 +464,7 @@ export const chartOfAccountsService = {
     const key = `${STORAGE_KEY_PREFIX}${norm}`;
     const stored = erpIndexedStorage.getSync<AccountItem[] | null>(key, null);
     if (Array.isArray(stored) && stored.length > 0) {
-      return recalculateHierarchyRollups(stored);
+      return recalculateHierarchyRollups(stored.map((a) => applyCompanyAccountOverrides(a, norm)));
     }
 
     return this.resetToStandardTree(companyId);
@@ -426,7 +475,7 @@ export const chartOfAccountsService = {
    */
   saveAccountsForCompany(companyId: CompanyId, accounts: AccountItem[]): AccountItem[] {
     const norm = normalizeCompanyId(companyId);
-    const organized = recalculateHierarchyRollups(accounts);
+    const organized = recalculateHierarchyRollups(accounts.map((a) => applyCompanyAccountOverrides(a, norm)));
     erpIndexedStorage.setSync(`${STORAGE_KEY_PREFIX}${norm}`, organized);
     return organized;
   },
@@ -437,11 +486,16 @@ export const chartOfAccountsService = {
   resetToStandardTree(companyId: CompanyId): AccountItem[] {
     const norm = normalizeCompanyId(companyId);
     const seeded: AccountItem[] = STANDARD_SMACC_COA.map((item, idx) =>
-      enrichAccountWithIfrsClassification({
-        ...item,
-        id: `${norm.toLowerCase()}-${item.code}-${idx}`,
-        companyId: norm === 'all' ? 'SAF' : norm,
-      })
+      enrichAccountWithIfrsClassification(
+        applyCompanyAccountOverrides(
+          {
+            ...item,
+            id: `${norm.toLowerCase()}-${item.code}-${idx}`,
+            companyId: norm === 'all' ? 'SAF' : norm,
+          },
+          norm
+        )
+      )
     );
     return this.saveAccountsForCompany(companyId, seeded);
   },
@@ -463,11 +517,16 @@ export const chartOfAccountsService = {
     STANDARD_SMACC_COA.forEach((stdAcc, idx) => {
       if (!existingCodes.has(stdAcc.code)) {
         merged.push(
-          enrichAccountWithIfrsClassification({
-            ...stdAcc,
-            id: `${norm.toLowerCase()}-${stdAcc.code}-sync-${idx}`,
-            companyId: norm === 'all' ? 'SAF' : norm,
-          })
+          enrichAccountWithIfrsClassification(
+            applyCompanyAccountOverrides(
+              {
+                ...stdAcc,
+                id: `${norm.toLowerCase()}-${stdAcc.code}-sync-${idx}`,
+                companyId: norm === 'all' ? 'SAF' : norm,
+              },
+              norm
+            )
+          )
         );
         existingCodes.add(stdAcc.code);
         addedCount++;

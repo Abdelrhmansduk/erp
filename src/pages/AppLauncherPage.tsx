@@ -321,6 +321,34 @@ const ALL_SYSTEM_APPS: AppTile[] = [
   // 3. CRM & Client Service (تقسيم سماك لخدمة العملاء والمبيعات)
   // ============================================================================
   {
+    id: 'kas-commercial',
+    titleKey: 'kas-commercial',
+    defaultTitle: 'منظومة المعرض التجاري وقطاع الأميال — شركة كاس للتجارة',
+    subKey: 'kasCommercialSub',
+    defaultSubtitle: 'نظام تجاري مستقل لإدارة مبيعات المعرض، عقود قطاع الأميال، وعروض الأسعار التجارية لشركة كاس.',
+    icon: Briefcase,
+    emoji: '',
+    href: 'kas-commercial',
+    category: 'crm',
+    categoryLabel: 'شركة كاس للتجارة • المبيعات والمعارض',
+    smaccCode: 'KAS-COM',
+    metricBadge: 'نظام تجاري مستقل'
+  },
+  {
+    id: 'smacc-inventory',
+    titleKey: 'smacc-inventory',
+    defaultTitle: 'إدارة المستودعات التجارية والمخزون والأصول',
+    subKey: 'smaccInventorySub',
+    defaultSubtitle: 'متابعة أرصدة الأصناف، أوامر التوريد والصرف المخزني، وجرد الأصول والمستودعات.',
+    icon: PackageCheck,
+    emoji: '',
+    href: 'smacc-inventory',
+    category: 'finance',
+    categoryLabel: 'المستودعات والمخزون • الأصناف والأصول',
+    smaccCode: 'INV-01',
+    metricBadge: 'مخزون ومستودعات'
+  },
+  {
     id: 'crm',
     titleKey: 'crm',
     defaultTitle: '١. سجل العملاء والتصنيفات الائتمانية (CRM)',
@@ -431,7 +459,7 @@ const ALL_SYSTEM_APPS: AppTile[] = [
     icon: Building,
     emoji: '',
     href: 'offices',
-    category: 'hr',
+    category: 'operations',
     categoryLabel: 'الوكلاء • العقود والحسابات',
     smaccCode: 'AGN-01',
     metricBadge: '14 مكتب دولي'
@@ -445,10 +473,24 @@ const ALL_SYSTEM_APPS: AppTile[] = [
     icon: MapPin,
     emoji: '',
     href: 'external-offices',
-    category: 'hr',
+    category: 'operations',
     categoryLabel: 'الوكلاء • التراخيص والحصص',
     smaccCode: 'AGN-02',
     metricBadge: '5 دول معتمدة'
+  },
+  {
+    id: 'self-service-profile',
+    titleKey: 'profile',
+    defaultTitle: 'بوابة الخدمة الذاتية للموظف',
+    subKey: 'profileSub',
+    defaultSubtitle: 'استعراض الملف الوظيفي المعتمد، تقديم طلبات الإجازات، وإصدار خطاب التعريف بالراتب.',
+    icon: UserCheck,
+    emoji: '',
+    href: 'profile',
+    category: 'hr',
+    categoryLabel: 'شؤون الموظفين • الخدمة الذاتية',
+    smaccCode: 'ESS-01',
+    metricBadge: 'الخدمة الذاتية'
   },
 
   // ============================================================================
@@ -471,28 +513,28 @@ const ALL_SYSTEM_APPS: AppTile[] = [
   {
     id: 'kas-suite',
     titleKey: 'kas-suite',
-    defaultTitle: '٢. بوابة المنافسات الحكومية ومنصة اعتماد (KAS)',
+    defaultTitle: '٢. منظومة شركة كاس للتجارة والمنافسات المستقلة (اعتماد)',
     subKey: 'kasSuiteSub',
-    defaultSubtitle: 'كراسات الشروط، جداول الكميات BOQ، الضمانات البنكية، ومستخلصات منصة اعتماد.',
+    defaultSubtitle: 'نظام تجاري مستقل لشركة كاس: المنافسات الحكومية، المشتريات والموردين، أوامر الصرف، وفوترة ZATCA.',
     icon: Briefcase,
     emoji: '',
     href: 'kas-suite',
     category: 'governance',
-    categoryLabel: 'المنافسات • منصة اعتماد',
+    categoryLabel: 'شركة كاس للتجارة • نظام مستقل',
     smaccCode: 'KAS-01',
-    metricBadge: 'جناح كاس KAS'
+    metricBadge: 'شركة كاس للتجارة'
   },
   {
     id: 'tenders-boq',
     titleKey: 'tenders-boq',
-    defaultTitle: '٣. تسعير المنافسات وجداول الكميات (BOQ)',
+    defaultTitle: '٣. تسعير المنافسات وجداول الكميات (BOQ) — شركة كاس للتجارة',
     subKey: 'tendersBoqSub',
-    defaultSubtitle: 'تحليل بنود المناقصات الحكومية، احتساب التكاليف المباشرة، وهوامش الربح.',
+    defaultSubtitle: 'تحليل بنود المناقصات الحكومية والتوريدات التجارية، احتساب التكاليف المباشرة، وهوامش الربح.',
     icon: FileText,
     emoji: '',
     href: 'tenders-boq',
     category: 'governance',
-    categoryLabel: 'المنافسات • جداول الكميات',
+    categoryLabel: 'شركة كاس للتجارة • جداول الكميات',
     smaccCode: 'KAS-02',
     metricBadge: 'تسعير BOQ'
   },
@@ -878,9 +920,19 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
     return counts;
   }, [authorizedApps]);
 
+  const isKasTradeStandalone = resolvedScope.companyId.toUpperCase() === 'KAS';
+
   const visibleCategories = useMemo(() => {
-    return CATEGORIES.filter((cat) => cat.id === 'all' || (countsByCategory[cat.id] || 0) > 0);
-  }, [countsByCategory]);
+    return CATEGORIES.filter((cat) => cat.id === 'all' || (countsByCategory[cat.id] || 0) > 0).map(
+      (cat) => {
+        if (!isKasTradeStandalone) return cat;
+        if (cat.id === 'crm') return { ...cat, label: 'المبيعات والمعارض التجارية' };
+        if (cat.id === 'governance') return { ...cat, label: 'المنافسات والمشتريات (اعتماد)' };
+        if (cat.id === 'hr') return { ...cat, label: 'الخدمة الذاتية للموظف' };
+        return cat;
+      }
+    );
+  }, [countsByCategory, isKasTradeStandalone]);
 
   return (
     <main
@@ -905,11 +957,14 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
                 {currentUser?.full_name || 'موظف معتمد'}
               </span>
               <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]">
-                {currentDeptMeta.nameAr}
+                {isKasTradeStandalone ? currentUser?.role || 'منظومة كاس التجارية المستقلة' : currentDeptMeta.nameAr}
               </span>
             </div>
             <div className="text-[11px] text-[#707070] font-medium truncate mt-0.5">
-              {activeCompany.name} ({resolvedScope.companyId}) • {authorizedApps.length} بطاقة ووحدة مصرحة لصلاحياتك
+              {isKasTradeStandalone
+                ? 'شركة كاس للتجارة والمنافسات (KAS — نظام تجاري مستقل)'
+                : `${activeCompany.name} (${resolvedScope.companyId})`}{' '}
+              • {authorizedApps.length} بطاقة ووحدة مصرحة لصلاحياتك
             </div>
           </div>
         </div>
@@ -1112,12 +1167,14 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-[#141414]" />
           <span className="font-semibold text-[#141414]">
-            مجموعة خالد السليم للاستقدام والتشغيل • المنظومة السحابية الموحدة لإدارة الموارد والشركات
+            {isKasTradeStandalone
+              ? 'شركة كاس للتجارة والمنافسات (KAS) • المنظومة التجارية السحابية المستقلة (منفصلة كلياً عن الاستقدام)'
+              : 'مجموعة خالد السليم القابضة • المنظومة السحابية الموحدة لإدارة الشركات والقطاعات'}
           </span>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <span className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] font-bold text-[10px]">
-            عزل صارم للأقسام والشركات
+            {isKasTradeStandalone ? 'نظام تجاري مستقل 100%' : 'عزل صارم للأقسام والشركات'}
           </span>
           <span className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] font-bold text-[10px]">
             ZATCA المرحلة الثانية

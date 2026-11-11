@@ -7491,3 +7491,28 @@ export const SYSTEM_MESSAGES_AR: Array<{ key: string; text: string }> = [
     "text": "تم إنشاء الأزرار في الصفحة الرئيسية."
   }
 ];
+
+/**
+ * KAS Trade (`company_id: 'KAS'`) is a standalone commercial/trade company with
+ * ZERO relation to recruitment. Strip recruitment/shelter/Musaned classifications
+ * from its extended IFRS dropdowns so its accountants only see commercial items.
+ */
+const RECRUITMENT_ONLY_IFRS_KEYWORDS = ['استقدام', 'إيواء', 'ايواء', 'مساند'];
+
+export function isKasTradeCompany(companyId?: string | null): boolean {
+  return String(companyId || '').toUpperCase() === 'KAS';
+}
+
+export function getCompanyIfrsClassifications(companyId?: string | null) {
+  if (!isKasTradeCompany(companyId)) return EXTENDED_IFRS_CLASSIFICATIONS;
+  return EXTENDED_IFRS_CLASSIFICATIONS.filter(
+    (x) => !RECRUITMENT_ONLY_IFRS_KEYWORDS.some((k) => (x.nameAr || '').includes(k))
+  );
+}
+
+export function getCompanyExcelAccountingTree(companyId?: string | null) {
+  if (!isKasTradeCompany(companyId)) return EXCEL_ACCOUNTING_TREE;
+  return EXCEL_ACCOUNTING_TREE.filter(
+    (n) => !RECRUITMENT_ONLY_IFRS_KEYWORDS.some((k) => String((n as { titleAr?: string }).titleAr || '').includes(k))
+  );
+}

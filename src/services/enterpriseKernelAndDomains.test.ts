@@ -423,12 +423,12 @@ describe('Enterprise Shared Kernel & Domain Engines Verification Suite', () => {
     expect(normalizePortalRouteCode('all')).toBe('admin');
     expect(normalizePortalRouteCode('gateway')).toBeNull();
 
-    // 2. Company email domains
-    expect(authService.getCompanyEmailDomain('SAF')).toBe('saf-rec.sa');
-    expect(authService.getCompanyEmailDomain('YAQ')).toBe('yaqoot-ops.sa');
-    expect(authService.getCompanyEmailDomain('TOP')).toBe('topaz-rec.sa');
-    expect(authService.getCompanyEmailDomain('KAS')).toBe('kas-etimad.sa');
-    expect(authService.getCompanyEmailDomain('DAR')).toBe('alruwad.sa');
+    // 2. Unified official corporate email domain (@kas.sa across all entities)
+    expect(authService.getCompanyEmailDomain('SAF')).toBe('kas.sa');
+    expect(authService.getCompanyEmailDomain('YAQ')).toBe('kas.sa');
+    expect(authService.getCompanyEmailDomain('TOP')).toBe('kas.sa');
+    expect(authService.getCompanyEmailDomain('KAS')).toBe('kas.sa');
+    expect(authService.getCompanyEmailDomain('DAR')).toBe('kas.sa');
 
     // 3. Tenant boundary validation (SAF employee vs YAQ / KAS / Admin portals)
     const safEmployee: UserProfile = {

@@ -12,6 +12,7 @@ import {
   AlertCircle, CheckCircle2, Database, Download, UploadCloud, RotateCcw, HardDrive, EyeOff
 } from 'lucide-react';
 import { ModuleVisibilityManager } from '../components/settings/ModuleVisibilityManager';
+import { authService } from '../services/authService';
 import { 
   checkWebAuthnSupport, 
   getStoredBiometricCredentials, 
@@ -90,10 +91,13 @@ export const SettingsPage: React.FC = () => {
   const [testingSettingsBioId, setTestingSettingsBioId] = useState<string | null>(null);
   const [settingsTestResult, setSettingsTestResult] = useState<{ credId: string; success: boolean; message: string } | null>(null);
 
+  const currentAuthUser = authService.getCurrentUser();
+  const bioUsernameKey = currentAuthUser?.username || 'khalid';
+
   useEffect(() => {
     checkWebAuthnSupport().then(setHwSupport);
-    getStoredBiometricCredentials('admin').then(setDeviceBiometrics);
-  }, []);
+    getStoredBiometricCredentials(bioUsernameKey).then(setDeviceBiometrics);
+  }, [bioUsernameKey]);
 
   const handleRegisterCurrentDeviceBio = async (type: 'Touch ID (بصمة إصبع)' | 'Face ID (بصمة وجه)') => {
     setIsRegisteringDeviceBio(true);
@@ -101,10 +105,10 @@ export const SettingsPage: React.FC = () => {
 
     const result = await registerUserBiometric(
       {
-        id: '1',
-        username: 'admin',
-        fullName: 'مشرف admin (خالد السليم)',
-        systemScope: 'جميع المنظومات'
+        id: currentAuthUser?.id || 'KAS-EMP-001',
+        username: bioUsernameKey,
+        fullName: currentAuthUser?.full_name || 'خالد عبدالعزيز السليم',
+        systemScope: currentAuthUser?.company_id === 'all' ? 'جميع المنظومات' : (currentAuthUser?.company_id || 'SAF')
       },
       type
     );
@@ -112,7 +116,7 @@ export const SettingsPage: React.FC = () => {
     setIsRegisteringDeviceBio(false);
 
     if (result.success) {
-      const updated = await getStoredBiometricCredentials('admin');
+      const updated = await getStoredBiometricCredentials(bioUsernameKey);
       setDeviceBiometrics(updated);
       addNotification({
         title: 'تم تسجيل البصمة بنجاح',

@@ -202,7 +202,7 @@ export const SponsorshipTransferPage: React.FC = () => {
               }}
               className="px-4 py-2 rounded-xl text-xs font-bold bg-[#141414] text-[#ffffff] hover:bg-[#262626] shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
             >
-              <Sparkles className="w-4 h-4 text-[#141414]" />
+              <Sparkles className="w-4 h-4 text-[#ffffff]" />
               <span>+ حجز نقل خدمات لعميل</span>
             </button>
 
@@ -249,7 +249,7 @@ export const SponsorshipTransferPage: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#be123c] text-[#141414] font-mono">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#141414] text-[#ffffff] font-mono">
                   تنبيه استباقي عاجل (T=0)
                 </span>
                 <span className="text-xs text-[#141414] font-bold">

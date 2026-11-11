@@ -51,7 +51,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
   // Interactive Login State inside Hero Split
-  const [identifier, setIdentifier] = useState('abdo12uk@gmail.com');
+  const [identifier, setIdentifier] = useState('a.salif.dev@kas.sa');
   const [password, setPassword] = useState(DEMO_QUICK_LOGIN_SECRET);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -321,7 +321,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
   const handleBiometricLogin = async () => {
     setErrorMsg(null);
     setSuccessMsg('جاري التحقق من البصمة الرقمية وفتح الجلسة...');
-    await executeQuickLogin(identifier || 'chairman@alsulaim.sa', DEMO_QUICK_LOGIN_SECRET);
+    await executeQuickLogin(identifier || 'khalid@kas.sa', DEMO_QUICK_LOGIN_SECRET);
   };
 
   const handleSelect = (id: CompanyId | string, portalCode?: string) => {
@@ -377,12 +377,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
       id: 'KAS' as CompanyId,
       portalCode: 'kas',
       code: 'COMPANY 04 [KAS]',
-      nameAr: 'شركة كاس للمنافسات والتشغيل',
-      nameEn: 'KAS Trading & Etmad Suite',
-      badge: 'منافسات اعتماد وجداول BOQ',
-      desc: 'بوابة مستقلة ومعزولة كلياً لإدارة منافسات اعتماد، جداول الكميات الذكية BOQ، الفوترة المشفرة ZATCA، وسجل الموردين.',
+      nameAr: 'شركة كاس للتجارة والمنافسات',
+      nameEn: 'KAS Trading & Commercial System (Standalone)',
+      badge: 'نظام تجاري مستقل • منفصل عن الاستقدام',
+      desc: 'منظومة تجارية مستقلة كلياً لشركة كاس للتجارة (لا ترتبط بالاستقدام): إدارة المعارض التجارية، قطاع الأميال، المشتريات والمستودعات، منافسات اعتماد وجداول BOQ، وفوترة ZATCA.',
       image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80',
-      stats: '2,650+ منافسة اعتماد',
+      stats: 'نظام تجاري مستقل 100%',
       themeColor: '#141414',
       license: 'سجل تجاري 1010789234 • ضريبي 3102847592'
     },
@@ -685,6 +685,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                             (g) => g.email.toLowerCase() === syncedGoogleUser.email?.toLowerCase()
                           ) || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]
                         : VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0];
+                      if (!googlePrimary) {
+                        setErrorMsg('لا يوجد حساب Google مربوط ضمن قائمة الموظفين المعتمدة (@kas.sa).');
+                        return;
+                      }
                       setIdentifier(googlePrimary.email);
                       setErrorMsg(null);
                       setSuccessMsg(
@@ -694,17 +698,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                     className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f8f8f7] hover:bg-[#f0efec] border border-[#e5e5e5] text-[11px] font-bold text-[#141414] transition-all cursor-pointer"
                   >
                     <EmployeePhotoAvatar
-                      name={syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].fullNameAr}
-                      email={syncedGoogleUser?.email || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].email}
-                      avatarUrl={syncedGoogleUser?.photoURL || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].photoURL}
+                      name={syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.fullNameAr || ''}
+                      email={syncedGoogleUser?.email || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.email || ''}
+                      avatarUrl={syncedGoogleUser?.photoURL || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.photoURL || ''}
                       size="xs"
                       showStatusDot={true}
                     />
                     <span className="truncate max-w-[210px]">
                       {identifier.toLowerCase() ===
-                      (syncedGoogleUser?.email || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].email).toLowerCase()
-                        ? `متصل بحساب Google: ${syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].displayName}`
-                        : `جلب ومزامنة حساب Google (${syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0].displayName})`}
+                      (syncedGoogleUser?.email || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.email || '').toLowerCase()
+                        ? `متصل بحساب Google: ${syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.displayName || ''}`
+                        : `جلب ومزامنة حساب Google (${syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.displayName || ''})`}
                     </span>
                   </button>
                 </div>
@@ -777,7 +781,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                     type="button"
                     onClick={() =>
                       void executeQuickLogin(
-                        identifier.trim() || 'abdo12uk@gmail.com',
+                        identifier.trim() || 'a.salif.dev@kas.sa',
                         password || DEMO_QUICK_LOGIN_SECRET
                       )
                     }
@@ -803,7 +807,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                       type="button"
                       onClick={() =>
                         void executeQuickLogin(
-                          identifier.trim() || 'chairman@alsulaim.sa',
+                          identifier.trim() || 'khalid@kas.sa',
                           DEMO_QUICK_LOGIN_SECRET
                         )
                       }
@@ -870,7 +874,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                               setFlowState('login');
                               return;
                             }
-                            setIdentifier('abdo12uk@gmail.com');
+                            setIdentifier('a.salif.dev@kas.sa');
                             setPassword(DEMO_QUICK_LOGIN_SECRET);
                           }}
                           className="text-[11px] font-bold text-[#707070] hover:text-[#141414] transition-colors cursor-pointer"
@@ -923,6 +927,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                         type="button"
                         onClick={() => {
                           const gAcc = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0];
+                          if (!gAcc) {
+                            setErrorMsg('لا يوجد حساب Google مربوط ضمن قائمة الموظفين المعتمدة (@kas.sa).');
+                            return;
+                          }
                           setActFullName(gAcc.fullNameAr);
                           setActEmail(gAcc.email);
                           setActPhone(gAcc.phone || '0543389314');
@@ -962,7 +970,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                           dir="ltr"
                           value={actEmail}
                           onChange={(e) => setActEmail(e.target.value)}
-                          placeholder="abdo12uk@gmail.com"
+                          placeholder="name.suffix@kas.sa"
                           className="w-full px-3 py-2.5 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-mono text-[#141414] outline-none text-left"
                           required
                         />

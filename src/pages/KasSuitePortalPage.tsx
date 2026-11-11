@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Building2, Briefcase, FileSpreadsheet, Layers, ShieldCheck, 
   Users, Truck, Receipt, CloudLightning, ShieldAlert, ArrowRight,
@@ -18,6 +18,7 @@ import { useIamSession } from '../contexts/IamSessionContext';
 import { useAppStore } from '../stores/appStore';
 import { kasEtmadSuiteService } from '../services/kasEtmadSuiteService';
 import { tafqeet } from '../services/tafqeetService';
+import { realErpDataStore } from '../services/realErpDataStore';
 
 interface KasSuitePortalPageProps {
   onReturnToErp?: () => void;
@@ -145,8 +146,27 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
     { id: 'INV-03', number: 'INV-KAS-9903', client: 'أمانة منطقة الرياض', amount: 110000, vat: 16500, total: 126500, date: '2026-09-05', status: 'مسودة', qr: false },
   ]);
 
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      realErpDataStore.getRecords<any>('kas_suite_tenders', tenders, 'KAS'),
+      realErpDataStore.getRecords<any>('kas_suite_suppliers', suppliers, 'KAS'),
+      realErpDataStore.getRecords<any>('kas_suite_pos', purchaseOrders, 'KAS'),
+      realErpDataStore.getRecords<any>('kas_suite_invoices', invoices, 'KAS'),
+    ]).then(([t, s, p, inv]) => {
+      if (!active) return;
+      if (t?.length) setTenders(t);
+      if (s?.length) setSuppliers(s);
+      if (p?.length) setPurchaseOrders(p);
+      if (inv?.length) setInvoices(inv);
+    }).catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
   // Handle Add Tender
-  const handleCreateTender = (e: React.FormEvent) => {
+  const handleCreateTender = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTender.title) return;
 
@@ -162,7 +182,9 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
       itemsCount: 10,
     };
 
-    setTenders([record, ...tenders]);
+    const next = [record, ...tenders];
+    setTenders(next);
+    await realErpDataStore.saveRecords('kas_suite_tenders', next);
     setShowAddTenderModal(false);
     addNotification({
       type: 'success',
@@ -172,7 +194,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
   };
 
   // Handle Add Supplier
-  const handleCreateSupplier = (e: React.FormEvent) => {
+  const handleCreateSupplier = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSupplier.name) return;
 
@@ -186,7 +208,9 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
       totalVolume: 50000,
     };
 
-    setSuppliers([record, ...suppliers]);
+    const next = [record, ...suppliers];
+    setSuppliers(next);
+    await realErpDataStore.saveRecords('kas_suite_suppliers', next);
     setShowAddSupplierModal(false);
     addNotification({
       type: 'success',
@@ -969,8 +993,8 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                       <ShieldCheck className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-[#141414]">شهادة الامتثال والعزل التام لمؤسسة كاس (Tenant Isolation Certificate)</h3>
-                      <p className="text-xs text-[#707070]">Zero Cross-Tenant Leakage • معزولة كلياً عن شركات الاستقدام</p>
+                      <h3 className="text-sm font-bold text-[#141414]">شهادة الامتثال والعزل التام لشركة كاس للتجارة (Tenant Isolation Certificate)</h3>
+                      <p className="text-xs text-[#707070]">Zero Cross-Tenant Leakage • كيان تجاري مستقل ومعزول 100%</p>
                     </div>
                   </div>
                   <span className="px-3 py-1 rounded-full bg-[#f3f3f3] text-[#141414] font-bold text-xs">
@@ -1178,9 +1202,11 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
             </div>
 
             <form 
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                setPurchaseOrders([{ id: `PO-${Date.now()}`, poNumber: newPO.poNumber, supplierName: newPO.supplierName || 'شركة التوريدات الصناعية', project: newPO.projectName, amount: Number(newPO.amount), status: 'معتمد للتوريد', date: '2026-09-05' }, ...purchaseOrders]);
+                const next = [{ id: `PO-${Date.now()}`, poNumber: newPO.poNumber, supplierName: newPO.supplierName || 'شركة التوريدات الصناعية', project: newPO.projectName, amount: Number(newPO.amount), status: 'معتمد للتوريد', date: '2026-09-05' }, ...purchaseOrders];
+                setPurchaseOrders(next);
+                await realErpDataStore.saveRecords('kas_suite_pos', next);
                 setShowAddPoModal(false);
                 addNotification({ type: 'success', title: 'تم إصدار أمر التوريد', message: `تم تسجيل ${newPO.poNumber} لمستودعات كاس بنجاح` });
               }} 
@@ -1269,11 +1295,13 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
             </div>
 
             <form 
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
                 const vat = Number(newInvoice.amount) * 0.15;
                 const total = Number(newInvoice.amount) + vat;
-                setInvoices([{ id: `INV-${Date.now()}`, number: newInvoice.invoiceNumber, client: newInvoice.clientName, amount: Number(newInvoice.amount), vat, total, date: '2026-09-05', status: 'معتمدة ZATCA', qr: true }, ...invoices]);
+                const next = [{ id: `INV-${Date.now()}`, number: newInvoice.invoiceNumber, client: newInvoice.clientName, amount: Number(newInvoice.amount), vat, total, date: '2026-09-05', status: 'معتمدة ZATCA', qr: true }, ...invoices];
+                setInvoices(next);
+                await realErpDataStore.saveRecords('kas_suite_invoices', next);
                 setShowAddInvoiceModal(false);
                 addNotification({ type: 'success', title: 'تم اعتماد الفاتورة في ZATCA', message: `الفاتورة ${newInvoice.invoiceNumber} مشفرة بالـ QR وجاهزة للتسليم` });
               }} 

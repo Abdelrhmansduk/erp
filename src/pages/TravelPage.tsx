@@ -42,7 +42,7 @@ const MOCK_FLIGHTS: FlightRecord[] = [
     flight_date: '2026-08-18',
     flight_time: '14:30',
     ticket_number: '065-992837411',
-    driver_assigned: 'محمد السائق (مركبة رقم 12)',
+    driver_assigned: 'عمار محمد الهندي (مركبة رقم 12)',
     status: 'مؤكد ومجدول',
   },
   {
@@ -59,7 +59,7 @@ const MOCK_FLIGHTS: FlightRecord[] = [
     flight_date: '2026-08-17',
     flight_time: '09:15',
     ticket_number: '071-884729103',
-    driver_assigned: 'أحمد السائق (مركبة رقم 5)',
+    driver_assigned: 'سمير أحمد قاسم (مركبة رقم 5)',
     status: 'تم الوصول والاستقبال',
   },
   {
@@ -76,7 +76,7 @@ const MOCK_FLIGHTS: FlightRecord[] = [
     flight_date: '2026-08-19',
     flight_time: '23:45',
     ticket_number: '065-119283745',
-    driver_assigned: 'خالد السائق (فريق الترحيل)',
+    driver_assigned: 'بيدرو أوبينا (فريق الترحيل)',
     status: 'مؤكد ومجدول',
   },
 ];
@@ -86,18 +86,22 @@ export const TravelPage: React.FC = () => {
   const { addNotification } = useAppStore();
   const [flights, setFlights] = useState<FlightRecord[]>([]);
   const [airportReceptions, setAirportReceptions] = useState([
-    { id: 'REC-RUH-01', maid: 'MARIA SANTOS CORTEZ', nat: 'الفلبين', airport: 'مطار الملك خالد - صالة 2', time: '14:30', driver: 'محمد السائق (حافلة 12)', dest: 'مركز إيواء الرياض الرئيسي', status: 'تم الاستقبال بنجاح' },
-    { id: 'REC-JED-02', maid: 'ALEMITU BEKELE', nat: 'إثيوبيا', airport: 'مطار الملك عبدالعزيز - الصالة 1', time: '09:15', driver: 'أحمد السائق (فان 05)', dest: 'مركز ترانزيت جدة', status: 'تم الاستقبال بنجاح' },
-    { id: 'REC-RUH-03', maid: 'JOYCE MWANGI', nat: 'كينيا', airport: 'مطار الملك خالد - صالة 2', time: '18:45', driver: 'سعيد القحطاني (حافلة 14)', dest: 'تسليم مباشر للعميل', status: 'بانتظار هبوط الطائرة' },
-    { id: 'REC-DMM-04', maid: 'FATIMA NABATANZI', nat: 'أوغندا', airport: 'مطار الملك فهد بالدمام', time: '21:00', driver: 'خالد السائق (فان 08)', dest: 'مركز إيواء الدمام', status: 'بانتظار هبوط الطائرة' },
+    { id: 'REC-RUH-01', maid: 'MARIA SANTOS CORTEZ', nat: 'الفلبين', airport: 'مطار الملك خالد - صالة 2', time: '14:30', driver: 'عمار محمد الهندي (حافلة 12)', dest: 'مركز إيواء الرياض الرئيسي', status: 'تم الاستقبال بنجاح' },
+    { id: 'REC-JED-02', maid: 'ALEMITU BEKELE', nat: 'إثيوبيا', airport: 'مطار الملك عبدالعزيز - الصالة 1', time: '09:15', driver: 'سمير أحمد قاسم (فان 05)', dest: 'مركز ترانزيت جدة', status: 'تم الاستقبال بنجاح' },
+    { id: 'REC-RUH-03', maid: 'JOYCE MWANGI', nat: 'كينيا', airport: 'مطار الملك خالد - صالة 2', time: '18:45', driver: 'بيدرو أوبينا (حافلة 14)', dest: 'تسليم مباشر للعميل', status: 'بانتظار هبوط الطائرة' },
+    { id: 'REC-DMM-04', maid: 'FATIMA NABATANZI', nat: 'أوغندا', airport: 'مطار الملك فهد بالدمام', time: '21:00', driver: 'نور عالم شودري (فان 08)', dest: 'مركز إيواء الدمام', status: 'بانتظار هبوط الطائرة' },
   ]);
   const storeActiveTab = useAppStore(state => state.activeTab);
 
   const getMappedTab = (tabKey: string): 'all' | 'arrivals' | 'deportations' | 'reception' => {
     switch (tabKey) {
       case 'airport-reception': return 'reception';
-      case 'deportation-travel': return 'deportations';
-      case 'arrivals-travel': return 'arrivals';
+      case 'deportation-travel':
+      case 'deportation-flights':
+        return 'deportations';
+      case 'arrivals-travel':
+      case 'arrival-flights':
+        return 'arrivals';
       default: return 'all';
     }
   };
@@ -115,6 +119,9 @@ export const TravelPage: React.FC = () => {
   useEffect(() => {
     realErpDataStore.getRecords<FlightRecord>('flights', MOCK_FLIGHTS).then(data => {
       setFlights(data);
+    });
+    realErpDataStore.getRecords<any>('travel_airport_receptions', airportReceptions).then(data => {
+      if (data?.length) setAirportReceptions(data);
     });
   }, []);
 
@@ -349,11 +356,11 @@ export const TravelPage: React.FC = () => {
                       <button
                         disabled={r.status === 'تم الاستقبال بنجاح'}
                         onClick={async () => {
-                          setAirportReceptions(prev =>
-                            prev.map(item =>
-                              item.id === r.id ? { ...item, status: 'تم الاستقبال بنجاح' } : item
-                            )
+                          const nextReceptions = airportReceptions.map(item =>
+                            item.id === r.id ? { ...item, status: 'تم الاستقبال بنجاح' } : item
                           );
+                          setAirportReceptions(nextReceptions);
+                          await realErpDataStore.saveRecords('travel_airport_receptions', nextReceptions);
                           await realErpDataStore.addRecord('travel_receptions', {
                             ...r,
                             status: 'تم الاستقبال بنجاح',

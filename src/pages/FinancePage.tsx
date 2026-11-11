@@ -6,7 +6,7 @@ import { useCompany } from '../contexts/CompanyContext';
 import { useTableMutation, useCostCenters } from '../hooks/queries/useErpQueries';
 import { chartOfAccountsService, AccountItem } from '../services/accounting/chartOfAccountsService';
 import { journalEngine } from '../services/accounting/journalEngine';
-import { EXTENDED_IFRS_CLASSIFICATIONS } from '../services/accounting/ifrsExtendedReferenceData';
+import { getCompanyIfrsClassifications } from '../services/accounting/ifrsExtendedReferenceData';
 import { enterpriseAccountingSuiteService } from '../services/accounting/enterpriseAccountingSuiteService';
 import { useAppStore } from '../stores/appStore';
 import { realErpDataStore } from '../services/realErpDataStore';
@@ -60,7 +60,7 @@ const MOCK_VOUCHERS: Voucher[] = [
   { id: 'v-1', voucher_no: 'صرف #1', type: 'صرف', date: '2026-07-30', payee_payer: 'مكتب بلاتينيوم مانيلا (تأشيرات)', treasury: 'الصندوق الرئيسي', amount: 5000.0, status: 'معتمد' },
 ];
 
-const TRIAL_BALANCE_DATA = [
+const RECRUITMENT_TRIAL_BALANCE_DATA = [
   { code: '1101', name: 'الصندوق الرئيسي (Cash)', type: 'أصول', ifrsCode: 'A-10', ifrsSubCode: 'A-10-01', ifrsItemName: 'النقد وما في حكمه', ifrsSubItemName: 'النقد في الصناديق الرئيسية', ifrsSection: 'مركز مالي - أصول متداولة', ifrsRef: 'IAS 7', cashFlowType: 'نقد وما في حكمه', opening_debit: 150000, opening_credit: 0, period_debit: 45000, period_credit: 40800, balance: 154200 },
   { code: '1102', name: 'بنك الرياض - حساب الاستقدام', type: 'أصول', ifrsCode: 'A-10', ifrsSubCode: 'A-10-08', ifrsItemName: 'النقد وما في حكمه', ifrsSubItemName: 'حسابات جارية تشغيلية لدى البنوك المحلية', ifrsSection: 'مركز مالي - أصول متداولة', ifrsRef: 'IAS 7', cashFlowType: 'نقد وما في حكمه', opening_debit: 380000, opening_credit: 0, period_debit: 82000, period_credit: 41500, balance: 420500 },
   { code: '1103', name: 'بنك الراجحي - الحساب التشغيلي', type: 'أصول', ifrsCode: 'A-10', ifrsSubCode: 'A-10-08', ifrsItemName: 'النقد وما في حكمه', ifrsSubItemName: 'حسابات جارية تشغيلية لدى البنوك المحلية', ifrsSection: 'مركز مالي - أصول متداولة', ifrsRef: 'IAS 7', cashFlowType: 'نقد وما في حكمه', opening_debit: 220000, opening_credit: 0, period_debit: 110300, period_credit: 55000, balance: 275300 },
@@ -74,6 +74,35 @@ const TRIAL_BALANCE_DATA = [
   { code: '4102', name: 'إيرادات عقود التأجير والتشغيل', type: 'إيرادات', ifrsCode: 'R-01', ifrsSubCode: 'R-01-15', ifrsItemName: 'الإيرادات التشغيلية', ifrsSubItemName: 'إيرادات تأجير الموارد البشرية وتشغيل الكوادر', ifrsSection: 'قائمة الدخل', ifrsRef: 'IFRS 15', cashFlowType: 'تشغيلي', opening_debit: 0, opening_credit: 85000, period_debit: 0, period_credit: 35425, balance: -120425 },
   { code: '5101', name: 'مصروفات تشغيل ومراكز إيواء', type: 'مصروفات', ifrsCode: 'R-02', ifrsSubCode: 'R-02-07', ifrsItemName: 'تكلفة الإيرادات', ifrsSubItemName: 'تكلفة عقود التوسط والاستقدام المباشرة', ifrsSection: 'قائمة الدخل', ifrsRef: 'IAS 2 / IAS 1.99', cashFlowType: 'تشغيلي', opening_debit: 75000, opening_credit: 0, period_debit: 15000, period_credit: 0, balance: 90000 },
   { code: '5102', name: 'رواتب وأجور الكوادر الإدارية', type: 'مصروفات', ifrsCode: 'R-04', ifrsSubCode: 'R-04-01', ifrsItemName: 'مصروفات عمومية وإدارية', ifrsSubItemName: 'رواتب وأجور الإدارة والموظفين الإداريين', ifrsSection: 'قائمة الدخل', ifrsRef: 'IAS 1.99', cashFlowType: 'تشغيلي', opening_debit: 110000, opening_credit: 0, period_debit: 20500, period_credit: 0, balance: 130500 },
+];
+
+const KAS_TRADE_MOCK_JOURNALS: JournalEntry[] = [
+  { id: 'kas-j-401', ref_no: 'KAS-JV #401', date: '2026-08-18', description: 'قيد مبيعات المعرض التجاري الرئيسي — دفعة نقاط البيع والفواتير الضريبية', amount: 96600.0, status: 'معتمد', branch: 'المعرض التجاري الرئيسي' },
+  { id: 'kas-j-400', ref_no: 'KAS-JV #400', date: '2026-08-17', description: 'قيد استحقاق مستخلص توريدات منصة اعتماد #ETM-2026-88991', amount: 145000.0, status: 'معتمد', branch: 'المقر الرئيسي لشركة كاس للتجارة' },
+  { id: 'kas-j-399', ref_no: 'KAS-JV #399', date: '2026-08-16', description: 'قيد مبيعات وتوريدات قطاع الأميال التجاري — عقد شركة المدار للتجهيزات', amount: 64400.0, status: 'معتمد', branch: 'فرع قطاع الأميال التجاري' },
+  { id: 'kas-j-398', ref_no: 'KAS-JV #398', date: '2026-08-15', description: 'إثبات مشتريات بضائع وتجهيزات لمستودعات كاس المركزية #PO-KAS-2026-881', amount: 38500.0, status: 'معتمد', branch: 'مستودعات كاس المركزية' },
+];
+
+const KAS_TRADE_MOCK_VOUCHERS: Voucher[] = [
+  { id: 'kas-v-91', voucher_no: 'قبض تجاري #91', type: 'قبض', date: '2026-08-18', payee_payer: 'مجموعة النخبة للتجهيزات التجارية (قطاع الأميال)', treasury: 'بنك الرياض - حساب التجارة والمنافسات', amount: 64400.0, status: 'معتمد' },
+  { id: 'kas-v-90', voucher_no: 'قبض تجاري #90', type: 'قبض', date: '2026-08-17', payee_payer: 'الهيئة العامة للموانئ (مستخلص توريد أجهزة)', treasury: 'مصرف الراجحي التجاري', amount: 95018.75, status: 'معتمد' },
+  { id: 'kas-v-21', voucher_no: 'صرف تجاري #21', type: 'صرف', date: '2026-08-16', payee_payer: 'شركة التوريدات الصناعية المتحدة', treasury: 'مصرف الراجحي التجاري', amount: 38500.0, status: 'معتمد' },
+];
+
+const KAS_TRADE_TRIAL_BALANCE_DATA = [
+  { code: '1101', name: 'خزينة المعارض والصندوق التجاري الرئيسي', type: 'أصول', ifrsCode: 'A-10', ifrsSubCode: 'A-10-01', ifrsItemName: 'النقد وما في حكمه', ifrsSubItemName: 'النقد في الصناديق الرئيسية', ifrsSection: 'مركز مالي - أصول متداولة', ifrsRef: 'IAS 7', cashFlowType: 'نقد وما في حكمه', opening_debit: 150000, opening_credit: 0, period_debit: 45000, period_credit: 40800, balance: 154200 },
+  { code: '1102', name: 'بنك الرياض - حساب التجارة والمنافسات الحكومية', type: 'أصول', ifrsCode: 'A-10', ifrsSubCode: 'A-10-08', ifrsItemName: 'النقد وما في حكمه', ifrsSubItemName: 'حسابات جارية تشغيلية لدى البنوك المحلية', ifrsSection: 'مركز مالي - أصول متداولة', ifrsRef: 'IAS 7', cashFlowType: 'نقد وما في حكمه', opening_debit: 380000, opening_credit: 0, period_debit: 82000, period_credit: 41500, balance: 420500 },
+  { code: '1103', name: 'مصرف الراجحي - حساب مبيعات المعارض والأميال', type: 'أصول', ifrsCode: 'A-10', ifrsSubCode: 'A-10-08', ifrsItemName: 'النقد وما في حكمه', ifrsSubItemName: 'حسابات جارية تشغيلية لدى البنوك المحلية', ifrsSection: 'مركز مالي - أصول متداولة', ifrsRef: 'IAS 7', cashFlowType: 'نقد وما في حكمه', opening_debit: 220000, opening_credit: 0, period_debit: 110300, period_credit: 55000, balance: 275300 },
+  { code: '1104', name: 'الضمانات البنكية ومستخلصات منصة اعتماد التجارية', type: 'أصول', ifrsCode: 'A-07', ifrsSubCode: 'A-07-01', ifrsItemName: 'ذمم مدينة تجارية', ifrsSubItemName: 'ذمم عملاء المنافسات والتوريدات التجارية', ifrsSection: 'مركز مالي - أصول متداولة', ifrsRef: 'IFRS 9 / IFRS 15', cashFlowType: 'تشغيلي - رأس مال عامل', opening_debit: 160000, opening_credit: 0, period_debit: 54500, period_credit: 30000, balance: 184500 },
+  { code: '1201', name: 'تجهيزات المعارض والمستودعات وأسطول التوزيع', type: 'أصول', ifrsCode: 'A-01', ifrsSubCode: 'A-01-04', ifrsItemName: 'ممتلكات وآلات ومعدات (إجمالي)', ifrsSubItemName: 'معارض تجارية ومستودعات وأسطول توزيع', ifrsSection: 'مركز مالي - أصول غير متداولة', ifrsRef: 'IAS 16', cashFlowType: 'استثماري', opening_debit: 888000, opening_credit: 0, period_debit: 0, period_credit: 0, balance: 888000 },
+  { code: '2101', name: 'مستحقات المصانع وموردي البضائع والتوريدات', type: 'خصوم', ifrsCode: 'L-04', ifrsSubCode: 'L-04-01', ifrsItemName: 'ذمم دائنة تجارية', ifrsSubItemName: 'موردو البضائع والتوريدات التجارية', ifrsSection: 'مركز مالي - التزامات', ifrsRef: 'IAS 1.69', cashFlowType: 'تشغيلي - رأس مال عامل', opening_debit: 0, opening_credit: 175000, period_debit: 25000, period_credit: 39375, balance: -189375 },
+  { code: '2102', name: 'مخصص مكافأة نهاية الخدمة (EOSB)', type: 'خصوم', ifrsCode: 'L-03', ifrsSubCode: 'L-03-01', ifrsItemName: 'مخصص مكافأة نهاية الخدمة', ifrsSubItemName: 'مخصص مكافأة نهاية الخدمة للموظفين (EOSB)', ifrsSection: 'مركز مالي - التزامات', ifrsRef: 'IAS 19', cashFlowType: 'تشغيلي', opening_debit: 0, opening_credit: 88000, period_debit: 0, period_credit: 6200, balance: -94200 },
+  { code: '2103', name: 'ضريبة القيمة المضافة للمبيعات التجارية (ZATCA 15%)', type: 'خصوم', ifrsCode: 'L-05', ifrsSubCode: 'L-05-09', ifrsItemName: 'مصروفات مستحقة وأرصدة دائنة أخرى', ifrsSubItemName: 'ضريبة القيمة المضافة المستحقة للهيئة (VAT Output)', ifrsSection: 'مركز مالي - التزامات', ifrsRef: 'IAS 37 / ZATCA', cashFlowType: 'تشغيلي - رأس مال عامل', opening_debit: 0, opening_credit: 110000, period_debit: 12000, period_credit: 26000, balance: -124000 },
+  { code: '3101', name: 'رأس المال المدفوع — شركة كاس للتجارة', type: 'حقوق ملكية', ifrsCode: 'E-01', ifrsSubCode: 'E-01-01', ifrsItemName: 'رأس المال', ifrsSubItemName: 'رأس المال المدفوع', ifrsSection: 'مركز مالي - حقوق الملكية', ifrsRef: 'IAS 1.78(e)', cashFlowType: 'تمويلي', opening_debit: 0, opening_credit: 1205000, period_debit: 0, period_credit: 0, balance: -1205000 },
+  { code: '4101', name: 'إيرادات مبيعات المعارض التجارية وقطاع الأميال', type: 'إيرادات', ifrsCode: 'R-01', ifrsSubCode: 'R-01-01', ifrsItemName: 'الإيرادات التشغيلية', ifrsSubItemName: 'مبيعات البضائع والمعارض التجارية والأميال', ifrsSection: 'قائمة الدخل', ifrsRef: 'IFRS 15', cashFlowType: 'تشغيلي', opening_debit: 0, opening_credit: 320000, period_debit: 0, period_credit: 90000, balance: -410000 },
+  { code: '4102', name: 'إيرادات عقود التوريدات والمنافسات الحكومية (اعتماد)', type: 'إيرادات', ifrsCode: 'R-01', ifrsSubCode: 'R-01-01', ifrsItemName: 'الإيرادات التشغيلية', ifrsSubItemName: 'إيرادات عقود التوريد والمشاريع التجارية', ifrsSection: 'قائمة الدخل', ifrsRef: 'IFRS 15', cashFlowType: 'تشغيلي', opening_debit: 0, opening_credit: 85000, period_debit: 0, period_credit: 35425, balance: -120425 },
+  { code: '5101', name: 'تكلفة البضاعة المباعة والتوريدات المباشرة (COGS)', type: 'مصروفات', ifrsCode: 'R-02', ifrsSubCode: 'R-02-01', ifrsItemName: 'تكلفة الإيرادات', ifrsSubItemName: 'تكلفة البضائع المبيعة ومشتريات التوريدات', ifrsSection: 'قائمة الدخل', ifrsRef: 'IAS 2 / IAS 1.99', cashFlowType: 'تشغيلي', opening_debit: 75000, opening_credit: 0, period_debit: 15000, period_credit: 0, balance: 90000 },
+  { code: '5102', name: 'رواتب ومصروفات المعارض والمستودعات والإدارة', type: 'مصروفات', ifrsCode: 'R-04', ifrsSubCode: 'R-04-01', ifrsItemName: 'مصروفات عمومية وإدارية', ifrsSubItemName: 'رواتب وأجور الإدارة والموظفين الإداريين', ifrsSection: 'قائمة الدخل', ifrsRef: 'IAS 1.99', cashFlowType: 'تشغيلي', opening_debit: 110000, opening_credit: 0, period_debit: 20500, period_credit: 0, balance: 130500 },
 ];
 
 const SUPPLIERS_ACCOUNTS = [
@@ -107,6 +136,10 @@ export type FinanceTab =
 
 export const FinancePage: React.FC = () => {
   const { activeCompany } = useCompany();
+  const isKasTrade = activeCompany.id === 'KAS';
+  const TRIAL_BALANCE_DATA = isKasTrade ? KAS_TRADE_TRIAL_BALANCE_DATA : RECRUITMENT_TRIAL_BALANCE_DATA;
+  const financeJournalsStorageKey = isKasTrade ? 'kas_finance_journals' : 'finance_journals';
+  const financeVouchersStorageKey = isKasTrade ? 'kas_finance_vouchers' : 'finance_vouchers';
   const { addNotification } = useAppStore();
   const storeActiveTab = useAppStore(state => state.activeTab);
 
@@ -211,8 +244,16 @@ export const FinancePage: React.FC = () => {
   useEffect(() => {
     const loadFinanceRecords = () => {
       Promise.all([
-        realErpDataStore.getRecords<JournalEntry>('finance_journals', MOCK_JOURNALS),
-        realErpDataStore.getRecords<Voucher>('finance_vouchers', MOCK_VOUCHERS),
+        realErpDataStore.getRecords<JournalEntry>(
+          financeJournalsStorageKey,
+          isKasTrade ? KAS_TRADE_MOCK_JOURNALS : MOCK_JOURNALS,
+          isKasTrade ? 'KAS' : undefined
+        ),
+        realErpDataStore.getRecords<Voucher>(
+          financeVouchersStorageKey,
+          isKasTrade ? KAS_TRADE_MOCK_VOUCHERS : MOCK_VOUCHERS,
+          isKasTrade ? 'KAS' : undefined
+        ),
       ]).then(([j, v]) => {
         const liveEngineJournals: JournalEntry[] = journalEngine
           .getJournalsByCompany(activeCompany.id)
@@ -223,7 +264,7 @@ export const FinancePage: React.FC = () => {
             description: ej.description,
             amount: ej.totalDebit,
             status: ej.status === 'POSTED' ? 'معتمد' : ej.status === 'DRAFT' ? 'مسودة' : 'بانتظار الاعتماد',
-            branch: ej.lines[0]?.costCenterName || 'فرع الرياض الرئيسي',
+            branch: ej.lines[0]?.costCenterName || (isKasTrade ? 'المعرض التجاري الرئيسي' : 'فرع الرياض الرئيسي'),
           }));
         const existingRefs = new Set(liveEngineJournals.map((x) => x.ref_no));
         setJournals([...liveEngineJournals, ...j.filter((x) => !existingRefs.has(x.ref_no))]);
@@ -233,7 +274,7 @@ export const FinancePage: React.FC = () => {
     loadFinanceRecords();
     window.addEventListener('erp-data-updated', loadFinanceRecords);
     return () => window.removeEventListener('erp-data-updated', loadFinanceRecords);
-  }, [activeCompany.id]);
+  }, [activeCompany.id, isKasTrade, financeJournalsStorageKey, financeVouchersStorageKey]);
   const [selectedBranch, setSelectedBranch] = useState<string>('ALL');
   
   // Drill-down and Chart of Accounts state
@@ -403,7 +444,11 @@ export const FinancePage: React.FC = () => {
       return;
     }
 
-    const updated = await realErpDataStore.addRecord<Voucher>('finance_vouchers', newV, vouchers);
+    const updated = await realErpDataStore.addRecord<Voucher>(
+      financeVouchersStorageKey,
+      newV,
+      vouchers
+    );
     setVouchers(updated);
 
     enterpriseAccountingSuiteService.postJournalToLiveTrialBalance(activeCompany.id, {
@@ -483,7 +528,11 @@ export const FinancePage: React.FC = () => {
       branch: newJ.branch,
     });
 
-    const updated = await realErpDataStore.addRecord<JournalEntry>('finance_journals', newJ, journals);
+    const updated = await realErpDataStore.addRecord<JournalEntry>(
+      financeJournalsStorageKey,
+      newJ,
+      journals
+    );
     setJournals(updated);
 
     enterpriseAccountingSuiteService.postJournalToLiveTrialBalance(activeCompany.id, {
@@ -526,10 +575,12 @@ export const FinancePage: React.FC = () => {
                 </div>
               </div>
               <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 650, letterSpacing: '-0.02em', color: '#141414', margin: 0, fontFamily: 'var(--font-family-display)' }}>
-                الإدارة المالية والقوائم الختامية
+                {isKasTrade ? 'الإدارة المالية والمحاسبة التجارية — شركة كاس' : 'الإدارة المالية والقوائم الختامية'}
               </h1>
               <p className="text-xs text-[#707070] mt-1 font-sans">
-                المركز المالي، ميزان المراجعة، قائمة الدخل، قيود اليومية، وتسويات مساند لـ <strong className="text-[#141414]">{activeCompany.name}</strong>
+                {isKasTrade
+                  ? <>المركز المالي، ميزان المراجعة، مبيعات المعارض وقطاع الأميال، ومستخلصات المنافسات التجارية لـ <strong className="text-[#141414]">{activeCompany.name}</strong></>
+                  : <>المركز المالي، ميزان المراجعة، قائمة الدخل، قيود اليومية، وتسويات مساند لـ <strong className="text-[#141414]">{activeCompany.name}</strong></>}
               </p>
             </div>
           </div>
@@ -653,19 +704,29 @@ export const FinancePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Category 3: الاستقدام والشركاء والزكاة */}
+        {/* Category 3: الذمم التجارية / الاستقدام والزكاة */}
         <div className="card-pricing p-4 bg-white rounded-2xl border border-zinc-200 shadow-sm flex flex-col justify-between">
           <div className="flex items-center gap-2 mb-3 pb-2 border-b border-zinc-100">
             <Globe className="w-4 h-4 text-[#141414]" />
-            <span className="text-xs font-bold text-zinc-900">3. الاستقدام والشركاء والزكاة</span>
+            <span className="text-xs font-bold text-zinc-900">
+              {isKasTrade ? '3. الذمم التجارية والموردين والزكاة' : '3. الاستقدام والشركاء والزكاة'}
+            </span>
           </div>
           <div className="space-y-1.5">
-            {[
-              { id: 'musaned-escrow', label: 'أمانات مساند (90 يوماً)', icon: ShieldCheck },
-              { id: 'suppliers-agents', label: 'حسابات الوكلاء (⃁ / $)', icon: Globe },
-              { id: 'aging', label: 'أعمار الذمم والتقادم (Aging)', icon: Clock },
-              { id: 'eosb-zakat', label: 'نهاية الخدمة والزكاة', icon: Calculator },
-            ].map(t => {
+            {(isKasTrade
+              ? [
+                  { id: 'aging', label: 'أعمار الذمم التجارية والتقادم (Aging)', icon: Clock },
+                  { id: 'eosb-zakat', label: 'نهاية الخدمة والزكاة الشرعية', icon: Calculator },
+                  { id: 'vat-declaration', label: 'فواتير وضريبة المبيعات التجارية (ZATCA)', icon: Receipt },
+                  { id: 'budget', label: 'موازنة المعارض والمنافسات التجارية', icon: BarChart3 },
+                ]
+              : [
+                  { id: 'musaned-escrow', label: 'أمانات مساند (90 يوماً)', icon: ShieldCheck },
+                  { id: 'suppliers-agents', label: 'حسابات الوكلاء (⃁ / $)', icon: Globe },
+                  { id: 'aging', label: 'أعمار الذمم والتقادم (Aging)', icon: Clock },
+                  { id: 'eosb-zakat', label: 'نهاية الخدمة والزكاة', icon: Calculator },
+                ]
+            ).map(t => {
               const isActive = activeTab === t.id;
               const IconComp = t.icon;
               return (
@@ -735,7 +796,7 @@ export const FinancePage: React.FC = () => {
               <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#141414', letterSpacing: '-0.02em' }}>525,471.20 ⃁</div>
               <div className="flex items-center justify-between mt-3">
                 <span className="pill-tag-mint">نمو شهري +14.8%</span>
-                <span className="text-[11px] text-zinc-600">عقود استقدام وتأجير</span>
+                <span className="text-[11px] text-zinc-600">{isKasTrade ? 'مبيعات المعارض والأميال والمنافسات' : 'عقود استقدام وتأجير'}</span>
               </div>
             </div>
 
@@ -749,7 +810,7 @@ export const FinancePage: React.FC = () => {
               <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#141414', letterSpacing: '-0.02em' }}>220,500.00 ⃁</div>
               <div className="flex items-center justify-between mt-3">
                 <span className="pill-tag-shade">مصاريف الفترة</span>
-                <span className="text-[11px] text-[#707070]">تأشيرات، رواتب، إعاشة</span>
+                <span className="text-[11px] text-[#707070]">{isKasTrade ? 'مشتريات بضائع، شحن، معارض' : 'تأشيرات، رواتب، إعاشة'}</span>
               </div>
             </div>
 
@@ -769,15 +830,17 @@ export const FinancePage: React.FC = () => {
 
             <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
               <div className="flex items-center justify-between mb-2">
-                <span style={{ fontSize: '13px', fontWeight: 550, color: '#71717a' }}>أمانات مساند المعلقة (90 يوماً)</span>
+                <span style={{ fontSize: '13px', fontWeight: 550, color: '#71717a' }}>
+                  {isKasTrade ? 'الضمانات البنكية ومستخلصات اعتماد' : 'أمانات مساند المعلقة (90 يوماً)'}
+                </span>
                 <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-700">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
               </div>
               <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#141414', letterSpacing: '-0.02em' }}>184,500.00 ⃁</div>
               <div className="flex items-center justify-between mt-3">
-                <span className="pill-tag-shade">فترة الضمان</span>
-                <span className="text-[11px] text-[#707070]">حساب وسيط محمي</span>
+                <span className="pill-tag-shade">{isKasTrade ? 'ضمانات جارية' : 'فترة الضمان'}</span>
+                <span className="text-[11px] text-[#707070]">{isKasTrade ? 'مشاريع وتوريدات معتمدة' : 'حساب وسيط محمي'}</span>
               </div>
             </div>
           </div>
@@ -1026,7 +1089,7 @@ export const FinancePage: React.FC = () => {
                     />
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-zinc-200/60 text-zinc-600">
-                    <span>أمانات مساند المعلقة (A-07 | IFRS 15):</span>
+                    <span>{isKasTrade ? 'الضمانات البنكية ومستخلصات اعتماد (A-07 | IFRS 15):' : 'أمانات مساند المعلقة (A-07 | IFRS 15):'}</span>
                     <input
                       type="number"
                       value={finPosData.musanedEscrow}
@@ -1186,7 +1249,11 @@ export const FinancePage: React.FC = () => {
               return (
                 <div className="max-w-4xl mx-auto p-6 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-3 text-xs">
                   <div className="flex justify-between items-center py-2 border-b border-zinc-200 font-bold text-zinc-900">
-                    <span>1. إيرادات خدمات التوسط في الاستقدام (مساند — R-01 | IFRS 15):</span>
+                    <span>
+                      {isKasTrade
+                        ? '1. صافي مبيعات المعارض التجارية وقطاع الأميال (R-01 | IFRS 15):'
+                        : '1. إيرادات خدمات التوسط في الاستقدام (مساند — R-01 | IFRS 15):'}
+                    </span>
                     <input
                       type="number"
                       value={finIncData.musanedRev}
@@ -1195,7 +1262,11 @@ export const FinancePage: React.FC = () => {
                     />
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-zinc-200 font-bold text-zinc-900">
-                    <span>2. إيرادات عقود التأجير والتشغيل ونقل الكفالة (R-01 | IFRS 15):</span>
+                    <span>
+                      {isKasTrade
+                        ? '2. إيرادات مستخلصات وأوامر توريد المنافسات الحكومية (R-01 | IFRS 15):'
+                        : '2. إيرادات عقود التأجير والتشغيل ونقل الكفالة (R-01 | IFRS 15):'}
+                    </span>
                     <input
                       type="number"
                       value={finIncData.rentalRev}
@@ -1210,7 +1281,11 @@ export const FinancePage: React.FC = () => {
 
                   <div className="pt-2 text-[#141414] space-y-1">
                     <div className="flex justify-between items-center py-1.5 border-b border-zinc-200">
-                      <span>3. (-) تكلفة المكاتب الخارجية والتأشيرات وتذاكر السفر (R-02 | IAS 1.99):</span>
+                      <span>
+                        {isKasTrade
+                          ? '3. (-) تكلفة البضاعة المباعة والتوريدات المباشرة (COGS — R-02 | IAS 2):'
+                          : '3. (-) تكلفة المكاتب الخارجية والتأشيرات وتذاكر السفر (R-02 | IAS 1.99):'}
+                      </span>
                       <input
                         type="number"
                         value={finIncData.directCostAgency}
@@ -1219,7 +1294,11 @@ export const FinancePage: React.FC = () => {
                       />
                     </div>
                     <div className="flex justify-between items-center py-1.5 border-b border-zinc-200">
-                      <span>4. (-) مصاريف الإعاشة والإيواء والفحص الطبي والتأمين (R-02 | IAS 1.99):</span>
+                      <span>
+                        {isKasTrade
+                          ? '4. (-) مصاريف الشحن والتخليص الجمركي والمستودعات (R-02 | IAS 1.99):'
+                          : '4. (-) مصاريف الإعاشة والإيواء والفحص الطبي والتأمين (R-02 | IAS 1.99):'}
+                      </span>
                       <input
                         type="number"
                         value={finIncData.shelterCost}
@@ -1309,7 +1388,9 @@ export const FinancePage: React.FC = () => {
             <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200">
               <div className="text-xs font-bold text-zinc-800 mb-1">صافي التدفقات الاستثمارية</div>
               <div className="text-xl font-bold font-mono text-[#141414]">(45,000.00) ⃁</div>
-              <div className="text-[10px] text-[#707070] mt-1">تجهيزات ومعدات إيواء وسيارات</div>
+              <div className="text-[10px] text-[#707070] mt-1">
+                {isKasTrade ? 'تجهيزات معارض تجارية ومستودعات وأسطول توزيع' : 'تجهيزات ومعدات إيواء وسيارات'}
+              </div>
             </div>
 
             <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200">
@@ -1333,11 +1414,19 @@ export const FinancePage: React.FC = () => {
                   <span className="font-mono font-bold">+12,500.00 ⃁</span>
                 </div>
                 <div className="flex justify-between text-zinc-700">
-                  <span>(-) الزيادة في المدينين وحسابات مساند المعلقة:</span>
+                  <span>
+                    {isKasTrade
+                      ? '(-) الزيادة في الذمم التجارية ومستخلصات اعتماد:'
+                      : '(-) الزيادة في المدينين وحسابات مساند المعلقة:'}
+                  </span>
                   <span className="font-mono font-bold text-[#141414]">(68,471.20) ⃁</span>
                 </div>
                 <div className="flex justify-between text-zinc-700">
-                  <span>(-) سداد مستحقات الوكلاء الخارجيين وصافي رأس المال العامل:</span>
+                  <span>
+                    {isKasTrade
+                      ? '(-) سداد مستحقات موردي البضائع وصافي رأس المال العامل:'
+                      : '(-) سداد مستحقات الوكلاء الخارجيين وصافي رأس المال العامل:'}
+                  </span>
                   <span className="font-mono font-bold text-[#141414]">(49,000.00) ⃁</span>
                 </div>
                 <div className="flex justify-between bg-[#f3f3f3] p-2 rounded-lg font-bold text-[#141414]">
@@ -1351,7 +1440,11 @@ export const FinancePage: React.FC = () => {
               <div className="font-bold text-zinc-900 pb-2 border-b border-zinc-300">2. التدفقات النقدية من الأنشطة الاستثمارية (IAS 7.16):</div>
               <div className="space-y-2 pt-2">
                 <div className="flex justify-between text-zinc-700">
-                  <span>شراء أصول ثابتة وتجهيزات فروع وإيواء:</span>
+                  <span>
+                    {isKasTrade
+                      ? 'شراء أصول ثابتة وتجهيزات معارض تجارية ومستودعات:'
+                      : 'شراء أصول ثابتة وتجهيزات فروع وإيواء:'}
+                  </span>
                   <span className="font-mono font-bold text-[#141414]">(45,000.00) ⃁</span>
                 </div>
                 <div className="flex justify-between bg-zinc-200/60 p-2 rounded-lg font-bold text-zinc-900">
@@ -1391,10 +1484,21 @@ export const FinancePage: React.FC = () => {
                 className="bg-zinc-50 border border-zinc-200 rounded-full py-1 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
               >
                 <option value="ALL">جميع الفروع</option>
-                <option value="الرياض">فرع الرياض</option>
-                <option value="جدة">فرع جدة</option>
-                <option value="الخبر">فرع الخبر</option>
-                <option value="الإيواء">مركز الإيواء</option>
+                {isKasTrade ? (
+                  <>
+                    <option value="المعرض">المعرض التجاري الرئيسي</option>
+                    <option value="الأميال">قطاع الأميال التجاري</option>
+                    <option value="المنافسات">إدارة المنافسات واعتماد</option>
+                    <option value="مستودعات">مستودعات كاس المركزية</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="الرياض">فرع الرياض</option>
+                    <option value="جدة">فرع جدة</option>
+                    <option value="الخبر">فرع الخبر</option>
+                    <option value="الإيواء">مركز الإيواء</option>
+                  </>
+                )}
               </select>
             </div>
 
@@ -2354,7 +2458,7 @@ export const FinancePage: React.FC = () => {
                           onChange={(e) => handleUpdateFinCoa(account.code, { ifrsSubCode: e.target.value })}
                           className="w-full bg-zinc-50 focus:bg-white border border-zinc-200 focus:border-[#141414] rounded-lg py-1 px-1.5 font-mono text-[11px] font-semibold text-[#141414]"
                         >
-                          {EXTENDED_IFRS_CLASSIFICATIONS.map((ext) => (
+                          {getCompanyIfrsClassifications(activeCompany.id).map((ext) => (
                             <option key={ext.code} value={ext.code}>
                               {ext.code} - {ext.nameAr}
                             </option>
@@ -3587,13 +3691,13 @@ export const FinancePage: React.FC = () => {
                   <tbody className="divide-y divide-zinc-200 font-mono">
                     <tr>
                       <td className="p-2.5 font-bold">1102</td>
-                      <td className="p-2.5 font-sans">بنك الرياض - حساب الاستقدام</td>
+                      <td className="p-2.5 font-sans">{isKasTrade ? 'بنك الرياض - حساب التجارة والمنافسات' : 'بنك الرياض - حساب الاستقدام'}</td>
                       <td className="p-2.5 font-bold text-[#141414]">{selectedJournalForPrint.amount.toLocaleString()} ⃁</td>
                       <td className="p-2.5 text-[#707070]">0.00</td>
                     </tr>
                     <tr>
                       <td className="p-2.5 font-bold">4101</td>
-                      <td className="p-2.5 font-sans">إيرادات وساطة عقود الاستقدام</td>
+                      <td className="p-2.5 font-sans">{isKasTrade ? 'إيرادات مبيعات المعارض التجارية والأميال' : 'إيرادات وساطة عقود الاستقدام'}</td>
                       <td className="p-2.5 text-[#707070]">0.00</td>
                       <td className="p-2.5 font-bold text-[#141414]">{selectedJournalForPrint.amount.toLocaleString()} ⃁</td>
                     </tr>

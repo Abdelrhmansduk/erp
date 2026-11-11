@@ -598,15 +598,12 @@ a svg,
   font-size: 14px;
   padding: 10px 22px;
   min-height: 40px;
-}
-
-.button-outline-on-dark, button.button-outline-on-dark, a.button-outline-on-dark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   background-color: #262626;
-  color: #ffffff !important;
+  color: #ffffff;
   font-family: var(--font-family-ui);
   font-weight: 600;
   line-height: 1.38;
@@ -614,13 +611,13 @@ a svg,
   border: 1px solid #3f3f46;
   cursor: pointer;
   text-decoration: none;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
   user-select: none;
 }
 
-.button-outline-on-dark:hover {
+:where(.button-outline-on-dark):hover {
   background-color: #ffffff;
-  color: #141414 !important;
+  color: #141414;
 }
 
 /* button-outline-on-light: #ffffff fill, 1px solid #e0e0e0 border, 9999px radius */
@@ -628,15 +625,12 @@ a svg,
   font-size: 14px;
   padding: 10px 20px;
   min-height: 40px;
-}
-
-.button-outline-on-light, button.button-outline-on-light, a.button-outline-on-light {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   background-color: #ffffff;
-  color: #141414 !important;
+  color: #141414;
   font-family: var(--font-family-ui);
   font-weight: 600;
   line-height: 1.38;
@@ -645,13 +639,13 @@ a svg,
   cursor: pointer;
   text-decoration: none;
   box-shadow: none !important;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
   user-select: none;
 }
 
-.button-outline-on-light:hover {
+:where(.button-outline-on-light):hover {
   background-color: #f3f3f3;
-  color: #141414 !important;
+  color: #141414;
 }
 
 /* button-aloe-pill -> mapped to Mobbin button-pill-soft (#f3f3f3 fill) */

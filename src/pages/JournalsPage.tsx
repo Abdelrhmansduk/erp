@@ -6,6 +6,7 @@ import { useJournals, useTableMutation } from '../hooks/queries/useErpQueries';
 import { useCompany } from '../contexts/CompanyContext';
 import { chartOfAccountsService } from '../services/accounting/chartOfAccountsService';
 import { journalEngine } from '../services/accounting/journalEngine';
+import { isKasTradeCompany, scopeRecordsForCompany } from '../services/kasTradeScope';
 import { useAppStore } from '../stores/appStore';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
@@ -82,8 +83,48 @@ const DEFAULT_MOCK_JOURNALS: JournalRecord[] = [
   },
 ];
 
+const KAS_DEFAULT_MOCK_JOURNALS: JournalRecord[] = [
+  {
+    id: 'kas-jv-1',
+    company_id: 'KAS',
+    entry_number: 'KAS-JV-2026-0001',
+    entry_date: new Date().toISOString().slice(0, 10),
+    entry_type: 'AUTOMATIC',
+    source_module: 'INVOICE',
+    source_reference: 'KAS-INV-2026-9901',
+    description: 'قيد مبيعات المعرض التجاري الرئيسي وتوريدات قطاع الأميال',
+    total_debit: 96600.0,
+    total_credit: 96600.0,
+    status: 'POSTED',
+    branch_name: 'المعرض التجاري الرئيسي — الرياض',
+    cost_center_code: 'CC-KAS-SHW',
+    created_by: 'محاسب التجارة — شركة كاس',
+    approved_by: 'المدير المالي',
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'kas-jv-2',
+    company_id: 'KAS',
+    entry_number: 'KAS-JV-2026-0002',
+    entry_date: new Date().toISOString().slice(0, 10),
+    entry_type: 'AUTOMATIC',
+    source_module: 'RECEIPT',
+    source_reference: 'ETM-2026-88991',
+    description: 'تحصيل مستخلص أمر توريد منافسة حكومية بمنصة اعتماد - مصرف الراجحي',
+    total_debit: 145000.0,
+    total_credit: 145000.0,
+    status: 'POSTED',
+    branch_name: 'إدارة المنافسات والتوريدات الحكومية',
+    cost_center_code: 'CC-KAS-ETM',
+    created_by: 'محاسب التجارة — شركة كاس',
+    approved_by: 'المدير المالي',
+    created_at: new Date().toISOString(),
+  },
+];
+
 export const JournalsPage: React.FC = () => {
   const { activeCompanyId, activeCompany } = useCompany();
+  const isKasTrade = isKasTradeCompany(activeCompanyId);
   const { setActiveTab, addNotification } = useAppStore();
   const { data: rawJournals = [], isLoading } = useJournals();
   const { createItem, deleteItem } = useTableMutation('company_journal_entries');
@@ -128,7 +169,11 @@ export const JournalsPage: React.FC = () => {
       created_at: je.createdAt,
     }));
 
-    const baseList = rawJournals.length > 0 ? rawJournals : DEFAULT_MOCK_JOURNALS;
+    const baseList = scopeRecordsForCompany(
+      rawJournals.length > 0 ? rawJournals : DEFAULT_MOCK_JOURNALS,
+      activeCompanyId,
+      KAS_DEFAULT_MOCK_JOURNALS
+    );
     const seenNumbers = new Set(engineEntries.map((e) => e.entry_number));
     return [...engineEntries, ...baseList.filter((b) => !seenNumbers.has(b.entry_number))];
   }, [activeCompanyId, rawJournals, engineSyncTick]);
@@ -144,19 +189,23 @@ export const JournalsPage: React.FC = () => {
   const [entryDate, setEntryDate] = useState(new Date().toISOString().slice(0, 10));
   const [entryType, setEntryType] = useState<'MANUAL' | 'AUTOMATIC' | 'CLOSING' | 'REVERSAL'>('MANUAL');
   const [description, setDescription] = useState('');
-  const [branchName, setBranchName] = useState('فرع الرياض الرئيسي');
-  const [costCenterCode, setCostCenterCode] = useState('CC-OPS-01');
+  const [branchName, setBranchName] = useState(isKasTrade ? 'المعرض التجاري الرئيسي — الرياض' : 'فرع الرياض الرئيسي');
+  const [costCenterCode, setCostCenterCode] = useState(isKasTrade ? 'CC-KAS-SHW' : 'CC-OPS-01');
   const [lines, setLines] = useState<Omit<JournalLineItem, 'id'>[]>([
     {
       account_code: accountsList[2]?.code || '11010',
-      account_name: accountsList[2]?.nameAr || 'الصندوق الرئيسي - السفير الماسي',
+      account_name:
+        accountsList[2]?.nameAr ||
+        (isKasTrade ? 'خزينة المعارض والصندوق التجاري الرئيسي' : 'الصندوق الرئيسي - السفير الماسي'),
       debit: 1000,
       credit: 0,
       description: '',
     },
     {
       account_code: accountsList[9]?.code || '41100',
-      account_name: accountsList[9]?.nameAr || 'إيرادات عقود استقدام مساند',
+      account_name:
+        accountsList[9]?.nameAr ||
+        (isKasTrade ? 'مبيعات المعارض التجارية وقطاع الأميال' : 'إيرادات عقود استقدام مساند'),
       debit: 0,
       credit: 1000,
       description: '',

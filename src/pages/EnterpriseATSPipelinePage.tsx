@@ -149,15 +149,16 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
     setCandidates(updated);
 
     if (newStage === 'وصول وانضمام') {
+      const targetCompanyId = activeCompany.id === 'all' ? 'SAF' : activeCompany.id;
       await realErpDataStore.addRecord('employees', {
         id: `EMP-${Date.now().toString().slice(-4)}`,
         name: candidate.name,
-        email: `${candidate.name.toLowerCase().replace(/\s+/g, '.')}@alsulaim.sa`,
+        email: `cand.${String(candidate.id).toLowerCase().replace(/[^a-z0-9]/g, '')}@kas.sa`,
         phone: candidate.phone,
         department: candidate.targetBranch || 'الإدارة العامة',
         role: candidate.appliedPosition || 'موظف تشغيلي',
         status: 'نشط',
-        company_id: 'SAF',
+        company_id: targetCompanyId,
         salary: candidate.expectedSalary || 5000,
         hire_date: new Date().toISOString().slice(0, 10),
       });
@@ -175,7 +176,8 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
     }
   };
 
-  const filteredCandidates = candidates.filter((c) => {
+  const filteredCandidates = candidates.filter((c: any) => {
+    if (activeCompany.id !== 'all' && c.company_id && c.company_id !== activeCompany.id) return false;
     if (selectedStage !== 'الكل' && c.stage !== selectedStage) return false;
     return true;
   });

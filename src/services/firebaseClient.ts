@@ -68,77 +68,7 @@ export const VERIFIED_FIREBASE_GOOGLE_ACCOUNTS: Array<{
   departmentId: 'executive' | 'finance' | 'recruitment' | 'hr' | 'crm' | 'rental' | 'ats' | 'tenders' | 'shelter';
   lastLoginAt: string;
 }> = [
-  {
-    uid: 'kuEF4X7vLbM5dPek7jqLVYY2Zhk2',
-    email: 'abdo12uk@gmail.com',
-    displayName: 'Abdelrhman Abusalif',
-    fullNameAr: 'م. عبدالرحمن أبوسليف (Abdelrhman Abusalif)',
-    photoURL:
-      'https://lh3.googleusercontent.com/a/ACg8ocLxbw3dlULzEUEu_WKwk9heYd45HPHkowiVEm1jqn7KtiUizKuwsg=s96-c',
-    phone: '+966543389314',
-    federatedId: '103252941451557989110',
-    emailVerified: true,
-    roleAr: 'مطور النظام ومدير الصلاحيات العليا — الإدارة التنفيذية',
-    companyId: 'all',
-    departmentId: 'executive',
-    lastLoginAt: '2026-11-09T11:55:59.331Z',
-  },
-  {
-    uid: 'UYhWtPQ8vwSmeqsET6dlfVHhOmz2',
-    email: 'abdulfattahfarahat@gmail.com',
-    displayName: 'Abdulfattah',
-    fullNameAr: 'أ. عبدالفتاح فرحات (Abdulfattah)',
-    photoURL:
-      'https://lh3.googleusercontent.com/a/ACg8ocIsXG9IR2LxY_zNEoPGIrNrSB3wWKy_n0KFNOsFIr7PQXEAkA=s96-c',
-    federatedId: '100421961648003580217',
-    emailVerified: true,
-    roleAr: 'مدير العمليات التنفيذية — الإدارة العليا',
-    companyId: 'all',
-    departmentId: 'executive',
-    lastLoginAt: '2026-11-08T11:28:02.244Z',
-  },
-  {
-    uid: 'gZrOhBO7lvZ9FDDgUdkqdfM41GA2',
-    email: 'abdulfattahft@gmail.com',
-    displayName: 'abdulfattah farahat',
-    fullNameAr: 'أ. عبدالفتاح فرحات (حساب العمليات)',
-    photoURL:
-      'https://lh3.googleusercontent.com/a/ACg8ocKcbTr6ICckyqFmX3UMaqy5rvQKiMXdUrB9zwj8qqa5H9TdOyE=s96-c',
-    federatedId: '107056963762810701227',
-    emailVerified: true,
-    roleAr: 'مشرف العقود والتشغيل — شركة السفير الماسي',
-    companyId: 'SAF',
-    departmentId: 'recruitment',
-    lastLoginAt: '2026-11-07T14:43:31.936Z',
-  },
-  {
-    uid: 'D0MrD5NFm2fRda1s8bneCdhwSzJ2',
-    email: 'kamel.adsens@gmail.com',
-    displayName: 'كامل',
-    fullNameAr: 'أ. كامل — التسويق الرقمي وعلاقات العملاء',
-    photoURL:
-      'https://lh3.googleusercontent.com/a/ACg8ocIqxQBYKJMfcXgGywje-dBOcwnmeYvuT3NhT04x9fkBQ3HKBg=s96-c',
-    federatedId: '101216203341271864138',
-    emailVerified: true,
-    roleAr: 'مدير التسويق الرقمي وخدمة العملاء (CRM)',
-    companyId: 'SAF',
-    departmentId: 'crm',
-    lastLoginAt: '2026-11-05T17:25:32.364Z',
-  },
-  {
-    uid: 'Zzqbfjuvx5h9BlTG7fwWjvczEIb2',
-    email: 'msalhnwr@gmail.com',
-    displayName: 'Mohamed Salih',
-    fullNameAr: 'أ. محمد صالح محمد نور (Mohamed Salih)',
-    photoURL:
-      'https://lh3.googleusercontent.com/a/ACg8ocKGUhgrAazV2GiTMCdjbOBOvs94e-__EnNlts9B3WV_nJ9w8Igi=s96-c',
-    federatedId: '115911926839278730255',
-    emailVerified: true,
-    roleAr: 'مدير المتابعة المالية والمحاسبية',
-    companyId: 'SAF',
-    departmentId: 'finance',
-    lastLoginAt: '2026-11-05T11:50:20.342Z',
-  },
+  // فارغة عمداً: الدخول مقصور على قائمة @kas.sa الرسمية، ولا يوجد فيها حساب Google
 ];
 
 function extractFirebaseUserFields(user: User, idToken = ''): FirebaseGoogleUser {

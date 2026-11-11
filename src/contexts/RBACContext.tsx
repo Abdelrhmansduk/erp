@@ -25,6 +25,10 @@ function buildRoleProfileFromAuthUser(user: UserProfile | null): UserRoleProfile
   if (!user) return GUEST_RESTRICTED_PROFILE;
 
   const assignedCompany = normalizeCompanyId((user.company_id as CompanyId) || 'SAF');
+  const resolvedAllowedCompanies: CompanyId[] =
+    assignedCompany === 'all'
+      ? ['all', 'SAF', 'YAQ', 'TOP', 'DAR', 'KAS']
+      : [assignedCompany];
 
   if (authService.isAdmin(user)) {
     return {
@@ -44,23 +48,24 @@ function buildRoleProfileFromAuthUser(user: UserProfile | null): UserRoleProfile
   }
 
   if (authService.isFinance(user)) {
+    const isGroupFinance = user.role === 'مدير مالي' || assignedCompany === 'all';
     return {
       id: user.id,
       name: user.full_name,
-      role: user.role === 'مدير مالي' ? 'GROUP_FINANCE' : 'ACCOUNTANT',
+      role: isGroupFinance ? 'GROUP_FINANCE' : 'ACCOUNTANT',
       primaryCompanyId: assignedCompany,
-      allowedCompanyIds: user.role === 'مدير مالي' ? ['all', 'SAF', 'YAQ', 'TOP', 'DAR', 'KAS'] : [assignedCompany],
+      allowedCompanyIds: isGroupFinance ? ['all', 'SAF', 'YAQ', 'TOP', 'DAR', 'KAS'] : resolvedAllowedCompanies,
       permissions: [
         {
           module: 'finance',
           actions: ['view', 'create', 'edit', 'approve', 'post', 'export', 'print', 'download'],
-          scope: user.role === 'مدير مالي' ? 'GROUP' : 'COMPANY',
+          scope: isGroupFinance ? 'GROUP' : 'COMPANY',
           companyId: assignedCompany,
         },
         {
-          module: '*',
+          module: 'reports',
           actions: ['view', 'print', 'export'],
-          scope: 'COMPANY',
+          scope: isGroupFinance ? 'GROUP' : 'COMPANY',
           companyId: assignedCompany,
         },
       ],
@@ -73,12 +78,12 @@ function buildRoleProfileFromAuthUser(user: UserProfile | null): UserRoleProfile
       name: user.full_name,
       role: 'GROUP_HR',
       primaryCompanyId: assignedCompany,
-      allowedCompanyIds: [assignedCompany],
+      allowedCompanyIds: resolvedAllowedCompanies,
       permissions: [
         {
           module: 'hr',
           actions: ['view', 'create', 'edit', 'approve', 'export', 'print'],
-          scope: 'COMPANY',
+          scope: assignedCompany === 'all' ? 'GROUP' : 'COMPANY',
           companyId: assignedCompany,
         },
       ],
@@ -90,12 +95,12 @@ function buildRoleProfileFromAuthUser(user: UserProfile | null): UserRoleProfile
     name: user.full_name,
     role: 'OPERATIONS_OFFICER',
     primaryCompanyId: assignedCompany,
-    allowedCompanyIds: [assignedCompany],
+    allowedCompanyIds: resolvedAllowedCompanies,
     permissions: [
       {
-        module: '*',
+        module: user.department_id || 'operations',
         actions: ['view', 'create', 'edit', 'print'],
-        scope: 'COMPANY',
+        scope: assignedCompany === 'all' ? 'GROUP' : 'COMPANY',
         companyId: assignedCompany,
       },
     ],

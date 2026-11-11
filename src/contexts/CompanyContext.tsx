@@ -136,15 +136,15 @@ export const COMPANIES_LIST: CompanyEntity[] = [
   {
     id: 'KAS',
     code: 'KAS',
-    name: 'مؤسسة كاس وسحابة اعتماد للمنافسات والتشغيل',
-    nameEn: 'KAS Foundation & Etimad Cloud Operations (KAS RC04)',
+    name: 'شركة كاس للتجارة والمنافسات',
+    nameEn: 'KAS Trading & Commercial Company (Standalone System)',
     logo: '/logo.png',
     taxNumber: '310284759200003',
     crNumber: '1010789234',
-    address: 'الرياض - طريق الملك فهد - مجمع كاس للأعمال',
+    address: 'الرياض - طريق الملك فهد - مجمع شركة كاس للتجارة',
     phone: '0114995566',
-    email: 'info@kas-etimad.sa',
-    branchesCount: 3,
+    email: 'info@kas.sa',
+    branchesCount: 4,
     employeesCount: 85,
     activeOrdersCount: 210,
     revenueYTD: 5400000,
@@ -156,7 +156,7 @@ export const COMPANIES_LIST: CompanyEntity[] = [
       accentColor: '#141414',
       logoUrl: '/logo.png',
       headerLogoUrl: '/logo.png',
-      reportHeaderTemplate: 'مؤسسة كاس وسحابة اعتماد للمنافسات والتشغيل (KAS RC04) - سجل تجاري 1010789234',
+      reportHeaderTemplate: 'شركة كاس للتجارة والمنافسات (نظام تجاري مستقل) - سجل تجاري 1010789234',
     },
   },
 ];
@@ -196,7 +196,22 @@ import { authService, getLockedSessionCompany } from '../services/authService';
 const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
 
 export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [activeCompanyId, setActiveCompanyIdState] = useState<CompanyId>('SAF');
+  const [activeCompanyId, setActiveCompanyIdState] = useState<CompanyId>(() => {
+    // Synchronous init from the locked session so isolated companies (e.g. KAS Trade)
+    // never render a single frame with another company's defaults.
+    try {
+      const currentUser = authService.getCurrentUser();
+      if (currentUser && authService.isAdmin(currentUser)) return 'all';
+      const locked = getLockedSessionCompany();
+      if (locked) return normalizeCompanyId(locked as CompanyId);
+      if (currentUser?.company_id && currentUser.company_id !== 'all') {
+        return normalizeCompanyId(currentUser.company_id as CompanyId);
+      }
+    } catch {
+      /* fall through to default */
+    }
+    return 'SAF';
+  });
   const [activeBranch, setActiveBranch] = useState<string>('الفرع الرئيسي');
 
   const setActiveCompanyId = (id: CompanyId) => {
