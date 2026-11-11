@@ -12,6 +12,7 @@ import {
   Users,
   Briefcase,
   Receipt,
+  X,
 } from 'lucide-react';
 import { useAppStore } from '../../stores/appStore';
 import { useModuleVisibility } from '../../hooks/useModuleVisibility';
@@ -486,16 +487,19 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
 
   return (
     <div
-      className="fixed inset-0 bg-[#141414]/60 backdrop-blur-xs z-[2000] flex items-start justify-center pt-12 sm:pt-16 p-3 sm:p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="محرك الأوامر والبحث الموحد"
+      className="fixed inset-0 bg-[#141414]/60 backdrop-blur-xs z-[2200] flex items-start justify-center pt-8 sm:pt-14 p-3 sm:p-4"
       onClick={() => setQuickSearchOpen(false)}
       dir="rtl"
     >
       <div
-        className="w-full max-w-3xl bg-[#ffffff] rounded-[24px] shadow-2xl border border-[#e0e0e0] overflow-hidden"
+        className="w-full max-w-3xl max-h-[90vh] flex flex-col bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Command Input Bar — Mobbin Light Mode */}
-        <div className="p-3.5 sm:p-4 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5] flex items-center gap-3">
+        <div className="p-3.5 sm:p-4 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5] flex items-center gap-3 shrink-0">
           <div className="w-9 h-9 rounded-[12px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center shrink-0">
             <Search className="w-4 h-4 text-[#141414]" />
           </div>
@@ -527,6 +531,15 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
           <kbd className="hidden sm:inline-block px-2.5 py-1 text-[11px] font-bold text-[#707070] bg-[#f3f3f3] border border-[#e0e0e0] rounded-full">
             ESC للإغلاق
           </kbd>
+          <button
+            type="button"
+            onClick={() => setQuickSearchOpen(false)}
+            aria-label="إغلاق البحث السريع"
+            title="إغلاق (Esc)"
+            className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center shrink-0 transition-colors cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         {/* Category Filter Tabs + Pinned / Recent Chips */}
@@ -715,6 +728,36 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
+                    {item.kind === 'screen' && item.href && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const updated = togglePinnedTab({
+                            href: item.href!,
+                            title: item.title,
+                            category: item.subtitle,
+                          });
+                          setPinnedTabs(updated);
+                        }}
+                        title="تثبيت / إلغاء تثبيت في المفضلة"
+                        className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+                          isSelected
+                            ? 'hover:bg-[#ffffff]/20 text-[#ffffff]'
+                            : 'hover:bg-[#ffffff] text-[#707070]'
+                        }`}
+                      >
+                        <Star
+                          className={`w-3.5 h-3.5 ${
+                            pinnedTabs.some((p) => p.href === item.href)
+                              ? isSelected
+                                ? 'fill-[#ffffff] text-[#ffffff]'
+                                : 'fill-[#141414] text-[#141414]'
+                              : ''
+                          }`}
+                        />
+                      </button>
+                    )}
                     {item.badge && (
                       <span
                         className={`text-[10.5px] font-semibold px-2.5 py-0.5 rounded-full font-mono ${

@@ -80,6 +80,19 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
     setSelectedColumnIndices(baseConfig.headers.map((_, idx) => idx));
   }, [customTitle, baseConfig.sectionTitle, baseConfig.headers.length, sectionKey]);
 
+  // Close modal on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   const customizationOptions: ExportCustomizationOptions = useMemo(
     () => ({
       selectedColumnIndices,
@@ -248,13 +261,16 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
 
   return createPortal(
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="استوديو معاينة وتخصيص الوثائق المؤسسية المعتمدة"
       data-no-dyn-enhancer="true"
       className="fixed inset-0 z-[100000] bg-[#141414]/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 font-sans"
       dir="rtl"
       onClick={onClose}
     >
       <div
-        className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] shadow-2xl w-full max-w-[1440px] h-[94vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] w-full max-w-[1440px] h-[90vh] max-h-[90vh] flex flex-col overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Corporate Studio Header — Mobbin Light Mode */}

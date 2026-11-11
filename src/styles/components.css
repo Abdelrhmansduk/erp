@@ -1554,11 +1554,65 @@ button[data-dyn-state="completed"] {
 /* ==========================================================================
    Global Modal & Popup Mobbin Light Mode Normalization & Z-Index Elevation
    Ensures all fixed modals/drawers/popups across the entire ERP render above
-   the Sidebar (z-1000) & Header (z-100) and in pure #ffffff / #f3f3f3 / #141414.
+   the Sidebar (z-1000) & Header (z-100), prevent viewport clipping via
+   max-h-[90vh] overflow-y-auto, and adhere strictly to Mobbin monochrome
+   geometry (24px card radius, #141414 primary pills, zero drop-shadows).
    ========================================================================== */
-.content-body div.fixed.inset-0,
-div.fixed.inset-0.z-50 {
+.ex-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  background-color: rgba(20, 20, 20, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.ex-modal-card {
+  background-color: #ffffff;
+  color: #141414;
+  border: 1px solid #e0e0e0;
+  border-radius: 24px !important;
+  box-shadow: none !important;
+  max-height: 90vh;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.content-body div.fixed.inset-0:not([class*="z-[22"]):not([class*="z-[23"]):not([class*="z-[99"]),
+div.fixed.inset-0.z-40,
+div.fixed.inset-0.z-50,
+div.fixed.inset-0[class*="z-[1"],
+div.fixed.inset-0[class*="z-[500]"] {
   z-index: 2100 !important;
+}
+
+/* Guarantee modal cards never clip vertically on small/medium screens and use 24px Mobbin radius */
+div.fixed.inset-0 > div:not(.fixed):not([class*="inset-0"]) {
+  max-height: 90vh;
+  border-radius: 24px;
+  box-shadow: none !important;
+}
+
+/* Normalize legacy blue CTA buttons inside content & modals to Mobbin #141414 stadium pills */
+.content-body button[class*="bg-blue-500"],
+.content-body button[class*="bg-blue-600"],
+.content-body button[class*="bg-blue-700"],
+.content-body button[class*="bg-indigo-600"],
+.content-body button[class*="bg-[#0066ff]"],
+div.fixed.inset-0 button[class*="bg-blue-500"],
+div.fixed.inset-0 button[class*="bg-blue-600"],
+div.fixed.inset-0 button[class*="bg-blue-700"],
+div.fixed.inset-0 button[class*="bg-indigo-600"],
+div.fixed.inset-0 button[class*="bg-[#0066ff]"] {
+  background-color: #141414 !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  border-color: #141414 !important;
+  border-radius: 9999px !important;
+  box-shadow: none !important;
 }
 
 div.fixed.inset-0 > div[class*="bg-[#14181c]"],
