@@ -2,15 +2,17 @@
 /**
  * Khalid Al-Sulaim Holding ERP — Automated Chromium Browser E2E Verifier
  * Verifies:
- *   1. Landing & Login Page rendering (Email/Password, Google OAuth, Magic Link)
- *   2. Live UI Form Submit (`button[type="submit"]` -> `khalid@kas.sa`) without UI occlusion
- *   3. Entering the full ERP Workspace (`فتح شاشة القسم الرئيسية`) -> Executive Dashboard KPIs & Official SAMA Saudi Riyal Symbol (`⃁` U+20C1)
- *   4. Strict assertions: exits 1 if Dashboard KPIs / ⃁ fail to render or if any runtime error occurs
+ *   1. Landing & Login Page rendering (Email/Password, Google OAuth, Magic Link) with zero prefilled password
+ *   2. 1st-Time Sign-In via verified Strong Password (`#login-password-input` + `button[type="submit"]`)
+ *   3. Automatic In-Dashboard Personal Google Account Approval Prompt (`GoogleAccountBindingModal`) & binding
+ *   4. Entering the full ERP Workspace (`فتح شاشة القسم الرئيسية`) -> Executive Dashboard KPIs & Official SAMA Saudi Riyal Symbol (`⃁` U+20C1)
+ *   5. Strict assertions: exits 1 if Strong Password, Google Binding Prompt, or Dashboard KPIs / ⃁ fail to render
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
 import net from 'node:net';
+import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 import puppeteer from 'puppeteer-core';
 
@@ -30,6 +32,22 @@ const LOGIN_SCREENSHOT_PATH =
   process.env.LOGIN_SCREENSHOT_PATH || path.join(OUT_DIR, 'erp_browser_e2e_verified.png');
 const DASHBOARD_SCREENSHOT_PATH =
   process.env.DASHBOARD_SCREENSHOT_PATH || path.join(OUT_DIR, 'erp_dashboard_e2e_verified.png');
+
+function computeEphemeralPasswordDigest(email, password) {
+  const cleanEmail = email.trim().toLowerCase();
+  const cleanPass = password.trim();
+  let digest = crypto
+    .createHash('sha256')
+    .update(`KAS-ERP-STRONG-AUTH-2026-V2|${cleanEmail}|${cleanPass}`)
+    .digest('hex');
+  for (let i = 1; i < 256; i++) {
+    digest = crypto
+      .createHash('sha256')
+      .update(`${digest}|${cleanEmail}`)
+      .digest('hex');
+  }
+  return digest;
+}
 
 function getFreePort() {
   return new Promise((resolve, reject) => {
@@ -94,6 +112,9 @@ async function main() {
   console.log('🌐 KHALID AL-SULAIM ERP — REAL CHROMIUM BROWSER E2E VERIFIER');
   console.log('================================================================================\n');
 
+  const ephemeralPass = `Ks${crypto.randomBytes(6).toString('base64url')}9#Az!`;
+  const ephemeralDigest = computeEphemeralPasswordDigest('khalid@kas.sa', ephemeralPass);
+
   const { viteProc, baseUrl } = await ensureViteServer();
   const browser = await puppeteer.launch({
     executablePath,
@@ -108,6 +129,15 @@ async function main() {
     const page = await browser.newPage();
     const consoleErrors = [];
     page.on('pageerror', (err) => consoleErrors.push(err.message));
+
+    await page.evaluateOnNewDocument((digest) => {
+      if (!localStorage.getItem('ALSULAIM_STAFF_PASSWORD_HASHES_V1')) {
+        localStorage.setItem(
+          'ALSULAIM_STAFF_PASSWORD_HASHES_V1',
+          JSON.stringify({ 'khalid@kas.sa': digest })
+        );
+      }
+    }, ephemeralDigest);
 
     console.log(`  1️⃣  Navigating to ${baseUrl}...`);
     await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 25000 });
@@ -138,8 +168,15 @@ async function main() {
     await page.screenshot({ path: LOGIN_SCREENSHOT_PATH, fullPage: false });
     console.log(`     📸 Saved Login screenshot → ${LOGIN_SCREENSHOT_PATH}`);
 
-    // Click the real submit button (`button[type="submit"]`) to verify it is NOT occluded by any fixed banner
-    console.log('  2️⃣  Submitting Corporate Email Sign-In Form (`khalid@kas.sa`)...');
+    // Enter strong password & submit Corporate Email Sign-In Form (`khalid@kas.sa`)
+    console.log('  2️⃣  Entering Strong Password & Submitting Corporate Sign-In (`khalid@kas.sa`)...');
+    const passInput = await page.$('#login-password-input');
+    if (!passInput) {
+      throw new Error('Password input `#login-password-input` not found on LoginPage.');
+    }
+    await passInput.click({ clickCount: 3 });
+    await passInput.type(ephemeralPass, { delay: 10 });
+
     const submitBtn = await page.$('button[type="submit"]');
     if (!submitBtn) {
       throw new Error('Submit button `button[type="submit"]` not found on LoginPage.');
@@ -147,8 +184,18 @@ async function main() {
     await submitBtn.scrollIntoViewIfNeeded?.();
     await submitBtn.click();
 
-    // Wait for the Executive Greeting Splash Screen to transition into the Executive Portal Launcher
-    await new Promise((r) => setTimeout(r, 4200));
+    // Wait for the Executive Greeting Splash Screen to transition into the Portal / Dashboard
+    await new Promise((r) => setTimeout(r, 3400));
+
+    // Verify In-Dashboard Google Account Binding Prompt appears & bind personal Google account
+    const hasGoogleBindingPrompt = Boolean(await page.$('#bind-google-email-input'));
+    console.log(`  3️⃣  Google Account Binding Prompt visible after 1st login: ${hasGoogleBindingPrompt}`);
+    if (hasGoogleBindingPrompt) {
+      await page.type('#bind-google-email-input', 'khalid.personal.e2e@gmail.com', { delay: 8 });
+      await page.type('#bind-google-email-confirm-input', 'khalid.personal.e2e@gmail.com', { delay: 8 });
+      await page.click('#bind-google-submit-btn');
+      await new Promise((r) => setTimeout(r, 1300));
+    }
 
     // Click "فتح شاشة القسم الرئيسية" to open the full Executive Dashboard with financial KPIs
     await page.evaluate(() => {
@@ -162,15 +209,22 @@ async function main() {
     const hasSaudiRiyalSymbol = bodyText.includes('\u20C1');
     const hasLegacyRiyalText = bodyText.includes('ر.س');
 
-    console.log(`  3️⃣  Verifying Executive Dashboard & SAMA Riyal Symbol (⃁)...`);
+    console.log(`  4️⃣  Verifying Executive Dashboard & SAMA Riyal Symbol (⃁)...`);
     console.log(`     ${hasSaudiRiyalSymbol ? '✅' : '❌'} Contains official ⃁ (U+20C1): ${hasSaudiRiyalSymbol}`);
     console.log(`     ${!hasLegacyRiyalText ? '✅' : '❌'} Zero legacy ر.س on screen: ${!hasLegacyRiyalText}`);
 
     await page.screenshot({ path: DASHBOARD_SCREENSHOT_PATH, fullPage: false });
-    console.log(`  4️⃣  Saved Dashboard screenshot → ${DASHBOARD_SCREENSHOT_PATH}`);
-    console.log(`  5️⃣  Runtime Page Errors: ${consoleErrors.length}`);
+    console.log(`  5️⃣  Saved Dashboard screenshot → ${DASHBOARD_SCREENSHOT_PATH}`);
+    console.log(`  6️⃣  Runtime Page Errors: ${consoleErrors.length}`);
 
-    if (!hasEmailButton || !hasGoogleButton || !hasSaudiRiyalSymbol || hasLegacyRiyalText || consoleErrors.length > 0) {
+    if (
+      !hasEmailButton ||
+      !hasGoogleButton ||
+      !hasGoogleBindingPrompt ||
+      !hasSaudiRiyalSymbol ||
+      hasLegacyRiyalText ||
+      consoleErrors.length > 0
+    ) {
       exitCode = 1;
       console.error('\n❌ BROWSER E2E VERIFICATION FAILED ONE OR MORE ASSERTIONS.');
     } else {

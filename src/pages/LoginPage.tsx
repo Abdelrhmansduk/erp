@@ -9,14 +9,21 @@ import {
   COMPANY_AUTH_METADATA,
   DepartmentId,
   StaffDirectoryEntry,
+  ApprovedGoogleAccountBinding,
   getFullStaffDirectory,
+  getApprovedGoogleBindings,
+  getLinkedGoogleAccountForKasEmail,
+  findBindingByGoogleEmail,
   registerCustomStaffAccount,
   resolveDepartmentAndCompany,
   findAllowedKasEmployee,
   getExcludedEmailReason,
   validateAllowedCorporateEmail,
+  verifyInitialOrActiveKasPassword,
+  validateStrongPasswordPolicy,
+  generateStrongClientPassword,
 } from '../services/authService';
-import { DEMO_AUTH_ENABLED, DEMO_QUICK_LOGIN_SECRET } from '../config/authMode';
+import { DEMO_AUTH_ENABLED } from '../config/authMode';
 import {
   VERIFIED_FIREBASE_GOOGLE_ACCOUNTS,
   getCachedGoogleProfile,
@@ -357,8 +364,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [identifier, setIdentifier] = useState<string>(() =>
     getDefaultEmailForPortalCode(loginPortalCode)
   );
-  const [password, setPassword] = useState<string>(DEMO_QUICK_LOGIN_SECRET);
+  const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [approvedGoogleBindings, setApprovedGoogleBindings] = useState<ApprovedGoogleAccountBinding[]>(
+    () => getApprovedGoogleBindings()
+  );
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -403,7 +413,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [regCompanyId, setRegCompanyId] = useState<'SAF' | 'YAQ' | 'TOP' | 'KAS' | 'DAR' | 'all'>('SAF');
   const [regDepartmentId, setRegDepartmentId] = useState<DepartmentId>('finance');
   const [regJobTitle, setRegJobTitle] = useState('');
-  const [regPassword, setRegPassword] = useState(DEMO_QUICK_LOGIN_SECRET);
+  const [regPassword, setRegPassword] = useState('');
+  const [regNewStrongPassword, setRegNewStrongPassword] = useState('');
   const [regAvatarUrl, setRegAvatarUrl] = useState('');
   const [regOtpCode, setRegOtpCode] = useState('482910');
   const [generatedOtp] = useState('482910');
@@ -422,23 +433,33 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [syncedGoogleUser, setSyncedGoogleUser] = useState(() => getCachedGoogleProfile());
 
   useEffect(() => {
+    const refreshBindings = () => {
+      setApprovedGoogleBindings(getApprovedGoogleBindings());
+      setStaffDirectory(getFullStaffDirectory());
+    };
     const onGoogleSynced = (e: Event) => {
       const detail = (e as CustomEvent).detail;
       if (detail) {
         setSyncedGoogleUser(detail);
-        setStaffDirectory(getFullStaffDirectory());
       }
+      refreshBindings();
     };
     window.addEventListener('alsulaim-google-user-synced', onGoogleSynced);
-    return () => window.removeEventListener('alsulaim-google-user-synced', onGoogleSynced);
+    window.addEventListener('alsulaim-google-binding-updated', refreshBindings);
+    return () => {
+      window.removeEventListener('alsulaim-google-user-synced', onGoogleSynced);
+      window.removeEventListener('alsulaim-google-binding-updated', refreshBindings);
+    };
   }, []);
 
-  // Dynamic routing resolution based on current identifier
+  // Dynamic routing resolution based on current identifier (supports @kas.sa and approved Google accounts)
   const detectedRouting = useMemo(() => {
+    const boundGoogle = findBindingByGoogleEmail(identifier.trim());
+    const lookupId = (boundGoogle ? boundGoogle.kasEmail : identifier.trim()).toLowerCase();
     const matchedAccount = staffDirectory.find(
       (s) =>
-        s.email.toLowerCase() === identifier.trim().toLowerCase() ||
-        s.username.toLowerCase() === identifier.trim().toLowerCase()
+        s.email.toLowerCase() === lookupId ||
+        s.username.toLowerCase() === lookupId
     );
     if (matchedAccount) {
       return {
@@ -450,7 +471,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           CORPORATE_DEPARTMENTS.executive,
       };
     }
-    const resolved = resolveDepartmentAndCompany(identifier);
+    const resolved = resolveDepartmentAndCompany(lookupId);
     return {
       account: null,
       departmentId: resolved.departmentId,
@@ -466,10 +487,25 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
   const executeUnifiedSignIn = async (targetIdentifier?: string, targetPass?: string) => {
     const finalId = (targetIdentifier ?? identifier).trim();
-    const finalPass = (targetPass ?? password) || DEMO_QUICK_LOGIN_SECRET;
+    const finalPass = (targetPass ?? password).trim();
     if (!finalId) {
-      setErrorMsg('يرجى إدخال البريد الإلكتروني المؤسسي أو اسم المستخدم.');
+      setErrorMsg('يرجى إدخال البريد الإلكتروني المؤسسي (@kas.sa) أو حساب Google المعتمد.');
       emailInputRef.current?.focus();
+      return;
+    }
+
+    if (!finalPass) {
+      const googleBinding = findBindingByGoogleEmail(finalId);
+      if (googleBinding) {
+        await handleGoogleAccountSelect({
+          email: googleBinding.googleEmail,
+          name: googleBinding.employeeNameAr,
+          picture: googleBinding.googlePhotoUrl,
+        });
+        return;
+      }
+      setErrorMsg('يرجى إدخال كلمة المرور القوية المعتمدة لحسابك المؤسسي (@kas.sa).');
+      passwordInputRef.current?.focus();
       return;
     }
 
@@ -485,8 +521,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         return;
       }
 
-      const kasEmp = findAllowedKasEmployee(finalId);
-      const routeInfo = resolveDepartmentAndCompany(finalId);
+      const resolvedCorporateEmail = result.user?.email || authService.resolveEmail(finalId);
+      const kasEmp = findAllowedKasEmployee(resolvedCorporateEmail);
+      const routeInfo = resolveDepartmentAndCompany(resolvedCorporateEmail);
       const landingTab =
         kasEmp?.defaultTab ||
         detectedRouting.account?.default_tab ||
@@ -519,31 +556,59 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
   const handleQuickAccountClick = (entry: StaffDirectoryEntry) => {
     setIdentifier(entry.email);
+    setPassword('');
+    setLoginMethodTab('password');
     setShowDirectoryModal(false);
-    setPassword(DEMO_QUICK_LOGIN_SECRET);
-    void executeUnifiedSignIn(entry.email, DEMO_QUICK_LOGIN_SECRET);
+    setErrorMsg(null);
+    const linked = getLinkedGoogleAccountForKasEmail(entry.email);
+    if (linked) {
+      setSuccessMsg(
+        `تم اختيار حساب ${entry.full_name} (${entry.email}) — أدخل كلمة المرور القوية، أو سجّل الدخول مباشرة عبر Google (${linked.googleEmail}).`
+      );
+    } else {
+      setSuccessMsg(
+        `تم اختيار حساب ${entry.full_name} (${entry.email}) — يرجى إدخال كلمة المرور القوية المعتمدة للمتابعة.`
+      );
+    }
+    setTimeout(() => passwordInputRef.current?.focus(), 60);
   };
 
   const handleBiometricLogin = async () => {
     setErrorMsg(null);
-    setSuccessMsg('جاري التحقق من البصمة الرقمية وفتح الجلسة...');
-    await executeUnifiedSignIn(identifier || 'khalid@kas.sa', DEMO_QUICK_LOGIN_SECRET);
+    const resolvedId = authService.resolveEmail(identifier || '');
+    const linked =
+      getLinkedGoogleAccountForKasEmail(resolvedId) ||
+      findBindingByGoogleEmail(identifier || '');
+    if (linked) {
+      setSuccessMsg(`جاري التحقق من الهوية المعتمدة وربط جلسة Google (${linked.googleEmail})...`);
+      await handleGoogleAccountSelect({
+        email: linked.googleEmail,
+        name: linked.employeeNameAr,
+        picture: linked.googlePhotoUrl,
+      });
+      return;
+    }
+    setSuccessMsg(null);
+    setErrorMsg(
+      'يتطلب الدخول السريع تسجيل الدخول للمرة الأولى بكلمة المرور القوية المعتمدة ثم اعتماد حساب Google الشخصي من داخل اللوحة.'
+    );
+    passwordInputRef.current?.focus();
   };
 
   const handleGoogleButtonClick = () => {
     setErrorMsg(null);
+    setApprovedGoogleBindings(getApprovedGoogleBindings());
     setShowGoogleModal(true);
   };
 
   const handleLiveFirebaseGooglePopup = async () => {
     setShowGoogleModal(false);
     setErrorMsg(null);
-    setSuccessMsg('جاري الاتصال بخدمة Google (Firebase Auth) ومزامنة الصورة والبيانات...');
+    setSuccessMsg('جاري الاتصال بخدمة Google (Firebase Auth) والتحقق من اعتماد الحساب...');
     setLoading(true);
     try {
       const result = await signInWithGoogle();
       if (result.error) {
-        // If popup was closed or blocked, reopen chooser modal with helpful message
         setErrorMsg(result.error);
         setShowGoogleModal(true);
         setLoading(false);
@@ -553,6 +618,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         return;
       }
       setStaffDirectory(getFullStaffDirectory());
+      setApprovedGoogleBindings(getApprovedGoogleBindings());
       setIdentifier(result.user.email);
       const kasEmp = findAllowedKasEmployee(result.user.email);
       const routeInfo = resolveDepartmentAndCompany(result.user.email);
@@ -571,7 +637,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       if (onLoginSuccess) {
         onLoginSuccess(landingTab, landingTitle);
       } else {
-        setFlowState('welcome');
+        setFlowState('workspace');
       }
     } catch (err: any) {
       setErrorMsg(err?.message || 'تعذر إكمال تسجيل الدخول الحقيقي عبر Google.');
@@ -589,42 +655,36 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     email: string;
     name?: string;
   }) => {
+    const cleanEmail = (account.email || '').trim();
+    const allowCheck = validateAllowedCorporateEmail(cleanEmail);
+    if (!allowCheck.allowed) {
+      setShowEmailModal(false);
+      setSuccessMsg(null);
+      setErrorMsg(
+        allowCheck.reason ||
+          'رفض أمني: هذا البريد الإلكتروني غير مدرج في قائمة حسابات مجموعة خالد السليم المصرح لها بالتسجيل والدخول (@kas.sa).'
+      );
+      return;
+    }
+
+    if (allowCheck.linkedGoogleBinding) {
+      await handleGoogleAccountSelect({
+        email: allowCheck.linkedGoogleBinding.googleEmail,
+        name: allowCheck.linkedGoogleBinding.employeeNameAr,
+        picture: allowCheck.linkedGoogleBinding.googlePhotoUrl,
+      });
+      return;
+    }
+
     setShowEmailModal(false);
     setErrorMsg(null);
-    setIdentifier(account.email);
-    setSuccessMsg(`تمت المصادقة عبر البريد الإلكتروني (${account.email}) — جاري فتح جلستك...`);
-    setLoading(true);
-    try {
-      const result = await signInWithEmail(account.email, account.name);
-      if (result.error) {
-        setErrorMsg(result.error);
-        setLoading(false);
-        return;
-      }
-      const kasEmp = findAllowedKasEmployee(account.email);
-      const routeInfo = resolveDepartmentAndCompany(account.email);
-      const landingTab = kasEmp?.defaultTab || routeInfo.departmentDef.defaultTab;
-      const landingTitle = kasEmp?.defaultTabTitle || routeInfo.departmentDef.defaultTabTitle;
-
-      if (routeInfo.companyId === 'all') {
-        setActiveCompanyId('SAF');
-        useAppStore.getState().setActiveCompanyId('all' as any);
-      } else {
-        const compUpper = routeInfo.companyId.toUpperCase();
-        setActiveCompanyId(compUpper as any);
-        useAppStore.getState().setActiveCompanyId(compUpper as any);
-      }
-
-      if (onLoginSuccess) {
-        onLoginSuccess(landingTab, landingTitle);
-      } else {
-        setFlowState('workspace');
-      }
-    } catch (err: any) {
-      setErrorMsg(err?.message || 'تعذر إكمال تسجيل الدخول عبر البريد الإلكتروني.');
-    } finally {
-      setLoading(false);
-    }
+    setIdentifier(cleanEmail);
+    setPassword('');
+    setLoginMethodTab('password');
+    setSuccessMsg(
+      `تم اختيار البريد المؤسسي (${cleanEmail}) — يرجى إدخال كلمة المرور القوية المعتمدة لإتمام الدخول.`
+    );
+    setTimeout(() => passwordInputRef.current?.focus(), 60);
   };
 
   const handleForgotPassword = async () => {
@@ -634,17 +694,27 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       setErrorMsg('أدخل بريدك الإلكتروني أولاً ثم اضغط «نسيت كلمة المرور؟».');
       return;
     }
+    const resolvedEmail = authService.resolveEmail(identifier);
+    const linked = getLinkedGoogleAccountForKasEmail(resolvedEmail);
+    if (linked) {
+      setSuccessMsg(
+        `حسابك مرتبط بحساب Google معتمد (${linked.googleEmail}) — يمكنك الضغط على «تسجيل الدخول عبر Google» للدخول الفوري.`
+      );
+      return;
+    }
     if (DEMO_AUTH_ENABLED) {
-      setSuccessMsg('تم تفعيل الدخول عبر البريد الإلكتروني — اضغط «تسجيل الدخول» للمتابعة مباشرة.');
+      setSuccessMsg(
+        'للمرة الأولى، يرجى استخدام كلمة المرور القوية المسلمة لك من إدارة تقنية المعلومات / الموارد البشرية، ثم اعتماد حساب Google الخاص بك من داخل اللوحة.'
+      );
       return;
     }
     setLoading(true);
     const { error } = await authService.requestPasswordReset(identifier);
     setLoading(false);
     if (error) {
-      setSuccessMsg('يمكنك تسجيل الدخول مباشرة بالبريد الإلكتروني أو استخدام الرابط السحري.');
+      setErrorMsg(error);
     } else {
-      setSuccessMsg('تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني.');
+      setSuccessMsg('تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني المؤسسي.');
     }
   };
 
@@ -694,7 +764,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         kasEmp?.defaultTabTitle || authUser.default_tab_title || routeInfo.departmentDef.defaultTabTitle
       );
     } else {
-      setFlowState('welcome');
+      setFlowState('workspace');
     }
   }, [authLoading, isAuthenticated, authUser, isRecoveryMode, onLoginSuccess, setActiveCompanyId, setFlowState]);
 
@@ -705,7 +775,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   }) => {
     setShowGoogleModal(false);
     setErrorMsg(null);
-    setSuccessMsg(`تمت المصادقة عبر Google (${account.email}) — جاري فتح جلستك...`);
+    setSuccessMsg(`جاري التحقق من اعتماد حساب Google (${account.email}) وفتح جلستك...`);
     setLoading(true);
     try {
       const result = await signInWithGoogle({
@@ -714,6 +784,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         avatar_url: account.picture,
       });
       if (result.error) {
+        setSuccessMsg(null);
         setErrorMsg(result.error);
         setLoading(false);
         return;
@@ -722,10 +793,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         // Real OAuth redirect in progress.
         return;
       }
-      const kasEmp = findAllowedKasEmployee(account.email);
-      const routeInfo = resolveDepartmentAndCompany(account.email);
-      const landingTab = kasEmp?.defaultTab || routeInfo.departmentDef.defaultTab;
-      const landingTitle = kasEmp?.defaultTabTitle || routeInfo.departmentDef.defaultTabTitle;
+      const resolvedCorporateEmail = result.user.email || account.email;
+      setIdentifier(resolvedCorporateEmail);
+      setApprovedGoogleBindings(getApprovedGoogleBindings());
+      const kasEmp = findAllowedKasEmployee(resolvedCorporateEmail);
+      const routeInfo = resolveDepartmentAndCompany(resolvedCorporateEmail);
+      const landingTab = kasEmp?.defaultTab || result.user.default_tab || routeInfo.departmentDef.defaultTab;
+      const landingTitle =
+        kasEmp?.defaultTabTitle || result.user.default_tab_title || routeInfo.departmentDef.defaultTabTitle;
 
       if (routeInfo.companyId === 'all') {
         setActiveCompanyId('SAF');
@@ -739,9 +814,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       if (onLoginSuccess) {
         onLoginSuccess(landingTab, landingTitle);
       } else {
-        setFlowState('welcome');
+        setFlowState('workspace');
       }
     } catch (err: any) {
+      setSuccessMsg(null);
       setErrorMsg(err?.message || 'تعذر إكمال تسجيل الدخول عبر Google.');
     } finally {
       setLoading(false);
@@ -763,8 +839,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       setErrorMsg(error);
       return;
     }
-    setSuccessMsg(`تم تفعيل رابط الدخول عبر البريد الإلكتروني (${identifier}) — جاري فتح جلستك...`);
-    await executeUnifiedSignIn(identifier, DEMO_QUICK_LOGIN_SECRET);
+    setSuccessMsg(`تم إرسال رابط الدخول الموثق إلى بريدك المؤسسي (${identifier}). يرجى فتح الرسالة لإتمام الدخول.`);
   };
 
   const handleSendOtpStep = (e: React.FormEvent) => {
@@ -780,6 +855,26 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           'رفض أمني: هذا البريد الإلكتروني غير مدرج في قائمة حسابات مجموعة خالد السليم المصرح لها بالتسجيل والدخول (@kas.sa).'
       );
       return;
+    }
+    const kasMatch = findAllowedKasEmployee(regEmail.trim());
+    if (!kasMatch) {
+      setErrorMsg(
+        'رفض أمني: يرجى إدخال البريد الوظيفي الرسمي (@kas.sa) للموظف لتفعيل الحساب المؤسسي.'
+      );
+      return;
+    }
+    if (!regPassword.trim() || !verifyInitialOrActiveKasPassword(kasMatch.email, regPassword)) {
+      setErrorMsg(
+        'رفض أمني: كلمة المرور المؤسسية المعتمدة غير صحيحة. يرجى إدخال كلمة المرور القوية المسلمة لك لتفعيل الحساب.'
+      );
+      return;
+    }
+    if (regNewStrongPassword.trim()) {
+      const policy = validateStrongPasswordPolicy(regNewStrongPassword.trim());
+      if (!policy.valid) {
+        setErrorMsg(policy.reason || 'كلمة المرور الجديدة لا تستوفي معايير القوة المؤسسية.');
+        return;
+      }
     }
     if (regAgeStatus === 'minor_with_guardian_consent') {
       if (!regGuardianName.trim() || !regGuardianContact.trim() || !regGuardianConsentAccepted) {
@@ -797,7 +892,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     }
     setErrorMsg(null);
     setRegStep(2);
-    setSuccessMsg(`تم إرسال رمز التحقق الفوري (OTP: ${generatedOtp}) إلى الجوال ${regPhone}.`);
+    setSuccessMsg(`تم التحقق من كلمة المرور القوية وإرسال رمز التحقق الفوري (OTP: ${generatedOtp}) إلى الجوال ${regPhone}.`);
   };
 
   const handleVerifyOtpAndCreate = (e: React.FormEvent) => {
@@ -841,6 +936,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     }
 
     try {
+      const activePass = regNewStrongPassword.trim() || regPassword.trim();
       const newStaff = registerCustomStaffAccount({
         full_name: regFullName.trim(),
         username: derivedUsername,
@@ -850,16 +946,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         department_id: regDepartmentId,
         branch: COMPANY_AUTH_METADATA[regCompanyId === 'all' ? 'ALL' : regCompanyId]?.nameAr || 'المركز الرئيسي - الرياض',
         avatar_url: regAvatarUrl.trim() || undefined,
+        password: regPassword.trim(),
+        newStrongPassword: regNewStrongPassword.trim() || undefined,
       });
 
       setStaffDirectory(getFullStaffDirectory());
       setIdentifier(newStaff.email);
-      setPassword(regPassword || DEMO_QUICK_LOGIN_SECRET);
+      setPassword(activePass);
       setShowDirectoryModal(false);
       setSuccessMsg(
         `تم تفعيل حسابك بنجاح (${newStaff.full_name}) — جاري توجيهك إلى ${CORPORATE_DEPARTMENTS[newStaff.department_id].nameAr}.`
       );
-      void executeUnifiedSignIn(newStaff.email, regPassword || DEMO_QUICK_LOGIN_SECRET);
+      void executeUnifiedSignIn(newStaff.email, activePass);
     } catch (err: any) {
       setErrorMsg(err?.message || 'رفض أمني: تعذر تفعيل الحساب.');
     }
@@ -1047,41 +1145,51 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   </p>
                 </div>
 
-                {/* Synced Firebase Google Account Quick Switcher Pill */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const googlePrimary = syncedGoogleUser?.email
-                      ? VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.find(
-                          (g) => g.email.toLowerCase() === syncedGoogleUser.email?.toLowerCase()
-                        ) || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]
-                      : VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0];
-                    if (!googlePrimary) {
-                      setErrorMsg('لا يوجد حساب Google مربوط ضمن قائمة الموظفين المعتمدة (@kas.sa).');
-                      return;
-                    }
-                    setIdentifier(googlePrimary.email);
-                    setErrorMsg(null);
-                    setSuccessMsg(
-                      `تم جلب ومزامنة حساب Google (${googlePrimary.displayName} • ${googlePrimary.email}) وصورته الشخصية.`
-                    );
-                  }}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f8f8f7] hover:bg-[#f0efec] border border-[#e5e5e5] text-[11px] font-bold text-[#141414] transition-all cursor-pointer"
-                  title="مزامنة وجلب بيانات وصورة حساب Google المسجل في Firebase"
-                >
-                  <EmployeePhotoAvatar
-                    name={syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.fullNameAr || ''}
-                    email={syncedGoogleUser?.email || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.email || ''}
-                    avatarUrl={syncedGoogleUser?.photoURL || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.photoURL || ''}
-                    size="xs"
-                    showStatusDot={true}
-                  />
-                  <span className="truncate max-w-[210px]">
-                    {identifier.toLowerCase() === (syncedGoogleUser?.email || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.email || '').toLowerCase()
-                      ? `حساب Google المزامن: ${syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.displayName || ''}`
-                      : `مزامنة صورة وبيانات Google (${syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.displayName || ''})`}
-                  </span>
-                </button>
+                {/* Approved Google Account Quick Switcher Pill */}
+                {(() => {
+                  const currentKasEmail = authService.resolveEmail(identifier || '');
+                  const linkedForCurrent =
+                    getLinkedGoogleAccountForKasEmail(currentKasEmail) ||
+                    findBindingByGoogleEmail(identifier || '');
+                  const fallbackBinding = linkedForCurrent || approvedGoogleBindings[0] || null;
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (linkedForCurrent) {
+                          void handleGoogleAccountSelect({
+                            email: linkedForCurrent.googleEmail,
+                            name: linkedForCurrent.employeeNameAr,
+                            picture: linkedForCurrent.googlePhotoUrl,
+                          });
+                          return;
+                        }
+                        handleGoogleButtonClick();
+                      }}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f8f8f7] hover:bg-[#f0efec] border border-[#e5e5e5] text-[11px] font-bold text-[#141414] transition-all cursor-pointer"
+                      title="تسجيل الدخول السريع عبر حساب Google المعتمد من المرة الثانية"
+                    >
+                      {fallbackBinding ? (
+                        <EmployeePhotoAvatar
+                          name={fallbackBinding.employeeNameAr}
+                          email={fallbackBinding.kasEmail}
+                          avatarUrl={fallbackBinding.googlePhotoUrl || ''}
+                          size="xs"
+                          showStatusDot={true}
+                        />
+                      ) : (
+                        <KeyRound className="w-3.5 h-3.5 text-[#141414] shrink-0" />
+                      )}
+                      <span className="truncate max-w-[240px]">
+                        {linkedForCurrent
+                          ? `دخول مباشر عبر Google المعتمد: ${linkedForCurrent.googleEmail}`
+                          : approvedGoogleBindings.length > 0
+                            ? `الحسابات المعتمدة عبر Google (${approvedGoogleBindings.length})`
+                            : 'اعتماد Google متاح بعد الدخول الأول بكلمة المرور'}
+                      </span>
+                    </button>
+                  );
+                })()}
               </div>
 
               {/* 3. Segmented Mode Switcher (تسجيل الدخول | تفعيل حساب) */}
@@ -1115,6 +1223,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               {/* 4. Quick Auth Action Buttons (Google + البريد الإلكتروني + البصمة + الرابط السحري) */}
               <div className="space-y-2.5">
                 <button
+                  id="google-signin-trigger-btn"
                   type="button"
                   disabled={loading}
                   onClick={() => {
@@ -1759,18 +1868,52 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                       </div>
 
                       <div>
-                        <label className="block mobbin-label text-[#141414] mb-1.5">
-                          كلمة المرور المعتمدة *
+                        <label
+                          htmlFor="reg-approved-password-input"
+                          className="block mobbin-label text-[#141414] mb-1.5"
+                        >
+                          كلمة المرور القوية المسلمة للموظف *
                         </label>
                         <input
-                          type="text"
+                          id="reg-approved-password-input"
+                          type="password"
                           dir="ltr"
+                          autoComplete="current-password"
                           value={regPassword}
                           onChange={(e) => setRegPassword(e.target.value)}
+                          placeholder="Ks••••••••••••••"
                           className="mobbin-input font-mono"
                           required
                         />
                       </div>
+                    </div>
+
+                    <div className="p-3 rounded-2xl bg-[#f8f8f7] border border-[#e5e5e5] space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <label
+                          htmlFor="reg-new-strong-password-input"
+                          className="text-xs font-bold text-[#141414]"
+                        >
+                          تعيين كلمة مرور قوية جديدة خاصة بك (اختياري)
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setRegNewStrongPassword(generateStrongClientPassword())}
+                          className="px-2.5 py-1 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-[11px] font-bold cursor-pointer transition-colors"
+                        >
+                          توليد كلمة مرور قوية
+                        </button>
+                      </div>
+                      <input
+                        id="reg-new-strong-password-input"
+                        type="text"
+                        dir="ltr"
+                        autoComplete="new-password"
+                        value={regNewStrongPassword}
+                        onChange={(e) => setRegNewStrongPassword(e.target.value)}
+                        placeholder="اتركه فارغاً للاحتفاظ بكلمة المرور المسلمة أو أدخل 12+ حرفاً قوياً"
+                        className="mobbin-input font-mono text-xs"
+                      />
                     </div>
 
                     {/* MENA Legal Compliance Gate: Country, Age / Guardian Consent (Egypt PDPL Art. 1 & 12), Cross-Border Transfer (Oman PDPL Art. 23 & Reg Art. 37), Marketing Consent (Qatar Art. 22) */}
@@ -2018,10 +2161,50 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             )}
 
             <div className="text-[11px] font-bold text-[#707070]">
-              الحسابات المسجلة والمزامنة عبر Google (Firebase Auth & Supabase):
+              الحسابات الشخصية المعتمدة عبر Google (للدخول المباشر من المرة الثانية):
             </div>
 
             <div className="space-y-2 max-h-[280px] overflow-y-auto pr-0.5">
+              {approvedGoogleBindings.map((binding) => (
+                <button
+                  key={binding.googleEmail}
+                  type="button"
+                  data-testid={`approved-google-card-${binding.googleEmail}`}
+                  onClick={() =>
+                    void handleGoogleAccountSelect({
+                      email: binding.googleEmail,
+                      name: binding.employeeNameAr,
+                      picture: binding.googlePhotoUrl,
+                    })
+                  }
+                  className="w-full p-3 rounded-2xl bg-[#f8f8f7] hover:bg-[#f0efec] border border-[#e5e5e5] flex items-center justify-between gap-3 text-right transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <EmployeePhotoAvatar
+                      name={binding.employeeNameAr}
+                      email={binding.kasEmail}
+                      role={binding.roleAr}
+                      departmentId={binding.departmentId}
+                      avatarUrl={binding.googlePhotoUrl}
+                      size="md"
+                      showStatusDot={true}
+                    />
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-[#141414] truncate">
+                        {binding.employeeNameAr}
+                      </div>
+                      <div className="text-[11px] font-mono text-[#141414] truncate dir-ltr text-right">
+                        {binding.googleEmail}
+                      </div>
+                      <div className="text-[10px] text-[#707070] font-bold truncate">
+                        مرتبط بـ {binding.kasEmail} • {binding.roleAr}
+                      </div>
+                    </div>
+                  </div>
+                  <ArrowLeft className="w-4 h-4 text-[#141414] shrink-0" />
+                </button>
+              ))}
+
               {VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.map((gAcc) => (
                 <button
                   key={gAcc.email}
@@ -2060,6 +2243,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   <ArrowLeft className="w-4 h-4 text-[#707070] shrink-0" />
                 </button>
               ))}
+
+              {approvedGoogleBindings.length === 0 &&
+                VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.length === 0 && (
+                  <div className="p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-xs text-[#141414] leading-relaxed">
+                    لم يتم اعتماد أي حساب Google شخصي على هذا المتصفح بعد. سجّل دخولك للمرة الأولى عبر البريد المؤسسي (<span className="font-mono">@kas.sa</span>) وكلمة المرور القوية، ثم اعتمد حساب Google الخاص بك من داخل اللوحة.
+                  </div>
+                )}
             </div>
 
             <form
@@ -2074,10 +2264,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               className="pt-3 border-t border-[#f0f0f0] space-y-2.5"
             >
               <div className="text-[11px] font-bold text-[#707070]">
-                أو استخدم حساب Google آخر:
+                أو أدخل حساب Google المعتمد الخاص بك:
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <input
+                  id="custom-google-name-input"
                   type="text"
                   value={customGoogleName}
                   onChange={(e) => setCustomGoogleName(e.target.value)}
@@ -2085,6 +2276,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   className="h-10 px-3 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-semibold text-[#141414] focus:outline-none focus:border-[#141414]"
                 />
                 <input
+                  id="custom-google-email-input"
                   type="email"
                   dir="ltr"
                   value={customGoogleEmail}
@@ -2095,10 +2287,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 />
               </div>
               <button
+                id="custom-google-submit-btn"
                 type="submit"
                 className="w-full h-10 rounded-xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold cursor-pointer transition-colors"
               >
-                متابعة بحساب Google المخصص
+                متابعة بحساب Google المعتمد
               </button>
             </form>
           </div>

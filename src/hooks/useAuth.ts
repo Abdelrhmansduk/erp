@@ -21,7 +21,8 @@ export interface AuthContext {
   signInWithEmail: (
     email: string,
     fullName?: string,
-    targetCompanyId?: string
+    targetCompanyId?: string,
+    password?: string
   ) => Promise<{ success: boolean; error?: string; user?: UserProfile }>;
   verifyMfa: (code: string, factorId?: string) => Promise<{ success: boolean; error?: string }>;
   enrollMfa: () => Promise<{ data: TotpEnrollment | null; error: string | null }>;
@@ -142,12 +143,13 @@ export const useAuth = (): AuthContext => {
   );
 
   const signInWithEmail = useCallback(
-    async (emailInput: string, fullName?: string, targetCompanyId?: string) => {
+    async (emailInput: string, fullName?: string, targetCompanyId?: string, password?: string) => {
       setError(null);
       const { data, error: emailError } = await authService.signInWithEmail(
         emailInput,
         fullName,
-        targetCompanyId
+        targetCompanyId,
+        password
       );
       if (emailError || !data) {
         const errMsg = emailError?.message || 'تعذر تسجيل الدخول عبر البريد الإلكتروني';

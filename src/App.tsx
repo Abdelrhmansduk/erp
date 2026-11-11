@@ -125,6 +125,7 @@ const EmployeeMonitoringPage = lazyWithRetry(() => import('./pages/EmployeeMonit
 const AICopilotWidget = lazyWithRetry(() => import('./components/common/AICopilotWidget').then(m => ({ default: m.AICopilotWidget })));
 const QuickSearchModal = lazyWithRetry(() => import('./components/common/QuickSearchModal').then(m => ({ default: m.QuickSearchModal })));
 const LegalDisclaimerModal = lazyWithRetry(() => import('./components/legal/LegalDisclaimerModal').then(m => ({ default: m.LegalDisclaimerModal })));
+const GoogleAccountBindingModal = lazyWithRetry(() => import('./components/auth/GoogleAccountBindingModal').then(m => ({ default: m.GoogleAccountBindingModal })));
 
 const PageFallback: React.FC = () => (
   <div className="flex flex-col items-center justify-center min-h-[400px] w-full p-8">
@@ -150,6 +151,9 @@ const MainContent: React.FC = () => {
   isHrefBlockedRef.current = isHrefBlocked;
 
   const [showLegalModal, setShowLegalModal] = useState(false);
+  const [legalCheckDone, setLegalCheckDone] = useState(false);
+  const [showGoogleBindingModal, setShowGoogleBindingModal] = useState(false);
+  const [googleBindingModalForced, setGoogleBindingModalForced] = useState(false);
 
   useEffect(() => {
     const onPopState = () => {
@@ -192,13 +196,57 @@ const MainContent: React.FC = () => {
 
   // Legal acknowledgement is verified against the database / corporate session.
   useEffect(() => {
-    if (authLoading || !isProtectedFlow || (!isAuthenticated && !authService.getCurrentUser())) return;
+    if (authLoading || !isProtectedFlow || (!isAuthenticated && !authService.getCurrentUser())) {
+      setLegalCheckDone(false);
+      return;
+    }
     let cancelled = false;
     legalService.hasSigned().then(signed => {
-      if (!cancelled) setShowLegalModal(!signed);
+      if (!cancelled) {
+        setShowLegalModal(!signed);
+        setLegalCheckDone(true);
+      }
     });
     return () => { cancelled = true; };
   }, [authLoading, isProtectedFlow, isAuthenticated]);
+
+  // Prompt employee upon entering the Portal / Dashboard (`launcher` or `workspace`) to bind & approve
+  // their personal Google account for 2nd-time Google Sign-In when no Google account is bound yet.
+  useEffect(() => {
+    const activeProfile = user || authService.getCurrentUser();
+    if (!isProtectedFlow || !activeProfile?.email || !legalCheckDone || showLegalModal) {
+      if (!isProtectedFlow && !googleBindingModalForced) {
+        setShowGoogleBindingModal(false);
+      }
+      return;
+    }
+    const existingBinding = authService.getLinkedGoogleAccountForKasEmail(activeProfile.email);
+    if (existingBinding) {
+      if (!googleBindingModalForced) {
+        setShowGoogleBindingModal(false);
+      }
+      return;
+    }
+    const snoozeKey = `ALSULAIM_GOOGLE_PROMPT_SNOOZED_${activeProfile.email.toLowerCase()}`;
+    let isSnoozed = false;
+    try {
+      isSnoozed = sessionStorage.getItem(snoozeKey) === 'true';
+    } catch {
+      isSnoozed = false;
+    }
+    if (!isSnoozed) {
+      setShowGoogleBindingModal(true);
+    }
+  }, [isProtectedFlow, user, legalCheckDone, showLegalModal, googleBindingModalForced]);
+
+  useEffect(() => {
+    const handleOpenGoogleBind = () => {
+      setGoogleBindingModalForced(true);
+      setShowGoogleBindingModal(true);
+    };
+    window.addEventListener('alsulaim-open-google-binding-modal', handleOpenGoogleBind);
+    return () => window.removeEventListener('alsulaim-open-google-binding-modal', handleOpenGoogleBind);
+  }, []);
 
   const handleLogout = async () => {
     const returnPortalCode =
@@ -207,11 +255,21 @@ const MainContent: React.FC = () => {
       (user?.company_id && user.company_id !== 'all' ? user.company_id.toLowerCase() : null);
 
     try {
+      if (user?.email) {
+        sessionStorage.removeItem(`ALSULAIM_GOOGLE_PROMPT_SNOOZED_${user.email.toLowerCase()}`);
+      }
+    } catch {
+      // ignore
+    }
+
+    try {
       await signOut();
     } catch (e) {
       console.warn('Sign-out failed:', e);
     }
     setShowLegalModal(false);
+    setShowGoogleBindingModal(false);
+    setGoogleBindingModalForced(false);
     if (returnPortalCode) {
       navigateToCompanyLogin(returnPortalCode);
     } else {
@@ -853,6 +911,35 @@ const MainContent: React.FC = () => {
             user={currentUserForLegal}
             onAcceptAndContinue={() => setShowLegalModal(false)}
             onLogout={handleLogout}
+          />
+        </Suspense>
+      )}
+      {showGoogleBindingModal && !showLegalModal && (user || authService.getCurrentUser()) && (
+        <Suspense fallback={null}>
+          <GoogleAccountBindingModal
+            user={(user || authService.getCurrentUser())!}
+            existingBinding={authService.getLinkedGoogleAccountForKasEmail(
+              (user || authService.getCurrentUser())!.email
+            )}
+            onApproved={() => {
+              setShowGoogleBindingModal(false);
+              setGoogleBindingModalForced(false);
+            }}
+            onRemindLater={() => {
+              const activeEmail = (user || authService.getCurrentUser())?.email;
+              if (activeEmail) {
+                try {
+                  sessionStorage.setItem(
+                    `ALSULAIM_GOOGLE_PROMPT_SNOOZED_${activeEmail.toLowerCase()}`,
+                    'true'
+                  );
+                } catch {
+                  // ignore
+                }
+              }
+              setShowGoogleBindingModal(false);
+              setGoogleBindingModalForced(false);
+            }}
           />
         </Suspense>
       )}

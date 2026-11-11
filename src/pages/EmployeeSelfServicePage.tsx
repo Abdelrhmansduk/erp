@@ -51,6 +51,9 @@ export const EmployeeSelfServicePage: React.FC = () => {
   const companyName =
     COMPANY_AUTH_METADATA[companyCode === 'ALL' ? 'ALL' : companyCode]?.nameAr ||
     'مجموعة خالد السليم القابضة';
+  const linkedGoogleBinding = user?.email
+    ? authService.getLinkedGoogleAccountForKasEmail(user.email)
+    : null;
 
   useEffect(() => {
     let mounted = true;
@@ -223,12 +226,40 @@ export const EmployeeSelfServicePage: React.FC = () => {
               <span className="text-[#707070]">رصيد الإجازات السنوية:</span>
               <span className="font-bold text-[#141414]">21 يوماً مستحقاً</span>
             </div>
-            <div className="flex items-center justify-between py-2">
+            <div className="flex items-center justify-between py-2 border-b border-[#e0e0e0]">
               <span className="text-[#707070]">حماية البيانات الشخصية (PDPL):</span>
               <span className="font-bold text-[#141414] inline-flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 معزول ومحمي
               </span>
+            </div>
+            <div className="pt-2 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[#707070]">حساب Google للدخول السريع:</span>
+                {linkedGoogleBinding ? (
+                  <span
+                    dir="ltr"
+                    className="px-2.5 py-0.5 rounded-full bg-[#ffffff] border border-[#141414] text-[#141414] font-mono font-bold text-[11px] truncate max-w-[170px]"
+                  >
+                    {linkedGoogleBinding.googleEmail}
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#ffffff] border border-[#d4d4d4] text-[#525252] font-bold text-[11px]">
+                    بانتظار الاعتماد
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  window.dispatchEvent(new CustomEvent('alsulaim-open-google-binding-modal'))
+                }
+                className="w-full py-2 px-3 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold transition-colors cursor-pointer"
+              >
+                {linkedGoogleBinding
+                  ? 'تحديث حساب Google المعتمد'
+                  : 'اعتماد حساب Google للدخول من المرة القادمة'}
+              </button>
             </div>
           </div>
         </div>

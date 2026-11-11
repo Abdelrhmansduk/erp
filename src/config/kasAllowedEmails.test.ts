@@ -4,6 +4,7 @@ import {
   EXCLUDED_KAS_EMAILS,
   findAllowedKasEmployee,
 } from './kasAllowedEmails';
+import { KAS_EMPLOYEE_PASSWORD_HASHES } from './kasEmployeePasswordHashes';
 import {
   authService,
   validateAllowedCorporateEmail,
@@ -50,6 +51,13 @@ describe('KAS Official Email Whitelist & 9-Department / Standalone KAS Trade RBA
 
     const unlistedKasCheck = validateAllowedCorporateEmail('intruder.unknown@kas.sa');
     expect(unlistedKasCheck.allowed).toBe(false);
+
+    // Every single approved @kas.sa employee has a salted SHA-256 strong password digest; excluded account has none
+    expect(Object.keys(KAS_EMPLOYEE_PASSWORD_HASHES)).toHaveLength(69);
+    for (const emp of KAS_ALLOWED_EMPLOYEES) {
+      expect(KAS_EMPLOYEE_PASSWORD_HASHES[emp.email.toLowerCase()]).toMatch(/^[0-9a-f]{64}$/);
+    }
+    expect(KAS_EMPLOYEE_PASSWORD_HASHES['o.saeed.hospitality@kas.sa']).toBeUndefined();
   });
 
   it('enforces complete two-way separation between Standalone KAS Trade Company (KAS) and Recruitment/Shelter', () => {

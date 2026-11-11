@@ -4,11 +4,21 @@ import {
   getFullStaffDirectory,
   registerCustomStaffAccount,
   KAS_ALLOWED_EMPLOYEES,
+  KAS_EMPLOYEE_PASSWORD_HASHES,
   EXCLUDED_KAS_EMAILS,
   validateAllowedCorporateEmail,
+  validateStrongPasswordPolicy,
+  generateStrongClientPassword,
+  saveCustomEmployeePassword,
 } from './authService';
 import { VERIFIED_FIREBASE_GOOGLE_ACCOUNTS, getCachedGoogleProfile } from './firebaseClient';
 import { DEMO_AUTH_ENABLED } from '../config/authMode';
+
+function provisionVerifiedStrongPassword(email: string): string {
+  const strongPass = generateStrongClientPassword();
+  saveCustomEmployeePassword(email, strongPass);
+  return strongPass;
+}
 import { generateExecutiveReportHtml, sanitizeCSVField } from './exportService';
 import { generateRealCode128BarcodeSvg } from '../utils/realBarcodeGenerator';
 import {
@@ -53,15 +63,26 @@ describe('authService — session hardening & hybrid email auth characterization
     expect(DEMO_AUTH_ENABLED).toBe(true);
   });
 
-  it('characterize: signIn given the owner (khalid@kas.sa from the official list), returns executive profile', async () => {
-    const res = await authService.signIn('khalid@kas.sa', 'ValidPass2026!');
+  it('characterize: signIn rejects unverified/wrong passwords and accepts verified strong password for owner (khalid@kas.sa)', async () => {
+    const wrongRes = await authService.signIn('khalid@kas.sa', 'ValidPass2026!');
+    expect(wrongRes.data).toBeNull();
+    expect(wrongRes.error).not.toBeNull();
+
+    const demoBypassRes = await authService.signIn('khalid@kas.sa', 'demo-quick-login');
+    expect(demoBypassRes.data).toBeNull();
+    expect(demoBypassRes.error).not.toBeNull();
+
+    const strongPass = provisionVerifiedStrongPassword('khalid@kas.sa');
+    const res = await authService.signIn('khalid@kas.sa', strongPass);
     expect(res.error).toBeNull();
     expect(res.data?.department_id).toBe('executive');
     expect(res.data?.company_id).toBe('all');
+    expect(res.data?.authenticated_via).toBe('strong_password');
   });
 
-  it('characterize: signIn given an official list accountant (a.alkinani.acc@kas.sa), routes to SAF finance', async () => {
-    const res = await authService.signIn('a.alkinani.acc@kas.sa', 'SecurePass99');
+  it('characterize: signIn given an official list accountant (a.alkinani.acc@kas.sa) with verified strong password, routes to SAF finance', async () => {
+    const strongPass = provisionVerifiedStrongPassword('a.alkinani.acc@kas.sa');
+    const res = await authService.signIn('a.alkinani.acc@kas.sa', strongPass);
     expect(res.error).toBeNull();
     expect(res.data?.company_id).toBe('SAF');
     expect(res.data?.department_id).toBe('finance');
@@ -77,25 +98,31 @@ describe('authService — session hardening & hybrid email auth characterization
       'kamel.adsens@gmail.com',
     ];
     for (const email of removed) {
-      const res = await authService.signIn(email, 'SecurePass99');
+      const res = await authService.signIn(email, 'Ks9#StrongAttempt!26');
       expect(res.data, email).toBeNull();
       expect(res.error, email).not.toBeNull();
     }
     expect(getFullStaffDirectory().every((e) => e.email.toLowerCase().endsWith('@kas.sa'))).toBe(true);
   });
 
-  it('characterize: signInWithEmail rejects empty email and accepts an official list email', async () => {
+  it('characterize: signInWithEmail rejects empty email or missing password, and accepts an official list email with verified strong password', async () => {
     const emptyRes = await authService.signInWithEmail('   ');
     expect(emptyRes.data).toBeNull();
     expect(emptyRes.error).not.toBeNull();
 
-    const validRes = await authService.signInWithEmail('hr@kas.sa', 'ريم احمد بن حسين');
+    const noPassRes = await authService.signInWithEmail('hr@kas.sa', 'ريم احمد بن حسين');
+    expect(noPassRes.data).toBeNull();
+    expect(noPassRes.error).not.toBeNull();
+
+    const hrPass = provisionVerifiedStrongPassword('hr@kas.sa');
+    const validRes = await authService.signInWithEmail('hr@kas.sa', 'ريم احمد بن حسين', undefined, hrPass);
     expect(validRes.error).toBeNull();
     expect(validRes.data?.email).toBe('hr@kas.sa');
   });
 
   it('characterize: validateCompanyAccess enforces strict multi-company tenant isolation for subsidiary staff', async () => {
-    const safStaff = await authService.signIn('h.hassan.safir@kas.sa', 'SecurePass99', 'SAF');
+    const safPass = provisionVerifiedStrongPassword('h.hassan.safir@kas.sa');
+    const safStaff = await authService.signIn('h.hassan.safir@kas.sa', safPass, 'SAF');
     expect(safStaff.data).not.toBeNull();
 
     const sameComp = authService.validateCompanyAccess(safStaff.data, 'SAF');
@@ -288,15 +315,15 @@ describe('authService — session hardening & hybrid email auth characterization
     expect(strangerRes.data).toBeNull();
     expect(strangerRes.error?.message).toContain('رفض أمني');
 
-    // 4. Verify departmental login & dedicated screen routing across the 9 @kas.sa sectors
-    const khalid = await authService.signIn('Khalid@kas.sa', 'Pass123!');
+    // 4. Verify departmental login & dedicated screen routing across the 9 @kas.sa sectors using verified strong passwords
+    const khalid = await authService.signIn('Khalid@kas.sa', provisionVerifiedStrongPassword('khalid@kas.sa'));
     expect(khalid.error).toBeNull();
     expect(khalid.data?.company_id).toBe('all');
     expect(khalid.data?.department_id).toBe('executive');
     expect(khalid.data?.default_tab).toBe('dashboard');
     expect(authService.isAdmin(khalid.data)).toBe(true);
 
-    const hrHead = await authService.signIn('HR@kas.sa', 'Pass123!');
+    const hrHead = await authService.signIn('HR@kas.sa', provisionVerifiedStrongPassword('hr@kas.sa'));
     expect(hrHead.error).toBeNull();
     expect(hrHead.data?.full_name).toContain('ريم احمد بن حسين');
     expect(hrHead.data?.department_id).toBe('hr');
@@ -304,65 +331,89 @@ describe('authService — session hardening & hybrid email auth characterization
     expect(authService.isTabAuthorizedForUser(hrHead.data, 'employees')).toBe(true);
     expect(authService.isTabAuthorizedForUser(hrHead.data, 'shelter-suite')).toBe(false);
 
-    const chiefAcc = await authService.signIn('a.alkinani.acc@kas.sa', 'Pass123!');
+    const chiefAcc = await authService.signIn('a.alkinani.acc@kas.sa', provisionVerifiedStrongPassword('a.alkinani.acc@kas.sa'));
     expect(chiefAcc.error).toBeNull();
     expect(chiefAcc.data?.department_id).toBe('finance');
     expect(chiefAcc.data?.default_tab).toBe('smacc-accounting');
     expect(authService.validateCompanyAccess(chiefAcc.data, 'SAF').allowed).toBe(true);
     expect(authService.validateCompanyAccess(chiefAcc.data, 'YAQ').allowed).toBe(false);
 
-    const safirOps = await authService.signIn('h.hassan.safir@kas.sa', 'Pass123!');
+    const safirOps = await authService.signIn('h.hassan.safir@kas.sa', provisionVerifiedStrongPassword('h.hassan.safir@kas.sa'));
     expect(safirOps.data?.company_id).toBe('SAF');
     expect(safirOps.data?.department_id).toBe('recruitment');
     expect(safirOps.data?.default_tab).toBe('recruitment-contracts');
 
-    const topazSup = await authService.signIn('a.eissa.topaz@kas.sa', 'Pass123!');
+    const topazSup = await authService.signIn('a.eissa.topaz@kas.sa', provisionVerifiedStrongPassword('a.eissa.topaz@kas.sa'));
     expect(topazSup.data?.company_id).toBe('TOP');
     expect(topazSup.data?.department_id).toBe('recruitment');
     expect(topazSup.data?.default_tab).toBe('recruitment-contracts');
 
-    const yaqootSup = await authService.signIn('h.yousef.yaqoot@kas.sa', 'Pass123!');
+    const yaqootSup = await authService.signIn('h.yousef.yaqoot@kas.sa', provisionVerifiedStrongPassword('h.yousef.yaqoot@kas.sa'));
     expect(yaqootSup.data?.company_id).toBe('YAQ');
     expect(yaqootSup.data?.department_id).toBe('rental');
     expect(yaqootSup.data?.default_tab).toBe('rent-contracts');
     expect(authService.isTabAuthorizedForUser(yaqootSup.data, 'rent-contracts')).toBe(true);
     expect(authService.isTabAuthorizedForUser(yaqootSup.data, 'recruitment-contracts')).toBe(true);
 
-    const darMusaned = await authService.signIn('a.abdelwahab.daralrowad@kas.sa', 'Pass123!');
+    const darMusaned = await authService.signIn(
+      'a.abdelwahab.daralrowad@kas.sa',
+      provisionVerifiedStrongPassword('a.abdelwahab.daralrowad@kas.sa')
+    );
     expect(darMusaned.data?.company_id).toBe('DAR');
     expect(darMusaned.data?.department_id).toBe('recruitment');
     expect(darMusaned.data?.default_tab).toBe('recruitment-contracts');
 
-    const mktHead = await authService.signIn('mustafa.marketing@kas.sa', 'Pass123!');
+    const mktHead = await authService.signIn(
+      'mustafa.marketing@kas.sa',
+      provisionVerifiedStrongPassword('mustafa.marketing@kas.sa')
+    );
     expect(mktHead.data?.department_id).toBe('crm');
     expect(mktHead.data?.default_tab).toBe('clients');
 
-    const salesMgr = await authService.signIn('m.khalifa.sales@kas.sa', 'Pass123!');
+    const salesMgr = await authService.signIn(
+      'm.khalifa.sales@kas.sa',
+      provisionVerifiedStrongPassword('m.khalifa.sales@kas.sa')
+    );
     expect(salesMgr.data?.company_id).toBe('SAF');
     expect(salesMgr.data?.department_id).toBe('recruitment');
     expect(salesMgr.data?.default_tab).toBe('ingaz-delegations');
 
-    const showroom = await authService.signIn('b.allaboudi.showroom@kas.sa', 'Pass123!');
+    const showroom = await authService.signIn(
+      'b.allaboudi.showroom@kas.sa',
+      provisionVerifiedStrongPassword('b.allaboudi.showroom@kas.sa')
+    );
     expect(showroom.data?.company_id).toBe('KAS');
     expect(showroom.data?.department_id).toBe('crm');
     expect(showroom.data?.default_tab).toBe('kas-commercial');
 
-    const imalMgr = await authService.signIn('m.alsaleh.imal@kas.sa', 'Pass123!');
+    const imalMgr = await authService.signIn(
+      'm.alsaleh.imal@kas.sa',
+      provisionVerifiedStrongPassword('m.alsaleh.imal@kas.sa')
+    );
     expect(imalMgr.data?.company_id).toBe('KAS');
     expect(imalMgr.data?.department_id).toBe('crm');
     expect(imalMgr.data?.default_tab).toBe('kas-commercial');
 
-    const tradeMgr = await authService.signIn('f.alhassan.trade@kas.sa', 'Pass123!');
+    const tradeMgr = await authService.signIn(
+      'f.alhassan.trade@kas.sa',
+      provisionVerifiedStrongPassword('f.alhassan.trade@kas.sa')
+    );
     expect(tradeMgr.data?.company_id).toBe('KAS');
     expect(tradeMgr.data?.department_id).toBe('tenders');
     expect(tradeMgr.data?.default_tab).toBe('kas-suite');
 
-    const housingMgr = await authService.signIn('r.aljbr.housing@kas.sa', 'Pass123!');
+    const housingMgr = await authService.signIn(
+      'r.aljbr.housing@kas.sa',
+      provisionVerifiedStrongPassword('r.aljbr.housing@kas.sa')
+    );
     expect(housingMgr.data?.company_id).toBe('DAR');
     expect(housingMgr.data?.department_id).toBe('shelter');
     expect(housingMgr.data?.default_tab).toBe('shelter-suite');
 
-    const driver = await authService.signIn('j.encajas.driver@kas.sa', 'Pass123!');
+    const driver = await authService.signIn(
+      'j.encajas.driver@kas.sa',
+      provisionVerifiedStrongPassword('j.encajas.driver@kas.sa')
+    );
     expect(driver.data?.company_id).toBe('DAR');
     expect(driver.data?.department_id).toBe('shelter');
     expect(driver.data?.default_tab).toBe('travel');
@@ -393,22 +444,123 @@ describe('authService — session hardening & hybrid email auth characterization
       })
     ).toThrow(/رفض أمني/);
 
-    // 3. Official @kas.sa employee (driver) attempting to activate as executive/all remains strictly locked to DAR/shelter/travel
+    // 3. Wrong password during activation is rejected
+    expect(() =>
+      registerCustomStaffAccount({
+        full_name: 'جوسيلينو انكاجاس',
+        username: 'j.encajas.driver',
+        email: 'j.encajas.driver@kas.sa',
+        company_id: 'all',
+        department_id: 'executive',
+        password: 'WrongPassword#2026!',
+      })
+    ).toThrow(/رفض أمني/);
+
+    // 4. Official @kas.sa employee (driver) activating with verified password remains strictly locked to DAR/shelter/travel
+    const driverPass = provisionVerifiedStrongPassword('j.encajas.driver@kas.sa');
+    const rotatedPass = generateStrongClientPassword();
     const activatedDriver = registerCustomStaffAccount({
       full_name: 'جوسيلينو انكاجاس',
       username: 'j.encajas.driver',
       email: 'j.encajas.driver@kas.sa',
       company_id: 'all',
       department_id: 'executive',
+      password: driverPass,
+      newStrongPassword: rotatedPass,
     });
     expect(activatedDriver.company_id).toBe('DAR');
     expect(activatedDriver.department_id).toBe('shelter');
     expect(activatedDriver.default_tab).toBe('travel');
 
-    const signedInDriver = await authService.signIn('j.encajas.driver@kas.sa', 'Pass123!');
+    const signedInDriver = await authService.signIn('j.encajas.driver@kas.sa', rotatedPass);
     expect(signedInDriver.data?.company_id).toBe('DAR');
     expect(signedInDriver.data?.department_id).toBe('shelter');
     expect(signedInDriver.data?.default_tab).toBe('travel');
     expect(authService.isAdmin(signedInDriver.data)).toBe(false);
+  });
+
+  it('enforces 69 salted SHA-256 strong password hashes and 2-stage Personal Google Account approval for 2nd-time sign-in', async () => {
+    // 1. All 69 approved @kas.sa accounts have unique 64-hex digests; excluded account has zero hash
+    const hashEntries = Object.entries(KAS_EMPLOYEE_PASSWORD_HASHES);
+    expect(hashEntries).toHaveLength(69);
+    expect(new Set(hashEntries.map(([, h]) => h)).size).toBe(69);
+    for (const emp of KAS_ALLOWED_EMPLOYEES) {
+      const digest = KAS_EMPLOYEE_PASSWORD_HASHES[emp.email.toLowerCase()];
+      expect(digest, emp.email).toMatch(/^[0-9a-f]{64}$/);
+    }
+    expect(KAS_EMPLOYEE_PASSWORD_HASHES['o.saeed.hospitality@kas.sa']).toBeUndefined();
+
+    // 2. Strong password policy validation
+    expect(validateStrongPasswordPolicy('short1!A').valid).toBe(false);
+    expect(validateStrongPasswordPolicy('alllowercase1234!').valid).toBe(false);
+    expect(validateStrongPasswordPolicy('NoSpecialChars12345').valid).toBe(false);
+    expect(validateStrongPasswordPolicy('demo-quick-login').valid).toBe(false);
+    expect(validateStrongPasswordPolicy(generateStrongClientPassword()).valid).toBe(true);
+
+    // 3. Before 1st login & approval, personal Google account CANNOT sign in and unauthenticated bind is rejected
+    const beforeBindLogin = await authService.signInWithGoogle({
+      email: 'majed.alsaleh.personal@gmail.com',
+      full_name: 'Majed Al-Saleh',
+    });
+    expect(beforeBindLogin.data).toBeNull();
+    expect(beforeBindLogin.error?.message).toContain('غير معتمد');
+
+    const unauthBind = authService.bindApprovedGoogleAccount({
+      googleEmail: 'majed.alsaleh.personal@gmail.com',
+    });
+    expect(unauthBind.error).toContain('يجب تسجيل الدخول أولاً');
+
+    // 4. 1st-Time Login via Strong Password -> Employee enters Dashboard & approves personal Google account
+    const majedPass = provisionVerifiedStrongPassword('m.alsaleh.imal@kas.sa');
+    const firstLogin = await authService.signIn('m.alsaleh.imal@kas.sa', majedPass);
+    expect(firstLogin.error).toBeNull();
+    expect(firstLogin.data?.email).toBe('m.alsaleh.imal@kas.sa');
+    expect(firstLogin.data?.authenticated_via).toBe('strong_password');
+    expect(firstLogin.data?.linked_google_email).toBeUndefined();
+
+    // Reject binding @kas.sa corporate email or excluded email as a personal Google account
+    const corpBindAttempt = authService.bindApprovedGoogleAccount({
+      googleEmail: 'khalid@kas.sa',
+    });
+    expect(corpBindAttempt.error).toContain('@kas.sa');
+
+    const approvedBind = authService.bindApprovedGoogleAccount({
+      googleEmail: 'majed.alsaleh.personal@gmail.com',
+      googleDisplayName: 'Majed Al-Saleh',
+    });
+    expect(approvedBind.error).toBeNull();
+    expect(approvedBind.data?.kasEmail).toBe('m.alsaleh.imal@kas.sa');
+    expect(approvedBind.data?.googleEmail).toBe('majed.alsaleh.personal@gmail.com');
+    expect(authService.getCurrentUser()?.linked_google_email).toBe('majed.alsaleh.personal@gmail.com');
+
+    // 5. Enforce 1-to-1 uniqueness: another employee cannot claim the same personal Google account
+    await authService.signOut();
+    const khalidPass = provisionVerifiedStrongPassword('khalid@kas.sa');
+    await authService.signIn('khalid@kas.sa', khalidPass);
+    const duplicateBind = authService.bindApprovedGoogleAccount({
+      googleEmail: 'majed.alsaleh.personal@gmail.com',
+    });
+    expect(duplicateBind.error).toContain('مرتبط مسبقاً');
+
+    // 6. Sign out completely, then 2nd-Time Sign-In directly via the Approved Google Account (zero password needed!)
+    await authService.signOut();
+    expect(authService.getCurrentUser()).toBeNull();
+
+    const secondLoginViaGoogle = await authService.signInWithGoogle({
+      email: 'majed.alsaleh.personal@gmail.com',
+      full_name: 'Majed Al-Saleh',
+    });
+    expect(secondLoginViaGoogle.error).toBeNull();
+    expect(secondLoginViaGoogle.data?.email).toBe('m.alsaleh.imal@kas.sa');
+    expect(secondLoginViaGoogle.data?.linked_google_email).toBe('majed.alsaleh.personal@gmail.com');
+    expect(secondLoginViaGoogle.data?.authenticated_via).toBe('approved_google');
+    expect(secondLoginViaGoogle.data?.company_id).toBe('KAS');
+    expect(secondLoginViaGoogle.data?.department_id).toBe('crm');
+    expect(secondLoginViaGoogle.data?.default_tab).toBe('kas-commercial');
+
+    // Preserve 100% KAS Commercial isolation on 2nd-time Google login
+    expect(authService.isTabAuthorizedForUser(secondLoginViaGoogle.data || null, 'kas-commercial')).toBe(true);
+    expect(authService.isTabAuthorizedForUser(secondLoginViaGoogle.data || null, 'recruitment-contracts')).toBe(false);
+    expect(authService.validateCompanyAccess(secondLoginViaGoogle.data || null, 'SAF').allowed).toBe(false);
   });
 });

@@ -15,6 +15,15 @@ import {
   getExcludedEmailReason,
   type KasAllowedEmployee,
 } from '../config/kasAllowedEmails';
+import {
+  KAS_EMPLOYEE_PASSWORD_HASHES,
+  computeKasPasswordDigest,
+  verifyKasEmployeePassword,
+  verifyInitialOrActiveKasPassword,
+  validateStrongPasswordPolicy,
+  generateStrongClientPassword,
+  saveCustomEmployeePassword,
+} from '../config/kasEmployeePasswordHashes';
 
 export {
   KAS_ALLOWED_EMPLOYEES,
@@ -22,6 +31,13 @@ export {
   findAllowedKasEmployee,
   getExcludedEmailReason,
   type KasAllowedEmployee,
+  KAS_EMPLOYEE_PASSWORD_HASHES,
+  computeKasPasswordDigest,
+  verifyKasEmployeePassword,
+  verifyInitialOrActiveKasPassword,
+  validateStrongPasswordPolicy,
+  generateStrongClientPassword,
+  saveCustomEmployeePassword,
 };
 
 export type DepartmentId =
@@ -444,6 +460,8 @@ export interface UserProfile {
   default_tab_title?: string;
   allowed_tabs_override?: string[];
   extra_allowed_departments?: DepartmentId[];
+  linked_google_email?: string;
+  authenticated_via?: 'strong_password' | 'approved_google' | 'supabase';
   status: string;
   created_at: string;
 }
@@ -604,15 +622,59 @@ const USERNAME_EMAIL_ALIASES: Record<string, string> = {
 };
 
 
+export interface ApprovedGoogleAccountBinding {
+  kasEmail: string;
+  googleEmail: string;
+  employeeId: string;
+  employeeNameAr: string;
+  roleAr: string;
+  companyId: 'SAF' | 'YAQ' | 'TOP' | 'KAS' | 'DAR' | 'all';
+  departmentId: DepartmentId;
+  googleDisplayName?: string;
+  googlePhotoUrl?: string;
+  approvedAt: string;
+}
+
+const APPROVED_GOOGLE_BINDINGS_KEY = 'ALSULAIM_APPROVED_GOOGLE_BINDINGS_V1';
+
+export function getApprovedGoogleBindings(): ApprovedGoogleAccountBinding[] {
+  try {
+    const raw = localStorage.getItem(APPROVED_GOOGLE_BINDINGS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((b: ApprovedGoogleAccountBinding) => {
+      if (!b?.kasEmail || !b?.googleEmail) return false;
+      if (getExcludedEmailReason(b.kasEmail) || getExcludedEmailReason(b.googleEmail)) return false;
+      return Boolean(findAllowedKasEmployee(b.kasEmail));
+    });
+  } catch {
+    return [];
+  }
+}
+
+export function getLinkedGoogleAccountForKasEmail(kasEmail: string): ApprovedGoogleAccountBinding | null {
+  const cleanKas = (kasEmail || '').trim().toLowerCase();
+  if (!cleanKas) return null;
+  return getApprovedGoogleBindings().find((b) => b.kasEmail.toLowerCase() === cleanKas) || null;
+}
+
+export function findBindingByGoogleEmail(googleEmail: string): ApprovedGoogleAccountBinding | null {
+  const cleanGoogle = (googleEmail || '').trim().toLowerCase();
+  if (!cleanGoogle) return null;
+  return getApprovedGoogleBindings().find((b) => b.googleEmail.toLowerCase() === cleanGoogle) || null;
+}
+
 /**
  * Validates whether an email or username is authorized to register or sign in to the ERP.
  * Strictly blocks excluded accounts (such as `o.saeed.hospitality@kas.sa` — Buffet Kitchen)
- * and any unlisted `@kas.sa` or unverified external emails.
+ * and any unlisted `@kas.sa` or unapproved external emails.
  */
 export function validateAllowedCorporateEmail(identifier: string): {
   allowed: boolean;
   reason?: string;
   kasEmployee?: KasAllowedEmployee;
+  linkedGoogleBinding?: ApprovedGoogleAccountBinding;
 } {
   const raw = (identifier || '').trim().toLowerCase();
   if (!raw) {
@@ -640,7 +702,20 @@ export function validateAllowedCorporateEmail(identifier: string): {
     return { allowed: true, kasEmployee: aliasedKas || undefined };
   }
 
-  // 4. Check built-in & custom staff directory and verified Firebase Google accounts
+  // 4. Check approved personal Google accounts bound after verified strong-password login
+  const boundGoogle = findBindingByGoogleEmail(raw);
+  if (boundGoogle) {
+    const boundKas = findAllowedKasEmployee(boundGoogle.kasEmail);
+    if (boundKas && !getExcludedEmailReason(boundKas.email)) {
+      return {
+        allowed: true,
+        kasEmployee: boundKas,
+        linkedGoogleBinding: boundGoogle,
+      };
+    }
+  }
+
+  // 5. Check built-in & custom staff directory and verified Firebase Google accounts
   const dirMatch = getFullStaffDirectory().find(
     (d) =>
       d.email.toLowerCase() === raw ||
@@ -648,7 +723,7 @@ export function validateAllowedCorporateEmail(identifier: string): {
       d.id.toLowerCase() === raw
   );
   if (dirMatch) {
-    return { allowed: true };
+    return { allowed: true, kasEmployee: findAllowedKasEmployee(dirMatch.email) || undefined };
   }
 
   const googleMatch = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.find(
@@ -722,6 +797,8 @@ export function registerCustomStaffAccount(input: {
   department_id: DepartmentId;
   branch?: string;
   avatar_url?: string;
+  password?: string;
+  newStrongPassword?: string;
 }): StaffDirectoryEntry {
   const cleanEmail = (input.email || '').trim().toLowerCase();
   const allowCheck = validateAllowedCorporateEmail(cleanEmail);
@@ -733,30 +810,49 @@ export function registerCustomStaffAccount(input: {
   }
 
   const officialKas = findAllowedKasEmployee(cleanEmail);
-  const lockedCompanyId = officialKas ? officialKas.company_id : input.company_id;
-  const lockedDeptId = officialKas ? officialKas.department_id : input.department_id;
+  if (!officialKas) {
+    throw new Error(
+      'رفض أمني: التسجيل متاح حصراً للموظفين المدرجين في القائمة المعتمدة (@kas.sa).'
+    );
+  }
+
+  if (input.password !== undefined) {
+    if (!verifyInitialOrActiveKasPassword(officialKas.email, input.password)) {
+      throw new Error(
+        'رفض أمني: كلمة المرور المؤسسية المعتمدة غير صحيحة. يرجى إدخال كلمة المرور القوية المسلمة لك لتفعيل الحساب.'
+      );
+    }
+  }
+
+  if (input.newStrongPassword && input.newStrongPassword.trim()) {
+    const policy = validateStrongPasswordPolicy(input.newStrongPassword);
+    if (!policy.valid) {
+      throw new Error(policy.reason || 'كلمة المرور الجديدة لا تستوفي شروط القوة المطلوبة.');
+    }
+    saveCustomEmployeePassword(officialKas.email, input.newStrongPassword);
+  }
+
+  const lockedCompanyId = officialKas.company_id;
+  const lockedDeptId = officialKas.department_id;
   const deptDef = CORPORATE_DEPARTMENTS[lockedDeptId] || CORPORATE_DEPARTMENTS.finance;
-  const compMeta =
-    COMPANY_AUTH_METADATA[lockedCompanyId === 'all' ? 'ALL' : lockedCompanyId] ||
-    COMPANY_AUTH_METADATA.SAF;
   const matchedGoogle = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.find(
     (g) => g.email.toLowerCase() === cleanEmail
   );
   const newEntry: StaffDirectoryEntry = {
-    id: officialKas
-      ? officialKas.id
-      : `USR-${lockedCompanyId.toUpperCase()}-${lockedDeptId.toUpperCase().slice(0, 3)}-${Date.now().toString().slice(-4)}`,
-    username: officialKas ? officialKas.username : input.username.trim().toLowerCase(),
-    email: officialKas ? officialKas.email : cleanEmail,
-    full_name: input.full_name.trim() || officialKas?.nameAr || cleanEmail,
-    nameEn: officialKas?.nameEn,
-    role: officialKas ? officialKas.titleAr : input.role || `${deptDef.nameAr} — ${compMeta.nameAr}`,
+    id: officialKas.id,
+    username: officialKas.username,
+    email: officialKas.email,
+    full_name: input.full_name.trim() || officialKas.nameAr,
+    nameEn: officialKas.nameEn,
+    role: officialKas.titleAr,
     company_id: lockedCompanyId,
     department_id: lockedDeptId,
-    default_tab: officialKas?.defaultTab || deptDef.defaultTab,
-    default_tab_title: officialKas?.defaultTabTitle || deptDef.defaultTabTitle,
-    suffixCode: officialKas?.suffixCode,
-    branch: officialKas?.branch || input.branch || 'الفرع الرئيسي - الرياض',
+    default_tab: officialKas.defaultTab || deptDef.defaultTab,
+    default_tab_title: officialKas.defaultTabTitle || deptDef.defaultTabTitle,
+    allowed_tabs_override: officialKas.allowedTabsOverride,
+    extra_allowed_departments: officialKas.extraAllowedDepartments,
+    suffixCode: officialKas.suffixCode,
+    branch: officialKas.branch || input.branch || 'الفرع الرئيسي - الرياض',
     badgeEmoji: deptDef.emoji,
     avatar_url: input.avatar_url || matchedGoogle?.photoURL,
   };
@@ -854,7 +950,10 @@ export function resolveDepartmentAndCompany(
   departmentDef: DepartmentDefinition;
 } {
   const rawClean = (emailOrUsername || '').trim().toLowerCase();
-  const clean = USERNAME_EMAIL_ALIASES[rawClean] || rawClean;
+  const googleBinding = findBindingByGoogleEmail(rawClean);
+  const clean = googleBinding
+    ? googleBinding.kasEmail.toLowerCase()
+    : USERNAME_EMAIL_ALIASES[rawClean] || rawClean;
 
   // 1. Check exact match in Full Corporate Staff Directory (built-in + custom registered)
   const fullDir = getFullStaffDirectory();
@@ -1026,6 +1125,8 @@ export const authService = {
   resolveEmail(identifier: string): string {
     const clean = identifier.trim().toLowerCase();
     if (USERNAME_EMAIL_ALIASES[clean]) return USERNAME_EMAIL_ALIASES[clean];
+    const boundGoogle = findBindingByGoogleEmail(clean);
+    if (boundGoogle) return boundGoogle.kasEmail;
     const dirMatch = getFullStaffDirectory().find(
       (e) =>
         e.username.toLowerCase() === clean ||
@@ -1035,6 +1136,143 @@ export const authService = {
     if (dirMatch) return dirMatch.email;
     if (clean.includes('@')) return clean;
     return `${clean}@kas.sa`;
+  },
+
+  getApprovedGoogleBindings() {
+    return getApprovedGoogleBindings();
+  },
+
+  getLinkedGoogleAccountForKasEmail(kasEmail: string) {
+    return getLinkedGoogleAccountForKasEmail(kasEmail);
+  },
+
+  findBindingByGoogleEmail(googleEmail: string) {
+    return findBindingByGoogleEmail(googleEmail);
+  },
+
+  bindApprovedGoogleAccount(params: {
+    googleEmail: string;
+    googleDisplayName?: string;
+    googlePhotoUrl?: string;
+  }): { data: ApprovedGoogleAccountBinding | null; error: string | null } {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser?.email) {
+      return {
+        data: null,
+        error: 'يجب تسجيل الدخول أولاً بالبريد المؤسسي (@kas.sa) وكلمة المرور القوية قبل اعتماد حساب Google.',
+      };
+    }
+
+    const cleanKas = currentUser.email.trim().toLowerCase();
+    const excludedKas = getExcludedEmailReason(cleanKas);
+    if (excludedKas) {
+      return { data: null, error: excludedKas };
+    }
+    const officialKas = findAllowedKasEmployee(cleanKas);
+    if (!officialKas) {
+      return {
+        data: null,
+        error: 'هذا الحساب غير مدرج في قائمة موظفي مجموعة خالد السليم المعتمدين (@kas.sa).',
+      };
+    }
+
+    const cleanGoogle = (params.googleEmail || '').trim().toLowerCase();
+    if (!cleanGoogle || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanGoogle)) {
+      return {
+        data: null,
+        error: 'يرجى إدخال عنوان بريد Google إلكتروني صحيح (مثال: name@gmail.com).',
+      };
+    }
+    if (cleanGoogle.endsWith('@kas.sa')) {
+      return {
+        data: null,
+        error: 'يرجى إدخال حساب Google الشخصي الخاص بك (مثل @gmail.com) وليس البريد الوظيفي (@kas.sa).',
+      };
+    }
+    const excludedGoogle = getExcludedEmailReason(cleanGoogle);
+    if (excludedGoogle) {
+      return { data: null, error: excludedGoogle };
+    }
+
+    const existingOwner = findBindingByGoogleEmail(cleanGoogle);
+    if (existingOwner && existingOwner.kasEmail.toLowerCase() !== cleanKas) {
+      return {
+        data: null,
+        error: 'رفض أمني: حساب Google هذا مرتبط مسبقاً بموظف آخر في المنظومة ولا يمكن مشاركته بين حسابين.',
+      };
+    }
+
+    const newBinding: ApprovedGoogleAccountBinding = {
+      kasEmail: officialKas.email,
+      googleEmail: cleanGoogle,
+      employeeId: officialKas.id,
+      employeeNameAr: officialKas.nameAr,
+      roleAr: officialKas.titleAr,
+      companyId: officialKas.company_id,
+      departmentId: officialKas.department_id,
+      googleDisplayName: params.googleDisplayName?.trim() || officialKas.nameAr,
+      googlePhotoUrl: params.googlePhotoUrl || currentUser.avatar_url,
+      approvedAt: new Date().toISOString(),
+    };
+
+    try {
+      const others = getApprovedGoogleBindings().filter(
+        (b) =>
+          b.kasEmail.toLowerCase() !== cleanKas &&
+          b.googleEmail.toLowerCase() !== cleanGoogle
+      );
+      localStorage.setItem(
+        APPROVED_GOOGLE_BINDINGS_KEY,
+        JSON.stringify([newBinding, ...others])
+      );
+    } catch {
+      return { data: null, error: 'تعذر حفظ اعتماد حساب Google في المتصفح.' };
+    }
+
+    const updatedProfile: UserProfile = {
+      ...currentUser,
+      linked_google_email: cleanGoogle,
+      avatar_url: params.googlePhotoUrl || currentUser.avatar_url,
+    };
+    cacheProfile(updatedProfile);
+    window.dispatchEvent(
+      new CustomEvent('alsulaim-auth-updated', { detail: { profile: updatedProfile } })
+    );
+    window.dispatchEvent(
+      new CustomEvent('alsulaim-google-binding-updated', { detail: { binding: newBinding } })
+    );
+
+    return { data: newBinding, error: null };
+  },
+
+  unlinkApprovedGoogleAccount(kasEmail?: string): { error: string | null } {
+    const currentUser = this.getCurrentUser();
+    const targetKas = (kasEmail || currentUser?.email || '').trim().toLowerCase();
+    if (!targetKas) {
+      return { error: 'لا يوجد حساب نشط لإلغاء ربطه.' };
+    }
+    try {
+      const remaining = getApprovedGoogleBindings().filter(
+        (b) => b.kasEmail.toLowerCase() !== targetKas
+      );
+      localStorage.setItem(APPROVED_GOOGLE_BINDINGS_KEY, JSON.stringify(remaining));
+    } catch {
+      // ignore
+    }
+    if (currentUser && currentUser.email.toLowerCase() === targetKas) {
+      const updatedProfile: UserProfile = {
+        ...currentUser,
+        linked_google_email: undefined,
+      };
+      cacheProfile(updatedProfile);
+      window.dispatchEvent(
+        new CustomEvent('alsulaim-auth-updated', { detail: { profile: updatedProfile } })
+      );
+      window.dispatchEvent(
+        new CustomEvent('alsulaim-google-binding-updated', { detail: { binding: null } })
+      );
+    }
+    return { error: null };
   },
 
   /**
@@ -1246,7 +1484,7 @@ export const authService = {
     mfa: MfaRequirement;
   }> {
     if (!identifier?.trim() || !password?.trim()) {
-      return { data: null, error: { message: 'يرجى إدخال البريد الوظيفي أو الرقم الوظيفي وكلمة المرور' }, mfa: 'none' };
+      return { data: null, error: { message: 'يرجى إدخال البريد الوظيفي (@kas.sa) وكلمة المرور القوية المعتمدة.' }, mfa: 'none' };
     }
 
     const cleanId = identifier.trim();
@@ -1273,7 +1511,20 @@ export const authService = {
       };
     }
 
-    // Try real Supabase Auth first when configured in production; fall back to Corporate Staff Directory / Email Auto-Routing
+    // 1. Cryptographically verify the employee's strong password against the salted SHA-256 digest
+    const isStrongPasswordValid = verifyKasEmployeePassword(email, password);
+    if (isStrongPasswordValid) {
+      return this.signInWithDirectoryOrAutoRoute(
+        cleanId,
+        email,
+        _targetCompanyId,
+        undefined,
+        undefined,
+        'strong_password'
+      );
+    }
+
+    // 2. When Supabase Auth is configured in production, allow server-side password check as secondary authority
     if (!DEMO_AUTH_ENABLED && isSupabaseConfigured) {
       const supaRes = await this.signInWithSupabasePassword(email, password);
       if (supaRes.data && !supaRes.error) {
@@ -1281,7 +1532,15 @@ export const authService = {
       }
     }
 
-    return this.signInWithDirectoryOrAutoRoute(cleanId, email, _targetCompanyId);
+    recordFailedAttempt(email);
+    return {
+      data: null,
+      error: {
+        message:
+          'رفض أمني: كلمة المرور غير صحيحة. يرجى إدخال كلمة المرور القوية المعتمدة لهذا الحساب (@kas.sa).',
+      },
+      mfa: 'none',
+    };
   },
 
   signInWithDirectoryOrAutoRoute(
@@ -1289,7 +1548,8 @@ export const authService = {
     email: string,
     _targetCompanyId?: string,
     customFullName?: string,
-    customAvatarUrl?: string
+    customAvatarUrl?: string,
+    authenticatedVia: 'strong_password' | 'approved_google' | 'supabase' = 'strong_password'
   ): {
     data: UserProfile;
     error: null;
@@ -1302,10 +1562,13 @@ export const authService = {
         g.email.toLowerCase() === email.toLowerCase() ||
         g.email.toLowerCase() === cleanId.toLowerCase()
     );
+    const linkedBinding = getLinkedGoogleAccountForKasEmail(email);
     const cachedGoogle = getCachedGoogleProfile();
     const resolvedGooglePhoto =
       customAvatarUrl ||
-      (cachedGoogle?.email?.toLowerCase() === email.toLowerCase()
+      linkedBinding?.googlePhotoUrl ||
+      (cachedGoogle?.email?.toLowerCase() === email.toLowerCase() ||
+      (linkedBinding && cachedGoogle?.email?.toLowerCase() === linkedBinding.googleEmail.toLowerCase())
         ? cachedGoogle?.photoURL || undefined
         : undefined) ||
       matchedGoogle?.photoURL;
@@ -1337,6 +1600,8 @@ export const authService = {
         default_tab_title: directoryStaff.default_tab_title || deptDef.defaultTabTitle,
         allowed_tabs_override: directoryStaff.allowed_tabs_override,
         extra_allowed_departments: directoryStaff.extra_allowed_departments,
+        linked_google_email: linkedBinding?.googleEmail,
+        authenticated_via: authenticatedVia,
         status: 'نشط',
         created_at: new Date().toISOString(),
       };
@@ -1374,6 +1639,8 @@ export const authService = {
       department_name_ar: resolved.departmentDef.nameAr,
       default_tab: resolved.departmentDef.defaultTab,
       default_tab_title: resolved.departmentDef.defaultTabTitle,
+      linked_google_email: linkedBinding?.googleEmail,
+      authenticated_via: authenticatedVia,
       status: 'نشط',
       created_at: new Date().toISOString(),
     };
@@ -1386,11 +1653,12 @@ export const authService = {
     return { data: autoProfile, error: null, mfa: 'none' };
   },
 
-  /** Direct Email Sign-In (validates against @kas.sa Corporate Whitelist & Exclusions). */
+  /** Direct Email Sign-In (validates against @kas.sa Corporate Whitelist, Exclusions & Strong Password). */
   async signInWithEmail(
     emailInput: string,
     fullName?: string,
-    targetCompanyId?: string
+    targetCompanyId?: string,
+    password?: string
   ): Promise<{ data: UserProfile | null; error: { message: string } | null }> {
     const clean = (emailInput || '').trim();
     if (!clean) {
@@ -1408,7 +1676,24 @@ export const authService = {
       };
     }
     const email = this.resolveEmail(clean);
-    const res = this.signInWithDirectoryOrAutoRoute(clean, email, targetCompanyId, fullName);
+    if (!password?.trim() || !verifyKasEmployeePassword(email, password)) {
+      recordFailedAttempt(email);
+      return {
+        data: null,
+        error: {
+          message:
+            'يتطلب تسجيل الدخول بالبريد المؤسسي (@kas.sa) إدخال كلمة المرور القوية المعتمدة الخاصة بالموظف.',
+        },
+      };
+    }
+    const res = this.signInWithDirectoryOrAutoRoute(
+      clean,
+      email,
+      targetCompanyId,
+      fullName,
+      undefined,
+      'strong_password'
+    );
     return { data: res.data, error: null };
   },
 
@@ -1568,7 +1853,7 @@ export const authService = {
     }
   },
 
-  /** Passwordless e-mail sign-in link & instant email verification. */
+  /** Passwordless e-mail sign-in link (dispatches OTP when Supabase is configured; never bypasses strong password locally). */
   async sendMagicLink(identifier: string): Promise<{ error: string | null; user?: UserProfile }> {
     const clean = (identifier || '').trim();
     if (!clean) {
@@ -1585,16 +1870,21 @@ export const authService = {
     const email = this.resolveEmail(clean);
     if (isSupabaseConfigured) {
       try {
-        await supabase.auth.signInWithOtp({
+        const { error } = await supabase.auth.signInWithOtp({
           email,
-          options: { emailRedirectTo: authRedirectUrl(), shouldCreateUser: true },
+          options: { emailRedirectTo: authRedirectUrl(), shouldCreateUser: false },
         });
+        if (!error) {
+          return { error: null };
+        }
       } catch {
-        // Fall through to corporate email session activation
+        // Ignore network errors
       }
     }
-    const { data } = this.signInWithDirectoryOrAutoRoute(clean, email);
-    return { error: null, user: data };
+    return {
+      error:
+        'يرجى تسجيل الدخول باستخدام كلمة المرور القوية المعتمدة لحسابك (@kas.sa)، أو عبر حساب Google الشخصي بعد اعتماده من داخل اللوحة.',
+    };
   },
 
   /** Sends a password-recovery e-mail. */
@@ -1612,10 +1902,19 @@ export const authService = {
     return { error: null };
   },
 
-  /** Sets a new password for the currently authenticated (or recovering) user. */
+  /** Sets a new strong password for the currently authenticated (or recovering) user. */
   async updatePassword(newPassword: string): Promise<{ error: string | null }> {
-    if (!newPassword || newPassword.length < 6) {
-      return { error: 'يجب ألا تقل كلمة المرور عن 6 أحرف.' };
+    const policy = validateStrongPasswordPolicy(newPassword);
+    if (!policy.valid) {
+      return { error: policy.reason || 'كلمة المرور الجديدة لا تستوفي معايير القوة المؤسسية.' };
+    }
+    const current = this.getCurrentUser();
+    if (current?.email) {
+      try {
+        saveCustomEmployeePassword(current.email, newPassword);
+      } catch (e: any) {
+        return { error: e?.message || 'تعذر تحديث كلمة المرور.' };
+      }
     }
     if (!isSupabaseConfigured) return { error: null };
     try {
@@ -1626,208 +1925,123 @@ export const authService = {
     }
   },
 
+  /**
+   * Second-Time Google Authentication:
+   * Only allows Google accounts that were explicitly bound & approved by an authenticated
+   * @kas.sa employee inside the ERP Dashboard after signing in with their strong password.
+   */
   async signInWithGoogle(googleAccount?: {
     email?: string;
     full_name?: string;
     avatar_url?: string;
   }): Promise<{ data?: UserProfile | null; error: { message: string } | null }> {
-    // 1. If a specific Google account was chosen in the Google Account Chooser modal,
-    // authenticate and synchronize its Firebase + Supabase profile & avatar immediately.
-    const explicitEmail = googleAccount?.email?.trim().toLowerCase();
-    if (explicitEmail) {
-      // Reject accounts outside the official list BEFORE caching any Google profile data
-      const allowCheck = validateAllowedCorporateEmail(explicitEmail);
-      if (!allowCheck.allowed) {
+    const completeApprovedGoogleSignIn = async (
+      googleEmailInput: string,
+      displayNameHint?: string,
+      photoHint?: string,
+      firebaseUid?: string,
+      idToken?: string
+    ): Promise<{ data?: UserProfile | null; error: { message: string } | null }> => {
+      const cleanGoogle = googleEmailInput.trim().toLowerCase();
+      const excluded = getExcludedEmailReason(cleanGoogle);
+      if (excluded) {
+        cacheGoogleProfile(null);
+        return { data: null, error: { message: excluded } };
+      }
+
+      const binding = findBindingByGoogleEmail(cleanGoogle);
+      if (!binding) {
         cacheGoogleProfile(null);
         return {
           data: null,
           error: {
             message:
-              allowCheck.reason ||
-              'رفض أمني: هذا البريد الإلكتروني غير مدرج في قائمة حسابات مجموعة خالد السليم المصرح لها بالتسجيل والدخول (@kas.sa).',
+              'رفض أمني: حساب Google هذا غير معتمد بعد. يرجى تسجيل الدخول للمرة الأولى بالبريد الوظيفي (@kas.sa) وكلمة المرور القوية، ثم اعتماد حساب Google الخاص بك من داخل اللوحة.',
           },
         };
       }
 
-      const matchedVerified = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.find(
-        (g) => g.email.toLowerCase() === explicitEmail
-      );
+      const officialKas = findAllowedKasEmployee(binding.kasEmail);
+      if (!officialKas || getExcludedEmailReason(officialKas.email)) {
+        cacheGoogleProfile(null);
+        return {
+          data: null,
+          error: {
+            message: 'رفض أمني: الحساب الوظيفي المرتبط بهذا البريد غير مصرح له بالدخول.',
+          },
+        };
+      }
 
-      let dbUser: any = null;
-      if (isSupabaseConfigured) {
+      if (isSupabaseConfigured && idToken) {
         try {
-          const { data } = await supabase
-            .from('users')
-            .select('id, email, full_name, role, avatar_url, phone')
-            .ilike('email', explicitEmail)
-            .maybeSingle();
-          dbUser = data;
-        } catch {
-          // ignore offline/table errors
+          await supabase.auth.signInWithIdToken({
+            provider: 'google',
+            token: idToken,
+          });
+        } catch (e) {
+          console.warn('[Hybrid Auth] Supabase ID token bridge skipped:', e);
         }
       }
 
       const syncedPhoto =
-        googleAccount?.avatar_url ||
-        dbUser?.avatar_url ||
-        matchedVerified?.photoURL ||
+        photoHint ||
+        binding.googlePhotoUrl ||
         undefined;
-      const syncedName =
-        googleAccount?.full_name ||
-        matchedVerified?.fullNameAr ||
-        dbUser?.full_name ||
-        explicitEmail.split('@')[0];
 
       cacheGoogleProfile({
-        uid: matchedVerified?.uid || dbUser?.id || `GGL-${Date.now()}`,
-        email: explicitEmail,
-        displayName: matchedVerified?.displayName || dbUser?.full_name || syncedName,
+        uid: firebaseUid || `GGL-${officialKas.id}`,
+        email: cleanGoogle,
+        displayName: displayNameHint || binding.googleDisplayName || officialKas.nameAr,
         photoURL: syncedPhoto || null,
-        phoneNumber: dbUser?.phone || matchedVerified?.phone || null,
+        phoneNumber: null,
         emailVerified: true,
-        federatedId: matchedVerified?.federatedId,
         lastLoginAt: new Date().toISOString(),
-        idToken: '',
+        idToken: idToken || '',
       });
 
-      const resolved = resolveDepartmentAndCompany(explicitEmail);
-      try {
-        registerCustomStaffAccount({
-          full_name: syncedName,
-          username: explicitEmail.split('@')[0],
-          email: explicitEmail,
-          role: matchedVerified?.roleAr || resolved.departmentDef.nameAr,
-          company_id: (resolved.companyId === 'all'
-            ? 'all'
-            : (resolved.companyId.toUpperCase() as any)) || 'SAF',
-          department_id: resolved.departmentId,
-          avatar_url: syncedPhoto,
-        });
-      } catch {
-        //Official @kas.sa account already exists in authoritative directory
-      }
-
       const res = this.signInWithDirectoryOrAutoRoute(
-        explicitEmail,
-        this.resolveEmail(explicitEmail),
-        undefined,
-        syncedName,
-        syncedPhoto
+        officialKas.email,
+        officialKas.email,
+        officialKas.company_id,
+        officialKas.nameAr,
+        syncedPhoto,
+        'approved_google'
       );
+      res.data.linked_google_email = cleanGoogle;
+      res.data.authenticated_via = 'approved_google';
       if (syncedPhoto) {
         res.data.avatar_url = syncedPhoto;
       }
       cacheProfile(res.data);
       window.dispatchEvent(new CustomEvent('alsulaim-auth-updated', { detail: { profile: res.data } }));
       return { data: res.data, error: null };
+    };
+
+    // 1. Explicit Google account chosen / entered in Google Sign-In Modal
+    const explicitEmail = googleAccount?.email?.trim().toLowerCase();
+    if (explicitEmail) {
+      return completeApprovedGoogleSignIn(
+        explicitEmail,
+        googleAccount?.full_name,
+        googleAccount?.avatar_url
+      );
     }
 
-    // 2. HYBRID ARCHITECTURE: If Firebase is configured, perform Google Sign-In via Firebase popup
+    // 2. Live Firebase OAuth Popup
     if (isFirebaseConfigured) {
       const fbResult = await signInWithGoogleFirebase();
       if (fbResult.data && fbResult.data.email) {
-        const targetEmail = fbResult.data.email.toLowerCase();
-        const allowCheck = validateAllowedCorporateEmail(targetEmail);
-        if (!allowCheck.allowed) {
-          await signOutFirebase().catch(() => {});
-          cacheGoogleProfile(null);
-          return {
-            data: null,
-            error: {
-              message:
-                allowCheck.reason ||
-                'رفض أمني: حساب Google المختار غير مدرج في القائمة المعتمدة لموظفي مجموعة خالد السليم (@kas.sa).',
-            },
-          };
-        }
-
-        const matchedVerified = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.find(
-          (g) => g.email.toLowerCase() === targetEmail
+        const res = await completeApprovedGoogleSignIn(
+          fbResult.data.email,
+          fbResult.data.displayName || undefined,
+          fbResult.data.photoURL || undefined,
+          fbResult.data.uid,
+          fbResult.data.idToken
         );
-
-        // If Supabase is also configured, attempt session establishment via ID Token
-        if (isSupabaseConfigured && fbResult.data.idToken) {
-          try {
-            await supabase.auth.signInWithIdToken({
-              provider: 'google',
-              token: fbResult.data.idToken,
-            });
-          } catch (e) {
-            console.warn('[Hybrid Auth] Supabase ID token bridge skipped:', e);
-          }
+        if (res.error) {
+          await signOutFirebase().catch(() => {});
         }
-
-        // Fetch user profile & avatar from Supabase `public.users`
-        let dbUser: any = null;
-        if (isSupabaseConfigured) {
-          try {
-            const { data } = await supabase
-              .from('users')
-              .select('id, email, full_name, role, avatar_url, phone')
-              .ilike('email', targetEmail)
-              .maybeSingle();
-            dbUser = data;
-          } catch {}
-        }
-
-        const resolved = resolveDepartmentAndCompany(targetEmail, dbUser?.role);
-        const syncedPhoto =
-          fbResult.data.photoURL ||
-          dbUser?.avatar_url ||
-          matchedVerified?.photoURL ||
-          undefined;
-        const syncedFullName =
-          allowCheck.kasEmployee?.nameAr ||
-          matchedVerified?.fullNameAr ||
-          fbResult.data.displayName ||
-          dbUser?.full_name ||
-          'مستخدم Google المعتمد';
-        const syncedRole =
-          allowCheck.kasEmployee?.titleAr ||
-          matchedVerified?.roleAr ||
-          resolved.departmentDef.nameAr;
-
-        try {
-          registerCustomStaffAccount({
-            full_name: syncedFullName,
-            username: targetEmail.split('@')[0],
-            email: targetEmail,
-            role: syncedRole,
-            company_id: (resolved.companyId === 'all'
-              ? 'all'
-              : (resolved.companyId.toUpperCase() as any)) || 'SAF',
-            department_id: resolved.departmentId,
-            avatar_url: syncedPhoto,
-          });
-        } catch {
-          // Official @kas.sa account already exists in authoritative directory
-        }
-
-        const profile: UserProfile = {
-          id: allowCheck.kasEmployee?.id || dbUser?.id || fbResult.data.uid,
-          username: allowCheck.kasEmployee?.username || targetEmail.split('@')[0],
-          email: targetEmail,
-          full_name: syncedFullName,
-          role: syncedRole,
-          branch: allowCheck.kasEmployee?.branch || 'المقر الرئيسي للمجموعة - الرياض',
-          company_id: resolved.companyId,
-          department_id: resolved.departmentId,
-          department_name_ar: resolved.departmentDef.nameAr,
-          default_tab: allowCheck.kasEmployee?.defaultTab || resolved.departmentDef.defaultTab,
-          default_tab_title: allowCheck.kasEmployee?.defaultTabTitle || resolved.departmentDef.defaultTabTitle,
-          allowed_tabs_override: allowCheck.kasEmployee?.allowedTabsOverride,
-          extra_allowed_departments: allowCheck.kasEmployee?.extraAllowedDepartments,
-          avatar_url: syncedPhoto,
-          status: 'نشط',
-          created_at: new Date().toISOString(),
-        };
-
-        markBrowserSessionAuthenticated();
-        setLockedSessionCompany(resolved.companyId);
-        setLockedSessionDepartment(resolved.departmentId);
-        cacheProfile(profile);
-        window.dispatchEvent(new CustomEvent('alsulaim-auth-updated', { detail: { profile } }));
-        return { data: profile, error: null };
+        return res;
       }
       if (fbResult.error) {
         return { data: null, error: fbResult.error };
@@ -1836,7 +2050,10 @@ export const authService = {
 
     return {
       data: null,
-      error: { message: 'يرجى اختيار حساب Google مؤسسي معتمد (@kas.sa) لإتمام تسجيل الدخول.' },
+      error: {
+        message:
+          'يرجى اختيار أو إدخال حساب Google المعتمد المرتبط بملفك الوظيفي لإتمام تسجيل الدخول.',
+      },
     };
   },
 
@@ -1955,6 +2172,7 @@ export const authService = {
       if (parsed?.email) {
         const official = findAllowedKasEmployee(parsed.email);
         if (official) {
+          const linkedBinding = getLinkedGoogleAccountForKasEmail(official.email);
           return {
             ...parsed,
             company_id: official.company_id,
@@ -1963,6 +2181,7 @@ export const authService = {
             default_tab_title: official.defaultTabTitle,
             allowed_tabs_override: official.allowedTabsOverride,
             extra_allowed_departments: official.extraAllowedDepartments,
+            linked_google_email: linkedBinding?.googleEmail || parsed.linked_google_email,
           };
         }
       }
