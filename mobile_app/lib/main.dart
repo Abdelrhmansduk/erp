@@ -388,8 +388,8 @@ class _ErpMasterFlowHostState extends State<ErpMasterFlowHost> with WidgetsBindi
       _activeDepartment = resolvedDept;
       _authenticatedUserName = staff.fullName;
       _authenticatedUserRole = staff.role;
-      _activeTab = resolvedDept.defaultTab;
-      _activeTabTitle = resolvedDept.defaultTabTitle;
+      _activeTab = staff.defaultTab ?? resolvedDept.defaultTab;
+      _activeTabTitle = staff.defaultTabTitle ?? resolvedDept.defaultTabTitle;
       _seedInitialNotifications(resolvedPortal);
       _flowState = 'workspace';
     });
@@ -401,7 +401,12 @@ class _ErpMasterFlowHostState extends State<ErpMasterFlowHost> with WidgetsBindi
     final password = _passwordController.text.trim();
 
     if (identifier.isEmpty) {
-      setState(() => _authError = 'يرجى إدخال البريد الإلكتروني المؤسسي أو اسم المستخدم للقسم.');
+      setState(() => _authError = 'يرجى إدخال البريد الإلكتروني المؤسسي (@kas.sa) أو اسم المستخدم.');
+      return;
+    }
+    final whitelistErr = ErpSystemData.validateCorporateEmail(identifier);
+    if (whitelistErr != null) {
+      setState(() => _authError = whitelistErr);
       return;
     }
     if (password.length < 4) {
@@ -424,8 +429,9 @@ class _ErpMasterFlowHostState extends State<ErpMasterFlowHost> with WidgetsBindi
           resolved.staffAccount?.fullName ?? resolved.portal.demoEmployeeName;
       _authenticatedUserRole =
           resolved.staffAccount?.role ?? '${resolved.department.nameAr} — ${resolved.portal.nameAr}';
-      _activeTab = resolved.department.defaultTab;
-      _activeTabTitle = resolved.department.defaultTabTitle;
+      _activeTab = resolved.staffAccount?.defaultTab ?? resolved.department.defaultTab;
+      _activeTabTitle =
+          resolved.staffAccount?.defaultTabTitle ?? resolved.department.defaultTabTitle;
       _seedInitialNotifications(resolved.portal);
       _flowState = 'workspace';
     });
@@ -1466,7 +1472,7 @@ class _ErpMasterFlowHostState extends State<ErpMasterFlowHost> with WidgetsBindi
                 keyboardType: TextInputType.emailAddress,
                 style: const TextStyle(fontSize: 13.5, color: ErpTokens.ink, fontWeight: FontWeight.w700),
                 decoration: InputDecoration(
-                  hintText: 'accounting@saf-rec.sa أو saf.accounting',
+                  hintText: 'khalid@kas.sa أو a.alkinani.acc@kas.sa',
                   prefixIcon: const Icon(Icons.alternate_email_rounded, size: 18, color: Color(0xFF71717A)),
                   filled: true,
                   fillColor: ErpTokens.surfaceSubtle,
@@ -1984,23 +1990,38 @@ class _ErpMasterFlowHostState extends State<ErpMasterFlowHost> with WidgetsBindi
                       final ref = 'REG-${portal.companyId}-${DateTime.now().millisecondsSinceEpoch % 10000}';
                       final chosenDept = ErpSystemData.departments[_regSelectedDepartmentId] ??
                           ErpSystemData.departments['recruitment']!;
-                      final regEmail = _regEmailController.text.trim().isNotEmpty
-                          ? _regEmailController.text.trim()
-                          : '${chosenDept.id}.${DateTime.now().millisecondsSinceEpoch % 1000}@${portal.emailDomain}';
+                      final regEmail = _regEmailController.text.trim();
+                      final regErr = ErpSystemData.validateCorporateEmail(regEmail);
+                      if (regErr != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: ErpTokens.statusDanger,
+                            behavior: SnackBarBehavior.floating,
+                            content: Text(
+                              regErr,
+                              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.white),
+                            ),
+                          ),
+                        );
+                        return;
+                      }
                       final registeredAccount = ErpSystemData.registerCustomStaffAccount(
                         email: regEmail,
                         fullName: _regFullNameController.text.trim(),
                         companyId: portal.companyId,
                         departmentId: chosenDept.id,
                       );
+                      final lockedDept = ErpSystemData.departments[registeredAccount.departmentId] ?? chosenDept;
+                      final lockedPortal = ErpSystemData.resolvePortalByCode(registeredAccount.companyId);
                       setState(() {
                         _regReferenceNumber = ref;
-                        _activeDepartment = chosenDept;
+                        _selectedPortal = lockedPortal;
+                        _activeDepartment = lockedDept;
                         _authenticatedUserName = registeredAccount.fullName;
                         _authenticatedUserRole = registeredAccount.role;
                         _emailController.text = registeredAccount.email;
-                        _activeTab = chosenDept.defaultTab;
-                        _activeTabTitle = chosenDept.defaultTabTitle;
+                        _activeTab = registeredAccount.defaultTab ?? lockedDept.defaultTab;
+                        _activeTabTitle = registeredAccount.defaultTabTitle ?? lockedDept.defaultTabTitle;
                         _flowState = 'workspace';
                       });
                       _triggerInstantNativeNotification(
@@ -3990,7 +4011,7 @@ class _ErpMasterFlowHostState extends State<ErpMasterFlowHost> with WidgetsBindi
           lower.contains('سجل عميل') ||
           lower.contains('افتح تذكر') ||
           lower.contains('تسكين نزيل')) {
-        final nowId = 'AI-${compCode}-${DateTime.now().millisecondsSinceEpoch % 10000}';
+        final nowId = 'AI-$compCode-${DateTime.now().millisecondsSinceEpoch % 10000}';
         final isFinance = lower.contains('فاتور') || lower.contains('قيد') || lower.contains('سند');
         final newRec = ErpOperationalRecord(
           id: nowId,

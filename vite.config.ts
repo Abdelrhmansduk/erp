@@ -251,7 +251,7 @@ export default defineConfig({
     port: 5180,
     strictPort: false,
     host: '0.0.0.0',
-    open: true,
+    open: process.env.BROWSER !== 'none',
     watch: {
       usePolling: true,
       interval: 1000,
@@ -267,7 +267,13 @@ export default defineConfig({
           if (id.includes('kasMonafasatSeedData.json')) {
             return 'data-kas-monafasat';
           }
-          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/react-i18next/')) {
+          if (
+            id.includes('node_modules/react/') ||
+            id.includes('node_modules/react-dom/') ||
+            id.includes('node_modules/react-i18next/') ||
+            id.includes('node_modules/@tanstack/') ||
+            id.includes('node_modules/zustand/')
+          ) {
             return 'vendor-react';
           }
           if (id.includes('node_modules/chart.js') || id.includes('node_modules/react-chartjs-2')) {
@@ -291,8 +297,14 @@ export default defineConfig({
           if (id.includes('node_modules/@sentry')) {
             return 'vendor-sentry';
           }
-          if (id.includes('/src/services/') || id.includes('\\src\\services\\')) {
-            return 'erp-services';
+          if (id.includes('node_modules/@microsoft/applicationinsights')) {
+            return 'vendor-appinsights';
+          }
+          if (id.includes('node_modules/zod')) {
+            return 'vendor-zod';
+          }
+          if (id.includes('node_modules/firebase') || id.includes('node_modules/@firebase')) {
+            return 'vendor-firebase';
           }
         }
       }

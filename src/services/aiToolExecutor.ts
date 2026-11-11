@@ -226,7 +226,7 @@ export function inferToolCallFromArabicPrompt(
 
   // 3. Approve Payment Voucher ("اعتمد سند صرف" / "اعتماد سند الصرف")
   if (/(?:اعتمد|اعتماد|وافق\s*على).*(?:سند\s*صرف|سند\s*ال?صرف)/i.test(clean)) {
-    const voucherMatch = clean.match(/(?:رقم|#)\s*([A-Za-z0-9\-]+)/i);
+    const voucherMatch = clean.match(/(?:رقم|#)\s*([A-Za-z0-9-]+)/i);
     const req: ToolCallRequest = {
       id: 'approve_payment_voucher',
       params: {

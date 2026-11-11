@@ -526,7 +526,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const handleBiometricLogin = async () => {
     setErrorMsg(null);
     setSuccessMsg('جاري التحقق من البصمة الرقمية وفتح الجلسة...');
-    await executeUnifiedSignIn(identifier || 'chairman@alsulaim.sa', DEMO_QUICK_LOGIN_SECRET);
+    await executeUnifiedSignIn(identifier || 'khalid@kas.sa', DEMO_QUICK_LOGIN_SECRET);
   };
 
   const handleGoogleButtonClick = () => {
@@ -553,9 +553,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       }
       setStaffDirectory(getFullStaffDirectory());
       setIdentifier(result.user.email);
+      const kasEmp = findAllowedKasEmployee(result.user.email);
       const routeInfo = resolveDepartmentAndCompany(result.user.email);
-      const landingTab = routeInfo.departmentDef.defaultTab;
-      const landingTitle = routeInfo.departmentDef.defaultTabTitle;
+      const landingTab = kasEmp?.defaultTab || routeInfo.departmentDef.defaultTab;
+      const landingTitle = kasEmp?.defaultTabTitle || routeInfo.departmentDef.defaultTabTitle;
 
       if (routeInfo.companyId === 'all') {
         setActiveCompanyId('SAF');
@@ -676,6 +677,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     if (DEMO_AUTH_ENABLED || isRecoveryMode || autoForwardedRef.current) return;
     if (authLoading || !isAuthenticated || !authUser) return;
     autoForwardedRef.current = true;
+    const kasEmp = findAllowedKasEmployee(authUser.email);
     const routeInfo = resolveDepartmentAndCompany(
       authUser.email,
       authUser.role,
@@ -686,7 +688,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     setActiveCompanyId((compUpper === 'all' ? 'SAF' : compUpper) as any);
     useAppStore.getState().setActiveCompanyId(compUpper as any);
     if (onLoginSuccess) {
-      onLoginSuccess(routeInfo.departmentDef.defaultTab, routeInfo.departmentDef.defaultTabTitle);
+      onLoginSuccess(
+        kasEmp?.defaultTab || authUser.default_tab || routeInfo.departmentDef.defaultTab,
+        kasEmp?.defaultTabTitle || authUser.default_tab_title || routeInfo.departmentDef.defaultTabTitle
+      );
     } else {
       setFlowState('welcome');
     }
@@ -834,25 +839,29 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       });
     }
 
-    const newStaff = registerCustomStaffAccount({
-      full_name: regFullName.trim(),
-      username: derivedUsername,
-      email: cleanEmail,
-      role: regJobTitle.trim() || CORPORATE_DEPARTMENTS[regDepartmentId].nameAr,
-      company_id: regCompanyId,
-      department_id: regDepartmentId,
-      branch: COMPANY_AUTH_METADATA[regCompanyId === 'all' ? 'ALL' : regCompanyId]?.nameAr || 'المركز الرئيسي - الرياض',
-      avatar_url: regAvatarUrl.trim() || undefined,
-    });
+    try {
+      const newStaff = registerCustomStaffAccount({
+        full_name: regFullName.trim(),
+        username: derivedUsername,
+        email: cleanEmail,
+        role: regJobTitle.trim() || CORPORATE_DEPARTMENTS[regDepartmentId].nameAr,
+        company_id: regCompanyId,
+        department_id: regDepartmentId,
+        branch: COMPANY_AUTH_METADATA[regCompanyId === 'all' ? 'ALL' : regCompanyId]?.nameAr || 'المركز الرئيسي - الرياض',
+        avatar_url: regAvatarUrl.trim() || undefined,
+      });
 
-    setStaffDirectory(getFullStaffDirectory());
-    setIdentifier(newStaff.email);
-    setPassword(regPassword || DEMO_QUICK_LOGIN_SECRET);
-    setShowDirectoryModal(false);
-    setSuccessMsg(
-      `تم تفعيل حسابك بنجاح (${newStaff.full_name}) — جاري توجيهك إلى ${CORPORATE_DEPARTMENTS[regDepartmentId].nameAr}.`
-    );
-    void executeUnifiedSignIn(newStaff.email, regPassword || DEMO_QUICK_LOGIN_SECRET);
+      setStaffDirectory(getFullStaffDirectory());
+      setIdentifier(newStaff.email);
+      setPassword(regPassword || DEMO_QUICK_LOGIN_SECRET);
+      setShowDirectoryModal(false);
+      setSuccessMsg(
+        `تم تفعيل حسابك بنجاح (${newStaff.full_name}) — جاري توجيهك إلى ${CORPORATE_DEPARTMENTS[newStaff.department_id].nameAr}.`
+      );
+      void executeUnifiedSignIn(newStaff.email, regPassword || DEMO_QUICK_LOGIN_SECRET);
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'رفض أمني: تعذر تفعيل الحساب.');
+    }
   };
 
   const activeSector = useMemo(() => {
@@ -901,7 +910,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       {/* ═══════════════════════════════════════════════════════════════════════
           2. SPLIT LAYOUT: RIGHT = BRAND INTRODUCTION & FEATURES, LEFT = LOGIN CARD
       ═══════════════════════════════════════════════════════════════════════ */}
-      <main className="w-full max-w-[1380px] mx-auto px-4 sm:px-10 py-8 sm:py-12 flex-1 flex items-center relative">
+      <main className={`w-full max-w-[1380px] mx-auto px-4 sm:px-10 py-8 sm:py-12 ${!privacyBannerDismissed ? 'pb-32 lg:pb-12' : ''} flex-1 flex items-center relative`}>
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
           {/* ─── RIGHT COLUMN (In RTL, First Child is on the RIGHT): التعريف بالمنصة + الإليستريشن التحليلي الكبير ─── */}
           <div className="lg:col-span-8 relative py-6 lg:py-10 flex flex-col justify-center text-right">
@@ -1468,7 +1477,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   {[
                     { code: 'ALL_COMPANIES', label: 'جميع الكيانات' },
                     { code: 'ALL', label: 'الإدارة المركزية' },
-                    { code: 'SAF', label: 'الصفا للاستقدام' },
+                    { code: 'SAF', label: 'السفير الماسي' },
                     { code: 'YAQ', label: 'الياقوت للتشغيل' },
                     { code: 'TOP', label: 'توب تالنت ATS' },
                     { code: 'KAS', label: 'كاس للمنافسات' },
@@ -1639,7 +1648,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                         <select
                           value={regCompanyId}
                           onChange={(e) => setRegCompanyId(e.target.value as any)}
-                          className="mobbin-input"
+                          disabled={Boolean(findAllowedKasEmployee(regEmail))}
+                          className="mobbin-input disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                           <option value="all">الإدارة المركزية لمجموعة خالد السليم القابضة (ALL)</option>
                           <option value="SAF">شركة السفير الماسي للاستقدام (SAF)</option>
@@ -1657,7 +1667,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                         <select
                           value={regDepartmentId}
                           onChange={(e) => setRegDepartmentId(e.target.value as DepartmentId)}
-                          className="mobbin-input"
+                          disabled={Boolean(findAllowedKasEmployee(regEmail))}
+                          className="mobbin-input disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                           <option value="finance">قسم المحاسبة والمالية (ERP & ZATCA)</option>
                           <option value="recruitment">قسم الاستقدام ومساند (Recruitment)</option>
@@ -2259,7 +2270,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           SAUDI PDPL ART. 11 & OMAN/EGYPT PDPL PRIVACY & TELEMETRY NOTICE BAR
       ═══════════════════════════════════════════════════════════════════════ */}
       {!privacyBannerDismissed && (
-        <div className="fixed bottom-3 inset-x-4 sm:inset-x-auto sm:left-6 sm:max-w-xl z-40 rounded-2xl bg-[#141414] text-[#ffffff] p-4 shadow-2xl border border-[#333333] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="fixed bottom-3 inset-x-4 lg:inset-x-auto lg:right-6 lg:max-w-xl z-40 rounded-2xl bg-[#141414] text-[#ffffff] p-4 shadow-2xl border border-[#333333] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="text-[11px] leading-relaxed">
             <span className="font-black">إشعار الخصوصية والحد الأدنى للبيانات (Saudi PDPL Art. 11):</span>{' '}
             يستخدم النظام أدوات تشخيص الأعطال التقنية (Sentry EU & Azure AppInsights) لاستقرار الخدمة فقط. يتم{' '}

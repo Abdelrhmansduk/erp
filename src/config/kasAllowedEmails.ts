@@ -67,7 +67,7 @@ export const KAS_EMAIL_NAMING_STANDARD = [
 ] as const;
 
 /**
- * Complete Whitelist of 66 Official @kas.sa Accounts (with #68 Osama Saeed excluded)
+ * Complete Whitelist of 69 Official @kas.sa Accounts (out of 70 total, with #68 Osama Saeed excluded)
  */
 export const KAS_ALLOWED_EMPLOYEES: KasAllowedEmployee[] = [
   // ─── 1. الإدارة التنفيذية العليا وتطوير الأعمال والبرمجة (Executive & Dev) ───────

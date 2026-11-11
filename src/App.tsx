@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { AppShell } from './components/layout/AppShell';
-import { LanguageProvider, useLanguage } from './i18n/LanguageContext';
+import { LanguageProvider } from './i18n/LanguageContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { CompanyProvider } from './contexts/CompanyContext';
 import { IamSessionProvider } from './contexts/IamSessionContext';
@@ -18,14 +18,11 @@ import {
 } from './services/authService';
 import { legalService } from './services/legalService';
 import { useAuthContext } from './contexts/AuthContext';
-import { QuickSearchModal } from './components/common/QuickSearchModal';
 import { UniversalNotificationToaster } from './components/common/UniversalNotificationToaster';
 import { PwaInstallPrompt } from './components/common/PwaInstallPrompt';
-import { AICopilotWidget } from './components/common/AICopilotWidget';
 import { useModuleVisibility } from './hooks/useModuleVisibility';
 import { ExecutiveWelcomeScreen } from './components/auth/ExecutiveWelcomeScreen';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { LegalDisclaimerModal } from './components/legal/LegalDisclaimerModal';
 import { employeeMonitoringService } from './services/employeeMonitoringService';
 import { backgroundExecutionService } from './services/backgroundExecutionService';
 import { realtimeSubscriptionService } from './services/realtimeSubscriptionService';
@@ -123,6 +120,9 @@ const IdentityAccessManagementPage = lazyWithRetry(() => import('./pages/Identit
 const ClientPortalPage = lazyWithRetry(() => import('./pages/ClientPortalPage').then(m => ({ default: m.ClientPortalPage })));
 const ForeignAgencyPortalPage = lazyWithRetry(() => import('./pages/ForeignAgencyPortalPage').then(m => ({ default: m.ForeignAgencyPortalPage })));
 const EmployeeMonitoringPage = lazyWithRetry(() => import('./pages/EmployeeMonitoringPage').then(m => ({ default: m.EmployeeMonitoringPage })));
+const AICopilotWidget = lazyWithRetry(() => import('./components/common/AICopilotWidget').then(m => ({ default: m.AICopilotWidget })));
+const QuickSearchModal = lazyWithRetry(() => import('./components/common/QuickSearchModal').then(m => ({ default: m.QuickSearchModal })));
+const LegalDisclaimerModal = lazyWithRetry(() => import('./components/legal/LegalDisclaimerModal').then(m => ({ default: m.LegalDisclaimerModal })));
 
 const PageFallback: React.FC = () => (
   <div className="flex flex-col items-center justify-center min-h-[400px] w-full p-8">
@@ -478,6 +478,10 @@ const MainContent: React.FC = () => {
       case 'shelter-housing-suite':
         return <ShelterSuitePortalPage />;
 
+      case 'shelter-records':
+      case 'shelter-classic':
+        return <ShelterPage />;
+
       case 'sponsorship-transfer':
       case 'transfer-requests':
       case 'web-transfer-requests':
@@ -657,6 +661,10 @@ const MainContent: React.FC = () => {
       case 'multi-company-iam':
         return <IdentityAccessManagementPage />;
 
+      case 'system-users':
+      case 'users-biometrics':
+        return <UsersPage />;
+
       case 'whatsapp-inbox':
         return <WhatsAppInboxPage />;
 
@@ -803,28 +811,34 @@ const MainContent: React.FC = () => {
               </Suspense>
             </ErrorBoundary>
           </AppShell>
-          <QuickSearchModal onNavigate={handleSelectTab} />
+          <Suspense fallback={null}>
+            <QuickSearchModal onNavigate={handleSelectTab} />
+          </Suspense>
         </>
       )}
 
       {(flowState === 'workspace' || flowState === 'launcher') && !isPartHidden('part:ai-copilot') && (
-        <AICopilotWidget
-          onNavigate={(tabKey, title) => {
-            if (flowState !== 'workspace') {
-              setFlowState('workspace');
-            }
-            handleSelectTab(tabKey, title || '');
-          }}
-        />
+        <Suspense fallback={null}>
+          <AICopilotWidget
+            onNavigate={(tabKey: string, title?: string) => {
+              if (flowState !== 'workspace') {
+                setFlowState('workspace');
+              }
+              handleSelectTab(tabKey, title || '');
+            }}
+          />
+        </Suspense>
       )}
       <UniversalNotificationToaster onNavigate={(tabKey, title) => handleSelectTab(tabKey, title || '')} />
       {(flowState === 'workspace' || flowState === 'launcher') && <PwaInstallPrompt />}
       {showLegalModal && (
-        <LegalDisclaimerModal
-          user={currentUserForLegal}
-          onAcceptAndContinue={() => setShowLegalModal(false)}
-          onLogout={handleLogout}
-        />
+        <Suspense fallback={null}>
+          <LegalDisclaimerModal
+            user={currentUserForLegal}
+            onAcceptAndContinue={() => setShowLegalModal(false)}
+            onLogout={handleLogout}
+          />
+        </Suspense>
       )}
     </>
   );

@@ -351,6 +351,8 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'shelter-places',
       'room-management',
       'food-catering',
+      'shelter-records',
+      'shelter-classic',
       'travel',
       'deportation-flights',
       'deportation-travel',
@@ -537,7 +539,7 @@ export interface StaffDirectoryEntry {
  * to their company (`company_id`) and their specific department (`department_id`).
  */
 export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
-  // ─── 0. القائمة الرسمية المعتمدة لموظفي مجموعة خالد السليم (@kas.sa — 66 حساباً) ────
+  // ─── 0. القائمة الرسمية المعتمدة لموظفي مجموعة خالد السليم (@kas.sa — 69 حساباً معتمداً) ────
   ...KAS_ALLOWED_EMPLOYEES.map((emp) => ({
     id: emp.id,
     username: emp.username,
@@ -1073,7 +1075,25 @@ export function getCustomStaffDirectory(): StaffDirectoryEntry[] {
 }
 
 export function getFullStaffDirectory(): StaffDirectoryEntry[] {
-  const custom = getCustomStaffDirectory();
+  const custom = getCustomStaffDirectory()
+    .filter((c) => c?.email && !getExcludedEmailReason(c.email))
+    .map((c) => {
+      const official = findAllowedKasEmployee(c.email);
+      if (!official) return c;
+      // Enforce authoritative RBAC scope for official @kas.sa accounts even if localStorage was modified
+      return {
+        ...c,
+        id: official.id,
+        username: official.username,
+        email: official.email,
+        company_id: official.company_id,
+        department_id: official.department_id,
+        default_tab: official.defaultTab,
+        default_tab_title: official.defaultTabTitle,
+        suffixCode: official.suffixCode,
+        branch: official.branch,
+      };
+    });
   const seenEmails = new Set(custom.map((c) => c.email.toLowerCase()));
   return [
     ...custom,
@@ -1091,26 +1111,46 @@ export function registerCustomStaffAccount(input: {
   branch?: string;
   avatar_url?: string;
 }): StaffDirectoryEntry {
-  const deptDef = CORPORATE_DEPARTMENTS[input.department_id] || CORPORATE_DEPARTMENTS.finance;
-  const compMeta = COMPANY_AUTH_METADATA[input.company_id === 'all' ? 'ALL' : input.company_id] || COMPANY_AUTH_METADATA.SAF;
+  const cleanEmail = (input.email || '').trim().toLowerCase();
+  const allowCheck = validateAllowedCorporateEmail(cleanEmail);
+  if (!allowCheck.allowed) {
+    throw new Error(
+      allowCheck.reason ||
+        'رفض أمني: هذا البريد الإلكتروني غير مدرج في قائمة حسابات مجموعة خالد السليم المصرح لها بالتسجيل والدخول (@kas.sa).'
+    );
+  }
+
+  const officialKas = findAllowedKasEmployee(cleanEmail);
+  const lockedCompanyId = officialKas ? officialKas.company_id : input.company_id;
+  const lockedDeptId = officialKas ? officialKas.department_id : input.department_id;
+  const deptDef = CORPORATE_DEPARTMENTS[lockedDeptId] || CORPORATE_DEPARTMENTS.finance;
+  const compMeta =
+    COMPANY_AUTH_METADATA[lockedCompanyId === 'all' ? 'ALL' : lockedCompanyId] ||
+    COMPANY_AUTH_METADATA.SAF;
   const matchedGoogle = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS.find(
-    (g) => g.email.toLowerCase() === input.email.trim().toLowerCase()
+    (g) => g.email.toLowerCase() === cleanEmail
   );
   const newEntry: StaffDirectoryEntry = {
-    id: `USR-${input.company_id.toUpperCase()}-${input.department_id.toUpperCase().slice(0, 3)}-${Date.now().toString().slice(-4)}`,
-    username: input.username.trim().toLowerCase(),
-    email: input.email.trim().toLowerCase(),
-    full_name: input.full_name.trim(),
-    role: input.role || `${deptDef.nameAr} — ${compMeta.nameAr}`,
-    company_id: input.company_id,
-    department_id: input.department_id,
-    branch: input.branch || 'الفرع الرئيسي - الرياض',
+    id: officialKas
+      ? officialKas.id
+      : `USR-${lockedCompanyId.toUpperCase()}-${lockedDeptId.toUpperCase().slice(0, 3)}-${Date.now().toString().slice(-4)}`,
+    username: officialKas ? officialKas.username : input.username.trim().toLowerCase(),
+    email: officialKas ? officialKas.email : cleanEmail,
+    full_name: input.full_name.trim() || officialKas?.nameAr || cleanEmail,
+    nameEn: officialKas?.nameEn,
+    role: officialKas ? officialKas.titleAr : input.role || `${deptDef.nameAr} — ${compMeta.nameAr}`,
+    company_id: lockedCompanyId,
+    department_id: lockedDeptId,
+    default_tab: officialKas?.defaultTab || deptDef.defaultTab,
+    default_tab_title: officialKas?.defaultTabTitle || deptDef.defaultTabTitle,
+    suffixCode: officialKas?.suffixCode,
+    branch: officialKas?.branch || input.branch || 'الفرع الرئيسي - الرياض',
     badgeEmoji: deptDef.emoji,
     avatar_url: input.avatar_url || matchedGoogle?.photoURL,
   };
   try {
     const existing = getCustomStaffDirectory().filter(
-      (c) => c.email.toLowerCase() !== newEntry.email && c.username.toLowerCase() !== newEntry.username
+      (c) => c.email.toLowerCase() !== newEntry.email.toLowerCase() && c.username.toLowerCase() !== newEntry.username.toLowerCase()
     );
     localStorage.setItem(CUSTOM_STAFF_STORAGE_KEY, JSON.stringify([newEntry, ...existing]));
   } catch {

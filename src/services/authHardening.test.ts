@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   authService,
   getFullStaffDirectory,
+  registerCustomStaffAccount,
   KAS_ALLOWED_EMPLOYEES,
   EXCLUDED_KAS_EMAILS,
   validateAllowedCorporateEmail,
@@ -353,5 +354,47 @@ describe('authService — session hardening & hybrid email auth characterization
     expect(driver.data?.default_tab).toBe('travel');
     expect(authService.isTabAuthorizedForUser(driver.data, 'travel')).toBe(true);
     expect(authService.isTabAuthorizedForUser(driver.data, 'finance-home')).toBe(false);
+  });
+
+  it('prevents RBAC privilege escalation during account activation and blocks excluded @kas.sa registration', async () => {
+    // 1. Excluded buffet account cannot register via registerCustomStaffAccount
+    expect(() =>
+      registerCustomStaffAccount({
+        full_name: 'أسامة سعيد',
+        username: 'o.saeed.hospitality',
+        email: 'o.saeed.hospitality@kas.sa',
+        company_id: 'all',
+        department_id: 'executive',
+      })
+    ).toThrow(/مطبخ البوفيه/);
+
+    // 2. Unlisted @kas.sa email cannot register
+    expect(() =>
+      registerCustomStaffAccount({
+        full_name: 'مجهول',
+        username: 'stranger',
+        email: 'stranger.unknown@kas.sa',
+        company_id: 'SAF',
+        department_id: 'finance',
+      })
+    ).toThrow(/رفض أمني/);
+
+    // 3. Official @kas.sa employee (driver) attempting to activate as executive/all remains strictly locked to DAR/shelter/travel
+    const activatedDriver = registerCustomStaffAccount({
+      full_name: 'جوسيلينو انكاجاس',
+      username: 'j.encajas.driver',
+      email: 'j.encajas.driver@kas.sa',
+      company_id: 'all',
+      department_id: 'executive',
+    });
+    expect(activatedDriver.company_id).toBe('DAR');
+    expect(activatedDriver.department_id).toBe('shelter');
+    expect(activatedDriver.default_tab).toBe('travel');
+
+    const signedInDriver = await authService.signIn('j.encajas.driver@kas.sa', 'Pass123!');
+    expect(signedInDriver.data?.company_id).toBe('DAR');
+    expect(signedInDriver.data?.department_id).toBe('shelter');
+    expect(signedInDriver.data?.default_tab).toBe('travel');
+    expect(authService.isAdmin(signedInDriver.data)).toBe(false);
   });
 });
