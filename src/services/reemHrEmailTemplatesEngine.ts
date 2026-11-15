@@ -851,16 +851,51 @@ export function decodeUtf8QuotedPrintable(qp: string): string {
  * - Left-aligned dir="ltr" table with official Khalid Al-Sulaim Trading Group PNG logo (135px)
  * - Exact 4-line serif typography ('Times New Roman', Times, Georgia, serif; 14.5px; line-height 1.75; #141414)
  */
+export function enforceLtrPlainLine(line: string): string {
+  const clean = line.replace(/^[\u200E\u200F]+|[\u200E\u200F]+$/g, '').trim();
+  if (!clean) return '';
+  return `\u200E${clean}\u200E`;
+}
+
+export function formatOfficialSalutationAr(rawNameAr?: string): string {
+  const trimmed = (rawNameAr || '').trim().replace(/[،,:]+$/, '').trim();
+  if (!trimmed) {
+    return 'الزميلات والزملاء الكرام في جميع الأقسام،';
+  }
+  if (
+    /^(الزميلات|الزملاء|السادة|الأستاذ|الأستاذة|سعادة|المكرم|المكرمة|فريق|إدارة|منسوبي)/.test(
+      trimmed
+    ) ||
+    /(الكرام|المحترمين|المحترمات|المحترم\/ة|المحترم|المحترمة)$/.test(trimmed)
+  ) {
+    return `${trimmed}،`;
+  }
+  return `الأستاذ / الأستاذة ${trimmed} المحترم/ة،`;
+}
+
+export function formatOfficialSalutationEn(rawNameEn?: string): string {
+  const trimmed = (rawNameEn || '')
+    .replace(/[\u200E\u200F]/g, '')
+    .trim()
+    .replace(/[,:]+$/, '')
+    .trim();
+  if (!trimmed) {
+    return 'Dear colleagues across all departments,';
+  }
+  const withoutLeadingDear = trimmed.replace(/^dear\s+/i, '').trim();
+  return `Dear ${withoutLeadingDear || 'colleagues across all departments'},`;
+}
+
 /**
  * Official plain-text 4-line signature block for Ms. Reem Bin Hussain (HR@kas.sa)
  * Used across RFC 5322 text/plain parts, Outlook Web deeplinks, mailto: links, and HR notifications.
+ * Each line is wrapped with Unicode LRM (\u200E) so Arabic Outlook Desktop renders punctuation and +966 strictly LTR.
  */
 export const REEM_HR_PLAIN_SIGNATURE_BLOCK: string = [
-  `${REEM_HR_SIGNATORY.groupNameAr} — ${REEM_HR_SIGNATORY.groupNameEn}`,
-  REEM_HR_SIGNATORY.signatureNameEn,
-  REEM_HR_SIGNATORY.consultantTitleEn,
-  `Email: ${REEM_HR_SIGNATORY.email}`,
-  `Mobile: ${REEM_HR_SIGNATORY.mobile}`,
+  enforceLtrPlainLine(REEM_HR_SIGNATORY.signatureNameEn),
+  enforceLtrPlainLine(REEM_HR_SIGNATORY.consultantTitleEn),
+  enforceLtrPlainLine(`Email: ${REEM_HR_SIGNATORY.email}`),
+  enforceLtrPlainLine(`Mobile: ${REEM_HR_SIGNATORY.mobile}`),
 ].join('\r\n');
 
 /**
@@ -872,8 +907,8 @@ export function buildReemSignatureBlockHtml(
   logoSrc: string = KAS_TRADING_GROUP_LOGO_DATA_URI
 ): string {
   const serifLineStyle =
-    "margin:0;font-family:'Times New Roman', Times, Georgia, serif;font-size:14.5px;line-height:1.75;color:#141414;";
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="ltr" style="border-collapse:collapse;width:100%;text-align:left;direction:ltr;background-color:#FFFFFF;">
+    "margin:0;font-family:'Times New Roman', Times, Georgia, serif;font-size:14.5px;line-height:1.75;color:#141414;text-align:left;direction:ltr;";
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="ltr" align="left" style="border-collapse:collapse;width:100%;text-align:left;direction:ltr;background-color:#FFFFFF;">
   <tr>
     <td align="left" dir="ltr" style="padding:0;text-align:left;direction:ltr;background-color:#FFFFFF;">
       <img src="${logoSrc}" alt="مجموعة الخالد السليم - KHALID AL-SULAIM TRADING GROUP" width="135" style="display:block;width:135px;height:auto;border:0;margin:0 0 12px 0;" />
@@ -881,10 +916,10 @@ export function buildReemSignatureBlockHtml(
   </tr>
   <tr>
     <td align="left" dir="ltr" style="padding:0;text-align:left;direction:ltr;font-family:'Times New Roman', Times, Georgia, serif;font-size:14.5px;line-height:1.75;color:#141414;background-color:#FFFFFF;">
-      <div style="${serifLineStyle}">${escapeHtml(REEM_HR_SIGNATORY.signatureNameEn)}</div>
-      <div style="${serifLineStyle}">${escapeHtml(REEM_HR_SIGNATORY.consultantTitleEn)}</div>
-      <div style="${serifLineStyle}">Email: ${escapeHtml(REEM_HR_SIGNATORY.email)}</div>
-      <div style="${serifLineStyle}">Mobile: ${escapeHtml(REEM_HR_SIGNATORY.mobile)}</div>
+      <div dir="ltr" align="left" style="${serifLineStyle}">${escapeHtml(REEM_HR_SIGNATORY.signatureNameEn)}</div>
+      <div dir="ltr" align="left" style="${serifLineStyle}">${escapeHtml(REEM_HR_SIGNATORY.consultantTitleEn)}</div>
+      <div dir="ltr" align="left" style="${serifLineStyle}">Email: ${escapeHtml(REEM_HR_SIGNATORY.email)}</div>
+      <div dir="ltr" align="left" style="${serifLineStyle}">Mobile: ${escapeHtml(REEM_HR_SIGNATORY.mobile)}</div>
     </td>
   </tr>
 </table>`;
@@ -923,9 +958,11 @@ function normalizeReemAttachments(attachments?: ReemEmailAttachment[]): ReemEmai
 }
 
 function renderParagraphHtml(p: string, dir: 'rtl' | 'ltr', referenceUrl?: string): string {
-  const trimmed = p.trim();
+  const trimmed = p.replace(/^[\u200E\u200F]+|[\u200E\u200F]+$/g, '').trim();
   const isBullet = trimmed.startsWith('•') || trimmed.startsWith('-');
   const cleanUrl = referenceUrl?.trim();
+  const alignAttr = dir === 'rtl' ? 'right' : 'left';
+  const dirStyle = `text-align:${alignAttr};direction:${dir};`;
 
   let escaped = escapeHtml(trimmed);
   if (cleanUrl && trimmed.includes(cleanUrl)) {
@@ -945,10 +982,10 @@ function renderParagraphHtml(p: string, dir: 'rtl' | 'ltr', referenceUrl?: strin
         ? `<strong>${withoutBullet.slice(0, colonIdx + 1)}</strong>${withoutBullet.slice(colonIdx + 1)}`
         : withoutBullet;
 
-    return `<div style="margin:6px 0;padding-${dir === 'rtl' ? 'right' : 'left'}:14px;line-height:1.75;color:#141414;">&#8226; ${formattedBullet}</div>`;
+    return `<div dir="${dir}" align="${alignAttr}" style="margin:6px 0;padding-${dir === 'rtl' ? 'right' : 'left'}:14px;line-height:1.75;color:#141414;${dirStyle}">&#8226; ${formattedBullet}</div>`;
   }
 
-  return `<p style="margin:0 0 12px 0;line-height:1.8;color:#141414;">${escaped}</p>`;
+  return `<p dir="${dir}" align="${alignAttr}" style="margin:0 0 12px 0;line-height:1.8;color:#141414;${dirStyle}">${escaped}</p>`;
 }
 
 export interface GenerateOutlookDraftEmlInput {
@@ -1148,9 +1185,13 @@ export function composeReemHrOfficialEmail(input: ComposeReemHrEmailInput): Comp
       ? normalizedAttachments.map((att) => att.fileName).join(', ')
       : null;
 
+  const cleanedRecEnForCtx = input.recipientNameEn
+    ? input.recipientNameEn.replace(/^dear\s+/i, '').replace(/[,:]+$/, '').trim()
+    : undefined;
+
   const ctx: ReemHrTemplateContext = {
     recipientNameAr: input.recipientNameAr,
-    recipientNameEn: input.recipientNameEn,
+    recipientNameEn: cleanedRecEnForCtx,
     customBodyAr: input.customBodyAr,
     customBodyEn: input.customBodyEn,
     customDetailsAr: input.customDetailsAr,
@@ -1158,13 +1199,8 @@ export function composeReemHrOfficialEmail(input: ComposeReemHrEmailInput): Comp
     referenceUrl: input.referenceUrl,
   };
 
-  const salutationAr = input.recipientNameAr?.trim()
-    ? `الأستاذ / الأستاذة ${input.recipientNameAr.trim()} المحترم/ة،`
-    : 'الزميلات والزملاء الكرام في جميع الأقسام';
-
-  const salutationEn = input.recipientNameEn?.trim()
-    ? `Dear ${input.recipientNameEn.trim()},`
-    : 'Dear colleagues across all departments,';
+  const salutationAr = formatOfficialSalutationAr(input.recipientNameAr);
+  const salutationEn = formatOfficialSalutationEn(input.recipientNameEn);
 
   const trimmedCustomBodyAr = input.customBodyAr?.trim() || '';
   const trimmedCustomDetailsAr = input.customDetailsAr?.trim() || '';
@@ -1224,19 +1260,19 @@ export function composeReemHrOfficialEmail(input: ComposeReemHrEmailInput): Comp
 
   const renderEmailTableHtml = (logoSrc: string): string => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:760px;margin:0 auto;background-color:#FFFFFF;border:1.5px solid #141414;border-collapse:collapse;">
   <tr>
-    <td dir="rtl" lang="ar" style="padding:24px 26px 20px 26px;text-align:right;direction:rtl;font-family:'Tajawal','Segoe UI',Tahoma,Arial,sans-serif;font-size:14.5px;color:#141414;background-color:#FFFFFF;">
-      <p style="margin:0 0 6px 0;font-weight:800;font-size:15.5px;color:#141414;">السلام عليكم ورحمة الله وبركاته</p>
-      <p style="margin:0 0 16px 0;font-weight:700;font-size:14.5px;color:#141414;">${escapeHtml(salutationAr)}</p>
+    <td dir="rtl" align="right" lang="ar" style="padding:24px 26px 20px 26px;text-align:right;direction:rtl;font-family:'Tajawal','Segoe UI',Tahoma,Arial,sans-serif;font-size:14.5px;color:#141414;background-color:#FFFFFF;">
+      <p dir="rtl" align="right" style="margin:0 0 6px 0;font-weight:800;font-size:15.5px;color:#141414;text-align:right;direction:rtl;">السلام عليكم ورحمة الله وبركاته</p>
+      <p dir="rtl" align="right" style="margin:0 0 16px 0;font-weight:700;font-size:14.5px;color:#141414;text-align:right;direction:rtl;">${escapeHtml(salutationAr)}</p>
       ${attachmentSummaryHtmlAr}
       ${arParagraphsHtml}
-      <div style="margin-top:18px;padding-top:12px;border-top:1px solid #E0E0E0;">
-        <p style="margin:0 0 6px 0;font-weight:600;color:#141414;">شكرا لكم على حسن تعاونكم الدائم مع تمنياتنا للجميع بالتوفيق والنجاح ..</p>
-        <p style="margin:0 0 12px 0;font-weight:600;color:#141414;">تفضلوا بقبول فائق الاحترام ..</p>
+      <div dir="rtl" align="right" style="margin-top:18px;padding-top:12px;border-top:1px solid #E0E0E0;text-align:right;direction:rtl;">
+        <p dir="rtl" align="right" style="margin:0 0 6px 0;font-weight:600;color:#141414;text-align:right;direction:rtl;">شكرا لكم على حسن تعاونكم الدائم مع تمنياتنا للجميع بالتوفيق والنجاح ..</p>
+        <p dir="rtl" align="right" style="margin:0 0 12px 0;font-weight:600;color:#141414;text-align:right;direction:rtl;">تفضلوا بقبول فائق الاحترام ..</p>
         ${
           includeReemSig
-            ? `<p style="margin:0;font-weight:800;font-size:15px;color:#141414;">${escapeHtml(REEM_HR_SIGNATORY.nameAr)}</p>
-        <p style="margin:2px 0 0 0;font-weight:700;font-size:13.5px;color:#141414;">${escapeHtml(REEM_HR_SIGNATORY.titleAr)}</p>`
-            : `<p style="margin:0;font-weight:800;font-size:14.5px;color:#141414;">${escapeHtml(REEM_HR_SIGNATORY.departmentAr)}</p>`
+            ? `<p dir="rtl" align="right" style="margin:0;font-weight:800;font-size:15px;color:#141414;text-align:right;direction:rtl;">${escapeHtml(REEM_HR_SIGNATORY.nameAr)}</p>
+        <p dir="rtl" align="right" style="margin:2px 0 0 0;font-weight:700;font-size:13.5px;color:#141414;text-align:right;direction:rtl;">${escapeHtml(REEM_HR_SIGNATORY.titleAr)}</p>`
+            : `<p dir="rtl" align="right" style="margin:0;font-weight:800;font-size:14.5px;color:#141414;text-align:right;direction:rtl;">${escapeHtml(REEM_HR_SIGNATORY.departmentAr)}</p>`
         }
       </div>
     </td>
@@ -1247,18 +1283,18 @@ export function composeReemHrOfficialEmail(input: ComposeReemHrEmailInput): Comp
     </td>
   </tr>
   <tr>
-    <td dir="ltr" lang="en" style="padding:20px 26px 22px 26px;text-align:left;direction:ltr;font-family:'Segoe UI',Tahoma,Arial,sans-serif;font-size:14px;color:#141414;background-color:#FFFFFF;">
-      <p style="margin:0 0 6px 0;font-weight:700;font-size:14.5px;color:#141414;">Peace, mercy, and blessings of Allah be upon you.</p>
-      <p style="margin:0 0 16px 0;font-weight:700;font-size:14px;color:#141414;">${escapeHtml(salutationEn)}</p>
+    <td dir="ltr" align="left" lang="en" style="padding:20px 26px 22px 26px;text-align:left;direction:ltr;font-family:'Segoe UI',Tahoma,Arial,sans-serif;font-size:14px;color:#141414;background-color:#FFFFFF;">
+      <p dir="ltr" align="left" style="margin:0 0 6px 0;font-weight:700;font-size:14.5px;color:#141414;text-align:left;direction:ltr;">Peace, mercy, and blessings of Allah be upon you.</p>
+      <p dir="ltr" align="left" style="margin:0 0 16px 0;font-weight:700;font-size:14px;color:#141414;text-align:left;direction:ltr;">${escapeHtml(salutationEn)}</p>
       ${enParagraphsHtml}
-      <div style="margin-top:18px;padding-top:12px;border-top:1px solid #E0E0E0;">
-        <p style="margin:0 0 6px 0;font-weight:600;color:#141414;">Thank you for your continuous cooperation, wishing everyone success.</p>
-        <p style="margin:0 0 12px 0;font-weight:600;color:#141414;">Please accept our utmost respect,</p>
+      <div dir="ltr" align="left" style="margin-top:18px;padding-top:12px;border-top:1px solid #E0E0E0;text-align:left;direction:ltr;">
+        <p dir="ltr" align="left" style="margin:0 0 6px 0;font-weight:600;color:#141414;text-align:left;direction:ltr;">Thank you for your continuous cooperation, wishing everyone success.</p>
+        <p dir="ltr" align="left" style="margin:0 0 12px 0;font-weight:600;color:#141414;text-align:left;direction:ltr;">Please accept our utmost respect,</p>
         ${
           includeReemSig
-            ? `<p style="margin:0;font-weight:800;font-size:14.5px;color:#141414;">${escapeHtml(REEM_HR_SIGNATORY.nameEn)}</p>
-        <p style="margin:2px 0 0 0;font-weight:700;font-size:13px;color:#141414;">${escapeHtml(REEM_HR_SIGNATORY.titleEn)}</p>`
-            : `<p style="margin:0;font-weight:800;font-size:14px;color:#141414;">Human Resources Department — ${escapeHtml(REEM_HR_SIGNATORY.groupNameEn)}</p>`
+            ? `<p dir="ltr" align="left" style="margin:0;font-weight:800;font-size:14.5px;color:#141414;text-align:left;direction:ltr;">${escapeHtml(REEM_HR_SIGNATORY.nameEn)}</p>
+        <p dir="ltr" align="left" style="margin:2px 0 0 0;font-weight:700;font-size:13px;color:#141414;text-align:left;direction:ltr;">${escapeHtml(REEM_HR_SIGNATORY.titleEn)}</p>`
+            : `<p dir="ltr" align="left" style="margin:0;font-weight:800;font-size:14px;color:#141414;text-align:left;direction:ltr;">Human Resources Department — ${escapeHtml(REEM_HR_SIGNATORY.groupNameEn)}</p>`
         }
       </div>
     </td>
@@ -1292,16 +1328,19 @@ export function composeReemHrOfficialEmail(input: ComposeReemHrEmailInput): Comp
       ? [REEM_HR_SIGNATORY.nameAr, REEM_HR_SIGNATORY.titleAr]
       : [REEM_HR_SIGNATORY.departmentAr]),
     '',
-    'Peace, mercy, and blessings of Allah be upon you.',
-    salutationEn,
+    enforceLtrPlainLine('Peace, mercy, and blessings of Allah be upon you.'),
+    enforceLtrPlainLine(salutationEn),
     '',
-    ...paragraphsEn,
+    ...paragraphsEn.map((p) => enforceLtrPlainLine(p)),
     '',
-    'Thank you for your continuous cooperation, wishing everyone success.',
-    'Please accept our utmost respect,',
+    enforceLtrPlainLine('Thank you for your continuous cooperation, wishing everyone success.'),
+    enforceLtrPlainLine('Please accept our utmost respect,'),
     ...(includeReemSig
-      ? [REEM_HR_SIGNATORY.nameEn, REEM_HR_SIGNATORY.titleEn]
-      : [`Human Resources Department — ${REEM_HR_SIGNATORY.groupNameEn}`]),
+      ? [
+          enforceLtrPlainLine(REEM_HR_SIGNATORY.nameEn),
+          enforceLtrPlainLine(REEM_HR_SIGNATORY.titleEn),
+        ]
+      : [enforceLtrPlainLine(`Human Resources Department — ${REEM_HR_SIGNATORY.groupNameEn}`)]),
   ];
 
   const plainBodyWithoutFooter = plainBodyBeforeSignatureLines.join('\r\n');

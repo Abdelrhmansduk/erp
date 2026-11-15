@@ -204,8 +204,8 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
   const initialRecipientAr =
     initialRecipientNameAr || 'الزميلات والزملاء الكرام في جميع الأقسام';
   const initialRecipientEn = initialRecipientEmail
-    ? 'Dear Colleague'
-    : 'Dear colleagues across all departments';
+    ? 'Colleague'
+    : 'colleagues across all departments';
   const initialEditableBodies = getReemTemplateDefaultEditableBodies(defaultTemplateId, {
     recipientNameAr: initialRecipientAr,
     recipientNameEn: initialRecipientEn,
@@ -274,7 +274,7 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
         nextRecEn = matched.nameEn;
       } else if (initialRecipientNameAr) {
         nextRecAr = initialRecipientNameAr;
-        nextRecEn = 'Dear Colleague';
+        nextRecEn = 'Colleague';
       }
       setRecipientNameAr(nextRecAr);
       setRecipientNameEn(nextRecEn);
@@ -501,28 +501,28 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
       const list = resolveKasRecipients().map((r) => r.email);
       setSelectedEmails(list);
       setRecipientNameAr('الزميلات والزملاء الكرام في جميع الأقسام');
-      setRecipientNameEn('Dear colleagues across all departments');
+      setRecipientNameEn('colleagues across all departments');
       return;
     }
     if (scopeKey === 'executive') {
       const list = resolveKasRecipients({ departmentId: 'executive' }).map((r) => r.email);
       setSelectedEmails(list);
       setRecipientNameAr('السادة الإدارة العليا وتطوير الأعمال الكرام');
-      setRecipientNameEn('Dear Executive Management & Business Development Team');
+      setRecipientNameEn('Executive Management & Business Development Team');
       return;
     }
     if (scopeKey === 'hr') {
       const list = resolveKasRecipients({ departmentId: 'hr' }).map((r) => r.email);
       setSelectedEmails(list);
       setRecipientNameAr('الزميلات والزملاء في إدارة الموارد البشرية');
-      setRecipientNameEn('Dear Human Resources Department Team');
+      setRecipientNameEn('Human Resources Department Team');
       return;
     }
     if (scopeKey === 'finance') {
       const list = resolveKasRecipients({ departmentId: 'finance' }).map((r) => r.email);
       setSelectedEmails(list);
       setRecipientNameAr('السادة الإدارة المالية والمحاسبة الكرام');
-      setRecipientNameEn('Dear Finance & Accounting Department Team');
+      setRecipientNameEn('Finance & Accounting Department Team');
       return;
     }
     if (scopeKey === 'recruitment_rental') {
@@ -532,7 +532,7 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
       const merged = Array.from(new Set([...rec, ...rent, ...ats]));
       setSelectedEmails(merged);
       setRecipientNameAr('الزميلات والزملاء في إدارات الاستقدام والتأجير');
-      setRecipientNameEn('Dear Recruitment & Leasing Operations Team');
+      setRecipientNameEn('Recruitment & Leasing Operations Team');
       return;
     }
     if (scopeKey === 'shelter_logistics') {
@@ -543,7 +543,7 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
       const merged = Array.from(new Set([logisticsHead, ...shelterList]));
       setSelectedEmails(merged);
       setRecipientNameAr('الزميلات والزملاء في إدارة الإيواء واللوجستيات');
-      setRecipientNameEn('Dear Shelter & Logistics Services Team');
+      setRecipientNameEn('Shelter & Logistics Services Team');
     }
   };
 

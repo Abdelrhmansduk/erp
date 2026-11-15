@@ -198,6 +198,24 @@ describe('Reem HR Official Bilingual Email Engine (HR@kas.sa)', () => {
     expect(composed.htmlBody).toContain('International HR &amp; Talent Acquisition Consultant');
     expect(composed.htmlBody).toContain('Email: HR@kas.sa');
     expect(composed.htmlBody).toContain('Mobile: +966 553452122');
+
+    // WordMail / Classic Outlook explicit BiDi & salutation deduplication checks
+    const groupBroadcast = composeReemHrOfficialEmail({
+      templateId: 'CUSTOM_OFFICIAL_CORRESPONDENCE',
+      recipientNameAr: 'الزميلات والزملاء الكرام في جميع الأقسام',
+      recipientNameEn: 'Dear colleagues across all departments',
+    });
+    expect(groupBroadcast.plainTextBody).toContain('الزميلات والزملاء الكرام في جميع الأقسام،');
+    expect(groupBroadcast.plainTextBody).not.toContain('الأستاذ / الأستاذة الزميلات والزملاء');
+    expect(groupBroadcast.plainTextBody).toContain('\u200EDear colleagues across all departments,\u200E');
+    expect(groupBroadcast.plainTextBody).not.toContain('Dear Dear');
+    expect(groupBroadcast.plainTextBody).toContain(
+      '\u200EPeace, mercy, and blessings of Allah be upon you.\u200E'
+    );
+    expect(groupBroadcast.plainTextBody).toContain('\u200EReem Bin Hussain\u200E');
+    expect(groupBroadcast.plainTextBody).not.toContain(
+      'مجموعة الخالد السليم — KHALID AL-SULAIM TRADING GROUP'
+    );
   });
 
   it('embeds real binary/UTF-8 attachments inside RFC 5322 multipart/mixed wrapping multipart/related with inline CID logo & 4-line signature', () => {

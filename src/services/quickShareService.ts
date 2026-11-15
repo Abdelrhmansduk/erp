@@ -574,7 +574,6 @@ export function buildEntityShareText(
     lines.push('');
     lines.push(`${REEM_HR_SIGNATORY.fullNameAr} — ${REEM_HR_SIGNATORY.titleAr}`);
     lines.push(HR_OFFICIAL_SIGNATURE_TEXT);
-    lines.push(REEM_HR_SIGNATORY.groupNameEn);
   }
 
   return {

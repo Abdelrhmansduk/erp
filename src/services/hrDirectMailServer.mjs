@@ -316,13 +316,13 @@ function ensureSignatureInHtml(htmlBody, cidSrc = `cid:${KAS_GROUP_LOGO_CID}`, i
     return raw;
   }
   const signatureBlock = `
-<div dir="ltr" style="margin-top:20px;padding-top:14px;border-top:1px solid #E0E0E0;font-family:'Times New Roman',Times,Georgia,serif;color:#141414;text-align:left;background-color:#FFFFFF;">
-  <div style="margin-bottom:10px;background-color:#FFFFFF;display:inline-block;padding:4px 8px;border-radius:6px;"><img src="${cidSrc}" alt="KHALID AL-SULAIM TRADING GROUP" width="135" style="display:block;border:0;height:auto;background-color:#FFFFFF;" /></div>
-  <div style="font-size:15px;line-height:1.6;">
-    <div>Reem Bin Hussain</div>
-    <div>International HR &amp; Talent Acquisition Consultant</div>
-    <div>Email: <a href="mailto:HR@kas.sa" style="color:#141414;text-decoration:none;">HR@kas.sa</a></div>
-    <div>Mobile: +966 553452122</div>
+<div dir="ltr" align="left" style="margin-top:20px;padding-top:14px;border-top:1px solid #E0E0E0;font-family:'Times New Roman',Times,Georgia,serif;color:#141414;text-align:left;direction:ltr;background-color:#FFFFFF;">
+  <div dir="ltr" align="left" style="margin-bottom:10px;background-color:#FFFFFF;display:inline-block;padding:4px 8px;border-radius:6px;text-align:left;direction:ltr;"><img src="${cidSrc}" alt="KHALID AL-SULAIM TRADING GROUP" width="135" style="display:block;border:0;height:auto;background-color:#FFFFFF;" /></div>
+  <div dir="ltr" align="left" style="font-size:15px;line-height:1.6;text-align:left;direction:ltr;">
+    <div dir="ltr" align="left" style="text-align:left;direction:ltr;">Reem Bin Hussain</div>
+    <div dir="ltr" align="left" style="text-align:left;direction:ltr;">International HR &amp; Talent Acquisition Consultant</div>
+    <div dir="ltr" align="left" style="text-align:left;direction:ltr;">Email: <a href="mailto:HR@kas.sa" style="color:#141414;text-decoration:none;">HR@kas.sa</a></div>
+    <div dir="ltr" align="left" style="text-align:left;direction:ltr;">Mobile: +966 553452122</div>
   </div>
 </div>`;
   return raw ? `${raw}${signatureBlock}` : signatureBlock;
@@ -337,10 +337,10 @@ function ensureSignatureInPlainText(plainText, includeReemSignature = true) {
     return raw;
   }
   const footer = [
-    'Reem Bin Hussain',
-    'International HR & Talent Acquisition Consultant',
-    'Email: HR@kas.sa',
-    'Mobile: +966 553452122',
+    '\u200EReem Bin Hussain\u200E',
+    '\u200EInternational HR & Talent Acquisition Consultant\u200E',
+    '\u200EEmail: HR@kas.sa\u200E',
+    '\u200EMobile: +966 553452122\u200E',
   ].join('\r\n');
   return raw ? `${raw}\r\n\r\n${footer}` : footer;
 }

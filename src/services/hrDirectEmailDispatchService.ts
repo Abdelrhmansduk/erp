@@ -8,6 +8,7 @@
 import {
   type ComposedReemHrEmail,
   KAS_TRADING_GROUP_LOGO_BASE64,
+  KAS_TRADING_GROUP_LOGO_DATA_URI,
   REEM_HR_SIGNATORY,
   generateLiveSmtpMimeMessage,
 } from './reemHrEmailTemplatesEngine';
@@ -99,9 +100,20 @@ export async function copyReemRichEmailToClipboard(
   htmlBody: string,
   plainTextBody: string
 ): Promise<'rich' | 'plain'> {
-  const fullHtmlFragment = htmlBody.includes('<!--StartFragment-->')
-    ? htmlBody
-    : `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background-color:#FFFFFF;"><!--StartFragment-->${htmlBody}<!--EndFragment--></body></html>`;
+  const originLogoUrl =
+    typeof window !== 'undefined' &&
+    window.location?.origin &&
+    /^https?:/i.test(window.location.origin)
+      ? `${window.location.origin}/logos/khalid-alsulaim-trading-group.png`
+      : null;
+
+  const wordMailCompatibleHtml = originLogoUrl
+    ? htmlBody.split(KAS_TRADING_GROUP_LOGO_DATA_URI).join(originLogoUrl)
+    : htmlBody;
+
+  const fullHtmlFragment = wordMailCompatibleHtml.includes('<!--StartFragment-->')
+    ? wordMailCompatibleHtml
+    : `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background-color:#FFFFFF;"><!--StartFragment-->${wordMailCompatibleHtml}<!--EndFragment--></body></html>`;
 
   if (
     typeof navigator !== 'undefined' &&
@@ -558,9 +570,21 @@ export async function dispatchComposedHrEmailDirect(
   if (isUnconfigured) {
     if (options.openOutlookWebFallbackIfUnconfigured && typeof window !== 'undefined') {
       const copyPromise = copyReemRichEmailToClipboard(composed.htmlBody, composed.plainTextBody);
-      const launchRes = options.alreadyOpenedOutlookWindow
-        ? { opened: true, target: (options.preferredFallbackTarget || 'web') as 'web' | 'desktop' }
-        : openOutlookComposeWindowSeamless(composed, options.preferredFallbackTarget || 'web');
+      let launchRes: { opened: boolean; target: 'web' | 'desktop' };
+      if (options.alreadyOpenedOutlookWindow) {
+        launchRes = {
+          opened: true,
+          target: (options.preferredFallbackTarget || 'web') as 'web' | 'desktop',
+        };
+      } else if ((options.preferredFallbackTarget || 'web') === 'desktop') {
+        const desktopRes = await openOutlookDesktopWithFullDraft(composed);
+        launchRes = { opened: desktopRes.opened, target: 'desktop' };
+      } else {
+        launchRes = openOutlookComposeWindowSeamless(
+          composed,
+          options.preferredFallbackTarget || 'web'
+        );
+      }
       await copyPromise;
 
       await persistOfficialDispatchArchive({
