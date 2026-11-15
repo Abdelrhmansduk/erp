@@ -803,11 +803,22 @@ export function sendHrOfficialEmailDirect(payload: QuickSharePayload): ComposedR
     customBodyArParts.push(...summaryItemsAr);
   }
 
-  const customBodyEn =
-    payload.customBodyEn?.trim() ||
-    `Please find outlined in this official correspondence from the Human Resources Department at Khalid Al-Sulaim Trading Group the approved HR record details (${payload.title}${
-      payload.referenceNumber ? ` — Ref: ${payload.referenceNumber}` : ''
-    }). For any inquiries, please reply directly to ${REEM_HR_SIGNATORY.email}.`;
+  const customBodyEnParts: string[] = [];
+  if (payload.customBodyEn?.trim()) {
+    customBodyEnParts.push(payload.customBodyEn.trim());
+  } else {
+    customBodyEnParts.push(
+      `Please find outlined in this official correspondence from the Human Resources Department at Khalid Al-Sulaim Trading Group the approved HR record details (${payload.title}${
+        payload.referenceNumber ? ` — Ref: ${payload.referenceNumber}` : ''
+      }). For any inquiries, please reply directly to ${REEM_HR_SIGNATORY.email}.`
+    );
+  }
+  if (summaryItemsAr.length > 0 && !payload.customBodyEn?.trim()) {
+    customBodyEnParts.push(...summaryItemsAr);
+  }
+  const customBodyEn = customBodyEnParts.join('\n');
+  const includeReemSignature =
+    payload.includeReemSignature !== undefined ? payload.includeReemSignature : true;
 
   const composed = composeReemHrOfficialEmail({
     templateId: payload.templateId || 'CUSTOM_OFFICIAL_CORRESPONDENCE',
@@ -821,28 +832,77 @@ export function sendHrOfficialEmailDirect(payload: QuickSharePayload): ComposedR
       'Official Human Resources Correspondence - Khalid Al-Sulaim Group',
     customBodyAr: customBodyArParts.join('\n'),
     customBodyEn,
+    includeReemSignature,
   });
 
   useAppStore.getState().addNotification({
     type: 'info',
     title: 'جاري الإرسال المباشر عبر بريد الموارد البشرية (HR@kas.sa)',
-    message: `إرسال فوري إلى ${composed.toEmails.join(', ')} مع نسخة ${composed.ccEmails.join(', ')} بتوقيع أ. ريم بن حسين...`,
+    message: `إرسال فوري إلى ${composed.toEmails.join(', ')} مع نسخة ${composed.ccEmails.join(', ')}${
+      includeReemSignature ? ' بتوقيع أ. ريم بن حسين' : ''
+    }...`,
   });
 
-  void dispatchComposedHrEmailDirect({
-    composed,
-    companyId,
-    templateTitleAr: payload.title,
-    categoryAr: payload.moduleName || 'الموارد البشرية والمراسلات الرسمية',
-    recipientNameAr: recipient.nameAr,
-    recipientNameEn: recipient.nameEn,
-    customBodyAr: customBodyArParts.join('\n'),
-    customBodyEn,
-    customDetailsAr: customBodyArParts.join('\n'),
-    referenceNo: payload.referenceNumber,
-    moduleName: payload.moduleName || 'الموارد البشرية',
-    openOutlookWebFallbackIfUnconfigured: true,
-  })
+  const dispatchWithOptionalAttachment = async () => {
+    let effectiveComposed = composed;
+    try {
+      const candidateFile =
+        payload.attachmentFile ||
+        (payload.attachmentFilePromise ? await payload.attachmentFilePromise : null);
+      if (candidateFile && typeof candidateFile.arrayBuffer === 'function') {
+        const buf = await candidateFile.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let binary = '';
+        for (let i = 0; i < bytes.length; i += 1) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        const base64Content = typeof btoa === 'function' ? btoa(binary) : '';
+        if (base64Content) {
+          effectiveComposed = composeReemHrOfficialEmail({
+            templateId: payload.templateId || 'CUSTOM_OFFICIAL_CORRESPONDENCE',
+            recipientEmails: [recipient.email],
+            ccEmails: [...REEM_HR_SIGNATORY.defaultCc],
+            recipientNameAr: recipient.nameAr,
+            recipientNameEn: recipient.nameEn,
+            customSubjectAr: payload.title,
+            customSubjectEn:
+              payload.customSubjectEn?.trim() ||
+              'Official Human Resources Correspondence - Khalid Al-Sulaim Group',
+            customBodyAr: customBodyArParts.join('\n'),
+            customBodyEn,
+            includeReemSignature,
+            attachments: [
+              {
+                fileName: payload.attachmentFileName || candidateFile.name || 'HR_Official_Document.pdf',
+                mimeType: candidateFile.type || 'application/pdf',
+                base64Content,
+                sizeBytes: candidateFile.size || bytes.length,
+              },
+            ],
+          });
+        }
+      }
+    } catch {
+      // Proceed with effectiveComposed
+    }
+
+    return dispatchComposedHrEmailDirect({
+      composed: effectiveComposed,
+      companyId,
+      templateTitleAr: payload.title,
+      categoryAr: payload.moduleName || 'الموارد البشرية والمراسلات الرسمية',
+      recipientNameAr: recipient.nameAr,
+      recipientNameEn: recipient.nameEn,
+      customBodyAr: customBodyArParts.join('\n'),
+      customBodyEn,
+      customDetailsAr: customBodyArParts.join('\n'),
+      referenceNo: payload.referenceNumber,
+      moduleName: payload.moduleName || 'الموارد البشرية',
+      openOutlookWebFallbackIfUnconfigured: true,
+    });
+  };
+
+  void dispatchWithOptionalAttachment()
     .then((result) => {
       if (result.ok) {
         useAppStore.getState().addNotification({
@@ -902,7 +962,7 @@ export function shareViaEmail(payload: QuickSharePayload): string {
   const cleanBody = body.replace(/\*/g, '');
   const to = (payload.recipientEmail || '').trim();
   const basePrefix = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=`;
-  const maxBodyEncodedBudget = Math.max(400, 1820 - basePrefix.length);
+  const maxBodyEncodedBudget = Math.max(3600, 8200 - basePrefix.length);
   let boundedBody = cleanBody;
   while (boundedBody.length > 40 && encodeURIComponent(boundedBody).length > maxBodyEncodedBudget) {
     boundedBody = `${boundedBody.slice(0, Math.floor(boundedBody.length * 0.82)).trimEnd()}...`;

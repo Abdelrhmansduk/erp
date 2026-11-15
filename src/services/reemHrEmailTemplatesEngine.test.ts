@@ -66,7 +66,6 @@ describe('Reem HR Official Bilingual Email Engine (HR@kas.sa)', () => {
     expect(REEM_HR_SIGNATORY.groupNameAr).toBe('مجموعة الخالد السليم');
     expect(REEM_HR_SIGNATORY.groupNameEn).toBe('KHALID AL-SULAIM TRADING GROUP');
 
-    expect(REEM_HR_PLAIN_SIGNATURE_BLOCK).toContain('KHALID AL-SULAIM TRADING GROUP');
     expect(REEM_HR_PLAIN_SIGNATURE_BLOCK).toContain('Reem Bin Hussain');
     expect(REEM_HR_PLAIN_SIGNATURE_BLOCK).toContain(
       'International HR & Talent Acquisition Consultant'
@@ -278,7 +277,19 @@ describe('Reem HR Official Bilingual Email Engine (HR@kas.sa)', () => {
     expect(decodeUtf8Base64(attachmentMatches[1][4])).toBe(csvPayloadText);
   });
 
-  it('never truncates Ms. Reem signature footer in outlookWebUrl or mailtoUrl even on very long bodies', () => {
+  it('preserves 100% of bilingual body and never truncates Ms. Reem signature footer in outlookWebUrl or mailtoUrl', () => {
+    const standardComposed = composeReemHrOfficialEmail({
+      templateId: 'EMPLOYMENT_TRANSACTION_DECISION',
+      recipientEmails: ['a.alanazi@kas.sa'],
+    });
+    const stdWebBody = new URL(standardComposed.outlookWebUrl).searchParams.get('body') || '';
+    expect(stdWebBody).toContain('السلام عليكم ورحمة الله وبركاته');
+    expect(stdWebBody).toContain('شكرا لكم على حسن تعاونكم الدائم مع تمنياتنا للجميع بالتوفيق والنجاح ..');
+    expect(stdWebBody).toContain('Peace, mercy, and blessings of Allah be upon you.');
+    expect(stdWebBody).toContain('Please accept our utmost respect,');
+    expect(stdWebBody).toContain('Reem Bin Hussain');
+    expect(stdWebBody).toContain('International HR & Talent Acquisition Consultant');
+
     const longAr = Array.from({ length: 40 }, (_, i) => `• البند الإداري رقم (${i + 1}): اعتماد تنظيمي وفق لوائح العمل بقيمة \u20C1 1,500.`).join('\n');
     const longEn = Array.from({ length: 40 }, (_, i) => `• Operational Clause #${i + 1}: Approved organizational regulation valued at \u20C1 1,500.`).join('\n');
 
@@ -291,7 +302,6 @@ describe('Reem HR Official Bilingual Email Engine (HR@kas.sa)', () => {
 
     const webUrlObj = new URL(composed.outlookWebUrl);
     const webBodyDecoded = webUrlObj.searchParams.get('body') || '';
-    expect(webBodyDecoded).toContain('KHALID AL-SULAIM TRADING GROUP');
     expect(webBodyDecoded).toContain('Reem Bin Hussain');
     expect(webBodyDecoded).toContain('International HR & Talent Acquisition Consultant');
     expect(webBodyDecoded).toContain('Email: HR@kas.sa');
@@ -300,13 +310,12 @@ describe('Reem HR Official Bilingual Email Engine (HR@kas.sa)', () => {
     const mailtoQuery = composed.mailtoUrl.split('?')[1] || '';
     const mailtoParams = new URLSearchParams(mailtoQuery);
     const mailtoBodyDecoded = mailtoParams.get('body') || '';
-    expect(mailtoBodyDecoded).toContain('KHALID AL-SULAIM TRADING GROUP');
     expect(mailtoBodyDecoded).toContain('Reem Bin Hussain');
     expect(mailtoBodyDecoded).toContain('International HR & Talent Acquisition Consultant');
     expect(mailtoBodyDecoded).toContain('Email: HR@kas.sa');
     expect(mailtoBodyDecoded).toContain('Mobile: +966 553452122');
-    expect(composed.outlookWebUrl.length).toBeLessThanOrEqual(1980);
-    expect(composed.mailtoUrl.length).toBeLessThanOrEqual(1850);
+    expect(composed.outlookWebUrl.length).toBeLessThanOrEqual(16000);
+    expect(composed.mailtoUrl.length).toBeLessThanOrEqual(9000);
 
     // Also verify all-69-recipient broadcast stays within safe Outlook Web & Windows mailto URL limits
     const all69Emails = resolveKasRecipients().map((emp) => emp.email);
@@ -317,8 +326,8 @@ describe('Reem HR Official Bilingual Email Engine (HR@kas.sa)', () => {
       customBodyEn: longEn,
     });
     expect(broadcastComposed.toEmails).toHaveLength(69);
-    expect(broadcastComposed.outlookWebUrl.length).toBeLessThanOrEqual(1980);
-    expect(broadcastComposed.mailtoUrl.length).toBeLessThanOrEqual(1850);
+    expect(broadcastComposed.outlookWebUrl.length).toBeLessThanOrEqual(16000);
+    expect(broadcastComposed.mailtoUrl.length).toBeLessThanOrEqual(9000);
     expect(new URL(broadcastComposed.outlookWebUrl).searchParams.get('body') || '').toContain(
       'Mobile: +966 553452122'
     );

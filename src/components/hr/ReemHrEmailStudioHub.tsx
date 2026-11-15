@@ -43,10 +43,11 @@ import {
   getHrMailGatewayStatus,
   getProviderDisplayNameAr,
   openOutlookComposeWindowSeamless,
+  openOutlookDesktopWithFullDraft,
   saveHrMailGatewayConfig,
-  triggerMailtoProtocolSafely,
   verifyHrMailGatewayConfig,
 } from '../../services/hrDirectEmailDispatchService';
+import { IncludeReemSignatureToggle } from './ReemHrDocumentSignatureBlock';
 import type { KasDepartmentId } from '../../config/kasAllowedEmails';
 import { realErpDataStore } from '../../services/realErpDataStore';
 import { notificationPopupEngine } from '../../services/notificationPopupEngine';
@@ -222,6 +223,7 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
   const [customDetailsEn, setCustomDetailsEn] = useState<string>('');
   const [referenceUrl, setReferenceUrl] = useState<string>('');
   const [attachedFiles, setAttachedFiles] = useState<ReemEmailAttachment[]>([]);
+  const [includeReemSignature, setIncludeReemSignature] = useState<boolean>(true);
   const [isDispatchingDirect, setIsDispatchingDirect] = useState(false);
 
   // Direct Mail Gateway Configuration State
@@ -597,6 +599,7 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
       customDetailsEn: customDetailsEn.trim() || undefined,
       referenceUrl: referenceUrl.trim() || undefined,
       attachments: attachedFiles,
+      includeReemSignature,
     });
   }, [
     templateId,
@@ -611,6 +614,7 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
     customDetailsEn,
     referenceUrl,
     attachedFiles,
+    includeReemSignature,
   ]);
 
   const sanitizedPreviewHtml = useMemo(
@@ -840,14 +844,18 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
 
   // Action 2B: Open Directly in Outlook Desktop App (olk.exe / OUTLOOK.EXE) + Auto-Copy Rich HTML Signature
   const handleOpenOutlookDesktop = async () => {
-    triggerMailtoProtocolSafely(composed.mailtoUrl);
-    await copyRichHtmlToClipboard(composed.htmlBody, composed.plainTextBody);
+    const copyTask = copyRichHtmlToClipboard(composed.htmlBody, composed.plainTextBody);
+    const desktopLaunch = await openOutlookDesktopWithFullDraft(composed);
+    await copyTask;
     notificationPopupEngine.show({
       type: 'hr',
       priority: 'actionable',
       companyId: effectiveCompanyId,
-      title: 'تم فتح المراسلة في تطبيق Outlook لسطح المكتب',
-      message: `فُتحت نافذة المراسلة في تطبيق Outlook المثبت على جهازك مع التوقيع الرسمي ونسخة ${REEM_HR_SIGNATORY.defaultCc[0]}، وتم نسخ القالب الغني بالشعار للحافظة (اضغط Ctrl+V للصق التنسيق الكامل).`,
+      title:
+        desktopLaunch.mode === 'eml_native'
+          ? 'تم فتح المسودة الكاملة (HTML + الشعار + المرفقات) في Outlook لسطح المكتب'
+          : 'تم فتح المراسلة الكاملة في تطبيق Outlook لسطح المكتب',
+      message: `فُتحت نافذة المراسلة في تطبيق Outlook بكامل المحتوى العربي والإنجليزي والتوقيع الرسمي ونسخة ${REEM_HR_SIGNATORY.defaultCc[0]}، مع نسخ القالب الغني بالشعار للحافظة.`,
     });
   };
 
@@ -1195,42 +1203,51 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
                 </div>
               </div>
 
+              <IncludeReemSignatureToggle
+                checked={includeReemSignature}
+                onChange={setIncludeReemSignature}
+              />
+
               {/* Official Microsoft Outlook Signature Preview Card */}
-              <div
-                dir="ltr"
-                className="rounded-[16px] bg-[#ffffff] border border-[#e0e0e0] p-4 text-left"
-              >
+              {includeReemSignature && (
                 <div
-                  dir="rtl"
-                  className="flex items-center justify-between gap-2 pb-2.5 mb-3 border-b border-[#f0f0f0]"
+                  dir="ltr"
+                  className="rounded-[16px] bg-[#ffffff] border border-[#e0e0e0] p-4 text-left"
                 >
-                  <span className="text-[11px] font-bold text-[#141414]">
-                    التوقيع الرسمي المعتمد في Microsoft Outlook
-                  </span>
-                  <span
-                    dir="ltr"
-                    className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[10px] font-mono text-[#707070]"
+                  <div
+                    dir="rtl"
+                    className="flex items-center justify-between gap-2 pb-2.5 mb-3 border-b border-[#f0f0f0]"
                   >
-                    cid:{KAS_GROUP_LOGO_CID}
-                  </span>
+                    <span className="text-[11px] font-bold text-[#141414]">
+                      التوقيع الرسمي المعتمد في Microsoft Outlook
+                    </span>
+                    <span
+                      dir="ltr"
+                      className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[10px] font-mono text-[#707070]"
+                    >
+                      cid:{KAS_GROUP_LOGO_CID}
+                    </span>
+                  </div>
+                  <div className="bg-[#ffffff] inline-block p-1 rounded-[6px] mb-2">
+                    <img
+                      src={officialLogoSrc}
+                      onError={handleOfficialLogoError}
+                      alt="مجموعة الخالد السليم - KHALID AL-SULAIM TRADING GROUP"
+                      width={135}
+                      className="block w-[135px] h-auto border-0 bg-[#ffffff]"
+                    />
+                  </div>
+                  <div
+                    style={{ fontFamily: "'Times New Roman', Times, Georgia, serif" }}
+                    className="text-[14.5px] leading-[1.75] text-[#141414]"
+                  >
+                    <div>Reem Bin Hussain</div>
+                    <div>International HR &amp; Talent Acquisition Consultant</div>
+                    <div>Email: HR@kas.sa</div>
+                    <div>Mobile: +966 553452122</div>
+                  </div>
                 </div>
-                <img
-                  src={officialLogoSrc}
-                  onError={handleOfficialLogoError}
-                  alt="مجموعة الخالد السليم - KHALID AL-SULAIM TRADING GROUP"
-                  width={135}
-                  className="block w-[135px] h-auto mb-3 border-0"
-                />
-                <div
-                  style={{ fontFamily: "'Times New Roman', Times, Georgia, serif" }}
-                  className="text-[14.5px] leading-[1.75] text-[#141414]"
-                >
-                  <div>Reem Bin Hussain</div>
-                  <div>International HR &amp; Talent Acquisition Consultant</div>
-                  <div>Email: HR@kas.sa</div>
-                  <div>Mobile: +966 553452122</div>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Card 2: Recipient Directory Selector (@kas.sa) */}

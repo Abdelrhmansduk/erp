@@ -426,11 +426,24 @@ export const HrLettersStudioModal: React.FC<HrLettersStudioModalProps> = ({
         ? rawEmpEmail
         : matchedByName?.email || allowedPool[0]?.email || REEM_HR_SIGNATORY.email;
 
+    const includeSalaryBreakdown = [
+      'SALARY_CERTIFICATE',
+      'SALARY_TRANSFER_BANK',
+      'JOB_OFFER_LETTER',
+      'PROMOTION_INCREMENT_DECISION',
+    ].includes(selectedCode);
+
     const customBodyArLines = [
       `• نوع الخطاب الرسمي: ${activeTemplate.titleAr}`,
       `• الرقم المرجعي الموثق: ${letterSerial}`,
       `• موجه إلى: ${directedTo}`,
       `• الشركة المصدرة: ${effectiveCompanyNameAr}`,
+      `• الموظف: ${employee.name} (${employee.employee_code}) — المسمى: ${employee.job_title} — الإدارة: ${employee.department}`,
+      ...(includeSalaryBreakdown
+        ? [
+            `• البيان المالي للراتب: الأساسي \u20C1 ${basicSal.toLocaleString('en-US')} | بدل السكن \u20C1 ${housingSal.toLocaleString('en-US')} | بدل النقل \u20C1 ${transportSal.toLocaleString('en-US')} | الإجمالي الشهري \u20C1 ${employee.salary.toLocaleString('en-US')}`,
+          ]
+        : []),
       effectiveArabicBody,
       ...(customNote.trim() ? [`ملاحظة إضافية معتمدة: ${customNote.trim()}`] : []),
     ];
@@ -440,6 +453,12 @@ export const HrLettersStudioModal: React.FC<HrLettersStudioModalProps> = ({
       `• Verified Reference No: ${letterSerial}`,
       `• Addressed To: ${directedTo}`,
       `• Issuing Entity: ${branding.displayNameEn}`,
+      `• Employee: ${employee.name_en || employee.name} (${employee.employee_code}) — Title: ${employee.job_title} — Dept: ${employee.department}`,
+      ...(includeSalaryBreakdown
+        ? [
+            `• Salary Breakdown: Basic \u20C1 ${basicSal.toLocaleString('en-US')} | Housing \u20C1 ${housingSal.toLocaleString('en-US')} | Transport \u20C1 ${transportSal.toLocaleString('en-US')} | Total Monthly \u20C1 ${employee.salary.toLocaleString('en-US')}`,
+          ]
+        : []),
       effectiveEnglishBody,
       ...(customNote.trim() ? [`Approved Additional Note: ${customNote.trim()}`] : []),
     ];
@@ -454,6 +473,7 @@ export const HrLettersStudioModal: React.FC<HrLettersStudioModalProps> = ({
       customSubjectEn: `${activeTemplate.titleEn} - ${employee.name_en || employee.name} (${letterSerial})`,
       customBodyAr: customBodyArLines.join('\n'),
       customBodyEn: customBodyEnLines.join('\n'),
+      includeReemSignature,
     });
 
     const result = await dispatchComposedHrEmailDirect({

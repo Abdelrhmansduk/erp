@@ -358,6 +358,22 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
   };
 
   const handleShareSummary = (channel: 'whatsapp' | 'email') => {
+    const pdfFileName = buildExecutivePdfFileName(titleInput);
+    const formattedReportRowsLines = activeMatrixForKpis.slice(0, 30).map((row, rIdx) => {
+      const pairs = customizedConfig.headers
+        .map((hdr, cIdx) => {
+          const cellVal = String(row[cIdx] ?? '').trim();
+          return cellVal ? `${hdr}: ${cellVal}` : '';
+        })
+        .filter(Boolean);
+      return `• سجل (${rIdx + 1}): ${pairs.join(' | ')}`;
+    });
+
+    const combinedBodyParts = [
+      ...(executiveNote.trim() ? [executiveNote.trim()] : []),
+      ...(formattedReportRowsLines.length > 0 ? formattedReportRowsLines : []),
+    ];
+
     const sharePayload = {
       title: titleInput,
       entityCode,
@@ -379,21 +395,18 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
             ]
           : []),
       ],
-      bodyText: executiveNote.trim() || undefined,
+      bodyText: combinedBodyParts.length > 0 ? combinedBodyParts.join('\n') : undefined,
+      attachmentFileName: pdfFileName,
+      attachmentFilePromise: generateExecutivePdfArtifact(
+        sectionKey,
+        data,
+        titleInput,
+        customizationOptions
+      ).then((artifact) => artifact?.file ?? null),
     };
 
     if (channel === 'whatsapp') {
-      const pdfFileName = buildExecutivePdfFileName(titleInput);
-      shareViaWhatsApp({
-        ...sharePayload,
-        attachmentFileName: pdfFileName,
-        attachmentFilePromise: generateExecutivePdfArtifact(
-          sectionKey,
-          data,
-          titleInput,
-          customizationOptions
-        ).then((artifact) => artifact?.file ?? null),
-      });
+      shareViaWhatsApp(sharePayload);
     } else {
       shareViaEmail(sharePayload);
     }

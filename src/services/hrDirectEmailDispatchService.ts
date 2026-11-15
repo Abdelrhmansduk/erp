@@ -99,6 +99,10 @@ export async function copyReemRichEmailToClipboard(
   htmlBody: string,
   plainTextBody: string
 ): Promise<'rich' | 'plain'> {
+  const fullHtmlFragment = htmlBody.includes('<!--StartFragment-->')
+    ? htmlBody
+    : `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background-color:#FFFFFF;"><!--StartFragment-->${htmlBody}<!--EndFragment--></body></html>`;
+
   if (
     typeof navigator !== 'undefined' &&
     navigator.clipboard &&
@@ -106,7 +110,7 @@ export async function copyReemRichEmailToClipboard(
     typeof ClipboardItem !== 'undefined'
   ) {
     try {
-      const htmlBlob = new Blob([htmlBody], { type: 'text/html' });
+      const htmlBlob = new Blob([fullHtmlFragment], { type: 'text/html' });
       const textBlob = new Blob([plainTextBody], { type: 'text/plain' });
       await navigator.clipboard.write([
         new ClipboardItem({
@@ -116,7 +120,35 @@ export async function copyReemRichEmailToClipboard(
       ]);
       return 'rich';
     } catch {
-      // Fallback to writeText below
+      // Fallback to DOM copy listener or writeText below
+    }
+  }
+
+  if (typeof document !== 'undefined' && typeof document.execCommand === 'function') {
+    let copiedRichViaDom = false;
+    const onCopy = (e: ClipboardEvent) => {
+      if (!e.clipboardData) return;
+      e.clipboardData.setData('text/html', fullHtmlFragment);
+      e.clipboardData.setData('text/plain', plainTextBody);
+      e.preventDefault();
+      copiedRichViaDom = true;
+    };
+    try {
+      document.addEventListener('copy', onCopy);
+      const textarea = document.createElement('textarea');
+      textarea.value = plainTextBody || ' ';
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      document.removeEventListener('copy', onCopy);
+      if (copiedRichViaDom) {
+        return 'rich';
+      }
+    } catch {
+      document.removeEventListener('copy', onCopy);
     }
   }
 
@@ -172,6 +204,42 @@ export function triggerMailtoProtocolSafely(mailtoUrl: string): boolean {
   } catch {
     return false;
   }
+}
+
+export async function openOutlookDesktopWithFullDraft(
+  composed: ComposedReemHrEmail
+): Promise<{ opened: boolean; mode: 'eml_native' | 'mailto' }> {
+  if (typeof fetch === 'function') {
+    try {
+      const res = await fetch('/api/hr-email-send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'open_desktop_draft',
+          subject: composed.subject,
+          toEmails: composed.toEmails,
+          ccEmails: composed.ccEmails,
+          cidHtmlBody: composed.cidHtmlBody,
+          htmlBody: composed.htmlBody,
+          plainTextBody: composed.plainTextBody,
+          inlineLogoBase64: KAS_TRADING_GROUP_LOGO_BASE64,
+          attachments: composed.attachments,
+          emlContent: composed.emlContent,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (data?.ok && data?.launchedProcess) {
+          return { opened: true, mode: 'eml_native' };
+        }
+      }
+    } catch {
+      // Fall back to mailto below
+    }
+  }
+
+  const opened = triggerMailtoProtocolSafely(composed.mailtoUrl);
+  return { opened, mode: 'mailto' };
 }
 
 export function openOutlookComposeWindowSeamless(

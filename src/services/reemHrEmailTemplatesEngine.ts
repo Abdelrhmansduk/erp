@@ -856,7 +856,6 @@ export function decodeUtf8QuotedPrintable(qp: string): string {
  * Used across RFC 5322 text/plain parts, Outlook Web deeplinks, mailto: links, and HR notifications.
  */
 export const REEM_HR_PLAIN_SIGNATURE_BLOCK: string = [
-  '============================================================',
   `${REEM_HR_SIGNATORY.groupNameAr} — ${REEM_HR_SIGNATORY.groupNameEn}`,
   REEM_HR_SIGNATORY.signatureNameEn,
   REEM_HR_SIGNATORY.consultantTitleEn,
@@ -1098,6 +1097,7 @@ export interface ComposeReemHrEmailInput {
   customDetailsEn?: string;
   referenceUrl?: string;
   attachments?: ReemEmailAttachment[];
+  includeReemSignature?: boolean;
 }
 
 export interface ComposedReemHrEmail {
@@ -1220,6 +1220,8 @@ export function composeReemHrOfficialEmail(input: ComposeReemHrEmailInput): Comp
       ? `<div style="margin:0 0 12px 0;padding:8px 12px;background-color:#F3F3F3;border:1px solid #E0E0E0;border-right:3px solid #141414;font-size:12.5px;font-weight:700;color:#141414;">المرفقات المرفقة مع الرسالة: ${escapeHtml(normalizedAttachments.map((att) => att.fileName).join(' ، '))}</div>`
       : '';
 
+  const includeReemSig = input.includeReemSignature !== false;
+
   const renderEmailTableHtml = (logoSrc: string): string => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:760px;margin:0 auto;background-color:#FFFFFF;border:1.5px solid #141414;border-collapse:collapse;">
   <tr>
     <td dir="rtl" lang="ar" style="padding:24px 26px 20px 26px;text-align:right;direction:rtl;font-family:'Tajawal','Segoe UI',Tahoma,Arial,sans-serif;font-size:14.5px;color:#141414;background-color:#FFFFFF;">
@@ -1230,8 +1232,12 @@ export function composeReemHrOfficialEmail(input: ComposeReemHrEmailInput): Comp
       <div style="margin-top:18px;padding-top:12px;border-top:1px solid #E0E0E0;">
         <p style="margin:0 0 6px 0;font-weight:600;color:#141414;">شكرا لكم على حسن تعاونكم الدائم مع تمنياتنا للجميع بالتوفيق والنجاح ..</p>
         <p style="margin:0 0 12px 0;font-weight:600;color:#141414;">تفضلوا بقبول فائق الاحترام ..</p>
-        <p style="margin:0;font-weight:800;font-size:15px;color:#141414;">${escapeHtml(REEM_HR_SIGNATORY.nameAr)}</p>
-        <p style="margin:2px 0 0 0;font-weight:700;font-size:13.5px;color:#141414;">${escapeHtml(REEM_HR_SIGNATORY.titleAr)}</p>
+        ${
+          includeReemSig
+            ? `<p style="margin:0;font-weight:800;font-size:15px;color:#141414;">${escapeHtml(REEM_HR_SIGNATORY.nameAr)}</p>
+        <p style="margin:2px 0 0 0;font-weight:700;font-size:13.5px;color:#141414;">${escapeHtml(REEM_HR_SIGNATORY.titleAr)}</p>`
+            : `<p style="margin:0;font-weight:800;font-size:14.5px;color:#141414;">${escapeHtml(REEM_HR_SIGNATORY.departmentAr)}</p>`
+        }
       </div>
     </td>
   </tr>
@@ -1248,16 +1254,24 @@ export function composeReemHrOfficialEmail(input: ComposeReemHrEmailInput): Comp
       <div style="margin-top:18px;padding-top:12px;border-top:1px solid #E0E0E0;">
         <p style="margin:0 0 6px 0;font-weight:600;color:#141414;">Thank you for your continuous cooperation, wishing everyone success.</p>
         <p style="margin:0 0 12px 0;font-weight:600;color:#141414;">Please accept our utmost respect,</p>
-        <p style="margin:0;font-weight:800;font-size:14.5px;color:#141414;">${escapeHtml(REEM_HR_SIGNATORY.nameEn)}</p>
-        <p style="margin:2px 0 0 0;font-weight:700;font-size:13px;color:#141414;">${escapeHtml(REEM_HR_SIGNATORY.titleEn)}</p>
+        ${
+          includeReemSig
+            ? `<p style="margin:0;font-weight:800;font-size:14.5px;color:#141414;">${escapeHtml(REEM_HR_SIGNATORY.nameEn)}</p>
+        <p style="margin:2px 0 0 0;font-weight:700;font-size:13px;color:#141414;">${escapeHtml(REEM_HR_SIGNATORY.titleEn)}</p>`
+            : `<p style="margin:0;font-weight:800;font-size:14px;color:#141414;">Human Resources Department — ${escapeHtml(REEM_HR_SIGNATORY.groupNameEn)}</p>`
+        }
       </div>
     </td>
   </tr>
-  <tr>
+  ${
+    includeReemSig
+      ? `<tr>
     <td dir="ltr" lang="en" align="left" style="padding:20px 26px 26px 26px;background-color:#FFFFFF;border-top:1px solid #E0E0E0;text-align:left;direction:ltr;">
       ${buildReemSignatureBlockHtml(logoSrc)}
     </td>
-  </tr>
+  </tr>`
+      : ''
+  }
 </table>`;
 
   const htmlBody = renderEmailTableHtml(KAS_TRADING_GROUP_LOGO_DATA_URI);
@@ -1274,10 +1288,9 @@ export function composeReemHrOfficialEmail(input: ComposeReemHrEmailInput): Comp
     '',
     'شكرا لكم على حسن تعاونكم الدائم مع تمنياتنا للجميع بالتوفيق والنجاح ..',
     'تفضلوا بقبول فائق الاحترام ..',
-    REEM_HR_SIGNATORY.nameAr,
-    REEM_HR_SIGNATORY.titleAr,
-    '',
-    '------------------------------------------------------------',
+    ...(includeReemSig
+      ? [REEM_HR_SIGNATORY.nameAr, REEM_HR_SIGNATORY.titleAr]
+      : [REEM_HR_SIGNATORY.departmentAr]),
     '',
     'Peace, mercy, and blessings of Allah be upon you.',
     salutationEn,
@@ -1286,20 +1299,25 @@ export function composeReemHrOfficialEmail(input: ComposeReemHrEmailInput): Comp
     '',
     'Thank you for your continuous cooperation, wishing everyone success.',
     'Please accept our utmost respect,',
-    REEM_HR_SIGNATORY.nameEn,
-    REEM_HR_SIGNATORY.titleEn,
+    ...(includeReemSig
+      ? [REEM_HR_SIGNATORY.nameEn, REEM_HR_SIGNATORY.titleEn]
+      : [`Human Resources Department — ${REEM_HR_SIGNATORY.groupNameEn}`]),
   ];
 
   const plainBodyWithoutFooter = plainBodyBeforeSignatureLines.join('\r\n');
-  const plainTextBody = `${plainBodyWithoutFooter}\r\n\r\n${REEM_HR_PLAIN_SIGNATURE_BLOCK}`;
+  const plainTextBody = includeReemSig
+    ? `${plainBodyWithoutFooter}\r\n\r\n${REEM_HR_PLAIN_SIGNATURE_BLOCK}`
+    : plainBodyWithoutFooter;
 
   const buildEncodedBudgetBodyWithSignature = (maxEncodedBodyChars: number): string => {
     if (encodeURIComponent(plainTextBody).length <= maxEncodedBodyChars) {
       return plainTextBody;
     }
-    const sigSuffix = `\r\n...\r\n\r\n${REEM_HR_PLAIN_SIGNATURE_BLOCK}`;
+    const sigSuffix = includeReemSig
+      ? `\r\n\r\n${REEM_HR_SIGNATORY.nameAr}\r\n${REEM_HR_SIGNATORY.titleAr}\r\n\r\n${REEM_HR_PLAIN_SIGNATURE_BLOCK}`
+      : `\r\n\r\n${REEM_HR_SIGNATORY.departmentAr} — ${REEM_HR_SIGNATORY.groupNameEn}`;
     const sigEncodedLen = encodeURIComponent(sigSuffix).length;
-    const availableEncodedForHead = Math.max(90, maxEncodedBodyChars - sigEncodedLen);
+    const availableEncodedForHead = Math.max(240, maxEncodedBodyChars - sigEncodedLen);
 
     let low = 0;
     let high = plainBodyWithoutFooter.length;
@@ -1317,7 +1335,7 @@ export function composeReemHrOfficialEmail(input: ComposeReemHrEmailInput): Comp
     }
 
     if (!bestPrefix) {
-      return `${plainBodyWithoutFooter.slice(0, 32).trimEnd()}${sigSuffix}`;
+      return `${plainBodyWithoutFooter.slice(0, 64).trimEnd()}${sigSuffix}`;
     }
     return `${bestPrefix}${sigSuffix}`;
   };
@@ -1346,19 +1364,18 @@ export function composeReemHrOfficialEmail(input: ComposeReemHrEmailInput): Comp
     attachments: normalizedAttachments,
   });
 
-  // Cap URL recipient lists & encoded body length so Microsoft 365 / Entra ID OAuth redirects
-  // (outlook.office.com) and Windows ShellExecute (mailto: / olk.exe / OUTLOOK.EXE) never fail with HTTP 400/414 or CLI overflow.
-  const webToBounded = buildBoundedRecipientList(toEmails, 320);
-  const mailtoToBounded = buildBoundedRecipientList(toEmails, 240);
+  // Pass full recipient list (all 69 @kas.sa emails) and full bilingual body + signature to Outlook Web
+  const webToBounded = buildBoundedRecipientList(toEmails, 2400);
+  const mailtoToBounded = buildBoundedRecipientList(toEmails, 1800);
 
   const toQuery = encodeURIComponent(webToBounded.join(','));
   const ccQuery = encodeURIComponent(ccEmails.join(','));
   const subjectQuery = encodeURIComponent(subject);
 
   const webPrefix = `https://outlook.office.com/mail/deeplink/compose?to=${toQuery}&cc=${ccQuery}&subject=${subjectQuery}&body=`;
-  const webRemainingEncodedBudget = Math.max(480, 1950 - webPrefix.length);
-  const webBodyPreview = buildEncodedBudgetBodyWithSignature(webRemainingEncodedBudget);
-  const outlookWebUrl = `${webPrefix}${encodeURIComponent(webBodyPreview)}`;
+  const webRemainingEncodedBudget = Math.max(4800, 14500 - webPrefix.length);
+  const webBodyFull = buildEncodedBudgetBodyWithSignature(webRemainingEncodedBudget);
+  const outlookWebUrl = `${webPrefix}${encodeURIComponent(webBodyFull)}`;
 
   const mailtoToPath = mailtoToBounded.join(',');
   const mailtoPrefixWithoutBody = [
@@ -1366,13 +1383,13 @@ export function composeReemHrOfficialEmail(input: ComposeReemHrEmailInput): Comp
     `subject=${subjectQuery}`,
   ].join('&');
   const mailtoBaseLen = `mailto:${mailtoToPath}?${mailtoPrefixWithoutBody}&body=`.length;
-  const mailtoRemainingEncodedBudget = Math.max(420, 1820 - mailtoBaseLen);
-  const mailtoBodyPreview = buildEncodedBudgetBodyWithSignature(mailtoRemainingEncodedBudget);
+  const mailtoRemainingEncodedBudget = Math.max(3600, 8200 - mailtoBaseLen);
+  const mailtoBodyFull = buildEncodedBudgetBodyWithSignature(mailtoRemainingEncodedBudget);
 
   const mailtoParams = [
     ...(ccEmails.length > 0 ? [`cc=${ccQuery}`] : []),
     `subject=${subjectQuery}`,
-    `body=${encodeURIComponent(mailtoBodyPreview)}`,
+    `body=${encodeURIComponent(mailtoBodyFull)}`,
   ].join('&');
   const mailtoUrl = `mailto:${mailtoToPath}?${mailtoParams}`;
 

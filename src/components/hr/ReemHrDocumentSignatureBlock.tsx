@@ -90,25 +90,28 @@ export const ReemHrDocumentSignatureBlock: React.FC<ReemHrDocumentSignatureBlock
   return (
     <div
       data-slot="reem-hr-official-signature-block"
-      className={`rounded-[16px] border border-[#141414] bg-[#f3f3f3] ${
-        compact ? 'p-3' : 'p-4'
+      className={`rounded-[16px] border border-[#141414] bg-[#ffffff] ${
+        compact ? 'p-3.5' : 'p-5'
       } text-[#141414] print:bg-[#ffffff] print:border-[#141414] ${className}`}
     >
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         {/* Right Side: Arabic Official HR Signatory & Stamp */}
-        <div className="space-y-1 text-right">
-          <div className="text-[10.5px] font-bold text-[#707070]">
-            اعتماد وتوقيع إدارة الموارد البشرية:
+        <div className="space-y-1 text-right" dir="rtl">
+          <div className="text-[11px] font-semibold text-[#707070]">
+            تفضلوا بقبول فائق الاحترام ..
           </div>
-          <div className="text-sm font-bold text-[#141414]">
-            {REEM_HR_SIGNATORY.fullNameAr}
+          <div className="text-sm font-black text-[#141414] pt-0.5">
+            {REEM_HR_SIGNATORY.nameAr} ({REEM_HR_SIGNATORY.fullNameAr})
           </div>
-          <div className="text-xs font-semibold text-[#262626]">
-            {REEM_HR_SIGNATORY.titleAr} — {REEM_HR_SIGNATORY.departmentAr}
+          <div className="text-xs font-bold text-[#141414]">
+            {REEM_HR_SIGNATORY.titleAr}
           </div>
-          <div className="inline-flex items-center gap-2 flex-wrap pt-1">
+          <div className="text-[11px] font-semibold text-[#707070]">
+            {REEM_HR_SIGNATORY.departmentAr} — {REEM_HR_SIGNATORY.groupNameAr}
+          </div>
+          <div className="inline-flex items-center gap-2 flex-wrap pt-1.5">
             <span className="px-2.5 py-0.5 rounded-full bg-[#141414] text-[#ffffff] text-[10px] font-bold">
-              ✓ توقيع وختم إلكتروني معتمد
+              ✓ توقيع وختم إلكتروني معتمد ({REEM_HR_SIGNATORY.email})
             </span>
             {referenceNumber && (
               <span className="font-mono text-[10px] font-bold text-[#707070]">
@@ -121,35 +124,36 @@ export const ReemHrDocumentSignatureBlock: React.FC<ReemHrDocumentSignatureBlock
           </div>
         </div>
 
-        {/* Left Side: Official 4-Line English Signature + KAS Group Logo */}
+        {/* Left Side: Official Stacked Logo + 4-Line English Serif Signature (Verbatim Outlook Format) */}
         <div
           dir="ltr"
-          className="text-left border-t sm:border-t-0 sm:border-r border-[#e0e0e0] pt-2.5 sm:pt-0 sm:pr-4 flex items-center gap-3"
+          className="text-left border-t sm:border-t-0 sm:border-r border-[#e0e0e0] pt-3 sm:pt-0 sm:pl-4 flex flex-col items-start bg-[#ffffff]"
         >
           {!effectiveHideLogo && (
             <img
               src={KAS_TRADING_GROUP_LOGO_DATA_URI}
               alt={REEM_HR_SIGNATORY.groupBannerText}
-              className="w-24 h-auto object-contain rounded-[8px] border border-[#e0e0e0] bg-[#141414] p-1 shrink-0"
+              style={{ width: compact ? '115px' : '135px', height: 'auto', display: 'block' }}
+              className="object-contain bg-[#ffffff] mb-2.5 shrink-0"
             />
           )}
           <div
             style={{
-              fontFamily: "'Times New Roman', Georgia, serif",
-              lineHeight: 1.35,
+              fontFamily: "'Times New Roman', Times, Georgia, serif",
+              lineHeight: 1.55,
             }}
-            className="text-[#141414]"
+            className="text-[#141414] text-left"
           >
-            <div className="text-[13px] font-bold text-[#141414]">
+            <div className="text-[14px] font-bold text-[#141414]">
               {REEM_HR_SIGNATORY.signatureNameEn}
             </div>
-            <div className="text-[11px] font-bold text-[#262626]">
+            <div className="text-[12.5px] font-normal text-[#141414]">
               {REEM_HR_SIGNATORY.consultantTitleEn}
             </div>
-            <div className="text-[11px] font-bold text-[#141414]">
+            <div className="text-[12.5px] font-normal text-[#141414]">
               Email: {REEM_HR_SIGNATORY.email}
             </div>
-            <div className="text-[11px] font-bold text-[#141414]">
+            <div className="text-[12.5px] font-normal text-[#141414]">
               Mobile: {REEM_HR_SIGNATORY.mobile}
             </div>
           </div>
@@ -176,29 +180,30 @@ export function buildReemHrDocumentSignatureHtml(options?: {
     : '';
   const logoHtml = effectiveHideLogo
     ? ''
-    : `<img src="${KAS_TRADING_GROUP_LOGO_DATA_URI}" alt="${REEM_HR_SIGNATORY.groupBannerText}" style="width:110px;height:auto;border-radius:8px;border:1px solid #e0e0e0;background:#141414;padding:4px;display:block;margin-bottom:6px;" />`;
+    : `<img src="${KAS_TRADING_GROUP_LOGO_DATA_URI}" alt="${REEM_HR_SIGNATORY.groupBannerText}" width="135" style="width:135px;height:auto;display:block;border:0;background:#ffffff;margin:0 0 10px 0;" />`;
 
   return `
-    <div data-reem-hr-signature="true" dir="rtl" style="margin-top:18px;padding:14px 18px;border:1.5px solid #141414;border-radius:14px;background:#f3f3f3;color:#141414;page-break-inside:avoid;break-inside:avoid;">
-      <table style="width:100%;border-collapse:collapse;border:none;">
+    <div data-reem-hr-signature="true" dir="rtl" style="margin-top:18px;padding:16px 20px;border:1.5px solid #141414;border-radius:14px;background:#ffffff;color:#141414;page-break-inside:avoid;break-inside:avoid;">
+      <table style="width:100%;border-collapse:collapse;border:none;background:#ffffff;">
         <tr>
-          <td style="text-align:right;vertical-align:middle;border:none;padding:0;width:55%;">
-            <div style="font-size:10.5px;font-weight:700;color:#707070;">اعتماد وتوقيع مديرة الموارد البشرية (HR Official Signature):</div>
-            <div style="font-size:14px;font-weight:800;color:#141414;margin-top:3px;">${REEM_HR_SIGNATORY.fullNameAr}</div>
-            <div style="font-size:11.5px;font-weight:700;color:#262626;margin-top:2px;">${REEM_HR_SIGNATORY.titleAr} — ${REEM_HR_SIGNATORY.departmentAr}</div>
-            <div style="margin-top:6px;">
+          <td dir="rtl" style="text-align:right;vertical-align:bottom;border:none;padding:0 0 0 16px;width:52%;background:#ffffff;">
+            <div style="font-size:11px;font-weight:600;color:#707070;">تفضلوا بقبول فائق الاحترام ..</div>
+            <div style="font-size:14.5px;font-weight:800;color:#141414;margin-top:4px;">${REEM_HR_SIGNATORY.nameAr} (${REEM_HR_SIGNATORY.fullNameAr})</div>
+            <div style="font-size:12.5px;font-weight:700;color:#141414;margin-top:2px;">${REEM_HR_SIGNATORY.titleAr}</div>
+            <div style="font-size:11px;font-weight:600;color:#707070;margin-top:2px;">${REEM_HR_SIGNATORY.departmentAr} — ${REEM_HR_SIGNATORY.groupNameAr}</div>
+            <div style="margin-top:8px;">
               <span style="display:inline-block;background:#141414;color:#ffffff;font-size:9.5px;font-weight:700;padding:2px 10px;border-radius:9999px;">✓ توقيع وختم إلكتروني معتمد (${REEM_HR_SIGNATORY.email})</span>
               ${refBadge}
               <span style="font-family:monospace;font-size:10px;color:#707070;margin-right:8px;">التاريخ: ${effectiveDate}</span>
             </div>
           </td>
-          <td dir="ltr" style="text-align:left;vertical-align:middle;border:none;border-right:1px solid #e0e0e0;padding:0 0 0 14px;width:45%;">
+          <td dir="ltr" align="left" style="text-align:left;vertical-align:bottom;border:none;border-right:1px solid #e0e0e0;padding:0 16px 0 0;width:48%;background:#ffffff;direction:ltr;">
             ${logoHtml}
-            <div style="font-family:'Times New Roman',Georgia,serif;color:#141414;line-height:1.35;text-align:left;">
-              <div style="font-size:13px;font-weight:bold;color:#141414;">${REEM_HR_SIGNATORY.signatureNameEn}</div>
-              <div style="font-size:11px;font-weight:bold;color:#262626;">${REEM_HR_SIGNATORY.consultantTitleEn.replace(/&/g, '&amp;')}</div>
-              <div style="font-size:11px;font-weight:bold;color:#141414;">Email: ${REEM_HR_SIGNATORY.email}</div>
-              <div style="font-size:11px;font-weight:bold;color:#141414;">Mobile: ${REEM_HR_SIGNATORY.mobile}</div>
+            <div style="font-family:'Times New Roman',Times,Georgia,serif;color:#141414;line-height:1.6;text-align:left;direction:ltr;">
+              <div style="font-size:14px;font-weight:bold;color:#141414;">${REEM_HR_SIGNATORY.signatureNameEn}</div>
+              <div style="font-size:12.5px;font-weight:normal;color:#141414;">${REEM_HR_SIGNATORY.consultantTitleEn.replace(/&/g, '&amp;')}</div>
+              <div style="font-size:12.5px;font-weight:normal;color:#141414;">Email: ${REEM_HR_SIGNATORY.email}</div>
+              <div style="font-size:12.5px;font-weight:normal;color:#141414;">Mobile: ${REEM_HR_SIGNATORY.mobile}</div>
             </div>
           </td>
         </tr>

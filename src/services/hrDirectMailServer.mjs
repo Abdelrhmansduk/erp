@@ -1,8 +1,10 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import net from 'node:net';
 import tls from 'node:tls';
 import crypto from 'node:crypto';
+import { spawn } from 'node:child_process';
 
 export const FIXED_HR_FROM_EMAIL = 'HR@kas.sa';
 export const FIXED_HR_FROM_NAME = 'Reem Bin Hussain - HR';
@@ -305,16 +307,19 @@ function encodeQuotedPrintableUtf8(str) {
   return lines.join('\r\n');
 }
 
-function ensureSignatureInHtml(htmlBody, cidSrc = `cid:${KAS_GROUP_LOGO_CID}`) {
+function ensureSignatureInHtml(htmlBody, cidSrc = `cid:${KAS_GROUP_LOGO_CID}`, includeReemSignature = true) {
   const raw = String(htmlBody || '').trim();
+  if (includeReemSignature === false) {
+    return raw;
+  }
   if (raw.includes('Reem Bin Hussain') && raw.includes('International HR &amp; Talent Acquisition Consultant')) {
     return raw;
   }
   const signatureBlock = `
-<div dir="ltr" style="margin-top:20px;padding-top:14px;border-top:1px solid #E0E0E0;font-family:'Times New Roman',Times,Georgia,serif;color:#141414;text-align:left;">
-  <div style="margin-bottom:10px;"><img src="${cidSrc}" alt="KHALID AL-SULAIM TRADING GROUP" width="128" style="display:block;border:0;height:auto;" /></div>
-  <div style="font-size:15px;line-height:1.45;">
-    <div style="font-weight:700;">Reem Bin Hussain</div>
+<div dir="ltr" style="margin-top:20px;padding-top:14px;border-top:1px solid #E0E0E0;font-family:'Times New Roman',Times,Georgia,serif;color:#141414;text-align:left;background-color:#FFFFFF;">
+  <div style="margin-bottom:10px;background-color:#FFFFFF;display:inline-block;padding:4px 8px;border-radius:6px;"><img src="${cidSrc}" alt="KHALID AL-SULAIM TRADING GROUP" width="135" style="display:block;border:0;height:auto;background-color:#FFFFFF;" /></div>
+  <div style="font-size:15px;line-height:1.6;">
+    <div>Reem Bin Hussain</div>
     <div>International HR &amp; Talent Acquisition Consultant</div>
     <div>Email: <a href="mailto:HR@kas.sa" style="color:#141414;text-decoration:none;">HR@kas.sa</a></div>
     <div>Mobile: +966 553452122</div>
@@ -323,8 +328,11 @@ function ensureSignatureInHtml(htmlBody, cidSrc = `cid:${KAS_GROUP_LOGO_CID}`) {
   return raw ? `${raw}${signatureBlock}` : signatureBlock;
 }
 
-function ensureSignatureInPlainText(plainText) {
+function ensureSignatureInPlainText(plainText, includeReemSignature = true) {
   const raw = String(plainText || '').trim();
+  if (includeReemSignature === false) {
+    return raw;
+  }
   if (raw.includes('Reem Bin Hussain') && raw.includes('Mobile: +966 553452122')) {
     return raw;
   }
@@ -333,7 +341,6 @@ function ensureSignatureInPlainText(plainText) {
     'International HR & Talent Acquisition Consultant',
     'Email: HR@kas.sa',
     'Mobile: +966 553452122',
-    'KHALID AL-SULAIM TRADING GROUP',
   ].join('\r\n');
   return raw ? `${raw}\r\n\r\n${footer}` : footer;
 }
@@ -348,12 +355,15 @@ export function buildServerLiveMimeMessage({
   attachments,
   messageId,
   liveMimeMessage,
+  includeUnsentHeader = false,
+  includeReemSignature = true,
 }) {
   if (typeof liveMimeMessage === 'string' && liveMimeMessage.trim().length > 80) {
-    const withoutUnsent = liveMimeMessage
+    const cleaned = liveMimeMessage
       .replace(/^X-Unsent:.*\r?\n/gim, '')
       .replace(/\r?\n/g, '\r\n');
-    return withoutUnsent.endsWith('\r\n') ? withoutUnsent : `${withoutUnsent}\r\n`;
+    const withUnsent = includeUnsentHeader ? `X-Unsent: 1\r\n${cleaned}` : cleaned;
+    return withUnsent.endsWith('\r\n') ? withUnsent : `${withUnsent}\r\n`;
   }
 
   const rand = crypto.randomBytes(6).toString('hex');
@@ -366,8 +376,12 @@ export function buildServerLiveMimeMessage({
   );
   const encodedSubject = `=?UTF-8?B?${Buffer.from(cleanSubject, 'utf8').toString('base64')}?=`;
   const logoBase64 = loadOfficialGroupLogoBase64(inlineLogoBase64);
-  const safeHtml = ensureSignatureInHtml(cidHtmlBody, `cid:${KAS_GROUP_LOGO_CID}`);
-  const safePlain = ensureSignatureInPlainText(plainTextBody || cleanSubject);
+  const safeHtml = ensureSignatureInHtml(
+    cidHtmlBody,
+    `cid:${KAS_GROUP_LOGO_CID}`,
+    includeReemSignature
+  );
+  const safePlain = ensureSignatureInPlainText(plainTextBody || cleanSubject, includeReemSignature);
   const fullHtml = `<!DOCTYPE html><html lang="ar"><head><meta charset="UTF-8"><title>${cleanSubject}</title></head><body style="margin:0;padding:20px;background-color:#FFFFFF;">${safeHtml}</body></html>`;
 
   const normalizedAtts = Array.isArray(attachments)
@@ -395,7 +409,7 @@ export function buildServerLiveMimeMessage({
     `--${altBoundary}--`,
   ];
 
-  if (logoBase64) {
+  if (logoBase64 && includeReemSignature !== false) {
     relatedLines.push(
       '',
       `--${relatedBoundary}`,
@@ -410,14 +424,19 @@ export function buildServerLiveMimeMessage({
 
   relatedLines.push('', `--${relatedBoundary}--`);
 
+  const msgIdClean = String(
+    messageId || `hr-kas-${Date.now()}-${crypto.randomBytes(4).toString('hex')}@kas.sa`
+  ).replace(/[<>]/g, '');
+
   const lines = [
+    ...(includeUnsentHeader ? ['X-Unsent: 1'] : []),
     `From: "${FIXED_HR_FROM_NAME}" <${FIXED_HR_FROM_EMAIL}>`,
     `Reply-To: "${FIXED_HR_FROM_NAME}" <${FIXED_HR_FROM_EMAIL}>`,
     `To: ${toEmails.join(', ')}`,
     `Cc: ${ccEmails.join(', ')}`,
     `Subject: ${encodedSubject}`,
     `Date: ${new Date().toUTCString()}`,
-    `Message-ID: <${messageId.replace(/[<>]/g, '')}>`,
+    `Message-ID: <${msgIdClean}>`,
     'MIME-Version: 1.0',
   ];
 
@@ -447,6 +466,60 @@ export function buildServerLiveMimeMessage({
 
   lines.push('', `--${mixedBoundary}--`, '');
   return lines.join('\r\n');
+}
+
+export function openLocalWindowsOutlookDraft(payload = {}) {
+  const toEmails = sanitizeRecipientEmails(payload?.toEmails || [], [FIXED_HR_FROM_EMAIL]);
+  const ccEmails = enforceMandatoryCc(payload?.ccEmails || []);
+  const messageId = `hr-kas-draft-${Date.now()}-${crypto.randomBytes(4).toString('hex')}@kas.sa`;
+  const emlDraftContent =
+    typeof payload?.emlContent === 'string' && payload.emlContent.includes('X-Unsent: 1')
+      ? payload.emlContent
+      : buildServerLiveMimeMessage({
+          subject: payload?.subject || 'Official HR Correspondence - HR@kas.sa',
+          toEmails,
+          ccEmails,
+          cidHtmlBody: payload?.cidHtmlBody || payload?.htmlBody || '',
+          plainTextBody: payload?.plainTextBody || '',
+          inlineLogoBase64: payload?.inlineLogoBase64,
+          attachments: payload?.attachments || [],
+          messageId,
+          liveMimeMessage: payload?.liveMimeMessage,
+          includeUnsentHeader: true,
+          includeReemSignature: payload?.includeReemSignature !== false,
+        });
+
+  const tempDir = os.tmpdir();
+  const safeStamp = `${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
+  const tempEmlPath = path.join(tempDir, `KAS_HR_Official_${safeStamp}.eml`);
+  fs.writeFileSync(tempEmlPath, emlDraftContent, 'utf8');
+
+  const isTestEnv = Boolean(process.env.VITEST || process.env.NODE_ENV === 'test');
+  let launchedProcess = false;
+
+  if (!isTestEnv && process.platform === 'win32') {
+    try {
+      const child = spawn('cmd.exe', ['/c', 'start', '', tempEmlPath], {
+        detached: true,
+        stdio: 'ignore',
+        windowsHide: true,
+      });
+      child.unref();
+      launchedProcess = true;
+    } catch {
+      launchedProcess = false;
+    }
+  }
+
+  return {
+    ok: true,
+    openedDesktopDraft: true,
+    launchedProcess,
+    tempEmlPath,
+    messageId,
+    acceptedRecipients: toEmails,
+    ccRecipients: ccEmails,
+  };
 }
 
 // ============================================================================
@@ -1012,6 +1085,11 @@ export async function handleHrDirectMailHttpRequest(req, res) {
     }
 
     const body = await parseJsonRequestBody(req);
+
+    if (body?.action === 'open_desktop_draft') {
+      const desktopRes = openLocalWindowsOutlookDraft(body);
+      return sendJsonResponse(res, 200, desktopRes);
+    }
 
     if (body?.action === 'configure') {
       const savedStatus = saveLocalGatewayConfig(body.config || {});
