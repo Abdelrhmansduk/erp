@@ -199,7 +199,24 @@ export async function saveUnifiedEmployeeProfile(
     iban: String(input.iban ?? base.iban ?? ''),
     leave_balance: Number(input.leave_balance ?? base.leave_balance ?? 21),
     status: String(input.status ?? base.status ?? 'على رأس العمل'),
+    system_role: String(input.system_role ?? base.system_role ?? '').trim() || undefined,
+    notes: String(input.notes ?? base.notes ?? ''),
+    custom_fields: Array.isArray(input.custom_fields)
+      ? input.custom_fields
+          .map((f: any, idx: number) => ({
+            id: String(f?.id || `CF-${idx}-${Date.now()}`),
+            label: String(f?.label || '').trim(),
+            value: String(f?.value ?? '').trim(),
+          }))
+          .filter((f: CustomEmployeeField) => f.label.length > 0 || f.value.length > 0)
+      : Array.isArray(base.custom_fields)
+      ? base.custom_fields
+      : [],
   };
+
+  if (merged.job_title) saveCustomJobTitle(merged.job_title);
+  if (merged.department) saveCustomDepartment(merged.department);
+  if (merged.grade) saveCustomGrade(merged.grade);
 
   if (existingRecord && existingRecord.id) {
     recordFieldLevelChanges({
@@ -412,3 +429,183 @@ export async function softDeletePersistentEmployeeDocument(
   });
   await realErpDataStore.deleteRecord('hr_employee_documents', doc.id);
 }
+
+export interface CustomEmployeeField {
+  id: string;
+  label: string;
+  value: string;
+}
+
+export const CUSTOM_JOB_TITLES_STORAGE_KEY = 'ALSULAIM_CUSTOM_JOB_TITLES_V1';
+export const CUSTOM_DEPARTMENTS_STORAGE_KEY = 'ALSULAIM_CUSTOM_DEPARTMENTS_V1';
+export const CUSTOM_GRADES_STORAGE_KEY = 'ALSULAIM_CUSTOM_GRADES_V1';
+
+export const DEFAULT_JOB_TITLES: string[] = [
+  'مدير عام / رئيس تنفيذي',
+  'مدير موارد بشرية وشؤون موظفين',
+  'أخصائي موارد بشرية',
+  'أخصائي خدمة عملاء',
+  'محاسب عام ومالي',
+  'مدير مالي وامتثال ZATCA',
+  'أخصائي استقدام ومساند',
+  'مشرف إيواء وعمليات',
+  'مستشار قانوني وعقود',
+  'مطور نظم وتقنية معلومات',
+  'منسق عمليات إدارية',
+  'مسؤول مبيعات وعلاقات عامة',
+];
+
+export const DEFAULT_DEPARTMENTS: string[] = [
+  'التشغيل والاستقدام',
+  'إدارة الإيواء',
+  'الإدارة المالية',
+  'خدمة العملاء (CRM)',
+  'الموارد البشرية',
+  'إدارة الفروع والمبيعات',
+  'الإدارة العامة',
+  'تقنية المعلومات والتحول الرقمي',
+  'الشؤون القانونية والحوكمة',
+];
+
+export const DEFAULT_GRADES: string[] = [
+  'الدرجة الأولى (مساعد / متدرب)',
+  'الدرجة الثانية (أخصائي)',
+  'الدرجة الثالثة (أخصائي أول)',
+  'الدرجة الرابعة (قائد فريق / مشرف)',
+  'الدرجة الخامسة (مدير إدارة)',
+  'الدرجة السادسة (مدير تنفيذي / قطاع)',
+  'قيادة عليا (C-Level)',
+];
+
+function readCatalogList(storageKey: string, defaults: string[]): string[] {
+  if (typeof window === 'undefined' || !window.localStorage) {
+    return [...defaults];
+  }
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) return [...defaults];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [...defaults];
+    const cleaned = parsed
+      .map((item) => String(item || '').trim())
+      .filter((item) => item.length > 0);
+    return Array.from(new Set(cleaned));
+  } catch {
+    return [...defaults];
+  }
+}
+
+function writeCatalogList(storageKey: string, items: string[]): string[] {
+  const unique = Array.from(
+    new Set(items.map((item) => String(item || '').trim()).filter((item) => item.length > 0))
+  );
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(unique));
+    } catch {
+      // Ignore storage quota errors in restricted environments
+    }
+  }
+  return unique;
+}
+
+function addCatalogItem(storageKey: string, value: string, defaults: string[]): string[] {
+  const trimmed = String(value || '').trim();
+  const current = readCatalogList(storageKey, defaults);
+  if (!trimmed) return current;
+  if (current.includes(trimmed)) return current;
+  return writeCatalogList(storageKey, [trimmed, ...current]);
+}
+
+function renameCatalogItem(
+  storageKey: string,
+  oldValue: string,
+  newValue: string,
+  defaults: string[]
+): string[] {
+  const oldTrimmed = String(oldValue || '').trim();
+  const newTrimmed = String(newValue || '').trim();
+  const current = readCatalogList(storageKey, defaults);
+  if (!newTrimmed) return current;
+  const updated = current.map((item) => (item === oldTrimmed ? newTrimmed : item));
+  if (!updated.includes(newTrimmed)) {
+    updated.unshift(newTrimmed);
+  }
+  return writeCatalogList(storageKey, updated);
+}
+
+function deleteCatalogItem(storageKey: string, value: string, defaults: string[]): string[] {
+  const trimmed = String(value || '').trim();
+  const current = readCatalogList(storageKey, defaults);
+  return writeCatalogList(
+    storageKey,
+    current.filter((item) => item !== trimmed)
+  );
+}
+
+export function loadCustomJobTitles(): string[] {
+  return readCatalogList(CUSTOM_JOB_TITLES_STORAGE_KEY, DEFAULT_JOB_TITLES);
+}
+
+export function saveCustomJobTitle(title: string): string[] {
+  return addCatalogItem(CUSTOM_JOB_TITLES_STORAGE_KEY, title, DEFAULT_JOB_TITLES);
+}
+
+export function renameCustomJobTitle(oldTitle: string, newTitle: string): string[] {
+  return renameCatalogItem(CUSTOM_JOB_TITLES_STORAGE_KEY, oldTitle, newTitle, DEFAULT_JOB_TITLES);
+}
+
+export function deleteCustomJobTitle(title: string): string[] {
+  return deleteCatalogItem(CUSTOM_JOB_TITLES_STORAGE_KEY, title, DEFAULT_JOB_TITLES);
+}
+
+export async function renameCustomJobTitleAndSyncEmployees(
+  oldTitle: string,
+  newTitle: string
+): Promise<{ titles: string[]; updatedEmployeesCount: number }> {
+  const trimmedOld = String(oldTitle || '').trim();
+  const trimmedNew = String(newTitle || '').trim();
+  const titles = renameCustomJobTitle(trimmedOld, trimmedNew);
+  if (!trimmedOld || !trimmedNew || trimmedOld === trimmedNew) {
+    return { titles, updatedEmployeesCount: 0 };
+  }
+
+  let updatedEmployeesCount = 0;
+  const hrRows = await realErpDataStore.getRecords<any>('hr_employees', []);
+  for (const emp of hrRows) {
+    if (String(emp.job_title || '').trim() === trimmedOld) {
+      await saveUnifiedEmployeeProfile(
+        { ...emp, job_title: trimmedNew },
+        emp,
+        'استوديو المسميات الوظيفية'
+      );
+      updatedEmployeesCount += 1;
+    }
+  }
+  return { titles, updatedEmployeesCount };
+}
+
+export function loadCustomDepartments(): string[] {
+  return readCatalogList(CUSTOM_DEPARTMENTS_STORAGE_KEY, DEFAULT_DEPARTMENTS);
+}
+
+export function saveCustomDepartment(dept: string): string[] {
+  return addCatalogItem(CUSTOM_DEPARTMENTS_STORAGE_KEY, dept, DEFAULT_DEPARTMENTS);
+}
+
+export function deleteCustomDepartment(dept: string): string[] {
+  return deleteCatalogItem(CUSTOM_DEPARTMENTS_STORAGE_KEY, dept, DEFAULT_DEPARTMENTS);
+}
+
+export function loadCustomGrades(): string[] {
+  return readCatalogList(CUSTOM_GRADES_STORAGE_KEY, DEFAULT_GRADES);
+}
+
+export function saveCustomGrade(grade: string): string[] {
+  return addCatalogItem(CUSTOM_GRADES_STORAGE_KEY, grade, DEFAULT_GRADES);
+}
+
+export function deleteCustomGrade(grade: string): string[] {
+  return deleteCatalogItem(CUSTOM_GRADES_STORAGE_KEY, grade, DEFAULT_GRADES);
+}
+

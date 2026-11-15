@@ -55,6 +55,7 @@ import {
   setEntityHideHoldingPreference,
 } from '../../services/entityBrandingService';
 import { shareViaEmail, shareViaWhatsApp } from '../../services/quickShareService';
+import { isHrDocumentSection } from '../hr/ReemHrDocumentSignatureBlock';
 import { useAppStore } from '../../stores/appStore';
 
 export interface ExportPreviewModalProps {
@@ -98,6 +99,9 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
   const [showSignatures, setShowSignatures] = useState<boolean>(true);
   const [showTafqeet, setShowTafqeet] = useState<boolean>(true);
   const [showQrCode, setShowQrCode] = useState<boolean>(true);
+  const [includeReemHrSignature, setIncludeReemHrSignature] = useState<boolean>(() =>
+    isHrDocumentSection(sectionKey, customTitle || baseConfig.sectionTitle)
+  );
   const [customPreparerName, setCustomPreparerName] = useState<string>('');
   const [customFinanceSignatory, setCustomFinanceSignatory] = useState<string>('');
   const [customExecutiveSignatory, setCustomExecutiveSignatory] = useState<string>('');
@@ -122,6 +126,9 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
       resolveDocumentBranding(data, { entityCode: inferred }).hideHoldingGroupBrand
     );
     setTitleInput(customTitle || baseConfig.sectionTitle);
+    setIncludeReemHrSignature(
+      isHrDocumentSection(sectionKey, customTitle || baseConfig.sectionTitle)
+    );
     setSelectedColumnIndices(baseConfig.headers.map((_, idx) => idx));
     setEditableHeaders({});
     setHasEditedCells(false);
@@ -170,6 +177,7 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
       showSignatures,
       showTafqeet,
       showQrCode,
+      includeReemHrSignature,
       entityCode,
       hideHoldingGroupBrand,
       customCompanyNameAr: customCompanyNameAr.trim() || undefined,
@@ -188,6 +196,7 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
       showSignatures,
       showTafqeet,
       showQrCode,
+      includeReemHrSignature,
       entityCode,
       hideHoldingGroupBrand,
       customCompanyNameAr,
@@ -219,8 +228,8 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
   const isLandscapePreview =
     orientation === 'landscape' ||
     (orientation === 'auto' && customizedConfig.headers.length > 6);
-  const basePaperWidth = isLandscapePreview ? 1120 : 840;
-  const minPaperHeight = isLandscapePreview ? 790 : 1120;
+  const basePaperWidth = isLandscapePreview ? 1123 : 794;
+  const minPaperHeight = isLandscapePreview ? 794 : 1123;
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const iframeObserverRef = useRef<ResizeObserver | null>(null);
@@ -354,6 +363,7 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
       entityCode,
       hideHoldingGroupBrand,
       moduleName: sectionKey,
+      includeReemSignature: includeReemHrSignature,
       summaryLines: [
         { label: 'الشركة المصدرة', value: companyInfo.nameAr },
         { label: 'إجمالي السجلات المعتمدة', value: `${activeMatrixForKpis.length} سجل` },
@@ -770,6 +780,12 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
               </label>
               <div className="space-y-1">
                 {[
+                  {
+                    id: 'reem_hr_signature',
+                    checked: includeReemHrSignature,
+                    onChange: () => setIncludeReemHrSignature((v) => !v),
+                    label: 'تضمين توقيع مديرة الموارد البشرية (أ. ريم بن حسين — HR@kas.sa)',
+                  },
                   {
                     id: 'signatures',
                     checked: showSignatures,

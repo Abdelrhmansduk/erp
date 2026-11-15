@@ -42,7 +42,9 @@ import {
   dispatchComposedHrEmailDirect,
   getHrMailGatewayStatus,
   getProviderDisplayNameAr,
+  openOutlookComposeWindowSeamless,
   saveHrMailGatewayConfig,
+  triggerMailtoProtocolSafely,
   verifyHrMailGatewayConfig,
 } from '../../services/hrDirectEmailDispatchService';
 import type { KasDepartmentId } from '../../config/kasAllowedEmails';
@@ -747,7 +749,7 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
     }
   };
 
-  // Action 1 (Primary): Direct Server-Side Network Dispatch (M365 Graph / Office 365 SMTP / Resend)
+  // Action 1 (Primary): Direct Server-Side Network Dispatch (M365 Graph / Office 365 SMTP / Resend) with Seamless Outlook Fallback
   const handleDirectSendEmail = async () => {
     if (selectedEmails.length === 0) {
       notificationPopupEngine.show({
@@ -758,6 +760,11 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
       });
       return;
     }
+
+    const preOpenedSynchronously =
+      gatewayStatus !== null && !gatewayStatus.configured
+        ? openOutlookComposeWindowSeamless(composed, 'web').opened
+        : false;
 
     setIsDispatchingDirect(true);
     try {
@@ -774,7 +781,8 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
         customDetailsEn,
         referenceUrl,
         moduleName: 'reem_hr_email_studio',
-        openOutlookWebFallbackIfUnconfigured: false,
+        openOutlookWebFallbackIfUnconfigured: true,
+        alreadyOpenedOutlookWindow: preOpenedSynchronously,
       });
 
       if (result.ok) {
@@ -792,20 +800,15 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
         return;
       }
 
-      if (result.unconfigured) {
-        setGwFeedback({
-          ok: false,
-          text:
-            result.errorAr ||
-            'أدخل بيانات اتصال Office 365 SMTP أو Microsoft 365 Graph API لإتمام الإرسال المباشر صامتاً عبر الخادم.',
-        });
-        setShowGatewayModal(true);
+      if (result.openedInOutlookWeb) {
+        await loadArchivedEmails();
+        onEmailDispatched?.();
         notificationPopupEngine.show({
-          type: 'warning',
+          type: 'hr',
           priority: 'actionable',
           companyId: effectiveCompanyId,
-          title: 'مطلوب تفعيل بوابة الربط المباشر لبريد HR@kas.sa',
-          message: 'يرجى إدخال بيانات اتصال Office 365 SMTP أو Microsoft 365 Graph في نافذة الإعدادات المفتوحة للإرسال المباشر دون تنزيل ملفات.',
+          title: `تم فتح المراسلة مباشرة في Outlook (${result.referenceNo})`,
+          message: `تم فتح نافذة الإرسال في Outlook مباشرة مع نسخ القالب الرسمي الغني بشعار المجموعة وتوقيع أ. ${REEM_HR_SIGNATORY.fullNameAr} للحافظة (اضغط Ctrl+V للصق البطاقة المنسقة كاملة).`,
         });
         return;
       }
@@ -824,17 +827,27 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
 
   // Action 2: Open Directly in Outlook Web (outlook.office.com) + Auto-Copy Rich HTML Signature
   const handleOpenOutlookWeb = async () => {
-    const copyPromise = copyRichHtmlToClipboard(composed.htmlBody, composed.plainTextBody);
-    if (typeof window !== 'undefined') {
-      window.open(composed.outlookWebUrl, '_blank', 'noopener,noreferrer');
-    }
-    await copyPromise;
+    openOutlookComposeWindowSeamless(composed, 'web');
+    await copyRichHtmlToClipboard(composed.htmlBody, composed.plainTextBody);
     notificationPopupEngine.show({
       type: 'hr',
       priority: 'actionable',
       companyId: effectiveCompanyId,
       title: 'تم فتح المراسلة مباشرة في Outlook Web دون تحميل ملفات',
-      message: `تم تمرير المستلمين (${composed.toEmails.length} حساب @kas.sa) ونسخة الإدارة العليا (${REEM_HR_SIGNATORY.defaultCc[0]}) والتوقيع الكامل إلى بوابة outlook.office.com، مع نسخ القالب الغني بالشعار للحافظة.`,
+      message: `تم تمرير المستلمين ونسخة الإدارة العليا (${REEM_HR_SIGNATORY.defaultCc[0]}) والتوقيع الكامل إلى بوابة outlook.office.com، مع نسخ القالب الغني بالشعار للحافظة (اضغط Ctrl+V للصق البطاقة المنسقة).`,
+    });
+  };
+
+  // Action 2B: Open Directly in Outlook Desktop App (olk.exe / OUTLOOK.EXE) + Auto-Copy Rich HTML Signature
+  const handleOpenOutlookDesktop = async () => {
+    triggerMailtoProtocolSafely(composed.mailtoUrl);
+    await copyRichHtmlToClipboard(composed.htmlBody, composed.plainTextBody);
+    notificationPopupEngine.show({
+      type: 'hr',
+      priority: 'actionable',
+      companyId: effectiveCompanyId,
+      title: 'تم فتح المراسلة في تطبيق Outlook لسطح المكتب',
+      message: `فُتحت نافذة المراسلة في تطبيق Outlook المثبت على جهازك مع التوقيع الرسمي ونسخة ${REEM_HR_SIGNATORY.defaultCc[0]}، وتم نسخ القالب الغني بالشعار للحافظة (اضغط Ctrl+V للصق التنسيق الكامل).`,
     });
   };
 
@@ -850,6 +863,18 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
           ? 'تم نسخ البريد المنسق الغني (HTML) للصق المباشر في Outlook'
           : 'تم نسخ النص الكامل ثنائي اللغة للحافظة',
       message: `تم نسخ القالب الرسمي شاملاً القسم العربي والإنجليزي وشعار ${REEM_HR_SIGNATORY.groupNameEn} وتوقيع أ. ${REEM_HR_SIGNATORY.fullNameAr}.`,
+    });
+  };
+
+  // Action 4: Copy semicolon-separated recipient addresses for Outlook To: field
+  const handleCopyRecipientsForOutlook = async () => {
+    const joined = composed.toEmails.join('; ');
+    await copyReemRichEmailToClipboard(joined, joined);
+    notificationPopupEngine.show({
+      type: 'hr',
+      companyId: effectiveCompanyId,
+      title: `تم نسخ (${composed.toEmails.length}) عنوان بريدي بصيغة Outlook (;)`,
+      message: 'يمكنك لصق جميع عناوين المستلمين مباشرة في حقل (إلى / To) داخل Outlook.',
     });
   };
 
@@ -899,6 +924,11 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
       referenceUrl: row.reference_url,
     });
 
+    const preOpenedSynchronously =
+      gatewayStatus !== null && !gatewayStatus.configured
+        ? openOutlookComposeWindowSeamless(recomposed, 'web').opened
+        : false;
+
     setIsDispatchingDirect(true);
     try {
       const result = await dispatchComposedHrEmailDirect({
@@ -912,7 +942,8 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
         customBodyEn: row.custom_body_en,
         referenceUrl: row.reference_url,
         moduleName: 'reem_hr_email_archive_resend',
-        openOutlookWebFallbackIfUnconfigured: false,
+        openOutlookWebFallbackIfUnconfigured: true,
+        alreadyOpenedOutlookWindow: preOpenedSynchronously,
       });
 
       if (result.ok) {
@@ -925,13 +956,15 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
           title: `تمت إعادة الإرسال المباشر بنجاح (${result.referenceNo})`,
           message: `أُعيد إرسال المراسلة مباشرة من ${REEM_HR_SIGNATORY.email} عبر ${getProviderDisplayNameAr(result.provider)} دون تحميل أي ملفات.`,
         });
-      } else if (result.unconfigured) {
-        setShowGatewayModal(true);
+      } else if (result.openedInOutlookWeb) {
+        await loadArchivedEmails();
+        onEmailDispatched?.();
         notificationPopupEngine.show({
-          type: 'warning',
+          type: 'hr',
+          priority: 'actionable',
           companyId: effectiveCompanyId,
-          title: 'يرجى ضبط بوابة الإرسال المباشر (SMTP / M365) أولاً',
-          message: result.errorAr || 'أدخل بيانات الاتصال لإعادة الإرسال المباشر.',
+          title: `تم فتح إعادة الإرسال في Outlook مباشرة (${result.referenceNo})`,
+          message: `فُتحت المراسلة مباشرة في Outlook مع نسخ القالب بالتوقيع الرسمي وشعار المجموعة للحافظة.`,
         });
       } else {
         notificationPopupEngine.show({
@@ -1524,14 +1557,14 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
 
           {/* Right/Left Column: Live Authentic Outlook Window Preview + 4 Real Direct Execution Actions (7 cols on XL) */}
           <div className="xl:col-span-7 space-y-4">
-            {/* 4 Real Direct Execution Actions Bar */}
+            {/* Real Direct Execution Actions Bar */}
             <div className="rounded-[24px] bg-[#ffffff] border border-[#e0e0e0] p-4">
               <div className="flex items-center justify-between flex-wrap gap-2 text-xs font-bold text-[#707070] mb-3">
-                <span>الإرسال المباشر الفوري عبر خادم الموارد البشرية (بدون تحميل ملفات):</span>
+                <span>الإرسال المباشر الفوري عبر بريد الموارد البشرية وMicrosoft Outlook (بدون تحميل ملفات):</span>
                 <span className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] font-mono text-[11px]">
                   {gatewayStatus?.configured
                     ? `متصل: ${getProviderDisplayNameAr(gatewayStatus.activeProvider)}`
-                    : 'بانتظار ضبط بيانات اتصال SMTP / Microsoft 365'}
+                    : 'جاهز للإرسال المباشر عبر Outlook Web / تطبيق Outlook'}
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -1544,24 +1577,24 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
                   <Send className="w-4 h-4 shrink-0" />
                   <span>
                     {isDispatchingDirect
-                      ? 'جاري الإرسال المباشر عبر الخادم...'
+                      ? 'جاري الإرسال المباشر...'
                       : 'إرسال البريد الرسمي مباشرة الآن (HR@kas.sa)'}
                   </span>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setShowGatewayModal(true)}
-                  className="px-4 py-2.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#141414] text-xs font-bold inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  onClick={() => void handleOpenOutlookDesktop()}
+                  className="px-4 py-2.5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
-                  <Server className="w-4 h-4 shrink-0" />
-                  <span>إعدادات وفحص بوابة البريد المباشر (SMTP / M365)</span>
+                  <Mail className="w-4 h-4 shrink-0" />
+                  <span>فتح مباشر في تطبيق Outlook لسطح المكتب</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => void handleOpenOutlookWeb()}
-                  className="px-4 py-2.5 rounded-full bg-[#ffffff] hover:bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] text-xs font-bold inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  className="px-4 py-2.5 rounded-full bg-[#ffffff] hover:bg-[#f3f3f3] text-[#141414] border border-[#141414] text-xs font-bold inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
                   <ExternalLink className="w-4 h-4 shrink-0" />
                   <span>فتح مباشر في Outlook Web (outlook.office.com)</span>
@@ -1574,6 +1607,24 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
                 >
                   <Copy className="w-4 h-4 shrink-0" />
                   <span>نسخ منسق غني HTML للصق في Outlook</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => void handleCopyRecipientsForOutlook()}
+                  className="px-4 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-xs font-bold inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <Users className="w-3.5 h-3.5 shrink-0" />
+                  <span>نسخ المستلمين ({composed.toEmails.length}) بصيغة Outlook (;)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowGatewayModal(true)}
+                  className="px-4 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-xs font-bold inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <Server className="w-3.5 h-3.5 shrink-0" />
+                  <span>إعدادات وفحص بوابة البريد الصامت (SMTP / M365)</span>
                 </button>
               </div>
             </div>

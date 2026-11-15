@@ -135,8 +135,42 @@ function saveNotifications(list: AppNotification[]): void {
 }
 
 export type FlowState = 'landing' | 'login' | 'welcome' | 'launcher' | 'workspace';
+export type UiThemeMode = 'corporate-color' | 'monochrome';
+
+const UI_THEME_STORAGE_KEY = 'ALSULAIM_UI_THEME_V1';
+
+export function applyUiThemeToDocument(theme: UiThemeMode): void {
+  try {
+    if (typeof document !== 'undefined' && document.documentElement) {
+      document.documentElement.setAttribute('data-ui-theme', theme);
+    }
+  } catch {
+    // ignore SSR/non-DOM contexts
+  }
+}
+
+function loadSavedUiTheme(): UiThemeMode {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem(UI_THEME_STORAGE_KEY);
+      if (saved === 'monochrome' || saved === 'corporate-color') {
+        applyUiThemeToDocument(saved);
+        return saved;
+      }
+    }
+  } catch {
+    // ignore storage errors
+  }
+  applyUiThemeToDocument('corporate-color');
+  return 'corporate-color';
+}
 
 interface AppState {
+  // Visual Theme (Corporate Color vs Mobbin Monochrome)
+  uiTheme: UiThemeMode;
+  setUiTheme: (theme: UiThemeMode) => void;
+  toggleUiTheme: () => void;
+
   // Navigation & Flow
   flowState: FlowState;
   loginPortalCode: string | null;
@@ -400,6 +434,33 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   isQuickSearchOpen: false,
   setQuickSearchOpen: (isQuickSearchOpen) => set({ isQuickSearchOpen }),
+
+  uiTheme: loadSavedUiTheme(),
+  setUiTheme: (uiTheme) => {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(UI_THEME_STORAGE_KEY, uiTheme);
+      }
+    } catch {
+      // ignore storage errors
+    }
+    applyUiThemeToDocument(uiTheme);
+    set({ uiTheme });
+  },
+  toggleUiTheme: () =>
+    set((state) => {
+      const next: UiThemeMode =
+        state.uiTheme === 'corporate-color' ? 'monochrome' : 'corporate-color';
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(UI_THEME_STORAGE_KEY, next);
+        }
+      } catch {
+        // ignore storage errors
+      }
+      applyUiThemeToDocument(next);
+      return { uiTheme: next };
+    }),
 
   activeCompanyId: 'SAF',
   setActiveCompanyId: (activeCompanyId) => set({ activeCompanyId }),

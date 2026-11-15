@@ -1310,7 +1310,16 @@ export const authService = {
     if (!tabHref) return false;
     if (tabHref === 'logout') return true;
     if (!profile) return false;
-    if (tabHref === 'profile' || tabHref === 'ess-self-service') return true;
+    if (
+      tabHref === 'profile' ||
+      tabHref === 'ess-self-service' ||
+      tabHref === 'appearance-display' ||
+      tabHref === 'appearance' ||
+      tabHref === 'display-settings' ||
+      tabHref === 'security-2fa'
+    ) {
+      return true;
+    }
 
     // Visibility controllers (Eng. Abdulrahman `a.salif.dev@kas.sa` & Chairman `khalid@kas.sa`)
     // always retain access to the Visibility Manager and Executive Dashboard.

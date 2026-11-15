@@ -88,8 +88,10 @@ export const DualBrandingDocumentGenerator: React.FC<DualBrandingDocumentGenerat
     <div
       ref={sheetRef}
       data-printable-card="true"
-      className="erp-printable-sheet bg-[#ffffff] p-6 rounded-[24px] border border-[#e0e0e0] max-w-[920px] mx-auto"
+      data-a4-fullpage="true"
+      className="erp-printable-sheet erp-a4-sheet bg-[#ffffff] p-8 rounded-[24px] border border-[#e0e0e0] max-w-[210mm] mx-auto"
     >
+      <div>
       {/* Interactive Pre-Print Entity & Branding Toolbar (Hidden in Print) */}
       {showToolbar && (
         <div className="no-print print:hidden mb-4 p-3 rounded-[18px] bg-[#f3f3f3] border border-[#e0e0e0] flex flex-wrap items-center justify-between gap-2.5">
@@ -350,8 +352,10 @@ export const DualBrandingDocumentGenerator: React.FC<DualBrandingDocumentGenerat
 
       {/* Document Main Content */}
       <div style={{ marginBottom: '20px' }}>{children}</div>
+      </div>
 
-      {/* Official Footer */}
+      {/* Official Footer & Print Controls */}
+      <div>
       <div
         style={{
           borderTop: '1px solid #e0e0e0',
@@ -389,6 +393,7 @@ export const DualBrandingDocumentGenerator: React.FC<DualBrandingDocumentGenerat
         >
           <span>طباعة المستند الرسمي A4 / حفظ PDF</span>
         </button>
+      </div>
       </div>
     </div>
   );

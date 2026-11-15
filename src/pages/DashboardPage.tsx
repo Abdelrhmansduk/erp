@@ -337,11 +337,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 erp-stagger-grid">
           {/* 1. إجمالي الكوادر البشرية ونسبة التوطين الفعلية (نطاقات) */}
           <div
             onClick={() => onNavigate('hr', 'الموارد البشرية ومسير الرواتب WPS')}
-            className="p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] cursor-pointer hover:border-[#141414] transition flex flex-col justify-between"
+            className="erp-launcher-tile p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] cursor-pointer hover:border-[#141414] flex flex-col justify-between"
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-[#141414]">إجمالي الكوادر البشرية ونسبة التوطين الفعلية (نطاقات)</span>
@@ -363,7 +363,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           {/* 2. نسبة الحضور والانضباط اليومي (البصمة والورديات) */}
           <div
             onClick={() => onNavigate('attendances', 'الحضور والانصراف والبصمة الجغرافية والورديات')}
-            className="p-3.5 rounded-2xl bg-[#ffffff] border border-[#e0e0e0] cursor-pointer hover:border-[#141414] transition flex flex-col justify-between"
+            className="erp-launcher-tile p-3.5 rounded-2xl bg-[#ffffff] border border-[#e0e0e0] cursor-pointer hover:border-[#141414] flex flex-col justify-between"
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-[#141414]">نسبة الحضور والانضباط اليومي (البصمة والورديات)</span>
@@ -383,7 +383,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           {/* 3. طلبات الخدمة الذاتية والاعتمادات المعلقة (ESS & MSS) */}
           <div
             onClick={() => onNavigate('profile', 'بوابة الخدمة الذاتية للموظف والمدير (ESS & MSS)')}
-            className="p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] cursor-pointer hover:border-[#141414] transition flex flex-col justify-between"
+            className="erp-launcher-tile p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] cursor-pointer hover:border-[#141414] flex flex-col justify-between"
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-[#141414]">طلبات الخدمة الذاتية والاعتمادات المعلقة (ESS & MSS)</span>
@@ -403,7 +403,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           {/* 4. تنبيهات الامتثال الحرجة (إقامات، عقود قوى، فترة التجربة م53) */}
           <div
             onClick={() => onNavigate('hr-alerts-compliance', 'رادار التنبيهات الذكية والامتثال العمالي')}
-            className="p-3.5 rounded-2xl bg-[#ffffff] border border-[#e0e0e0] cursor-pointer hover:border-[#141414] transition flex flex-col justify-between"
+            className="erp-launcher-tile p-3.5 rounded-2xl bg-[#ffffff] border border-[#e0e0e0] cursor-pointer hover:border-[#141414] flex flex-col justify-between"
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-[#141414]">تنبيهات الامتثال الحرجة (إقامات، عقود قوى، فترة التجربة م53)</span>
@@ -611,7 +611,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* Quick Navigation 3-Card Portal Hub */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 erp-stagger-grid">
         <div
           onClick={() => onNavigate('shelter', 'إدارة الإيواء')}
           className="card-pricing flex items-center justify-between cursor-pointer hover:border-[#141414] transition-all"
@@ -665,7 +665,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* 10 Main KPI Metrics Cards Grid */}
-      <div className="stat-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
+      <div key={selectedPeriod} className="stat-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
         {/* 1. جميع عقود الاستقدام */}
         <div
           onClick={() => onNavigate('recruitment-contracts', 'عقود الاستقدام')}

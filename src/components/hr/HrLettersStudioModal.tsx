@@ -33,6 +33,10 @@ import {
 } from '../../services/entityBrandingService';
 import { RecordQuickActions } from '../common/RecordQuickActions';
 import {
+  ReemHrDocumentSignatureBlock,
+  IncludeReemSignatureToggle,
+} from './ReemHrDocumentSignatureBlock';
+import {
   composeReemHrOfficialEmail,
   REEM_HR_SIGNATORY,
 } from '../../services/reemHrEmailTemplatesEngine';
@@ -239,6 +243,7 @@ export const HrLettersStudioModal: React.FC<HrLettersStudioModalProps> = ({
   const [language, setLanguage] = useState<'AR' | 'EN' | 'BILINGUAL'>('BILINGUAL');
   const [chamberAttestation, setChamberAttestation] = useState<boolean>(false);
   const [electronicStamp, setElectronicStamp] = useState<boolean>(true);
+  const [includeReemSignature, setIncludeReemSignature] = useState<boolean>(true);
   const [revealPii, setRevealPii] = useState<boolean>(false);
   const [customNote, setCustomNote] = useState<string>('');
   const [editBodyMode, setEditBodyMode] = useState<boolean>(false);
@@ -513,7 +518,12 @@ export const HrLettersStudioModal: React.FC<HrLettersStudioModalProps> = ({
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <IncludeReemSignatureToggle
+              checked={includeReemSignature}
+              onChange={setIncludeReemSignature}
+              compact
+            />
             <RecordQuickActions
               showLabels
               onPrint={() => window.print()}
@@ -529,6 +539,7 @@ export const HrLettersStudioModal: React.FC<HrLettersStudioModalProps> = ({
                 hideHoldingGroupBrand,
                 moduleName: 'hr_official_letters',
                 department: 'hr',
+                includeReemSignature,
                 summaryLines: [
                   { label: 'الشركة المصدرة', value: effectiveCompanyNameAr },
                   { label: 'اسم الموظف', value: employee.name },
@@ -754,6 +765,19 @@ export const HrLettersStudioModal: React.FC<HrLettersStudioModalProps> = ({
             </div>
 
             <div className="space-y-2 pt-1">
+              <label className="flex items-center justify-between p-2.5 rounded-[14px] bg-[#ffffff] border border-[#141414] cursor-pointer">
+                <span className="text-xs font-bold text-[#141414] inline-flex items-center gap-2">
+                  <FileSignature className="w-4 h-4 text-[#141414]" />
+                  تضمين توقيع مديرة الموارد البشرية (أ. ريم بن حسين — HR@kas.sa)
+                </span>
+                <input
+                  type="checkbox"
+                  checked={includeReemSignature}
+                  onChange={(e) => setIncludeReemSignature(e.target.checked)}
+                  className="accent-[#141414]"
+                />
+              </label>
+
               <label className="flex items-center justify-between p-2.5 rounded-[14px] bg-[#ffffff] border border-[#e0e0e0] cursor-pointer">
                 <span className="text-xs font-bold text-[#141414] inline-flex items-center gap-2">
                   <Stamp className="w-4 h-4 text-[#141414]" />
@@ -820,124 +844,142 @@ export const HrLettersStudioModal: React.FC<HrLettersStudioModalProps> = ({
           </div>
 
           {/* Live A4 Document Preview */}
-          <div className="lg:col-span-8 print:col-span-12 p-6 sm:p-8 print:p-0 overflow-y-auto bg-[#ffffff] text-[#141414]">
-            <div className="erp-printable-sheet rounded-[24px] border-2 border-[#141414] p-6 sm:p-8 space-y-6 bg-[#ffffff]">
-              {/* Letterhead */}
-              <div className="flex items-start justify-between border-b-2 border-[#141414] pb-5 gap-4 flex-wrap">
-                <div>
-                  <div className="text-[11px] font-bold text-[#707070]">
-                    {branding.letterheadSovereignLineAr}
+          <div className="lg:col-span-8 print:col-span-12 p-6 sm:p-8 print:p-0 overflow-y-auto bg-[#f3f3f3] print:bg-[#ffffff] text-[#141414]">
+            <div
+              data-a4-fullpage="true"
+              className="erp-printable-sheet erp-a4-sheet border-2 border-[#141414] p-8 sm:p-10 bg-[#ffffff]"
+            >
+              <div className="space-y-6">
+                {/* Letterhead */}
+                <div className="flex items-start justify-between border-b-2 border-[#141414] pb-5 gap-4 flex-wrap">
+                  <div>
+                    <div className="text-[11px] font-bold text-[#707070]">
+                      {branding.letterheadSovereignLineAr}
+                    </div>
+                    <div className="text-lg font-black text-[#141414] mt-0.5">
+                      {effectiveCompanyNameAr}
+                    </div>
+                    <div className="text-[11px] font-semibold text-[#707070]">
+                      {effectiveCompanyNameEn} • س.ت: {branding.crNumber} • الرقم الضريبي:{' '}
+                      {branding.taxNumber}
+                    </div>
+                    <div className="text-xs font-bold text-[#141414] mt-1.5">
+                      {activeTemplate.titleAr} — {activeTemplate.titleEn}
+                    </div>
+                    {chamberAttestation && (
+                      <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-0.5 rounded-full bg-[#141414] text-[#ffffff] text-[10px] font-bold">
+                        <CheckCircle2 className="w-3 h-3" />
+                        مهيأ للتصديق الإلكتروني عبر الغرفة التجارية (عضوية:{' '}
+                        {branding.entity.chamberMembershipNo || 'معتمدة'})
+                      </span>
+                    )}
                   </div>
-                  <div className="text-lg font-black text-[#141414] mt-0.5">
-                    {effectiveCompanyNameAr}
-                  </div>
-                  <div className="text-[11px] font-semibold text-[#707070]">
-                    {effectiveCompanyNameEn} • س.ت: {branding.crNumber} • الرقم الضريبي:{' '}
-                    {branding.taxNumber}
-                  </div>
-                  <div className="text-xs font-bold text-[#141414] mt-1.5">
-                    {activeTemplate.titleAr} — {activeTemplate.titleEn}
-                  </div>
-                  {chamberAttestation && (
-                    <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-0.5 rounded-full bg-[#141414] text-[#ffffff] text-[10px] font-bold">
-                      <CheckCircle2 className="w-3 h-3" />
-                      مهيأ للتصديق الإلكتروني عبر الغرفة التجارية (عضوية:{' '}
-                      {branding.entity.chamberMembershipNo || 'معتمدة'})
-                    </span>
-                  )}
-                </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="text-left font-mono text-[11px] bg-[#f3f3f3] border border-[#e0e0e0] px-3 py-2 rounded-[16px]">
-                    <div className="font-bold text-[#141414]">{letterSerial}</div>
-                    <div className="text-[#707070]">التاريخ: {todayIso}</div>
+                  <div className="flex items-center gap-3">
+                    <div className="text-left font-mono text-[11px] bg-[#f3f3f3] border border-[#e0e0e0] px-3 py-2 rounded-[16px]">
+                      <div className="font-bold text-[#141414]">{letterSerial}</div>
+                      <div className="text-[#707070]">التاريخ: {todayIso}</div>
+                      <div
+                        className="mt-1"
+                        dangerouslySetInnerHTML={{
+                          __html: generateRealCode128BarcodeSvg(letterSerial, {
+                            widthPx: 120,
+                            heightPx: 20,
+                          }),
+                        }}
+                      />
+                    </div>
                     <div
-                      className="mt-1"
+                      className="p-1.5 rounded-[12px] border border-[#e0e0e0] bg-[#ffffff]"
                       dangerouslySetInnerHTML={{
-                        __html: generateRealCode128BarcodeSvg(letterSerial, {
-                          widthPx: 120,
-                          heightPx: 20,
-                        }),
+                        __html: generateRealQrSvg(verificationHash, { sizePx: 72 }),
                       }}
                     />
                   </div>
-                  <div
-                    className="p-1.5 rounded-[12px] border border-[#e0e0e0] bg-[#ffffff]"
-                    dangerouslySetInnerHTML={{
-                      __html: generateRealQrSvg(verificationHash, { sizePx: 72 }),
-                    }}
-                  />
                 </div>
-              </div>
 
-              {/* Recipient */}
-              <div className="flex items-center justify-between bg-[#f3f3f3] px-4 py-3 rounded-[16px] border border-[#e0e0e0] text-xs">
-                <div>
-                  <span className="text-[#707070] ml-2">موجه إلى:</span>
-                  <strong className="text-[#141414]">{directedTo}</strong>
+                {/* Recipient */}
+                <div className="flex items-center justify-between bg-[#f3f3f3] px-4 py-3 rounded-[16px] border border-[#e0e0e0] text-xs">
+                  <div>
+                    <span className="text-[#707070] ml-2">موجه إلى:</span>
+                    <strong className="text-[#141414]">{directedTo}</strong>
+                  </div>
+                  <span className="font-mono text-[11px] text-[#707070]">
+                    الرقم الوظيفي: {employee.employee_code}
+                  </span>
                 </div>
-                <span className="font-mono text-[11px] text-[#707070]">
-                  الرقم الوظيفي: {employee.employee_code}
-                </span>
-              </div>
 
-              {/* Arabic Section */}
-              {(language === 'AR' || language === 'BILINGUAL') && (
-                <div className="space-y-2 text-right" dir="rtl">
-                  <p className="text-xs font-bold text-[#141414] m-0">
-                    السلام عليكم ورحمة الله وبركاته،،،
-                  </p>
-                  <p className="text-sm leading-7 text-[#141414] text-justify m-0">
-                    {effectiveArabicBody}
-                  </p>
-                  {customNote.trim() && (
-                    <p className="text-xs font-bold text-[#141414] bg-[#f3f3f3] p-3 rounded-[12px] m-0">
-                      ملاحظة معتمدة: {customNote.trim()}
+                {/* Arabic Section */}
+                {(language === 'AR' || language === 'BILINGUAL') && (
+                  <div className="space-y-2 text-right" dir="rtl">
+                    <p className="text-xs font-bold text-[#141414] m-0">
+                      السلام عليكم ورحمة الله وبركاته،،،
                     </p>
-                  )}
-                </div>
-              )}
+                    <p className="text-sm leading-7 text-[#141414] text-justify m-0">
+                      {effectiveArabicBody}
+                    </p>
+                    {customNote.trim() && (
+                      <p className="text-xs font-bold text-[#141414] bg-[#f3f3f3] p-3 rounded-[12px] m-0">
+                        ملاحظة معتمدة: {customNote.trim()}
+                      </p>
+                    )}
+                  </div>
+                )}
 
-              {/* Divider if Bilingual */}
-              {language === 'BILINGUAL' && <hr className="border-[#e0e0e0]" />}
+                {/* Divider if Bilingual */}
+                {language === 'BILINGUAL' && <hr className="border-[#e0e0e0]" />}
 
-              {/* English Section */}
-              {(language === 'EN' || language === 'BILINGUAL') && (
-                <div className="space-y-2 text-left" dir="ltr">
-                  <p className="text-xs font-bold text-[#141414] m-0">
-                    Dear Sirs / {activeTemplate.defaultRecipientEn},
-                  </p>
-                  <p className="text-xs leading-6 text-[#141414] text-justify m-0">
-                    {effectiveEnglishBody}
-                  </p>
-                </div>
-              )}
+                {/* English Section */}
+                {(language === 'EN' || language === 'BILINGUAL') && (
+                  <div className="space-y-2 text-left" dir="ltr">
+                    <p className="text-xs font-bold text-[#141414] m-0">
+                      Dear Sirs / {activeTemplate.defaultRecipientEn},
+                    </p>
+                    <p className="text-xs leading-6 text-[#141414] text-justify m-0">
+                      {effectiveEnglishBody}
+                    </p>
+                  </div>
+                )}
+              </div>
 
               {/* Footer Signature & Stamp */}
-              <div className="pt-4 border-t border-[#e0e0e0] flex items-center justify-between flex-wrap gap-4">
-                <div className="text-xs space-y-1">
-                  <div className="text-[#707070]">جهة الإصدار والاعتماد:</div>
-                  <div className="font-bold text-[#141414]">
-                    {customSignatoryAr || branding.hrIssuerTitleAr}
+              <div className="pt-6 mt-8 border-t border-[#e0e0e0] space-y-4">
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                  <div className="text-xs space-y-1">
+                    <div className="text-[#707070]">جهة الإصدار والاعتماد:</div>
+                    <div className="font-bold text-[#141414]">
+                      {customSignatoryAr || branding.hrIssuerTitleAr}
+                    </div>
+                    <div className="text-[11px] font-semibold text-[#141414]">
+                      المسؤول المفوض:{' '}
+                      {includeReemSignature
+                        ? `${REEM_HR_SIGNATORY.fullNameAr} (${REEM_HR_SIGNATORY.titleAr} — ${REEM_HR_SIGNATORY.email})`
+                        : branding.hrSignatoryNameAr}
+                    </div>
+                    <div className="text-[11px] text-[#707070] font-mono">
+                      رمز التحقق الرقمي: {letterSerial}
+                    </div>
                   </div>
-                  <div className="text-[11px] font-semibold text-[#141414]">
-                    المسؤول المفوض: {branding.hrSignatoryNameAr}
-                  </div>
-                  <div className="text-[11px] text-[#707070] font-mono">
-                    رمز التحقق الرقمي: {letterSerial}
-                  </div>
+
+                  {electronicStamp && (
+                    <div className="px-5 py-3 rounded-[20px] border-2 border-dashed border-[#141414] bg-[#f3f3f3] text-center">
+                      <div className="flex items-center justify-center gap-1.5 text-xs font-black text-[#141414]">
+                        <ShieldCheck className="w-4 h-4" />
+                        <span>ختم إلكتروني موثق — {effectiveCompanyNameAr}</span>
+                      </div>
+                      <div className="text-[10px] text-[#707070] mt-0.5">
+                        س.ت: {branding.crNumber} • {branding.address}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {electronicStamp && (
-                  <div className="px-5 py-3 rounded-[20px] border-2 border-dashed border-[#141414] bg-[#f3f3f3] text-center">
-                    <div className="flex items-center justify-center gap-1.5 text-xs font-black text-[#141414]">
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>ختم إلكتروني موثق — {effectiveCompanyNameAr}</span>
-                    </div>
-                    <div className="text-[10px] text-[#707070] mt-0.5">
-                      س.ت: {branding.crNumber} • {branding.address}
-                    </div>
-                  </div>
+                {includeReemSignature && (
+                  <ReemHrDocumentSignatureBlock
+                    referenceNumber={letterSerial}
+                    dateStr={todayIso}
+                    hideHoldingLogo={hideHoldingGroupBrand}
+                  />
                 )}
               </div>
             </div>

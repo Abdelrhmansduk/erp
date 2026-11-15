@@ -562,20 +562,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
              ===================================================================== */}
           <div className="lg:col-span-7 relative py-6 lg:py-12 text-right select-none">
             {/* Floating Decorative Circular Icon Badges */}
-            <div className="hidden sm:flex absolute -top-2 right-6 w-14 h-14 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] ">
+            <div className="hidden sm:flex absolute -top-2 right-6 w-14 h-14 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] erp-float-slow">
               <Sparkles className="w-6 h-6" strokeWidth={1.75} />
             </div>
 
-            <div className="hidden sm:flex absolute top-28 left-12 w-12 h-12 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] ">
+            <div className="hidden sm:flex absolute top-28 left-12 w-12 h-12 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] erp-float-medium">
               <ShieldCheck className="w-5 h-5" strokeWidth={1.75} />
             </div>
 
-            <div className="hidden sm:flex absolute bottom-8 left-24 w-16 h-16 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] ">
+            <div className="hidden sm:flex absolute bottom-8 left-24 w-16 h-16 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] erp-float-delayed">
               <Building2 className="w-7 h-7" strokeWidth={1.6} />
             </div>
 
             {/* Brand Title & Subtitle — Simple, Executive & Institutional */}
-            <div className="space-y-3 sm:mt-8">
+            <div className="space-y-3 sm:mt-8 erp-hero-reveal-1">
               <div className="text-3xl sm:text-4xl font-bold tracking-tight text-[#141414]">
                 خالد السليم <span className="text-[#adadad] font-light mx-1.5">|</span>{' '}
                 <span className="font-bold">Al-Sulaim</span>
@@ -591,7 +591,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
             </div>
 
             {/* Vertical Checkmark Features List (3 Concise Institutional Points) */}
-            <div className="mt-8 space-y-4 max-w-sm">
+            <div className="mt-8 space-y-4 max-w-sm erp-hero-reveal-2">
               {[
                 'حوكمة مالية ومحاسبية متكاملة',
                 'ربط حكومي فوري وموثق',
@@ -611,8 +611,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
               LEFT COLUMN (اليسار): Clean Interactive White Login Card
              ===================================================================== */}
           <div className="lg:col-span-5 flex flex-col items-center lg:items-end w-full">
-            <div className="w-full max-w-[420px]">
-              <div className="bg-white rounded-[28px] border border-[#f3f3f3]  p-6 sm:p-8 space-y-5 text-right">
+            <div className="w-full max-w-[420px] erp-hero-reveal-3">
+              <div className="bg-white rounded-[28px] border border-[#e0e0e0] p-6 sm:p-8 space-y-5 text-right transition-colors hover:border-[#141414]">
                 {/* Top Mode Switcher Pill */}
                 <div className="grid grid-cols-2 p-1 rounded-full bg-[#f3f3f3] border border-[#f3f3f3]">
                   <button
@@ -1184,7 +1184,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 sm:gap-6 erp-stagger-grid">
           {companies.map((comp) => (
             <div
               key={comp.code}
@@ -1302,7 +1302,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-right">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-right erp-stagger-grid">
             {/* Card 1: Government Compliance & Integration */}
             <div
               className="white-feature-card group"

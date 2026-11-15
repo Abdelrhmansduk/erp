@@ -36,6 +36,8 @@ import type { GateModalMode } from './components/auth/BiometricCameraAttendanceG
 import './styles/index.css';
 import './styles/layout.css';
 import './styles/components.css';
+import './styles/motion.css';
+import './styles/appearance.css';
 import './styles/print.css';
 
 // Resilient Lazy Import with Auto-Recovery on Deployment Cache Mismatch
@@ -817,6 +819,12 @@ const MainContent: React.FC = () => {
       case 'rbac-matrix':
         return authService.isAdmin(user) ? <SettingsPage /> : <EmployeeSelfServicePage />;
 
+      case 'appearance':
+      case 'appearance-display':
+      case 'display-settings':
+      case 'security-2fa':
+        return <SettingsPage />;
+
       case 'master-constants':
       case 'nationalities-jobs':
         return <MasterConstantsPage />;
@@ -961,26 +969,30 @@ const MainContent: React.FC = () => {
   return (
     <>
       {flowState === 'landing' && (
-        <Suspense fallback={<PageFallback />}>
-          <LandingPage onSelectCompany={(companyId: string) => {
-            navigateToCompanyLogin(companyId);
-          }} />
-        </Suspense>
+        <div key="flow-landing" className="erp-flow-stage">
+          <Suspense fallback={<PageFallback />}>
+            <LandingPage onSelectCompany={(companyId: string) => {
+              navigateToCompanyLogin(companyId);
+            }} />
+          </Suspense>
+        </div>
       )}
 
       {flowState === 'login' && (
-        <Suspense fallback={<PageFallback />}>
-          <LoginPage onLoginSuccess={(targetTab?: string, targetTitle?: string) => {
-            if (targetTab) {
-              useAppStore.setState({
-                activeTab: targetTab,
-                activeTabTitle: targetTitle || targetTab,
-              });
-            }
-            void import('./pages/AppLauncherPage');
-            setFlowState('welcome');
-          }} />
-        </Suspense>
+        <div key="flow-login" className="erp-flow-stage">
+          <Suspense fallback={<PageFallback />}>
+            <LoginPage onLoginSuccess={(targetTab?: string, targetTitle?: string) => {
+              if (targetTab) {
+                useAppStore.setState({
+                  activeTab: targetTab,
+                  activeTabTitle: targetTitle || targetTab,
+                });
+              }
+              void import('./pages/AppLauncherPage');
+              setFlowState('welcome');
+            }} />
+          </Suspense>
+        </div>
       )}
 
       {flowState === 'welcome' && (
@@ -993,9 +1005,11 @@ const MainContent: React.FC = () => {
       )}
 
       {flowState === 'launcher' && (
-        <Suspense fallback={<PageFallback />}>
-          <AppLauncherPage onSelectApp={handleSelectTab} />
-        </Suspense>
+        <div key="flow-launcher" className="erp-flow-stage">
+          <Suspense fallback={<PageFallback />}>
+            <AppLauncherPage onSelectApp={handleSelectTab} />
+          </Suspense>
+        </div>
       )}
 
       {flowState === 'workspace' && (

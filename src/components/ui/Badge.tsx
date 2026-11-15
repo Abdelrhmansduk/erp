@@ -19,7 +19,8 @@ export const Badge: React.FC<BadgeProps> = ({ text, type = 'shade', icon, classN
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${baseStyle} ${className}`}
+      data-badge-type={type}
+      className={`badge-${type} inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${baseStyle} ${className}`}
     >
       {icon && <i className={icon} style={{ fontSize: '10px' }} />}
       <span>{text}</span>

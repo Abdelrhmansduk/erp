@@ -87,6 +87,74 @@ function syncEmployeeMirrorStore<T>(entityKey: string, data: T[]): void {
   }
 }
 
+const PENDING_SYNC_PREFIX = 'ALSULAIM_ERP_PENDING_V1_';
+
+function getPendingSyncIds(tableName: string): Set<string> {
+  if (typeof window === 'undefined' || !window.localStorage) return new Set();
+  try {
+    const raw = window.localStorage.getItem(PENDING_SYNC_PREFIX + tableName);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? new Set(arr.map((x) => String(x))) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function setPendingSyncIds(tableName: string, ids: Set<string>): void {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(PENDING_SYNC_PREFIX + tableName, JSON.stringify(Array.from(ids)));
+  } catch {
+    // ignore storage quota errors
+  }
+}
+
+function markPendingSyncId(tableName: string, id: string | number): void {
+  const next = getPendingSyncIds(tableName);
+  next.add(String(id));
+  setPendingSyncIds(tableName, next);
+}
+
+function clearPendingSyncId(tableName: string, id: string | number): void {
+  const next = getPendingSyncIds(tableName);
+  if (next.delete(String(id))) {
+    setPendingSyncIds(tableName, next);
+  }
+}
+
+/**
+ * Merges remote Supabase rows with locally created/edited records that could not yet sync
+ * (for example due to extended frontend-only fields such as custom_fields or network fallback),
+ * ensuring local creations and edits are never overwritten by stale remote snapshots.
+ */
+function mergeRemoteWithPendingLocal<T extends { id: string | number }>(
+  entityKey: string,
+  remoteRows: T[]
+): T[] {
+  const localRows = getLocalStore<T>(entityKey, []);
+  if (localRows.length === 0) return remoteRows;
+  const tableName = resolveSupabaseTableName(entityKey);
+  const pendingIds = getPendingSyncIds(tableName);
+  const localMap = new Map(localRows.map((row) => [String(row.id), row]));
+  const remoteIds = new Set(remoteRows.map((row) => String(row.id)));
+
+  const mergedRemote = remoteRows.map((remoteRow) => {
+    const idStr = String(remoteRow.id);
+    const localRow = localMap.get(idStr);
+    if (!localRow) return remoteRow;
+    return pendingIds.has(idStr)
+      ? ({ ...remoteRow, ...localRow } as T)
+      : ({ ...localRow, ...remoteRow } as T);
+  });
+
+  const localOnlyPending = localRows.filter(
+    (localRow) => pendingIds.has(String(localRow.id)) && !remoteIds.has(String(localRow.id))
+  );
+
+  return [...localOnlyPending, ...mergedRemote];
+}
+
 export const realErpDataStore = {
   getDataMode,
   setDataMode,
@@ -127,6 +195,7 @@ export const realErpDataStore = {
       try {
         localStorage.removeItem(STORAGE_PREFIX + table);
         localStorage.setItem(STORAGE_PREFIX + table, JSON.stringify([]));
+        localStorage.removeItem(PENDING_SYNC_PREFIX + resolveSupabaseTableName(table));
       } catch (e) {
         // ignore
       }
@@ -201,9 +270,10 @@ export const realErpDataStore = {
         }
         const { data, error } = await query;
         if (!error && Array.isArray(data) && data.length > 0) {
-          saveLocalStore(entityKey, data as unknown as T[]);
-          syncEmployeeMirrorStore(entityKey, data as unknown as T[]);
-          return data as unknown as T[];
+          const merged = mergeRemoteWithPendingLocal(entityKey, data as unknown as T[]);
+          saveLocalStore(entityKey, merged);
+          syncEmployeeMirrorStore(entityKey, merged);
+          return merged;
         }
       } catch (e) {
         console.warn(`Supabase connection notice for ${entityKey}:`, e);
@@ -262,8 +332,14 @@ export const realErpDataStore = {
     const supabaseTable = resolveSupabaseTableName(entityKey);
     if (!isDummySupabase && !isTestOrDemo) {
       try {
-        await supabase.from(supabaseTable).insert([scopedRecord]);
+        const { error } = await supabase.from(supabaseTable).insert([scopedRecord]);
+        if (error) {
+          markPendingSyncId(supabaseTable, scopedRecord.id);
+        } else {
+          clearPendingSyncId(supabaseTable, scopedRecord.id);
+        }
       } catch (e) {
+        markPendingSyncId(supabaseTable, scopedRecord.id);
         console.warn(`Could not sync new record for ${entityKey} to Supabase`, e);
       }
     }
@@ -317,8 +393,14 @@ export const realErpDataStore = {
     const supabaseTable = resolveSupabaseTableName(entityKey);
     if (!isDummySupabase) {
       try {
-        await supabase.from(supabaseTable).update(patch as any).eq('id', id);
+        const { error } = await supabase.from(supabaseTable).update(patch as any).eq('id', id);
+        if (error) {
+          markPendingSyncId(supabaseTable, id);
+        } else {
+          clearPendingSyncId(supabaseTable, id);
+        }
       } catch (e) {
+        markPendingSyncId(supabaseTable, id);
         console.warn(`Could not sync update for ${entityKey} to Supabase`, e);
       }
     }
@@ -340,6 +422,7 @@ export const realErpDataStore = {
     syncEmployeeMirrorStore(entityKey, updated);
 
     const supabaseTable = resolveSupabaseTableName(entityKey);
+    clearPendingSyncId(supabaseTable, id);
     if (!isDummySupabase) {
       try {
         await supabase.from(supabaseTable).delete().eq('id', id);

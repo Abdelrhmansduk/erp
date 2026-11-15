@@ -43,17 +43,26 @@ import {
   resolveDocumentBranding,
 } from '../../services/entityBrandingService';
 import {
+  CustomEmployeeField,
   PersistentEmployeeDocument,
   saveUnifiedEmployeeProfile,
   getPersistentEmployeeDocuments,
   addPersistentEmployeeDocument,
   updatePersistentEmployeeDocument,
   softDeletePersistentEmployeeDocument,
+  loadCustomJobTitles,
+  saveCustomJobTitle,
+  loadCustomDepartments,
+  loadCustomGrades,
 } from '../../services/employeeProfileSync';
 import {
   listFieldAuditHistory,
   FieldAuditChange,
 } from '../../services/quickShareService';
+import {
+  ReemHrDocumentSignatureBlock,
+  IncludeReemSignatureToggle,
+} from './ReemHrDocumentSignatureBlock';
 import {
   confirmReturnFromLeave,
   cutLeaveEarlyAndRefundBalance,
@@ -125,6 +134,9 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
   const [isEditing, setIsEditing] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [draft, setDraft] = useState<Record<string, any>>({});
+  const [catalogJobTitles, setCatalogJobTitles] = useState<string[]>(() => loadCustomJobTitles());
+  const [catalogDepartments, setCatalogDepartments] = useState<string[]>(() => loadCustomDepartments());
+  const [catalogGrades, setCatalogGrades] = useState<string[]>(() => loadCustomGrades());
 
   // Persistent related records across all HR tables
   const [companyPeers, setCompanyPeers] = useState<ErpEntityRecord[]>([]);
@@ -254,6 +266,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
 
   const branding = resolveDocumentBranding(emp);
   const currentPayrollMonth = new Date().toISOString().slice(0, 7);
+  const [includeReemSignature, setIncludeReemSignature] = useState<boolean>(true);
 
   const loadEmployee360Relations = useCallback(async (targetEmp: Record<string, any>) => {
     if (!targetEmp) return;
@@ -402,9 +415,13 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
   }, [emp, loadEmployee360Relations]);
 
   const startEditingProfile = () => {
+    setCatalogJobTitles(loadCustomJobTitles());
+    setCatalogDepartments(loadCustomDepartments());
+    setCatalogGrades(loadCustomGrades());
     const totalSal = Number(emp.salary ?? 8000);
     setDraft({
       company_id: branding.code,
+      employee_code: emp.employee_code || '',
       name: emp.name || '',
       name_en: emp.name_en || '',
       job_title: emp.job_title || emp.role || 'أخصائي عمليات',
@@ -416,6 +433,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
       contract_type: emp.contract_type || 'محدد المدة (قوى)',
       marital_status: emp.marital_status || 'متزوج',
       gender: emp.gender || 'ذكر',
+      birth_date: emp.birth_date || '1995-01-01',
       qualification: emp.qualification || 'بكالوريوس',
       nationality:
         emp.nationality || (String(emp.national_id || '1').startsWith('1') ? 'سعودي' : 'مقيم'),
@@ -441,6 +459,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
       hire_date: emp.hire_date || '2024-01-15',
       probation_days: Number(emp.probation_days ?? 90),
       grade: emp.grade || 'الدرجة الثالثة',
+      system_role: emp.system_role || 'Sales Agent',
       bank_code: emp.bank_code || 'RJHI',
       bank_name: emp.bank_name || emp.bankName || 'مصرف الراجحي',
       iban: emp.iban || emp.bankIban || `SA03800000000${emp.national_id || '1098765432'}12`,
@@ -450,6 +469,10 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
       other_allowances: Number(emp.other_allowances ?? emp.allowances ?? 0),
       leave_balance: Number(emp.leave_balance ?? 21),
       status: emp.status || 'على رأس العمل',
+      notes: emp.notes || '',
+      custom_fields: Array.isArray(emp.custom_fields)
+        ? emp.custom_fields.map((cf: CustomEmployeeField) => ({ ...cf }))
+        : [],
     });
     setIsEditing(true);
   };
@@ -466,6 +489,9 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
         emp,
         'إدارة الموارد البشرية (ملف الموظف الرقمي 360°)'
       );
+      setCatalogJobTitles(loadCustomJobTitles());
+      setCatalogDepartments(loadCustomDepartments());
+      setCatalogGrades(loadCustomGrades());
       setEmp(updated);
       setIsEditing(false);
       setAuditHistory(listFieldAuditHistory(String(updated.id)));
@@ -1266,6 +1292,11 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
               </div>
 
               <div className="flex items-center gap-2 shrink-0 flex-wrap print:hidden">
+                <IncludeReemSignatureToggle
+                  checked={includeReemSignature}
+                  onChange={setIncludeReemSignature}
+                  compact
+                />
                 <RecordQuickActions
                   sharePayload={{
                     title: `ملخص الملف الوظيفي 360° — ${emp.name}`,
@@ -1275,6 +1306,8 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                     referenceNumber: String(emp.employee_code || emp.id),
                     entityOrRecord: emp,
                     entityCode: branding.code,
+                    department: 'hr',
+                    includeReemSignature,
                     summaryLines: [
                       { label: 'المنشأة', value: branding.displayNameAr },
                       { label: 'المسمى الوظيفي', value: emp.job_title || emp.role },
@@ -1558,6 +1591,21 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
 
                 {isEditing ? (
                   <div className="bg-[#f3f3f3] rounded-[24px] p-5 border border-[#e0e0e0] space-y-4">
+                    <datalist id="e360-job-titles-list">
+                      {catalogJobTitles.map((t) => (
+                        <option key={t} value={t} />
+                      ))}
+                    </datalist>
+                    <datalist id="e360-departments-list">
+                      {catalogDepartments.map((d) => (
+                        <option key={d} value={d} />
+                      ))}
+                    </datalist>
+                    <datalist id="e360-grades-list">
+                      {catalogGrades.map((g) => (
+                        <option key={g} value={g} />
+                      ))}
+                    </datalist>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                       <div className="sm:col-span-2">
                         <label className="block font-bold text-[#141414] mb-1">
@@ -1618,9 +1666,25 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                       </div>
 
                       <div>
-                        <label className="block font-bold text-[#141414] mb-1">المسمى الوظيفي</label>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block font-bold text-[#141414]">المسمى الوظيفي</label>
+                          {draft.job_title?.trim() &&
+                            !catalogJobTitles.includes(draft.job_title.trim()) && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setCatalogJobTitles(saveCustomJobTitle(draft.job_title))
+                                }
+                                className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#141414] text-white cursor-pointer"
+                              >
+                                + حفظ المسمى
+                              </button>
+                            )}
+                        </div>
                         <input
                           type="text"
+                          list="e360-job-titles-list"
+                          data-slot="e360-job-title-input"
                           value={draft.job_title}
                           onChange={(e) => setDraft({ ...draft, job_title: e.target.value })}
                           className="w-full px-3 py-2 rounded-[14px] bg-[#ffffff] border border-[#e0e0e0] font-bold"
@@ -1630,6 +1694,8 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                         <label className="block font-bold text-[#141414] mb-1">الإدارة / القسم</label>
                         <input
                           type="text"
+                          list="e360-departments-list"
+                          data-slot="e360-department-input"
                           value={draft.department}
                           onChange={(e) => setDraft({ ...draft, department: e.target.value })}
                           className="w-full px-3 py-2 rounded-[14px] bg-[#ffffff] border border-[#e0e0e0] font-bold"
@@ -1933,6 +1999,121 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                         />
                       </div>
 
+                      <div>
+                        <label className="block font-bold text-[#141414] mb-1">الرقم الوظيفي</label>
+                        <input
+                          type="text"
+                          value={draft.employee_code || ''}
+                          onChange={(e) => setDraft({ ...draft, employee_code: e.target.value })}
+                          className="w-full px-3 py-2 rounded-[14px] bg-[#ffffff] border border-[#e0e0e0] font-mono font-bold"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-[#141414] mb-1">تاريخ الميلاد</label>
+                        <input
+                          type="date"
+                          value={draft.birth_date || ''}
+                          onChange={(e) => setDraft({ ...draft, birth_date: e.target.value })}
+                          className="w-full px-3 py-2 rounded-[14px] bg-[#ffffff] border border-[#e0e0e0] font-mono font-bold"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-[#141414] mb-1">الجنس</label>
+                        <select
+                          value={draft.gender || 'ذكر'}
+                          onChange={(e) => setDraft({ ...draft, gender: e.target.value })}
+                          className="w-full px-3 py-2 rounded-[14px] bg-[#ffffff] border border-[#e0e0e0] font-bold text-[#141414]"
+                        >
+                          <option value="ذكر">ذكر</option>
+                          <option value="أنثى">أنثى</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-[#141414] mb-1">الدرجة الوظيفية</label>
+                        <input
+                          type="text"
+                          list="e360-grades-list"
+                          value={draft.grade || ''}
+                          onChange={(e) => setDraft({ ...draft, grade: e.target.value })}
+                          className="w-full px-3 py-2 rounded-[14px] bg-[#ffffff] border border-[#e0e0e0] font-bold"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-[#141414] mb-1">الدور وصلاحيات النظام (RBAC)</label>
+                        <select
+                          value={draft.system_role || 'Sales Agent'}
+                          onChange={(e) => setDraft({ ...draft, system_role: e.target.value })}
+                          className="w-full px-3 py-2 rounded-[14px] bg-[#ffffff] border border-[#e0e0e0] font-bold text-[#141414]"
+                        >
+                          <option value="Administrator">Administrator (مدير نظام)</option>
+                          <option value="Branch Manager">Branch Manager (مدير فرع)</option>
+                          <option value="Financial Manager">Financial Manager (مدير مالي)</option>
+                          <option value="HR Specialist">HR Specialist (أخصائي موارد بشرية)</option>
+                          <option value="Operations Lead">Operations Lead (مشرف تشغيل)</option>
+                          <option value="Shelter Supervisor">Shelter Supervisor (مشرف إيواء)</option>
+                          <option value="Sales Agent">Sales Agent (مسؤول مبيعات وعملاء)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block font-bold text-[#141414] mb-1">بدلات إضافية / أخرى (⃁)</label>
+                        <input
+                          type="number"
+                          value={draft.other_allowances ?? 0}
+                          onChange={(e) =>
+                            setDraft({ ...draft, other_allowances: Number(e.target.value) })
+                          }
+                          className="w-full px-3 py-2 rounded-[14px] bg-[#ffffff] border border-[#e0e0e0] font-mono font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-[#141414] mb-1">شركة التأمين الطبي</label>
+                        <input
+                          type="text"
+                          value={draft.medical_insurance_provider || ''}
+                          onChange={(e) =>
+                            setDraft({ ...draft, medical_insurance_provider: e.target.value })
+                          }
+                          className="w-full px-3 py-2 rounded-[14px] bg-[#ffffff] border border-[#e0e0e0] font-bold"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-[#141414] mb-1">فئة التأمين الطبي</label>
+                        <input
+                          type="text"
+                          value={draft.medical_insurance_class || ''}
+                          onChange={(e) =>
+                            setDraft({ ...draft, medical_insurance_class: e.target.value })
+                          }
+                          className="w-full px-3 py-2 rounded-[14px] bg-[#ffffff] border border-[#e0e0e0] font-bold"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block font-bold text-[#141414] mb-1">فترة التجربة (يوم)</label>
+                          <input
+                            type="number"
+                            value={draft.probation_days ?? 90}
+                            onChange={(e) =>
+                              setDraft({ ...draft, probation_days: Number(e.target.value) })
+                            }
+                            className="w-full px-3 py-2 rounded-[14px] bg-[#ffffff] border border-[#e0e0e0] font-mono font-bold"
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-bold text-[#141414] mb-1">رصيد الإجازات (يوم)</label>
+                          <input
+                            type="number"
+                            value={draft.leave_balance ?? 21}
+                            onChange={(e) =>
+                              setDraft({ ...draft, leave_balance: Number(e.target.value) })
+                            }
+                            className="w-full px-3 py-2 rounded-[14px] bg-[#ffffff] border border-[#e0e0e0] font-mono font-bold"
+                          />
+                        </div>
+                      </div>
+
                       {isSaudi && (
                         <div className="sm:col-span-3 flex items-center gap-4 pt-2 border-t border-[#e0e0e0]">
                           <label className="inline-flex items-center gap-2 font-bold text-[#141414] cursor-pointer">
@@ -1960,6 +2141,111 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                           </label>
                         </div>
                       )}
+
+                      {/* Custom Open Key-Value Fields ("تحرير كل شيء") */}
+                      <div className="sm:col-span-3 pt-3 border-t border-[#e0e0e0] space-y-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-bold text-[#141414]">
+                            حقول مخصصة ومفتوحة في ملف الموظف (إضافة وتحرير أي بيانات إضافية)
+                          </span>
+                          <button
+                            type="button"
+                            data-slot="e360-add-custom-field-btn"
+                            onClick={() => {
+                              const current: CustomEmployeeField[] = Array.isArray(draft.custom_fields)
+                                ? draft.custom_fields
+                                : [];
+                              setDraft({
+                                ...draft,
+                                custom_fields: [
+                                  ...current,
+                                  { id: `CF-${Date.now()}-${current.length}`, label: '', value: '' },
+                                ],
+                              });
+                            }}
+                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#141414] text-white text-[11px] font-bold cursor-pointer"
+                          >
+                            <Plus className="w-3 h-3" />
+                            <span>+ إضافة حقل مخصص</span>
+                          </button>
+                        </div>
+
+                        {Array.isArray(draft.custom_fields) && draft.custom_fields.length > 0 && (
+                          <div className="space-y-2">
+                            {draft.custom_fields.map((cf: CustomEmployeeField, idx: number) => (
+                              <div key={cf.id || idx} className="grid grid-cols-12 gap-2 items-center">
+                                <input
+                                  type="text"
+                                  placeholder="عنوان الحقل المخصص"
+                                  value={cf.label}
+                                  onChange={(e) => {
+                                    const next = [...draft.custom_fields];
+                                    next[idx] = { ...next[idx], label: e.target.value };
+                                    setDraft({ ...draft, custom_fields: next });
+                                  }}
+                                  className="col-span-5 px-3 py-1.5 rounded-[12px] bg-white border border-[#e0e0e0] font-bold text-[#141414]"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="القيمة"
+                                  value={cf.value}
+                                  onChange={(e) => {
+                                    const next = [...draft.custom_fields];
+                                    next[idx] = { ...next[idx], value: e.target.value };
+                                    setDraft({ ...draft, custom_fields: next });
+                                  }}
+                                  className="col-span-6 px-3 py-1.5 rounded-[12px] bg-white border border-[#e0e0e0] font-bold text-[#141414]"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const next = draft.custom_fields.filter(
+                                      (_: CustomEmployeeField, i: number) => i !== idx
+                                    );
+                                    setDraft({ ...draft, custom_fields: next });
+                                  }}
+                                  className="col-span-1 p-1.5 rounded-[12px] bg-white border border-[#e0e0e0] text-[#707070] hover:text-[#141414] flex items-center justify-center cursor-pointer"
+                                  title="حذف الحقل"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="sm:col-span-3">
+                        <label className="block font-bold text-[#141414] mb-1">ملاحظات إدارية وشاملة</label>
+                        <textarea
+                          rows={2}
+                          value={draft.notes || ''}
+                          onChange={(e) => setDraft({ ...draft, notes: e.target.value })}
+                          placeholder="أضف أي ملاحظات إدارية أو تفاصيل خاصة بالموظف..."
+                          className="w-full px-3 py-2 rounded-[14px] bg-[#ffffff] border border-[#e0e0e0] font-semibold text-[#141414]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Sticky bottom save bar */}
+                    <div className="sticky bottom-0 z-10 flex items-center justify-end gap-2 pt-3 border-t border-[#e0e0e0] bg-[#f3f3f3]">
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                        className="px-4 py-2 rounded-full bg-white border border-[#e0e0e0] text-xs font-bold text-[#141414] cursor-pointer"
+                      >
+                        إلغاء التعديلات
+                      </button>
+                      <button
+                        type="button"
+                        data-slot="e360-save-bottom-btn"
+                        disabled={savingProfile}
+                        onClick={() => void handleSaveProfile()}
+                        className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-[#141414] text-white text-xs font-bold cursor-pointer disabled:opacity-60"
+                      >
+                        <Save className="w-3.5 h-3.5" />
+                        <span>{savingProfile ? 'جاري الحفظ...' : 'حفظ جميع التعديلات الآن'}</span>
+                      </button>
                     </div>
                   </div>
                 ) : (
@@ -2077,6 +2363,35 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                     </div>
                   </div>
                 )}
+
+                {!isEditing &&
+                  ((Array.isArray(emp.custom_fields) && emp.custom_fields.length > 0) ||
+                    Boolean(emp.notes?.trim())) && (
+                    <div className="bg-[#f3f3f3] rounded-[20px] p-4 border border-[#e0e0e0] space-y-2.5">
+                      <div className="text-xs font-bold text-[#141414]">
+                        البيانات والحقول المخصصة والملاحظات الإدارية
+                      </div>
+                      {Array.isArray(emp.custom_fields) && emp.custom_fields.length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                          {emp.custom_fields.map((cf: CustomEmployeeField, idx: number) => (
+                            <div
+                              key={cf.id || idx}
+                              className="flex justify-between gap-2 bg-white px-3 py-2 rounded-xl border border-[#e0e0e0]"
+                            >
+                              <span className="text-[#707070] font-semibold">{cf.label || 'حقل إضافي'}</span>
+                              <span className="font-bold text-[#141414]">{cf.value || '—'}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {Boolean(emp.notes?.trim()) && (
+                        <div className="bg-white px-3 py-2 rounded-xl border border-[#e0e0e0] text-xs text-[#141414]">
+                          <span className="font-bold text-[#707070] ml-1.5">ملاحظات:</span>
+                          <span>{emp.notes}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                 {/* Career & Shift Summary */}
                 <div className="bg-[#ffffff] rounded-[20px] p-4 border border-[#e0e0e0]">
@@ -3831,6 +4146,15 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                     ))}
                   </div>
                 </div>
+              </div>
+            )}
+
+            {includeReemSignature && (
+              <div className="pt-2">
+                <ReemHrDocumentSignatureBlock
+                  referenceNumber={String(emp.employee_code || emp.id)}
+                  hideHoldingLogo={branding.hideHoldingGroupBrand}
+                />
               </div>
             )}
             </div>

@@ -9,10 +9,21 @@ import {
   Key, Search, MessageSquare, FileText, Check, Save, ExternalLink,
   Plus, Trash2, Globe, ShieldAlert, Sparkles, RefreshCw, Eye,
   ShoppingBag, Store, CreditCard, Layers, Zap, ScanFace, Laptop,
-  AlertCircle, CheckCircle2, Database, Download, UploadCloud, RotateCcw, HardDrive, EyeOff
+  AlertCircle, CheckCircle2, Database, Download, UploadCloud, RotateCcw, HardDrive, EyeOff,
+  Palette, ShieldCheck
 } from 'lucide-react';
 import { ModuleVisibilityManager } from '../components/settings/ModuleVisibilityManager';
+import { AppearanceDisplayCustomizer } from '../components/settings/AppearanceDisplayCustomizer';
+import { GoogleTwoFactorHub } from '../components/settings/GoogleTwoFactorHub';
 import { authService } from '../services/authService';
+import {
+  loadGlobalTwoFactorPolicy,
+  saveGlobalTwoFactorPolicy,
+} from '../services/googleTwoFactorService';
+import {
+  loadAppearanceSettings,
+  saveAppearanceSettings,
+} from '../services/appearanceSettingsService';
 import { 
   checkWebAuthnSupport, 
   getStoredBiometricCredentials, 
@@ -46,6 +57,15 @@ export const SettingsPage: React.FC = () => {
   const setActiveTab = useAppStore(state => state.setActiveTab);
 
   const getMappedSection = (tabKey: string): string => {
+    if (
+      tabKey === 'appearance' ||
+      tabKey === 'appearance-display' ||
+      tabKey === 'display-settings' ||
+      tabKey === 'theme'
+    ) {
+      return 'appearance-display';
+    }
+    if (tabKey === 'security-2fa') return 'security-2fa';
     if (tabKey === 'system-backup' || tabKey === 'backup' || tabKey === 'database-backup') return 'system-backup';
     if (tabKey === 'rbac-matrix') return 'rbac-matrix';
     if (tabKey === 'settings-general' || tabKey === 'general') return 'general';
@@ -58,7 +78,7 @@ export const SettingsPage: React.FC = () => {
     if (tabKey === 'stipulations') return 'stipulations';
     if (tabKey === 'ecommerce' || tabKey === 'stores' || tabKey === 'smacc-modules') return 'ecommerce';
     if (tabKey === 'module-visibility') return 'module-visibility';
-    return 'security-2fa';
+    return 'appearance-display';
   };
 
   const [activeSection, setActiveSection] = useState<string>(() => getMappedSection(storeActiveTab));
@@ -73,13 +93,14 @@ export const SettingsPage: React.FC = () => {
   const [isExportingDb, setIsExportingDb] = useState(false);
   const [isPurgingData, setIsPurgingData] = useState(false);
 
-  // Section 1: Security & 2FA State
-  const [require2FAAdmin, setRequire2FAAdmin] = useState(true);
-  const [allowOptional2FA, setAllowOptional2FA] = useState(true);
-  const [allowBiometrics, setAllowBiometrics] = useState(true);
-  const [allowFaceId, setAllowFaceId] = useState(true);
-  const [otpExpiryMinutes, setOtpExpiryMinutes] = useState(5);
-  const [defaultOtpChannel, setDefaultOtpChannel] = useState('Google Authenticator');
+  // Section 1: Security & 2FA State (Persisted into Google 2FA Global Policy)
+  const initialPolicy = loadGlobalTwoFactorPolicy();
+  const [require2FAAdmin, setRequire2FAAdmin] = useState(initialPolicy.require2FAAdmin);
+  const [allowOptional2FA, setAllowOptional2FA] = useState(initialPolicy.allowOptional2FA);
+  const [allowBiometrics, setAllowBiometrics] = useState(initialPolicy.allowBiometrics);
+  const [allowFaceId, setAllowFaceId] = useState(initialPolicy.allowFaceId);
+  const [otpExpiryMinutes, setOtpExpiryMinutes] = useState(initialPolicy.otpExpiryMinutes);
+  const [defaultOtpChannel, setDefaultOtpChannel] = useState(initialPolicy.defaultOtpChannel);
 
   // Device Biometrics Management in Settings
   const [deviceBiometrics, setDeviceBiometrics] = useState<RegisteredBiometricCredential[]>([]);
@@ -211,7 +232,9 @@ export const SettingsPage: React.FC = () => {
   const [logoDarkUrl, setLogoDarkUrl] = useState('/logo.png');
   const [faviconUrl, setFaviconUrl] = useState('/logo.png');
   const [watermarkText, setWatermarkText] = useState('مجموعة خالد السليم - نسخة إلكترونية معتمدة');
-  const [brandColorPrimary, setBrandColorPrimary] = useState('#141414');
+  const [brandColorPrimary, setBrandColorPrimary] = useState(
+    () => loadAppearanceSettings().customPrimaryHex || '#141414'
+  );
   const [brandColorAccent, setBrandColorAccent] = useState('#707070');
 
   // Section 6: Quick Links State
@@ -270,11 +293,14 @@ export const SettingsPage: React.FC = () => {
   const [moyasarPublishableKey, setMoyasarPublishableKey] = useState('');
   const [moyasarSecretKey, setMoyasarSecretKey] = useState('');
 
-  const SECTIONS = [
+  const isAdminUser = authService.isAdmin(currentAuthUser);
+
+  const ALL_SECTIONS = [
+    { id: 'appearance-display', name: 'تخصيص الألوان والمظهر والعرض', icon: Palette },
+    { id: 'security-2fa', name: 'المصادقة الثنائية (Google) والبصمة', icon: ShieldCheck },
     { id: 'module-visibility', name: 'إظهار وإخفاء الأقسام والواجهات', icon: EyeOff },
     { id: 'system-backup', name: 'النسخ الاحتياطي وقواعد البيانات والبيانات الحقيقية', icon: Database },
     { id: 'ecommerce', name: 'ربط المتاجر الإلكترونية وبوابات الدفع', icon: ShoppingBag },
-    { id: 'security-2fa', name: 'أمان المصادقة والبصمة البيومترية', icon: Fingerprint },
     { id: 'rbac-matrix', name: 'مصفوفة الصلاحيات (RBAC Matrix)', icon: Shield },
     { id: 'general', name: 'البيانات الأساسية والهوية الرسمية', icon: Building2 },
     { id: 'contacts', name: 'روابط التواصل والموقع الجغرافي', icon: Phone },
@@ -285,6 +311,10 @@ export const SettingsPage: React.FC = () => {
     { id: 'zoho', name: 'اللايف شات المباشر (Zoho SalesIQ)', icon: MessageSquare },
     { id: 'stipulations', name: 'السياسات والشروط وضمان مساند', icon: FileText }
   ];
+
+  const SECTIONS = isAdminUser
+    ? ALL_SECTIONS
+    : ALL_SECTIONS.filter((sec) => sec.id === 'appearance-display' || sec.id === 'security-2fa');
 
   const handleExportDatabase = () => {
     setIsExportingDb(true);
@@ -369,6 +399,15 @@ export const SettingsPage: React.FC = () => {
 
   // Save full settings payload to store
   const handleSaveSettings = async () => {
+    saveGlobalTwoFactorPolicy({
+      require2FAAdmin,
+      allowOptional2FA,
+      allowBiometrics,
+      allowFaceId,
+      otpExpiryMinutes,
+      defaultOtpChannel,
+    });
+
     const fullPayload = {
       security2fa: { require2FAAdmin, allowOptional2FA, allowBiometrics, allowFaceId, otpExpiryMinutes, defaultOtpChannel },
       general: { siteNameAr, siteNameEn, crNumber, taxNumber, nationalAddress, officialEmail, supportPhone, portalSlogan },
@@ -493,6 +532,36 @@ export const SettingsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* شريط الوصول السريع لتخصيص الألوان والمصادقة الثنائية عبر Google */}
+      <div className="flex flex-wrap items-center gap-2.5 bg-white border border-[#e0e0e0] rounded-2xl p-2.5 shadow-xs">
+        <button
+          type="button"
+          data-slot="quick-switch-appearance-btn"
+          onClick={() => setActiveSection('appearance-display')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeSection === 'appearance-display'
+              ? 'bg-[#141414] text-white shadow-sm'
+              : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#e8e8e8]'
+          }`}
+        >
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white/60" />
+          <span>تخصيص الألوان والمظهر والعرض</span>
+        </button>
+        <button
+          type="button"
+          data-slot="quick-switch-google-2fa-btn"
+          onClick={() => setActiveSection('security-2fa')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeSection === 'security-2fa'
+              ? 'bg-[#141414] text-white shadow-sm'
+              : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#e8e8e8]'
+          }`}
+        >
+          <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-600 text-[10px] font-mono font-bold">2FA</span>
+          <span>المصادقة الثنائية عبر Google بالإنترنت و Authenticator</span>
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Left Side Settings Navigation Menu */}
         <div className="card-pricing md:col-span-1" style={{ padding: '12px', borderRadius: '24px', background: '#ffffff', height: 'fit-content' }}>
@@ -533,13 +602,17 @@ export const SettingsPage: React.FC = () => {
         {/* Right Side Settings Form View */}
         <div className="card-pricing md:col-span-3" style={{ padding: '28px', borderRadius: '24px', background: '#ffffff' }}>
           
+          {/* -1. Appearance, Brand Colors & Display Customization Studio */}
+          {activeSection === 'appearance-display' && <AppearanceDisplayCustomizer />}
+
           {/* 0. Module visibility (hide departments / sub-pages / UI parts) */}
           {activeSection === 'module-visibility' && <ModuleVisibilityManager />}
 
           {/* 1. Security & 2FA */}
           {activeSection === 'security-2fa' && (
             <div className="space-y-5">
-              <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
+              <GoogleTwoFactorHub />
+              <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3 pt-2">
                 <div>
                   <h2 className="text-sm font-bold text-[#141414] m-0">
                     إعدادات أمان المصادقة الثنائية (Two-Factor Authentication 2FA Policy)
@@ -760,6 +833,16 @@ export const SettingsPage: React.FC = () => {
                     <span>تسجيل بصمة الوجه</span>
                   </button>
                 </div>
+              </div>
+              <div className="pt-2 flex justify-end border-t border-[#e0e0e0]">
+                <button
+                  type="button"
+                  data-slot="save-security-2fa-policy-btn"
+                  onClick={handleSaveSettings}
+                  className="px-5 py-2.5 rounded-2xl bg-[#141414] text-white text-xs font-bold hover:opacity-90 transition-opacity cursor-pointer"
+                >
+                  حفظ سياسة الأمان والمصادقة الثنائية
+                </button>
               </div>
             </div>
           )}
@@ -1084,13 +1167,23 @@ export const SettingsPage: React.FC = () => {
                     <input 
                       type="color" 
                       value={brandColorPrimary} 
-                      onChange={e => setBrandColorPrimary(e.target.value)} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        setBrandColorPrimary(val);
+                        saveAppearanceSettings({ paletteId: 'custom', customPrimaryHex: val });
+                      }} 
                       className="w-10 h-9 p-0.5 rounded-xl border border-[#e0e0e0] cursor-pointer" 
                     />
                     <input 
                       type="text" 
                       value={brandColorPrimary} 
-                      onChange={e => setBrandColorPrimary(e.target.value)} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        setBrandColorPrimary(val);
+                        if (/^#[0-9A-Fa-f]{6}$/.test(val.trim())) {
+                          saveAppearanceSettings({ paletteId: 'custom', customPrimaryHex: val.trim() });
+                        }
+                      }} 
                       className="flex-1 bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs font-mono text-[#141414]" 
                     />
                   </div>

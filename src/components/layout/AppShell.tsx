@@ -8,6 +8,11 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { employeeOperationsEngine } from '../../services/employeeOperationsEngine';
 import { authService } from '../../services/authService';
 import { useModuleVisibility } from '../../hooks/useModuleVisibility';
+import {
+  APPEARANCE_CHANGED_EVENT,
+  loadAppearanceSettings,
+  type AppearanceSettings,
+} from '../../services/appearanceSettingsService';
 
 interface AppShellProps {
   activeTab: string;
@@ -78,13 +83,25 @@ export const AppShell: React.FC<AppShellProps> = ({
   });
 
   // Desktop sidebar collapse state vs Mobile drawer open state
-  const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState<boolean>(false);
+  const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState<boolean>(
+    () => loadAppearanceSettings().sidebarMode === 'compact'
+  );
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState<boolean>(false);
   const [mobileNotifOpen, setMobileNotifOpen] = useState<boolean>(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState<boolean>(false);
   const [isDraggingFile, setIsDraggingFile] = useState<boolean>(false);
   const touchStartXRef = useRef<number | null>(null);
   const dragCounterRef = useRef<number>(0);
+
+  useEffect(() => {
+    const onAppearanceChange = (e: Event) => {
+      const detail = (e as CustomEvent<AppearanceSettings>).detail;
+      if (!detail) return;
+      setDesktopSidebarCollapsed(detail.sidebarMode === 'compact');
+    };
+    window.addEventListener(APPEARANCE_CHANGED_EVENT, onAppearanceChange);
+    return () => window.removeEventListener(APPEARANCE_CHANGED_EVENT, onAppearanceChange);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -99,13 +116,20 @@ export const AppShell: React.FC<AppShellProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Record activeTab in recent history
+  // Record activeTab in recent history & reset scroll cleanly on tab switch
   useEffect(() => {
     if (activeTab) {
       recordRecentTab({
         href: activeTab,
         title: activeTabTitle || activeTab,
       });
+      if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+        try {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch {
+          // Ignore in headless/jsdom test environments
+        }
+      }
     }
   }, [activeTab, activeTabTitle]);
 
@@ -349,13 +373,13 @@ export const AppShell: React.FC<AppShellProps> = ({
       {/* Global Drag & Drop OCR File Overlay */}
       {isDraggingFile && (
         <div
-          className="fixed inset-0 z-[2500] bg-[#141414]/60 backdrop-blur-sm flex items-center justify-center p-6"
+          className="fixed inset-0 z-[2500] bg-[#141414]/60 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in"
           onClick={() => {
             dragCounterRef.current = 0;
             setIsDraggingFile(false);
           }}
         >
-          <div className="max-w-lg w-full rounded-[24px] border-2 border-dashed border-[#141414] bg-[#ffffff] p-8 text-center space-y-3 ">
+          <div className="max-w-lg w-full rounded-[24px] border-2 border-dashed border-[#141414] bg-[#ffffff] p-8 text-center space-y-3 erp-modal-card-enter">
             <div className="w-16 h-16 rounded-[18px] bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center mx-auto">
               <UploadCloud className="w-8 h-8" />
             </div>
@@ -372,12 +396,12 @@ export const AppShell: React.FC<AppShellProps> = ({
       {/* Keyboard Shortcuts Cheat-Sheet Modal (Shift + ?) */}
       {showShortcutsModal && (
         <div
-          className="fixed inset-0 z-[2200] bg-[#141414]/60 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-[2200] bg-[#141414]/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in"
           onClick={() => setShowShortcutsModal(false)}
           dir="rtl"
         >
           <div
-            className="w-full max-w-lg bg-[#ffffff] rounded-[24px] border border-[#e0e0e0]  overflow-hidden"
+            className="w-full max-w-lg bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] erp-modal-card-enter overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-4 bg-[#ffffff] text-[#141414] border-b border-[#e0e0e0] flex items-center justify-between">
@@ -489,6 +513,11 @@ export const AppShell: React.FC<AppShellProps> = ({
             'margin 0.25s cubic-bezier(0.16, 1, 0.3, 1), width 0.25s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
+        {/* Top Monochrome Route Progress Sweep Ribbon */}
+        <div key={`sweep-${activeTab}`} className="erp-route-progress-track" aria-hidden="true">
+          <div className="erp-route-progress-bar" />
+        </div>
+
         {/* Sticky Header Navbar */}
         <Header
           activeTabTitle={activeTabTitle}
@@ -497,9 +526,11 @@ export const AppShell: React.FC<AppShellProps> = ({
           onLogout={onLogout}
         />
 
-        {/* Content Body with Global Dynamic Button State Enhancer */}
+        {/* Content Body with Global Dynamic Button State Enhancer & Silk Page Stage */}
         <main className="content-body" onClickCapture={handleWorkspaceClickCapture}>
-          {children}
+          <div key={activeTab} className="erp-page-stage">
+            {children}
+          </div>
         </main>
 
         {/* Native-Feel Mobile Bottom Navigation Bar (< 1024px) */}

@@ -10,9 +10,11 @@ import {
   X,
   RotateCcw,
   AlertTriangle,
+  FileSignature,
 } from 'lucide-react';
 import {
   QuickSharePayload,
+  isHrSharePayload,
   shareViaWhatsApp,
   shareViaEmail,
   copyOrWebShareSummary,
@@ -45,6 +47,22 @@ export const RecordQuickActions: React.FC<RecordQuickActionsProps> = ({
 }) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteReason, setDeleteReason] = useState('');
+  const isHrDoc = Boolean(sharePayload && isHrSharePayload(sharePayload));
+  const [includeReemSig, setIncludeReemSig] = useState<boolean>(
+    sharePayload?.includeReemSignature ?? true
+  );
+
+  const effectiveIncludeReemSig =
+    sharePayload?.includeReemSignature !== undefined
+      ? sharePayload.includeReemSignature
+      : includeReemSig;
+
+  const effectiveSharePayload: QuickSharePayload | undefined = sharePayload
+    ? {
+        ...sharePayload,
+        includeReemSignature: isHrDoc ? effectiveIncludeReemSig : sharePayload.includeReemSignature,
+      }
+    : undefined;
 
   const iconSize = size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4';
   const btnPadding = showLabels
@@ -68,11 +86,37 @@ export const RecordQuickActions: React.FC<RecordQuickActionsProps> = ({
         className={`inline-flex items-center gap-1 flex-wrap print:hidden ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
-        {sharePayload && (
+        {effectiveSharePayload && (
           <>
+            {isHrDoc && sharePayload?.includeReemSignature === undefined && (
+              <button
+                type="button"
+                onClick={() => setIncludeReemSig((prev) => !prev)}
+                title={
+                  effectiveIncludeReemSig
+                    ? 'توقيع مديرة الموارد البشرية (أ. ريم بن حسين — HR@kas.sa): مُضمّن في المستند (انقر للإلغاء)'
+                    : 'توقيع مديرة الموارد البشرية (أ. ريم بن حسين — HR@kas.sa): غير مُضمّن (انقر للتضمين)'
+                }
+                className={`${btnPadding} rounded-full border inline-flex items-center justify-center gap-1.5 font-bold transition-colors cursor-pointer ${
+                  effectiveIncludeReemSig
+                    ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                    : 'bg-[#ffffff] text-[#707070] border-[#e0e0e0] hover:text-[#141414]'
+                }`}
+              >
+                <FileSignature className={iconSize} />
+                {showLabels && (
+                  <span>
+                    {effectiveIncludeReemSig
+                      ? 'توقيع أ. ريم بن حسين: مفعّل'
+                      : 'توقيع أ. ريم بن حسين: مخفي'}
+                  </span>
+                )}
+              </button>
+            )}
+
             <button
               type="button"
-              onClick={() => shareViaWhatsApp(sharePayload)}
+              onClick={() => shareViaWhatsApp(effectiveSharePayload)}
               title="إرسال عبر واتساب الرسمي (ملف PDF معتمد + نص)"
               className={`${btnPadding} rounded-full bg-[#f3f3f3] hover:bg-[#707070] text-[#707070] hover:text-[#ffffff] border border-[#e0e0e0] hover:border-[#707070] inline-flex items-center justify-center gap-1.5 font-bold transition-colors cursor-pointer`}
             >
@@ -82,7 +126,7 @@ export const RecordQuickActions: React.FC<RecordQuickActionsProps> = ({
 
             <button
               type="button"
-              onClick={() => shareViaEmail(sharePayload)}
+              onClick={() => shareViaEmail(effectiveSharePayload)}
               title="إرسال عبر البريد الإلكتروني"
               className={`${btnPadding} rounded-full bg-[#f3f3f3] hover:bg-[#707070] text-[#707070] hover:text-[#ffffff] border border-[#e0e0e0] hover:border-[#707070] inline-flex items-center justify-center gap-1.5 font-bold transition-colors cursor-pointer`}
             >
@@ -92,7 +136,7 @@ export const RecordQuickActions: React.FC<RecordQuickActionsProps> = ({
 
             <button
               type="button"
-              onClick={() => void copyOrWebShareSummary(sharePayload)}
+              onClick={() => void copyOrWebShareSummary(effectiveSharePayload)}
               title="نسخ أو مشاركة ملخص السجل"
               className={`${btnPadding} rounded-full bg-[#ffffff] hover:bg-[#707070] text-[#707070] hover:text-[#ffffff] border border-[#e0e0e0] hover:border-[#707070] inline-flex items-center justify-center gap-1.5 font-bold transition-colors cursor-pointer`}
             >

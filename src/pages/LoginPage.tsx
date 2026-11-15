@@ -20,10 +20,17 @@ import {
   findAllowedKasEmployee,
   getExcludedEmailReason,
   validateAllowedCorporateEmail,
+  verifyKasEmployeePassword,
   verifyInitialOrActiveKasPassword,
   validateStrongPasswordPolicy,
   generateStrongClientPassword,
 } from '../services/authService';
+import {
+  getLoginChallengeForUser,
+  verifyLoginSecondFactor,
+  checkGoogleOnlineReachability,
+  type LoginTwoFactorChallenge,
+} from '../services/googleTwoFactorService';
 import { DEMO_AUTH_ENABLED } from '../config/authMode';
 import {
   VERIFIED_FIREBASE_GOOGLE_ACCOUNTS,
@@ -67,6 +74,10 @@ import {
   FileSpreadsheet,
   Briefcase,
   Scale,
+  QrCode,
+  Wifi,
+  WifiOff,
+  RotateCcw,
 } from 'lucide-react';
 
 export interface SystemPortalOption {
@@ -388,6 +399,26 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   });
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
+  const [pendingTwoFactor, setPendingTwoFactor] = useState<{
+    identifier: string;
+    password: string;
+    kasEmail: string;
+    challenge: LoginTwoFactorChallenge;
+  } | null>(null);
+  const [twoFactorMethod, setTwoFactorMethod] = useState<'google_online' | 'totp' | 'backup_code'>('google_online');
+  const [twoFactorCode, setTwoFactorCode] = useState<string>('');
+  const [twoFactorGoogleEmail, setTwoFactorGoogleEmail] = useState<string>('');
+  const [googleOnlineState, setGoogleOnlineState] = useState<{
+    checking: boolean;
+    online: boolean;
+    reachable: boolean;
+    latencyMs: number;
+  }>({
+    checking: false,
+    online: true,
+    reachable: true,
+    latencyMs: 0,
+  });
 
   useEffect(() => {
     setCompanyFilter(getInitialCompanyFilterForPortalCode(loginPortalCode));
@@ -487,6 +518,42 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     return staffDirectory.filter((item) => item.company_id.toUpperCase() === companyFilter);
   }, [staffDirectory, companyFilter]);
 
+  const finalizeVerifiedSignIn = async (finalId: string, finalPass: string) => {
+    const result = await signIn(finalId, finalPass);
+    if (result.error) {
+      setErrorMsg(result.error);
+      setLoading(false);
+      return;
+    }
+
+    const resolvedCorporateEmail = result.user?.email || authService.resolveEmail(finalId);
+    const kasEmp = findAllowedKasEmployee(resolvedCorporateEmail);
+    const routeInfo = resolveDepartmentAndCompany(resolvedCorporateEmail);
+    const landingTab =
+      kasEmp?.defaultTab ||
+      detectedRouting.account?.default_tab ||
+      routeInfo.departmentDef.defaultTab;
+    const landingTitle =
+      kasEmp?.defaultTabTitle ||
+      detectedRouting.account?.default_tab_title ||
+      routeInfo.departmentDef.defaultTabTitle;
+
+    if (routeInfo.companyId === 'all') {
+      setActiveCompanyId('SAF');
+      useAppStore.getState().setActiveCompanyId('all' as any);
+    } else {
+      const compUpper = routeInfo.companyId.toUpperCase();
+      setActiveCompanyId(compUpper as any);
+      useAppStore.getState().setActiveCompanyId(compUpper as any);
+    }
+
+    if (onLoginSuccess) {
+      onLoginSuccess(landingTab, landingTitle);
+    } else {
+      setFlowState('workspace');
+    }
+  };
+
   const executeUnifiedSignIn = async (targetIdentifier?: string, targetPass?: string) => {
     const finalId = (targetIdentifier ?? identifier).trim();
     const finalPass = (targetPass ?? password).trim();
@@ -516,41 +583,82 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     setLoading(true);
 
     try {
-      const result = await signIn(finalId, finalPass);
-      if (result.error) {
-        setErrorMsg(result.error);
+      const allowCheck = validateAllowedCorporateEmail(finalId);
+      const candidateEmail = authService.resolveEmail(finalId);
+      const twoFactorChallenge = getLoginChallengeForUser(candidateEmail);
+
+      if (
+        allowCheck.allowed &&
+        twoFactorChallenge.required &&
+        verifyKasEmployeePassword(candidateEmail, finalPass)
+      ) {
+        const initialMethod: 'google_online' | 'totp' | 'backup_code' =
+          twoFactorChallenge.preferredMethod === 'google_online' &&
+          twoFactorChallenge.googleOnlineEnabled
+            ? 'google_online'
+            : twoFactorChallenge.totpEnabled
+              ? 'totp'
+              : twoFactorChallenge.googleOnlineEnabled
+                ? 'google_online'
+                : 'backup_code';
+
+        setPendingTwoFactor({
+          identifier: finalId,
+          password: finalPass,
+          kasEmail: candidateEmail,
+          challenge: twoFactorChallenge,
+        });
+        setTwoFactorMethod(initialMethod);
+        setTwoFactorCode('');
+        setTwoFactorGoogleEmail(twoFactorChallenge.googleEmail || '');
+        setSuccessMsg('تم التحقق من كلمة المرور — يرجى إتمام المصادقة الثنائية عبر Google للمتابعة.');
         setLoading(false);
+
+        setGoogleOnlineState((prev) => ({ ...prev, checking: true }));
+        void checkGoogleOnlineReachability(3500).then((reach) => {
+          setGoogleOnlineState({
+            checking: false,
+            online: reach.online,
+            reachable: reach.googleCloudReachable,
+            latencyMs: reach.latencyMs,
+          });
+        });
         return;
       }
 
-      const resolvedCorporateEmail = result.user?.email || authService.resolveEmail(finalId);
-      const kasEmp = findAllowedKasEmployee(resolvedCorporateEmail);
-      const routeInfo = resolveDepartmentAndCompany(resolvedCorporateEmail);
-      const landingTab =
-        kasEmp?.defaultTab ||
-        detectedRouting.account?.default_tab ||
-        routeInfo.departmentDef.defaultTab;
-      const landingTitle =
-        kasEmp?.defaultTabTitle ||
-        detectedRouting.account?.default_tab_title ||
-        routeInfo.departmentDef.defaultTabTitle;
-
-      if (routeInfo.companyId === 'all') {
-        setActiveCompanyId('SAF');
-        useAppStore.getState().setActiveCompanyId('all' as any);
-      } else {
-        const compUpper = routeInfo.companyId.toUpperCase();
-        setActiveCompanyId(compUpper as any);
-        useAppStore.getState().setActiveCompanyId(compUpper as any);
-      }
-
-      if (onLoginSuccess) {
-        onLoginSuccess(landingTab, landingTitle);
-      } else {
-        setFlowState('workspace');
-      }
+      await finalizeVerifiedSignIn(finalId, finalPass);
     } catch (err: any) {
       setErrorMsg(err?.message || 'حدث خطأ أثناء تسجيل الدخول للمنظومة.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCompleteTwoFactorLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pendingTwoFactor) return;
+
+    setErrorMsg(null);
+    setLoading(true);
+    try {
+      const verifyRes = await verifyLoginSecondFactor(pendingTwoFactor.kasEmail, {
+        method: twoFactorMethod,
+        code: twoFactorCode,
+        googleEmailConfirmation: twoFactorGoogleEmail,
+      });
+
+      if (!verifyRes.success) {
+        setErrorMsg(verifyRes.error || 'تعذر التحقق من عامل المصادقة الثنائية.');
+        return;
+      }
+
+      const { identifier: savedId, password: savedPass } = pendingTwoFactor;
+      setPendingTwoFactor(null);
+      setTwoFactorCode('');
+      setSuccessMsg('تم التحقق من المصادقة الثنائية عبر Google بنجاح — جاري فتح مساحة العمل...');
+      await finalizeVerifiedSignIn(savedId, savedPass);
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'حدث خطأ أثناء إتمام التحقق الثنائي.');
     } finally {
       setLoading(false);
     }
@@ -1326,8 +1434,223 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 </div>
               )}
 
-              {/* 6. Email & Password Form */}
-              {isRecoveryMode ? (
+              {/* 6. Email & Password Form + Step-2 Google 2FA Challenge */}
+              {pendingTwoFactor ? (
+                <form
+                  onSubmit={handleCompleteTwoFactorLogin}
+                  data-slot="login-2fa-challenge-card"
+                  className="space-y-4"
+                >
+                  <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2.5">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-[#141414] text-white flex items-center justify-center">
+                          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-xs font-extrabold text-[#141414] m-0">
+                            المصادقة الثنائية عبر Google
+                          </h3>
+                          <p className="text-[11px] font-mono text-[#707070] m-0" dir="ltr">
+                            {pendingTwoFactor.kasEmail}
+                          </p>
+                        </div>
+                      </div>
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                          googleOnlineState.online
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : 'bg-amber-50 text-amber-800 border border-amber-200'
+                        }`}
+                      >
+                        {googleOnlineState.checking ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : googleOnlineState.online ? (
+                          <Wifi className="w-3 h-3 text-emerald-600" />
+                        ) : (
+                          <WifiOff className="w-3 h-3 text-amber-600" />
+                        )}
+                        <span>
+                          {googleOnlineState.checking
+                            ? 'جاري فحص اتصال Google...'
+                            : googleOnlineState.online
+                              ? `متصل بالإنترنت${googleOnlineState.latencyMs ? ` (${googleOnlineState.latencyMs}ms)` : ''}`
+                              : 'غير متصل — استخدم Authenticator'}
+                        </span>
+                      </span>
+                    </div>
+
+                    {/* Method Tabs */}
+                    <div className="grid grid-cols-3 gap-1.5 bg-white p-1 rounded-xl border border-[#e0e0e0]">
+                      {pendingTwoFactor.challenge.googleOnlineEnabled && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTwoFactorMethod('google_online');
+                            setErrorMsg(null);
+                          }}
+                          className={`py-2 px-2 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                            twoFactorMethod === 'google_online'
+                              ? 'bg-[#141414] text-white'
+                              : 'text-[#707070] hover:text-[#141414]'
+                          }`}
+                        >
+                          <Wifi className="w-3.5 h-3.5" />
+                          <span>Google بالإنترنت</span>
+                        </button>
+                      )}
+                      {pendingTwoFactor.challenge.totpEnabled && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTwoFactorMethod('totp');
+                            setErrorMsg(null);
+                          }}
+                          className={`py-2 px-2 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                            twoFactorMethod === 'totp'
+                              ? 'bg-[#141414] text-white'
+                              : 'text-[#707070] hover:text-[#141414]'
+                          }`}
+                        >
+                          <QrCode className="w-3.5 h-3.5" />
+                          <span>Google Authenticator</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTwoFactorMethod('backup_code');
+                          setErrorMsg(null);
+                        }}
+                        className={`py-2 px-2 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                          twoFactorMethod === 'backup_code'
+                            ? 'bg-[#141414] text-white'
+                            : 'text-[#707070] hover:text-[#141414]'
+                        }`}
+                      >
+                        <KeyRound className="w-3.5 h-3.5" />
+                        <span>رمز استرداد ({pendingTwoFactor.challenge.backupCodesRemaining})</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {twoFactorMethod === 'google_online' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label
+                          htmlFor="login-google-online-email-input"
+                          className="block text-xs font-bold text-[#141414] mb-1.5"
+                        >
+                          تأكيد بريد Google المربوط بالإنترنت
+                        </label>
+                        <input
+                          id="login-google-online-email-input"
+                          type="email"
+                          dir="ltr"
+                          value={twoFactorGoogleEmail}
+                          onChange={(e) => setTwoFactorGoogleEmail(e.target.value)}
+                          placeholder="name@gmail.com"
+                          className="w-full h-12 px-4 rounded-2xl bg-[#f3f3f3] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#707070] text-sm font-mono transition-all focus:outline-none"
+                          required
+                        />
+                        {pendingTwoFactor.challenge.googleEmail && (
+                          <p className="text-[11px] text-[#707070] mt-1">
+                            الحساب المعتمد للتحقق الفوري: <span className="font-mono font-bold text-[#141414]" dir="ltr">{pendingTwoFactor.challenge.googleEmail}</span>
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full h-12 rounded-2xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+                      >
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wifi className="w-4 h-4 text-emerald-400" />}
+                        <span>التحقق عبر Google بالإنترنت والدخول</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {twoFactorMethod === 'totp' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label
+                          htmlFor="login-google-totp-input"
+                          className="block text-xs font-bold text-[#141414] mb-1.5"
+                        >
+                          رمز Google Authenticator المكون من 6 أرقام
+                        </label>
+                        <input
+                          id="login-google-totp-input"
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={6}
+                          dir="ltr"
+                          autoComplete="one-time-code"
+                          value={twoFactorCode}
+                          onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          placeholder="000000"
+                          className="w-full h-12 px-4 rounded-2xl bg-[#f3f3f3] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] text-center tracking-[0.45em] font-mono text-lg font-extrabold transition-all focus:outline-none"
+                          required
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={loading || twoFactorCode.length < 6}
+                        className="w-full h-12 rounded-2xl bg-[#141414] hover:bg-[#262626] disabled:opacity-50 text-[#ffffff] font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+                      >
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <QrCode className="w-4 h-4 text-sky-400" />}
+                        <span>تأكيد رمز Authenticator (6 أرقام)</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {twoFactorMethod === 'backup_code' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label
+                          htmlFor="login-google-backup-input"
+                          className="block text-xs font-bold text-[#141414] mb-1.5"
+                        >
+                          رمز الاسترداد الاحتياطي (صالح لمرة واحدة)
+                        </label>
+                        <input
+                          id="login-google-backup-input"
+                          type="text"
+                          dir="ltr"
+                          value={twoFactorCode}
+                          onChange={(e) => setTwoFactorCode(e.target.value.toUpperCase())}
+                          placeholder="XXXX-XXXX"
+                          className="w-full h-12 px-4 rounded-2xl bg-[#f3f3f3] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] text-center tracking-widest font-mono text-base font-bold transition-all focus:outline-none"
+                          required
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={loading || !twoFactorCode.trim()}
+                        className="w-full h-12 rounded-2xl bg-[#141414] hover:bg-[#262626] disabled:opacity-50 text-[#ffffff] font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+                      >
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4 text-amber-400" />}
+                        <span>تأكيد رمز الاسترداد الاحتياطي</span>
+                      </button>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    data-slot="cancel-2fa-challenge-btn"
+                    onClick={() => {
+                      setPendingTwoFactor(null);
+                      setTwoFactorCode('');
+                      setErrorMsg(null);
+                      setSuccessMsg(null);
+                    }}
+                    className="w-full h-10 rounded-xl border border-[#e0e0e0] bg-white hover:bg-[#f3f3f3] text-xs font-bold text-[#707070] hover:text-[#141414] flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>رجوع لتبديل الحساب</span>
+                  </button>
+                </form>
+              ) : isRecoveryMode ? (
                 <form onSubmit={handleSetNewPassword} className="space-y-4">
                   <p className="text-xs font-bold text-[#141414] text-right m-0">
                     تعيين كلمة مرور جديدة لحسابك

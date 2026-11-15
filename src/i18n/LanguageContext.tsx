@@ -2,6 +2,13 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { LANGUAGES, Language, TRANSLATIONS } from './languages';
 import i18n from './config';
 import { translateDomSubtree, lookupExactTranslation } from './liveDomTranslator';
+import {
+  APPEARANCE_CHANGED_EVENT,
+  loadAppearanceSettings,
+  resolveEffectiveThemeMode,
+  saveAppearanceSettings,
+  type AppearanceSettings,
+} from '../services/appearanceSettingsService';
 
 export interface LanguageContextType {
   currentLanguage: Language;
@@ -54,7 +61,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   });
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() =>
-    loadFromStorage<'light' | 'dark'>(STORAGE_KEYS.THEME, 'light')
+    resolveEffectiveThemeMode(loadAppearanceSettings().themeMode)
   );
 
   useEffect(() => {
@@ -112,8 +119,21 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem(STORAGE_KEYS.THEME, JSON.stringify(theme));
   }, [theme]);
 
+  useEffect(() => {
+    const onAppearanceChanged = (e: Event) => {
+      const detail = (e as CustomEvent<AppearanceSettings>).detail;
+      if (!detail) return;
+      const resolved = resolveEffectiveThemeMode(detail.themeMode);
+      setTheme((prev) => (prev === resolved ? prev : resolved));
+    };
+    window.addEventListener(APPEARANCE_CHANGED_EVENT, onAppearanceChanged);
+    return () => window.removeEventListener(APPEARANCE_CHANGED_EVENT, onAppearanceChanged);
+  }, []);
+
   const toggleTheme = () => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+    const next = theme === 'light' ? 'dark' : 'light';
+    setTheme(next);
+    saveAppearanceSettings({ themeMode: next });
   };
 
   const handleSetLanguage = (lang: Language) => {

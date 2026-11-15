@@ -1,0 +1,221 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   CORPORATE COLOR THEME (`[data-ui-theme="corporate-color"]`)
+   Preserves Mobbin Monochrome (`[data-ui-theme="monochrome"]`) untouched and
+   restores Sovereign Navy, Saudi Emerald, Royal Sapphire, and Champagne Gold
+   when the Corporate Color theme is active (default & toggleable from Header).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root[data-ui-theme='corporate-color'] {
+  --color-primary: #0f3a60;
+  --color-on-primary: #ffffff;
+  --color-ink: #0f172a;
+  --color-ink-soft: #1e3a5f;
+  --color-text-muted: #475569;
+  --color-text-faint: #94a3b8;
+  --color-canvas: #f4f7fb;
+  --color-canvas-soft: #edf2f9;
+  --color-field: #f1f5f9;
+  --color-hairline-soft: #e2e8f0;
+  --color-hairline: #cbd5e1;
+  --color-accent: #0284c7;
+
+  /* Executive Gold & Semantic Brand Accents */
+  --color-champagne-gold: #b45309;
+  --color-gold-light: #fef3c7;
+  --color-gold-dark: #92400e;
+  --color-gold-pale: #fffbeb;
+  --color-charcoal-dark: #0f2942;
+  --color-charcoal-deep: #091a2e;
+  --color-primary-accent: #0284c7;
+  --color-primary-accent-light: #e0f2fe;
+  --color-primary-accent-dark: #0369a1;
+  --color-primary-accent-pale: #f0f9ff;
+  --color-aloe-10: #ecfdf5;
+  --color-pistachio-10: #f0fdf4;
+
+  /* Semantic Status Signals */
+  --status-success: #047857;
+  --status-success-bg: #ecfdf5;
+  --status-success-border: #a7f3d0;
+  --status-warning: #b45309;
+  --status-warning-bg: #fffbeb;
+  --status-warning-border: #fde68a;
+  --status-danger: #be123c;
+  --status-danger-bg: #fff1f2;
+  --status-danger-border: #fecdd3;
+
+  --company-accent: #0f3a60;
+  --company-accent-secondary: #059669;
+  --company-accent-soft: #eff6ff;
+  --shadow-card: 0 2px 10px -2px rgba(15, 41, 66, 0.06);
+  --shadow-sm: 0 1px 3px rgba(15, 41, 66, 0.06);
+}
+
+/* Multi-Company Accent Mapping (SAF • YAQ • TOP • KAS • DAR) */
+:root[data-ui-theme='corporate-color'][data-company-theme='SAF'] {
+  --company-accent: #1d4ed8;
+  --company-accent-secondary: #0284c7;
+  --company-accent-soft: #eff6ff;
+}
+:root[data-ui-theme='corporate-color'][data-company-theme='YAQ'] {
+  --company-accent: #059669;
+  --company-accent-secondary: #0d9488;
+  --company-accent-soft: #ecfdf5;
+}
+:root[data-ui-theme='corporate-color'][data-company-theme='TOP'] {
+  --company-accent: #4f46e5;
+  --company-accent-secondary: #7c3aed;
+  --company-accent-soft: #eef2ff;
+}
+:root[data-ui-theme='corporate-color'][data-company-theme='KAS'] {
+  --company-accent: #b45309;
+  --company-accent-secondary: #0f3a60;
+  --company-accent-soft: #fffbeb;
+}
+:root[data-ui-theme='corporate-color'][data-company-theme='DAR'] {
+  --company-accent: #0f766e;
+  --company-accent-secondary: #0284c7;
+  --company-accent-soft: #f0fdfa;
+}
+
+/* ─── Surface, Shell & Chrome Polish ─────────────────────────────────────── */
+
+:root[data-ui-theme='corporate-color'] body {
+  background: radial-gradient(1200px 600px at 85% -10%, rgba(2, 132, 199, 0.06), transparent 60%),
+    radial-gradient(900px 500px at 10% 10%, rgba(5, 150, 105, 0.05), transparent 55%),
+    var(--color-canvas);
+  color: var(--color-ink);
+}
+
+:root[data-ui-theme='corporate-color'] header {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  border-top: 3px solid var(--company-accent);
+  box-shadow: 0 2px 12px rgba(15, 41, 66, 0.05);
+}
+
+:root[data-ui-theme='corporate-color'] aside {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Active Navigation Pills inside Sidebar */
+:root[data-ui-theme='corporate-color'] aside button.bg-\[\#141414\],
+:root[data-ui-theme='corporate-color'] aside a.bg-\[\#141414\] {
+  background: linear-gradient(135deg, var(--company-accent) 0%, var(--company-accent-secondary) 100%) !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 14px -4px rgba(15, 58, 96, 0.35);
+}
+
+/* Hero & Sovereign Executive Dark Cards -> Rich Navy-Emerald-Gold Gradient */
+:root[data-ui-theme='corporate-color'] div.bg-\[\#141414\][class*='rounded-'][class*='text-white'],
+:root[data-ui-theme='corporate-color'] section.bg-\[\#141414\][class*='text-white'],
+:root[data-ui-theme='corporate-color'] footer.bg-\[\#141414\] {
+  background: linear-gradient(135deg, #0b1f3a 0%, var(--company-accent) 55%, #065f46 100%) !important;
+  border: 1px solid rgba(217, 119, 6, 0.25);
+  box-shadow: 0 12px 28px -10px rgba(11, 31, 58, 0.32);
+}
+
+:root[data-ui-theme='corporate-color'] div.bg-\[\#141414\][class*='text-white'] .text-\[\#adadad\] {
+  color: #cbd5e1 !important;
+}
+
+/* Primary Buttons & Segmented Active Tabs */
+:root[data-ui-theme='corporate-color'] button.bg-\[\#141414\]:not([data-preserve-mono='true']),
+:root[data-ui-theme='corporate-color'] a.bg-\[\#141414\]:not([data-preserve-mono='true']) {
+  background: linear-gradient(135deg, var(--company-accent) 0%, #0e4f75 100%) !important;
+  border-color: var(--company-accent) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px -3px rgba(15, 58, 96, 0.3);
+}
+
+:root[data-ui-theme='corporate-color'] button.bg-\[\#141414\]:not([data-preserve-mono='true']):hover,
+:root[data-ui-theme='corporate-color'] a.bg-\[\#141414\]:not([data-preserve-mono='true']):hover {
+  filter: brightness(1.08);
+}
+
+/* Featured Cards, KPI Cards & App Squircles */
+:root[data-ui-theme='corporate-color'] .card-pricing {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 10px -2px rgba(15, 41, 66, 0.05);
+}
+
+:root[data-ui-theme='corporate-color'] .card-pricing-featured {
+  background: linear-gradient(145deg, #ffffff 0%, var(--company-accent-soft) 100%) !important;
+  border: 1px solid #bae6fd !important;
+  box-shadow: 0 6px 18px -6px rgba(2, 132, 199, 0.14);
+}
+
+:root[data-ui-theme='corporate-color'] .app-icon-squircle.bg-\[\#141414\] {
+  background: linear-gradient(135deg, var(--company-accent) 0%, var(--company-accent-secondary) 100%) !important;
+  color: #ffffff !important;
+}
+
+/* Semantic Status Badges */
+:root[data-ui-theme='corporate-color'] .badge-success {
+  background-color: #ecfdf5 !important;
+  color: #065f46 !important;
+  border-color: #6ee7b7 !important;
+}
+:root[data-ui-theme='corporate-color'] .badge-mint {
+  background-color: #f0fdfa !important;
+  color: #0f766e !important;
+  border-color: #5eead4 !important;
+}
+:root[data-ui-theme='corporate-color'] .badge-warning {
+  background-color: #fffbeb !important;
+  color: #b45309 !important;
+  border-color: #fcd34d !important;
+}
+:root[data-ui-theme='corporate-color'] .badge-gold,
+:root[data-ui-theme='corporate-color'] .badge-champagne {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+  border-color: #f59e0b !important;
+}
+:root[data-ui-theme='corporate-color'] .badge-danger {
+  background-color: #fff1f2 !important;
+  color: #be123c !important;
+  border-color: #fda4af !important;
+}
+:root[data-ui-theme='corporate-color'] .badge-info {
+  background-color: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border-color: #93c5fd !important;
+}
+:root[data-ui-theme='corporate-color'] .badge-purple {
+  background-color: #f5f3ff !important;
+  color: #6d28d9 !important;
+  border-color: #c4b5fd !important;
+}
+:root[data-ui-theme='corporate-color'] .badge-primary {
+  background-color: var(--company-accent) !important;
+  color: #ffffff !important;
+  border-color: var(--company-accent) !important;
+}
+
+/* Notification Bell Unread Pill */
+:root[data-ui-theme='corporate-color'] [data-slot='header-notifications-bell'] span {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+/* Icons inside Soft Pills gain Subtle Brand Tint */
+:root[data-ui-theme='corporate-color'] [data-colored-icon='true'] {
+  color: var(--company-accent) !important;
+}
+
+:root[data-ui-theme='corporate-color'] button.bg-\[\#141414\] [data-colored-icon='true'],
+:root[data-ui-theme='corporate-color'] aside button.bg-\[\#141414\] svg {
+  color: #ffffff !important;
+}
+
+/* Optical Scannability Guard: Keep Barcode / QR SVGs Strictly High-Contrast Black-on-White */
+:root[data-ui-theme='corporate-color'] .qr-container,
+:root[data-ui-theme='corporate-color'] [data-barcode],
+:root[data-ui-theme='corporate-color'] [data-slot='barcode-preview'] {
+  background-color: #ffffff !important;
+  color: #141414 !important;
+}

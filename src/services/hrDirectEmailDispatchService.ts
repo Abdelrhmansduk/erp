@@ -60,6 +60,8 @@ export interface DispatchDirectHrEmailOptions {
   referenceNo?: string;
   moduleName?: string;
   openOutlookWebFallbackIfUnconfigured?: boolean;
+  preferredFallbackTarget?: 'web' | 'desktop';
+  alreadyOpenedOutlookWindow?: boolean;
   skipSentMessagesLog?: boolean;
 }
 
@@ -67,6 +69,7 @@ export interface DispatchDirectHrEmailResult {
   ok: boolean;
   unconfigured: boolean;
   openedInOutlookWeb: boolean;
+  openedInOutlookDesktop?: boolean;
   provider?: HrMailProviderType;
   messageId?: string;
   referenceNo?: string;
@@ -145,6 +148,63 @@ export async function copyReemRichEmailToClipboard(
     }
   }
   return 'plain';
+}
+
+export function triggerMailtoProtocolSafely(mailtoUrl: string): boolean {
+  if (typeof window === 'undefined') return false;
+  if (typeof document !== 'undefined' && document.body) {
+    try {
+      const anchor = document.createElement('a');
+      anchor.href = mailtoUrl;
+      anchor.rel = 'noopener noreferrer';
+      anchor.style.display = 'none';
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      return true;
+    } catch {
+      // Fallback below
+    }
+  }
+  try {
+    window.location.href = mailtoUrl;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function openOutlookComposeWindowSeamless(
+  composed: ComposedReemHrEmail,
+  preferredTarget: 'web' | 'desktop' = 'web'
+): { opened: boolean; target: 'web' | 'desktop' } {
+  if (typeof window === 'undefined') {
+    return { opened: false, target: preferredTarget };
+  }
+
+  if (preferredTarget === 'desktop') {
+    const openedDesktop = triggerMailtoProtocolSafely(composed.mailtoUrl);
+    return { opened: openedDesktop, target: 'desktop' };
+  }
+
+  let popupWin: Window | null = null;
+  try {
+    popupWin = window.open(composed.outlookWebUrl, '_blank', 'noopener,noreferrer');
+  } catch {
+    popupWin = null;
+  }
+
+  const isJsdom =
+    typeof navigator !== 'undefined' &&
+    typeof navigator.userAgent === 'string' &&
+    navigator.userAgent.toLowerCase().includes('jsdom');
+
+  if (!popupWin && !isJsdom) {
+    const fallbackOpened = triggerMailtoProtocolSafely(composed.mailtoUrl);
+    return { opened: fallbackOpened, target: 'desktop' };
+  }
+
+  return { opened: true, target: 'web' };
 }
 
 export async function getHrMailGatewayStatus(): Promise<HrMailGatewayStatus> {
@@ -429,27 +489,37 @@ export async function dispatchComposedHrEmailDirect(
 
   if (isUnconfigured) {
     if (options.openOutlookWebFallbackIfUnconfigured && typeof window !== 'undefined') {
-      await copyReemRichEmailToClipboard(composed.htmlBody, composed.plainTextBody);
-      window.open(composed.outlookWebUrl, '_blank', 'noopener,noreferrer');
+      const copyPromise = copyReemRichEmailToClipboard(composed.htmlBody, composed.plainTextBody);
+      const launchRes = options.alreadyOpenedOutlookWindow
+        ? { opened: true, target: (options.preferredFallbackTarget || 'web') as 'web' | 'desktop' }
+        : openOutlookComposeWindowSeamless(composed, options.preferredFallbackTarget || 'web');
+      await copyPromise;
 
       await persistOfficialDispatchArchive({
         options,
         referenceNo,
         recordId,
-        dispatchChannel: 'OUTLOOK_WEB_DIRECT',
-        archiveStatus: 'فُتح للإرسال عبر Outlook Web (بانتظار تفعيل بوابة SMTP/Graph)',
-        sentStatus: 'فُتح في Outlook Web للإرسال المباشر',
+        dispatchChannel: launchRes.target === 'desktop' ? 'OUTLOOK_DESKTOP_DIRECT' : 'OUTLOOK_WEB_DIRECT',
+        archiveStatus:
+          launchRes.target === 'desktop'
+            ? 'فُتح للإرسال عبر تطبيق Outlook لسطح المكتب'
+            : 'فُتح للإرسال عبر Outlook Web (بانتظار تفعيل بوابة SMTP/Graph)',
+        sentStatus:
+          launchRes.target === 'desktop'
+            ? 'فُتح في تطبيق Outlook للإرسال المباشر'
+            : 'فُتح في Outlook Web للإرسال المباشر',
       });
 
       return {
         ok: false,
         unconfigured: true,
         openedInOutlookWeb: true,
+        openedInOutlookDesktop: launchRes.target === 'desktop',
         referenceNo,
         recordId,
         errorAr:
           data?.errorAr ||
-          'بوابة الإرسال الصامت غير مفعلة بعد — تم فتح Outlook Web مباشرة مع نسخ القالب بالتوقيع الرسمي دون تنزيل أي ملفات.',
+          'بوابة الإرسال الصامت غير مفعلة بعد — تم فتح Outlook مباشرة مع نسخ القالب بالتوقيع الرسمي دون تنزيل أي ملفات.',
         composed,
       };
     }

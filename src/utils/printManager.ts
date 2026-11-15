@@ -17,6 +17,8 @@ export const BODY_STAGE_PRINT_ATTR = 'data-erp-stage-printing';
 export const ACTIVE_ROOT_ATTR = 'data-active-print-root';
 export const ACTIVE_ANCESTOR_ATTR = 'data-active-print-ancestor';
 export const BODY_MODAL_PRINT_ATTR = 'data-erp-printing-modal';
+export const BODY_PRINT_ORIENTATION_ATTR = 'data-erp-print-orientation';
+export const WORKSPACE_A4_STYLE_ID = 'erp-workspace-a4-lock';
 
 const EXCLUDED_CHROME_SELECTOR =
   '[data-ai-copilot="true"], [data-notification-toaster="true"], [data-slot="sidebar"], [data-slot="topbar"], [data-slot="mobile-bottom-nav"], aside, nav';
@@ -85,11 +87,42 @@ function getEffectiveZIndex(el: HTMLElement, win: Window): number {
   return maxZ;
 }
 
+function resolveA4Orientation(
+  target: HTMLElement | null,
+  iframeCssCombined = ''
+): 'portrait' | 'landscape' {
+  if (
+    target?.getAttribute('data-print-orientation') === 'landscape' ||
+    target?.closest('[data-print-orientation="landscape"]') ||
+    /@page[\s\S]*?size\s*:\s*(?:A4\s+)?landscape/i.test(iframeCssCombined)
+  ) {
+    return 'landscape';
+  }
+  return 'portrait';
+}
+
+function buildA4PageLockCss(
+  orientation: 'portrait' | 'landscape',
+  margin = '10mm 12mm'
+): string {
+  return `@page { size: A4 ${orientation}; margin: ${margin}; }`;
+}
+
 function scopeIframeCssForStage(cssText: string): string {
   if (!cssText) return '';
+  // Normalize any @page size declarations inside embedded iframe CSS to ISO A4
+  const normalizedPageCss = cssText.replace(
+    /(@page\b[^}]*?\bsize\s*:\s*)(?:A4\s+)?(portrait|landscape)|(@page\b[^}]*?\bsize\s*:\s*)(?:letter|legal|a5|b5)(?:\s+(portrait|landscape))?/gi,
+    (_match, p1?: string, dir1?: string, p3?: string, dir3?: string) => {
+      if (p1) {
+        return `${p1}A4 ${(dir1 || 'portrait').toLowerCase()}`;
+      }
+      return `${p3 || ''}A4 ${(dir3 || 'portrait').toLowerCase()}`;
+    }
+  );
   // Rewrite top-level html / body selectors to `#erp-print-stage .erp-iframe-print-body`
   // so embedded report rules never leak onto the host document while preserving @media / @page.
-  return cssText.replace(
+  return normalizedPageCss.replace(
     /(^|[},;\n])(\s*)(html\s*,\s*body|body|html)(?=\s*[{,:.[#])/gim,
     (_match, prefix: string, ws: string) => `${prefix}${ws}#erp-print-stage .erp-iframe-print-body`
   );
@@ -161,19 +194,43 @@ function syncClonedFormAndCanvasState(sourceRoot: HTMLElement, cloneRoot: HTMLEl
   }
 }
 
-function unclipCloneContainerStyles(el: HTMLElement): void {
+function unclipCloneContainerStyles(
+  el: HTMLElement,
+  orientation: 'portrait' | 'landscape' = 'portrait'
+): void {
+  const isFullPageSheet =
+    el.classList.contains('erp-a4-sheet') || el.getAttribute('data-a4-fullpage') === 'true';
+
   el.style.position = 'static';
   el.style.inset = 'auto';
   el.style.width = '100%';
-  el.style.maxWidth = '100%';
+  el.style.maxWidth = orientation === 'landscape' ? '297mm' : '210mm';
   el.style.height = 'auto';
   el.style.maxHeight = 'none';
-  el.style.minHeight = '0';
+  el.style.minHeight = isFullPageSheet ? '272mm' : '0';
   el.style.overflow = 'visible';
   el.style.transform = 'none';
   el.style.animation = 'none';
   el.style.boxShadow = 'none';
   el.style.margin = '0 auto';
+  el.style.borderRadius = '0';
+
+  const nestedSheets = el.querySelectorAll<HTMLElement>(
+    '.erp-printable-sheet, .erp-a4-sheet, [data-a4-fullpage="true"]'
+  );
+  nestedSheets.forEach((sheet) => {
+    sheet.style.margin = '0 auto';
+    sheet.style.borderRadius = '0';
+    sheet.style.maxWidth = orientation === 'landscape' ? '297mm' : '210mm';
+    sheet.style.maxHeight = 'none';
+    sheet.style.overflow = 'visible';
+    if (
+      sheet.classList.contains('erp-a4-sheet') ||
+      sheet.getAttribute('data-a4-fullpage') === 'true'
+    ) {
+      sheet.style.minHeight = '272mm';
+    }
+  });
 
   const scrollables = el.querySelectorAll<HTMLElement>(
     '[class*="max-h-"], [class*="overflow-y-auto"], [class*="overflow-x-auto"], [class*="overflow-auto"], [class*="h-full"], [class*="h-screen"]'
@@ -201,7 +258,10 @@ function stageTargetIntoPrintPortal(target: HTMLElement, doc: Document): HTMLEle
     'rtl';
   stage.setAttribute('dir', resolvedDir);
 
-  if (target.getAttribute('data-export-preview-modal') === 'true') {
+  let combinedIframeCss = '';
+  const isExportIframe = target.getAttribute('data-export-preview-modal') === 'true';
+
+  if (isExportIframe) {
     const iframe = target.querySelector<HTMLIFrameElement>('iframe');
     let iframeDoc: Document | null = null;
     try {
@@ -222,8 +282,10 @@ function stageTargetIntoPrintPortal(target: HTMLElement, doc: Document): HTMLEle
     if (iframeDoc?.body) {
       const styleTags = iframeDoc.querySelectorAll('style');
       styleTags.forEach((styleNode) => {
+        const rawCss = styleNode.textContent || '';
+        combinedIframeCss += `\n${rawCss}`;
         const scopedStyle = doc.createElement('style');
-        scopedStyle.textContent = scopeIframeCssForStage(styleNode.textContent || '');
+        scopedStyle.textContent = scopeIframeCssForStage(rawCss);
         stage.appendChild(scopedStyle);
       });
 
@@ -240,21 +302,33 @@ function stageTargetIntoPrintPortal(target: HTMLElement, doc: Document): HTMLEle
         .forEach((node) => node.remove());
       stage.appendChild(bodyWrapper);
     } else {
+      const orientation = resolveA4Orientation(target, combinedIframeCss);
       const clone = target.cloneNode(true) as HTMLElement;
       clone.classList.remove('print:hidden');
       syncClonedFormAndCanvasState(target, clone);
       clone.querySelectorAll(PRINT_HIDDEN_DESCENDANT_SELECTOR).forEach((node) => node.remove());
-      unclipCloneContainerStyles(clone);
+      unclipCloneContainerStyles(clone, orientation);
       stage.appendChild(clone);
     }
   } else {
+    const orientation = resolveA4Orientation(target);
     const clone = target.cloneNode(true) as HTMLElement;
     clone.classList.remove('print:hidden', 'no-print');
     syncClonedFormAndCanvasState(target, clone);
     clone.querySelectorAll(PRINT_HIDDEN_DESCENDANT_SELECTOR).forEach((node) => node.remove());
-    unclipCloneContainerStyles(clone);
+    unclipCloneContainerStyles(clone, orientation);
     stage.appendChild(clone);
   }
+
+  const orientation = resolveA4Orientation(target, combinedIframeCss);
+  const a4LockStyle = doc.createElement('style');
+  a4LockStyle.setAttribute('data-erp-a4-lock', 'true');
+  a4LockStyle.textContent = buildA4PageLockCss(
+    orientation,
+    isExportIframe ? '8mm 10mm' : '10mm 12mm'
+  );
+  stage.appendChild(a4LockStyle);
+  doc.body?.setAttribute(BODY_PRINT_ORIENTATION_ATTR, orientation);
 
   doc.body.appendChild(stage);
   return stage;
@@ -358,9 +432,14 @@ function clearStageDomOnly(doc: Document = document): void {
   if (existingStage) {
     existingStage.remove();
   }
+  const workspaceA4Style = doc.getElementById(WORKSPACE_A4_STYLE_ID);
+  if (workspaceA4Style) {
+    workspaceA4Style.remove();
+  }
   if (!doc.body) return;
   doc.body.removeAttribute(BODY_STAGE_PRINT_ATTR);
   doc.body.removeAttribute(BODY_MODAL_PRINT_ATTR);
+  doc.body.removeAttribute(BODY_PRINT_ORIENTATION_ATTR);
   doc
     .querySelectorAll(`[${ACTIVE_ROOT_ATTR}]`)
     .forEach((el) => el.removeAttribute(ACTIVE_ROOT_ATTR));
@@ -377,7 +456,17 @@ export function applyModalPrintIsolation(doc: Document = document): HTMLElement 
   clearStageDomOnly(doc);
   lastPrintTimestamp = Date.now();
   const target = resolveActivePrintTarget(doc);
-  if (!target || !doc.body) return null;
+  if (!doc.body) return null;
+
+  if (!target) {
+    const workspaceA4Style = doc.createElement('style');
+    workspaceA4Style.id = WORKSPACE_A4_STYLE_ID;
+    workspaceA4Style.setAttribute('data-erp-a4-lock', 'true');
+    workspaceA4Style.textContent = buildA4PageLockCss('portrait', '10mm 12mm');
+    (doc.head || doc.body).appendChild(workspaceA4Style);
+    doc.body.setAttribute(BODY_PRINT_ORIENTATION_ATTR, 'portrait');
+    return null;
+  }
 
   target.setAttribute(ACTIVE_ROOT_ATTR, 'true');
   let ancestor = target.parentElement;

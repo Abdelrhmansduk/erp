@@ -286,6 +286,16 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const normalizedId = normalizeCompanyId(activeCompanyId);
 
+  useEffect(() => {
+    try {
+      if (typeof document !== 'undefined' && document.documentElement) {
+        document.documentElement.setAttribute('data-company-theme', normalizedId);
+      }
+    } catch {
+      // ignore non-DOM environments
+    }
+  }, [normalizedId]);
+
   const activeCompany =
     normalizedId === 'all'
       ? GROUP_MASTER_ENTITY

@@ -1411,7 +1411,10 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
         </div>
 
         {/* Seamless Institutional Bento Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
+        <div
+          key={selectedCategory}
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 erp-stagger-grid"
+        >
           {filteredApps.map((app) => {
             const title = t(app.titleKey, app.defaultTitle);
             const subtitle = t(app.subKey, app.defaultSubtitle);
@@ -1422,14 +1425,14 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
               <div
                 key={app.id}
                 onClick={() => onSelectApp(app.href, title)}
-                className={`p-5 sm:p-6 rounded-[24px] border border-[#e0e0e0] hover:border-[#141414] flex flex-col justify-between cursor-pointer transition-all duration-200 group relative min-h-[210px] ${style.cellBg} ${style.cellHover}`}
+                className={`erp-launcher-tile p-5 sm:p-6 rounded-[24px] border border-[#e0e0e0] hover:border-[#141414] flex flex-col justify-between cursor-pointer group relative min-h-[210px] ${style.cellBg} ${style.cellHover}`}
               >
                 <div className="space-y-3.5">
                   {/* Top Badges & Crisp Module Squircle Icon Row */}
                   <div className="flex items-center justify-between gap-2">
                     <div
                       data-colored-icon="true"
-                      className={`w-11 h-11 rounded-[14px] border flex items-center justify-center transition-colors shrink-0 ${getAppIconPalette(app.categoryLabel).squircle}`}
+                      className={`erp-launcher-icon w-11 h-11 rounded-[14px] border flex items-center justify-center shrink-0 ${getAppIconPalette(app.categoryLabel).squircle}`}
                     >
                       <Icon className="w-5 h-5" strokeWidth={1.85} data-colored-icon="true" />
                     </div>

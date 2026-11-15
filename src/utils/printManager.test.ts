@@ -1,8 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   applyModalPrintIsolation,
+  BODY_PRINT_ORIENTATION_ATTR,
   clearModalPrintIsolation,
+  PRINT_STAGE_ID,
   resolveActivePrintTarget,
+  WORKSPACE_A4_STYLE_ID,
 } from './printManager';
 
 describe('Enterprise Modal & Sheet Print Isolator (printManager)', () => {
@@ -71,5 +74,67 @@ describe('Enterprise Modal & Sheet Print Isolator (printManager)', () => {
     `;
 
     expect(resolveActivePrintTarget(document)).toBeNull();
+  });
+
+  it('injects an authoritative A4 portrait @page lock and 272mm sheet geometry inside #erp-print-stage for full-page certificates', () => {
+    document.body.innerHTML = `
+      <div id="legal-modal" data-printable-modal="true" style="position: fixed; z-index: 2200;">
+        <div class="erp-printable-sheet erp-a4-sheet m-4 rounded-2xl" data-a4-fullpage="true" id="legal-cert">
+          شهادة إقرار وتعهد قانوني
+        </div>
+      </div>
+    `;
+
+    const isolated = applyModalPrintIsolation(document);
+    expect(isolated?.id).toBe('legal-cert');
+
+    const stage = document.getElementById(PRINT_STAGE_ID);
+    expect(stage).not.toBeNull();
+    expect(document.body.getAttribute(BODY_PRINT_ORIENTATION_ATTR)).toBe('portrait');
+
+    const a4Lock = stage?.querySelector<HTMLStyleElement>('style[data-erp-a4-lock="true"]');
+    expect(a4Lock?.textContent).toContain('@page');
+    expect(a4Lock?.textContent).toContain('size: A4 portrait');
+
+    const clonedSheet = stage?.querySelector<HTMLElement>('#legal-cert');
+    expect(clonedSheet?.style.maxWidth).toBe('210mm');
+    expect(clonedSheet?.style.minHeight).toBe('272mm');
+    expect(clonedSheet?.style.margin).toBe('0px auto');
+  });
+
+  it('supports A4 landscape orientation when explicitly marked on a printable target', () => {
+    document.body.innerHTML = `
+      <div id="wide-modal" data-printable-modal="true" data-print-orientation="landscape" style="position: fixed; z-index: 2200;">
+        <div class="erp-printable-sheet" id="wide-boq">جدول الكميات العريض</div>
+      </div>
+    `;
+
+    applyModalPrintIsolation(document);
+    const stage = document.getElementById(PRINT_STAGE_ID);
+    const a4Lock = stage?.querySelector<HTMLStyleElement>('style[data-erp-a4-lock="true"]');
+
+    expect(document.body.getAttribute(BODY_PRINT_ORIENTATION_ATTR)).toBe('landscape');
+    expect(a4Lock?.textContent).toContain('size: A4 landscape');
+    const clonedSheet = stage?.querySelector<HTMLElement>('#wide-boq');
+    expect(clonedSheet?.style.maxWidth).toBe('297mm');
+  });
+
+  it('locks direct workspace Ctrl+P prints to A4 portrait and cleans up on clearModalPrintIsolation', () => {
+    document.body.innerHTML = `
+      <div id="root">
+        <main><h1>تقرير مباشر</h1></main>
+      </div>
+    `;
+
+    const isolated = applyModalPrintIsolation(document);
+    expect(isolated).toBeNull();
+
+    const workspaceLock = document.getElementById(WORKSPACE_A4_STYLE_ID);
+    expect(workspaceLock?.textContent).toContain('size: A4 portrait');
+    expect(document.body.getAttribute(BODY_PRINT_ORIENTATION_ATTR)).toBe('portrait');
+
+    clearModalPrintIsolation(document);
+    expect(document.getElementById(WORKSPACE_A4_STYLE_ID)).toBeNull();
+    expect(document.body.hasAttribute(BODY_PRINT_ORIENTATION_ATTR)).toBe(false);
   });
 });

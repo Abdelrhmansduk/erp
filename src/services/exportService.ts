@@ -13,6 +13,11 @@ import {
   generateRealCode128BarcodeSvg,
 } from '../utils/realBarcodeGenerator';
 import { KAS_ALLOWED_EMPLOYEES, EXCLUDED_KAS_EMAILS } from '../config/kasAllowedEmails';
+import {
+  buildReemHrDocumentSignatureHtml,
+  isHrDocumentSection,
+} from '../components/hr/ReemHrDocumentSignatureBlock';
+import { REEM_HR_SIGNATORY } from './reemHrEmailTemplatesEngine';
 
 export interface SectionExportConfig {
   sectionTitle: string;
@@ -2640,6 +2645,8 @@ export interface ExportCustomizationOptions {
   customPreparerName?: string;
   customFinanceSignatory?: string;
   customExecutiveSignatory?: string;
+  /** Include official HR Manager signature block (Ms. Reem Ahmed Bin Hussain — HR@kas.sa); defaults to true on HR documents */
+  includeReemHrSignature?: boolean;
   /** When true, renders clean A4 sheet HTML for live studio preview without the inner toolbar */
   embedPreview?: boolean;
 }
@@ -3144,6 +3151,10 @@ export function generateExecutiveReportHtml(
   const showQr = options?.showQrCode !== false;
   const showSigs = options?.showSignatures !== false;
   const showTafqeet = options?.showTafqeet !== false;
+  const showReemHrSig =
+    options?.includeReemHrSignature !== undefined
+      ? options.includeReemHrSignature
+      : isHrDocumentSection(sectionKey, title);
   const isLandscape =
     options?.orientation === 'landscape'
       ? true
@@ -3266,15 +3277,31 @@ export function generateExecutiveReportHtml(
           print-color-adjust: exact;
         }
 
+        @media screen {
+          html {
+            background: ${options?.embedPreview ? '#FFFFFF' : '#F3F3F3'};
+          }
+          body {
+            width: ${options?.embedPreview ? '100%' : isLandscape ? '297mm' : '210mm'};
+            max-width: 100%;
+            min-height: ${options?.embedPreview ? 'auto' : isLandscape ? '210mm' : '297mm'};
+            margin: ${options?.embedPreview ? '0' : '16px auto'};
+          }
+        }
+
         @media print {
           @page {
             size: A4 ${isLandscape ? 'landscape' : 'portrait'};
             margin: 8mm 10mm;
           }
+          html,
           body {
-            padding: 0;
-            margin: 0;
-            background: #ffffff;
+            width: 100% !important;
+            max-width: none !important;
+            min-height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: #ffffff !important;
           }
           .no-print {
             display: none !important;
@@ -3841,6 +3868,12 @@ export function generateExecutiveReportHtml(
       </div>
       ` : ''}
 
+      ${showReemHrSig ? buildReemHrDocumentSignatureHtml({
+        hideHoldingGroupBrand: branding.hideHoldingGroupBrand,
+        referenceNumber: serialNumber,
+        issueDate: isoDate,
+      }) : ''}
+
       <!-- 5. Security & Verification Footer -->
       <div class="official-footer">
         <div>
@@ -4044,6 +4077,11 @@ function applyEnterpriseOpenXmlExcelStyles(
         return `<row r="${rStr}"${rowAttrs}>${styledInner}</row>`;
       });
 
+      s1Xml = s1Xml.replace(
+        /(<pageMargins[^>]*\/>)(?!\s*<pageSetup)/,
+        '$1<pageSetup paperSize="9" orientation="landscape"/>'
+      );
+
       sheet1Entry.content = toUtf8Bytes(s1Xml);
       sheet1Entry.size = sheet1Entry.content.length;
     }
@@ -4077,6 +4115,11 @@ function applyEnterpriseOpenXmlExcelStyles(
         });
         return `<row r="${rStr}"${rowAttrs}>${styledInner}</row>`;
       });
+
+      s2Xml = s2Xml.replace(
+        /(<pageMargins[^>]*\/>)(?!\s*<pageSetup)/,
+        '$1<pageSetup paperSize="9" orientation="portrait"/>'
+      );
 
       sheet2Entry.content = toUtf8Bytes(s2Xml);
       sheet2Entry.size = sheet2Entry.content.length;
@@ -4307,6 +4350,19 @@ export function buildStyledExcelBuffer(
       `${branding.executiveSignatoryNameAr} (${branding.executiveSignatoryRoleAr})`,
       `معتمد ونافذ — ${isoDate}`,
     ],
+    ...(
+      (options?.includeReemHrSignature !== undefined
+        ? options.includeReemHrSignature
+        : isHrDocumentSection(sectionKey, title))
+        ? [
+            [
+              '4. اعتماد وتوقيع إدارة الموارد البشرية',
+              `${REEM_HR_SIGNATORY.fullNameAr} — ${REEM_HR_SIGNATORY.titleAr} (${REEM_HR_SIGNATORY.signatureNameEn} | ${REEM_HR_SIGNATORY.email} | ${REEM_HR_SIGNATORY.mobile})`,
+              `موقّع ومعتمد من الموارد البشرية — ${isoDate}`,
+            ],
+          ]
+        : []
+    ),
   ];
 
   const summaryWs = XLSX.utils.aoa_to_sheet(summaryRows);
@@ -5193,7 +5249,7 @@ function waitForPrintDocumentReady(doc: Document | null | undefined, maxWaitMs =
 }
 
 function printViaHiddenIframe(htmlContent: string): boolean {
-  if (typeof document === 'undefined' || !document.body) return false;
+  if (typeof document === 'undefined' || !document.body || isRunningInTest()) return false;
   try {
     const iframe = document.createElement('iframe');
     iframe.setAttribute('aria-hidden', 'true');
@@ -5242,8 +5298,11 @@ export function exportToPrint(
     embedPreview: false,
   });
   const openFn = typeof window !== 'undefined' ? (window.open as any) : undefined;
-  // jsdom does not implement window.open; only run the real path in tests when it has been mocked.
-  if (isRunningInTest() && !(openFn && openFn._isMockFunction)) {
+  // jsdom does not implement window.open; only run the real path in tests when it has been mocked (supports Jest & Vitest).
+  const isMockedOpen = Boolean(
+    openFn && (openFn._isMockFunction || typeof openFn.mock === 'object' || 'mock' in openFn)
+  );
+  if (isRunningInTest() && !isMockedOpen) {
     return false;
   }
   const printWindow =
@@ -5429,8 +5488,9 @@ export function exportToWord(
       <![endif]-->
       <style>
         @page {
-          size: ${config.headers.length > 6 ? 'landscape' : 'portrait'};
-          margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+          size: ${config.headers.length > 6 ? '297mm 210mm' : '210mm 297mm'};
+          mso-page-orientation: ${config.headers.length > 6 ? 'landscape' : 'portrait'};
+          margin: 15mm 15mm 15mm 15mm;
         }
         body {
           font-family: 'Tajawal', 'Calibri', 'Arial', sans-serif;
@@ -5521,6 +5581,18 @@ export function exportToWord(
           </td>
         </tr>
       </table>
+
+      ${
+        (options?.includeReemHrSignature !== undefined
+          ? options.includeReemHrSignature
+          : isHrDocumentSection(sectionKey, title))
+          ? buildReemHrDocumentSignatureHtml({
+              hideHoldingGroupBrand: branding.hideHoldingGroupBrand,
+              referenceNumber: `${company.code}-${isoDate}`,
+              issueDate: isoDate,
+            })
+          : ''
+      }
 
       <div style="margin-top: 22px; border-top: 1pt solid #E0E0E0; padding-top: 8px; font-size: 8.5pt; color: #707070; text-align: center;">
         وثيقة رسمية مستخرجة من ${escapeHtmlReportText(branding.footerOrganizationLineAr)} • معتمدة بموجب نظام التعاملات الإلكترونية السعودي
@@ -5776,7 +5848,15 @@ export function exportToMarkdown(
   md += `| :--- | :--- | :--- | :--- |\n`;
   md += `| **إعداد واستخراج** | ${exporter.name} | ${exporter.branch} (${exporter.role}) | ✓ موثق إلكترونياً |\n`;
   md += `| **التدقيق المالي** | ${branding.financeSignatoryNameAr} | ${branding.financeSignatoryRoleAr} | ✓ مطابق للدفاتر |\n`;
-  md += `| **الاعتماد التنفيذي** | ${branding.executiveSignatoryNameAr} | ${branding.executiveSignatoryRoleAr} | ✓ معتمد ونافذ |\n\n`;
+  md += `| **الاعتماد التنفيذي** | ${branding.executiveSignatoryNameAr} | ${branding.executiveSignatoryRoleAr} | ✓ معتمد ونافذ |\n`;
+  if (
+    options?.includeReemHrSignature !== undefined
+      ? options.includeReemHrSignature
+      : isHrDocumentSection(sectionKey, title)
+  ) {
+    md += `| **اعتماد إدارة الموارد البشرية** | ${REEM_HR_SIGNATORY.fullNameAr} (${REEM_HR_SIGNATORY.signatureNameEn}) | ${REEM_HR_SIGNATORY.titleAr} — ${REEM_HR_SIGNATORY.email} / ${REEM_HR_SIGNATORY.mobile} | ✓ موقّع ومعتمد |\n`;
+  }
+  md += `\n`;
   md += `*تم استخراج هذا التقرير آلياً عبر ${branding.systemPlatformTitleAr} — \`SHA256:${isoDate}-${sectionKey}\`*\n`;
 
   if (typeof Blob !== 'undefined') {

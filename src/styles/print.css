@@ -14,6 +14,26 @@
   #erp-print-stage {
     display: none !important;
   }
+
+  .erp-a4-sheet:not(.overflow-y-auto):not([class*="max-h-"]) {
+    width: 100%;
+    max-width: 210mm;
+    min-height: 297mm;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #ffffff;
+    color: #141414;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 860px) {
+    .erp-a4-sheet:not(.overflow-y-auto):not([class*="max-h-"]) {
+      min-height: auto;
+    }
+  }
 }
 
 @media print {
@@ -76,10 +96,11 @@
   body[data-erp-stage-printing="true"] #erp-print-stage .erp-printable-sheet,
   body[data-erp-stage-printing="true"] #erp-print-stage .erp-iframe-print-body {
     width: 100% !important;
-    max-width: 100% !important;
+    max-width: 210mm !important;
     height: auto !important;
     max-height: none !important;
     margin: 0 auto !important;
+    border-radius: 0 !important;
     background: #ffffff !important;
     background-color: #ffffff !important;
     color: #141414 !important;
@@ -87,6 +108,39 @@
     overflow: visible !important;
     box-sizing: border-box !important;
     page-break-inside: auto;
+  }
+
+  body[data-erp-print-orientation="landscape"][data-erp-stage-printing="true"] #erp-print-stage .erp-printable-sheet,
+  body[data-erp-print-orientation="landscape"][data-erp-stage-printing="true"] #erp-print-stage .erp-iframe-print-body,
+  body[data-erp-print-orientation="landscape"] .erp-printable-sheet {
+    max-width: 297mm !important;
+  }
+
+  body[data-erp-stage-printing="true"] #erp-print-stage .erp-a4-sheet,
+  body[data-erp-stage-printing="true"] #erp-print-stage [data-a4-fullpage="true"],
+  .erp-a4-sheet,
+  [data-a4-fullpage="true"] {
+    width: 100% !important;
+    max-width: 186mm !important;
+    min-height: 272mm !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    padding: 10mm !important;
+    border-radius: 0 !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #141414 !important;
+  }
+
+  body[data-erp-stage-printing="true"] #erp-print-stage [data-printable-card="true"]:not(.erp-a4-sheet):not([data-a4-fullpage="true"]) {
+    width: 100% !important;
+    max-width: 186mm !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
   }
 
   body[data-erp-stage-printing="true"] #erp-print-stage .overflow-y-auto,
@@ -200,10 +254,11 @@
 
   .erp-printable-sheet {
     width: 100% !important;
-    max-width: 100% !important;
+    max-width: 210mm !important;
     height: auto !important;
     max-height: none !important;
     margin: 0 auto !important;
+    border-radius: 0 !important;
     box-shadow: none !important;
     background: #ffffff !important;
     overflow: visible !important;

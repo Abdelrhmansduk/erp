@@ -33,9 +33,20 @@ import {
   shareHrOfficialEmailEml,
 } from '../services/quickShareService';
 import {
+  CustomEmployeeField,
   saveUnifiedEmployeeProfile,
   softDeleteUnifiedEmployeeProfile,
   restoreUnifiedEmployeeFromBin,
+  loadCustomJobTitles,
+  saveCustomJobTitle,
+  deleteCustomJobTitle,
+  renameCustomJobTitleAndSyncEmployees,
+  loadCustomDepartments,
+  saveCustomDepartment,
+  deleteCustomDepartment,
+  loadCustomGrades,
+  saveCustomGrade,
+  deleteCustomGrade,
 } from '../services/employeeProfileSync';
 import {
   HrLeavePolicyConfig,
@@ -63,6 +74,10 @@ import {
 } from '../components/hr/HrEnterpriseModals';
 import { HrProOdooBambooSuite } from '../components/hr/HrProOdooBambooSuite';
 import { HrLettersStudioModal } from '../components/hr/HrLettersStudioModal';
+import {
+  ReemHrDocumentSignatureBlock,
+  IncludeReemSignatureToggle,
+} from '../components/hr/ReemHrDocumentSignatureBlock';
 import { InteractiveOrgChartPanel } from '../components/hr/InteractiveOrgChartPanel';
 import { HrAccountingAccrualsHub } from '../components/hr/HrAccountingAccrualsHub';
 import { HrExpensesAndTravelHub } from '../components/hr/HrExpensesAndTravelHub';
@@ -120,8 +135,16 @@ export interface EmployeeRecord {
   basic_salary?: number;
   housing_allowance?: number;
   transport_allowance?: number;
+  other_allowances?: number;
   allowances?: number;
   salary: number;
+  name_en?: string;
+  nationality?: string;
+  passport_number?: string;
+  gosi_number?: string;
+  qiwa_contract_no?: string;
+  notes?: string;
+  custom_fields?: CustomEmployeeField[];
   iban?: string;
   bank_name?: string;
   leave_balance?: number;
@@ -614,6 +637,7 @@ export const HRPage: React.FC = () => {
   const [disciplinaryRecords, setDisciplinaryRecords] = useState<DisciplinaryRecordStored[]>([]);
   const [publicHolidays, setPublicHolidays] = useState<SaudiPublicHoliday[]>(DEFAULT_SAUDI_PUBLIC_HOLIDAYS);
   const [studioLetterEmp, setStudioLetterEmp] = useState<EmployeeRecord | null>(null);
+  const [agreementIncludeReemSig, setAgreementIncludeReemSig] = useState<boolean>(true);
   const [welcomeTargetEmpId, setWelcomeTargetEmpId] = useState<string | undefined>(undefined);
   const [reemEmailDraft, setReemEmailDraft] = useState<{
     templateId?: ReemHrTemplateId;
@@ -743,24 +767,57 @@ export const HRPage: React.FC = () => {
   const [targetEmpForPromotion, setTargetEmpForPromotion] = useState<EmployeeRecord | null>(null);
   const [selectedEmpForAgreement, setSelectedEmpForAgreement] = useState<EmployeeRecord | null>(null);
 
+  // Persistent Job Titles, Departments & Grades Catalogs + Studio Modal
+  const [jobTitlesCatalog, setJobTitlesCatalog] = useState<string[]>(() => loadCustomJobTitles());
+  const [departmentsCatalog, setDepartmentsCatalog] = useState<string[]>(() => loadCustomDepartments());
+  const [gradesCatalog, setGradesCatalog] = useState<string[]>(() => loadCustomGrades());
+  const [showJobTitlesStudioModal, setShowJobTitlesStudioModal] = useState(false);
+  const [newStudioTitle, setNewStudioTitle] = useState('');
+  const [newStudioDepartment, setNewStudioDepartment] = useState('');
+  const [newStudioGrade, setNewStudioGrade] = useState('');
+  const [editingTitleTarget, setEditingTitleTarget] = useState<string | null>(null);
+  const [editingTitleValue, setEditingTitleValue] = useState('');
+  const [studioTitleSearch, setStudioTitleSearch] = useState('');
+
+  const refreshOrganizationCatalogs = useCallback(() => {
+    setJobTitlesCatalog(loadCustomJobTitles());
+    setDepartmentsCatalog(loadCustomDepartments());
+    setGradesCatalog(loadCustomGrades());
+  }, []);
+
   // Form State for Adding / Editing Employee
   const [editingEmpRecord, setEditingEmpRecord] = useState<EmployeeRecord | null>(null);
   const [empCompanyCode, setEmpCompanyCode] = useState<CanonicalEntityCode>(
     (activeCompanyId && activeCompanyId !== 'all' ? activeCompanyId : 'SAF') as CanonicalEntityCode
   );
+  const [empCode, setEmpCode] = useState('');
   const [name, setName] = useState('');
+  const [empNameEn, setEmpNameEn] = useState('');
   const [nationalId, setNationalId] = useState('');
+  const [empNationality, setEmpNationality] = useState('سعودي');
   const [empPhone, setEmpPhone] = useState('0500000000');
   const [empEmail, setEmpEmail] = useState('');
   const [empIban, setEmpIban] = useState('');
   const [empBankName, setEmpBankName] = useState('مصرف الراجحي');
   const [empIqamaExpiry, setEmpIqamaExpiry] = useState('2027-12-31');
+  const [empHireDate, setEmpHireDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [empStatus, setEmpStatus] = useState('نشط');
+  const [empPassportNumber, setEmpPassportNumber] = useState('');
+  const [empPassportExpiry, setEmpPassportExpiry] = useState('2028-06-30');
+  const [empQiwaContractNo, setEmpQiwaContractNo] = useState('');
+  const [empGosiNumber, setEmpGosiNumber] = useState('');
   const [empLeaveBalance, setEmpLeaveBalance] = useState('21');
   const [jobTitle, setJobTitle] = useState('أخصائي خدمة عملاء');
   const [department, setDepartment] = useState('خدمة العملاء (CRM)');
   const [branch, setBranch] = useState('الفرع الرئيسي - الرياض');
   const [grade, setGrade] = useState('الدرجة الثانية (أخصائي)');
   const [salary, setSalary] = useState('8000');
+  const [empBasicSalary, setEmpBasicSalary] = useState('5600');
+  const [empHousingAllowance, setEmpHousingAllowance] = useState('1600');
+  const [empTransportAllowance, setEmpTransportAllowance] = useState('800');
+  const [empOtherAllowances, setEmpOtherAllowances] = useState('0');
+  const [empNotes, setEmpNotes] = useState('');
+  const [empCustomFields, setEmpCustomFields] = useState<CustomEmployeeField[]>([]);
   const [createSystemUser, setCreateSystemUser] = useState(true);
   const [assignedRole, setAssignedRole] = useState('Sales Agent');
   const [showRecycleBinModal, setShowRecycleBinModal] = useState(false);
@@ -776,40 +833,116 @@ export const HRPage: React.FC = () => {
     notes: string;
   } | null>(null);
 
-  const handleOpenAddOrEditEmployee = (emp?: EmployeeRecord) => {
+  const syncBreakdownFromTotalSalary = (totalStr: string) => {
+    setSalary(totalStr);
+    const total = parseFloat(totalStr);
+    if (!Number.isNaN(total) && total >= 0) {
+      const b = Math.round(total * 0.7);
+      const h = Math.round(total * 0.2);
+      const t = Math.max(0, Math.round(total - b - h));
+      setEmpBasicSalary(String(b));
+      setEmpHousingAllowance(String(h));
+      setEmpTransportAllowance(String(t));
+      setEmpOtherAllowances('0');
+    }
+  };
+
+  const updateSalaryBreakdown = (
+    part: 'basic' | 'housing' | 'transport' | 'other',
+    val: string
+  ) => {
+    const nextBasic = part === 'basic' ? val : empBasicSalary;
+    const nextHousing = part === 'housing' ? val : empHousingAllowance;
+    const nextTransport = part === 'transport' ? val : empTransportAllowance;
+    const nextOther = part === 'other' ? val : empOtherAllowances;
+
+    if (part === 'basic') setEmpBasicSalary(val);
+    if (part === 'housing') setEmpHousingAllowance(val);
+    if (part === 'transport') setEmpTransportAllowance(val);
+    if (part === 'other') setEmpOtherAllowances(val);
+
+    const sum =
+      (parseFloat(nextBasic) || 0) +
+      (parseFloat(nextHousing) || 0) +
+      (parseFloat(nextTransport) || 0) +
+      (parseFloat(nextOther) || 0);
+    setSalary(String(Math.round(sum)));
+  };
+
+  const handleOpenAddOrEditEmployee = (emp?: EmployeeRecord, presetJobTitle?: string) => {
+    refreshOrganizationCatalogs();
     if (emp) {
+      const totalSal = Number(emp.salary ?? 8000);
+      const basic = Number(emp.basic_salary ?? Math.round(totalSal * 0.7));
+      const housing = Number(emp.housing_allowance ?? Math.round(totalSal * 0.2));
+      const transport = Number(emp.transport_allowance ?? Math.round(totalSal * 0.1));
+      const other = Number(emp.other_allowances ?? emp.allowances ?? Math.max(0, totalSal - basic - housing - transport));
+
       setEditingEmpRecord(emp);
       setEmpCompanyCode((emp.company_id && emp.company_id !== 'all' ? emp.company_id : 'SAF') as CanonicalEntityCode);
+      setEmpCode(emp.employee_code || '');
       setName(emp.name);
+      setEmpNameEn(emp.name_en || '');
       setNationalId(emp.national_id);
+      setEmpNationality(emp.nationality || (String(emp.national_id || '').startsWith('1') ? 'سعودي' : 'مقيم'));
       setEmpPhone(emp.phone || '0500000000');
       setEmpEmail(emp.email || '');
       setEmpIban(emp.iban || '');
       setEmpBankName(emp.bank_name || 'مصرف الراجحي');
       setEmpIqamaExpiry(emp.iqama_expiry || emp.iqama_expiry_date || '2027-12-31');
+      setEmpHireDate(emp.hire_date || new Date().toISOString().slice(0, 10));
+      setEmpStatus(emp.status || 'نشط');
+      setEmpPassportNumber(emp.passport_number || '');
+      setEmpPassportExpiry(emp.passport_expiry || emp.passport_expiry_date || '2028-06-30');
+      setEmpQiwaContractNo(emp.qiwa_contract_no || '');
+      setEmpGosiNumber(emp.gosi_number || '');
       setEmpLeaveBalance(String(emp.leave_balance ?? 21));
       setJobTitle(emp.job_title);
       setDepartment(emp.department);
       setBranch(emp.branch);
       setGrade(emp.grade || 'الدرجة الثالثة (أخصائي أول)');
-      setSalary(String(emp.salary ?? 8000));
+      setEmpBasicSalary(String(basic));
+      setEmpHousingAllowance(String(housing));
+      setEmpTransportAllowance(String(transport));
+      setEmpOtherAllowances(String(other));
+      setSalary(String(totalSal));
+      setAssignedRole(emp.system_role || 'Sales Agent');
+      setEmpNotes(emp.notes || '');
+      setEmpCustomFields(Array.isArray(emp.custom_fields) ? [...emp.custom_fields] : []);
       setCreateSystemUser(false);
     } else {
+      const defComp = (activeCompanyId && activeCompanyId !== 'all' ? activeCompanyId : 'SAF') as CanonicalEntityCode;
       setEditingEmpRecord(null);
-      setEmpCompanyCode((activeCompanyId && activeCompanyId !== 'all' ? activeCompanyId : 'SAF') as CanonicalEntityCode);
+      setEmpCompanyCode(defComp);
+      setEmpCode(`EMP-${defComp}-${String(employeesList.length + 1).padStart(3, '0')}`);
       setName('');
+      setEmpNameEn('');
       setNationalId('');
+      setEmpNationality('سعودي');
       setEmpPhone('0500000000');
       setEmpEmail('');
       setEmpIban('');
       setEmpBankName('مصرف الراجحي');
       setEmpIqamaExpiry('2027-12-31');
+      setEmpHireDate(new Date().toISOString().slice(0, 10));
+      setEmpStatus('نشط');
+      setEmpPassportNumber('');
+      setEmpPassportExpiry('2028-06-30');
+      setEmpQiwaContractNo('');
+      setEmpGosiNumber('');
       setEmpLeaveBalance(String(getHrLeavePolicy().annualStandardDays));
-      setJobTitle('أخصائي خدمة عملاء');
+      setJobTitle(presetJobTitle || 'أخصائي خدمة عملاء');
       setDepartment('خدمة العملاء (CRM)');
       setBranch('الفرع الرئيسي - الرياض');
       setGrade('الدرجة الثانية (أخصائي)');
+      setEmpBasicSalary('5600');
+      setEmpHousingAllowance('1600');
+      setEmpTransportAllowance('800');
+      setEmpOtherAllowances('0');
       setSalary('8000');
+      setAssignedRole('Sales Agent');
+      setEmpNotes('');
+      setEmpCustomFields([]);
       setCreateSystemUser(true);
     }
     setShowAddEmpModal(true);
@@ -877,10 +1010,17 @@ export const HRPage: React.FC = () => {
     if (!name || !nationalId || !salary) return;
 
     const sal = parseFloat(salary) || 8000;
+    const basicVal = parseFloat(empBasicSalary);
+    const housingVal = parseFloat(empHousingAllowance);
+    const transportVal = parseFloat(empTransportAllowance);
+    const otherVal = parseFloat(empOtherAllowances);
     const isEditingExisting = Boolean(editingEmpRecord);
-    const employeeCode = editingEmpRecord
-      ? editingEmpRecord.employee_code
-      : `EMP-${empCompanyCode}-${String(employeesList.length + 1).padStart(3, '0')}`;
+    const trimmedCode = empCode.trim();
+    const employeeCode =
+      trimmedCode ||
+      (editingEmpRecord
+        ? editingEmpRecord.employee_code
+        : `EMP-${empCompanyCode}-${String(employeesList.length + 1).padStart(3, '0')}`);
 
     const savedProfile = await saveUnifiedEmployeeProfile(
       {
@@ -888,31 +1028,42 @@ export const HRPage: React.FC = () => {
         employee_code: employeeCode,
         company_id: empCompanyCode,
         name,
+        name_en: empNameEn.trim(),
         national_id: nationalId,
+        nationality: empNationality.trim() || undefined,
         phone: empPhone,
         email: empEmail,
         iban: empIban || `SA03800000000${nationalId}12`,
         bank_name: empBankName,
         iqama_expiry: empIqamaExpiry,
         iqama_expiry_date: empIqamaExpiry,
-        job_title: jobTitle,
-        department,
-        branch,
-        grade,
-        hire_date: editingEmpRecord?.hire_date || new Date().toISOString().slice(0, 10),
-        basic_salary: Math.round(sal * 0.7),
-        housing_allowance: Math.round(sal * 0.2),
-        transport_allowance: Math.round(sal * 0.1),
+        passport_number: empPassportNumber.trim(),
+        passport_expiry: empPassportExpiry,
+        qiwa_contract_no: empQiwaContractNo.trim(),
+        gosi_number: empGosiNumber.trim(),
+        job_title: jobTitle.trim() || 'أخصائي خدمة عملاء',
+        department: department.trim() || 'الإدارة العامة',
+        branch: branch.trim() || 'الفرع الرئيسي - الرياض',
+        grade: grade.trim() || 'الدرجة الثانية (أخصائي)',
+        hire_date: empHireDate || editingEmpRecord?.hire_date || new Date().toISOString().slice(0, 10),
+        basic_salary: Number.isNaN(basicVal) ? Math.round(sal * 0.7) : basicVal,
+        housing_allowance: Number.isNaN(housingVal) ? Math.round(sal * 0.2) : housingVal,
+        transport_allowance: Number.isNaN(transportVal) ? Math.round(sal * 0.1) : transportVal,
+        other_allowances: Number.isNaN(otherVal) ? 0 : otherVal,
         salary: sal,
         leave_balance: Number(empLeaveBalance) || 21,
-        system_role: createSystemUser ? assignedRole : editingEmpRecord?.system_role,
+        system_role:
+          createSystemUser || isEditingExisting ? assignedRole : editingEmpRecord?.system_role,
         signature_status: 'موقّع ومعتمد',
         compliance_hash: editingEmpRecord?.compliance_hash || `SA-COMPLIANCE-${employeeCode}`,
-        status: editingEmpRecord?.status || 'نشط',
+        status: empStatus || editingEmpRecord?.status || 'نشط',
+        notes: empNotes,
+        custom_fields: empCustomFields,
       },
       editingEmpRecord || null,
       'إدارة الموارد البشرية'
     );
+    refreshOrganizationCatalogs();
 
     const newRecord = savedProfile as unknown as EmployeeRecord;
 
@@ -2397,10 +2548,25 @@ export const HRPage: React.FC = () => {
             <button
               type="button"
               onClick={() => handleOpenAddOrEditEmployee()}
+              data-slot="hr-add-employee-btn"
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>+ إدراج موظف جديد</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                refreshOrganizationCatalogs();
+                setShowJobTitlesStudioModal(true);
+              }}
+              data-slot="job-titles-studio-btn"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-xs font-bold transition-colors cursor-pointer"
+              title="إضافة وتعديل وحذف المسميات الوظيفية الجديدة والأقسام والدرجات"
+            >
+              <Briefcase className="w-3.5 h-3.5" />
+              <span>إدارة المسميات ({jobTitlesCatalog.length})</span>
             </button>
 
             <button
@@ -5204,15 +5370,31 @@ export const HRPage: React.FC = () => {
 
       {/* Add / Edit Employee Modal */}
       {showAddEmpModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) { setShowAddEmpModal(false); setEditingEmpRecord(null); } }}>
-          <div className="w-full max-w-2xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[92vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" data-slot="hr-employee-editor-modal" onClick={(e) => { if (e.target === e.currentTarget) { setShowAddEmpModal(false); setEditingEmpRecord(null); } }}>
+          <div className="w-full max-w-3xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[92vh] flex flex-col">
+            <datalist id="hr-job-titles-list">
+              {jobTitlesCatalog.map((t) => (
+                <option key={t} value={t} />
+              ))}
+            </datalist>
+            <datalist id="hr-departments-list">
+              {departmentsCatalog.map((d) => (
+                <option key={d} value={d} />
+              ))}
+            </datalist>
+            <datalist id="hr-grades-list">
+              {gradesCatalog.map((g) => (
+                <option key={g} value={g} />
+              ))}
+            </datalist>
+
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Users className="w-4 h-4 text-[#141414]" />
                 <span>
                   {editingEmpRecord
-                    ? `تعديل الملف الشامل للموظف: ${editingEmpRecord.name}`
-                    : 'إدراج موظف جديد وتحديد المنشأة والصلاحيات'}
+                    ? `تحرير الملف الشامل للموظف: ${editingEmpRecord.name}`
+                    : 'إدراج موظف جديد وتحديد المسمى الوظيفي والصلاحيات'}
                 </span>
               </h3>
               <button type="button" onClick={() => { setShowAddEmpModal(false); setEditingEmpRecord(null); }} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#e0e0e0] transition-colors cursor-pointer">
@@ -5224,35 +5406,64 @@ export const HRPage: React.FC = () => {
               <div className="border-b border-[#e0e0e0] pb-2">
                 <h4 className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
                   <Building2 className="w-3.5 h-3.5 text-[#141414]" />
-                  <span>1. الكيان القانوني (الشركة الصادر باسمها عقود وخطابات الموظف)</span>
+                  <span>1. الكيان القانوني والحالة الوظيفية والكود</span>
                 </h4>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-[#141414] mb-1">الشركة / المنشأة التابع لها الموظف *</label>
-                <select
-                  value={empCompanyCode}
-                  onChange={(e) => setEmpCompanyCode(e.target.value as CanonicalEntityCode)}
-                  className="w-full bg-[#f3f3f3] border border-[#141414] rounded-2xl py-2.5 px-3 text-xs font-bold text-[#141414] focus:outline-none"
-                >
-                  {ALL_ENTITY_OPTIONS.map((opt) => (
-                    <option key={opt.code} value={opt.code}>
-                      {opt.labelAr} — س.ت: {opt.crNumber}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="md:col-span-1">
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">الشركة / المنشأة *</label>
+                  <select
+                    value={empCompanyCode}
+                    onChange={(e) => setEmpCompanyCode(e.target.value as CanonicalEntityCode)}
+                    className="w-full bg-[#f3f3f3] border border-[#141414] rounded-2xl py-2 px-3 text-xs font-bold text-[#141414] focus:outline-none"
+                  >
+                    {ALL_ENTITY_OPTIONS.map((opt) => (
+                      <option key={opt.code} value={opt.code}>
+                        {opt.labelAr} — س.ت: {opt.crNumber}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">الرقم الوظيفي (Employee Code)</label>
+                  <input
+                    type="text"
+                    value={empCode}
+                    onChange={(e) => setEmpCode(e.target.value)}
+                    placeholder="EMP-SAF-001"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">حالة الموظف</label>
+                  <select
+                    value={empStatus}
+                    onChange={(e) => setEmpStatus(e.target.value)}
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
+                  >
+                    <option value="نشط">نشط</option>
+                    <option value="على رأس العمل">على رأس العمل</option>
+                    <option value="فترة تجربة">فترة تجربة</option>
+                    <option value="إجازة">إجازة</option>
+                    <option value="معلق">معلق</option>
+                    <option value="نهاية خدمة">نهاية خدمة</option>
+                  </select>
+                </div>
               </div>
 
               <div className="border-b border-[#e0e0e0] pb-2 pt-1">
                 <h4 className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
                   <Briefcase className="w-3.5 h-3.5 text-[#141414]" />
-                  <span>2. البيانات الشخصية والتواصل والهوية</span>
+                  <span>2. البيانات الشخصية والتواصل والهوية والوثائق</span>
                 </h4>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-[#141414] mb-1">اسم الموظف الثلاثي *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">اسم الموظف الثلاثي (عربي) *</label>
                   <input
                     type="text"
                     required
@@ -5264,6 +5475,17 @@ export const HRPage: React.FC = () => {
                 </div>
 
                 <div>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">الاسم بالإنجليزية (للبنك والسفر)</label>
+                  <input
+                    type="text"
+                    placeholder="Khalid Ibrahim Al-Sulaim"
+                    value={empNameEn}
+                    onChange={(e) => setEmpNameEn(e.target.value)}
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+
+                <div>
                   <label className="block text-xs font-semibold text-[#141414] mb-1">رقم الهوية الوطنية / الإقامة *</label>
                   <input
                     type="text"
@@ -5271,6 +5493,39 @@ export const HRPage: React.FC = () => {
                     placeholder="10XXXXXXXX"
                     value={nationalId}
                     onChange={(e) => setNationalId(e.target.value)}
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">الجنسية</label>
+                  <input
+                    type="text"
+                    value={empNationality}
+                    onChange={(e) => setEmpNationality(e.target.value)}
+                    placeholder="سعودي / مصري / فلبيني..."
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">تاريخ المباشرة والتعيين</label>
+                  <input
+                    type="date"
+                    value={empHireDate}
+                    onChange={(e) => setEmpHireDate(e.target.value)}
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">تاريخ انتهاء الهوية / الإقامة</label>
+                  <input
+                    type="date"
+                    value={empIqamaExpiry}
+                    onChange={(e) => setEmpIqamaExpiry(e.target.value)}
                     className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
@@ -5300,11 +5555,12 @@ export const HRPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#141414] mb-1">تاريخ انتهاء الهوية / الإقامة</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رقم جواز السفر (إن وجد)</label>
                   <input
-                    type="date"
-                    value={empIqamaExpiry}
-                    onChange={(e) => setEmpIqamaExpiry(e.target.value)}
+                    type="text"
+                    placeholder="A1234567"
+                    value={empPassportNumber}
+                    onChange={(e) => setEmpPassportNumber(e.target.value)}
                     className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
@@ -5312,45 +5568,110 @@ export const HRPage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-[#141414] mb-1">المسمى الوظيفي *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">انتهاء جواز السفر</label>
+                  <input
+                    type="date"
+                    value={empPassportExpiry}
+                    onChange={(e) => setEmpPassportExpiry(e.target.value)}
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رقم عقد قوى (Qiwa Contract)</label>
+                  <input
+                    type="text"
+                    placeholder="QW-2026-..."
+                    value={empQiwaContractNo}
+                    onChange={(e) => setEmpQiwaContractNo(e.target.value)}
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رقم اشتراك التأمينات (GOSI)</label>
+                  <input
+                    type="text"
+                    placeholder="GOSI-..."
+                    value={empGosiNumber}
+                    onChange={(e) => setEmpGosiNumber(e.target.value)}
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="border-b border-[#e0e0e0] pb-2 pt-1 flex items-center justify-between gap-2">
+                <h4 className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
+                  <Award className="w-3.5 h-3.5 text-[#141414]" />
+                  <span>3. المسمى الوظيفي الجديد والقسم والدرجة (اختر أو اكتب مسمى جديداً بحرية)</span>
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => setShowJobTitlesStudioModal(true)}
+                  className="text-[11px] font-bold text-[#141414] underline hover:opacity-80 cursor-pointer"
+                >
+                  فتح استوديو المسميات والأقسام
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-[#141414]">المسمى الوظيفي *</label>
+                    {jobTitle.trim() && !jobTitlesCatalog.includes(jobTitle.trim()) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setJobTitlesCatalog(saveCustomJobTitle(jobTitle));
+                          addNotification({
+                            title: 'تم حفظ المسمى الجديد',
+                            message: `تمت إضافة المسمى الوظيفي "${jobTitle.trim()}" إلى الدليل المؤسسي بنجاح.`,
+                            type: 'success',
+                          });
+                        }}
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#141414] text-white cursor-pointer"
+                      >
+                        + حفظ المسمى
+                      </button>
+                    )}
+                  </div>
                   <input
                     type="text"
                     required
+                    list="hr-job-titles-list"
+                    data-slot="hr-emp-job-title-input"
+                    placeholder="اكتب مسمى وظيفياً جديداً أو اختر من القائمة"
                     value={jobTitle}
                     onChange={(e) => setJobTitle(e.target.value)}
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">القسم الإداري * (قابل للكتابة بحرية)</label>
+                  <input
+                    type="text"
+                    required
+                    list="hr-departments-list"
+                    data-slot="hr-emp-department-input"
+                    placeholder="اكتب قسماً جديداً أو اختر"
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
                     className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#141414] mb-1">القسم الإداري *</label>
-                  <select
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
-                  >
-                    <option value="التشغيل والاستقدام">التشغيل والاستقدام</option>
-                    <option value="إدارة الإيواء">إدارة الإيواء</option>
-                    <option value="الإدارة المالية">الإدارة المالية</option>
-                    <option value="خدمة العملاء (CRM)">خدمة العملاء (CRM)</option>
-                    <option value="الموارد البشرية">الموارد البشرية</option>
-                    <option value="إدارة الفروع والمبيعات">إدارة الفروع والمبيعات</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#141414] mb-1">الدرجة الوظيفية</label>
-                  <select
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">الدرجة الوظيفية (قابلة للتعديل بحرية)</label>
+                  <input
+                    type="text"
+                    list="hr-grades-list"
+                    data-slot="hr-emp-grade-input"
+                    placeholder="اختر أو اكتب درجة وظيفية جديدة"
                     value={grade}
                     onChange={(e) => setGrade(e.target.value)}
                     className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
-                  >
-                    <option value="الدرجة الأولى (مساعد)">الدرجة الأولى (مساعد)</option>
-                    <option value="الدرجة الثانية (أخصائي)">الدرجة الثانية (أخصائي)</option>
-                    <option value="الدرجة الثالثة (أخصائي أول)">الدرجة الثالثة (أخصائي أول)</option>
-                    <option value="الدرجة الرابعة (قائد فريق)">الدرجة الرابعة (قائد فريق)</option>
-                    <option value="الدرجة الخامسة (مدير إدارة)">الدرجة الخامسة (مدير إدارة)</option>
-                  </select>
+                  />
                 </div>
               </div>
 
@@ -5366,12 +5687,13 @@ export const HRPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#141414] mb-1">الراتب الإجمالي المسجل (GOSI) *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">الراتب الإجمالي المسجل (⃁) *</label>
                   <input
                     type="number"
                     required
+                    data-slot="hr-emp-salary-input"
                     value={salary}
-                    onChange={(e) => setSalary(e.target.value)}
+                    onChange={(e) => syncBreakdownFromTotalSalary(e.target.value)}
                     className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
                   />
                 </div>
@@ -5386,6 +5708,54 @@ export const HRPage: React.FC = () => {
                     onChange={(e) => setEmpLeaveBalance(e.target.value)}
                     className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
                   />
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2.5">
+                <div className="text-[11px] font-bold text-[#141414]">
+                  4. تفصيل الراتب والبدلات (WPS / GOSI Breakdown — ⃁)
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                  <div>
+                    <label className="block text-[10px] font-semibold text-[#707070] mb-1">الراتب الأساسي</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={empBasicSalary}
+                      onChange={(e) => updateSalaryBreakdown('basic', e.target.value)}
+                      className="w-full bg-white border border-[#e0e0e0] rounded-xl py-1.5 px-2.5 text-xs font-mono font-bold text-[#141414]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold text-[#707070] mb-1">بدل السكن</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={empHousingAllowance}
+                      onChange={(e) => updateSalaryBreakdown('housing', e.target.value)}
+                      className="w-full bg-white border border-[#e0e0e0] rounded-xl py-1.5 px-2.5 text-xs font-mono font-bold text-[#141414]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold text-[#707070] mb-1">بدل النقل</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={empTransportAllowance}
+                      onChange={(e) => updateSalaryBreakdown('transport', e.target.value)}
+                      className="w-full bg-white border border-[#e0e0e0] rounded-xl py-1.5 px-2.5 text-xs font-mono font-bold text-[#141414]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold text-[#707070] mb-1">بدلات أخرى</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={empOtherAllowances}
+                      onChange={(e) => updateSalaryBreakdown('other', e.target.value)}
+                      className="w-full bg-white border border-[#e0e0e0] rounded-xl py-1.5 px-2.5 text-xs font-mono font-bold text-[#141414]"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -5412,10 +5782,10 @@ export const HRPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* System Access & RBAC Role Assignment */}
-              {!editingEmpRecord && (
-                <div className="border-t border-[#e0e0e0] pt-3">
-                  <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-3">
+              {/* System Access & RBAC Role Assignment (Editable for both New & Existing) */}
+              <div className="border-t border-[#e0e0e0] pt-3">
+                <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-3">
+                  {!editingEmpRecord && (
                     <label className="flex items-center gap-2.5 cursor-pointer">
                       <input
                         type="checkbox"
@@ -5428,26 +5798,28 @@ export const HRPage: React.FC = () => {
                         <span>إنشاء حساب مستخدم في منظومة الـ ERP وتعيين الصلاحيات فوراً</span>
                       </span>
                     </label>
+                  )}
 
-                    {createSystemUser && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                        <div>
-                          <label className="block text-xs font-semibold text-[#141414] mb-1">الدور الوظيفي والصلاحيات (RBAC Role)</label>
-                          <select
-                            value={assignedRole}
-                            onChange={(e) => setAssignedRole(e.target.value)}
-                            className="w-full bg-white border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:outline-none"
-                          >
-                            <option value="Administrator">Administrator (مدير نظام - كامل الصلاحيات)</option>
-                            <option value="Branch Manager">Branch Manager (مدير فرع)</option>
-                            <option value="Financial Manager">Financial Manager (مدير مالي واعتمادات)</option>
-                            <option value="HR Specialist">HR Specialist (أخصائي موارد بشرية)</option>
-                            <option value="Operations Lead">Operations Lead (مشرف تشغيل وعقود)</option>
-                            <option value="Shelter Supervisor">Shelter Supervisor (مشرف إيواء)</option>
-                            <option value="Sales Agent">Sales Agent (مسؤول مبيعات وعملاء)</option>
-                          </select>
-                        </div>
+                  {(createSystemUser || Boolean(editingEmpRecord)) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                      <div>
+                        <label className="block text-xs font-semibold text-[#141414] mb-1">الدور الوظيفي والصلاحيات (RBAC Role)</label>
+                        <select
+                          value={assignedRole}
+                          onChange={(e) => setAssignedRole(e.target.value)}
+                          className="w-full bg-white border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:outline-none"
+                        >
+                          <option value="Administrator">Administrator (مدير نظام - كامل الصلاحيات)</option>
+                          <option value="Branch Manager">Branch Manager (مدير فرع)</option>
+                          <option value="Financial Manager">Financial Manager (مدير مالي واعتمادات)</option>
+                          <option value="HR Specialist">HR Specialist (أخصائي موارد بشرية)</option>
+                          <option value="Operations Lead">Operations Lead (مشرف تشغيل وعقود)</option>
+                          <option value="Shelter Supervisor">Shelter Supervisor (مشرف إيواء)</option>
+                          <option value="Sales Agent">Sales Agent (مسؤول مبيعات وعملاء)</option>
+                        </select>
+                      </div>
 
+                      {!editingEmpRecord && (
                         <div className="flex items-center">
                           <label className="flex items-center gap-2 cursor-pointer mt-4">
                             <input
@@ -5461,11 +5833,86 @@ export const HRPage: React.FC = () => {
                             </span>
                           </label>
                         </div>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+
+              {/* Dynamic Custom Fields ("تحرير كل شيء") + Notes */}
+              <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-[#141414]">
+                    5. حقول مخصصة ومعلومات إضافية مفتوحة (قابلة للإضافة والتحرير لأي بيانات)
+                  </span>
+                  <button
+                    type="button"
+                    data-slot="hr-add-custom-field-btn"
+                    onClick={() =>
+                      setEmpCustomFields((prev) => [
+                        ...prev,
+                        { id: `CF-${Date.now()}-${prev.length}`, label: '', value: '' },
+                      ])
+                    }
+                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#141414] text-white text-[11px] font-bold cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>+ إضافة حقل مخصص</span>
+                  </button>
+                </div>
+
+                {empCustomFields.length > 0 && (
+                  <div className="space-y-2">
+                    {empCustomFields.map((cf, idx) => (
+                      <div key={cf.id} className="grid grid-cols-12 gap-2 items-center">
+                        <input
+                          type="text"
+                          placeholder="اسم الحقل (مثلاً: فصيلة الدم / مقاس البدلة)"
+                          value={cf.label}
+                          onChange={(e) =>
+                            setEmpCustomFields((prev) =>
+                              prev.map((item, i) => (i === idx ? { ...item, label: e.target.value } : item))
+                            )
+                          }
+                          className="col-span-5 bg-white border border-[#e0e0e0] rounded-xl py-1.5 px-2.5 text-xs text-[#141414]"
+                        />
+                        <input
+                          type="text"
+                          placeholder="القيمة"
+                          value={cf.value}
+                          onChange={(e) =>
+                            setEmpCustomFields((prev) =>
+                              prev.map((item, i) => (i === idx ? { ...item, value: e.target.value } : item))
+                            )
+                          }
+                          className="col-span-6 bg-white border border-[#e0e0e0] rounded-xl py-1.5 px-2.5 text-xs text-[#141414]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setEmpCustomFields((prev) => prev.filter((_, i) => i !== idx))
+                          }
+                          className="col-span-1 p-1.5 rounded-xl bg-white border border-[#e0e0e0] text-[#707070] hover:text-[#141414] flex items-center justify-center cursor-pointer"
+                          title="حذف الحقل"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">ملاحظات إدارية وشاملة في ملف الموظف</label>
+                  <textarea
+                    rows={2}
+                    placeholder="أي ملاحظات أو صلاحيات أو تفاصيل إضافية تخص الموظف..."
+                    value={empNotes}
+                    onChange={(e) => setEmpNotes(e.target.value)}
+                    className="w-full bg-white border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+              </div>
 
               <div className="flex gap-3 justify-end pt-3 border-t border-[#e0e0e0]">
                 <button
@@ -5478,13 +5925,301 @@ export const HRPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
+                  data-slot="hr-emp-save-btn"
                   className="button-primary-pill"
                   style={{ minHeight: '36px', padding: '6px 20px', fontSize: '13px' }}
                 >
-                  {editingEmpRecord ? 'حفظ التعديلات في ملف الموظف' : 'حفظ وتسجيل الموظف'}
+                  {editingEmpRecord ? 'حفظ كافة التعديلات في ملف الموظف' : 'حفظ وتسجيل الموظف والمسمى الجديد'}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Job Titles, Departments & Grades Management Studio Modal */}
+      {showJobTitlesStudioModal && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2050] flex items-center justify-center p-4"
+          dir="rtl"
+          data-erp-modal-overlay="true"
+          data-slot="job-titles-studio-modal"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowJobTitlesStudioModal(false);
+          }}
+        >
+          <div className="w-full max-w-3xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[90vh] flex flex-col">
+            <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 text-[#141414]" />
+                  <span>استوديو إدارة المسميات الوظيفية الجديدة والأقسام والدرجات</span>
+                </h3>
+                <p className="text-[11px] text-[#707070] mt-0.5">
+                  أضف مسميات وظيفية جديدة أو عدّل المسميات القائمة مع تحديث ملفات الموظفين تلقائياً
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowJobTitlesStudioModal(false)}
+                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#e0e0e0] cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5 overflow-y-auto flex-1 bg-white text-[#141414]">
+              <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-3">
+                <div className="text-xs font-bold text-[#141414]">إضافة مسمى وظيفي جديد</div>
+                <div className="flex flex-wrap gap-2">
+                  <input
+                    type="text"
+                    value={newStudioTitle}
+                    onChange={(e) => setNewStudioTitle(e.target.value)}
+                    data-slot="studio-new-title-input"
+                    placeholder="اكتب المسمى الوظيفي الجديد (مثال: مهندس ذكاء اصطناعي مؤسسي)"
+                    className="flex-1 min-w-[220px] bg-white border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    data-slot="studio-add-title-btn"
+                    onClick={() => {
+                      const trimmed = newStudioTitle.trim();
+                      if (!trimmed) return;
+                      setJobTitlesCatalog(saveCustomJobTitle(trimmed));
+                      setNewStudioTitle('');
+                      addNotification({
+                        title: 'تمت إضافة المسمى الوظيفي',
+                        message: `تم تسجيل المسمى "${trimmed}" في دليل المسميات الوظيفية للمجموعة.`,
+                        type: 'success',
+                      });
+                    }}
+                    className="button-primary-pill"
+                    style={{ minHeight: '36px', padding: '6px 16px', fontSize: '12px' }}
+                  >
+                    + إضافة المسمى للدليل
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-[#141414]">
+                    المسميات الوظيفية المعتمدة ({jobTitlesCatalog.length})
+                  </span>
+                  <input
+                    type="text"
+                    value={studioTitleSearch}
+                    onChange={(e) => setStudioTitleSearch(e.target.value)}
+                    placeholder="بحث سريع في المسميات..."
+                    className="bg-[#f3f3f3] border border-[#e0e0e0] rounded-full py-1.5 px-3 text-xs text-[#141414]"
+                  />
+                </div>
+
+                <div className="max-h-60 overflow-y-auto border border-[#e0e0e0] rounded-2xl divide-y divide-[#e0e0e0]">
+                  {jobTitlesCatalog
+                    .filter((t) =>
+                      !studioTitleSearch.trim()
+                        ? true
+                        : t.toLowerCase().includes(studioTitleSearch.trim().toLowerCase())
+                    )
+                    .map((title) => {
+                      const usedCount = employeesList.filter((e) => e.job_title === title).length;
+                      const isRowEditing = editingTitleTarget === title;
+                      return (
+                        <div
+                          key={title}
+                          className="p-3 flex flex-wrap items-center justify-between gap-2 hover:bg-[#f9f9f9]"
+                        >
+                          {isRowEditing ? (
+                            <div className="flex-1 flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={editingTitleValue}
+                                onChange={(e) => setEditingTitleValue(e.target.value)}
+                                className="flex-1 bg-white border border-[#141414] rounded-xl py-1 px-2.5 text-xs font-bold text-[#141414]"
+                              />
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  const next = editingTitleValue.trim();
+                                  if (!next) return;
+                                  const res = await renameCustomJobTitleAndSyncEmployees(title, next);
+                                  setJobTitlesCatalog(res.titles);
+                                  if (res.updatedEmployeesCount > 0) {
+                                    setEmployeesList((prev) =>
+                                      prev.map((emp) =>
+                                        emp.job_title === title ? { ...emp, job_title: next } : emp
+                                      )
+                                    );
+                                  }
+                                  setEditingTitleTarget(null);
+                                  setEditingTitleValue('');
+                                  addNotification({
+                                    title: 'تم تحديث المسمى الوظيفي',
+                                    message: `تم تعديل "${title}" إلى "${next}" وتحديث ${res.updatedEmployeesCount} موظف.`,
+                                    type: 'success',
+                                  });
+                                }}
+                                className="px-3 py-1 rounded-full bg-[#141414] text-white text-[11px] font-bold cursor-pointer"
+                              >
+                                حفظ
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingTitleTarget(null);
+                                  setEditingTitleValue('');
+                                }}
+                                className="px-2.5 py-1 rounded-full bg-[#f3f3f3] text-[#141414] text-[11px] font-bold cursor-pointer"
+                              >
+                                إلغاء
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-[#141414]">{title}</span>
+                                <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[10px] font-mono text-[#707070]">
+                                  {usedCount} موظف
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setShowJobTitlesStudioModal(false);
+                                    handleOpenAddOrEditEmployee(undefined, title);
+                                  }}
+                                  className="px-2.5 py-1 rounded-full bg-[#141414] text-white text-[10px] font-bold cursor-pointer"
+                                >
+                                  + توظيف بهذا المسمى
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingTitleTarget(title);
+                                    setEditingTitleValue(title);
+                                  }}
+                                  className="px-2.5 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] text-[10px] font-bold cursor-pointer"
+                                >
+                                  تعديل
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setJobTitlesCatalog(deleteCustomJobTitle(title));
+                                  }}
+                                  className="px-2.5 py-1 rounded-full bg-white border border-[#e0e0e0] text-[#707070] hover:text-[#141414] text-[10px] font-bold cursor-pointer"
+                                >
+                                  حذف
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-[#e0e0e0]">
+                <div className="p-3 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2">
+                  <div className="text-xs font-bold text-[#141414]">الأقسام الإدارية ({departmentsCatalog.length})</div>
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      value={newStudioDepartment}
+                      onChange={(e) => setNewStudioDepartment(e.target.value)}
+                      placeholder="اسم قسم جديد..."
+                      className="flex-1 bg-white border border-[#e0e0e0] rounded-xl py-1.5 px-2.5 text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!newStudioDepartment.trim()) return;
+                        setDepartmentsCatalog(saveCustomDepartment(newStudioDepartment));
+                        setNewStudioDepartment('');
+                      }}
+                      className="px-3 py-1 rounded-xl bg-[#141414] text-white text-xs font-bold cursor-pointer"
+                    >
+                      + إضافة
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+                    {departmentsCatalog.map((d) => (
+                      <span
+                        key={d}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white border border-[#e0e0e0] text-[10px] font-semibold"
+                      >
+                        {d}
+                        <button
+                          type="button"
+                          onClick={() => setDepartmentsCatalog(deleteCustomDepartment(d))}
+                          className="text-[#707070] hover:text-[#141414] cursor-pointer"
+                          title="حذف القسم"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2">
+                  <div className="text-xs font-bold text-[#141414]">الدرجات الوظيفية ({gradesCatalog.length})</div>
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      value={newStudioGrade}
+                      onChange={(e) => setNewStudioGrade(e.target.value)}
+                      placeholder="درجة وظيفية جديدة..."
+                      className="flex-1 bg-white border border-[#e0e0e0] rounded-xl py-1.5 px-2.5 text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!newStudioGrade.trim()) return;
+                        setGradesCatalog(saveCustomGrade(newStudioGrade));
+                        setNewStudioGrade('');
+                      }}
+                      className="px-3 py-1 rounded-xl bg-[#141414] text-white text-xs font-bold cursor-pointer"
+                    >
+                      + إضافة
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+                    {gradesCatalog.map((g) => (
+                      <span
+                        key={g}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white border border-[#e0e0e0] text-[10px] font-semibold"
+                      >
+                        {g}
+                        <button
+                          type="button"
+                          onClick={() => setGradesCatalog(deleteCustomGrade(g))}
+                          className="text-[#707070] hover:text-[#141414] cursor-pointer"
+                          title="حذف الدرجة"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-[#e0e0e0] bg-[#f3f3f3] flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowJobTitlesStudioModal(false)}
+                className="button-primary-pill"
+                style={{ minHeight: '36px', padding: '6px 20px', fontSize: '12px' }}
+              >
+                إغلاق
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -5541,12 +6276,29 @@ export const HRPage: React.FC = () => {
               </div>
 
               {/* Promotion Details */}
+              <datalist id="hr-promo-job-titles-list">
+                {jobTitlesCatalog.map((t) => (
+                  <option key={t} value={t} />
+                ))}
+              </datalist>
+              <datalist id="hr-promo-departments-list">
+                {departmentsCatalog.map((d) => (
+                  <option key={d} value={d} />
+                ))}
+              </datalist>
+              <datalist id="hr-promo-grades-list">
+                {gradesCatalog.map((g) => (
+                  <option key={g} value={g} />
+                ))}
+              </datalist>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-[#141414] mb-1">المسمى الوظيفي المرقّى إليه *</label>
                   <input
                     type="text"
                     required
+                    list="hr-promo-job-titles-list"
+                    placeholder="اكتب مسمى جديداً أو اختر"
                     value={promoNewTitle}
                     onChange={(e) => setPromoNewTitle(e.target.value)}
                     className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
@@ -5555,35 +6307,29 @@ export const HRPage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-semibold text-[#141414] mb-1">الدرجة الوظيفية الجديدة *</label>
-                  <select
+                  <input
+                    type="text"
+                    required
+                    list="hr-promo-grades-list"
+                    placeholder="اكتب أو اختر الدرجة الجديدة"
                     value={promoNewGrade}
                     onChange={(e) => setPromoNewGrade(e.target.value)}
                     className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
-                  >
-                    <option value="الدرجة الثانية (أخصائي)">الدرجة الثانية (أخصائي)</option>
-                    <option value="الدرجة الثالثة (أخصائي أول)">الدرجة الثالثة (أخصائي أول)</option>
-                    <option value="الدرجة الرابعة (قائد فريق)">الدرجة الرابعة (قائد فريق)</option>
-                    <option value="الدرجة الخامسة (مدير إدارة)">الدرجة الخامسة (مدير إدارة)</option>
-                    <option value="الدرجة السادسة (مدير تنفيذي / فرع)">الدرجة السادسة (مدير تنفيذي / فرع)</option>
-                  </select>
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-[#141414] mb-1">القسم الإداري الجديد</label>
-                  <select
+                  <input
+                    type="text"
+                    list="hr-promo-departments-list"
+                    placeholder="اكتب أو اختر القسم"
                     value={promoNewDepartment}
                     onChange={(e) => setPromoNewDepartment(e.target.value)}
                     className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
-                  >
-                    <option value="التشغيل والاستقدام">التشغيل والاستقدام</option>
-                    <option value="إدارة الإيواء">إدارة الإيواء</option>
-                    <option value="الإدارة المالية">الإدارة المالية</option>
-                    <option value="خدمة العملاء (CRM)">خدمة العملاء (CRM)</option>
-                    <option value="الموارد البشرية">الموارد البشرية</option>
-                    <option value="إدارة الفروع والمبيعات">إدارة الفروع والمبيعات</option>
-                  </select>
+                  />
                 </div>
 
                 <div>
@@ -5699,13 +6445,21 @@ export const HRPage: React.FC = () => {
               if (e.target === e.currentTarget) setSelectedEmpForAgreement(null);
             }}
           >
-            <div className="w-full max-w-2xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[92vh] flex flex-col">
+            <div className="w-full max-w-[880px] bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[94vh] flex flex-col">
               <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between flex-wrap gap-2 print:hidden">
                 <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                   <FileSignature className="w-4 h-4 text-[#141414]" />
                   <span>وثيقة التوقيع والاتفاقية القانونية ({agreementBranding.entity.shortNameAr})</span>
                 </h3>
                 <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-1 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[11px] font-mono font-bold text-[#141414]">
+                    A4 • 210×297 مم
+                  </span>
+                  <IncludeReemSignatureToggle
+                    checked={agreementIncludeReemSig}
+                    onChange={setAgreementIncludeReemSig}
+                    compact
+                  />
                   <button
                     type="button"
                     onClick={() => setAgreementHideHoldingGroup((prev) => !prev)}
@@ -5732,105 +6486,132 @@ export const HRPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Certificate Body (Print Optimized) */}
-              <div className="erp-printable-sheet p-8 overflow-y-auto space-y-5 bg-white text-[#141414] border-4 border-double border-[#e0e0e0] m-4 rounded-2xl">
-                {/* Header */}
-                <div className="text-center border-b-2 border-[#141414] pb-4">
-                  <div className="text-xs font-bold text-[#707070] uppercase tracking-widest">
-                    المملكة العربية السعودية
-                  </div>
-                  <div className="text-lg font-bold text-[#141414] mt-1">
-                    {agreementBranding.displayNameAr}
-                  </div>
-                  {agreementBranding.holdingBadgeAr ? (
-                    <div className="text-xs font-semibold text-[#707070] mt-0.5">
-                      {agreementBranding.holdingBadgeAr}
+              {/* A4 Preview Desk + Print Sheet */}
+              <div className="flex-1 overflow-y-auto bg-[#f3f3f3] p-4 sm:p-6 print:p-0 print:bg-white">
+                <div
+                  data-a4-fullpage="true"
+                  className="erp-printable-sheet erp-a4-sheet p-8 sm:p-10 bg-[#ffffff] text-[#141414] border-4 border-double border-[#141414]"
+                >
+                  <div className="space-y-6">
+                    {/* Header */}
+                    <div className="text-center border-b-2 border-[#141414] pb-5">
+                      <div className="text-xs font-bold text-[#707070] uppercase tracking-widest">
+                        المملكة العربية السعودية
+                      </div>
+                      <div className="text-xl font-bold text-[#141414] mt-1.5">
+                        {agreementBranding.displayNameAr}
+                      </div>
+                      {agreementBranding.holdingBadgeAr ? (
+                        <div className="text-xs font-semibold text-[#707070] mt-0.5">
+                          {agreementBranding.holdingBadgeAr}
+                        </div>
+                      ) : null}
+                      <div className="text-[11px] font-mono text-[#707070] mt-0.5">
+                        س.ت: {agreementBranding.crNumber} • الرقم الضريبي: {agreementBranding.taxNumber}
+                      </div>
+                      <div className="text-sm font-bold text-[#141414] mt-1.5">
+                        شهادة إقرار وتعهد قانوني واستخدام الأنظمة الرقمية (NDA)
+                      </div>
+                      <div className="text-[11px] font-mono text-[#707070] mt-1">
+                        رقم الاعتماد الرقمي:{' '}
+                        <span className="font-bold text-[#141414]">
+                          {selectedEmpForAgreement.compliance_hash ||
+                            `${agreementBranding.qrVerifyNamespace}-${selectedEmpForAgreement.employee_code}`}
+                        </span>
+                      </div>
                     </div>
-                  ) : null}
-                  <div className="text-[11px] font-mono text-[#707070] mt-0.5">
-                    س.ت: {agreementBranding.crNumber} • الرقم الضريبي: {agreementBranding.taxNumber}
-                  </div>
-                  <div className="text-sm font-bold text-[#141414] mt-1.5">
-                    شهادة إقرار وتعهد قانوني واستخدام الأنظمة الرقمية (NDA)
-                  </div>
-                  <div className="text-[11px] font-mono text-[#707070] mt-1">
-                    رقم الاعتماد الرقمي:{' '}
-                    <span className="font-bold text-[#141414]">
-                      {selectedEmpForAgreement.compliance_hash ||
-                        `${agreementBranding.qrVerifyNamespace}-${selectedEmpForAgreement.employee_code}`}
-                    </span>
-                  </div>
-                </div>
 
-                {/* Employee Details */}
-                <div className="grid grid-cols-2 gap-3 p-4 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0] text-xs">
-                  <div>
-                    <strong>اسم الموظف:</strong> {selectedEmpForAgreement.name}
-                  </div>
-                  <div>
-                    <strong>رقم الهوية / الإقامة:</strong>{' '}
-                    <span className="font-mono">{selectedEmpForAgreement.national_id}</span>
-                  </div>
-                  <div>
-                    <strong>المنشأة التابع لها:</strong> {agreementBranding.displayNameAr}
-                  </div>
-                  <div>
-                    <strong>القسم الإداري:</strong> {selectedEmpForAgreement.department}
-                  </div>
-                  <div>
-                    <strong>المسمى والدرجة:</strong> {selectedEmpForAgreement.job_title} (
-                    {selectedEmpForAgreement.grade || 'الدرجة الثالثة'})
-                  </div>
-                  <div>
-                    <strong>كود الموظف:</strong>{' '}
-                    <span className="font-mono">{selectedEmpForAgreement.employee_code}</span>
-                  </div>
-                </div>
-
-                {/* Legal Declaration */}
-                <div className="text-xs text-[#141414] leading-relaxed space-y-2 text-justify">
-                  <p>
-                    <strong>نص الإقرار والتعهد:</strong> أقر أنا الموظف الموضحة بياناتي أعلاه لدى (
-                    {agreementBranding.displayNameAr}) بأنني استلمت حساب الدخول لمنظومة الـ ERP،
-                    واطلعت على كافة السياسات واللوائح الخاصة بقسم ({selectedEmpForAgreement.department})
-                    والأنظمة السارية في المملكة العربية السعودية (نظام التعاملات الإلكترونية م/18،
-                    نظام مكافحة جرائم المعلوماتية م/17، ونظام حماية البيانات الشخصية PDPL).
-                  </p>
-                  <p>
-                    وأتعهد بالمحافظة التامة على سرية البيانات وعدم إفشائها أو تداولها خارج النطاق
-                    المصرح به، وأبرئ ذمة ({agreementBranding.entity.shortNameAr}) من أي إساءة استخدام فردية،
-                    مع تحملي الكامل لكافة التبعات القانونية والمسؤولية الجزائية والمدنية المترتبة على
-                    أي مخالفة.
-                  </p>
-                </div>
-
-                {/* Signature Stamp Footer */}
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t-2 border-[#e0e0e0] text-xs items-end">
-                  <div className="space-y-1">
-                    <div className="text-[#707070] text-[11px]">بيانات التوثيق الرقمي والاعتماد:</div>
-                    <div className="font-mono text-[10px] text-[#141414]">
-                      تاريخ التوقيع: {selectedEmpForAgreement.hire_date || '2026-01-15'}
+                    {/* Employee Details */}
+                    <div className="grid grid-cols-2 gap-3.5 p-5 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0] text-xs">
+                      <div>
+                        <strong>اسم الموظف:</strong> {selectedEmpForAgreement.name}
+                      </div>
+                      <div>
+                        <strong>رقم الهوية / الإقامة:</strong>{' '}
+                        <span className="font-mono">{selectedEmpForAgreement.national_id}</span>
+                      </div>
+                      <div>
+                        <strong>المنشأة التابع لها:</strong> {agreementBranding.displayNameAr}
+                      </div>
+                      <div>
+                        <strong>القسم الإداري:</strong> {selectedEmpForAgreement.department}
+                      </div>
+                      <div>
+                        <strong>المسمى والدرجة:</strong> {selectedEmpForAgreement.job_title} (
+                        {selectedEmpForAgreement.grade || 'الدرجة الثالثة'})
+                      </div>
+                      <div>
+                        <strong>كود الموظف:</strong>{' '}
+                        <span className="font-mono">{selectedEmpForAgreement.employee_code}</span>
+                      </div>
                     </div>
-                    <div className="text-[11px] font-bold text-[#141414]">
-                      اعتماد: {agreementBranding.hrIssuerTitleAr}
+
+                    {/* Legal Declaration */}
+                    <div className="text-xs sm:text-[13px] text-[#141414] leading-7 space-y-3 text-justify">
+                      <p>
+                        <strong>نص الإقرار والتعهد:</strong> أقر أنا الموظف الموضحة بياناتي أعلاه لدى (
+                        {agreementBranding.displayNameAr}) بأنني استلمت حساب الدخول لمنظومة الـ ERP،
+                        واطلعت على كافة السياسات واللوائح الخاصة بقسم ({selectedEmpForAgreement.department})
+                        والأنظمة السارية في المملكة العربية السعودية (نظام التعاملات الإلكترونية م/18،
+                        نظام مكافحة جرائم المعلوماتية م/17، ونظام حماية البيانات الشخصية PDPL).
+                      </p>
+                      <p>
+                        وأتعهد بالمحافظة التامة على سرية البيانات وعدم إفشائها أو تداولها خارج النطاق
+                        المصرح به، وأبرئ ذمة ({agreementBranding.entity.shortNameAr}) من أي إساءة استخدام فردية،
+                        مع تحملي الكامل لكافة التبعات القانونية والمسؤولية الجزائية والمدنية المترتبة على
+                        أي مخالفة.
+                      </p>
                     </div>
-                    <div className="font-mono text-[10px] text-[#707070]">
-                      {agreementBranding.executiveApprovalBadgeAr}
+
+                    <div className="p-4 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] text-[11px] text-[#707070] leading-6">
+                      <div className="font-bold text-[#141414] mb-1">ضوابط الامتثال والحفظ الرقمي:</div>
+                      <div>• يخضع هذا الإقرار لأحكام حماية البيانات والسرية الوظيفية طوال مدة الخدمة وبعد انتهائها.</div>
+                      <div>• مرجع التحقق الرقمي: <span className="font-mono text-[#141414]">{selectedEmpForAgreement.compliance_hash || `${agreementBranding.qrVerifyNamespace}-${selectedEmpForAgreement.employee_code}`}</span></div>
                     </div>
                   </div>
 
-                  <div className="text-center space-y-2">
-                    <div className="text-[#707070] text-[11px]">التوقيع الإلكتروني والبصمة:</div>
-                    <div className="border border-[#e0e0e0] rounded-lg p-2 bg-[#f3f3f3] inline-block min-w-[140px]">
-                      <Fingerprint className="w-8 h-8 text-[#141414] mx-auto" />
-                      <span className="text-[10px] font-bold text-[#141414] block mt-1">
-                        توقيع رقمي موثق ومطابق
-                      </span>
+                  {/* Signature Stamp Footer */}
+                  <div className="grid grid-cols-2 gap-4 pt-6 mt-8 border-t-2 border-[#141414] text-xs items-end">
+                    <div className="space-y-1.5">
+                      <div className="text-[#707070] text-[11px]">بيانات التوثيق الرقمي والاعتماد:</div>
+                      <div className="font-mono text-[11px] text-[#141414]">
+                        تاريخ التوقيع: {selectedEmpForAgreement.hire_date || '2026-01-15'}
+                      </div>
+                      <div className="text-[11px] font-bold text-[#141414]">
+                        اعتماد:{' '}
+                        {agreementIncludeReemSig
+                          ? 'مديرة الموارد البشرية — أ. ريم احمد بن حسين (HR@kas.sa)'
+                          : agreementBranding.hrIssuerTitleAr}
+                      </div>
+                      <div className="font-mono text-[10px] text-[#707070]">
+                        {agreementBranding.executiveApprovalBadgeAr}
+                      </div>
                     </div>
-                    <div className="text-[10px] font-bold text-[#141414]">
-                      {selectedEmpForAgreement.name}
+
+                    <div className="text-center space-y-2">
+                      <div className="text-[#707070] text-[11px]">التوقيع الإلكتروني والبصمة:</div>
+                      <div className="border border-[#e0e0e0] rounded-lg p-2.5 bg-[#f3f3f3] inline-block min-w-[150px]">
+                        <Fingerprint className="w-8 h-8 text-[#141414] mx-auto" />
+                        <span className="text-[10px] font-bold text-[#141414] block mt-1">
+                          توقيع رقمي موثق ومطابق
+                        </span>
+                      </div>
+                      <div className="text-[11px] font-bold text-[#141414]">
+                        {selectedEmpForAgreement.name}
+                      </div>
                     </div>
                   </div>
+
+                  {/* Official HR Signatory Block (Ms. Reem Ahmed Bin Hussain) */}
+                  <ReemHrDocumentSignatureBlock
+                    enabled={agreementIncludeReemSig}
+                    hideHoldingGroupBrand={agreementBranding.hideHoldingGroupBrand}
+                    referenceNumber={
+                      selectedEmpForAgreement.compliance_hash ||
+                      `${agreementBranding.qrVerifyNamespace}-${selectedEmpForAgreement.employee_code}`
+                    }
+                    issueDate={selectedEmpForAgreement.hire_date || '2026-01-15'}
+                  />
                 </div>
               </div>
 
@@ -5850,6 +6631,7 @@ export const HRPage: React.FC = () => {
                     hideHoldingGroupBrand: agreementBranding.hideHoldingGroupBrand,
                     moduleName: 'hr_nda_agreements',
                     department: 'hr',
+                    includeReemSignature: agreementIncludeReemSig,
                     summaryLines: [
                       { label: 'المنشأة', value: agreementBranding.displayNameAr },
                       { label: 'الموظف', value: selectedEmpForAgreement.name },

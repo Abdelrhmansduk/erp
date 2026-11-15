@@ -10,9 +10,11 @@ import { generateRealQrSvg } from '../utils/realBarcodeGenerator';
 import {
   composeReemHrOfficialEmail,
   REEM_HR_SIGNATORY,
+  KAS_TRADING_GROUP_LOGO_DATA_URI,
   type ReemHrTemplateId,
   type ComposedReemHrEmail,
 } from './reemHrEmailTemplatesEngine';
+import { buildReemHrDocumentSignatureHtml } from '../components/hr/ReemHrDocumentSignatureBlock';
 import {
   dispatchComposedHrEmailDirect,
   getProviderDisplayNameAr,
@@ -36,6 +38,8 @@ export interface QuickSharePayload {
   moduleName?: string;
   department?: 'hr' | string;
   templateId?: ReemHrTemplateId;
+  /** Whether to include Ms. Reem Bin Hussain's official HR signature block on the outgoing document (defaults to true for HR documents) */
+  includeReemSignature?: boolean;
   /** Optional pre-built attachment file (e.g. PDF, Excel, Image) to send alongside the WhatsApp text */
   attachmentFile?: File;
   /** Optional async attachment builder (e.g. multi-page Executive PDF generator) */
@@ -383,6 +387,17 @@ export function buildOfficialQuickSharePdfHtml(
       ${summaryTableHtml}
       ${bodyArHtml}
       ${bodyEnHtml}
+      ${
+        (payload.includeReemSignature !== undefined
+          ? payload.includeReemSignature
+          : isHrSharePayload(payload))
+          ? buildReemHrDocumentSignatureHtml({
+              referenceNo: refNo,
+              dateIso: todayIso,
+              hideHoldingLogo: branding.hideHoldingGroupBrand,
+            })
+          : ''
+      }
 
       <div style="margin-top:24px;padding-top:16px;border-top:1.5px dashed #d4d4d8;display:flex;justify-content:space-between;align-items:center;gap:16px;">
         <div style="font-size:11.5px;line-height:1.6;">
@@ -550,8 +565,14 @@ export function buildEntityShareText(
   lines.push(`س.ت: ${branding.crNumber} | هاتف: ${branding.phone}`);
   lines.push(`📅 تاريخ الإرسال: ${new Date().toISOString().slice(0, 10)}`);
 
-  if (isHrSharePayload(payload)) {
+  const shouldIncludeReemSig =
+    payload.includeReemSignature !== undefined
+      ? payload.includeReemSignature
+      : isHrSharePayload(payload);
+
+  if (shouldIncludeReemSig) {
     lines.push('');
+    lines.push(`${REEM_HR_SIGNATORY.fullNameAr} — ${REEM_HR_SIGNATORY.titleAr}`);
     lines.push(HR_OFFICIAL_SIGNATURE_TEXT);
     lines.push(REEM_HR_SIGNATORY.groupNameEn);
   }
@@ -880,9 +901,13 @@ export function shareViaEmail(payload: QuickSharePayload): string {
   const { subject, body, companyNameAr } = buildEntityShareText(payload);
   const cleanBody = body.replace(/\*/g, '');
   const to = (payload.recipientEmail || '').trim();
-  const mailtoUrl = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(
-    subject
-  )}&body=${encodeURIComponent(cleanBody)}`;
+  const basePrefix = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=`;
+  const maxBodyEncodedBudget = Math.max(400, 1820 - basePrefix.length);
+  let boundedBody = cleanBody;
+  while (boundedBody.length > 40 && encodeURIComponent(boundedBody).length > maxBodyEncodedBudget) {
+    boundedBody = `${boundedBody.slice(0, Math.floor(boundedBody.length * 0.82)).trimEnd()}...`;
+  }
+  const mailtoUrl = `${basePrefix}${encodeURIComponent(boundedBody)}`;
 
   if (typeof window !== 'undefined') {
     const link = document.createElement('a');

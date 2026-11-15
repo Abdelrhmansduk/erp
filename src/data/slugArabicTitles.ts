@@ -106,4 +106,6 @@ export const SLUG_ARABIC_TITLES: Record<string, string> = {
   'master-constants': 'ثوابت النظام المرجعية والترميز',
   'activity-logs': 'سجل التدقيق الأمني والعمليات (Audit Trail)',
   settings: 'إعدادات النظام والربط السحابي',
+  'appearance-display': 'تخصيص الألوان والمظهر والعرض',
+  'security-2fa': 'أمان المصادقة الثنائية عبر Google',
 };

@@ -33,6 +33,11 @@ import {
 } from '../../services/entityBrandingService';
 import { RecordQuickActions } from '../common/RecordQuickActions';
 import { shareViaEmail, shareViaWhatsApp } from '../../services/quickShareService';
+import {
+  ReemHrDocumentSignatureBlock,
+  IncludeReemSignatureToggle,
+} from './ReemHrDocumentSignatureBlock';
+import { REEM_HR_SIGNATORY } from '../../services/reemHrEmailTemplatesEngine';
 
 export interface PayslipModalProps {
   record: EmployeePayrollRecord & {
@@ -66,6 +71,7 @@ export const EmployeePayslipModal: React.FC<PayslipModalProps> = ({
   );
   const [payslipNote, setPayslipNote] = useState<string>('');
   const [revealPii, setRevealPii] = useState(false);
+  const [includeReemSignature, setIncludeReemSignature] = useState<boolean>(true);
 
   const branding = resolveDocumentBranding(record, {
     entityCode: selectedEntity,
@@ -102,7 +108,7 @@ export const EmployeePayslipModal: React.FC<PayslipModalProps> = ({
       dir="rtl"
     >
       <div
-        className="w-full max-w-2xl bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden max-h-[92vh] flex flex-col"
+        className="w-full max-w-[880px] bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden max-h-[94vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="no-print print:hidden px-5 py-3.5 bg-[#f3f3f3] text-[#141414] border-b border-[#e0e0e0] flex items-center justify-between gap-2 flex-wrap">
@@ -112,7 +118,12 @@ export const EmployeePayslipModal: React.FC<PayslipModalProps> = ({
               قسيمة راتب إلكترونية معتمدة (WPS Payslip) — {payrollMonth}
             </h3>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <IncludeReemSignatureToggle
+              checked={includeReemSignature}
+              onChange={setIncludeReemSignature}
+              compact
+            />
             <RecordQuickActions
               onPrint={() => window.print()}
               sharePayload={{
@@ -124,6 +135,8 @@ export const EmployeePayslipModal: React.FC<PayslipModalProps> = ({
                 entityCode: branding.code,
                 hideHoldingGroupBrand,
                 moduleName: 'wps_payslip',
+                department: 'hr',
+                includeReemSignature,
                 summaryLines: [
                   { label: 'الشركة المصدرة', value: branding.displayNameAr },
                   { label: 'الموظف', value: `${record.employeeName} (#${record.employeeNumber})` },
@@ -198,8 +211,13 @@ export const EmployeePayslipModal: React.FC<PayslipModalProps> = ({
           />
         </div>
 
-        <div className="erp-printable-sheet p-6 overflow-y-auto space-y-5 bg-[#ffffff] text-[#141414]">
-          {/* Header */}
+        <div className="flex-1 overflow-y-auto bg-[#f3f3f3] p-4 sm:p-6 print:p-0 print:bg-[#ffffff]">
+          <div
+            data-a4-fullpage="true"
+            className="erp-printable-sheet erp-a4-sheet border-2 border-[#141414] p-8 sm:p-10 bg-[#ffffff] text-[#141414]"
+          >
+            <div className="space-y-6">
+              {/* Header */}
           <div className="flex items-center justify-between border-b-2 border-[#141414] pb-4 flex-wrap gap-3">
             <div>
               <div className="text-[11px] font-bold text-[#707070]">
@@ -381,30 +399,41 @@ export const EmployeePayslipModal: React.FC<PayslipModalProps> = ({
             </div>
           </div>
 
-          {payslipNote.trim() && (
-            <div className="p-3 rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-semibold text-[#141414]">
-              ملاحظة الإدارة المالية / الموارد البشرية: {payslipNote.trim()}
+              {payslipNote.trim() && (
+                <div className="p-3 rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-semibold text-[#141414]">
+                  ملاحظة الإدارة المالية / الموارد البشرية: {payslipNote.trim()}
+                </div>
+              )}
             </div>
-          )}
 
-          {/* Net Payable Banner — Mobbin Monochrome */}
-          <div className="p-4 rounded-[20px] bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] flex items-center justify-between flex-wrap gap-3">
-            <div>
-              <span className="text-xs text-[#707070] block">
-                صافي الراتب المستحق للتحويل البنكي (WPS Net Salary) — {branding.displayNameAr}
-              </span>
-              <span className="text-[11px] text-[#141414] font-semibold">
-                شامل مساهمة المنشأة في التأمينات الاجتماعية (⃁{' '}
-                {(record.gosiEmployerShare || 0).toFixed(2)})
-              </span>
+            {/* Net Payable Banner — Mobbin Monochrome */}
+            <div className="p-4 mt-6 rounded-[20px] bg-[#f3f3f3] text-[#141414] border-2 border-[#141414] flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <span className="text-xs text-[#707070] block">
+                  صافي الراتب المستحق للتحويل البنكي (WPS Net Salary) — {branding.displayNameAr}
+                </span>
+                <span className="text-[11px] text-[#141414] font-semibold">
+                  شامل مساهمة المنشأة في التأمينات الاجتماعية (⃁{' '}
+                  {(record.gosiEmployerShare || 0).toFixed(2)})
+                </span>
+              </div>
+              <div className="text-2xl font-bold font-mono text-[#141414]">
+                ⃁{' '}
+                {record.netSalary.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </div>
             </div>
-            <div className="text-2xl font-bold font-mono text-[#141414]">
-              ⃁{' '}
-              {record.netSalary.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </div>
+
+            {includeReemSignature && (
+              <div className="mt-4">
+                <ReemHrDocumentSignatureBlock
+                  referenceNumber={serialNumber}
+                  hideHoldingLogo={hideHoldingGroupBrand}
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -485,6 +514,7 @@ export const HrOfficialLetterModal: React.FC<OfficialLetterModalProps> = ({
     'إلى من يهمه الأمر / الجهات التمويلية والبنوك المعتمدة'
   );
   const [customSignatory, setCustomSignatory] = useState<string>('');
+  const [includeReemSignature, setIncludeReemSignature] = useState<boolean>(true);
 
   const branding = resolveDocumentBranding(employee, {
     entityCode: selectedEntity,
@@ -506,7 +536,7 @@ export const HrOfficialLetterModal: React.FC<OfficialLetterModalProps> = ({
       dir="rtl"
     >
       <div
-        className="w-full max-w-2xl bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden max-h-[92vh] flex flex-col"
+        className="w-full max-w-[880px] bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden max-h-[94vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="no-print print:hidden px-5 py-3.5 bg-[#f3f3f3] text-[#141414] border-b border-[#e0e0e0] flex items-center justify-between gap-2 flex-wrap">
@@ -518,7 +548,12 @@ export const HrOfficialLetterModal: React.FC<OfficialLetterModalProps> = ({
                 : 'شهادة مخالصة نهائية وإبراء ذمة وشهادة خبرة'}
             </h3>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <IncludeReemSignatureToggle
+              checked={includeReemSignature}
+              onChange={setIncludeReemSignature}
+              compact
+            />
             <RecordQuickActions
               onPrint={() => window.print()}
               sharePayload={{
@@ -532,6 +567,8 @@ export const HrOfficialLetterModal: React.FC<OfficialLetterModalProps> = ({
                 recipientEmail: employee.email,
                 entityCode: branding.code,
                 hideHoldingGroupBrand,
+                department: 'hr',
+                includeReemSignature,
                 summaryLines: [
                   { label: 'الشركة المصدرة', value: branding.displayNameAr },
                   { label: 'اسم الموظف', value: employee.name },
@@ -604,9 +641,9 @@ export const HrOfficialLetterModal: React.FC<OfficialLetterModalProps> = ({
           />
         </div>
 
-        <div className="p-6 overflow-y-auto space-y-4 bg-[#ffffff] text-[#141414]">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 bg-[#f3f3f3] print:p-0 print:bg-[#ffffff] text-[#141414]">
           {letterType === 'SALARY_CERTIFICATE' && (
-            <div className="no-print print:hidden bg-[#f3f3f3] p-3.5 rounded-[20px] border border-[#e0e0e0]">
+            <div className="no-print print:hidden bg-[#ffffff] p-3.5 rounded-[20px] border border-[#e0e0e0]">
               <label className="block text-xs font-bold text-[#141414] mb-1.5">
                 الجهة الموجه إليها الخطاب:
               </label>
@@ -614,13 +651,17 @@ export const HrOfficialLetterModal: React.FC<OfficialLetterModalProps> = ({
                 type="text"
                 value={recipientEntity}
                 onChange={(e) => setRecipientEntity(e.target.value)}
-                className="w-full bg-[#ffffff] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] font-semibold focus:outline-none focus:border-[#141414]"
+                className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] font-semibold focus:outline-none focus:border-[#141414]"
               />
             </div>
           )}
 
           {/* Printable Certificate Frame */}
-          <div className="erp-printable-sheet border-2 border-[#141414] rounded-[20px] p-6 space-y-5 bg-[#ffffff]">
+          <div
+            data-a4-fullpage="true"
+            className="erp-printable-sheet erp-a4-sheet border-2 border-[#141414] p-8 sm:p-10 bg-[#ffffff]"
+          >
+            <div className="space-y-6">
             <div className="flex items-center justify-between border-b-2 border-[#141414] pb-4 flex-wrap gap-3">
               <div>
                 <div className="text-xs font-bold text-[#707070]">
@@ -785,24 +826,38 @@ export const HrOfficialLetterModal: React.FC<OfficialLetterModalProps> = ({
               </>
             )}
 
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#e0e0e0] text-xs">
-              <div>
-                <div className="text-[#707070]">اعتماد إدارة الموارد البشرية:</div>
-                <div className="font-bold text-[#141414] mt-1">
-                  {customSignatory.trim() || branding.displayNameAr}
+            </div>
+
+            <div className="pt-6 mt-8 border-t border-[#e0e0e0] space-y-4">
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div>
+                  <div className="text-[#707070]">اعتماد إدارة الموارد البشرية:</div>
+                  <div className="font-bold text-[#141414] mt-1">
+                    {customSignatory.trim() || branding.displayNameAr}
+                  </div>
+                  <div className="font-semibold text-[11px] text-[#707070] mt-0.5">
+                    {includeReemSignature
+                      ? `${REEM_HR_SIGNATORY.fullNameAr} (${REEM_HR_SIGNATORY.titleAr})`
+                      : branding.hrSignatoryNameAr}{' '}
+                    • س.ت {branding.crNumber}
+                  </div>
+                  <div className="font-mono text-[10px] text-[#141414] mt-0.5">
+                    ختم إلكتروني موثق • {refNo}
+                  </div>
                 </div>
-                <div className="font-semibold text-[11px] text-[#707070] mt-0.5">
-                  {branding.hrSignatoryNameAr} • س.ت {branding.crNumber}
-                </div>
-                <div className="font-mono text-[10px] text-[#141414] mt-0.5">
-                  ختم إلكتروني موثق • {refNo}
+                <div className="text-left">
+                  <div className="text-[#707070]">توقيع الموظف / المستفيد:</div>
+                  <div className="font-bold text-[#141414] mt-1">{employee.name}</div>
+                  <div className="font-mono text-[10px] text-[#707070]">موثق عبر البوابة الذاتية</div>
                 </div>
               </div>
-              <div className="text-left">
-                <div className="text-[#707070]">توقيع الموظف / المستفيد:</div>
-                <div className="font-bold text-[#141414] mt-1">{employee.name}</div>
-                <div className="font-mono text-[10px] text-[#707070]">موثق عبر البوابة الذاتية</div>
-              </div>
+
+              {includeReemSignature && (
+                <ReemHrDocumentSignatureBlock
+                  referenceNumber={refNo}
+                  hideHoldingLogo={hideHoldingGroupBrand}
+                />
+              )}
             </div>
           </div>
         </div>

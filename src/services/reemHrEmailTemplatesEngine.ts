@@ -30,6 +30,7 @@ export interface ReemHrSignatory {
   nameAr: string;
   fullNameAr: string;
   titleAr: string;
+  departmentAr: string;
   nameEn: string;
   signatureNameEn: string;
   titleEn: string;
@@ -39,12 +40,14 @@ export interface ReemHrSignatory {
   defaultCc: string[];
   groupNameAr: string;
   groupNameEn: string;
+  groupBannerText: string;
 }
 
 export const REEM_HR_SIGNATORY: ReemHrSignatory = {
   nameAr: 'ريم بن حسين',
   fullNameAr: 'ريم احمد بن حسين',
   titleAr: 'مديرة الموارد البشرية',
+  departmentAr: 'إدارة الموارد البشرية وشؤون الموظفين',
   nameEn: 'Reem Bin Hussein',
   signatureNameEn: 'Reem Bin Hussain',
   titleEn: 'HR Manager',
@@ -54,6 +57,7 @@ export const REEM_HR_SIGNATORY: ReemHrSignatory = {
   defaultCc: ['Khalid@kas.sa'],
   groupNameAr: 'مجموعة الخالد السليم',
   groupNameEn: 'KHALID AL-SULAIM TRADING GROUP',
+  groupBannerText: 'مجموعة الخالد السليم — KHALID AL-SULAIM TRADING GROUP',
 };
 
 export const KAS_GROUP_LOGO_CID = 'kas-group-logo@kas.sa';
@@ -1289,12 +1293,47 @@ export function composeReemHrOfficialEmail(input: ComposeReemHrEmailInput): Comp
   const plainBodyWithoutFooter = plainBodyBeforeSignatureLines.join('\r\n');
   const plainTextBody = `${plainBodyWithoutFooter}\r\n\r\n${REEM_HR_PLAIN_SIGNATURE_BLOCK}`;
 
-  const buildCappedUrlBodyWithSignature = (maxBodyChars: number): string => {
-    if (plainBodyWithoutFooter.length <= maxBodyChars) {
+  const buildEncodedBudgetBodyWithSignature = (maxEncodedBodyChars: number): string => {
+    if (encodeURIComponent(plainTextBody).length <= maxEncodedBodyChars) {
       return plainTextBody;
     }
-    const truncatedContent = plainBodyWithoutFooter.slice(0, maxBodyChars).trimEnd();
-    return `${truncatedContent}\r\n...\r\n\r\n${REEM_HR_PLAIN_SIGNATURE_BLOCK}`;
+    const sigSuffix = `\r\n...\r\n\r\n${REEM_HR_PLAIN_SIGNATURE_BLOCK}`;
+    const sigEncodedLen = encodeURIComponent(sigSuffix).length;
+    const availableEncodedForHead = Math.max(90, maxEncodedBodyChars - sigEncodedLen);
+
+    let low = 0;
+    let high = plainBodyWithoutFooter.length;
+    let bestPrefix = '';
+
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      const candidateHead = plainBodyWithoutFooter.slice(0, mid).trimEnd();
+      if (encodeURIComponent(candidateHead).length <= availableEncodedForHead) {
+        bestPrefix = candidateHead;
+        low = mid + 1;
+      } else {
+        high = mid - 1;
+      }
+    }
+
+    if (!bestPrefix) {
+      return `${plainBodyWithoutFooter.slice(0, 32).trimEnd()}${sigSuffix}`;
+    }
+    return `${bestPrefix}${sigSuffix}`;
+  };
+
+  const buildBoundedRecipientList = (emails: string[], maxRawChars: number): string[] => {
+    const picked: string[] = [];
+    let currentLen = 0;
+    for (const email of emails) {
+      const nextLen = currentLen + (picked.length > 0 ? 1 : 0) + email.length;
+      if (picked.length > 0 && nextLen > maxRawChars) {
+        break;
+      }
+      picked.push(email);
+      currentLen = nextLen;
+    }
+    return picked.length > 0 ? picked : emails.slice(0, 1);
   };
 
   const emlContent = generateOutlookDraftEmlFile({
@@ -1307,20 +1346,35 @@ export function composeReemHrOfficialEmail(input: ComposeReemHrEmailInput): Comp
     attachments: normalizedAttachments,
   });
 
-  const toQuery = encodeURIComponent(toEmails.join(','));
+  // Cap URL recipient lists & encoded body length so Microsoft 365 / Entra ID OAuth redirects
+  // (outlook.office.com) and Windows ShellExecute (mailto: / olk.exe / OUTLOOK.EXE) never fail with HTTP 400/414 or CLI overflow.
+  const webToBounded = buildBoundedRecipientList(toEmails, 320);
+  const mailtoToBounded = buildBoundedRecipientList(toEmails, 240);
+
+  const toQuery = encodeURIComponent(webToBounded.join(','));
   const ccQuery = encodeURIComponent(ccEmails.join(','));
   const subjectQuery = encodeURIComponent(subject);
-  const webBodyPreview = buildCappedUrlBodyWithSignature(2200);
-  const mailtoBodyPreview = buildCappedUrlBodyWithSignature(1200);
 
-  const outlookWebUrl = `https://outlook.office.com/mail/deeplink/compose?to=${toQuery}&cc=${ccQuery}&subject=${subjectQuery}&body=${encodeURIComponent(webBodyPreview)}`;
+  const webPrefix = `https://outlook.office.com/mail/deeplink/compose?to=${toQuery}&cc=${ccQuery}&subject=${subjectQuery}&body=`;
+  const webRemainingEncodedBudget = Math.max(480, 1950 - webPrefix.length);
+  const webBodyPreview = buildEncodedBudgetBodyWithSignature(webRemainingEncodedBudget);
+  const outlookWebUrl = `${webPrefix}${encodeURIComponent(webBodyPreview)}`;
+
+  const mailtoToPath = mailtoToBounded.join(',');
+  const mailtoPrefixWithoutBody = [
+    ...(ccEmails.length > 0 ? [`cc=${ccQuery}`] : []),
+    `subject=${subjectQuery}`,
+  ].join('&');
+  const mailtoBaseLen = `mailto:${mailtoToPath}?${mailtoPrefixWithoutBody}&body=`.length;
+  const mailtoRemainingEncodedBudget = Math.max(420, 1820 - mailtoBaseLen);
+  const mailtoBodyPreview = buildEncodedBudgetBodyWithSignature(mailtoRemainingEncodedBudget);
 
   const mailtoParams = [
     ...(ccEmails.length > 0 ? [`cc=${ccQuery}`] : []),
     `subject=${subjectQuery}`,
     `body=${encodeURIComponent(mailtoBodyPreview)}`,
   ].join('&');
-  const mailtoUrl = `mailto:${toEmails.join(',')}?${mailtoParams}`;
+  const mailtoUrl = `mailto:${mailtoToPath}?${mailtoParams}`;
 
   return {
     templateId: template.id,

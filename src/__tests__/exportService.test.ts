@@ -152,11 +152,19 @@ describe('exportService — Excel & HTML reports', () => {
     expect(wb.SheetNames.length).toBeGreaterThan(0);
   });
 
-  it('official HTML report is RTL and carries the SAMA riyal symbol', () => {
+  it('official HTML report is RTL, carries the SAMA riyal symbol, and enforces ISO A4 page geometry', () => {
     const html = generateExecutiveReportHtml('vouchers', [{ voucher_number: 'RV-1', amount: 1000 }], undefined, true);
     expect(html).toContain('dir="rtl"');
     expect(html).toContain(SAUDI_RIYAL_SYMBOL);
     expect(html.includes(LEGACY_RIYAL)).toBe(false);
+    expect(html).toContain('size: A4 landscape');
+    expect(html).toContain('width: 297mm');
+
+    const portraitHtml = generateExecutiveReportHtml('vouchers', [{ voucher_number: 'RV-1', amount: 1000 }], undefined, true, {
+      orientation: 'portrait',
+    });
+    expect(portraitHtml).toContain('size: A4 portrait');
+    expect(portraitHtml).toContain('width: 210mm');
   });
 });
 

@@ -592,7 +592,7 @@ export const CreateCVPage: React.FC = () => {
       {/* Printable Worker CV Card Modal */}
       {showPrintPreview && (
         <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setShowPrintPreview(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-white border border-[#e0e0e0] rounded-[24px] p-6 max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-[880px] bg-white border border-[#e0e0e0] rounded-[24px] p-6 max-h-[92vh] overflow-y-auto">
             <div className="no-print print:hidden flex justify-between items-center mb-4 border-b border-[#e0e0e0] pb-3">
               <div className="flex items-center gap-2">
                 <Printer className="w-5 h-5 text-[#141414]" />
@@ -607,7 +607,8 @@ export const CreateCVPage: React.FC = () => {
             </div>
 
             {/* Printable Document Body */}
-            <div className="erp-printable-sheet p-6 bg-white border-2 border-[#141414] rounded-2xl space-y-4 font-sans text-xs">
+            <div data-a4-fullpage="true" className="erp-printable-sheet erp-a4-sheet p-8 bg-white border-2 border-[#141414] font-sans text-xs">
+              <div className="space-y-5">
               {/* Header */}
               <div className="flex items-center justify-between border-b-2 border-[#141414] pb-4">
                 <div>
@@ -658,8 +659,10 @@ export const CreateCVPage: React.FC = () => {
                 </div>
               </div>
 
+              </div>
+
               {/* Guarantee & Agency Seal */}
-              <div className="flex items-center justify-between pt-3 border-t border-[#e0e0e0]">
+              <div className="flex items-center justify-between pt-4 mt-6 border-t border-[#e0e0e0]">
                 <div>
                   <div className="text-[11px] font-bold text-[#141414]">المكتب الخارجي المعتمد: {formData.office_id}</div>
                   <div className="text-[10px] text-[#707070]">الضمان النظامي: 90 يوماً من تاريخ الوصول شامل الهروب ورفض العمل</div>

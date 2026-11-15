@@ -454,7 +454,7 @@ export const ClientPortalPage: React.FC = () => {
       {/* Contract Detail Modal */}
       {selectedContract && (
         <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setSelectedContract(null)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div onClick={(e) => e.stopPropagation()} className="erp-printable-sheet bg-white rounded-[24px] p-6 max-w-xl w-full border border-[#e0e0e0] relative space-y-5 max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} data-a4-fullpage="true" className="erp-printable-sheet bg-white rounded-[24px] p-6 sm:p-8 max-w-[210mm] w-full border border-[#e0e0e0] relative space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#e0e0e0]">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-6 h-6 text-[#141414]" />

@@ -494,65 +494,84 @@ export const LegalCompliancePage: React.FC = () => {
       {/* Printable / Viewable Official Legal Certificate Modal */}
       {selectedUndertaking && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[2200] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" data-printable-modal="true" onClick={(e) => { if (e.target === e.currentTarget) setSelectedUndertaking(null); }}>
-          <div className="w-full max-w-2xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[90vh] flex flex-col">
-            <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between print:hidden">
+          <div className="w-full max-w-[880px] bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[94vh] flex flex-col">
+            <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between gap-2 print:hidden">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Scale className="w-4 h-4 text-[#141414]" />
                 <span>وثيقة الإقرار والتعهد وإبراء الذمة القانونية الرقمية المعتمدة</span>
               </h3>
-              <button onClick={() => setSelectedUndertaking(null)} className="p-1 text-[#707070] hover:text-[#141414]">
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-1 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[11px] font-mono font-bold text-[#141414]">
+                  A4 • 210×297 مم
+                </span>
+                <button onClick={() => setSelectedUndertaking(null)} className="p-1 text-[#707070] hover:text-[#141414]">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
-            {/* Certificate Body (Print Optimized) */}
-            <div className="erp-printable-sheet p-8 overflow-y-auto space-y-5 bg-white text-[#141414] border-4 border-double border-[#e0e0e0] m-4 rounded-2xl">
-              {/* Certificate Header */}
-              <div className="text-center border-b-2 border-[#141414] pb-4">
-                <div className="text-xs font-bold text-[#707070] uppercase tracking-widest">المملكة العربية السعودية</div>
-                <div className="text-lg font-bold text-[#141414] mt-1">مجموعة خالد السليم التجارية للاستقدام والتشغيل</div>
-                <div className="text-sm font-bold text-[#141414] mt-0.5">شهادة إقرار وتعهد قانوني واستخدام الأنظمة الرقمية</div>
-                <div className="text-[11px] font-mono text-[#707070] mt-1">
-                  رقم الاعتماد الرقمي: <span className="font-bold text-[#141414]">{selectedUndertaking.compliance_hash}</span>
-                </div>
-              </div>
-
-              {/* Employee Details Grid */}
-              <div className="grid grid-cols-2 gap-3 p-4 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0] text-xs">
-                <div><strong>اسم الموظف:</strong> {selectedUndertaking.employee_name}</div>
-                <div><strong>رقم الهوية الوطنية / الإقامة:</strong> <span className="font-mono">{selectedUndertaking.national_id}</span></div>
-                <div><strong>القسم الإداري:</strong> {selectedUndertaking.department}</div>
-                <div><strong>المسمى الوظيفي:</strong> {selectedUndertaking.job_title}</div>
-                <div><strong>الفرع المعتمد:</strong> {selectedUndertaking.branch}</div>
-                <div><strong>اسم المستخدم في النظام:</strong> <span className="font-mono">@{selectedUndertaking.username}</span></div>
-              </div>
-
-              {/* Declaration Text */}
-              <div className="text-xs text-[#141414] leading-relaxed space-y-2 text-justify">
-                <p>
-                  <strong>نص الإقرار:</strong> أقر أنا الموظف الموضحة بياناتي أعلاه بأنني استلمت حساب الدخول لمنظومة الـ ERP، واطلعت على كافة السياسات واللوائح الخاصة بقسمي والأنظمة السارية في المملكة العربية السعودية (نظام التعاملات الإلكترونية، نظام مكافحة جرائم المعلوماتية، ونظام حماية البيانات الشخصية PDPL).
-                </p>
-                <p>
-                  وأتعهد بالمحافظة التامة على سرية البيانات وعدم إفشائها أو تداولها خارج النطاق المصرح به، وأبرئ ذمة المنشأة من أي إساءة استخدام فردية، مع تحملي الكامل لكافة التبعات القانونية والمسؤولية الجزائية والمدنية المترتبة على أي مخالفة.
-                </p>
-              </div>
-
-              {/* Signature & Digital Timestamp Footer */}
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t-2 border-[#e0e0e0] text-xs items-end">
-                <div className="space-y-1">
-                  <div className="text-[#707070] text-[11px]">بيانات التوثيق الرقمي:</div>
-                  <div className="font-mono text-[10px] text-[#141414]">تاريخ التوقيع: {selectedUndertaking.signed_at}</div>
-                  <div className="font-mono text-[10px] text-[#141414]">عنوان الـ IP: {selectedUndertaking.ip_address}</div>
-                  <div className="font-mono text-[9px] text-[#141414] font-bold">الحالة: {selectedUndertaking.status}</div>
-                </div>
-
-                <div className="text-center space-y-2">
-                  <div className="text-[#707070] text-[11px]">التوقيع الإلكتروني المعتمد:</div>
-                  <div className="border border-[#e0e0e0] rounded-lg p-2 bg-[#f3f3f3] inline-block min-w-[140px]">
-                    <Fingerprint className="w-8 h-8 text-[#141414] mx-auto" />
-                    <span className="text-[10px] font-bold text-[#141414] block mt-1">توقيع رقمي موثق ومطابق</span>
+            {/* A4 Preview Desk + Print Sheet */}
+            <div className="flex-1 overflow-y-auto bg-[#f3f3f3] p-4 sm:p-6 print:p-0 print:bg-white">
+              <div
+                data-a4-fullpage="true"
+                className="erp-printable-sheet erp-a4-sheet p-8 sm:p-10 bg-[#ffffff] text-[#141414] border-4 border-double border-[#141414]"
+              >
+                <div className="space-y-6">
+                  {/* Certificate Header */}
+                  <div className="text-center border-b-2 border-[#141414] pb-5">
+                    <div className="text-xs font-bold text-[#707070] uppercase tracking-widest">المملكة العربية السعودية</div>
+                    <div className="text-xl font-bold text-[#141414] mt-1.5">مجموعة خالد السليم التجارية للاستقدام والتشغيل</div>
+                    <div className="text-sm font-bold text-[#141414] mt-1">شهادة إقرار وتعهد قانوني واستخدام الأنظمة الرقمية</div>
+                    <div className="text-[11px] font-mono text-[#707070] mt-1.5">
+                      رقم الاعتماد الرقمي: <span className="font-bold text-[#141414]">{selectedUndertaking.compliance_hash}</span>
+                    </div>
                   </div>
-                  <div className="text-[10px] font-bold text-[#141414]">{selectedUndertaking.employee_name}</div>
+
+                  {/* Employee Details Grid */}
+                  <div className="grid grid-cols-2 gap-3.5 p-5 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0] text-xs">
+                    <div><strong>اسم الموظف:</strong> {selectedUndertaking.employee_name}</div>
+                    <div><strong>رقم الهوية الوطنية / الإقامة:</strong> <span className="font-mono">{selectedUndertaking.national_id}</span></div>
+                    <div><strong>القسم الإداري:</strong> {selectedUndertaking.department}</div>
+                    <div><strong>المسمى الوظيفي:</strong> {selectedUndertaking.job_title}</div>
+                    <div><strong>الفرع المعتمد:</strong> {selectedUndertaking.branch}</div>
+                    <div><strong>اسم المستخدم في النظام:</strong> <span className="font-mono">@{selectedUndertaking.username}</span></div>
+                  </div>
+
+                  {/* Declaration Text */}
+                  <div className="text-xs sm:text-[13px] text-[#141414] leading-7 space-y-3 text-justify">
+                    <p>
+                      <strong>نص الإقرار:</strong> أقر أنا الموظف الموضحة بياناتي أعلاه بأنني استلمت حساب الدخول لمنظومة الـ ERP، واطلعت على كافة السياسات واللوائح الخاصة بقسمي والأنظمة السارية في المملكة العربية السعودية (نظام التعاملات الإلكترونية، نظام مكافحة جرائم المعلوماتية، ونظام حماية البيانات الشخصية PDPL).
+                    </p>
+                    <p>
+                      وأتعهد بالمحافظة التامة على سرية البيانات وعدم إفشائها أو تداولها خارج النطاق المصرح به، وأبرئ ذمة المنشأة من أي إساءة استخدام فردية، مع تحملي الكامل لكافة التبعات القانونية والمسؤولية الجزائية والمدنية المترتبة على أي مخالفة.
+                    </p>
+                  </div>
+
+                  {/* Regulatory Binding Summary Box */}
+                  <div className="p-4 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] text-[11px] text-[#707070] leading-6">
+                    <div className="font-bold text-[#141414] mb-1">المرجعية النظامية والضوابط الرقمية الملزمة:</div>
+                    <div>• نظام التعاملات الإلكترونية (م/18) ونظام حماية البيانات الشخصية (PDPL) الصادر عن سدايا.</div>
+                    <div>• يوثق هذا التعهد آلياً بعنوان الشبكة وطابع التوقيت الزمني ضمن سجل الامتثال المعتمد.</div>
+                  </div>
+                </div>
+
+                {/* Signature & Digital Timestamp Footer */}
+                <div className="grid grid-cols-2 gap-4 pt-6 mt-8 border-t-2 border-[#141414] text-xs items-end">
+                  <div className="space-y-1.5">
+                    <div className="text-[#707070] text-[11px]">بيانات التوثيق الرقمي:</div>
+                    <div className="font-mono text-[11px] text-[#141414]">تاريخ التوقيع: {selectedUndertaking.signed_at}</div>
+                    <div className="font-mono text-[11px] text-[#141414]">عنوان الـ IP: {selectedUndertaking.ip_address}</div>
+                    <div className="font-mono text-[10px] text-[#141414] font-bold">الحالة: {selectedUndertaking.status}</div>
+                  </div>
+
+                  <div className="text-center space-y-2">
+                    <div className="text-[#707070] text-[11px]">التوقيع الإلكتروني المعتمد:</div>
+                    <div className="border border-[#e0e0e0] rounded-lg p-2.5 bg-[#f3f3f3] inline-block min-w-[150px]">
+                      <Fingerprint className="w-8 h-8 text-[#141414] mx-auto" />
+                      <span className="text-[10px] font-bold text-[#141414] block mt-1">توقيع رقمي موثق ومطابق</span>
+                    </div>
+                    <div className="text-[11px] font-bold text-[#141414]">{selectedUndertaking.employee_name}</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -570,7 +589,7 @@ export const LegalCompliancePage: React.FC = () => {
                 className="button-primary-pill text-xs py-2 px-5 flex items-center gap-1.5"
               >
                 <Printer className="w-4 h-4" />
-                <span>طباعة الوثيقة الرسمية</span>
+                <span>طباعة الوثيقة الرسمية (A4)</span>
               </button>
             </div>
           </div>

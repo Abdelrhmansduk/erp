@@ -29,7 +29,6 @@
 
 .stat-card:hover {
   border-color: var(--color-hairline);
-  transform: none;
   box-shadow: none !important;
 }
 
@@ -694,7 +693,6 @@ a svg,
 
 .card-pricing:hover {
   border-color: #e0e0e0;
-  transform: none;
   box-shadow: none !important;
 }
 
@@ -876,7 +874,6 @@ a svg,
 }
 
 .luxury-white-card:hover {
-  transform: none;
   border-color: #e0e0e0;
   box-shadow: none !important;
 }
@@ -894,7 +891,6 @@ a svg,
 }
 
 .white-feature-card:hover {
-  transform: none;
   border-color: #e0e0e0;
   box-shadow: none !important;
 }

@@ -3914,7 +3914,7 @@ export const KasEtimadCloudPage: React.FC = () => {
       {/* ========================================================================= */}
       {showDetailModal && selectedDetail && (
         <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setShowDetailModal(false)} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="erp-printable-sheet bg-white text-[#141414] rounded-[24px] max-w-2xl w-full p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} data-a4-fullpage="true" className="erp-printable-sheet bg-white text-[#141414] rounded-[24px] max-w-[210mm] w-full p-8 space-y-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b pb-4">
               <div>
                 <div className="text-xs text-[#707070] font-bold tracking-wider">مؤسسة خالد عبدالعزيز السليم للتجارة والمقاولات (كاس)</div>

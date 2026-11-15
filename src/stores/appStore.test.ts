@@ -47,4 +47,18 @@ describe('appStore (State & Navigation Store)', () => {
     expect(state.unreadCount).toBe(0);
     expect(state.notifications[0].read).toBe(true);
   });
+
+  it('should default to corporate-color theme and toggle cleanly with monochrome', () => {
+    const { setUiTheme, toggleUiTheme } = useAppStore.getState();
+    setUiTheme('corporate-color');
+    expect(useAppStore.getState().uiTheme).toBe('corporate-color');
+    expect(document.documentElement.getAttribute('data-ui-theme')).toBe('corporate-color');
+
+    toggleUiTheme();
+    expect(useAppStore.getState().uiTheme).toBe('monochrome');
+    expect(document.documentElement.getAttribute('data-ui-theme')).toBe('monochrome');
+
+    toggleUiTheme();
+    expect(useAppStore.getState().uiTheme).toBe('corporate-color');
+  });
 });

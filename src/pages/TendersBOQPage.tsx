@@ -2508,7 +2508,7 @@ export const TendersBOQPage: React.FC = () => {
       {/* 4. Modal: ZATCA Phase 2 Live Invoice & QR */}
       {showZatcaModal && (
         <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setShowZatcaModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="erp-printable-sheet w-full max-w-2xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[90vh] flex flex-col">
+          <div onClick={(e) => e.stopPropagation()} data-a4-fullpage="true" className="erp-printable-sheet w-full max-w-[210mm] bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[92vh] flex flex-col">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <QrCode className="w-4 h-4 text-[#141414]" />
@@ -2725,7 +2725,7 @@ export const TendersBOQPage: React.FC = () => {
       {/* 7. Modal: Official Print Modal (Matching Excel File Layout Exactly) */}
       {showPrintModal && (
         <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setShowPrintModal(false)} className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[2200] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-5xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[95vh] flex flex-col">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-[880px] bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[95vh] flex flex-col">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between print:hidden">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Printer className="w-4 h-4 text-[#141414]" />
@@ -3104,7 +3104,7 @@ export const TendersBOQPage: React.FC = () => {
       {/* 10. Modal: Supplier Profile Print Card */}
       {showPrintSupplierModal && selectedSupplierForPrint && (
         <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setShowPrintSupplierModal(false)} className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[2300] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[95vh] flex flex-col">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-[880px] bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[95vh] flex flex-col">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between print:hidden">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Printer className="w-4 h-4 text-[#141414]" />
@@ -3115,7 +3115,8 @@ export const TendersBOQPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="erp-printable-sheet p-6 overflow-y-auto space-y-4 bg-white text-[#141414]">
+            <div className="flex-1 overflow-y-auto bg-[#f3f3f3] p-4 sm:p-6 print:p-0 print:bg-white">
+              <div data-a4-fullpage="true" className="erp-printable-sheet erp-a4-sheet p-8 space-y-4 bg-white text-[#141414]">
               <div className="border-2 border-[#e0e0e0] rounded-2xl overflow-hidden p-6 space-y-4">
                 <div className="flex items-center justify-between border-b-2 border-[#e0e0e0] pb-3">
                   <div>
@@ -3178,6 +3179,7 @@ export const TendersBOQPage: React.FC = () => {
                   <div>إجمالي العمليات السابقة: <strong className="font-mono">{selectedSupplierForPrint.totalDeals} توريدات</strong></div>
                   <div>إجمالي حجم التعاملات: <strong className="font-mono text-[#141414]">{selectedSupplierForPrint.totalValue.toLocaleString()} ⃁</strong></div>
                 </div>
+              </div>
               </div>
             </div>
 

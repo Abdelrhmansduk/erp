@@ -700,7 +700,7 @@ export async function sendViaDirectSmtp({
   const host = sanitizeHeaderValue(config.smtpHost || 'smtp.office365.com');
   const port = Number(config.smtpPort) || 587;
   const user = sanitizeHeaderValue(config.smtpUser || FIXED_HR_FROM_EMAIL);
-  const pass = String(config.smtpPass || '');
+  const pass = String(config.smtpPass || '').trim();
   const useImplicitTls = Boolean(config.smtpSecure) || port === 465;
   const rejectUnauthorized = config.tlsRejectUnauthorized !== false;
 
@@ -715,11 +715,18 @@ export async function sendViaDirectSmtp({
       ? tls.connect({ host, port, servername: host, rejectUnauthorized })
       : net.createConnection({ host, port });
 
+    const connectTimer = setTimeout(() => {
+      conn.destroy();
+      reject(new Error(`انتهت مهلة الاتصال بخادم البريد ${host}:${port}. تحقق من الشبكة أو المنفذ.`));
+    }, 15000);
+
     const onErr = (err) => {
+      clearTimeout(connectTimer);
       reject(new Error(`تعذر الاتصال بخادم البريد ${host}:${port}: ${err.message}`));
     };
     conn.once('error', onErr);
     conn.once(useImplicitTls ? 'secureConnect' : 'connect', () => {
+      clearTimeout(connectTimer);
       conn.off('error', onErr);
       resolve(conn);
     });

@@ -15,7 +15,20 @@ import {
   decodeUtf8QuotedPrintable,
   type ReemHrTemplateId,
 } from './reemHrEmailTemplatesEngine';
-import { SECTION_CONFIGS, resolveConfig, resolveEffectiveMappedRows } from './exportService';
+import {
+  SECTION_CONFIGS,
+  resolveConfig,
+  resolveEffectiveMappedRows,
+  generateExecutiveReportHtml,
+} from './exportService';
+import {
+  isHrDocumentSection,
+  buildReemHrDocumentSignatureHtml,
+} from '../components/hr/ReemHrDocumentSignatureBlock';
+import {
+  buildOfficialQuickSharePdfHtml,
+  buildEntityShareText,
+} from './quickShareService';
 import { realErpDataStore } from './realErpDataStore';
 
 const LEGACY_RIYAL_TEXT = '\u0631.\u0633';
@@ -292,6 +305,23 @@ describe('Reem HR Official Bilingual Email Engine (HR@kas.sa)', () => {
     expect(mailtoBodyDecoded).toContain('International HR & Talent Acquisition Consultant');
     expect(mailtoBodyDecoded).toContain('Email: HR@kas.sa');
     expect(mailtoBodyDecoded).toContain('Mobile: +966 553452122');
+    expect(composed.outlookWebUrl.length).toBeLessThanOrEqual(1980);
+    expect(composed.mailtoUrl.length).toBeLessThanOrEqual(1850);
+
+    // Also verify all-69-recipient broadcast stays within safe Outlook Web & Windows mailto URL limits
+    const all69Emails = resolveKasRecipients().map((emp) => emp.email);
+    const broadcastComposed = composeReemHrOfficialEmail({
+      templateId: 'GENERAL_HR_CIRCULAR',
+      recipientEmails: all69Emails,
+      customBodyAr: longAr,
+      customBodyEn: longEn,
+    });
+    expect(broadcastComposed.toEmails).toHaveLength(69);
+    expect(broadcastComposed.outlookWebUrl.length).toBeLessThanOrEqual(1980);
+    expect(broadcastComposed.mailtoUrl.length).toBeLessThanOrEqual(1850);
+    expect(new URL(broadcastComposed.outlookWebUrl).searchParams.get('body') || '').toContain(
+      'Mobile: +966 553452122'
+    );
   });
 
   it('exports valid official PNG binary payload in KAS_TRADING_GROUP_LOGO_BASE64 & DATA_URI', () => {
@@ -459,5 +489,64 @@ describe('Reem HR Official Bilingual Email Engine (HR@kas.sa)', () => {
       status: 'معتمد ومرسل رسمياً',
     });
     expect(saved.some((item) => item.id === 'HR-MAIL-TEST-001')).toBe(true);
+  });
+
+  it('supports optional Reem HR signature inclusion across all HR outgoing documents, QuickShare PDFs, and exported reports', () => {
+    expect(isHrDocumentSection('employees')).toBe(true);
+    expect(isHrDocumentSection('payroll')).toBe(true);
+    expect(isHrDocumentSection('custodies')).toBe(true);
+    expect(isHrDocumentSection('hr_letters_log')).toBe(true);
+    expect(isHrDocumentSection('sales_invoices', 'فواتير المبيعات')).toBe(false);
+
+    const sigHtml = buildReemHrDocumentSignatureHtml({
+      referenceNumber: 'HR-DOC-2026-01',
+      issueDate: '2026-11-15',
+    });
+    expect(sigHtml).toContain('ريم احمد بن حسين');
+    expect(sigHtml).toContain('مديرة الموارد البشرية');
+    expect(sigHtml).toContain('Reem Bin Hussain');
+    expect(sigHtml).toContain('International HR &amp; Talent Acquisition Consultant');
+    expect(sigHtml).toContain('Email: HR@kas.sa');
+    expect(sigHtml).toContain('Mobile: +966 553452122');
+
+    // QuickShare PDF & Text: enabled vs disabled
+    const pdfWithSig = buildOfficialQuickSharePdfHtml({
+      title: 'شهادة تعريف بالراتب — أحمد السليم',
+      department: 'hr',
+      includeReemSignature: true,
+    });
+    expect(pdfWithSig).toContain('Reem Bin Hussain');
+    expect(pdfWithSig).toContain('ريم احمد بن حسين');
+
+    const pdfWithoutSig = buildOfficialQuickSharePdfHtml({
+      title: 'شهادة تعريف بالراتب — أحمد السليم',
+      department: 'hr',
+      includeReemSignature: false,
+    });
+    expect(pdfWithoutSig).not.toContain('International HR &amp; Talent Acquisition Consultant');
+
+    const textWithSig = buildEntityShareText({
+      title: 'قسيمة راتب شهرية',
+      department: 'hr',
+      includeReemSignature: true,
+    });
+    expect(textWithSig.body).toContain('Reem Bin Hussain');
+
+    const textWithoutSig = buildEntityShareText({
+      title: 'قسيمة راتب شهرية',
+      department: 'hr',
+      includeReemSignature: false,
+    });
+    expect(textWithoutSig.body).not.toContain('Reem Bin Hussain');
+
+    // Executive Report HTML (used by ExportPreviewModal, PDF, Print, HTML)
+    const hrReportDefault = generateExecutiveReportHtml('employees', [], 'سجل الموظفين', false);
+    expect(hrReportDefault).toContain('Reem Bin Hussain');
+    expect(hrReportDefault).toContain('ريم احمد بن حسين');
+
+    const hrReportToggledOff = generateExecutiveReportHtml('employees', [], 'سجل الموظفين', false, {
+      includeReemHrSignature: false,
+    });
+    expect(hrReportToggledOff).not.toContain('International HR &amp; Talent Acquisition Consultant');
   });
 });

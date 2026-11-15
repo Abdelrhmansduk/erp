@@ -1,0 +1,227 @@
+/* ============================================================================
+   ENTERPRISE APPEARANCE, COLOR PALETTE, DARK MODE & DISPLAY SCALE LAYER
+   Strictly scoped inside @media screen so @media print A4 output always
+   remains crisp, high-contrast black-on-white regardless of user screen theme.
+   ============================================================================ */
+
+@media screen {
+  /* ─── 1. Custom Brand Color Overrides (when user selects a colored palette) ─── */
+  html[data-erp-custom-palette="true"] .button-primary-pill,
+  html[data-erp-custom-palette="true"] button.button-primary-pill,
+  html[data-erp-custom-palette="true"] a.button-primary-pill,
+  html[data-erp-custom-palette="true"] .nav-item.active,
+  html[data-erp-custom-palette="true"] .submenu-item.active,
+  html[data-erp-custom-palette="true"] .finance-tab-pill.active,
+  html[data-erp-custom-palette="true"] .brand-icon,
+  html[data-erp-custom-palette="true"] .card-feature-cinematic,
+  html[data-erp-custom-palette="true"] button.bg-\[\#141414\]:not([data-preserve-mono="true"]),
+  html[data-erp-custom-palette="true"] a.bg-\[\#141414\]:not([data-preserve-mono="true"]),
+  html[data-erp-custom-palette="true"] aside .bg-\[\#141414\],
+  html[data-erp-custom-palette="true"] header .bg-\[\#141414\] {
+    background: var(--erp-brand-primary, #1d4ed8) !important;
+    background-color: var(--erp-brand-primary, #1d4ed8) !important;
+    border-color: var(--erp-brand-primary, #1d4ed8) !important;
+    color: #ffffff !important;
+  }
+
+  html[data-erp-custom-palette="true"] .button-primary-pill:hover,
+  html[data-erp-custom-palette="true"] button.button-primary-pill:hover,
+  html[data-erp-custom-palette="true"] button.bg-\[\#141414\]:not([data-preserve-mono="true"]):hover,
+  html[data-erp-custom-palette="true"] .hover\:bg-\[\#262626\]:hover {
+    background: var(--erp-brand-primary-hover, #1e40af) !important;
+    background-color: var(--erp-brand-primary-hover, #1e40af) !important;
+  }
+
+  html[data-erp-custom-palette="true"] header {
+    border-top: 3px solid var(--erp-brand-primary, #1d4ed8) !important;
+  }
+
+  html[data-erp-custom-palette="true"] .focus\:border-\[\#141414\]:focus {
+    border-color: var(--erp-brand-primary, #1d4ed8) !important;
+  }
+
+  /* ─── 2. Light Surface Tone Variations (Warm Ivory / Cool Mist) ─── */
+  html[data-theme="light"]:is([data-erp-surface="warm-ivory"], [data-erp-surface="cool-mist"]) body,
+  html[data-theme="light"]:is([data-erp-surface="warm-ivory"], [data-erp-surface="cool-mist"]) .app-container,
+  html[data-theme="light"]:is([data-erp-surface="warm-ivory"], [data-erp-surface="cool-mist"]) .main-wrapper,
+  html[data-theme="light"]:is([data-erp-surface="warm-ivory"], [data-erp-surface="cool-mist"]) .content-body {
+    background-color: var(--color-canvas-soft) !important;
+  }
+
+  html[data-theme="light"]:is([data-erp-surface="warm-ivory"], [data-erp-surface="cool-mist"]) .bg-\[\#ffffff\],
+  html[data-theme="light"]:is([data-erp-surface="warm-ivory"], [data-erp-surface="cool-mist"]) .card-pricing,
+  html[data-theme="light"]:is([data-erp-surface="warm-ivory"], [data-erp-surface="cool-mist"]) .app-sidebar,
+  html[data-theme="light"]:is([data-erp-surface="warm-ivory"], [data-erp-surface="cool-mist"]) header {
+    background-color: var(--color-canvas) !important;
+  }
+
+  html[data-theme="light"]:is([data-erp-surface="warm-ivory"], [data-erp-surface="cool-mist"]) .bg-\[\#f3f3f3\] {
+    background-color: var(--color-canvas-soft) !important;
+  }
+
+  /* ─── 3. Executive Dark Mode Theme (`data-theme="dark"`) ─── */
+  html[data-theme="dark"] body,
+  html[data-theme="dark"] .app-container,
+  html[data-theme="dark"] .main-wrapper,
+  html[data-theme="dark"] .content-body {
+    background: #0f1115 !important;
+    background-color: #0f1115 !important;
+    color: #f3f4f6 !important;
+  }
+
+  html[data-theme="dark"] .app-sidebar,
+  html[data-theme="dark"] .sidebar-header,
+  html[data-theme="dark"] header,
+  html[data-theme="dark"] footer,
+  html[data-theme="dark"] .card-pricing,
+  html[data-theme="dark"] .card-pricing-featured,
+  html[data-theme="dark"] .bg-\[\#ffffff\],
+  html[data-theme="dark"] .bg-white:not(.qr-container):not([data-barcode]) {
+    background: #161a23 !important;
+    background-color: #161a23 !important;
+    color: #f3f4f6 !important;
+    border-color: #2a303c !important;
+  }
+
+  html[data-theme="dark"] .bg-\[\#f3f3f3\],
+  html[data-theme="dark"] .bg-\[\#f0f0f0\],
+  html[data-theme="dark"] .bg-\[\#fafafa\],
+  html[data-theme="dark"] .nav-item:hover,
+  html[data-theme="dark"] .submenu-item:hover,
+  html[data-theme="dark"] .finance-tab-pill:not(.active),
+  html[data-theme="dark"] .finance-table thead th,
+  html[data-theme="dark"] .mobbin-segmented {
+    background: #1f2430 !important;
+    background-color: #1f2430 !important;
+    color: #e5e7eb !important;
+  }
+
+  html[data-theme="dark"] .button-white-pill {
+    background-color: #262c3a !important;
+    color: #f9fafb !important;
+    border-color: #3a4254 !important;
+  }
+
+  html[data-theme="dark"] .button-outline-on-light {
+    background-color: #1f2430 !important;
+    color: #f3f4f6 !important;
+    border-color: #3a4254 !important;
+  }
+
+  html[data-theme="dark"] button.bg-\[\#141414\]:not([data-preserve-mono="true"]),
+  html[data-theme="dark"] a.bg-\[\#141414\]:not([data-preserve-mono="true"]),
+  html[data-theme="dark"] .button-primary-pill,
+  html[data-theme="dark"] .nav-item.active,
+  html[data-theme="dark"] .submenu-item.active,
+  html[data-theme="dark"] .card-feature-cinematic {
+    background: var(--erp-brand-primary, #2563eb) !important;
+    background-color: var(--erp-brand-primary, #2563eb) !important;
+    border-color: var(--erp-brand-primary, #2563eb) !important;
+    color: #ffffff !important;
+  }
+
+  html[data-theme="dark"] .text-\[\#141414\],
+  html[data-theme="dark"] .text-\[\#262626\],
+  html[data-theme="dark"] .brand-title-main,
+  html[data-theme="dark"] h1:not(.text-white),
+  html[data-theme="dark"] h2:not(.text-white),
+  html[data-theme="dark"] h3:not(.text-white),
+  html[data-theme="dark"] h4:not(.text-white) {
+    color: #f3f4f6 !important;
+  }
+
+  html[data-theme="dark"] .text-\[\#707070\],
+  html[data-theme="dark"] .text-\[\#adadad\],
+  html[data-theme="dark"] .nav-section-title,
+  html[data-theme="dark"] .brand-title-sub {
+    color: #9ca3af !important;
+  }
+
+  html[data-theme="dark"] .border-\[\#e0e0e0\],
+  html[data-theme="dark"] .border-\[\#f0f0f0\],
+  html[data-theme="dark"] .border-\[\#f3f3f3\],
+  html[data-theme="dark"] .border-\[\#e2e8f0\],
+  html[data-theme="dark"] td,
+  html[data-theme="dark"] th {
+    border-color: #2a303c !important;
+  }
+
+  html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+  html[data-theme="dark"] select,
+  html[data-theme="dark"] textarea {
+    background-color: #1b202b !important;
+    color: #f3f4f6 !important;
+    border-color: #363e4e !important;
+  }
+
+  html[data-theme="dark"] .qr-container,
+  html[data-theme="dark"] [data-barcode],
+  html[data-theme="dark"] [data-slot="barcode-preview"] {
+    background-color: #ffffff !important;
+    color: #141414 !important;
+  }
+
+  /* ─── 4. Small Icon Color Mode Toggle (`colored` vs `monochrome`) ─── */
+  html[data-erp-icon-mode="monochrome"] svg.lucide:not([data-force-colored="true"]),
+  html[data-erp-icon-mode="monochrome"] i[class*="fa-"]:not([data-force-colored="true"]) {
+    color: currentColor !important;
+  }
+
+  /* ─── 5. Display Density Modes (`compact` vs `comfortable` vs `spacious`) ─── */
+  html[data-erp-density="compact"] .content-body {
+    padding: 14px 18px !important;
+  }
+
+  html[data-erp-density="compact"] .card-pricing {
+    padding: 16px !important;
+  }
+
+  html[data-erp-density="compact"] table th,
+  html[data-erp-density="compact"] table td {
+    padding-top: 0.45rem !important;
+    padding-bottom: 0.45rem !important;
+  }
+
+  html[data-erp-density="spacious"] .content-body {
+    padding: 28px 34px !important;
+  }
+
+  html[data-erp-density="spacious"] .card-pricing {
+    padding: 30px !important;
+  }
+
+  html[data-erp-density="spacious"] table th,
+  html[data-erp-density="spacious"] table td {
+    padding-top: 0.95rem !important;
+    padding-bottom: 0.95rem !important;
+  }
+
+  /* ─── 6. Corner Radius Presets (`sharp` / `soft`) ─── */
+  html[data-erp-radius="sharp"] .card-pricing,
+  html[data-erp-radius="sharp"] .card-pricing-featured,
+  html[data-erp-radius="sharp"] .rounded-\[24px\],
+  html[data-erp-radius="sharp"] .rounded-3xl {
+    border-radius: 10px !important;
+  }
+
+  html[data-erp-radius="sharp"] .rounded-2xl {
+    border-radius: 6px !important;
+  }
+
+  html[data-erp-radius="soft"] .card-pricing,
+  html[data-erp-radius="soft"] .card-pricing-featured,
+  html[data-erp-radius="soft"] .rounded-\[24px\] {
+    border-radius: 32px !important;
+  }
+
+  /* ─── 7. High-Contrast Borders Accessibility Mode ─── */
+  html[data-erp-contrast="high"] .card-pricing,
+  html[data-erp-contrast="high"] .card-pricing-featured,
+  html[data-erp-contrast="high"] .border-\[\#e0e0e0\],
+  html[data-erp-contrast="high"] .border-\[\#f0f0f0\],
+  html[data-erp-contrast="high"] input,
+  html[data-erp-contrast="high"] select,
+  html[data-erp-contrast="high"] textarea {
+    border-color: #6b7280 !important;
+  }
+}

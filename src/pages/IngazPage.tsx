@@ -685,7 +685,7 @@ export const IngazPage: React.FC = () => {
       {/* Official Enjaz & Chamber Delegation Printable Certificate Modal */}
       {selectedDelegationForPrint && (
         <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setSelectedDelegationForPrint(null)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-white border border-[#e0e0e0] rounded-[24px] p-6 max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-[880px] bg-white border border-[#e0e0e0] rounded-[24px] p-6 max-h-[92vh] overflow-y-auto">
             <div className="no-print print:hidden flex justify-between items-center mb-4 border-b border-[#e0e0e0] pb-3">
               <div className="flex items-center gap-2">
                 <Stamp className="w-5 h-5 text-[#141414]" />
@@ -700,7 +700,8 @@ export const IngazPage: React.FC = () => {
             </div>
 
             {/* Printable Document Body */}
-            <div className="erp-printable-sheet p-6 bg-white border-2 border-[#141414] rounded-2xl space-y-4 font-sans text-xs">
+            <div data-a4-fullpage="true" className="erp-printable-sheet erp-a4-sheet p-8 bg-white border-2 border-[#141414] font-sans text-xs">
+              <div className="space-y-5">
               {/* Header */}
               <div className="flex items-center justify-between border-b-2 border-[#141414] pb-4">
                 <div>
@@ -754,8 +755,10 @@ export const IngazPage: React.FC = () => {
                 يقر صاحب العمل بتفويض المكتب الخارجي المذكور أعلاه لإنهاء إجراءات تفييز وتصديق الجوازات لدى سفارة خادم الحرمين الشريفين وفق أنظمة وزارة الخارجية ومنصة إنجاز الموحدة.
               </div>
 
+              </div>
+
               {/* Chamber Seal & Digital Verification */}
-              <div className="grid grid-cols-2 gap-6 pt-3 border-t-2 border-[#e0e0e0]">
+              <div className="grid grid-cols-2 gap-6 pt-4 mt-6 border-t-2 border-[#e0e0e0]">
                 <div className="text-center space-y-3">
                   <div className="font-bold text-[#141414] text-xs">ختم وتصديق الغرفة التجارية الإلكتروني</div>
                   <div className="w-24 h-24 mx-auto border-2 border-dashed border-[#e0e0e0] rounded-full flex items-center justify-center bg-[#f3f3f3]">

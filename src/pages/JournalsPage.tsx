@@ -892,7 +892,7 @@ export const JournalsPage: React.FC = () => {
       {/* View & Print Selected Journal Modal */}
       {selectedJournal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" data-printable-modal="true" onClick={(e) => { if (e.target === e.currentTarget) setSelectedJournal(null); }}>
-          <div className="w-full max-w-3xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-y-auto text-[#141414] font-sans max-h-[90vh]">
+          <div className="w-full max-w-[880px] bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden text-[#141414] font-sans max-h-[92vh] flex flex-col">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between print:hidden">
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-[#141414]" />
@@ -907,7 +907,7 @@ export const JournalsPage: React.FC = () => {
                   style={{ padding: '4px 14px', fontSize: '11px', background: '#141414', color: '#ffffff', fontWeight: 700 }}
                 >
                   <Printer className="w-3.5 h-3.5 ml-1" />
-                  <span>طباعة القيد</span>
+                  <span>طباعة القيد (A4)</span>
                 </button>
                 <button
                   onClick={() => setSelectedJournal(null)}
@@ -918,7 +918,9 @@ export const JournalsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="erp-printable-sheet p-8 space-y-6 bg-white border border-[#e0e0e0] m-4 rounded-2xl">
+            <div className="flex-1 overflow-y-auto bg-[#f3f3f3] p-4 sm:p-6 print:p-0 print:bg-white">
+              <div data-a4-fullpage="true" className="erp-printable-sheet erp-a4-sheet p-8 bg-white border border-[#e0e0e0]">
+                <div className="space-y-6">
               {/* Header */}
               <div className="flex items-center justify-between border-b-2 border-[#141414] pb-4">
                 <div>
@@ -990,6 +992,8 @@ export const JournalsPage: React.FC = () => {
                 </table>
               </div>
 
+                </div>
+
               {/* Status & Approvals */}
               <div className="grid grid-cols-3 gap-4 pt-8 border-t border-[#e0e0e0] text-center text-xs">
                 <div>
@@ -1010,6 +1014,7 @@ export const JournalsPage: React.FC = () => {
                     المدير المالي المعتمد
                   </span>
                 </div>
+              </div>
               </div>
             </div>
 

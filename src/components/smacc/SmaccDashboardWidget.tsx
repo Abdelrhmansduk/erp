@@ -53,7 +53,7 @@ export const SmaccDashboardWidget: React.FC = () => {
       </div>
 
       {/* Top 3 Stat Counter Cards — Mobbin 24px Uniform Surface & 30% Squircle Icons */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 erp-stagger-grid">
         {/* Card 1: عدد البائعين */}
         <div className="card-pricing" style={{ padding: '22px 24px', borderRadius: '24px', background: '#ffffff', border: '1px solid #e0e0e0', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
@@ -89,7 +89,7 @@ export const SmaccDashboardWidget: React.FC = () => {
       </div>
 
       {/* Grid Section 1: Financial Movement */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 erp-stagger-grid">
         {/* Box 1: مدفوعات (Payments) */}
         <div className="card-pricing" style={{ padding: '22px', borderRadius: '16px', background: '#ffffff' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e0e0e0', paddingBottom: '12px', marginBottom: '16px' }}>

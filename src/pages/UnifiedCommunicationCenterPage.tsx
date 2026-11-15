@@ -459,7 +459,8 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
 
       {/* TAB 3: LETTERHEAD PREVIEW */}
       {activeTab === 'letterhead-preview' && selectedMemo && (
-        <div data-printable-modal="true" className="erp-printable-sheet bg-white rounded-3xl border border-[#e0e0e0] p-8 max-w-3xl mx-auto ">
+        <div data-printable-modal="true" data-a4-fullpage="true" className="erp-printable-sheet erp-a4-sheet bg-white rounded-3xl border border-[#e0e0e0] p-8 sm:p-10 max-w-[210mm] mx-auto">
+          <div>
           {/* Header of Letter */}
           <div className="flex justify-between items-center border-b-2 border-[#141414] pb-4 mb-6">
             <div>
@@ -491,8 +492,10 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
           <div className="text-xs text-[#141414] leading-relaxed min-h-[140px] whitespace-pre-wrap">
             {selectedMemo.body}
           </div>
+          </div>
 
           {/* Signatures & Seal */}
+          <div>
           <div className="flex justify-between items-end mt-10 border-t border-[#e0e0e0] pt-5">
             <div>
               <div className="text-xs text-[#707070]">الختم والتصديق الرقمي:</div>
@@ -529,6 +532,7 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
               <FileText className="w-3.5 h-3.5 ml-1" />
               <span>تحميل PDF</span>
             </button>
+          </div>
           </div>
         </div>
       )}

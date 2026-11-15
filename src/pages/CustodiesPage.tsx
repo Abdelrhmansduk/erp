@@ -21,6 +21,11 @@ import {
 } from '../services/quickShareService';
 import { RecordQuickActions, RecycleBinModal } from '../components/common/RecordQuickActions';
 import {
+  ReemHrDocumentSignatureBlock,
+  IncludeReemSignatureToggle,
+} from '../components/hr/ReemHrDocumentSignatureBlock';
+import { REEM_HR_SIGNATORY } from '../services/reemHrEmailTemplatesEngine';
+import {
   Vault,
   Plus,
   FileText,
@@ -239,6 +244,7 @@ export const CustodiesPage: React.FC = () => {
   const [selectedCustodyForDoc, setSelectedCustodyForDoc] = useState<Custody | null>(null);
   const [docEntityCode, setDocEntityCode] = useState<string>('SAF');
   const [docHideHoldingGroup, setDocHideHoldingGroup] = useState<boolean>(false);
+  const [docIncludeReemSignature, setDocIncludeReemSignature] = useState<boolean>(true);
   const [docCustomClause, setDocCustomClause] = useState<string>(
     'أتعهد بالمحافظة على الأصل المسلّم واستخدامه لأغراض العمل الرسمية فقط وإعادته بحالته التشغيلية عند الطلب أو عند إخلاء الطرف.'
   );
@@ -1362,6 +1368,12 @@ export const CustodiesPage: React.FC = () => {
                 <span>إلغاء جملة مجموعة خالد السليم (هوية مستقلة)</span>
               </label>
 
+              <IncludeReemSignatureToggle
+                checked={docIncludeReemSignature}
+                onChange={setDocIncludeReemSignature}
+                compact
+              />
+
               <button
                 type="button"
                 onClick={() => setSelectedCustodyForDoc(null)}
@@ -1453,10 +1465,21 @@ export const CustodiesPage: React.FC = () => {
                 </div>
                 <div>
                   <div className="font-bold">{activeDocBranding.hrIssuerTitleAr}</div>
-                  <div className="text-[#707070] mt-1">{activeDocBranding.hrSignatoryNameAr}</div>
+                  <div className="text-[#707070] mt-1">
+                    {docIncludeReemSignature
+                      ? `${REEM_HR_SIGNATORY.fullNameAr} (${REEM_HR_SIGNATORY.titleAr})`
+                      : activeDocBranding.hrSignatoryNameAr}
+                  </div>
                   <div className="mt-4 text-[#707070]">الختم والتوقيع: __________________</div>
                 </div>
               </div>
+
+              <ReemHrDocumentSignatureBlock
+                enabled={docIncludeReemSignature}
+                hideHoldingGroupBrand={activeDocBranding.hideHoldingGroupBrand}
+                referenceNumber={`${activeDocBranding.qrVerifyNamespace}-${selectedCustodyForDoc.id}`}
+                issueDate={selectedCustodyForDoc.received_date}
+              />
 
               <div className="pt-3 border-t border-[#e0e0e0] text-[10px] text-[#707070] flex items-center justify-between">
                 <span>{activeDocBranding.footerOrganizationLineAr}</span>
@@ -1477,6 +1500,8 @@ export const CustodiesPage: React.FC = () => {
                   entityCode: activeDocBranding.code,
                   hideHoldingGroupBrand: activeDocBranding.hideHoldingGroupBrand,
                   moduleName: 'العُهد والأصول',
+                  department: 'hr',
+                  includeReemSignature: docIncludeReemSignature,
                   summaryLines: [
                     { label: 'الأصل', value: selectedCustodyForDoc.item_name },
                     { label: 'الرقم التسلسلي', value: selectedCustodyForDoc.serial_number },

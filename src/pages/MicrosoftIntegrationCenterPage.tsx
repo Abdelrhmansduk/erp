@@ -519,7 +519,7 @@ export const MicrosoftIntegrationCenterPage: React.FC = () => {
       {/* Power BI Embedded Live Viewer Modal */}
       {selectedPowerBiDash && (
         <div className="fixed inset-0 z-[2000] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" data-printable-modal="true" onClick={(e) => { if (e.target === e.currentTarget) setSelectedPowerBiDash(null); }}>
-          <div className="erp-printable-sheet bg-white rounded-[24px] max-w-2xl w-full p-6 border border-[#e0e0e0] space-y-5 max-h-[90vh] overflow-y-auto">
+          <div data-a4-fullpage="true" className="erp-printable-sheet bg-white rounded-[24px] max-w-[210mm] w-full p-6 sm:p-8 border border-[#e0e0e0] space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-[#141414] text-[#ffffff] flex items-center justify-center">

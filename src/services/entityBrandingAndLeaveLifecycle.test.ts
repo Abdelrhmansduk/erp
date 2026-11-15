@@ -30,6 +30,15 @@ import {
   restoreUnifiedEmployeeFromBin,
   getPersistentEmployeeDocuments,
   addPersistentEmployeeDocument,
+  loadCustomJobTitles,
+  saveCustomJobTitle,
+  renameCustomJobTitleAndSyncEmployees,
+  deleteCustomJobTitle,
+  loadCustomDepartments,
+  loadCustomGrades,
+  CUSTOM_JOB_TITLES_STORAGE_KEY,
+  CUSTOM_DEPARTMENTS_STORAGE_KEY,
+  CUSTOM_GRADES_STORAGE_KEY,
 } from './employeeProfileSync';
 import {
   generateExecutiveReportHtml,
@@ -415,5 +424,82 @@ describe('Entity Standalone Branding, Pre-Export Editor, Employee Sync, Leave Li
     });
     expect(actionOut.success).toBe(true);
     expect(actionOut.updatedAlert.acknowledged).toBe(true);
+  });
+});
+
+describe('Custom Job Titles, Departments, Grades & Full Employee Editing', () => {
+  beforeEach(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.removeItem(CUSTOM_JOB_TITLES_STORAGE_KEY);
+      window.localStorage.removeItem(CUSTOM_DEPARTMENTS_STORAGE_KEY);
+      window.localStorage.removeItem(CUSTOM_GRADES_STORAGE_KEY);
+    }
+  });
+
+  it('persists new custom job titles, renames them across employees, and deletes cleanly', async () => {
+    const afterAdd = saveCustomJobTitle('مهندس حوكمة وذكاء اصطناعي');
+    expect(afterAdd).toContain('مهندس حوكمة وذكاء اصطناعي');
+    expect(loadCustomJobTitles()).toContain('مهندس حوكمة وذكاء اصطناعي');
+
+    await saveUnifiedEmployeeProfile(
+      {
+        id: 'EMP-TITLE-SYNC-1',
+        employee_code: 'EMP-SAF-880',
+        company_id: 'SAF',
+        name: 'عادل فهد الدوسري',
+        national_id: '1088776655',
+        job_title: 'مهندس حوكمة وذكاء اصطناعي',
+        department: 'التحول الرقمي المؤسسي',
+        grade: 'الدرجة السادسة (خبير)',
+        salary: 16000,
+      },
+      null,
+      'مدير الموارد البشرية'
+    );
+
+    const renameRes = await renameCustomJobTitleAndSyncEmployees(
+      'مهندس حوكمة وذكاء اصطناعي',
+      'رئيس قسم الذكاء المؤسسي والحوكمة'
+    );
+    expect(renameRes.titles).toContain('رئيس قسم الذكاء المؤسسي والحوكمة');
+    expect(renameRes.titles).not.toContain('مهندس حوكمة وذكاء اصطناعي');
+    expect(renameRes.updatedEmployeesCount).toBeGreaterThanOrEqual(1);
+
+    const afterDelete = deleteCustomJobTitle('رئيس قسم الذكاء المؤسسي والحوكمة');
+    expect(afterDelete).not.toContain('رئيس قسم الذكاء المؤسسي والحوكمة');
+  });
+
+  it('auto-registers new title/department/grade and persists edited custom fields and notes', async () => {
+    const saved = await saveUnifiedEmployeeProfile(
+      {
+        id: 'EMP-FULL-EDIT-99',
+        employee_code: 'EMP-KAS-991',
+        company_id: 'KAS',
+        name: 'نواف سلطان القحطاني',
+        name_en: 'Nawaf Sultan Al-Qahtani',
+        national_id: '1099112233',
+        job_title: 'كبير مهندسي الامتثال التشغيلي',
+        department: 'إدارة الجود والتميز المؤسسي',
+        grade: 'الدرجة القيادية الخاصة',
+        basic_salary: 12000,
+        housing_allowance: 3000,
+        transport_allowance: 1500,
+        other_allowances: 500,
+        notes: 'ملف محرر بالكامل مع صلاحيات إشرافية.',
+        custom_fields: [
+          { id: 'cf-1', label: 'فصيلة الدم', value: 'O+' },
+          { id: 'cf-2', label: 'رقم الرخصة المهنية', value: 'SEC-9981' },
+        ],
+      },
+      null,
+      'المدير التنفيذي'
+    );
+
+    expect(saved.salary).toBe(17000);
+    expect(saved.custom_fields).toHaveLength(2);
+    expect(saved.notes).toContain('ملف محرر بالكامل');
+    expect(loadCustomJobTitles()).toContain('كبير مهندسي الامتثال التشغيلي');
+    expect(loadCustomDepartments()).toContain('إدارة الجود والتميز المؤسسي');
+    expect(loadCustomGrades()).toContain('الدرجة القيادية الخاصة');
   });
 });

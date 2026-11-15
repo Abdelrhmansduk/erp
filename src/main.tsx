@@ -13,8 +13,13 @@ import {
   scrubTelemetryPayload,
 } from './services/menaLegalComplianceService';
 import { initGlobalPrintIsolator } from './utils/printManager';
+import { initAppearanceSettings } from './services/appearanceSettingsService';
 import './styles/index.css';
+import './styles/appearance.css';
 import './styles/print.css';
+
+// Initialize user color, display scale & theme customization engine before mount
+initAppearanceSettings();
 
 // Initialize global A4 print modal isolation & multi-page unclipping engine
 initGlobalPrintIsolator();

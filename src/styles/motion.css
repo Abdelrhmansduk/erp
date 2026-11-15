@@ -1,0 +1,582 @@
+/* ==========================================================================
+   KHALID AL-SULAIM HOLDING GROUP ERP — MOTION & MICRO-INTERACTION ENGINE
+   --------------------------------------------------------------------------
+   - 100% Mobbin Monochrome Compliant (#141414 / #ffffff / #f3f3f3 / #e0e0e0)
+   - Shadow-Free Elevation Preserved (0px drop-shadow; crisp transforms & hairlines)
+   - GPU-Composited (transform + opacity only) with `animation-fill-mode: backwards`
+     so completed entrances release `transform` (preserving `position: fixed`
+     descendants and `:hover` transforms across all 61 ERP modules).
+   - Screen-scoped (`@media screen`) so `@media print` A4 output stays untouched.
+   ========================================================================== */
+
+:root {
+  --erp-ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --erp-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --erp-ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --erp-duration-fast: 160ms;
+  --erp-duration-base: 240ms;
+  --erp-duration-page: 280ms;
+}
+
+@media screen {
+  /* ------------------------------------------------------------------------
+     1. TAILWINDCSS-ANIMATE & UTILITY ENTRANCE ENGINE
+        Powers all `.animate-in`, `.animate-fade-in`, `.animate-fadeIn`,
+        `.fade-in`, `.zoom-in-*`, and `.slide-in-from-*` classes across 25+ files.
+     ------------------------------------------------------------------------ */
+  @keyframes erpUtilityEnter {
+    0% {
+      opacity: var(--erp-enter-opacity, 0);
+      transform: translate3d(var(--erp-enter-tx, 0px), var(--erp-enter-ty, 0px), 0)
+        scale3d(var(--erp-enter-scale, 1), var(--erp-enter-scale, 1), 1);
+    }
+    100% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+    }
+  }
+
+  @keyframes erpSimpleFadeIn {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 6px, 0);
+    }
+    100% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  .animate-in {
+    --erp-enter-opacity: 1;
+    --erp-enter-tx: 0px;
+    --erp-enter-ty: 0px;
+    --erp-enter-scale: 1;
+    animation-name: erpUtilityEnter;
+    animation-duration: var(--erp-duration-base);
+    animation-timing-function: var(--erp-ease-out-expo);
+    animation-fill-mode: backwards;
+  }
+
+  .animate-fade-in,
+  .animate-fadeIn {
+    animation: erpSimpleFadeIn 220ms var(--erp-ease-out-expo) backwards;
+  }
+
+  .fade-in,
+  .fade-in-0 {
+    --erp-enter-opacity: 0;
+  }
+
+  .zoom-in {
+    --erp-enter-scale: 0.92;
+  }
+
+  .zoom-in-90 {
+    --erp-enter-scale: 0.9;
+  }
+
+  .zoom-in-95 {
+    --erp-enter-scale: 0.95;
+  }
+
+  .zoom-in-98 {
+    --erp-enter-scale: 0.98;
+  }
+
+  .slide-in-from-bottom {
+    --erp-enter-ty: 100%;
+  }
+
+  .slide-in-from-bottom-2 {
+    --erp-enter-ty: 8px;
+  }
+
+  .slide-in-from-bottom-4 {
+    --erp-enter-ty: 16px;
+  }
+
+  .slide-in-from-bottom-6 {
+    --erp-enter-ty: 24px;
+  }
+
+  .slide-in-from-top {
+    --erp-enter-ty: -100%;
+  }
+
+  .slide-in-from-top-2 {
+    --erp-enter-ty: -8px;
+  }
+
+  .slide-in-from-top-4 {
+    --erp-enter-ty: -16px;
+  }
+
+  .slide-in-from-left {
+    --erp-enter-tx: -100%;
+  }
+
+  .slide-in-from-left-2 {
+    --erp-enter-tx: -8px;
+  }
+
+  .slide-in-from-left-4 {
+    --erp-enter-tx: -16px;
+  }
+
+  .slide-in-from-right {
+    --erp-enter-tx: 100%;
+  }
+
+  .slide-in-from-right-2 {
+    --erp-enter-tx: 8px;
+  }
+
+  .slide-in-from-right-4 {
+    --erp-enter-tx: 16px;
+  }
+
+  .animate-in.duration-100 {
+    animation-duration: 100ms;
+  }
+  .animate-in.duration-150 {
+    animation-duration: 150ms;
+  }
+  .animate-in.duration-200 {
+    animation-duration: 200ms;
+  }
+  .animate-in.duration-300 {
+    animation-duration: 300ms;
+  }
+  .animate-in.duration-500 {
+    animation-duration: 500ms;
+  }
+  .animate-in.duration-700 {
+    animation-duration: 700ms;
+  }
+
+  /* ------------------------------------------------------------------------
+     2. PORTAL FLOW & WORKSPACE PAGE TRANSITIONS + TOP ROUTE SWEEP RIBBON
+     ------------------------------------------------------------------------ */
+  @keyframes erpPageStageReveal {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 10px, 0);
+    }
+    100% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes erpFlowStageReveal {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0) scale3d(0.994, 0.994, 1);
+    }
+    100% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+    }
+  }
+
+  @keyframes erpRouteProgressSweep {
+    0% {
+      opacity: 1;
+      transform: scaleX(0.08);
+    }
+    65% {
+      opacity: 1;
+      transform: scaleX(0.92);
+    }
+    100% {
+      opacity: 0;
+      transform: scaleX(1);
+    }
+  }
+
+  .erp-page-stage {
+    animation: erpPageStageReveal var(--erp-duration-page) var(--erp-ease-out-expo) backwards;
+  }
+
+  .erp-flow-stage {
+    animation: erpFlowStageReveal 340ms var(--erp-ease-out-expo) backwards;
+  }
+
+  .erp-route-progress-track {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    z-index: 1200;
+    pointer-events: none;
+    overflow: hidden;
+    background: transparent;
+  }
+
+  .erp-route-progress-bar {
+    width: 100%;
+    height: 100%;
+    background-color: #141414;
+    transform-origin: right center;
+    animation: erpRouteProgressSweep 420ms var(--erp-ease-out-expo) forwards;
+  }
+
+  [dir='ltr'] .erp-route-progress-bar {
+    transform-origin: left center;
+  }
+
+  /* ------------------------------------------------------------------------
+     3. STAGGERED BENTO, KPI & PORTAL CARD CASCADES
+     ------------------------------------------------------------------------ */
+  @keyframes erpCardCascadeIn {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+    100% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  .stat-card-grid > *,
+  .erp-stagger-grid > * {
+    animation: erpCardCascadeIn 320ms var(--erp-ease-out-expo) backwards;
+  }
+
+  .stat-card-grid > *:nth-child(1),
+  .erp-stagger-grid > *:nth-child(1) {
+    animation-delay: 0ms;
+  }
+  .stat-card-grid > *:nth-child(2),
+  .erp-stagger-grid > *:nth-child(2) {
+    animation-delay: 35ms;
+  }
+  .stat-card-grid > *:nth-child(3),
+  .erp-stagger-grid > *:nth-child(3) {
+    animation-delay: 70ms;
+  }
+  .stat-card-grid > *:nth-child(4),
+  .erp-stagger-grid > *:nth-child(4) {
+    animation-delay: 105ms;
+  }
+  .stat-card-grid > *:nth-child(5),
+  .erp-stagger-grid > *:nth-child(5) {
+    animation-delay: 140ms;
+  }
+  .stat-card-grid > *:nth-child(6),
+  .erp-stagger-grid > *:nth-child(6) {
+    animation-delay: 175ms;
+  }
+  .stat-card-grid > *:nth-child(7),
+  .erp-stagger-grid > *:nth-child(7) {
+    animation-delay: 210ms;
+  }
+  .stat-card-grid > *:nth-child(8),
+  .erp-stagger-grid > *:nth-child(8) {
+    animation-delay: 245ms;
+  }
+  .stat-card-grid > *:nth-child(9),
+  .erp-stagger-grid > *:nth-child(9) {
+    animation-delay: 280ms;
+  }
+  .stat-card-grid > *:nth-child(10),
+  .erp-stagger-grid > *:nth-child(10) {
+    animation-delay: 315ms;
+  }
+  .stat-card-grid > *:nth-child(11),
+  .erp-stagger-grid > *:nth-child(11) {
+    animation-delay: 345ms;
+  }
+  .stat-card-grid > *:nth-child(12),
+  .erp-stagger-grid > *:nth-child(12) {
+    animation-delay: 375ms;
+  }
+
+  /* ------------------------------------------------------------------------
+     4. SHADOW-FREE TACTILE CARD HOVER LIFT & SQUIRCLE ICON SPRING
+        Strictly keeps `box-shadow: none !important` per Mobbin Monochrome spec.
+     ------------------------------------------------------------------------ */
+  .stat-card,
+  .content-body .stat-card-grid > div,
+  .card-pricing,
+  .luxury-white-card,
+  .white-feature-card,
+  .erp-launcher-tile {
+    transition:
+      transform 220ms var(--erp-ease-out-expo),
+      border-color 180ms ease,
+      background-color 180ms ease;
+    box-shadow: none !important;
+  }
+
+  .stat-card:hover:not(:has(.fixed)),
+  .content-body .stat-card-grid > div:hover:not(:has(.fixed)),
+  .card-pricing.cursor-pointer:hover:not(:has(.fixed)),
+  .erp-stagger-grid > .card-pricing:hover:not(:has(.fixed)),
+  .luxury-white-card:hover:not(:has(.fixed)),
+  .white-feature-card:hover:not(:has(.fixed)),
+  .erp-launcher-tile:hover:not(:has(.fixed)) {
+    transform: translate3d(0, -3px, 0);
+    border-color: #141414 !important;
+    box-shadow: none !important;
+  }
+
+  .erp-launcher-tile:active:not(:has(.fixed)),
+  .card-pricing.cursor-pointer:active:not(:has(.fixed)),
+  .luxury-white-card:active:not(:has(.fixed)) {
+    transform: translate3d(0, -1px, 0) scale3d(0.992, 0.992, 1);
+  }
+
+  /* Squircle Icon Spring inside Cards */
+  .stat-icon,
+  .erp-launcher-icon,
+  .stat-card-grid > div div[class*='rounded-lg'],
+  .stat-card-grid > div div[class*='rounded-full'],
+  .card-pricing div[class*='rounded-2xl'],
+  .white-feature-card div[class*='rounded-2xl'] {
+    transition:
+      transform 260ms var(--erp-ease-spring),
+      border-color 180ms ease,
+      background-color 180ms ease;
+  }
+
+  .stat-card:hover .stat-icon,
+  .erp-launcher-tile:hover .erp-launcher-icon,
+  .content-body .stat-card-grid > div:hover div[class*='rounded-lg'],
+  .card-pricing.cursor-pointer:hover div[class*='rounded-2xl'],
+  .white-feature-card:hover div[class*='rounded-2xl'] {
+    transform: scale3d(1.08, 1.08, 1) rotate(-3deg);
+  }
+
+  /* ------------------------------------------------------------------------
+     5. STADIUM PILL BUTTON TACTILE PHYSICS, SPECULAR SHEEN & ICON MOTION
+     ------------------------------------------------------------------------ */
+  .button-primary-pill,
+  .mobbin-btn-primary,
+  .btn-odoo-primary,
+  .button-white-pill,
+  .button-outline-on-light,
+  .button-outline-on-dark,
+  .mobbin-btn-secondary,
+  .btn-odoo-secondary {
+    position: relative;
+    overflow: hidden;
+    transition:
+      transform 180ms var(--erp-ease-out-expo),
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease,
+      opacity 160ms ease;
+    box-shadow: none !important;
+  }
+
+  .button-primary-pill:hover:not(:disabled),
+  .mobbin-btn-primary:hover:not(:disabled),
+  .btn-odoo-primary:hover:not(:disabled),
+  .button-white-pill:hover:not(:disabled),
+  .button-outline-on-light:hover:not(:disabled),
+  .button-outline-on-dark:hover:not(:disabled),
+  .mobbin-btn-secondary:hover:not(:disabled),
+  .btn-odoo-secondary:hover:not(:disabled) {
+    transform: translate3d(0, -1.5px, 0);
+    box-shadow: none !important;
+  }
+
+  .button-primary-pill:active:not(:disabled),
+  .mobbin-btn-primary:active:not(:disabled),
+  .btn-odoo-primary:active:not(:disabled),
+  .button-white-pill:active:not(:disabled),
+  .button-outline-on-light:active:not(:disabled),
+  .button-outline-on-dark:active:not(:disabled),
+  .mobbin-btn-secondary:active:not(:disabled),
+  .btn-odoo-secondary:active:not(:disabled),
+  button[class*='rounded-full']:active:not(:disabled) {
+    transform: translate3d(0, 0, 0) scale3d(0.968, 0.968, 1);
+  }
+
+  /* Subtle Monochrome Specular Sheen on Primary #141414 Stadium Pills */
+  .button-primary-pill::after,
+  .mobbin-btn-primary::after,
+  .btn-odoo-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      110deg,
+      transparent 22%,
+      rgba(255, 255, 255, 0.14) 50%,
+      transparent 78%
+    );
+    transform: translate3d(125%, 0, 0);
+    transition: transform 520ms var(--erp-ease-out-expo);
+  }
+
+  .button-primary-pill:hover:not(:disabled)::after,
+  .mobbin-btn-primary:hover:not(:disabled)::after,
+  .btn-odoo-primary:hover:not(:disabled)::after {
+    transform: translate3d(-125%, 0, 0);
+  }
+
+  /* Directional Icon Micro-Interactions */
+  button svg,
+  a svg,
+  .card-pricing svg.lucide-arrow-left {
+    transition: transform 200ms var(--erp-ease-out-expo);
+  }
+
+  button:hover:not(:disabled) svg.lucide-arrow-left,
+  a:hover svg.lucide-arrow-left,
+  .card-pricing.cursor-pointer:hover svg.lucide-arrow-left {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  button:hover:not(:disabled) svg.lucide-arrow-right,
+  a:hover svg.lucide-arrow-right {
+    transform: translate3d(4px, 0, 0);
+  }
+
+  button:hover:not(:disabled) svg.lucide-plus {
+    transform: rotate(90deg);
+  }
+
+  button:hover:not(:disabled) svg.lucide-refresh-cw:not(.animate-spin) {
+    transform: rotate(120deg);
+  }
+
+  /* ------------------------------------------------------------------------
+     6. SIDEBAR NAVIGATION, TABLE ROWS & MODAL ENTRANCES
+     ------------------------------------------------------------------------ */
+  .nav-item,
+  .submenu-item {
+    transition:
+      transform 180ms var(--erp-ease-out-expo),
+      background-color 160ms ease,
+      color 160ms ease,
+      border-color 160ms ease;
+  }
+
+  [dir='rtl'] .nav-item:hover:not(.active),
+  [dir='rtl'] .submenu-item:hover:not(.active) {
+    transform: translate3d(-3px, 0, 0);
+  }
+
+  [dir='ltr'] .nav-item:hover:not(.active),
+  [dir='ltr'] .submenu-item:hover:not(.active) {
+    transform: translate3d(3px, 0, 0);
+  }
+
+  .nav-item .nav-icon {
+    transition: transform 220ms var(--erp-ease-spring);
+  }
+
+  .nav-item:hover .nav-icon,
+  .nav-item.active .nav-icon {
+    transform: scale3d(1.08, 1.08, 1);
+  }
+
+  /* Smooth Data Table Row Scanning */
+  .content-body table tbody tr {
+    transition: background-color 140ms ease;
+  }
+
+  /* Crisp Modal Card Spring Entrance */
+  @keyframes erpModalCardSpring {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 10px, 0) scale3d(0.96, 0.96, 1);
+    }
+    100% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+    }
+  }
+
+  .erp-modal-card-enter {
+    animation: erpModalCardSpring 220ms var(--erp-ease-out-expo) backwards;
+  }
+
+  /* ------------------------------------------------------------------------
+     7. HERO FLOATING BADGES & EDITORIAL STAGGER REVEALS
+     ------------------------------------------------------------------------ */
+  @keyframes erpFloatOrbitSlow {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+    50% {
+      transform: translate3d(0, -9px, 0) rotate(3deg);
+    }
+  }
+
+  @keyframes erpFloatOrbitMedium {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+    50% {
+      transform: translate3d(0, -7px, 0) rotate(-3deg);
+    }
+  }
+
+  .erp-float-slow {
+    animation: erpFloatOrbitSlow 5.2s ease-in-out infinite;
+  }
+
+  .erp-float-medium {
+    animation: erpFloatOrbitMedium 4.4s ease-in-out infinite;
+    animation-delay: 0.7s;
+  }
+
+  .erp-float-delayed {
+    animation: erpFloatOrbitSlow 6s ease-in-out infinite;
+    animation-delay: 1.4s;
+  }
+
+  .erp-hero-reveal-1 {
+    animation: erpCardCascadeIn 380ms var(--erp-ease-out-expo) backwards;
+  }
+
+  .erp-hero-reveal-2 {
+    animation: erpCardCascadeIn 420ms var(--erp-ease-out-expo) 90ms backwards;
+  }
+
+  .erp-hero-reveal-3 {
+    animation: erpCardCascadeIn 460ms var(--erp-ease-out-expo) 170ms backwards;
+  }
+}
+
+/* Accessibility: Honor OS Reduced Motion Preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-in,
+  .animate-fade-in,
+  .animate-fadeIn,
+  .erp-page-stage,
+  .erp-flow-stage,
+  .erp-route-progress-bar,
+  .stat-card-grid > *,
+  .erp-stagger-grid > *,
+  .erp-modal-card-enter,
+  .erp-float-slow,
+  .erp-float-medium,
+  .erp-float-delayed,
+  .erp-hero-reveal-1,
+  .erp-hero-reveal-2,
+  .erp-hero-reveal-3 {
+    animation: none !important;
+  }
+
+  .stat-card,
+  .card-pricing,
+  .luxury-white-card,
+  .white-feature-card,
+  .erp-launcher-tile,
+  .button-primary-pill,
+  .mobbin-btn-primary,
+  .btn-odoo-primary {
+    transition: none !important;
+  }
+}

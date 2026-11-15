@@ -34,6 +34,8 @@ import {
   Bell,
   Fingerprint,
   LogOut,
+  Palette,
+  SlidersHorizontal,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -53,7 +55,7 @@ export const Header: React.FC<HeaderProps> = ({
   const { currentLanguage, availableLanguages, setLanguage, t } = useLanguage();
   const { user: authUser } = useAuthContext();
   const { impersonatedState, stopImpersonation } = useImpersonation();
-  const { setQuickSearchOpen, activeTab, unreadCount } = useAppStore();
+  const { setQuickSearchOpen, activeTab, unreadCount, uiTheme, toggleUiTheme } = useAppStore();
 
   const parentSection = useMemo(() => {
     const targetSlug = (activeTab || 'dashboard').trim().toLowerCase();
@@ -523,6 +525,41 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
           </div>
+
+          {/* Corporate Color ⇄ Mobbin Monochrome Theme Switcher */}
+          <button
+            type="button"
+            data-slot="theme-toggle-btn"
+            onClick={toggleUiTheme}
+            className={`px-2.5 h-9 rounded-full border flex items-center gap-1.5 text-xs font-semibold transition-all shrink-0 cursor-pointer active:scale-95 ${
+              uiTheme === 'corporate-color'
+                ? 'bg-[#eff6ff] text-[#0f3a60] border-[#93c5fd] hover:bg-[#dbeafe]'
+                : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border-[#e0e0e0]'
+            }`}
+            title={
+              uiTheme === 'corporate-color'
+                ? 'الوضع الملوّن المؤسسي مفعّل — اضغط للتبديل إلى Mobbin الأحادي'
+                : 'الوضع الأحادي Mobbin مفعّل — اضغط لتفعيل الألوان المؤسسية'
+            }
+            aria-label="تبديل نمط الألوان (ملوّن / أحادي)"
+          >
+            <Palette className="w-4 h-4 shrink-0" data-colored-icon="true" />
+            <span className="hidden lg:inline">
+              {uiTheme === 'corporate-color' ? 'ملوّن' : 'أحادي'}
+            </span>
+          </button>
+
+          {/* Direct Appearance, Color & Display Customization Studio Button */}
+          <button
+            type="button"
+            data-slot="appearance-customize-btn"
+            onClick={() => navigateGuarded('appearance-display', 'تخصيص الألوان والمظهر والعرض')}
+            className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] flex items-center justify-center text-[#141414] transition-colors shrink-0 cursor-pointer"
+            title="تخصيص الألوان والمظهر والليلي والعرض في الإعدادات"
+            aria-label="تخصيص الألوان والعرض"
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+          </button>
 
           {/* Fullscreen / Screen Maximize Toggle Button */}
           <button

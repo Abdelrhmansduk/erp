@@ -2363,7 +2363,7 @@ export const TravelPage: React.FC = () => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-2xl bg-white border border-[#e0e0e0] rounded-[24px] p-6 max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-[880px] bg-white border border-[#e0e0e0] rounded-[24px] p-6 max-h-[92vh] overflow-y-auto"
           >
             <div className="no-print print:hidden flex justify-between items-center mb-4 border-b border-[#e0e0e0] pb-3">
               <div className="flex items-center gap-2">
@@ -2381,7 +2381,8 @@ export const TravelPage: React.FC = () => {
             </div>
 
             {/* Printable Order Body */}
-            <div className="erp-printable-sheet p-6 bg-white border-2 border-[#e0e0e0] rounded-2xl space-y-4 font-sans text-xs">
+            <div data-a4-fullpage="true" className="erp-printable-sheet erp-a4-sheet p-8 bg-white border-2 border-[#141414] font-sans text-xs">
+              <div className="space-y-5">
               {/* Header */}
               <div className="flex items-center justify-between border-b-2 border-[#e0e0e0] pb-4">
                 <div>
@@ -2494,8 +2495,10 @@ export const TravelPage: React.FC = () => {
                 </p>
               </div>
 
+              </div>
+
               {/* Signatures */}
-              <div className="grid grid-cols-2 gap-6 pt-3 border-t-2 border-[#e0e0e0]">
+              <div className="grid grid-cols-2 gap-6 pt-4 mt-6 border-t-2 border-[#e0e0e0]">
                 <div className="text-center space-y-4">
                   <div className="font-bold text-[#141414] text-xs">
                     توقيع مسؤول الحركة والعمليات
