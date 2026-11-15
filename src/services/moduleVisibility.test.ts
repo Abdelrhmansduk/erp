@@ -1,11 +1,24 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import type { NavItem } from '../types';
 import {
   filterNavTree,
   computeBlockedHrefs,
   resolveEffectiveHiddenIds,
   collectDescendantIds,
+  resolveUserVisibilityAccess,
+  isVisibilityControllerUser,
+  useModuleVisibilityStore,
 } from './moduleVisibility';
+import { SIDEBAR_MENU } from '../data/sidebarMenu';
+import { authService, getFullStaffDirectory, type StaffDirectoryEntry, type UserProfile } from './authService';
+
+function toUserProfile(entry: StaffDirectoryEntry): UserProfile {
+  return {
+    ...entry,
+    status: 'نشط',
+    created_at: '2026-01-01T00:00:00.000Z',
+  };
+}
 
 const MENU: NavItem[] = [
   { id: 'dashboard', title: 'الرئيسية', href: 'dashboard' },
@@ -100,5 +113,85 @@ describe('moduleVisibility — rule layering', () => {
   it('company rules apply only to that company', () => {
     const ids = resolveEffectiveHiddenIds(state, 'SAF', 'user-2');
     expect([...ids]).toEqual(['zatca']);
+  });
+});
+
+describe('moduleVisibility & authService — HR Isolation & Abdulrahman Per-Employee Control', () => {
+  beforeEach(() => {
+    useModuleVisibilityStore.getState().clearEmployeeRule('hr@kas.sa');
+    useModuleVisibilityStore.getState().clearEmployeeRule('a.alanazi@kas.sa');
+  });
+
+  it('hides Unified Gov Integration Hub and Finance Center completely from HR employees by default', () => {
+    const staff = getFullStaffDirectory();
+    const reemHr = toUserProfile(staff.find((u) => u.email?.toLowerCase() === 'hr@kas.sa')!);
+    const aljouriHr = toUserProfile(staff.find((u) => u.email?.toLowerCase() === 'a.alanazi@kas.sa')!);
+
+    expect(reemHr).toBeDefined();
+    expect(reemHr.department_id).toBe('hr');
+    expect(aljouriHr).toBeDefined();
+    expect(aljouriHr.department_id).toBe('hr');
+
+    for (const hrUser of [reemHr, aljouriHr]) {
+      const access = resolveUserVisibilityAccess(SIDEBAR_MENU, hrUser);
+
+      // Finance Center & Gov Integration Hub must be strictly blocked & absent from HR menu
+      expect(access.visibleMenu.some((item) => item.id === 'dept-2-finance')).toBe(false);
+      expect(access.blockedHrefs.has('gov-integrations')).toBe(true);
+      expect(access.blockedHrefs.has('smacc-accounting')).toBe(true);
+      expect(access.blockedHrefs.has('jisr-accruals')).toBe(true);
+      expect(access.blockedHrefs.has('jisr-expenses')).toBe(true);
+
+      expect(authService.isTabAuthorizedForUser(hrUser, 'gov-integrations')).toBe(false);
+      expect(authService.isTabAuthorizedForUser(hrUser, 'government-hub')).toBe(false);
+      expect(authService.isTabAuthorizedForUser(hrUser, 'smacc-accounting')).toBe(false);
+      expect(authService.isTabAuthorizedForUser(hrUser, 'finance-home')).toBe(false);
+      expect(authService.isTabAuthorizedForUser(hrUser, 'zatca')).toBe(false);
+      expect(authService.isTabAuthorizedForUser(hrUser, 'jisr-accruals')).toBe(false);
+      expect(authService.isTabAuthorizedForUser(hrUser, 'jisr-expenses')).toBe(false);
+
+      // Core HR modules remain accessible
+      expect(authService.isTabAuthorizedForUser(hrUser, 'employees')).toBe(true);
+      expect(authService.isTabAuthorizedForUser(hrUser, 'jisr-welcome-signage')).toBe(true);
+      expect(authService.isTabAuthorizedForUser(hrUser, 'payroll')).toBe(true);
+    }
+  });
+
+  it('authorizes Abdulrahman (a.salif.dev@kas.sa) to customize section visibility per individual employee independently', () => {
+    const staff = getFullStaffDirectory();
+    const abdulrahman = toUserProfile(staff.find((u) => u.email?.toLowerCase() === 'a.salif.dev@kas.sa')!);
+    const reemHr = toUserProfile(staff.find((u) => u.email?.toLowerCase() === 'hr@kas.sa')!);
+    const aljouriHr = toUserProfile(staff.find((u) => u.email?.toLowerCase() === 'a.alanazi@kas.sa')!);
+
+    expect(abdulrahman).toBeDefined();
+    expect(isVisibilityControllerUser(abdulrahman)).toBe(true);
+    expect(authService.canManageModuleVisibility(abdulrahman)).toBe(true);
+    expect(authService.isTabAuthorizedForUser(abdulrahman, 'module-visibility')).toBe(true);
+
+    // Abdulrahman grants Reem (hr@kas.sa) access to Gov Hub & Finance while hiding Payroll for Reem only
+    useModuleVisibilityStore.getState().setEmployeeRule(
+      'hr@kas.sa',
+      {
+        hiddenIds: ['payroll'],
+        grantedIds: ['gov-integrations-exec', 'dept-2-finance'],
+      },
+      'a.salif.dev@kas.sa'
+    );
+
+    // Reem immediately reflects the custom per-employee overrides
+    expect(authService.isTabAuthorizedForUser(reemHr, 'gov-integrations')).toBe(true);
+    expect(authService.isTabAuthorizedForUser(reemHr, 'smacc-accounting')).toBe(true);
+    expect(authService.isTabAuthorizedForUser(reemHr, 'payroll')).toBe(false);
+
+    // Aljouri (another HR employee) remains completely isolated and unaffected!
+    expect(authService.isTabAuthorizedForUser(aljouriHr, 'gov-integrations')).toBe(false);
+    expect(authService.isTabAuthorizedForUser(aljouriHr, 'smacc-accounting')).toBe(false);
+    expect(authService.isTabAuthorizedForUser(aljouriHr, 'payroll')).toBe(true);
+
+    // Clearing Reem's override restores default HR isolation
+    useModuleVisibilityStore.getState().clearEmployeeRule('hr@kas.sa');
+    expect(authService.isTabAuthorizedForUser(reemHr, 'gov-integrations')).toBe(false);
+    expect(authService.isTabAuthorizedForUser(reemHr, 'smacc-accounting')).toBe(false);
+    expect(authService.isTabAuthorizedForUser(reemHr, 'payroll')).toBe(true);
   });
 });

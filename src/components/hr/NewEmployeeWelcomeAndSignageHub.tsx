@@ -20,6 +20,11 @@ import {
   Pause,
   Monitor,
   RefreshCw,
+  QrCode,
+  Printer,
+  Activity,
+  Radio,
+  WifiOff,
 } from 'lucide-react';
 import { realErpDataStore } from '../../services/realErpDataStore';
 import { useAppStore } from '../../stores/appStore';
@@ -28,18 +33,29 @@ import {
   DEFAULT_WELCOME_BROADCASTS,
   buildMailtoWelcomeHref,
   buildScreenWebPlayerUrl,
+  buildWelcomeEmailQrPayload,
   buildWhatsAppWelcomeMessage,
   broadcastWelcomeToScreens,
+  dispatchAutomaticWelcomeEmailToEmployee,
   dispatchWelcomeEmailPackage,
   emitLiveSignageSignal,
   openWhatsAppWelcomeChannel,
+  runLiveSignageNetworkScan,
   triggerNewEmployeeOnboardingConsequences,
   type DigitalSignageScreenRecord,
+  type DiscoveredLanDisplayDevice,
   type OnboardingJourneyRecord,
   type SignageConnectionType,
+  type SignageNetworkScanReport,
   type SignageOrientation,
   type WelcomeBroadcastRecord,
 } from '../../services/employeeWelcomeBroadcastService';
+import { generateEmployeeBarcodeIdentity } from '../../services/biometricAttendanceGateService';
+import {
+  generateRealCode128BarcodeSvg,
+  generateRealQrSvg,
+} from '../../utils/realBarcodeGenerator';
+import { printSpecificElement } from '../../utils/printManager';
 import {
   calculateFamilyAirTicketEntitlement,
   calculateRetroactivePayAdjustment,
@@ -103,10 +119,11 @@ export interface NewEmployeeWelcomeAndSignageHubProps {
   companyName: string;
   payrollMonth?: string;
   initialEmployeeId?: string;
+  initialSubTab?: HubSectionTab;
   onSyncedToPayroll?: () => void;
 }
 
-type HubSectionTab = 'WELCOME_CONSEQUENCES' | 'SIGNAGE_SCREENS' | 'CUTOFF_RETRO_TICKETS';
+export type HubSectionTab = 'WELCOME_CONSEQUENCES' | 'SIGNAGE_SCREENS' | 'CUTOFF_RETRO_TICKETS';
 
 export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSignageHubProps> = ({
   employees,
@@ -114,10 +131,19 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
   companyName,
   payrollMonth = new Date().toISOString().slice(0, 7),
   initialEmployeeId,
+  initialSubTab,
   onSyncedToPayroll,
 }) => {
   const { addNotification } = useAppStore();
-  const [activeSubTab, setActiveSubTab] = useState<HubSectionTab>('WELCOME_CONSEQUENCES');
+  const [activeSubTab, setActiveSubTab] = useState<HubSectionTab>(
+    initialSubTab || 'WELCOME_CONSEQUENCES'
+  );
+
+  useEffect(() => {
+    if (initialSubTab) {
+      setActiveSubTab(initialSubTab);
+    }
+  }, [initialSubTab]);
 
   // Data State
   const [screens, setScreens] = useState<DigitalSignageScreenRecord[]>(
@@ -157,11 +183,17 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
   // Live TV Player Modal Preview
   const [previewScreenCode, setPreviewScreenCode] = useState<string | null>(null);
 
+  // Live LAN Discovery & TCP Health Check State
+  const [isScanningNetwork, setIsScanningNetwork] = useState<boolean>(false);
+  const [scanningScreenId, setScanningScreenId] = useState<string | null>(null);
+  const [networkScanReport, setNetworkScanReport] = useState<SignageNetworkScanReport | null>(null);
+  const hasAutoScannedRef = React.useRef<boolean>(false);
+
   // Add New Screen Form
   const [newScreenName, setNewScreenName] = useState('');
   const [newScreenBranch, setNewScreenBranch] = useState('المقر الرئيسي - الرياض');
   const [newScreenZone, setNewScreenZone] = useState('صالة الاستقبال');
-  const [newScreenHost, setNewScreenHost] = useState('192.168.10.60');
+  const [newScreenHost, setNewScreenHost] = useState('192.168.60.60');
   const [newScreenType, setNewScreenType] = useState<SignageConnectionType>('INTERNET_WEB_PLAYER');
   const [newScreenOrientation, setNewScreenOrientation] =
     useState<SignageOrientation>('LANDSCAPE_16_9');
@@ -296,6 +328,61 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
     slideDurationSec,
   ]);
 
+  const [autoSendWelcomeEmail, setAutoSendWelcomeEmail] = useState<boolean>(true);
+  const [lastAutoEmailStatus, setLastAutoEmailStatus] = useState<string>('');
+
+  const dailyEmployeeBarcode = useMemo(() => {
+    if (!activeBroadcastForSelected) return null;
+    return generateEmployeeBarcodeIdentity({
+      id: activeBroadcastForSelected.employee_id,
+      employee_code: activeBroadcastForSelected.employee_code,
+      email: activeBroadcastForSelected.corporate_email,
+      full_name: activeBroadcastForSelected.employee_name,
+      company_id: activeBroadcastForSelected.company_id,
+    });
+  }, [activeBroadcastForSelected]);
+
+  const welcomeEmailQrPayload = useMemo(() => {
+    if (!activeBroadcastForSelected) return '';
+    return buildWelcomeEmailQrPayload(activeBroadcastForSelected);
+  }, [activeBroadcastForSelected]);
+
+  const welcomeEmailQrSvg = useMemo(() => {
+    if (!welcomeEmailQrPayload) return '';
+    return generateRealQrSvg(welcomeEmailQrPayload, {
+      sizePx: 108,
+      darkColor: '#141414',
+      lightColor: '#FFFFFF',
+      borderStyle: false,
+    });
+  }, [welcomeEmailQrPayload]);
+
+  const dailyCode128Svg = useMemo(() => {
+    if (!dailyEmployeeBarcode) return '';
+    return generateRealCode128BarcodeSvg(dailyEmployeeBarcode.badgeCode, {
+      widthPx: 206,
+      heightPx: 44,
+      darkColor: '#141414',
+      lightColor: '#FFFFFF',
+      showText: true,
+    });
+  }, [dailyEmployeeBarcode]);
+
+  const handleResendAutoWelcomeEmailNow = async () => {
+    if (!activeBroadcastForSelected) return;
+    const res = await dispatchAutomaticWelcomeEmailToEmployee(activeBroadcastForSelected, {
+      interactiveFallback: true,
+    });
+    setLastAutoEmailStatus(
+      `تم إرسال بريد الترحيب ومعلومات الإيميل (${res.recipientEmail}) — مرجع ${res.referenceNo}`
+    );
+    addNotification({
+      type: 'success',
+      title: 'تم إرسال بريد الترحيب ومعلومات الإيميل للموظف',
+      message: `تم توجيه البريد الرسمي وحزمة بيانات الدخول والباركود اليومي إلى (${res.recipientEmail}).`,
+    });
+  };
+
   const handleRunOnboardingAndBroadcast = async () => {
     if (!selectedEmployee) return;
     setIsExecutingJourney(true);
@@ -328,15 +415,27 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
         targetScreenIds: targets,
         slideDurationSeconds: slideDurationSec,
         autoBroadcastToScreens: true,
+        autoSendWelcomeEmail,
       });
 
       setLastConsequences(result.consequencesSummary);
+      if (result.autoEmailDispatched) {
+        setLastAutoEmailStatus(
+          `أُرسل تلقائياً لإيميل الموظف (${result.broadcast.corporate_email}) • المرجع ${result.autoEmailReferenceNo || 'معتمد'}`
+        );
+      }
       await loadAllHubData();
 
       addNotification({
         type: 'success',
-        title: 'اكتملت تبعيات المباشرة الـ 7 وبث الترحيب على الشاشات',
-        message: `تم تفعيل ملف وتبعيات (${selectedEmployee.name}) وبث بطاقة الترحيب فوراً على ${
+        title: result.autoEmailDispatched
+          ? 'اكتملت المباشرة وبث الترحيب والإرسال التلقائي لإيميل الموظف'
+          : 'اكتملت تبعيات المباشرة الـ 7 وبث الترحيب على الشاشات',
+        message: `تم تفعيل ملف وتبعيات (${selectedEmployee.name})${
+          result.autoEmailDispatched
+            ? ` وإرسال معلومات البريد والباركود اليومي تلقائياً إلى (${result.broadcast.corporate_email})`
+            : ''
+        } وبث البطاقة على ${
           targets.includes('ALL')
             ? `كافة شاشات الشركة والإنترنت (${screens.length} شاشات)`
             : `${targets.length} شاشات مختارة`
@@ -438,6 +537,147 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
     await realErpDataStore.saveRecords('hr_digital_signage_screens', next);
     setScreens(next);
   };
+
+  const applyHealthChecksToScreens = useCallback(
+    async (
+      currentScreens: DigitalSignageScreenRecord[],
+      report: SignageNetworkScanReport,
+      persistIfLive = true
+    ) => {
+      const checkMap = new Map(report.screen_health_checks.map((c) => [c.screen_id, c]));
+      const nowIso = new Date().toISOString();
+      const updated = currentScreens.map((scr) => {
+        const check =
+          checkMap.get(scr.id) ||
+          report.screen_health_checks.find((c) => c.screen_code === scr.screen_code);
+        if (!check) return scr;
+        const isLiveDaemon = report.scanner_source === 'LOCAL_LAN_DAEMON';
+        return {
+          ...scr,
+          is_online: isLiveDaemon ? check.reachable : check.probe_mode === 'WEB_RELAY' ? true : scr.is_online,
+          last_heartbeat_at: check.reachable ? nowIso : scr.last_heartbeat_at,
+          last_latency_ms: check.latency_ms,
+          open_ports: check.open_ports,
+          probe_mode: check.probe_mode,
+        };
+      });
+      setScreens(updated);
+      if (persistIfLive && report.scanner_source === 'LOCAL_LAN_DAEMON') {
+        await realErpDataStore.saveRecords('hr_digital_signage_screens', updated);
+      }
+      return updated;
+    },
+    []
+  );
+
+  const handleRunLiveNetworkScan = useCallback(
+    async (silent = false) => {
+      setIsScanningNetwork(true);
+      try {
+        const report = await runLiveSignageNetworkScan(screens, companyCode);
+        setNetworkScanReport(report);
+        await applyHealthChecksToScreens(screens, report, true);
+
+        if (!silent) {
+          addNotification({
+            type: report.summary.registered_reachable > 0 ? 'success' : 'info',
+            title: 'اكتمل فحص شاشات العرض عبر الشبكة',
+            message: `تم فحص ${report.summary.registered_total} شاشة مسجلة (${report.summary.registered_reachable} متصلة، ${report.summary.registered_unreachable} غير متاحة) واكتشاف ${report.summary.discovered_count} جهاز عرض على الشبكة المحلية.`,
+          });
+        }
+      } finally {
+        setIsScanningNetwork(false);
+      }
+    },
+    [screens, companyCode, applyHealthChecksToScreens, addNotification]
+  );
+
+  const handleProbeSingleScreen = async (scr: DigitalSignageScreenRecord) => {
+    setScanningScreenId(scr.id);
+    try {
+      const report = await runLiveSignageNetworkScan([scr], companyCode);
+      const check = report.screen_health_checks[0];
+      if (check) {
+        await applyHealthChecksToScreens(screens, report, true);
+        setNetworkScanReport((prev) => {
+          if (!prev) return report;
+          const remaining = prev.screen_health_checks.filter(
+            (c) => c.screen_id !== check.screen_id && c.screen_code !== check.screen_code
+          );
+          const nextChecks = [...remaining, check];
+          return {
+            ...prev,
+            scanned_at: report.scanned_at,
+            screen_health_checks: nextChecks,
+            summary: {
+              ...prev.summary,
+              registered_total: nextChecks.length,
+              registered_reachable: nextChecks.filter((c) => c.reachable).length,
+              registered_unreachable: nextChecks.filter((c) => !c.reachable).length,
+            },
+          };
+        });
+        addNotification({
+          type: check.reachable ? 'success' : 'warning',
+          title: `نتيجة فحص ${scr.screen_name_ar}`,
+          message: check.reason_ar,
+        });
+      }
+    } finally {
+      setScanningScreenId(null);
+    }
+  };
+
+  const handleRegisterDiscoveredDevice = async (dev: DiscoveredLanDisplayDevice) => {
+    const existing = screens.find((s) => s.ip_or_host.trim() === dev.ip.trim());
+    if (existing) {
+      addNotification({
+        type: 'info',
+        title: 'الشاشة مسجلة مسبقاً',
+        message: `العنوان ${dev.ip} مرتبط بالفعل بالشاشة (${existing.screen_name_ar}).`,
+      });
+      return;
+    }
+
+    const code = `SCR-LAN-${dev.ip.split('.').slice(-2).join('')}`;
+    const newScr: DigitalSignageScreenRecord = {
+      id: code,
+      company_id: companyCode,
+      screen_code: code,
+      screen_name_ar: `${dev.label_ar} (${dev.ip})`,
+      branch_name: companyName || 'الشبكة المحلية LAN',
+      location_zone: dev.mac ? `MAC: ${dev.mac}` : 'مكتشفة تلقائياً عبر الشبكة',
+      ip_or_host: dev.ip,
+      orientation: 'LANDSCAPE_16_9',
+      connection_type: dev.recommended_connection_type,
+      is_online: true,
+      last_heartbeat_at: new Date().toISOString(),
+      last_latency_ms: dev.latency_ms,
+      open_ports: dev.open_ports,
+      probe_mode: 'TCP_PORT_PROBE',
+    };
+
+    const nextScreens = [newScr, ...screens];
+    await realErpDataStore.saveRecords('hr_digital_signage_screens', nextScreens);
+    setScreens(nextScreens);
+    emitLiveSignageSignal({
+      type: 'SCREEN_HEARTBEAT',
+      screenIds: [code],
+      timestamp: new Date().toISOString(),
+    });
+    addNotification({
+      type: 'success',
+      title: 'تم ربط شاشة العرض المكتشفة بنجاح',
+      message: `تمت إضافة (${newScr.screen_name_ar}) عبر المنافذ ${dev.open_ports.join(', ') || 'SSDP'}.`,
+    });
+  };
+
+  useEffect(() => {
+    if (activeSubTab === 'SIGNAGE_SCREENS' && !hasAutoScannedRef.current) {
+      hasAutoScannedRef.current = true;
+      void handleRunLiveNetworkScan(true);
+    }
+  }, [activeSubTab, handleRunLiveNetworkScan]);
 
   const handleToggleBroadcastActive = async (b: WelcomeBroadcastRecord) => {
     const next = broadcasts.map((item) =>
@@ -822,6 +1062,24 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
                 )}
               </div>
 
+              {/* Automatic Welcome Email Toggle */}
+              <label className="flex items-start gap-2.5 p-3.5 rounded-[18px] bg-[#f3f3f3] border border-[#e0e0e0] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={autoSendWelcomeEmail}
+                  onChange={(e) => setAutoSendWelcomeEmail(e.target.checked)}
+                  className="mt-0.5 accent-[#141414]"
+                />
+                <div className="text-xs">
+                  <div className="font-bold text-[#141414]">
+                    الترحيب التلقائي بإيميل الموظف ({activeBroadcastForSelected?.corporate_email || 'HR@kas.sa'})
+                  </div>
+                  <div className="text-[11px] text-[#707070] mt-0.5">
+                    إرسال رسالة الترحيب ومعلومات الإيميل الوظيفي والباركود اليومي المتجدد تلقائياً لبريد الموظف فور تفعيل المباشرة
+                  </div>
+                </div>
+              </label>
+
               <div className="flex flex-wrap items-center gap-2 pt-2">
                 <button
                   type="button"
@@ -853,33 +1111,100 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
               <div className="space-y-4">
                 <div className="border-b border-[#e0e0e0] pb-3">
                   <h3 className="text-sm font-bold m-0">
-                    منصة إرسال وعرض الترحيب متعدد القنوات
+                    منصة إرسال وعرض الترحيب متعدد القنوات وباركود الإيميل
                   </h3>
                   <p className="text-[11px] text-[#707070] m-0 mt-0.5">
-                    إرسال فوري عبر البريد الرسمي والواتساب وشاشة الإنترنت وشاشات الفروع
+                    باركود ترحيب حقيقي يتضمن إرسال معلومات الإيميل + ترحيب تلقائي ببريد الموظف
                   </p>
                 </div>
 
-                {/* Channel 1: Official Email */}
+                {/* Scannable Welcome Email Info QR + Real Daily-Rotating Employee Barcode */}
+                {activeBroadcastForSelected && (
+                  <div
+                    data-printable-card="true"
+                    className="erp-printable-sheet p-3.5 rounded-[18px] bg-[#f3f3f3] border border-[#e0e0e0] space-y-2.5"
+                  >
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="text-xs font-bold flex items-center gap-1.5">
+                        <QrCode className="w-3.5 h-3.5" />
+                        <span>باركود الترحيب (إرسال معلومات الإيميل) + الباركود اليومي</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) =>
+                          printSpecificElement(
+                            e.currentTarget.closest<HTMLElement>('[data-printable-card="true"]')
+                          )
+                        }
+                        className="px-2.5 py-1 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer no-print"
+                      >
+                        <Printer className="w-3 h-3" />
+                        <span>طباعة الباركود</span>
+                      </button>
+                    </div>
+
+                    <div className="bg-[#ffffff] p-3 rounded-[14px] border border-[#e0e0e0] flex flex-col sm:flex-row items-center justify-between gap-3">
+                      <div className="space-y-1.5 text-center sm:text-right flex-1 min-w-0">
+                        <div className="text-[11px] font-bold text-[#141414] truncate">
+                          {activeBroadcastForSelected.employee_name} •{' '}
+                          <span className="font-mono">
+                            {activeBroadcastForSelected.corporate_email || 'HR@kas.sa'}
+                          </span>
+                        </div>
+                        {dailyCode128Svg && (
+                          <div
+                            className="inline-block max-w-full overflow-hidden"
+                            dangerouslySetInnerHTML={{ __html: dailyCode128Svg }}
+                          />
+                        )}
+                        <div className="text-[10px] text-[#707070] font-mono">
+                          يتجدد تلقائياً كل يوم ({dailyEmployeeBarcode?.validForDate}) • PIN:{' '}
+                          <strong className="text-[#141414]">
+                            {dailyEmployeeBarcode?.shortPinCode}
+                          </strong>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 flex flex-col items-center gap-1">
+                        <div dangerouslySetInnerHTML={{ __html: welcomeEmailQrSvg }} />
+                        <span className="text-[9px] font-bold text-[#707070]">
+                          امسح لإرسال معلومات الإيميل
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Channel 1: Official Email + Auto-Welcome Status */}
                 <div className="p-3.5 rounded-[18px] bg-[#f3f3f3] border border-[#e0e0e0] space-y-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
                     <span className="text-xs font-bold flex items-center gap-1.5">
                       <Mail className="w-3.5 h-3.5" />
-                      <span>1. البريد الإلكتروني الرسمي (HR@kas.sa)</span>
+                      <span>1. البريد الترحيبي التلقائي والرسمي (HR@kas.sa)</span>
                     </span>
-                    <span className="text-[10px] font-mono text-[#707070]">ثنائي اللغة + الشعار</span>
+                    <span className="text-[10px] font-mono text-[#707070]">
+                      {activeBroadcastForSelected?.auto_email_sent || lastAutoEmailStatus
+                        ? 'تم الإرسال التلقائي ✓'
+                        : 'إرسال تلقائي مفعل'}
+                    </span>
                   </div>
+                  {(lastAutoEmailStatus || activeBroadcastForSelected?.auto_email_reference_no) && (
+                    <div className="px-2.5 py-1.5 rounded-[12px] bg-[#ffffff] border border-[#e0e0e0] text-[11px] font-semibold text-[#141414] flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                      <span>
+                        {lastAutoEmailStatus ||
+                          `أُرسل الترحيب تلقائياً إلى ${activeBroadcastForSelected?.corporate_email} (${activeBroadcastForSelected?.auto_email_reference_no})`}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex flex-wrap gap-1.5">
                     <button
                       type="button"
-                      onClick={() =>
-                        activeBroadcastForSelected &&
-                        dispatchWelcomeEmailPackage(activeBroadcastForSelected, 'DIRECT_EMPLOYEE')
-                      }
+                      onClick={() => void handleResendAutoWelcomeEmailNow()}
                       className="px-3 py-1.5 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold inline-flex items-center gap-1.5 cursor-pointer"
                     >
                       <Send className="w-3 h-3" />
-                      <span>إرسال حزمة المباشرة للموظف</span>
+                      <span>إرسال معلومات الإيميل والترحيب للموظف</span>
                     </button>
                     <button
                       type="button"
@@ -897,11 +1222,11 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
                     </button>
                     {activeBroadcastForSelected && (
                       <a
-                        href={buildMailtoWelcomeHref(activeBroadcastForSelected)}
+                        href={welcomeEmailQrPayload || buildMailtoWelcomeHref(activeBroadcastForSelected)}
                         className="px-3 py-1.5 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[#141414] text-[11px] font-bold inline-flex items-center gap-1 no-underline"
                       >
                         <ExternalLink className="w-3 h-3" />
-                        <span>تطبيق البريد</span>
+                        <span>فتح قالب معلومات الإيميل</span>
                       </a>
                     )}
                   </div>
@@ -1162,6 +1487,159 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
       {/* TAB 2: COMPANY SMART DISPLAY SCREENS & INTERNET WEB PLAYER REGISTRY */}
       {activeSubTab === 'SIGNAGE_SCREENS' && (
         <div className="space-y-4">
+          {/* Live LAN Display Discovery & Health Radar */}
+          <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-5 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold m-0 flex items-center gap-2">
+                  <Radio className="w-4 h-4 text-[#141414]" />
+                  <span>رادار فحص شاشات العرض الموصولة بالشبكة (Live LAN Discovery & TCP Health)</span>
+                </h3>
+                <p className="text-xs text-[#707070] m-0">
+                  فحص حي لبطاقات الشبكة وجدول ARP ومنافذ شاشات التلفاز الذكية (Google Cast / Tizen / webOS / SSDP / Kiosk) والتحقق من الاستجابة الفعلية بالمللي ثانية.
+                </p>
+              </div>
+              <button
+                type="button"
+                disabled={isScanningNetwork}
+                onClick={() => void handleRunLiveNetworkScan(false)}
+                className="h-10 px-5 rounded-full bg-[#141414] text-[#ffffff] text-xs font-bold inline-flex items-center gap-2 cursor-pointer disabled:opacity-60"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isScanningNetwork ? 'animate-spin' : ''}`} />
+                <span>{isScanningNetwork ? 'جاري مسح الشبكة...' : 'فحص حي للشبكة الآن'}</span>
+              </button>
+            </div>
+
+            {networkScanReport && (
+              <div className="space-y-3 pt-2 border-t border-[#e0e0e0]">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] p-3">
+                    <div className="text-[11px] text-[#707070]">واجهات الشبكة النشطة</div>
+                    <div className="text-base font-bold font-mono text-[#141414] mt-0.5">
+                      {networkScanReport.interfaces.length}
+                    </div>
+                  </div>
+                  <div className="rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] p-3">
+                    <div className="text-[11px] text-[#707070]">أجهزة الشبكة (ARP / SSDP)</div>
+                    <div className="text-base font-bold font-mono text-[#141414] mt-0.5">
+                      {networkScanReport.arp_neighbor_count} / {networkScanReport.ssdp_responder_count}
+                    </div>
+                  </div>
+                  <div className="rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] p-3">
+                    <div className="text-[11px] text-[#707070]">شاشات ووحدات عرض مكتشفة</div>
+                    <div className="text-base font-bold font-mono text-[#141414] mt-0.5">
+                      {networkScanReport.summary.discovered_count}
+                    </div>
+                  </div>
+                  <div className="rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] p-3">
+                    <div className="text-[11px] text-[#707070]">الشاشات المسجلة المتصلة فعلياً</div>
+                    <div className="text-base font-bold font-mono text-[#141414] mt-0.5">
+                      {networkScanReport.summary.registered_reachable} /{' '}
+                      {networkScanReport.summary.registered_total}
+                    </div>
+                  </div>
+                </div>
+
+                {/* LAN Broadcast Kiosk URLs */}
+                {networkScanReport.kiosk_broadcast_urls.length > 0 && (
+                  <div className="rounded-[18px] bg-[#f3f3f3] border border-[#e0e0e0] p-3.5 space-y-2">
+                    <div className="text-[11px] font-bold text-[#141414]">
+                      رابط البث المباشر للشاشات على الشبكة المحلية (افتحه من متصفح أي شاشة Smart TV):
+                    </div>
+                    <div className="space-y-2">
+                      {networkScanReport.kiosk_broadcast_urls.map((item) => (
+                        <div
+                          key={`${item.interface_name}-${item.ip}`}
+                          className="flex flex-wrap items-center justify-between gap-2 bg-[#ffffff] border border-[#e0e0e0] rounded-[14px] px-3 py-2"
+                        >
+                          <div className="space-y-0.5 min-w-0">
+                            <div className="text-[11px] font-bold text-[#141414]">
+                              {item.interface_name} ({item.cidr})
+                            </div>
+                            <div className="text-[11px] font-mono text-[#707070] break-all">
+                              {item.kiosk_url}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void handleCopyText(item.kiosk_url, `رابط البث عبر ${item.interface_name}`)
+                            }
+                            className="px-3 py-1.5 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold inline-flex items-center gap-1 shrink-0 cursor-pointer"
+                          >
+                            <Copy className="w-3 h-3" />
+                            <span>نسخ رابط TV</span>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Discovered Physical Display Devices */}
+                {networkScanReport.discovered_devices.length > 0 ? (
+                  <div className="space-y-2">
+                    <div className="text-xs font-bold text-[#141414]">
+                      شاشات ووحدات عرض تم اكتشافها على الشبكة:
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {networkScanReport.discovered_devices.map((dev) => {
+                        const alreadyRegistered = screens.some(
+                          (s) => s.ip_or_host.trim() === dev.ip.trim()
+                        );
+                        return (
+                          <div
+                            key={dev.ip}
+                            className="rounded-[18px] bg-[#f3f3f3] border border-[#e0e0e0] p-3.5 flex items-center justify-between gap-3"
+                          >
+                            <div className="space-y-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-mono text-xs font-bold text-[#141414]">
+                                  {dev.ip}
+                                </span>
+                                <span className="px-2 py-0.5 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[10px] font-mono font-bold text-[#141414]">
+                                  {dev.latency_ms} ms
+                                </span>
+                                {dev.open_ports.length > 0 && (
+                                  <span className="px-2 py-0.5 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[10px] font-mono text-[#707070]">
+                                    Ports: {dev.open_ports.join(', ')}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs font-bold text-[#141414]">{dev.label_ar}</div>
+                              <div className="text-[11px] text-[#707070] font-mono">
+                                {dev.vendor_hint}
+                                {dev.mac ? ` • MAC: ${dev.mac}` : ''}
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              disabled={alreadyRegistered}
+                              onClick={() => void handleRegisterDiscoveredDevice(dev)}
+                              className={`px-3.5 py-2 rounded-full text-[11px] font-bold shrink-0 cursor-pointer ${
+                                alreadyRegistered
+                                  ? 'bg-[#ffffff] border border-[#e0e0e0] text-[#707070]'
+                                  : 'bg-[#141414] text-[#ffffff]'
+                              }`}
+                            >
+                              {alreadyRegistered ? 'مسجلة بالمنظومة' : '+ ربط كشاشة'}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] px-4 py-3 text-xs text-[#707070]">
+                    {networkScanReport.scanner_source === 'CLIENT_FALLBACK'
+                      ? 'تم التحقق من شاشات البث السحابي (Web Relay). لفحص شاشات التلفاز عبر الشبكة الداخلية يجب تشغيل خادم التطوير المحلي (/api/signage-scan).'
+                      : `لم تستجب شاشات Smart TV ذكية على منافذ البث القياسية (8008 / 8009 / 8001 / 3000 / 36669 / SSDP) في النطاق المحلي الحالي (تم مسح ${networkScanReport.arp_neighbor_count} جهاز مجاور). تأكد من تشغيل التلفاز على نفس شبكة LAN/Wi-Fi أو افتح رابط البث المباشر أعلاه على متصفح الشاشة.`}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Add New Smart Screen Form */}
           <form
             onSubmit={handleAddNetworkScreen}
@@ -1226,6 +1704,10 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {screens.map((scr) => {
               const dedicatedUrl = buildScreenWebPlayerUrl(scr.screen_code, companyCode);
+              const probeResult = networkScanReport?.screen_health_checks.find(
+                (c) => c.screen_id === scr.id || c.screen_code === scr.screen_code
+              );
+              const isProbingThis = scanningScreenId === scr.id;
               return (
                 <div
                   key={scr.id}
@@ -1245,8 +1727,12 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
                             : 'bg-[#f3f3f3] text-[#707070] border border-[#e0e0e0]'
                         }`}
                       >
-                        <Wifi className="w-3 h-3" />
-                        <span>{scr.is_online ? 'متصلة بالشبكة' : 'موقوفة مؤقتاً'}</span>
+                        {scr.is_online ? (
+                          <Wifi className="w-3 h-3" />
+                        ) : (
+                          <WifiOff className="w-3 h-3" />
+                        )}
+                        <span>{scr.is_online ? 'متصلة بالشبكة' : 'غير متصلة / موقوفة'}</span>
                       </button>
                     </div>
 
@@ -1257,9 +1743,40 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
                     <div className="text-[11px] font-mono text-[#707070]">
                       Host/IP: {scr.ip_or_host}
                     </div>
+                    {(probeResult || scr.probe_mode) && (
+                      <div className="pt-1 flex flex-wrap items-center gap-1.5">
+                        <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[10px] font-mono font-bold text-[#141414]">
+                          {probeResult?.probe_mode || scr.probe_mode}
+                        </span>
+                        {typeof (probeResult?.latency_ms ?? scr.last_latency_ms) === 'number' && (
+                          <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[10px] font-mono text-[#141414]">
+                            {probeResult?.latency_ms ?? scr.last_latency_ms} ms
+                          </span>
+                        )}
+                        {(probeResult?.open_ports || scr.open_ports || []).length > 0 && (
+                          <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[10px] font-mono text-[#707070]">
+                            Ports: {(probeResult?.open_ports || scr.open_ports || []).join(', ')}
+                          </span>
+                        )}
+                        {probeResult?.reason_ar && (
+                          <div className="w-full text-[11px] text-[#707070] mt-0.5">
+                            {probeResult.reason_ar}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="pt-3 border-t border-[#e0e0e0] flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      disabled={isProbingThis}
+                      onClick={() => void handleProbeSingleScreen(scr)}
+                      className="px-3 py-1.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer disabled:opacity-60"
+                    >
+                      <Activity className={`w-3 h-3 ${isProbingThis ? 'animate-pulse' : ''}`} />
+                      <span>{isProbingThis ? 'جاري الفحص...' : 'فحص حي'}</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => setPreviewScreenCode(scr.screen_code)}

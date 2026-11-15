@@ -1110,7 +1110,7 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
   String _statusFilter = 'الكل';
   int _smaccOperationalSubTab = 0;
 
-  // Jisr Mobile HR & ESS Interactive State
+  // Mobile HR & ESS Interactive State
   String? _jisrCheckInTime;
   String? _jisrCheckOutTime;
   String _selectedJisrRequestType = 'طلب إجازة سنوية';
@@ -1195,6 +1195,11 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
     'jisr-expenses',
     'jisr-org-muqeem',
     'jisr-talent-360',
+    'jisr-shifts-overtime',
+    'jisr-welcome-signage',
+    'jisr-arrears-b2b',
+    'jisr-cards-rollover',
+    'jisr-workflows-pulse',
     'reem-hr-emails',
     'hr-official-emails',
     'ess-self-service',
@@ -1538,7 +1543,7 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
         ),
         const SizedBox(height: 12),
 
-        // SMACC 6-Division Accounting Navigator, Jisr HR Mobile Hub, OR 4-Division Operational Sub-Bar
+        // SMACC 6-Division Accounting Navigator, HR Mobile Hub, OR 4-Division Operational Sub-Bar
         if (_isSmaccFinanceModule) ...[
           _buildSmaccSixDivisionsNavigator(),
           const SizedBox(height: 12),
@@ -2278,7 +2283,7 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
                     SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'منظومة جسر للموارد البشرية والخدمة الذاتية والامتثال',
+                        'منظومة الموارد البشرية والخدمة الذاتية والامتثال الشاملة',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
@@ -2587,7 +2592,7 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
           ),
           const SizedBox(height: 10),
 
-          // 4. Real Earned Wage Access (الراتب المرن المستحق — Jisr Pay EWA)
+          // 4. Real Earned Wage Access (الراتب المرن المبكر — EWA Pay)
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -3037,7 +3042,7 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
                 ),
               ),
           const SizedBox(height: 12),
-          // 7. Jisr 3.0 Mobile Suite (Supabase Cloud Sync, Corporate Card, Permission Quota, E-Sign, eNPS)
+          // 7. Enterprise HR Mobile Suite (Supabase Cloud Sync, Corporate Card, Permission Quota, E-Sign, eNPS)
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -3052,7 +3057,7 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
                   children: [
                     const Expanded(
                       child: Text(
-                        'منظومة جسر 3.0 المتنقلة (البطاقة • الاستئذان • التوقيع OTP • نبض eNPS)',
+                        'منظومة الموارد البشرية المتنقلة (البطاقة • الاستئذان • التوقيع OTP • نبض eNPS)',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w900,

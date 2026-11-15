@@ -198,4 +198,62 @@ describe('Biometric, Live Camera & Barcode Gate — Individual Per-Employee Veri
     const allDirectory = await getAllEmployeesGateVerificationDirectory('all');
     expect(allDirectory.length).toBeGreaterThanOrEqual(KAS_ALLOWED_EMPLOYEES.length);
   });
+
+  it('rotates every employee barcode, 6-digit PIN, and QR signature automatically every day with 0 collisions and rejects expired previous-day codes', () => {
+    const day1 = new Date('2026-11-14T09:00:00');
+    const day2 = new Date('2026-11-15T09:00:00');
+    const day3 = new Date('2026-11-16T09:00:00');
+
+    const seenDay1 = new Set<string>();
+    const seenDay2 = new Set<string>();
+    const seenDay3 = new Set<string>();
+
+    for (const emp of KAS_ALLOWED_EMPLOYEES) {
+      const id1 = generateEmployeeBarcodeIdentity(emp, day1);
+      const id2 = generateEmployeeBarcodeIdentity(emp, day2);
+      const id3 = generateEmployeeBarcodeIdentity(emp, day3);
+
+      // 1. Valid dates match
+      expect(id1.validForDate).toBe('2026-11-14');
+      expect(id2.validForDate).toBe('2026-11-15');
+      expect(id3.validForDate).toBe('2026-11-16');
+
+      // 2. Daily rotation: every employee's barcode, PIN, and QR change from day to day
+      expect(id1.badgeCode).not.toBe(id2.badgeCode);
+      expect(id2.badgeCode).not.toBe(id3.badgeCode);
+      expect(id1.shortPinCode).not.toBe(id2.shortPinCode);
+      expect(id2.shortPinCode).not.toBe(id3.shortPinCode);
+      expect(id1.qrPayload).not.toBe(id2.qrPayload);
+
+      // 3. Zero collisions among all 69 corporate employees on each day
+      expect(seenDay1.has(id1.badgeCode)).toBe(false);
+      expect(seenDay2.has(id2.badgeCode)).toBe(false);
+      expect(seenDay3.has(id3.badgeCode)).toBe(false);
+      seenDay1.add(id1.badgeCode);
+      seenDay2.add(id2.badgeCode);
+      seenDay3.add(id3.badgeCode);
+
+      // 4. Today's (day2) code passes on day2
+      expect(verifyEmployeeBarcodeInput(id2.badgeCode, emp, day2).valid).toBe(true);
+      expect(verifyEmployeeBarcodeInput(id2.shortPinCode, emp, day2).valid).toBe(true);
+      expect(verifyEmployeeBarcodeInput(id2.qrPayload, emp, day2).valid).toBe(true);
+
+      // 5. Yesterday's (day1) expired code is strictly rejected on day2 with expiredDailyCode: true
+      const expBadge = verifyEmployeeBarcodeInput(id1.badgeCode, emp, day2);
+      expect(expBadge.valid).toBe(false);
+      expect(expBadge.expiredDailyCode).toBe(true);
+
+      const expPin = verifyEmployeeBarcodeInput(id1.shortPinCode, emp, day2);
+      expect(expPin.valid).toBe(false);
+      expect(expPin.expiredDailyCode).toBe(true);
+
+      const expQr = verifyEmployeeBarcodeInput(id1.qrPayload, emp, day2);
+      expect(expQr.valid).toBe(false);
+      expect(expQr.expiredDailyCode).toBe(true);
+    }
+
+    expect(seenDay1.size).toBe(KAS_ALLOWED_EMPLOYEES.length);
+    expect(seenDay2.size).toBe(KAS_ALLOWED_EMPLOYEES.length);
+    expect(seenDay3.size).toBe(KAS_ALLOWED_EMPLOYEES.length);
+  });
 });

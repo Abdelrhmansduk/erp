@@ -98,7 +98,7 @@ describe('Entity Standalone Branding, Pre-Export Editor, Employee Sync, Leave Li
     expect(reportHtml).toContain('السفير الماسي');
     expect(reportHtml).not.toContain('مجموعة خالد السليم');
     expect(reportHtml).not.toContain('#0066ff');
-    expect(reportHtml).not.toContain('ر.س');
+    expect(reportHtml).not.toContain('\u0631.\u0633');
 
     const shareMsg = buildEntityShareText({
       title: 'شهادة تعريف بالراتب',

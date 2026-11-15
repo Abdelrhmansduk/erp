@@ -6,9 +6,8 @@ import { useCompany } from '../contexts/CompanyContext';
 import { authService } from '../services/authService';
 import {
   useModuleVisibilityStore,
-  resolveEffectiveHiddenIds,
-  filterNavTree,
-  computeBlockedHrefs,
+  resolveUserVisibilityAccess,
+  isVisibilityControllerUser,
   VISIBILITY_SCOPES,
   type VisibilityScope,
 } from '../services/moduleVisibility';
@@ -21,12 +20,15 @@ function toScope(value?: string | null): VisibilityScope | null {
 }
 
 /**
- * Effective visibility for the signed-in employee (org rules + company rules + personal rules).
+ * Effective visibility for the signed-in employee
+ * (Org rules -> Department rules -> Abdulrahman's Per-Employee rules -> Personal rules).
  */
 export function useModuleVisibility() {
   const { user } = useAuthContext();
   const { activeCompanyId } = useCompany();
   const orgRules = useModuleVisibilityStore((s) => s.orgRules);
+  const departmentRules = useModuleVisibilityStore((s) => s.departmentRules);
+  const employeeRules = useModuleVisibilityStore((s) => s.employeeRules);
   const personalRules = useModuleVisibilityStore((s) => s.personalRules);
   const loadRemoteRules = useModuleVisibilityStore((s) => s.loadRemoteRules);
 
@@ -43,13 +45,18 @@ export function useModuleVisibility() {
     return toScope(activeCompanyId as string);
   }, [user?.company_id, activeCompanyId]);
 
-  const hiddenIds = useMemo(
-    () => resolveEffectiveHiddenIds({ orgRules, personalRules }, companyScope, user?.id || null),
-    [orgRules, personalRules, companyScope, user?.id]
+  const resolved = useMemo(
+    () =>
+      resolveUserVisibilityAccess(SIDEBAR_MENU, user, activeCompanyId as string, {
+        orgRules,
+        departmentRules,
+        employeeRules,
+        personalRules,
+      }),
+    [user, activeCompanyId, orgRules, departmentRules, employeeRules, personalRules]
   );
 
-  const visibleMenu = useMemo<NavItem[]>(() => filterNavTree(SIDEBAR_MENU, hiddenIds), [hiddenIds]);
-  const blockedHrefs = useMemo(() => computeBlockedHrefs(SIDEBAR_MENU, hiddenIds), [hiddenIds]);
+  const { hiddenIds, grantedIds, grantedHrefs, blockedHrefs, visibleMenu } = resolved;
 
   const isHrefBlocked = useCallback(
     (href?: string | null) => Boolean(href && blockedHrefs.has(href)),
@@ -57,11 +64,18 @@ export function useModuleVisibility() {
   );
   const isPartHidden = useCallback((partId: string) => hiddenIds.has(partId), [hiddenIds]);
 
+  const isAdmin = authService.isAdmin(user);
+  const isVisibilityController = isVisibilityControllerUser(user) || isAdmin;
+
   return {
     hiddenIds,
-    visibleMenu,
+    grantedIds,
+    grantedHrefs,
+    blockedHrefs,
+    visibleMenu: visibleMenu as NavItem[],
     companyScope,
-    isAdmin: authService.isAdmin(user),
+    isAdmin,
+    isVisibilityController,
     isHrefBlocked,
     isPartHidden,
   };

@@ -62,7 +62,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
   const [pinnedTabs, setPinnedTabs] = useState<PinnedTabItem[]>(() => getPinnedTabs());
   const [recentTabs, setRecentTabs] = useState<PinnedTabItem[]>(() => getRecentTabs());
   const inputRef = useRef<HTMLInputElement>(null);
-  const { visibleMenu } = useModuleVisibility();
+  const { visibleMenu, grantedHrefs } = useModuleVisibility();
   const currentUser = authService.getCurrentUser();
   const isAdminUser = authService.isAdmin(currentUser);
   const userCompanyUpper = (currentUser?.company_id || '').toUpperCase();
@@ -74,7 +74,12 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
 
     const canAccessItem = (href?: string, exclusiveToCompany?: string) => {
       if (!href) return false;
-      if (exclusiveToCompany && !isAdminUser && userCompanyUpper !== exclusiveToCompany.toUpperCase()) {
+      if (
+        exclusiveToCompany &&
+        !isAdminUser &&
+        !grantedHrefs.has(href) &&
+        userCompanyUpper !== exclusiveToCompany.toUpperCase()
+      ) {
         return false;
       }
       return authService.isTabAuthorizedForUser(currentUser, href);
@@ -128,7 +133,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
       }
     });
 
-    const jisrCanonicalScreens: Array<{
+    const hrCanonicalScreens: Array<{
       id: string;
       href: string;
       title: string;
@@ -141,34 +146,64 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
         subtitle: 'الحضور الجغرافي GPS، الراتب المرن المستحق EWA، تبديل الورديات، وطلبات الإجازات',
       },
       {
-        id: 'screen-jisr-alerts-compliance',
+        id: 'screen-hr-alerts-compliance',
         href: 'jisr-alerts-compliance',
         title: 'رادار التنبيهات والجزاءات والراتب المرن ونطاقات',
         subtitle: 'تنبيهات الإقامة والتجربة (م53)، لائحة الجزاءات (م66-72)، الراتب المرن، ورقابة نطاقات قوى',
       },
       {
-        id: 'screen-jisr-accruals',
+        id: 'screen-hr-accruals',
         href: 'jisr-accruals',
         title: 'المخصصات الشهرية ومراكز التكلفة (IAS 19)',
         subtitle: 'احتساب وترحيل مخصصات نهاية الخدمة والإجازات وتذاكر السفر وتوزيع مراكز التكلفة',
       },
       {
-        id: 'screen-jisr-expenses',
+        id: 'screen-hr-expenses',
         href: 'jisr-expenses',
         title: 'النفقات وفواتير ZATCA والانتدابات',
         subtitle: 'مطالبات مصروفات الموظفين، قارئ فواتير ZATCA QR المانع للتكرار، وبدلات الانتداب',
       },
       {
-        id: 'screen-jisr-org-muqeem',
+        id: 'screen-hr-org-muqeem',
         href: 'jisr-org-muqeem',
         title: 'الهيكل التنظيمي ومكتب مقيم والخطابات',
         subtitle: 'الهيكل التنظيمي التفاعلي، طلبات تجديد الإقامة والتأشيرات في مقيم، والخطابات الرسمية',
       },
       {
-        id: 'screen-jisr-talent-360',
+        id: 'screen-hr-talent-360',
         href: 'jisr-talent-360',
         title: 'التوظيف الداخلي وتقييم 360° وإخلاء الطرف',
         subtitle: 'شواغر التوظيف الداخلي، تقييم الأداء 360 درجة، وإجراءات إخلاء الطرف والمخالصة النهائية',
+      },
+      {
+        id: 'screen-hr-shifts-overtime',
+        href: 'jisr-shifts-overtime',
+        title: 'المناوبات والعمل الإضافي (م107) والتعاميم',
+        subtitle: 'جدولة الورديات، احتساب ساعات العمل الإضافي وفق المادة 107، وإصدار التعاميم الإدارية',
+      },
+      {
+        id: 'screen-hr-welcome-signage',
+        href: 'jisr-welcome-signage',
+        title: 'الترحيب بالموظف الجديد وشاشات العرض الذكية',
+        subtitle: 'لوحة الترحيب بالمنضمين الجدد وأعياد الميلاد وإدارة شاشات العرض التلفزيونية للفروع',
+      },
+      {
+        id: 'screen-hr-arrears-b2b',
+        href: 'jisr-arrears-b2b',
+        title: 'الأثر الرجعي والمسيرات الإضافية ودفعات البنوك B2B',
+        subtitle: 'تقويم قطع الرواتب، احتساب الفروقات بأثر رجعي، المسيرات المستقلة، وملفات الصرف البنكي المباشر',
+      },
+      {
+        id: 'screen-hr-cards-rollover',
+        href: 'jisr-cards-rollover',
+        title: 'البطاقات المؤسسية وترحيل وتسييل الإجازات',
+        subtitle: 'إدارة بطاقات النفقات المؤسسية وأسقف الفئات، ومحرك الترحيل السنوي وتسييل الإجازات (م111)',
+      },
+      {
+        id: 'screen-hr-workflows-pulse',
+        href: 'jisr-workflows-pulse',
+        title: 'منشئ الطلبات والتوقيع OTP وبوابة التوظيف وeNPS',
+        subtitle: 'بناء مسارات الاعتماد المخصصة، التوقيع الإلكتروني الموثق OTP، بوابة الوظائف الخارجية، واستبيان eNPS',
       },
       {
         id: 'screen-reem-hr-emails',
@@ -179,7 +214,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
     ];
 
     if (currentUser) {
-      jisrCanonicalScreens.forEach((screen) => {
+      hrCanonicalScreens.forEach((screen) => {
         if (!canAccessItem(screen.href)) return;
         const existingIdx = list.findIndex((entry) => entry.href === screen.href);
         if (existingIdx >= 0) {
@@ -237,13 +272,40 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
         },
       },
       {
-        id: 'act-jisr-smart-alerts',
+        id: 'act-hr-smart-alerts',
         title: 'فتح رادار التنبيهات الذكية والراتب المرن ورقابة نطاقات',
         subtitle: 'مراجعة تنبيهات الإقامة والتجربة (م53) وصرف الراتب المرن وأهلية تأشيرات قوى ومقيم',
         href: 'jisr-alerts-compliance',
         requiredHref: 'jisr-alerts-compliance',
         kind: 'action',
         badge: 'HR Radar',
+      },
+      {
+        id: 'act-hr-arrears-b2b',
+        title: 'فتح الأثر الرجعي والمسيرات الإضافية ودفعات البنوك B2B',
+        subtitle: 'احتساب فروقات الرواتب والمكافآت وتوليد ملفات الصرف البنكي المباشر WPS / ISO 20022',
+        href: 'jisr-arrears-b2b',
+        requiredHref: 'jisr-arrears-b2b',
+        kind: 'action',
+        badge: 'B2B Payroll',
+      },
+      {
+        id: 'act-hr-cards-rollover',
+        title: 'فتح البطاقات المؤسسية وترحيل وتسييل الإجازات',
+        subtitle: 'إدارة بطاقات مصروفات الموظفين وترحيل أو تسييل أرصدة الإجازات السنوية (م111)',
+        href: 'jisr-cards-rollover',
+        requiredHref: 'jisr-cards-rollover',
+        kind: 'action',
+        badge: 'Cards & Leave',
+      },
+      {
+        id: 'act-hr-workflows-pulse',
+        title: 'فتح منشئ الطلبات والتوقيع OTP وبوابة التوظيف وeNPS',
+        subtitle: 'تصميم مسارات الاعتماد المخصصة، التوقيع الإلكتروني OTP، واستبيان الرضا الوظيفي',
+        href: 'jisr-workflows-pulse',
+        requiredHref: 'jisr-workflows-pulse',
+        kind: 'action',
+        badge: 'OTP & eNPS',
       },
       {
         id: 'act-reem-hr-emails',
@@ -441,13 +503,18 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
 
     // 4. Employees (only if user is authorized for `employees`)
     if (authService.isTabAuthorizedForUser(currentUser, 'employees')) {
-      readTable('employees').forEach((emp) => {
+      const mergedEmployees = [...readTable('hr_employees'), ...readTable('employees')];
+      const seenEmpIds = new Set<string>();
+      mergedEmployees.forEach((emp) => {
+        const empKey = String(emp.id || emp.national_id || emp.name || '');
+        if (!empKey || seenEmpIds.has(empKey)) return;
+        seenEmpIds.add(empKey);
         if (!matchesCompanyScope(emp)) return;
         const name = String(emp.name || emp.full_name || '');
         const role = String(emp.job_title || emp.position || emp.department || '');
         if (name.toLowerCase().includes(q) || role.toLowerCase().includes(q)) {
           results.push({
-            id: `rec-emp-${emp.id}`,
+            id: `rec-emp-${empKey}`,
             title: `موظف: ${name}`,
             subtitle: `المسمى: ${role || '—'} • القسم: ${emp.department || '—'}`,
             href: 'employees',

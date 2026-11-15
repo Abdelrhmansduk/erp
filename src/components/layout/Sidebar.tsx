@@ -32,7 +32,7 @@ import {
   MessageSquare, Smartphone, MessagesSquare, Megaphone, Radio,
   GitPullRequest, Globe, FolderSync, UploadCloud, Settings, Sliders,
   History, Settings2, Lock, TrendingUp, PanelRightClose, PanelRightOpen,
-  ChevronsDownUp, ChevronsUpDown, Bell, Calculator,
+  ChevronsDownUp, ChevronsUpDown, Bell, Calculator, Tv, Sparkles,
 } from 'lucide-react';
 
 const LUCIDE_ICONS: Record<string, React.FC<{ className?: string }>> = {
@@ -51,7 +51,7 @@ const LUCIDE_ICONS: Record<string, React.FC<{ className?: string }>> = {
   Wallet, BarChart4, FolderTree, Landmark, FolderKanban, BookOpen,
   MessageSquare, Smartphone, MessagesSquare, Megaphone, Radio,
   GitPullRequest, Globe, FolderSync, UploadCloud, Settings, Sliders,
-  History, Settings2, Folder, CircleDot, TrendingUp, Bell, Calculator,
+  History, Settings2, Folder, CircleDot, TrendingUp, Bell, Calculator, Tv, Sparkles,
 };
 
 interface SidebarProps {
@@ -100,7 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { isSuperAdmin, activeCompany } = useIamSession();
   const { activeCompanyId } = useCompany();
   const { user: authUser } = useAuthContext();
-  const { visibleMenu } = useModuleVisibility();
+  const { visibleMenu, grantedIds, grantedHrefs, isVisibilityController } = useModuleVisibility();
   const isRtl = currentLanguage.dir === 'rtl';
 
   const getItemTitle = (item: NavItem): string => {
@@ -276,6 +276,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'ShoppingCart':
       case 'Globe':
       case 'Server':
+      case 'Tv':
+      case 'Radio':
         return {
           pill: 'bg-[#f0f9ff] text-[#0284c7] border-[#bae6fd]',
           icon: 'text-[#0284c7]',
@@ -303,6 +305,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     const isItemCompanyAllowed = (item: NavItem): boolean => {
       if (!item.exclusiveToCompany) return true;
       if (isAdminUser) return true;
+      if (grantedIds.has(item.id) || (item.href && grantedHrefs.has(item.href))) return true;
+      if (item.children?.some((c) => grantedIds.has(c.id) || (c.href && grantedHrefs.has(c.href)))) return true;
       return userCompanyUpper === item.exclusiveToCompany.toUpperCase();
     };
 
@@ -351,7 +355,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
     return authorizedList;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, visibleMenu, effectiveProfile, resolvedScope, activeCompany, activeCompanyId, isSuperAdmin]);
+  }, [searchQuery, visibleMenu, grantedIds, grantedHrefs, effectiveProfile, resolvedScope, activeCompany, activeCompanyId, isSuperAdmin]);
 
   const hasActiveChild = (item: NavItem): boolean => {
     if (item.href === activeTab) return true;
@@ -801,6 +805,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
             </div>
+            {isVisibilityController && (
+              <button
+                type="button"
+                onClick={() => {
+                  onSelectTab('module-visibility', 'تخصيص ظهور الأقسام لكل موظف');
+                  if (onClose && window.innerWidth < 1024) onClose();
+                }}
+                className={`w-full py-2 px-3 rounded-full text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer border ${
+                  activeTab === 'module-visibility'
+                    ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                    : 'bg-[#ffffff] hover:bg-[#f3f3f3] text-[#141414] border-[#e0e0e0]'
+                }`}
+              >
+                <Sliders className="w-3.5 h-3.5" />
+                <span>تخصيص ظهور الأقسام للموظفين</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => onSelectTab('logout', t('sidebar.logout', 'تسجيل الخروج'))}

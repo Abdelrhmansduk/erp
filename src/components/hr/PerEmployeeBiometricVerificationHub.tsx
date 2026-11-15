@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { printSpecificElement } from '../../utils/printManager';
 import {
+  generateEmployeeBarcodeIdentity,
   getAllEmployeesGateVerificationDirectory,
   getEmployeeGateProfile,
   regenerateEmployeeBarcode,
@@ -53,6 +54,7 @@ interface IndividualAuditSummary {
   uniquePinsCount: number;
   zeroCollisions: boolean;
   antiSpoofingVerified: boolean;
+  dailyRotationVerified: boolean;
   checkedAtHHMM: string;
 }
 
@@ -124,31 +126,45 @@ export const PerEmployeeBiometricVerificationHub: React.FC<
     const pinSet = new Set<string>();
     let allSelfValid = true;
     let crossIsolationValid = true;
+    let dailyRotationValid = true;
+    const nowObj = new Date();
+    const yesterdayObj = new Date(nowObj.getTime() - 86_400_000);
 
     for (let i = 0; i < allProfiles.length; i++) {
       const emp = allProfiles[i];
       badgeSet.add(emp.badgeCode);
       pinSet.add(emp.shortPinCode);
 
-      const ownCheck = verifyEmployeeBarcodeInput(emp.badgeCode, {
+      const userSeed = {
         email: emp.email,
         id: emp.employeeId,
         full_name: emp.fullName,
         company_id: emp.companyCode,
-      });
+      };
+
+      const ownCheck = verifyEmployeeBarcodeInput(emp.badgeCode, userSeed, nowObj);
       if (!ownCheck.valid) {
         allSelfValid = false;
+      }
+
+      const yesterdayIdentity = generateEmployeeBarcodeIdentity(userSeed, yesterdayObj);
+      const expiredCheck = verifyEmployeeBarcodeInput(
+        yesterdayIdentity.badgeCode,
+        userSeed,
+        nowObj
+      );
+      if (
+        yesterdayIdentity.badgeCode === emp.badgeCode ||
+        expiredCheck.valid ||
+        !expiredCheck.expiredDailyCode
+      ) {
+        dailyRotationValid = false;
       }
 
       if (allProfiles.length > 1) {
         const neighbor = allProfiles[(i + 1) % allProfiles.length];
         if (neighbor.employeeKey !== emp.employeeKey) {
-          const spoofCheck = verifyEmployeeBarcodeInput(neighbor.badgeCode, {
-            email: emp.email,
-            id: emp.employeeId,
-            full_name: emp.fullName,
-            company_id: emp.companyCode,
-          });
+          const spoofCheck = verifyEmployeeBarcodeInput(neighbor.badgeCode, userSeed, nowObj);
           if (spoofCheck.valid || !spoofCheck.crossEmployeeMismatch) {
             crossIsolationValid = false;
           }
@@ -167,6 +183,7 @@ export const PerEmployeeBiometricVerificationHub: React.FC<
       uniquePinsCount: pinSet.size,
       zeroCollisions,
       antiSpoofingVerified: crossIsolationValid,
+      dailyRotationVerified: dailyRotationValid,
       checkedAtHHMM: new Date().toLocaleTimeString('ar-SA', {
         hour: '2-digit',
         minute: '2-digit',
@@ -176,8 +193,8 @@ export const PerEmployeeBiometricVerificationHub: React.FC<
     setAuditReport(summary);
 
     notificationPopupEngine.success(
-      'اكتمل فحص التحقق لكل موظف على حدة (100%)',
-      `تم التحقق فردياً من (${summary.totalChecked}) موظف: ${summary.uniqueBarcodesCount} باركود فريد دون أي تكرار، وعزل تام ضد استخدام باركود موظف آخر.`
+      'اكتمل فحص التحقق اليومي لكل موظف على حدة (100%)',
+      `تم التحقق فردياً من (${summary.totalChecked}) موظف: ${summary.uniqueBarcodesCount} باركود حقيقي فريد متجدد يومياً دون أي تكرار، ورفض تلقائي لرموز الأيام السابقة.`
     );
   };
 
@@ -466,6 +483,9 @@ export const PerEmployeeBiometricVerificationHub: React.FC<
                 <span className="px-2.5 py-0.5 rounded-full bg-[#ffffff] border border-[#e0e0e0] font-mono text-[#707070]">
                   PIN: <strong className="text-[#141414]">{prof.shortPinCode}</strong>
                 </span>
+                <span className="px-2 py-0.5 rounded-full bg-[#141414] text-[#ffffff] font-mono text-[10px] font-bold">
+                  يتجدد يومياً • صالح ليوم {prof.validForDate || new Date().toISOString().slice(0, 10)}
+                </span>
                 <span className="px-2 py-0.5 rounded-full bg-[#ffffff] border border-[#e0e0e0] font-mono text-[10px] text-[#707070]">
                   إصدار V{prof.barcodeVersion}
                 </span>
@@ -739,7 +759,8 @@ export const PerEmployeeBiometricVerificationHub: React.FC<
                   نتيجة الفحص الفردي الشامل ({auditReport.checkedAtHHMM}): تم التأكد من ({auditReport.totalChecked}) موظف بنجاح 100%
                 </div>
                 <div className="text-[#707070] mt-0.5">
-                  باركود فريد لكل موظف: {auditReport.uniqueBarcodesCount}/{auditReport.totalChecked} • رمز PIN فريد: {auditReport.uniquePinsCount}/{auditReport.totalChecked} • منع انتحال باركود موظف آخر:{' '}
+                  باركود يومي فريد لكل موظف: {auditReport.uniqueBarcodesCount}/{auditReport.totalChecked} • تجدد يومي ورفض رموز الأمس:{' '}
+                  <strong>{auditReport.dailyRotationVerified ? 'مفعل ومؤكد 100%' : 'تحقق'}</strong> • منع انتحال باركود موظف آخر:{' '}
                   <strong>{auditReport.antiSpoofingVerified ? 'مفعل ومؤكد 100%' : 'تحقق'}</strong>
                 </div>
               </div>

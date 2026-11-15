@@ -339,7 +339,7 @@ export const JisrShiftRosterAndOvertimeHub: React.FC<JisrShiftRosterAndOvertimeH
     setRosters((prev) => [entry, ...prev]);
     addNotification({
       type: 'success',
-      title: 'تم تسكين المناوبة في جدول جسر',
+      title: 'تم تسكين المناوبة في جدول الورديات',
       message: `${empObj.name} ← ${rosterDayOff ? 'يوم راحة أسبوعية' : shiftObj.name_ar} (${rosterDate}).`,
     });
   };
@@ -446,7 +446,7 @@ export const JisrShiftRosterAndOvertimeHub: React.FC<JisrShiftRosterAndOvertimeH
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-bold text-[#141414] mb-2">
             <Clock className="w-3.5 h-3.5" />
-            <span>منظومة جسر للدوام والمناوبات والإضافي (م98 • م104 • م107) والتعاميم</span>
+            <span>منظومة الدوام والمناوبات والإضافي (م98 • م104 • م107) والتعاميم</span>
           </div>
           <h3 className="text-xl font-black text-[#141414] m-0">
             إدارة جداول المناوبات، العمل الإضافي النظامي، والتعاميم — {companyName}

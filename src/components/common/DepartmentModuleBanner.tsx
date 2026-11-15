@@ -105,6 +105,8 @@ const DEPARTMENT_QUICK_TABS: Record<DepartmentId, Array<{ key: string; label: st
   ],
   hr: [
     { key: 'employees', label: 'شؤون الموظفين والرواتب' },
+    { key: 'welcome-screens', label: 'شاشات العرض بالشبكة (TV)' },
+    { key: 'jisr-welcome-signage', label: 'الترحيب والمباشرة' },
     { key: 'employee-salaries', label: 'مسيرات الرواتب WPS' },
     { key: 'employee-contracts', label: 'عقود قوى والتأمينات' },
     { key: 'employee-leaves', label: 'الإجازات والاستحقاقات' },

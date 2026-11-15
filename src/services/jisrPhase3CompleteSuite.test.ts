@@ -50,7 +50,7 @@ function buildZatcaTlvBase64(tags: Array<[number, string]>): string {
   return btoa(binary);
 }
 
-describe('Jisr 3.0 Complete Parity Suite (13 Capabilities)', () => {
+describe('Enterprise HR Complete Parity Suite (13 Capabilities)', () => {
   beforeEach(() => {
     if (typeof localStorage !== 'undefined') {
       localStorage.clear();

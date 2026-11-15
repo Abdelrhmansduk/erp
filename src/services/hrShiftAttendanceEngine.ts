@@ -1,5 +1,5 @@
 /**
- * Jisr-Grade Smart Shift, GPS Geofencing, Biometric ZKTeco Parser & Attendance Policy Engine
+ * Enterprise Smart Shift, GPS Geofencing, Biometric ZKTeco Parser & Attendance Policy Engine
  * Compliant with Saudi Labor Law Articles 98 (Working Hours & Ramadan 6h), 104 (Rest Days), and 107 (Overtime Pay).
  */
 
@@ -509,7 +509,7 @@ export class HrShiftAttendanceEngine {
     const rawEarly = Math.max(0, effectiveExpectedEnd - actualOut);
     const earlyLeaveMinutes = rawEarly <= params.shift.grace_out_minutes ? 0 : rawEarly;
 
-    // Optional Jisr policy: compensate morning tardiness by staying after shift end
+    // Optional HR policy: compensate morning tardiness by staying after shift end
     const extraStayAfterEnd = Math.max(0, actualOut - effectiveExpectedEnd);
     let overtimeMinutes = Math.max(0, rawWorkedMinutes - targetMinutes);
 

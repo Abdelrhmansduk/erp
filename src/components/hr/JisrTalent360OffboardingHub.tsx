@@ -1155,13 +1155,13 @@ export const JisrTalent360OffboardingHub: React.FC<JisrTalent360OffboardingHubPr
                         })}
                       </div>
 
-                      {/* Jisr Comprehensive Final Settlement Breakdown & Balanced GL Posting */}
+                      {/* Comprehensive Final Settlement Breakdown & Balanced GL Posting */}
                       <div className="p-4 rounded-[16px] bg-[#ffffff] border border-[#e0e0e0] space-y-3">
                         <div className="flex items-center justify-between flex-wrap gap-2">
                           <div className="flex items-center gap-1.5 text-xs font-black text-[#141414]">
                             <Calculator className="w-4 h-4 text-[#141414]" />
                             <span>
-                              حاسبة المخالصة النهائية الشاملة (جسر — م84 • م85 • م87 • م111)
+                              حاسبة المخالصة النهائية الشاملة (م84 • م85 • م87 • م111)
                             </span>
                           </div>
                           <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#707070]">

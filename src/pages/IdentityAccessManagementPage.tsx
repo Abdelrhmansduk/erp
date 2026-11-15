@@ -36,7 +36,7 @@ type IamTab =
 
 export const IdentityAccessManagementPage: React.FC = () => {
   useModalEscape();
-  const { activeTab: storeActiveTab, addNotification } = useAppStore();
+  const { activeTab: storeActiveTab, setActiveTab: setStoreActiveTab, addNotification } = useAppStore();
   const { 
     currentUser, 
     activeCompany, 
@@ -308,7 +308,7 @@ export const IdentityAccessManagementPage: React.FC = () => {
               <h1 className="text-2xl lg:text-4xl font-bold tracking-tight text-[#141414] flex items-center gap-3">
                 إدارة الهوية والصلاحيات متعددة الشركات والأقسام
               </h1>
-              <p className="text-slate-300 text-sm max-w-3xl leading-relaxed">
+              <p className="text-[#707070] text-sm max-w-3xl leading-relaxed">
                 تطبيق بنية العزل الهرمي الصارم (Multi-Tenant)، مبدأ أقل الصلاحيات (Least Privilege)، 
                 وفصل المهام الرقابي (Separation of Duties - SoD) لمجموعة خالد السليم.
               </p>
@@ -316,19 +316,28 @@ export const IdentityAccessManagementPage: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <div className="bg-[#f3f3f3] backdrop-blur-md border border-[#e0e0e0] px-4 py-2.5 rounded-2xl flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setStoreActiveTab('module-visibility', 'تخصيص ظهور الأقسام لكل موظف')}
+              className="px-4 py-2.5 bg-[#ffffff] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] font-bold text-xs rounded-full transition border border-[#141414] flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Sliders className="w-4 h-4 shrink-0" />
+              <span>تخصيص الأقسام لكل موظف (م. عبدالرحمن)</span>
+            </button>
+            <div className="bg-[#ffffff] border border-[#e0e0e0] px-4 py-2.5 rounded-2xl flex items-center gap-3">
               <Building2 className="w-5 h-5 text-[#141414]" />
               <div className="text-right">
-                <div className="text-[10px] text-slate-300">الشركة الحالية النشطة</div>
+                <div className="text-[10px] text-[#707070]">الشركة الحالية النشطة</div>
                 <div className="text-sm font-bold text-[#141414]">{activeCompany?.commercialName}</div>
               </div>
             </div>
             <button
+              type="button"
               onClick={loadAllIamData}
-              className="px-4 py-2.5 bg-[#141414] text-[#ffffff] hover:bg-[#262626] text-[#ffffff] font-bold text-xs rounded-2xl transition border border-[#e0e0e0] flex items-center justify-center gap-1.5 shadow-lg cursor-pointer"
+              className="px-4 py-2.5 bg-[#141414] text-[#ffffff] hover:bg-[#262626] font-bold text-xs rounded-full transition border border-[#141414] flex items-center justify-center gap-1.5 cursor-pointer"
               title="تحديث البيانات اللحظية"
             >
-              <RefreshCw className="w-4 h-4 text-[#141414] shrink-0" />
+              <RefreshCw className="w-4 h-4 text-[#ffffff] shrink-0" />
               <span>تحديث</span>
             </button>
           </div>

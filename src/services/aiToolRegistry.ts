@@ -240,7 +240,7 @@ export const AI_TOOL_REGISTRY: AiToolDefinition[] = [
   // ═══════════════════════════════════════════════════════════
   {
     id: 'get_expiring_iqamas',
-    nameAr: 'فحص الإقامات والعقود المنتهية قريباً',
+    nameAr: 'فحص الإقامات والعقود التي أوشكت على الانتهاء',
     descriptionAr: 'عرض قائمة الموظفين والعمالة التي تنتهي إقاماتها خلال فترة محددة بالأيام للبدء بتجديدها.',
     companyScope: [],
     departmentScope: ['hr', 'executive'],
@@ -287,7 +287,7 @@ export const AI_TOOL_REGISTRY: AiToolDefinition[] = [
   // ═══════════════════════════════════════════════════════════
   {
     id: 'scan_hr_smart_alerts',
-    nameAr: 'رادار جسر للتنبيهات الذكية وفترة التجربة ونطاقات',
+    nameAr: 'رادار الموارد البشرية للتنبيهات الذكية وفترة التجربة ونطاقات',
     descriptionAr: 'فحص شامل لتنبيهات الموارد البشرية الاستباقية: انتهاء فترة التجربة (المادة 53)، الإقامات، عقود قوى (المادة 55)، تجاوز SLA للاعتمادات، ومؤشر نطاقات التوطين.',
     companyScope: [],
     departmentScope: ['hr', 'executive', 'finance'],
@@ -480,7 +480,7 @@ export const AI_TOOL_REGISTRY: AiToolDefinition[] = [
   {
     id: 'navigate_to_page',
     nameAr: 'الانتقال المباشر إلى شاشة أو قسم',
-    descriptionAr: 'التنقل مباشرة إلى صفحة أو قسم محدد في النظام (مثال: لوحة المؤشرات، المحاسبة، الفوترة، مراكز الإيواء).',
+    descriptionAr: 'التنقل مباشرة إلى صفحة أو قسم محدد في النظام (مثال: لوحة المؤشرات، المحاسبة، الفوترة، مراكز الإيواء، الموارد البشرية، الحضور والانصراف، بوابة الخدمة الذاتية للموظف والمدير، التنبيهات والامتثال، المخصصات المحاسبية، النفقات والعهد، مقيم والهيكل التنظيمي، تقييم الأداء 360، الورديات والعمل الإضافي، شاشات الترحيب، الفروقات الرجعية، البطاقات المؤسسية، سير العمل ونبض الموظفين، والمراسلات الرسمية للموارد البشرية).',
     companyScope: [],
     departmentScope: ['finance', 'recruitment', 'rental', 'ats', 'hr', 'crm', 'shelter', 'tenders', 'executive'],
     requiredPermission: 'system.navigate',
@@ -491,7 +491,7 @@ export const AI_TOOL_REGISTRY: AiToolDefinition[] = [
       {
         name: 'page_key',
         type: 'string',
-        description: 'مفتاح الصفحة المطلوبة',
+        description: 'مفتاح الصفحة المطلوبة (بما في ذلك شاشات الموارد البشرية والخدمة الذاتية: attendances, profile, jisr-alerts-compliance, jisr-accruals, jisr-expenses, jisr-org-muqeem, jisr-talent-360, jisr-shifts-overtime, jisr-welcome-signage, jisr-arrears-b2b, jisr-cards-rollover, jisr-workflows-pulse, reem-hr-emails)',
         required: true,
         enumValues: [
           'dashboard',
@@ -510,6 +510,19 @@ export const AI_TOOL_REGISTRY: AiToolDefinition[] = [
           'group-command-center',
           'group-command',
           'hr',
+          'attendances',
+          'profile',
+          'jisr-alerts-compliance',
+          'jisr-accruals',
+          'jisr-expenses',
+          'jisr-org-muqeem',
+          'jisr-talent-360',
+          'jisr-shifts-overtime',
+          'jisr-welcome-signage',
+          'jisr-arrears-b2b',
+          'jisr-cards-rollover',
+          'jisr-workflows-pulse',
+          'reem-hr-emails',
           'clients',
           'complaints',
           'employee-monitoring',
@@ -524,22 +537,89 @@ export const AI_TOOL_REGISTRY: AiToolDefinition[] = [
 /**
  * Get tools available for a specific company context.
  */
-AI_TOOL_REGISTRY.push({
-  id: 'approve_wps_payroll_run',
-  nameAr: 'اعتماد مسير الرواتب وحماية الأجور WPS',
-  descriptionAr: 'اعتماد مسير الرواتب الشهري وتجهيز ملف البنك SIF لمنصة مُدد وحماية الأجور WPS مع الترحيل المحاسبي.',
-  companyScope: [],
-  departmentScope: ['hr', 'finance', 'executive'],
-  requiredPermission: 'hr.payroll.approve',
-  riskLevel: 'high',
-  category: 'hr',
-  isMutating: true,
-  parameters: [
-    { name: 'payroll_month', type: 'string', description: 'شهر المسير بصيغة YYYY-MM', required: true },
-    { name: 'employees_count', type: 'number', description: 'عدد الموظفين المشمولين بالمسير', required: false },
-    { name: 'total_net_sar', type: 'number', description: 'إجمالي صافي الرواتب بالريال السعودي', required: false },
-  ],
-});
+AI_TOOL_REGISTRY.push(
+  {
+    id: 'approve_wps_payroll_run',
+    nameAr: 'اعتماد مسير الرواتب وحماية الأجور WPS',
+    descriptionAr: 'اعتماد مسير الرواتب الشهري وتجهيز ملف البنك SIF لمنصة مُدد وحماية الأجور WPS مع الترحيل المحاسبي.',
+    companyScope: [],
+    departmentScope: ['hr', 'finance', 'executive'],
+    requiredPermission: 'hr.payroll.approve',
+    riskLevel: 'high',
+    category: 'hr',
+    isMutating: true,
+    parameters: [
+      { name: 'payroll_month', type: 'string', description: 'شهر المسير بصيغة YYYY-MM', required: true },
+      { name: 'employees_count', type: 'number', description: 'عدد الموظفين المشمولين بالمسير', required: false },
+      { name: 'total_net_sar', type: 'number', description: 'إجمالي صافي الرواتب بالريال السعودي', required: false },
+    ],
+  },
+  {
+    id: 'approve_hr_workflow_request',
+    nameAr: 'اعتماد طلب خدمة ذاتية في سلسلة موافقات الموارد البشرية',
+    descriptionAr: 'اعتماد أو بتّ طلب معلق في سجل اعتمادات الموارد البشرية (إجازة، سلفة، استئذان، عمل إضافي، عهدة، أو مباشرة عمل) وحفظ الاعتماد الفعلي في قاعدة البيانات.',
+    companyScope: [],
+    departmentScope: ['hr', 'executive', 'finance'],
+    requiredPermission: 'hr.workflow.approve',
+    riskLevel: 'medium',
+    category: 'hr',
+    isMutating: true,
+    parameters: [
+      { name: 'request_id', type: 'string', description: 'رقم طلب الاعتماد أو اسم الموظف مقدم الطلب', required: true },
+      { name: 'decision', type: 'string', description: 'قرار الاعتماد', required: false, enumValues: ['APPROVE', 'REJECT'] },
+      { name: 'comment', type: 'string', description: 'ملاحظات الاعتماد الإداري (اختياري)', required: false },
+    ],
+  },
+  {
+    id: 'manage_corporate_spend_card',
+    nameAr: 'إدارة وتجميد أو تفعيل البطاقة المؤسسية للمصروفات',
+    descriptionAr: 'تجميد (FREEZE) أو إلغاء تجميد وتفعيل (UNFREEZE) بطاقة صرف مؤسسية للموظف بشكل فوري في سجل البطاقات المؤسسية.',
+    companyScope: [],
+    departmentScope: ['hr', 'finance', 'executive'],
+    requiredPermission: 'hr.cards.manage',
+    riskLevel: 'high',
+    category: 'hr',
+    isMutating: true,
+    parameters: [
+      { name: 'card_id', type: 'string', description: 'رقم البطاقة المؤسسية أو آخر 4 أرقام أو اسم حامل البطاقة', required: true },
+      { name: 'action', type: 'string', description: 'الإجراء المطلوب على البطاقة', required: true, enumValues: ['FREEZE', 'UNFREEZE'] },
+      { name: 'reason', type: 'string', description: 'سبب التجميد أو إعادة التفعيل (اختياري)', required: false },
+    ],
+  },
+  {
+    id: 'dispatch_reem_hr_official_email',
+    nameAr: 'إرسال بريد رسمي ثنائي اللغة من إدارة الموارد البشرية (HR@kas.sa)',
+    descriptionAr: 'إرسال رسالة بريد إلكتروني رسمية ثنائية اللغة (عربي/إنجليزي) مباشرة من بريد الموارد البشرية المعتمد (HR@kas.sa) بتوقيع أ. ريم بن حسين وشعار المجموعة ونسخة إلى رئيس مجلس الإدارة (Khalid@kas.sa).',
+    companyScope: [],
+    departmentScope: ['hr', 'executive'],
+    requiredPermission: 'hr.email.dispatch',
+    riskLevel: 'medium',
+    category: 'hr',
+    isMutating: true,
+    parameters: [
+      { name: 'recipient_email', type: 'string', description: 'البريد الإلكتروني للمستلم (@kas.sa) أو اسم الموظف', required: true },
+      { name: 'recipient_name', type: 'string', description: 'اسم المستلم بالعربية (اختياري)', required: false },
+      { name: 'subject_ar', type: 'string', description: 'عنوان الرسالة الرسمية بالعربية', required: true },
+      { name: 'body_ar', type: 'string', description: 'نص ومحتوى الرسالة الرسمية بالعربية', required: true },
+      {
+        name: 'template_id',
+        type: 'string',
+        description: 'القالب الرسمي المعتمد (اختياري)',
+        required: false,
+        enumValues: [
+          'CUSTOM_OFFICIAL_CORRESPONDENCE',
+          'EMPLOYMENT_TRANSACTION_DECISION',
+          'ADMINISTRATIVE_WARNING_ART71',
+          'PROACTIVE_COMPLIANCE_ALERT',
+          'ONBOARDING_WELCOME_PACKAGE',
+          'INTERDEPARTMENTAL_WORK_TASK',
+          'PAYROLL_WPS_PAYSLIP_NOTICE',
+          'GENERAL_HR_CIRCULAR',
+        ],
+      },
+    ],
+  }
+);
 
 export function getToolsForCompany(companyId: string): AiToolDefinition[] {
   const cid = companyId.toUpperCase();

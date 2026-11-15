@@ -252,7 +252,7 @@ describe('WpsPayrollEngine — Saudi Labor Law & WPS Enterprise Suite', () => {
     });
   });
 
-  describe('7. Jisr 2.0 Extensions: Art. 87 EOSB, Cost-Center Splitting, IFRS Accruals & Skip Installment', () => {
+  describe('7. HR 2.0 Extensions: Art. 87 EOSB, Cost-Center Splitting, IFRS Accruals & Skip Installment', () => {
     it('awards 100% EOSB under Article 87 (female marriage/maternity resignation) even under 2 years', () => {
       const eos = WpsPayrollEngine.calculateEndOfService({
         startDate: '2025-06-01',

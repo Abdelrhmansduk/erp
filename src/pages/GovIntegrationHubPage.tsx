@@ -27,6 +27,7 @@ import {
   isValidVisaNumber,
   loadLiveGovSnapshot,
   maskSensitivePayloadText,
+  resolveRecordCompany,
   runReadinessAudit,
   setGovEnvironment,
   EMPTY_GOV_SNAPSHOT,
@@ -113,7 +114,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ agencyId, snapshot, environ
   }, [onClose]);
 
   const live = ((snapshot[adapter.collection] || []) as Record<string, any>[]).filter((r) => {
-    const rc = String(r.company_id || r.companyId || '').toUpperCase();
+    const rc = resolveRecordCompany(r);
     return !rc || rc === companyId;
   });
   const usingSample = live.length === 0;
@@ -237,9 +238,10 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ agencyId, snapshot, environ
 // ─── Page ───────────────────────────────────────────────────────────────────
 
 export const GovIntegrationHubPage: React.FC = () => {
-  const { addNotification } = useAppStore();
+  const { addNotification, setActiveTab } = useAppStore();
   const [tab, setTab] = useState<HubTab>('agencies');
   const [environment, setEnvironmentState] = useState<GovEnvironment>(() => getGovEnvironment());
+  const [companyFilter, setCompanyFilter] = useState<'all' | GovCompanyCode>('all');
   const [snapshot, setSnapshot] = useState<GovDataSnapshot>(EMPTY_GOV_SNAPSHOT);
   const [loading, setLoading] = useState(true);
   const [tick, setTick] = useState(0);
@@ -265,17 +267,39 @@ export const GovIntegrationHubPage: React.FC = () => {
   }, [refreshData]);
 
   const report = useMemo(
-    () => runReadinessAudit(snapshot, { environment, gatewayConfigured: gateway }),
+    () =>
+      runReadinessAudit(snapshot, {
+        environment,
+        gatewayConfigured: gateway,
+        activeCompany: companyFilter,
+      }),
     // tick forces recompute after queue/data changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [snapshot, environment, gateway, tick]
+    [snapshot, environment, gateway, companyFilter, tick]
+  );
+
+  const displayedAgencies = useMemo(
+    () =>
+      companyFilter === 'all'
+        ? report.agencies
+        : report.agencies.filter((a) => a.companies.includes(companyFilter)),
+    [report.agencies, companyFilter]
   );
 
   const queue = govOutbox.getQueue();
   const logs = govOutbox.getLogs();
   const pendingCount = queue.filter((i) => ['PENDING', 'RETRY_WAIT', 'SENDING'].includes(i.status)).length;
   const dlqCount = queue.filter((i) => i.status === 'DLQ_QUARANTINED' || i.status === 'REJECTED_VALIDATION').length;
-  const readyCount = report.agencies.filter((a) => a.status === 'READY').length;
+  const readyCount = displayedAgencies.filter((a) => a.status === 'READY').length;
+  const displayedAvgScore = useMemo(
+    () =>
+      displayedAgencies.length === 0
+        ? 0
+        : Math.round(
+            displayedAgencies.reduce((sum, a) => sum + a.readinessScore, 0) / displayedAgencies.length
+          ),
+    [displayedAgencies]
+  );
 
   const changeEnvironment = (env: GovEnvironment) => {
     const res = setGovEnvironment(env, gateway);
@@ -319,8 +343,10 @@ export const GovIntegrationHubPage: React.FC = () => {
     exportData('gov-integrations', buildReadinessExportRows(report), fmt, 'تقرير جاهزية التكامل الحكومي الموحد');
   };
 
-  const goToMusanedPlan = () =>
+  const goToMusanedPlan = () => {
+    setActiveTab('musaned-master-plan', 'مصفوفة تكامل مساند التشغيلية');
     window.dispatchEvent(new CustomEvent('alsulaim_navigate', { detail: { tab: 'musaned-master-plan', title: 'مصفوفة تكامل مساند التشغيلية' } }));
+  };
 
   return (
     <div className="space-y-5 text-right animate-fade-in" dir="rtl">
@@ -419,10 +445,18 @@ export const GovIntegrationHubPage: React.FC = () => {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: 'مؤشر الجاهزية الموحد', value: `${report.overallScore}%`, sub: `${readyCount} من 11 جاهزة` },
+          {
+            label: 'مؤشر الجاهزية الموحد',
+            value: `${displayedAvgScore}%`,
+            sub: `${readyCount} من ${displayedAgencies.length} جاهزة`,
+          },
           { label: 'حزم بانتظار الإرسال', value: String(pendingCount), sub: 'طابور المزامنة' },
           { label: 'حزم معزولة / مرفوضة', value: String(dlqCount), sub: 'DLQ والفحص المسبق' },
-          { label: 'الشركات المشمولة', value: '5', sub: 'SAF • YAQ • TOP • KAS • DAR' },
+          {
+            label: 'نطاق الشركة النشط',
+            value: companyFilter === 'all' ? '5 كيانات' : companyFilter,
+            sub: 'SAF • YAQ • TOP • KAS • DAR',
+          },
         ].map((k) => (
           <div key={k.label} className="bg-white border border-[#f0f0f0] rounded-[24px] p-5">
             <div className="text-xs font-semibold text-[#707070]">{k.label}</div>
@@ -432,36 +466,62 @@ export const GovIntegrationHubPage: React.FC = () => {
         ))}
       </div>
 
-      {/* Tabs */}
-      <div className="inline-flex flex-wrap bg-[#f3f3f3] p-1 rounded-full gap-1" role="tablist">
-        {TABS.map((t) => {
-          const Icon = t.icon;
-          return (
+      {/* Tabs + Company Entity Filter (SAF • YAQ • TOP • KAS • DAR) */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="inline-flex flex-wrap bg-[#f3f3f3] p-1 rounded-full gap-1" role="tablist">
+          {TABS.map((t) => {
+            const Icon = t.icon;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={tab === t.id}
+                onClick={() => setTab(t.id)}
+                className={`px-4 py-2 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer transition-colors ${
+                  tab === t.id ? 'bg-white text-[#141414] border border-[#e0e0e0]' : 'text-[#141414] hover:bg-[#e0e0e0]'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" /> {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="inline-flex flex-wrap items-center bg-[#f3f3f3] p-1 rounded-full gap-1" aria-label="تصفية حسب الشركة">
+          <button
+            type="button"
+            onClick={() => setCompanyFilter('all')}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-colors ${
+              companyFilter === 'all' ? 'bg-[#141414] text-white' : 'text-[#141414] hover:bg-[#e0e0e0]'
+            }`}
+          >
+            المجموعة (5)
+          </button>
+          {GOV_COMPANIES.map((comp) => (
             <button
-              key={t.id}
+              key={comp}
               type="button"
-              role="tab"
-              aria-selected={tab === t.id}
-              onClick={() => setTab(t.id)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer transition-colors ${
-                tab === t.id ? 'bg-white text-[#141414] border border-[#e0e0e0]' : 'text-[#141414] hover:bg-[#e0e0e0]'
+              onClick={() => setCompanyFilter(comp)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-bold cursor-pointer transition-colors ${
+                companyFilter === comp ? 'bg-[#141414] text-white' : 'text-[#141414] hover:bg-[#e0e0e0]'
               }`}
             >
-              <Icon className="w-3.5 h-3.5" /> {t.label}
+              {comp}
             </button>
-          );
-        })}
+          ))}
+        </div>
       </div>
 
       {tab === 'agencies' && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {report.agencies.map((a) => (
+          {displayedAgencies.map((a) => (
             <AgencyCard key={a.agencyId} agency={a} stats={govOutbox.getStats(a.agencyId)} onPreview={() => setPreviewAgency(a.agencyId)} />
           ))}
         </div>
       )}
 
-      {tab === 'checker' && <CheckerPanel agencies={report.agencies} />}
+      {tab === 'checker' && <CheckerPanel agencies={displayedAgencies} />}
 
       {tab === 'queue' && (
         <div className="space-y-4">

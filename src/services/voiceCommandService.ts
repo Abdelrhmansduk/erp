@@ -81,7 +81,7 @@ export const VOICE_COMMANDS_GUIDE: VoiceCommandGuideItem[] = [
       'كم رصيد السيولة النقدية في البنك؟',
       'ما هو تقرير مركز الإيواء اليوم؟',
       'ما هي حالة الفوترة المشفرة ZATCA؟',
-      'استعرض الإقامات المنتهية قريباً',
+      'استعرض الإقامات التي أوشكت على الانتهاء',
     ],
     description: 'استخراج وعرض المؤشرات الحية مع نطق الملخص التنفيذي صوتياً.',
     badge: 'استعلام ذكي',
@@ -268,13 +268,13 @@ export async function dispatchVoiceCommand(
     }
   }
 
-  if (norm.includes('تنبيهات الموارد') || norm.includes('رادار جسر') || norm.includes('فتره التجربه') || norm.includes('فحص نطاقات') || norm.includes('التنبيهات الذكيه')) {
+  if (norm.includes('تنبيهات الموارد') || norm.includes('رادار الموارد') || norm.includes('فتره التجربه') || norm.includes('فحص نطاقات') || norm.includes('التنبيهات الذكيه')) {
     if (callbacks.onExecuteTool) {
       await callbacks.onExecuteTool('scan_hr_smart_alerts', {});
       return {
         isCommand: true,
         commandType: 'direct_tool',
-        displayText: 'تم تشغيل رادار جسر للتنبيهات الاستباقية وفحص فترة التجربة ونطاقات التوطين.',
+        displayText: 'تم تشغيل رادار الموارد البشرية للتنبيهات الاستباقية وفحص فترة التجربة ونطاقات التوطين.',
       };
     }
   }
@@ -322,22 +322,132 @@ export async function dispatchVoiceCommand(
     }
 
     if (norm.includes('خدمه ذاتيه') || norm.includes('بوابه الموظف') || norm.includes('راتبي المرن')) {
-      callbacks.onNavigate?.('profile', 'بوابة جسر للخدمة الذاتية للموظف والمدير');
+      callbacks.onNavigate?.('profile', 'بوابة الخدمة الذاتية للموظف والمدير');
       return {
         isCommand: true,
         commandType: 'navigate',
-        spokenResponse: 'تم فتح بوابة جسر للخدمة الذاتية للموظف والمدير.',
-        displayText: 'تم الانتقال إلى [بوابة جسر للخدمة الذاتية ESS].',
+        spokenResponse: 'تم فتح بوابة الخدمة الذاتية للموظف والمدير.',
+        displayText: 'تم الانتقال إلى [بوابة الخدمة الذاتية للموظف والمدير ESS].',
       };
     }
 
-    if (norm.includes('تنبيهات جسر') || norm.includes('نطاقات') || norm.includes('جزاءات')) {
+    if (norm.includes('حضور') || norm.includes('انصراف') || norm.includes('بصمه')) {
+      callbacks.onNavigate?.('attendances', 'الحضور والانصراف والبصمة الجغرافية والورديات');
+      return {
+        isCommand: true,
+        commandType: 'navigate',
+        spokenResponse: 'تم فتح شاشة الحضور والانصراف والبصمة الجغرافية.',
+        displayText: 'تم الانتقال إلى [الحضور والانصراف والبصمة الجغرافية والورديات].',
+      };
+    }
+
+    if (norm.includes('تنبيهات الامتثال') || norm.includes('تنبيهات الموارد') || norm.includes('نطاقات') || norm.includes('جزاءات')) {
       callbacks.onNavigate?.('jisr-alerts-compliance', 'مركز التنبيهات الذكي والجزاءات ونطاقات');
       return {
         isCommand: true,
         commandType: 'navigate',
-        spokenResponse: 'تم فتح مركز التنبيهات الاستباقية ولائحة الجزاءات ومحاكي نطاقات.',
+        spokenResponse: 'تم فتح مركز التنبيهات الاستباقية ولائحة الجزاءات ونطاقات.',
         displayText: 'تم الانتقال إلى [مركز التنبيهات الذكي والجزاءات ونطاقات].',
+      };
+    }
+
+    if (norm.includes('مخصصات') || norm.includes('نهايه الخدمه') || norm.includes('سحب الراتب')) {
+      callbacks.onNavigate?.('jisr-accruals', 'المخصصات الشهرية والقيود المحاسبية والرواتب عند الطلب');
+      return {
+        isCommand: true,
+        commandType: 'navigate',
+        spokenResponse: 'تم فتح شاشة المخصصات الشهرية والرواتب عند الطلب.',
+        displayText: 'تم الانتقال إلى [المخصصات الشهرية والقيود المحاسبية والرواتب عند الطلب].',
+      };
+    }
+
+    if (norm.includes('عهد') || norm.includes('تذاكر السفر') || norm.includes('تامين طبي')) {
+      callbacks.onNavigate?.('jisr-expenses', 'العُهد والمصروفات وتذاكر السفر والتأمين الطبي');
+      return {
+        isCommand: true,
+        commandType: 'navigate',
+        spokenResponse: 'تم فتح شاشة العهد والمصروفات وتذاكر السفر والتأمين الطبي.',
+        displayText: 'تم الانتقال إلى [العُهد والمصروفات وتذاكر السفر والتأمين الطبي].',
+      };
+    }
+
+    if (norm.includes('مقيم') || norm.includes('قوى') || norm.includes('هيكل تنظيمي')) {
+      callbacks.onNavigate?.('jisr-org-muqeem', 'الهيكل التنظيمي والتوظيف وربط مقيم وقوى');
+      return {
+        isCommand: true,
+        commandType: 'navigate',
+        spokenResponse: 'تم فتح شاشة الهيكل التنظيمي وربط منصتي مقيم وقوى.',
+        displayText: 'تم الانتقال إلى [الهيكل التنظيمي والتوظيف وربط مقيم وقوى].',
+      };
+    }
+
+    if (norm.includes('تقييم الاداء') || norm.includes('اهداف') || norm.includes('اخلاء طرف')) {
+      callbacks.onNavigate?.('jisr-talent-360', 'تقييم الأداء 360 والأهداف والتدريب ومقابلات الإخلاء');
+      return {
+        isCommand: true,
+        commandType: 'navigate',
+        spokenResponse: 'تم فتح شاشة تقييم الأداء 360 والأهداف والتدريب.',
+        displayText: 'تم الانتقال إلى [تقييم الأداء 360 والأهداف والتدريب ومقابلات الإخلاء].',
+      };
+    }
+
+    if (norm.includes('ورديات') || norm.includes('عمل اضافي')) {
+      callbacks.onNavigate?.('jisr-shifts-overtime', 'جدولة الورديات والعمل الإضافي وتصدير مدد WPS');
+      return {
+        isCommand: true,
+        commandType: 'navigate',
+        spokenResponse: 'تم فتح شاشة جدولة الورديات والعمل الإضافي.',
+        displayText: 'تم الانتقال إلى [جدولة الورديات والعمل الإضافي وتصدير مدد WPS].',
+      };
+    }
+
+    if (norm.includes('شاشه الترحيب') || norm.includes('اعياد') || norm.includes('مناسبات وطنيه')) {
+      callbacks.onNavigate?.('jisr-welcome-signage', 'شاشة الترحيب التفاعلية والأعياد والمناسبات الوطنية');
+      return {
+        isCommand: true,
+        commandType: 'navigate',
+        spokenResponse: 'تم فتح شاشة الترحيب التفاعلية والمناسبات الوطنية.',
+        displayText: 'تم الانتقال إلى [شاشة الترحيب التفاعلية والأعياد والمناسبات الوطنية].',
+      };
+    }
+
+    if (norm.includes('فروقات الرواتب') || norm.includes('اثر رجعي') || norm.includes('عمولات')) {
+      callbacks.onNavigate?.('jisr-arrears-b2b', 'فروقات الرواتب بأثر رجعي والعمولات والمدفوعات البنكية B2B');
+      return {
+        isCommand: true,
+        commandType: 'navigate',
+        spokenResponse: 'تم فتح شاشة فروقات الرواتب بأثر رجعي والمدفوعات البنكية.',
+        displayText: 'تم الانتقال إلى [فروقات الرواتب بأثر رجعي والعمولات والمدفوعات البنكية B2B].',
+      };
+    }
+
+    if (norm.includes('بطاقات المصروفات') || norm.includes('ترحيل الاجازات')) {
+      callbacks.onNavigate?.('jisr-cards-rollover', 'بطاقات المصروفات المؤسسية وترحيل الإجازات وإغلاق البصمة');
+      return {
+        isCommand: true,
+        commandType: 'navigate',
+        spokenResponse: 'تم فتح شاشة بطاقات المصروفات المؤسسية وترحيل الإجازات.',
+        displayText: 'تم الانتقال إلى [بطاقات المصروفات المؤسسية وترحيل الإجازات وإغلاق البصمة].',
+      };
+    }
+
+    if (norm.includes('سلاسل الاعتماد') || norm.includes('توقيع الكتروني') || norm.includes('نبض الرضا')) {
+      callbacks.onNavigate?.('jisr-workflows-pulse', 'سلاسل الاعتماد المخصصة والتوقيع الإلكتروني ونبض الرضا eNPS');
+      return {
+        isCommand: true,
+        commandType: 'navigate',
+        spokenResponse: 'تم فتح شاشة سلاسل الاعتماد المخصصة والتوقيع الإلكتروني ونبض الرضا.',
+        displayText: 'تم الانتقال إلى [سلاسل الاعتماد المخصصة والتوقيع الإلكتروني ونبض الرضا eNPS].',
+      };
+    }
+
+    if (norm.includes('استوديو المراسلات') || norm.includes('بريد ريم') || norm.includes('مراسلات الموارد')) {
+      callbacks.onNavigate?.('reem-hr-emails', 'استوديو المراسلات الرسمية للموارد البشرية (HR@kas.sa)');
+      return {
+        isCommand: true,
+        commandType: 'navigate',
+        spokenResponse: 'تم فتح استوديو المراسلات الرسمية للموارد البشرية.',
+        displayText: 'تم الانتقال إلى [استوديو المراسلات الرسمية للموارد البشرية (HR@kas.sa)].',
       };
     }
 

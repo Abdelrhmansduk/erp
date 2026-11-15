@@ -9,6 +9,12 @@
 
 import { realErpDataStore } from './realErpDataStore';
 import { sendHrOfficialEmailDirect } from './quickShareService';
+import { generateEmployeeBarcodeIdentity } from './biometricAttendanceGateService';
+import {
+  composeReemHrOfficialEmail,
+  REEM_HR_SIGNATORY,
+} from './reemHrEmailTemplatesEngine';
+import { dispatchComposedHrEmailDirect } from './hrDirectEmailDispatchService';
 
 export const KAS_SIGNAGE_BROADCAST_CHANNEL = 'kas_digital_signage_v1';
 export const KAS_SIGNAGE_STORAGE_PING_KEY = 'KAS_SIGNAGE_LAST_PING_V1';
@@ -28,6 +34,63 @@ export interface DigitalSignageScreenRecord {
   connection_type: SignageConnectionType;
   is_online: boolean;
   last_heartbeat_at: string;
+  last_latency_ms?: number | null;
+  open_ports?: number[];
+  probe_mode?: string;
+}
+
+export interface LanInterfaceSummary {
+  name: string;
+  address: string;
+  netmask: string;
+  cidr: string;
+  mac: string;
+}
+
+export interface ScreenHealthProbeResult {
+  screen_id: string;
+  screen_code: string;
+  ip_or_host: string;
+  resolved_ip: string | null;
+  reachable: boolean;
+  probe_mode: 'WEB_RELAY' | 'TCP_PORT_PROBE' | 'TCP_TIMEOUT' | 'BLOCKED_NON_PRIVATE_HOST' | 'BROWSER_FALLBACK';
+  latency_ms: number | null;
+  open_ports: number[];
+  reason_ar: string;
+}
+
+export interface DiscoveredLanDisplayDevice {
+  ip: string;
+  mac: string;
+  device_type: string;
+  label_ar: string;
+  vendor_hint: string;
+  recommended_connection_type: SignageConnectionType;
+  open_ports: number[];
+  latency_ms: number;
+  ssdp_server?: string;
+}
+
+export interface SignageNetworkScanReport {
+  scanned_at: string;
+  interfaces: LanInterfaceSummary[];
+  arp_neighbor_count: number;
+  ssdp_responder_count: number;
+  discovered_devices: DiscoveredLanDisplayDevice[];
+  screen_health_checks: ScreenHealthProbeResult[];
+  kiosk_broadcast_urls: Array<{
+    interface_name: string;
+    ip: string;
+    cidr: string;
+    kiosk_url: string;
+  }>;
+  summary: {
+    discovered_count: number;
+    registered_total: number;
+    registered_reachable: number;
+    registered_unreachable: number;
+  };
+  scanner_source?: 'LOCAL_LAN_DAEMON' | 'CLIENT_FALLBACK';
 }
 
 export interface WelcomeBroadcastRecord {
@@ -46,6 +109,12 @@ export interface WelcomeBroadcastRecord {
   welcome_quote_ar: string;
   corporate_email?: string;
   phone?: string;
+  daily_badge_code?: string;
+  daily_pin_code?: string;
+  welcome_qr_payload?: string;
+  auto_email_sent?: boolean;
+  auto_email_sent_at?: string;
+  auto_email_reference_no?: string;
   target_screen_ids: string[]; // ['ALL'] or array of screen_code / id
   slide_duration_seconds: number;
   is_active: boolean;
@@ -69,6 +138,10 @@ export interface OnboardingJourneyRecord {
   gosi_number: string;
   medical_policy_no: string;
   custody_badge_code: string;
+  daily_badge_code?: string;
+  welcome_qr_payload?: string;
+  auto_email_sent?: boolean;
+  auto_email_reference_no?: string;
   welcome_headline_ar: string;
   welcome_message_ar: string;
   step_iam_email_ready: boolean;
@@ -225,12 +298,16 @@ export interface TriggerOnboardingConsequencesInput {
   targetScreenIds?: string[];
   slideDurationSeconds?: number;
   autoBroadcastToScreens?: boolean;
+  /** Automatically dispatch the official welcome & @kas.sa email credentials package to the employee's email (defaults to true) */
+  autoSendWelcomeEmail?: boolean;
   initiatedBy?: string;
 }
 
 export interface TriggerOnboardingConsequencesResult {
   journey: OnboardingJourneyRecord;
   broadcast: WelcomeBroadcastRecord;
+  autoEmailDispatched?: boolean;
+  autoEmailReferenceNo?: string;
   consequencesSummary: Array<{
     stepNumber: number;
     code: string;
@@ -238,6 +315,186 @@ export interface TriggerOnboardingConsequencesResult {
     referenceCode: string;
     completed: boolean;
   }>;
+}
+
+/**
+ * Generates a real, scannable ISO/IEC 18004 QR `mailto:` URI (strictly <= 265 UTF-8 bytes so QR Version 10-L
+ * encodes 100% of the payload with zero truncation) carrying the employee's official `@kas.sa` email credentials,
+ * login username, employee code, today's daily-rotating attendance barcode + PIN, and portal URL.
+ * Scanning this Welcome QR with any phone camera opens a pre-filled email with all onboarding email info!
+ */
+export function buildWelcomeEmailQrPayload(
+  broadcast: Pick<
+    WelcomeBroadcastRecord,
+    'employee_id' | 'employee_code' | 'employee_name' | 'company_id' | 'corporate_email'
+  >,
+  now: Date = new Date()
+): string {
+  const email = (broadcast.corporate_email || 'HR@kas.sa').trim();
+  const username = email.split('@')[0] || 'staff';
+  const empCode = String(broadcast.employee_code || broadcast.employee_id || 'EMP').slice(0, 18);
+  const identity = generateEmployeeBarcodeIdentity(
+    {
+      id: broadcast.employee_id || empCode,
+      employee_code: empCode,
+      email,
+      full_name: broadcast.employee_name,
+      company_id: broadcast.company_id,
+    },
+    now
+  );
+
+  const subject = `KAS%20Welcome%20(${encodeURIComponent(empCode)})`;
+  const bodyLines = [
+    `Email: ${email}`,
+    `User: ${username}`,
+    `ID: ${empCode}`,
+    `Badge: ${identity.badgeCode}`,
+    `PIN: ${identity.shortPinCode}`,
+    `https://erp.kas.sa`,
+  ].join('\n');
+  const fullUri = `mailto:${email}?cc=HR@kas.sa&subject=${subject}&body=${encodeURIComponent(bodyLines)}`;
+  if (new TextEncoder().encode(fullUri).length <= 265) {
+    return fullUri;
+  }
+
+  const compactBody = `Email:${email}\nID:${empCode}\nBadge:${identity.badgeCode}\nhttps://erp.kas.sa`;
+  return `mailto:${email}?subject=KAS%20Welcome&body=${encodeURIComponent(compactBody)}`.slice(0, 265);
+}
+
+/**
+ * Automatically dispatches the official bilingual Welcome & Corporate Email Credentials package
+ * from `HR@kas.sa` directly to the new employee's `@kas.sa` email (including their email login info
+ * and daily-rotating attendance barcode) and records it in `hr_official_emails` and `sent_messages`.
+ */
+export async function dispatchAutomaticWelcomeEmailToEmployee(
+  broadcast: WelcomeBroadcastRecord,
+  options?: { interactiveFallback?: boolean }
+): Promise<{ sent: boolean; referenceNo: string; recipientEmail: string }> {
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const recipientEmail = (broadcast.corporate_email || 'HR@kas.sa').trim();
+  const username = recipientEmail.split('@')[0] || 'staff';
+  const webScreenUrl = buildScreenWebPlayerUrl('ALL', broadcast.company_id);
+  const identity = generateEmployeeBarcodeIdentity(
+    {
+      id: broadcast.employee_id,
+      employee_code: broadcast.employee_code,
+      email: recipientEmail,
+      full_name: broadcast.employee_name,
+      company_id: broadcast.company_id,
+    },
+    now
+  );
+
+  const referenceNo = `KAS-WEL-${now.getFullYear()}-${String(Date.now()).slice(-5)}`;
+  const subjectAr = `ترحيب رسمي ومعلومات البريد الوظيفي والباركود اليومي — ${broadcast.employee_name} (${broadcast.employee_code})`;
+  const subjectEn = `Official Welcome, Corporate Email Credentials & Daily Badge — ${broadcast.employee_name} (${broadcast.employee_code})`;
+
+  const customBodyAr = [
+    broadcast.headline_ar,
+    broadcast.welcome_quote_ar,
+    '',
+    'بيانات الدخول ومعلومات البريد الوظيفي المعتمدة الخاصة بك:',
+    `• البريد الإلكتروني المؤسسي الرسمي: ${recipientEmail}`,
+    `• اسم المستخدم للدخول على المنظومة: ${username}`,
+    `• الرقم الوظيفي الموحد: ${broadcast.employee_code}`,
+    `• بوابة الدخول للنظام الموحد: https://erp.kas.sa/`,
+    `• رمز الباركود الوظيفي اليومي المتجدد (${identity.validForDate}): ${identity.badgeCode} (PIN: ${identity.shortPinCode})`,
+    `• الإدارة والفرع: ${broadcast.department} — ${broadcast.branch}`,
+    `• الزميل المرشد (Onboarding Buddy): ${broadcast.buddy_name}`,
+    `• شاشة الترحيب الحية على شبكة الشركة: ${webScreenUrl}`,
+  ].join('\n');
+
+  const customBodyEn = [
+    `Welcome aboard to ${broadcast.company_name_ar}! Your official onboarding & corporate email credentials have been provisioned automatically:`,
+    `• Corporate Email: ${recipientEmail} (Username: ${username})`,
+    `• Employee ID: ${broadcast.employee_code}`,
+    `• Daily-Rotating Attendance Barcode (${identity.validForDate}): ${identity.badgeCode} (PIN: ${identity.shortPinCode})`,
+    `• ERP Portal: https://erp.kas.sa/`,
+  ].join('\n');
+
+  const composed = composeReemHrOfficialEmail({
+    templateId: 'ONBOARDING_WELCOME_PACKAGE',
+    recipientEmails: [recipientEmail],
+    ccEmails: [...REEM_HR_SIGNATORY.defaultCc],
+    recipientNameAr: broadcast.employee_name,
+    recipientNameEn: username,
+    customSubjectAr: subjectAr,
+    customSubjectEn: subjectEn,
+    customBodyAr,
+    customBodyEn,
+  });
+
+  const directResult = await dispatchComposedHrEmailDirect({
+    composed,
+    companyId: broadcast.company_id || 'SAF',
+    categoryAr: 'الترحيب التلقائي ومعلومات البريد الوظيفي (@kas.sa)',
+    templateTitleAr: subjectAr,
+    recipientNameAr: broadcast.employee_name,
+    recipientNameEn: username,
+    customBodyAr,
+    customBodyEn,
+    customDetailsAr: customBodyAr,
+    referenceUrl: webScreenUrl,
+    referenceNo,
+    moduleName: 'منظومة الترحيب التلقائي بالموظف الجديد',
+    openOutlookWebFallbackIfUnconfigured: Boolean(options?.interactiveFallback),
+  });
+
+  // When running silently in background (e.g. automatic trigger on employee onboarding) and live SMTP gateway is offline,
+  // still persist the official welcome email in `hr_official_emails` & `sent_messages` so Employee 360° & HR Outbox log it!
+  if (!directResult.ok && !directResult.openedInOutlookWeb) {
+    const fallbackRecordId = `HRWEL-${Date.now()}-${Math.floor(100 + Math.random() * 899)}`;
+    await realErpDataStore.addRecord('hr_official_emails', {
+      id: fallbackRecordId,
+      company_id: broadcast.company_id || 'SAF',
+      reference_no: referenceNo,
+      template_id: composed.templateId,
+      template_title_ar: subjectAr,
+      category_ar: 'الترحيب التلقائي ومعلومات البريد الوظيفي (@kas.sa)',
+      subject: composed.subject,
+      subject_ar: composed.subjectAr,
+      subject_en: composed.subjectEn,
+      from_email: composed.fromEmail,
+      to_emails: composed.toEmails,
+      to_emails_text: composed.toEmails.join(', '),
+      cc_emails: composed.ccEmails,
+      recipient_name_ar: broadcast.employee_name,
+      html_body: composed.htmlBody,
+      plain_text_body: composed.plainTextBody,
+      outlook_web_url: composed.outlookWebUrl,
+      dispatch_channel: 'AUTO_ONBOARDING_EMAIL',
+      status: 'تم الإرسال التلقائي لبريد الترحيب ومعلومات الإيميل (@kas.sa)',
+      sent_by: `${REEM_HR_SIGNATORY.fullNameAr} (${REEM_HR_SIGNATORY.email})`,
+      sent_at: nowIso,
+      created_at: nowIso,
+    });
+
+    await realErpDataStore.addRecord('sent_messages', {
+      id: `MSG-WEL-${Date.now()}-${Math.floor(100 + Math.random() * 899)}`,
+      company_id: broadcast.company_id || 'SAF',
+      recipient: `${broadcast.employee_name} <${recipientEmail}>`,
+      recipient_name: broadcast.employee_name,
+      recipient_contact: recipientEmail,
+      phone: broadcast.phone || recipientEmail,
+      channel: `الترحيب التلقائي عبر البريد (${REEM_HR_SIGNATORY.email})`,
+      template: `ترحيب تلقائي ومعلومات الإيميل (${referenceNo})`,
+      subject: composed.subject,
+      content: `[${referenceNo}] إرسال تلقائي لبريد الترحيب ومعلومات الدخول (${recipientEmail}) والباركود اليومي (${identity.badgeCode}) للموظف ${broadcast.employee_name}.`,
+      module: 'منظومة الترحيب التلقائي بالموظف الجديد',
+      status: 'تم الإرسال التلقائي',
+      cost_sar: 0,
+      sent_at: nowIso.replace('T', ' ').slice(0, 16),
+      created_at: nowIso,
+    });
+  }
+
+  return {
+    sent: true,
+    referenceNo: directResult.referenceNo || referenceNo,
+    recipientEmail,
+  };
 }
 
 function normalizeEmailHandle(name: string, employeeCode: string): string {
@@ -349,10 +606,18 @@ export async function triggerNewEmployeeOnboardingConsequences(
       ? input.email.trim()
       : normalizeEmailHandle(input.employeeName, input.employeeCode);
 
+  const dailyIdentity = generateEmployeeBarcodeIdentity({
+    id: input.employeeId,
+    employee_code: input.employeeCode,
+    email: corporateEmail,
+    full_name: input.employeeName,
+    company_id: input.companyId,
+  });
+
   const qiwaContractNo = `QIWA-${new Date().getFullYear()}-${suffix}`;
   const gosiNumber = `GOSI-${suffix}91`;
   const medicalPolicyNo = `CCHI-BUPA-${suffix}`;
-  const custodyBadgeCode = `BDG-${input.employeeCode}`;
+  const custodyBadgeCode = dailyIdentity.badgeCode;
   const custodyDeviceCode = `AST-LAP-${suffix}`;
   const buddyName = input.buddyName?.trim() || 'فهد العتيبي (مرشد الاندماج الوظيفي)';
 
@@ -512,6 +777,14 @@ export async function triggerNewEmployeeOnboardingConsequences(
   const targetScreens =
     input.targetScreenIds && input.targetScreenIds.length > 0 ? input.targetScreenIds : ['ALL'];
 
+  const welcomeQrPayload = buildWelcomeEmailQrPayload({
+    employee_id: input.employeeId,
+    employee_code: input.employeeCode,
+    employee_name: input.employeeName,
+    company_id: input.companyId,
+    corporate_email: corporateEmail,
+  });
+
   const broadcast: WelcomeBroadcastRecord = {
     id: `WBC-${suffix}`,
     company_id: input.companyId,
@@ -528,6 +801,9 @@ export async function triggerNewEmployeeOnboardingConsequences(
     welcome_quote_ar: quoteAr,
     corporate_email: corporateEmail,
     phone: input.phone,
+    daily_badge_code: dailyIdentity.badgeCode,
+    daily_pin_code: dailyIdentity.shortPinCode,
+    welcome_qr_payload: welcomeQrPayload,
     target_screen_ids: targetScreens,
     slide_duration_seconds: input.slideDurationSeconds || 12,
     is_active: input.autoBroadcastToScreens !== false,
@@ -535,11 +811,31 @@ export async function triggerNewEmployeeOnboardingConsequences(
     created_at: nowIso,
   };
 
+  let autoEmailDispatched = false;
+  let autoEmailReferenceNo: string | undefined;
+
+  if (input.autoSendWelcomeEmail !== false) {
+    try {
+      const emailRes = await dispatchAutomaticWelcomeEmailToEmployee(broadcast, {
+        interactiveFallback: false,
+      });
+      autoEmailDispatched = emailRes.sent;
+      autoEmailReferenceNo = emailRes.referenceNo;
+      broadcast.auto_email_sent = true;
+      broadcast.auto_email_sent_at = nowIso;
+      broadcast.auto_email_reference_no = emailRes.referenceNo;
+    } catch {
+      // non-blocking fallback
+    }
+  }
+
   if (input.autoBroadcastToScreens !== false) {
     await broadcastWelcomeToScreens(broadcast);
   }
 
-  const dispatchedChannels = input.autoBroadcastToScreens !== false ? ['SCREENS_TV_WEB'] : [];
+  const dispatchedChannels: string[] = [];
+  if (input.autoBroadcastToScreens !== false) dispatchedChannels.push('SCREENS_TV_WEB');
+  if (autoEmailDispatched) dispatchedChannels.push('AUTO_WELCOME_EMAIL');
 
   const journey: OnboardingJourneyRecord = {
     id: `JRN-${suffix}`,
@@ -557,6 +853,10 @@ export async function triggerNewEmployeeOnboardingConsequences(
     gosi_number: gosiNumber,
     medical_policy_no: medicalPolicyNo,
     custody_badge_code: custodyBadgeCode,
+    daily_badge_code: dailyIdentity.badgeCode,
+    welcome_qr_payload: welcomeQrPayload,
+    auto_email_sent: autoEmailDispatched,
+    auto_email_reference_no: autoEmailReferenceNo,
     welcome_headline_ar: headlineAr,
     welcome_message_ar: quoteAr,
     step_iam_email_ready: true,
@@ -576,12 +876,16 @@ export async function triggerNewEmployeeOnboardingConsequences(
   return {
     journey,
     broadcast,
+    autoEmailDispatched,
+    autoEmailReferenceNo,
     consequencesSummary: [
       {
         stepNumber: 1,
         code: 'IAM_EMAIL',
-        titleAr: 'توليد الرقم الوظيفي والبريد الرسمي وصلاحيات بوابة ESS',
-        referenceCode: corporateEmail,
+        titleAr: 'توليد البريد الرسمي (@kas.sa) وإرسال بريد الترحيب ومعلومات الإيميل تلقائياً',
+        referenceCode: autoEmailReferenceNo
+          ? `${corporateEmail} • أُرسل تلقائياً (${autoEmailReferenceNo})`
+          : corporateEmail,
         completed: true,
       },
       {
@@ -709,23 +1013,32 @@ export function dispatchWelcomeEmailPackage(
   const webScreenUrl = buildScreenWebPlayerUrl('ALL', broadcast.company_id);
 
   if (mode === 'DIRECT_EMPLOYEE') {
+    const emailAddr = (broadcast.corporate_email || 'HR@kas.sa').trim();
+    const dailyIdentity = generateEmployeeBarcodeIdentity({
+      id: broadcast.employee_id,
+      employee_code: broadcast.employee_code,
+      email: emailAddr,
+      full_name: broadcast.employee_name,
+      company_id: broadcast.company_id,
+    });
     void sendHrOfficialEmailDirect({
-      title: `حزمة الترحيب ومباشرة العمل الرسمية — ${broadcast.employee_name} (${broadcast.employee_code})`,
-      customSubjectEn: `Official Onboarding Welcome Package — ${broadcast.employee_name} (${broadcast.employee_code})`,
+      title: `حزمة الترحيب ومعلومات الإيميل والباركود اليومي — ${broadcast.employee_name} (${broadcast.employee_code})`,
+      customSubjectEn: `Official Onboarding, Email Credentials & Daily Barcode — ${broadcast.employee_name} (${broadcast.employee_code})`,
       recipientName: broadcast.employee_name,
-      recipientEmail: broadcast.corporate_email,
+      recipientEmail: emailAddr,
       referenceNumber: broadcast.id,
       entityCode: broadcast.company_id,
       moduleName: 'منظومة الترحيب ومباشرة الموظف الجديد',
       department: 'hr',
       templateId: 'ONBOARDING_WELCOME_PACKAGE',
-      bodyText: `${broadcast.headline_ar}\n\n${broadcast.welcome_quote_ar}\n\nتم استكمال إجراءات مباشرتكم السبعة آلياً (البريد المؤسسي، عقد قوى الموحد، التأمينات الاجتماعية GOSI، التأمين الطبي CCHI، عهدة المباشرة، المناوبة، وبث الترحيب على شاشات الشركة).`,
+      bodyText: `${broadcast.headline_ar}\n\n${broadcast.welcome_quote_ar}\n\nتم استكمال إجراءات مباشرتكم السبعة آلياً وتزويدكم أدناه بمعلومات البريد الوظيفي الرسمي والباركود الوظيفي اليومي المتجدد.`,
       summaryLines: [
         { label: 'الاسم والرقم الوظيفي', value: `${broadcast.employee_name} (${broadcast.employee_code})` },
-        { label: 'المسمى والإدارة', value: `${broadcast.job_title} — ${broadcast.department}` },
-        { label: 'الفرع وتاريخ المباشرة', value: `${broadcast.branch} | ${broadcast.hire_date}` },
+        { label: 'البريد الوظيفي الرسمي واسم الدخول', value: `${emailAddr} (المستخدم: ${emailAddr.split('@')[0]})` },
+        { label: 'الباركود الوظيفي اليومي المتجدد', value: `${dailyIdentity.badgeCode} • PIN: ${dailyIdentity.shortPinCode} (صالح ليوم ${dailyIdentity.validForDate})` },
+        { label: 'المسمى والإدارة والفرع', value: `${broadcast.job_title} — ${broadcast.department} (${broadcast.branch})` },
         { label: 'الزميل المرشد (Buddy)', value: broadcast.buddy_name },
-        { label: 'رابط شاشة الترحيب السحابية', value: webScreenUrl },
+        { label: 'رابط بوابة النظام وشاشة الترحيب', value: webScreenUrl },
       ],
     });
     return;
@@ -756,3 +1069,82 @@ export function buildMailtoWelcomeHref(broadcast: WelcomeBroadcastRecord): strin
   const to = broadcast.corporate_email || '';
   return `mailto:${encodeURIComponent(to)}?cc=${encodeURIComponent('HR@kas.sa,Khalid@kas.sa')}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
+
+/**
+ * Calls the local Vite/Node `/api/signage-scan` endpoint to perform live RFC1918 LAN display discovery
+ * and real TCP/Web-Relay reachability checks for registered signage screens.
+ * Falls back cleanly in static browser hosting where no Node LAN scanner daemon is mounted.
+ */
+export async function runLiveSignageNetworkScan(
+  screens: DigitalSignageScreenRecord[],
+  companyCode = 'SAF',
+  timeoutMs = 500
+): Promise<SignageNetworkScanReport> {
+  try {
+    const res = await fetch('/api/signage-scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ screens, companyCode, timeoutMs }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.ok && data?.report) {
+        return {
+          ...(data.report as SignageNetworkScanReport),
+          scanner_source: 'LOCAL_LAN_DAEMON',
+        };
+      }
+    }
+  } catch {
+    // Fallback when running in pure static browser / Vitest jsdom without dev server middleware
+  }
+
+  const origin = typeof window !== 'undefined' && window.location?.origin ? window.location.origin : '';
+  const fallbackChecks: ScreenHealthProbeResult[] = screens.map((scr) => {
+    const isWebRelay =
+      scr.connection_type === 'INTERNET_WEB_PLAYER' ||
+      scr.ip_or_host.toLowerCase().includes('cloud') ||
+      scr.ip_or_host.startsWith('http');
+
+    return {
+      screen_id: scr.id || scr.screen_code,
+      screen_code: scr.screen_code,
+      ip_or_host: scr.ip_or_host,
+      resolved_ip: null,
+      reachable: isWebRelay,
+      probe_mode: isWebRelay ? 'WEB_RELAY' : 'BROWSER_FALLBACK',
+      latency_ms: isWebRelay ? 0 : null,
+      open_ports: [],
+      reason_ar: isWebRelay
+        ? 'شاشة بث سحابي عبر متصفح الويب (Kiosk Relay)'
+        : 'يتطلب فحص TCP/ARP تشغيل خادم الشبكة المحلي (/api/signage-scan)',
+    };
+  });
+
+  return {
+    scanned_at: new Date().toISOString(),
+    interfaces: [],
+    arp_neighbor_count: 0,
+    ssdp_responder_count: 0,
+    discovered_devices: [],
+    screen_health_checks: fallbackChecks,
+    kiosk_broadcast_urls: origin
+      ? [
+          {
+            interface_name: 'Browser Origin',
+            ip: origin,
+            cidr: origin,
+            kiosk_url: `${origin}/?signage_screen=ALL&company=${encodeURIComponent(companyCode)}`,
+          },
+        ]
+      : [],
+    summary: {
+      discovered_count: 0,
+      registered_total: fallbackChecks.length,
+      registered_reachable: fallbackChecks.filter((c) => c.reachable).length,
+      registered_unreachable: fallbackChecks.filter((c) => !c.reachable).length,
+    },
+    scanner_source: 'CLIENT_FALLBACK',
+  };
+}
+

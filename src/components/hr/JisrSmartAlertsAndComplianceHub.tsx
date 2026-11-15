@@ -425,7 +425,7 @@ export const JisrSmartAlertsAndComplianceHub: React.FC<JisrSmartAlertsAndComplia
       notificationPopupEngine.show({
         title: opts?.whatsapp
           ? 'تم فحص الرادار وإرسال التنبيهات العاجلة عبر واتساب'
-          : 'اكتمل فحص رادار جسر للتنبيهات الاستباقية',
+          : 'اكتمل فحص رادار الموارد البشرية للتنبيهات الاستباقية',
         message: out.spokenSummary,
         type: 'hr',
         priority: 'actionable',
@@ -579,7 +579,7 @@ export const JisrSmartAlertsAndComplianceHub: React.FC<JisrSmartAlertsAndComplia
           customDetailsAr: params.detailsAr,
           customDetailsEn: params.detailsEn,
           referenceNo,
-          moduleName: 'رادار التنبيهات والامتثال (جسر)',
+          moduleName: 'رادار التنبيهات والامتثال للموارد البشرية',
           openOutlookWebFallbackIfUnconfigured: true,
         });
 
@@ -866,7 +866,7 @@ export const JisrSmartAlertsAndComplianceHub: React.FC<JisrSmartAlertsAndComplia
   };
 
   // ============================================================================
-  // TAB 3: JISR PAY EARNED WAGE ACCESS (EWA) — REAL ATTENDANCE + GL + VOUCHER
+  // TAB 3: EARNED WAGE ACCESS (EWA) — REAL ATTENDANCE + GL + VOUCHER
   // ============================================================================
 
   const selectedEwaEmp = useMemo(
@@ -939,10 +939,10 @@ export const JisrSmartAlertsAndComplianceHub: React.FC<JisrSmartAlertsAndComplia
       const glRes = journalEngine.createJournalEntry(effectiveCompanyId as any, {
         entryDate: todayIso,
         entryType: 'AUTOMATIC',
-        sourceModule: 'HR_JISR_PAY_EWA',
+        sourceModule: 'HR_PAYROLL',
         sourceReference: ewaId,
-        description: `صرف راتب مرن مبكر (Jisr Pay EWA) للموظف ${selectedEwaEmp.name} عن شهر ${currentMonth}`,
-        createdBy: 'خزينة الموارد البشرية (Jisr Pay)',
+        description: `صرف راتب مرن مبكر (EWA Pay) للموظف ${selectedEwaEmp.name} عن شهر ${currentMonth}`,
+        createdBy: 'خزينة الموارد البشرية (EWA Pay)',
         autoPost: true,
         lines: [
           {
@@ -1018,7 +1018,7 @@ export const JisrSmartAlertsAndComplianceHub: React.FC<JisrSmartAlertsAndComplia
       onRecordsChanged?.();
 
       notificationPopupEngine.show({
-        title: 'تم صرف وترحيل دفعة الراتب المرن المبكر (Jisr Pay)',
+        title: 'تم صرف وترحيل دفعة الراتب المرن المبكر (EWA)',
         message: `تم تحويل ${ewaRequestAmount.toLocaleString()} ⃁ للموظف ${selectedEwaEmp.name} • القيد المحاسبي: ${glRes.entry.entryNumber} • سند الصرف: ${voucherNo}.`,
         type: 'hr',
         priority: 'actionable',
@@ -1367,7 +1367,7 @@ export const JisrSmartAlertsAndComplianceHub: React.FC<JisrSmartAlertsAndComplia
             }`}
           >
             <Wallet className="w-4 h-4" />
-            <span>الراتب المرن المبكر (Jisr Pay)</span>
+            <span>الراتب المرن المبكر (EWA)</span>
           </button>
 
           <button
@@ -1868,13 +1868,13 @@ export const JisrSmartAlertsAndComplianceHub: React.FC<JisrSmartAlertsAndComplia
         </div>
       )}
 
-      {/* TAB 3: JISR PAY — EARNED WAGE ACCESS (REAL ATTENDANCE + GL JOURNAL + TREASURY VOUCHER) */}
+      {/* TAB 3: EARNED WAGE ACCESS (REAL ATTENDANCE + GL JOURNAL + TREASURY VOUCHER) */}
       {subTab === 'ewa' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           <div className="lg:col-span-5 bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-5 space-y-4">
             <h3 className="text-sm font-extrabold text-[#141414] flex items-center gap-2">
               <Wallet className="w-4 h-4" />
-              <span>صرف الراتب المرن المبكر الفعلي (Jisr Pay — EWA)</span>
+              <span>صرف الراتب المرن المبكر الفعلي (EWA Pay)</span>
             </h3>
 
             <div>

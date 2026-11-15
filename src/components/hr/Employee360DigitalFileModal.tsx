@@ -121,12 +121,12 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
   const [activeTab, setActiveTab] = useState<Employee360TabId>('overview');
   const [revealPii, setRevealPii] = useState(false);
 
-  // Edit mode state for full Jisr 360 profile fields
+  // Edit mode state for full 360 profile fields
   const [isEditing, setIsEditing] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [draft, setDraft] = useState<Record<string, any>>({});
 
-  // Persistent related records across all HR & Jisr tables
+  // Persistent related records across all HR tables
   const [companyPeers, setCompanyPeers] = useState<ErpEntityRecord[]>([]);
   const [docs, setDocs] = useState<PersistentEmployeeDocument[]>([]);
   const [auditHistory, setAuditHistory] = useState<FieldAuditChange[]>([]);
@@ -177,7 +177,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
   const [editingDocExpiryId, setEditingDocExpiryId] = useState<string | null>(null);
   const [editingDocExpiryVal, setEditingDocExpiryVal] = useState<string>('');
 
-  // Inline Jisr Quick Action Forms
+  // Inline HR Quick Action Forms
   const [showLeaveForm, setShowLeaveForm] = useState(false);
   const [leaveForm, setLeaveForm] = useState({
     vacation_type: 'إجازة سنوية',
@@ -464,7 +464,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
       const updated = await saveUnifiedEmployeeProfile(
         { ...emp, ...draft },
         emp,
-        'إدارة الموارد البشرية (ملف جسر 360°)'
+        'إدارة الموارد البشرية (ملف الموظف الرقمي 360°)'
       );
       setEmp(updated);
       setIsEditing(false);
@@ -472,7 +472,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
       onEmployeeUpdated?.(updated);
       notificationPopupEngine.success(
         'تم حفظ وتوثيق ملف الموظف 360°',
-        `تم تحديث بيانات (${updated.name}) ومزامنتها عبر سجلات الموارد البشرية وجسر بنجاح.`
+        `تم تحديث بيانات (${updated.name}) ومزامنتها عبر سجلات الموارد البشرية بنجاح.`
       );
     } finally {
       setSavingProfile(false);
@@ -521,7 +521,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
   const estimatedEos = eosCalc.awardAmount;
   const piiRole = revealPii ? 'SUPER_ADMIN' : 'VIEWER';
 
-  // Jisr 360 Completeness & Nitaqat Weight
+  // Employee 360 Completeness & Nitaqat Weight
   const completeness = useMemo(() => computeEmployee360Completeness(emp), [emp]);
 
   const nitaqatDetail = useMemo(
@@ -559,7 +559,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
     [emp.id, assignedShiftObj.id, empRosters, empSwaps]
   );
 
-  // Live Jisr Pay (EWA) calculation for this employee
+  // Live Earned Wage Access (EWA) calculation for this employee
   const workedDaysRes = useMemo(
     () =>
       resolveRealWorkedDaysForMonth({
@@ -991,7 +991,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
     await realErpDataStore.addRecord('hr_ewa_withdrawals', ewaRec);
     await loadEmployee360Relations(emp);
     notificationPopupEngine.success(
-      'تم صرف الدفعة المرنة (Jisr Pay — 0 ⃁ رسوم)',
+      'تم صرف الدفعة المرنة (EWA Pay — 0 ⃁ رسوم)',
       `تم اعتماد تحويل ⃁ ${amt.toLocaleString()} للموظف وجدولة استردادها تلقائياً في مسير (${currentPayrollMonth}).`
     );
   };
@@ -1137,7 +1137,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
         day30_completed: true,
         day60_completed: false,
         day90_completed: false,
-        notes: 'خطة تمكين وتجربة 90 يوماً مفعلة من ملف جسر 360°.',
+        notes: 'خطة تمكين وتجربة 90 يوماً مفعلة من ملف الموظف الرقمي 360°.',
       };
       await realErpDataStore.addRecord('hr_onboarding_plans', plan);
     } else if (field) {
@@ -1234,7 +1234,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
           className="erp-printable-sheet relative w-full max-w-[980px] h-full bg-[#ffffff] border-r border-[#e0e0e0] flex flex-col overflow-hidden animate-in slide-in-from-left duration-200"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Drawer Header — Mobbin Monochrome + Entity Identity + Jisr Completeness */}
+          {/* Drawer Header — Mobbin Monochrome + Entity Identity + Profile Completeness */}
           <div className="px-6 py-4 border-b border-[#e0e0e0] bg-[#ffffff] space-y-3">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-3.5 min-w-0">
@@ -1280,7 +1280,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                       { label: 'المسمى الوظيفي', value: emp.job_title || emp.role },
                       { label: 'القسم', value: emp.department },
                       { label: 'رصيد الإجازات المتاح', value: `${emp.leave_balance ?? 21} يوم` },
-                      { label: 'اكتمال ملف جسر 360°', value: `${completeness.scorePercent}%` },
+                      { label: 'اكتمال ملف الموظف الرقمي 360°', value: `${completeness.scorePercent}%` },
                     ],
                   }}
                   onEdit={
@@ -1309,11 +1309,11 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
               </div>
             </div>
 
-            {/* Jisr 360° Profile Completeness Progress Bar */}
+            {/* 360° Profile Completeness Progress Bar */}
             <div className="bg-[#f3f3f3] rounded-[16px] px-3.5 py-2 border border-[#e0e0e0] flex items-center justify-between gap-3 flex-wrap print:hidden">
               <div className="flex items-center gap-2.5 min-w-[220px] flex-1">
                 <span className="text-[11px] font-bold text-[#141414] whitespace-nowrap">
-                  اكتمال ملف جسر 360°: {completeness.scorePercent}%
+                  اكتمال ملف الموظف الرقمي 360°: {completeness.scorePercent}%
                 </span>
                 <div className="flex-1 max-w-[200px] h-2 rounded-full bg-[#e0e0e0] overflow-hidden">
                   <div
@@ -1380,7 +1380,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
             </div>
           </div>
 
-          {/* 11-Tab Jisr 360° Pill Navigation Strip */}
+          {/* 11-Tab Employee 360° Pill Navigation Strip */}
           <div className="px-6 py-2.5 bg-[#ffffff] border-b border-[#e0e0e0] flex items-center gap-1.5 overflow-x-auto no-scrollbar print:hidden">
             {[
               { id: 'overview', label: 'البيانات والعقد', icon: Briefcase },
@@ -1437,7 +1437,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
 
           {/* Drawer Body Content */}
           <div className="p-6 overflow-y-auto flex-1 space-y-4">
-            {/* TAB 1: OVERVIEW & FULL JISR PROFILE */}
+            {/* TAB 1: OVERVIEW & FULL EMPLOYEE PROFILE */}
             {activeTab === 'overview' && (
               <div className="space-y-4">
                 {!readOnlyMode && (
@@ -1586,7 +1586,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                         />
                       </div>
                       <div>
-                        <label className="block font-bold text-[#141414] mb-1">الوردية المعتمدة (جسر)</label>
+                        <label className="block font-bold text-[#141414] mb-1">الوردية المعتمدة</label>
                         <select
                           value={draft.default_shift_id}
                           onChange={(e) => setDraft({ ...draft, default_shift_id: e.target.value })}
@@ -2070,7 +2070,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
               </div>
             )}
 
-            {/* TAB 2: PAYROLL, GOSI, JISR PAY (EWA), COST CENTERS & IAS 19 ACCRUALS */}
+            {/* TAB 2: PAYROLL, GOSI, EARNED WAGE ACCESS (EWA), COST CENTERS & IAS 19 ACCRUALS */}
             {activeTab === 'payroll' && (
               <div className="space-y-4">
                 <div className="bg-[#f3f3f3] rounded-[20px] p-5 border border-[#e0e0e0]">
@@ -2126,12 +2126,12 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                   </div>
                 </div>
 
-                {/* Jisr Pay (Earned Wage Access — EWA) */}
+                {/* Earned Wage Access (EWA) */}
                 <div className="bg-[#ffffff] rounded-[20px] p-4 border border-[#e0e0e0] space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div>
                       <h4 className="text-xs font-bold text-[#141414] m-0">
-                        خدمة الراتب المرن المبكر (Jisr Pay EWA — متوافق مع الشريعة 0 ⃁ رسوم)
+                        خدمة الراتب المرن المبكر (EWA — متوافق مع الشريعة 0 ⃁ رسوم)
                       </h4>
                       <p className="text-[11px] text-[#707070] m-0 mt-0.5">
                         أيام العمل المحققة هذا الشهر: <strong>{ewaQuote.workedDaysToDate} يوم</strong> • الأجر المكتسب حتى اليوم:{' '}
@@ -3662,7 +3662,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                   )}
                 </div>
 
-                {/* Live Jisr Comprehensive Final Settlement Simulator */}
+                {/* Live Comprehensive Final Settlement Simulator */}
                 <div className="bg-[#ffffff] rounded-[20px] p-4 border border-[#e0e0e0] space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div>

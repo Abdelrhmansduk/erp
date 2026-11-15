@@ -457,19 +457,35 @@ const MainContent: React.FC = () => {
 
   // Router Page Content Resolver
   const renderPage = () => {
-    if (isHrefBlocked(activeTab)) {
+    const activeRenderUser = user || authService.getCurrentUser();
+    const isBlockedByVisibility = isHrefBlocked(activeTab);
+    const isAuthorizedTab = authService.isTabAuthorizedForUser(activeRenderUser, activeTab);
+    if (isBlockedByVisibility || !isAuthorizedTab) {
+      const scope = resolveDepartmentAndCompany(
+        activeRenderUser?.email || activeRenderUser?.username || '',
+        activeRenderUser?.role,
+        activeRenderUser?.company_id,
+        activeRenderUser?.department_id
+      );
+      const deptMeta = CORPORATE_DEPARTMENTS[scope.departmentId as DepartmentId];
+      const safeFallbackTab = activeRenderUser?.default_tab || deptMeta?.defaultTab || 'profile';
+      const safeFallbackTitle = activeRenderUser?.default_tab_title || deptMeta?.defaultTabTitle || 'الرئيسية';
       return (
-        <div className="max-w-md mx-auto mt-16 text-center bg-white border border-[#ececec] rounded-3xl p-8" dir="rtl">
-          <div className="text-sm font-bold text-[#141414]">هذه الصفحة مخفية</div>
+        <div className="max-w-md mx-auto mt-16 text-center bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-8" dir="rtl">
+          <div className="text-sm font-bold text-[#141414]">
+            {isBlockedByVisibility ? 'هذا القسم مخفي عن حسابك' : 'عزل الصلاحيات المؤسسي (RBAC)'}
+          </div>
           <p className="text-xs text-[#707070] mt-2 mb-5 leading-relaxed">
-            تم إخفاء هذا القسم من إعدادات «إظهار وإخفاء الأقسام». يمكن لمدير النظام إظهاره مجدداً.
+            {isBlockedByVisibility
+              ? 'تم إخفاء هذا القسم وفق سياسة تخصيص ظهور الأقسام للموظفين. يمكن لمبرمج ومدير النظام (م. عبدالرحمن) تفعيله لحسابك.'
+              : `حسابك مصرح له بالعمل ضمن (${deptMeta?.nameAr || 'قسمك المعتمد'}) ولا يشمل الوصول إلى هذا القسم.`}
           </p>
           <button
             type="button"
-            onClick={() => handleSelectTab('dashboard', 'الرئيسية')}
-            className="h-10 px-5 rounded-full bg-[#141414] text-white text-xs font-bold cursor-pointer"
+            onClick={() => handleSelectTab(safeFallbackTab, safeFallbackTitle)}
+            className="h-10 px-5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold cursor-pointer transition-colors"
           >
-            العودة للرئيسية
+            العودة لقسمك المعتمد
           </button>
         </div>
       );
@@ -766,6 +782,7 @@ const MainContent: React.FC = () => {
       case 'jisr-shifts-overtime':
       case 'jisr-welcome-signage':
       case 'welcome-screens':
+      case 'signage-screens':
       case 'jisr-arrears-b2b':
       case 'jisr-cards-rollover':
       case 'jisr-workflows-pulse':

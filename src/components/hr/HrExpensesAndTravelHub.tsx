@@ -748,7 +748,7 @@ export const HrExpensesAndTravelHub: React.FC<HrExpensesAndTravelHubProps> = ({
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#262626] text-xs font-bold text-[#ffffff] mb-2">
             <Receipt className="w-3.5 h-3.5" />
-            <span>إدارة النفقات، فواتير ZATCA الضريبية، والانتدابات (Jisr Expenses & Travel)</span>
+            <span>إدارة النفقات، فواتير ZATCA الضريبية، والانتدابات</span>
           </div>
           <h3 className="text-lg font-bold text-[#ffffff] m-0">
             قارئ الفواتير الضريبية (ZATCA TLV QR) ومنع الصرف المكرر وتسوية العهد والانتداب — {companyName}.

@@ -1384,7 +1384,7 @@ export const AttendancesPage: React.FC = () => {
       type: 'hr',
       priority: 'actionable',
       companyId: effectiveCompanyId,
-      title: 'تم إثبات البصمة عبر جهاز Jisr Kiosk اللوحي',
+      title: 'تم إثبات البصمة عبر كشك البصمة الذكي (Smart Kiosk)',
       message: `تم تسجيل حضور (${emp.name}) في (${loc?.branch_name || 'الفرع الرئيسي'}) الساعة ${hhmm} — توثيق الكاميرا: ${frameCapture.photoHash}.`,
     });
   };
@@ -1805,7 +1805,7 @@ export const AttendancesPage: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <span className="pill-tag-shade text-[11px]">
-                {i18n.t('hr.biometricAttendance', 'منظومة جسر للوقت والحضور والورديات')}
+                {i18n.t('hr.biometricAttendance', 'منظومة الوقت والحضور والورديات')}
               </span>
               {isRamadanMode && (
                 <span className="px-3 py-0.5 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold">
@@ -2236,7 +2236,7 @@ export const AttendancesPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 3: REAL GPS GEOFENCING & JISR WEBRTC KIOSK */}
+      {/* TAB 3: REAL GPS GEOFENCING & SMART WEBRTC KIOSK */}
       {activeTab === 'geofence-kiosk' && (
         <div className="space-y-4">
           <div className="rounded-[24px] bg-[#ffffff] border border-[#e0e0e0] p-5 space-y-4">
@@ -3452,7 +3452,7 @@ export const AttendancesPage: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL 5: Jisr Shared Tablet Kiosk Mode with Real WebRTC Camera Verification */}
+      {/* MODAL 5: Shared Tablet Kiosk Mode with Real WebRTC Camera Verification */}
       {showKioskModal && (
         <div
           className="fixed inset-0 bg-[#141414]/70 z-[2250] flex items-center justify-center p-4"

@@ -63,6 +63,10 @@ export const SIDEBAR_MENU: NavItem[] = [
       { id: 'odoo-accounting', title: 'أتمتة السداد والأوضاع الضريبية (Odoo)', icon: 'ShieldCheck', href: 'odoo-accounting' },
       { id: 'smacc-inventory', title: 'سجل الأصول الثابتة والمخزون', icon: 'Package', href: 'smacc-inventory' },
       { id: 'financial-reports', title: 'التقارير والكشوفات المالية الختامية', icon: 'BarChart3', href: 'financial-reports' },
+      { id: 'jisr-accruals', title: 'المخصصات الشهرية ومراكز التكلفة (IAS 19)', icon: 'Calculator', href: 'jisr-accruals' },
+      { id: 'jisr-expenses', title: 'النفقات وفواتير ZATCA والانتدابات', icon: 'Receipt', href: 'jisr-expenses' },
+      { id: 'jisr-cards-rollover-finance', title: 'البطاقات المؤسسية وترحيل وتسييل الإجازات', icon: 'CreditCard', href: 'jisr-cards-rollover' },
+      { id: 'jisr-arrears-b2b-finance', title: 'الأثر الرجعي والمسيرات الإضافية ودفعات البنوك B2B', icon: 'Calculator', href: 'jisr-arrears-b2b' },
       { id: 'gov-integrations-finance', title: 'الربط الحكومي (فاتورة ZATCA ومدد)', icon: 'ShieldCheck', href: 'gov-integrations' },
     ],
   },
@@ -137,15 +141,17 @@ export const SIDEBAR_MENU: NavItem[] = [
     href: 'employees',
     children: [
       { id: 'employees', title: 'سجل الموظفين والملفات الوظيفية', icon: 'UserCheck', href: 'employees' },
+      { id: 'welcome-screens', title: 'شاشات العرض الموصولة بالشبكة (رادار البث الذكي)', icon: 'Tv', href: 'welcome-screens', badge: 'LAN Live', badgeType: 'success' },
       { id: 'jisr-welcome-signage', title: 'الترحيب بالموظف الجديد وشاشات العرض الذكية', icon: 'Sparkles', href: 'jisr-welcome-signage', badge: 'TV Live', badgeType: 'primary' },
       { id: 'reem-hr-emails', title: 'مراسلات وقوالب بريد الموارد البشرية (HR@kas.sa)', icon: 'MailCheck', href: 'reem-hr-emails' },
       { id: 'profile', title: 'بوابة الخدمة الذاتية للموظف والمدير (ESS)', icon: 'UserCheck', href: 'profile' },
       { id: 'jisr-alerts-compliance', title: 'رادار التنبيهات والجزاءات والراتب المرن ونطاقات', icon: 'Bell', href: 'jisr-alerts-compliance' },
-      { id: 'jisr-accruals', title: 'المخصصات الشهرية ومراكز التكلفة (IAS 19)', icon: 'Calculator', href: 'jisr-accruals' },
-      { id: 'jisr-expenses', title: 'النفقات وفواتير ZATCA والانتدابات', icon: 'Receipt', href: 'jisr-expenses' },
       { id: 'jisr-org-muqeem', title: 'الهيكل التنظيمي ومكتب مقيم والخطابات', icon: 'Building2', href: 'jisr-org-muqeem' },
       { id: 'jisr-talent-360', title: 'التوظيف الداخلي وتقييم 360° وإخلاء الطرف', icon: 'Award', href: 'jisr-talent-360' },
       { id: 'jisr-shifts-overtime', title: 'المناوبات والعمل الإضافي (م107) والتعاميم', icon: 'Clock', href: 'jisr-shifts-overtime' },
+      { id: 'jisr-arrears-b2b', title: 'الأثر الرجعي والمسيرات الإضافية ودفعات البنوك B2B', icon: 'Calculator', href: 'jisr-arrears-b2b' },
+      { id: 'jisr-cards-rollover', title: 'البطاقات المؤسسية وترحيل وتسييل الإجازات', icon: 'CreditCard', href: 'jisr-cards-rollover' },
+      { id: 'jisr-workflows-pulse', title: 'منشئ الطلبات والتوقيع OTP وبوابة التوظيف وeNPS', icon: 'GitPullRequest', href: 'jisr-workflows-pulse' },
       { id: 'add-employee', title: 'تسجيل موظف جديد ومباشرة عمل', icon: 'UserPlus', href: 'add-employee' },
       { id: 'payrolls', title: 'مسير الرواتب الشهرية والاستحقاقات', icon: 'CreditCard', href: 'payrolls' },
       { id: 'wps-generator', title: 'ملفات نظام حماية الأجور (WPS)', icon: 'FileSpreadsheet', href: 'wps-generator' },
@@ -157,8 +163,6 @@ export const SIDEBAR_MENU: NavItem[] = [
       { id: 'custodies', title: 'العهد العينية والأصول المسلمة', icon: 'Vault', href: 'custodies' },
       { id: 'end-of-service', title: 'تصفية ومستحقات نهاية الخدمة (EOSB)', icon: 'Receipt', href: 'end-of-service' },
       { id: 'gosi-insurance', title: 'التأمينات الاجتماعية (GOSI)', icon: 'ShieldCheck', href: 'gosi-insurance' },
-      { id: 'legal-compliance-hr', title: 'التراخيص والالتزام الحكومي (قوى/مدد)', icon: 'Scale', href: 'legal-compliance' },
-      { id: 'gov-integrations-hr', title: 'الربط الحكومي (قوى • مدد • التأمينات • مقيم)', icon: 'ShieldCheck', href: 'gov-integrations' },
     ],
   },
   {
@@ -211,3 +215,6 @@ export const SIDEBAR_MENU: NavItem[] = [
     ],
   },
 ];
+
+export const sidebarMenu = SIDEBAR_MENU;
+export default SIDEBAR_MENU;

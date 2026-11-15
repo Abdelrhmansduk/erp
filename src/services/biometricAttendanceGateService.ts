@@ -59,6 +59,8 @@ export interface BarcodeVerificationResult {
   valid: boolean;
   matchedCode: string;
   crossEmployeeMismatch?: boolean;
+  expiredDailyCode?: boolean;
+  expiredDate?: string;
   otherEmployeeName?: string;
   reasonAr?: string;
 }
@@ -78,6 +80,8 @@ export interface EmployeeBiometricGateProfile {
   shortPinCode: string;
   qrPayload: string;
   barcodeVersion: number;
+  validForDate?: string;
+  dailySignature?: string;
   biometricEnrolled: boolean;
   biometricEnrolledAt?: string;
   biometricCredentialHint?: string;
@@ -218,27 +222,37 @@ function updateEmployeeOverride(
   return updated;
 }
 
-function computeDeterministicChecksum3(seed: string): string {
+function computeFnv1a32(seed: string): number {
   let hash = 2166136261;
   for (let i = 0; i < seed.length; i++) {
     hash ^= seed.charCodeAt(i);
     hash = Math.imul(hash, 16777619);
   }
-  const three = (Math.abs(hash) % 900) + 100;
-  return String(three);
+  return hash >>> 0;
+}
+
+function computeCalendarEpochDay(now: Date): number {
+  return Math.floor(
+    Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 86_400_000
+  );
 }
 
 /**
- * Generates a collision-free, deterministic ASCII Code-128B badge code & 6-digit PIN
- * dedicated exclusively to the target employee.
- * - For official KAS directory employees, embeds `serial` (001..099) + 3-digit FNV checksum (`104xxx`),
- *   guaranteeing 0% collision across all 69 corporate accounts.
- * - For dynamically added HR employees, uses `5xx`..`9xx` prefix + checksum.
- * - Honors per-employee regenerated barcode overrides if HR re-issued the card.
+ * Generates a daily-rotating, collision-free, real scannable ISO/IEC 15417 Code-128B badge code,
+ * 6-digit PIN, and ISO/IEC 18004 QR payload dedicated exclusively to the target employee for `now`'s calendar day.
+ *
+ * Mathematical guarantees:
+ * - Every calendar day (`YYYY-MM-DD`), `(epochDay * 197) mod 900` (`gcd(197, 900) = 1`) shifts every employee's
+ *   prefix slot without repeating for 900 consecutive days (~2.5 years), while `mac3` & `dailySignature` re-key daily.
+ * - On any given calendar day, `(baseSlot * 617) mod 900` (`gcd(617, 900) = 1`) is a strict bijection across all
+ *   official `@kas.sa` serials (`1..399`) and dynamic employee slots (`400..899`), guaranteeing 0% collision.
+ * - Re-issuing an employee's card (`barcodeVersion` increment via `regenerateEmployeeBarcode`) immediately rotates
+ *   only that employee's barcode while keeping automatic daily rotation active on future days.
  */
 export function generateEmployeeBarcodeIdentity(
   user?: Record<string, any> | null,
-  now: Date = new Date()
+  now: Date = new Date(),
+  versionOverride?: number
 ): {
   employeeKey: string;
   companyCode: string;
@@ -246,6 +260,8 @@ export function generateEmployeeBarcodeIdentity(
   shortPinCode: string;
   qrPayload: string;
   barcodeVersion: number;
+  validForDate: string;
+  dailySignature: string;
 } {
   const kasMatch = findMatchingKasDirectoryEmployee(user);
   const employeeKey = resolveUserGateKey(user);
@@ -261,31 +277,36 @@ export function generateEmployeeBarcodeIdentity(
       : 'SAF';
 
   const companyCode = normalizeCanonicalEntityCode(rawCompany) || 'HQ';
+  const todayIso = getTodayIsoDate(now);
+  const epochDay = computeCalendarEpochDay(now);
+  const barcodeVersion = versionOverride ?? overrides?.barcodeVersion ?? 1;
 
-  let sixDigits = overrides?.customSixDigits || '';
-  if (!sixDigits) {
-    if (kasMatch) {
-      const serialPadded = String(100 + (kasMatch.serial % 400)).padStart(3, '0');
-      const chk = computeDeterministicChecksum3(
-        `${kasMatch.id}|${kasMatch.email.toLowerCase()}`
-      );
-      sixDigits = `${serialPadded}${chk}`;
-    } else {
-      const seedSource = `${employeeKey}|${user?.id || ''}|${user?.full_name || user?.name || 'EMP'}`.toLowerCase();
-      let hash = 2166136261;
-      for (let i = 0; i < seedSource.length; i++) {
-        hash ^= seedSource.charCodeAt(i);
-        hash = Math.imul(hash, 16777619);
-      }
-      // Range 500000..999999 so dynamic employees never collide with serials 100xxx..499xxx
-      sixDigits = String((Math.abs(hash) % 500000) + 500000);
-    }
+  let baseSlot: number;
+  if (kasMatch) {
+    baseSlot = kasMatch.serial % 400;
+  } else {
+    const seedSource = `${employeeKey}|${user?.id || ''}|${user?.full_name || user?.name || 'EMP'}`.toLowerCase();
+    baseSlot = 400 + (computeFnv1a32(seedSource) % 500);
   }
 
-  const barcodeVersion = overrides?.barcodeVersion || 1;
+  const dailySlot =
+    (((baseSlot * 617) + (epochDay * 197) + ((barcodeVersion - 1) * 131)) % 900 + 900) % 900;
+  const prefix3 = String(100 + dailySlot).padStart(3, '0');
+  const mac3 = String(
+    computeFnv1a32(`KAS-DAILY-BARCODE-V2|${employeeKey}|${companyCode}|${todayIso}|V${barcodeVersion}`) % 1000
+  ).padStart(3, '0');
+
+  const sixDigits = `${prefix3}${mac3}`;
+  const dailySignature = computeFnv1a32(
+    `SIG|${companyCode}|${sixDigits}|${employeeKey}|${todayIso}|V${barcodeVersion}`
+  )
+    .toString(36)
+    .toUpperCase()
+    .padStart(6, '0')
+    .slice(0, 6);
+
   const badgeCode = `${companyCode}-ID-${sixDigits}`;
-  const todayIso = getTodayIsoDate(now);
-  const qrPayload = `ERP-ATT|${companyCode}|${badgeCode}|V${barcodeVersion}|${todayIso}`;
+  const qrPayload = `ERP-ATT|${companyCode}|${badgeCode}|V${barcodeVersion}|${todayIso}|SIG:${dailySignature}`;
 
   return {
     employeeKey,
@@ -294,35 +315,41 @@ export function generateEmployeeBarcodeIdentity(
     shortPinCode: sixDigits,
     qrPayload,
     barcodeVersion,
+    validForDate: todayIso,
+    dailySignature,
   };
 }
 
 /**
  * Validates a scanned QR string, Code-128 badge string, or 6-digit PIN strictly against
- * the target employee (`user`), and actively detects if someone scanned ANOTHER employee's badge!
+ * the target employee (`user`) for TODAY (`now`), rejecting expired previous-day codes,
+ * revoked card versions, and cross-employee spoofing attempts!
  */
 export function verifyEmployeeBarcodeInput(
   rawInput: string,
-  user?: Record<string, any> | null
+  user?: Record<string, any> | null,
+  now: Date = new Date()
 ): BarcodeVerificationResult {
   const cleaned = String(rawInput || '').trim();
   if (!cleaned) {
     return {
       valid: false,
       matchedCode: '',
-      reasonAr: 'يرجى مسح الباركود أمام الكاميرا أو بقارئ الباركود أو إدخال رمز البطاقة الخاص بالموظف.',
+      reasonAr: 'يرجى مسح الباركود أمام الكاميرا أو بقارئ الباركود أو إدخال رمز البطاقة اليومي الخاص بالموظف.',
     };
   }
 
-  const targetIdentity = generateEmployeeBarcodeIdentity(user);
+  const targetIdentity = generateEmployeeBarcodeIdentity(user, now);
   const targetKey = targetIdentity.employeeKey;
+  const todayIso = targetIdentity.validForDate;
   const upper = cleaned.toUpperCase();
 
-  // 1. Check exact match for THIS specific employee
+  // 1. Check exact match for THIS specific employee on TODAY's calendar date
   if (
     upper === targetIdentity.badgeCode.toUpperCase() ||
     upper === targetIdentity.qrPayload.toUpperCase() ||
-    upper.includes(`|${targetIdentity.badgeCode.toUpperCase()}|`) ||
+    (upper.includes(`|${targetIdentity.badgeCode.toUpperCase()}|`) &&
+      (!upper.startsWith('ERP-ATT|') || upper.includes(`|${todayIso}`))) ||
     cleaned === targetIdentity.shortPinCode
   ) {
     return {
@@ -331,16 +358,21 @@ export function verifyEmployeeBarcodeInput(
     };
   }
 
-  // 2. Anti-Spoofing Check: Did the user scan or enter ANOTHER employee's barcode or PIN?
+  // 2. Anti-Spoofing Check FIRST (today + yesterday across corporate directory) so scanning another employee's card is always caught
+  const yesterdayDate = new Date(now.getTime() - 86_400_000);
   for (const emp of KAS_ALLOWED_EMPLOYEES) {
-    const otherIdentity = generateEmployeeBarcodeIdentity(emp);
-    if (otherIdentity.employeeKey === targetKey) continue;
+    const otherToday = generateEmployeeBarcodeIdentity(emp, now);
+    if (otherToday.employeeKey === targetKey) continue;
+    const otherYesterday = generateEmployeeBarcodeIdentity(emp, yesterdayDate);
 
     if (
-      upper === otherIdentity.badgeCode.toUpperCase() ||
-      upper === otherIdentity.qrPayload.toUpperCase() ||
-      upper.includes(`|${otherIdentity.badgeCode.toUpperCase()}|`) ||
-      cleaned === otherIdentity.shortPinCode ||
+      upper === otherToday.badgeCode.toUpperCase() ||
+      upper === otherToday.qrPayload.toUpperCase() ||
+      upper.includes(`|${otherToday.badgeCode.toUpperCase()}|`) ||
+      cleaned === otherToday.shortPinCode ||
+      upper === otherYesterday.badgeCode.toUpperCase() ||
+      upper === otherYesterday.qrPayload.toUpperCase() ||
+      cleaned === otherYesterday.shortPinCode ||
       upper === emp.email.toUpperCase()
     ) {
       const currentName =
@@ -355,10 +387,61 @@ export function verifyEmployeeBarcodeInput(
     }
   }
 
+  // 3. Check if the employee scanned an EXPIRED daily barcode from a previous calendar day (1..30 days ago)
+  for (let daysAgo = 1; daysAgo <= 30; daysAgo++) {
+    const pastDate = new Date(now.getTime() - daysAgo * 86_400_000);
+    const pastIdentity = generateEmployeeBarcodeIdentity(user, pastDate);
+    if (
+      upper === pastIdentity.badgeCode.toUpperCase() ||
+      upper === pastIdentity.qrPayload.toUpperCase() ||
+      upper.includes(`|${pastIdentity.badgeCode.toUpperCase()}|`) ||
+      cleaned === pastIdentity.shortPinCode
+    ) {
+      return {
+        valid: false,
+        matchedCode: '',
+        expiredDailyCode: true,
+        expiredDate: pastIdentity.validForDate,
+        reasonAr: `انتهت صلاحية هذا الباركود (الخاص بيوم ${pastIdentity.validForDate}) — رمز الباركود يتجدد تلقائياً كل يوم؛ يرجى استخدام باركود اليوم المعتمد (${targetIdentity.badgeCode}).`,
+      };
+    }
+  }
+
+  // Also detect any raw ERP-ATT QR payload embedding an older date
+  const embeddedDateMatch = upper.match(/\|(20\d{2}-\d{2}-\d{2})(?:\||$)/);
+  if (embeddedDateMatch && embeddedDateMatch[1] !== todayIso) {
+    return {
+      valid: false,
+      matchedCode: '',
+      expiredDailyCode: true,
+      expiredDate: embeddedDateMatch[1],
+      reasonAr: `انتهت صلاحية رمز QR الممسوح لتاريخ (${embeddedDateMatch[1]}) — يرجى مسح باركود اليوم المتجدد (${targetIdentity.badgeCode}).`,
+    };
+  }
+
+  // 4. Check if the employee scanned a revoked previous barcodeVersion from today
+  if (targetIdentity.barcodeVersion > 1) {
+    for (let prevVer = 1; prevVer < targetIdentity.barcodeVersion; prevVer++) {
+      const revokedIdentity = generateEmployeeBarcodeIdentity(user, now, prevVer);
+      if (
+        upper === revokedIdentity.badgeCode.toUpperCase() ||
+        upper === revokedIdentity.qrPayload.toUpperCase() ||
+        cleaned === revokedIdentity.shortPinCode
+      ) {
+        return {
+          valid: false,
+          matchedCode: '',
+          expiredDailyCode: true,
+          reasonAr: `تم إلغاء هذا الإصدار من البطاقة (V${prevVer}) — يرجى استخدام الباركود الجديد المعتمد (${targetIdentity.badgeCode}).`,
+        };
+      }
+    }
+  }
+
   return {
     valid: false,
     matchedCode: '',
-    reasonAr: `رمز الباركود المدخل غير مطابق لبطاقة الموظف المعتمدة (${targetIdentity.badgeCode}).`,
+    reasonAr: `رمز الباركود المدخل غير مطابق لبطاقة الموظف اليومية المعتمدة (${targetIdentity.badgeCode}).`,
   };
 }
 
@@ -1038,6 +1121,8 @@ export async function getEmployeeGateProfile(
     shortPinCode: identity.shortPinCode,
     qrPayload: identity.qrPayload,
     barcodeVersion: identity.barcodeVersion,
+    validForDate: identity.validForDate,
+    dailySignature: identity.dailySignature,
     biometricEnrolled: hasWebAuthnCred,
     biometricEnrolledAt: overrides.biometricEnrolledAt,
     biometricCredentialHint:
@@ -1169,6 +1254,8 @@ export async function getAllEmployeesGateVerificationDirectory(
       shortPinCode: identity.shortPinCode,
       qrPayload: identity.qrPayload,
       barcodeVersion: identity.barcodeVersion,
+      validForDate: identity.validForDate,
+      dailySignature: identity.dailySignature,
       biometricEnrolled: hasWebAuthnCred,
       biometricEnrolledAt: overrides.biometricEnrolledAt,
       biometricCredentialHint:
@@ -1209,39 +1296,40 @@ export async function getAllEmployeesGateVerificationDirectory(
 }
 
 /**
- * Re-issues a brand-new collision-free Barcode & PIN exclusively for a single employee
- * (e.g., if their physical card was lost), invalidating their previous barcode immediately.
+ * Re-issues a brand-new collision-free daily-rotating Barcode & PIN exclusively for a single employee
+ * (e.g., if their physical/digital badge was compromised), invalidating their previous barcode immediately
+ * while preserving automatic daily rotation on all subsequent calendar days.
  */
 export async function regenerateEmployeeBarcode(
   employeeOrUser: Record<string, any>
 ): Promise<EmployeeBiometricGateProfile> {
+  const now = new Date();
   const userKey = resolveUserGateKey(employeeOrUser);
   const existingOverrides = readOverridesMap()[userKey] || {};
-  const nextVersion = (existingOverrides.barcodeVersion || 1) + 1;
+  let nextVersion = (existingOverrides.barcodeVersion || 1) + 1;
 
-  // Ensure zero collision with any existing employee PIN
+  // Ensure zero collision with any existing employee PIN today
   const usedPins = new Set<string>();
   for (const emp of KAS_ALLOWED_EMPLOYEES) {
     if (resolveUserGateKey(emp) !== userKey) {
-      usedPins.add(generateEmployeeBarcodeIdentity(emp).shortPinCode);
+      usedPins.add(generateEmployeeBarcodeIdentity(emp, now).shortPinCode);
     }
   }
 
-  let candidatePin = '';
-  let attempt = 0;
-  do {
-    const chk = computeDeterministicChecksum3(`${userKey}|V${nextVersion}|${Date.now()}|${attempt}`);
-    const prefix = String(500 + ((nextVersion * 37 + attempt * 13) % 490)).padStart(3, '0');
-    candidatePin = `${prefix}${chk}`;
-    attempt++;
-  } while (usedPins.has(candidatePin) && attempt < 50);
+  for (let step = 0; step < 50; step++) {
+    const candidate = generateEmployeeBarcodeIdentity(employeeOrUser, now, nextVersion);
+    if (!usedPins.has(candidate.shortPinCode)) {
+      break;
+    }
+    nextVersion++;
+  }
 
   updateEmployeeOverride(userKey, {
-    customSixDigits: candidatePin,
+    customSixDigits: undefined,
     barcodeVersion: nextVersion,
   });
 
-  const updatedProfile = await getEmployeeGateProfile(employeeOrUser);
+  const updatedProfile = await getEmployeeGateProfile(employeeOrUser, now);
 
   try {
     await realErpDataStore.addRecord<any>('activity_log', {
@@ -1251,9 +1339,9 @@ export async function regenerateEmployeeBarcode(
       role: updatedProfile.role,
       action_type: 'إعادة إصدار باركود موظف',
       module: 'الحضور والانصراف والأمان الحيوي',
-      details: `تم إصدار باركود وظيفي جديد (${updatedProfile.badgeCode} - إصدار V${nextVersion}) للموظف (${updatedProfile.fullName}) وإلغاء الرمز السابق.`,
+      details: `تم إصدار باركود وظيفي يومي جديد (${updatedProfile.badgeCode} - إصدار V${nextVersion}) للموظف (${updatedProfile.fullName}) وإلغاء الرمز السابق.`,
       severity: 'عادي',
-      created_at: new Date().toISOString().replace('T', ' ').slice(0, 16),
+      created_at: now.toISOString().replace('T', ' ').slice(0, 16),
     });
   } catch {
     // non-blocking

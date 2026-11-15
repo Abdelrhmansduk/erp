@@ -94,7 +94,7 @@ export const UniversalNotificationToaster: React.FC<UniversalNotificationToaster
         return {
           isCritical: false,
           icon: <Users className="w-4 h-4 text-[#141414] shrink-0" />,
-          label: 'رادار جسر للموارد البشرية',
+          label: 'رادار الموارد البشرية',
         };
       case 'success':
         return {

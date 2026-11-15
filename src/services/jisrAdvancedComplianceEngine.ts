@@ -1,11 +1,10 @@
 /**
- * jisrAdvancedComplianceEngine.ts
- * Complete Jisr 2026 Regulatory & Financial Compliance Engine for Khalid Al-Sulaim Holding Group ERP:
+ * Complete 2026 Regulatory & Financial Compliance Engine for Khalid Al-Sulaim Holding Group ERP:
  *   1. Official Saudi Public Holidays Calendar & Annual Leave Net-Days Exclusion (Eid Al-Fitr, Eid Al-Adha, Founding Day, National Day)
  *   2. Monthly Shift Roster Resolution & Colleague Shift Swap Validator
  *   3. HRSD Saudi Labor Law Disciplinary Matrix (Articles 66–72: 180-day repeat reset, Art. 69 30-day discovery limit, Art. 71 mandatory investigation, Art. 67 5-day monthly deduction cap)
  *   4. ZATCA Phase 1/2 TLV Base64 QR Receipt Decoder & Duplicate Expense Fingerprint Guard
- *   5. Jisr Pay — Earned Wage Access (EWA — الراتب المرن المبكر المستحق الفعلي من الحضور)
+ *   5. Earned Wage Access (EWA — الراتب المرن المبكر المستحق الفعلي من الحضور)
  *   6. Qiwa Nitaqat Live Enforcement & Visa Eligibility Gate (4,000 ⃁ = 1.0, 3,000–3,999 ⃁ = 0.5, disabled Saudi = 4.0, student/flex = 0.5)
  */
 
@@ -708,7 +707,7 @@ export function decodeZatcaQrTlvBase64(rawQrBase64: string): DecodedZatcaReceipt
 }
 
 // ============================================================================
-// 5. JISR PAY — EARNED WAGE ACCESS (EWA — الراتب المرن المبكر المستحق الفعلي)
+// 5. EARNED WAGE ACCESS (EWA — الراتب المرن المبكر المستحق الفعلي)
 // ============================================================================
 
 export interface EarnedWageAccessQuote {
@@ -1226,7 +1225,7 @@ export function calculateSaudiOvertimePay(
 }
 
 // ============================================================================
-// 8. JISR COMPREHENSIVE FINAL SETTLEMENT & CLEARANCE ENGINE (Art. 64, 80, 84, 85, 87, 111)
+// 8. COMPREHENSIVE FINAL SETTLEMENT & CLEARANCE ENGINE (Art. 64, 80, 84, 85, 87, 111)
 // ============================================================================
 
 export type JisrSeparationType =
@@ -1418,7 +1417,7 @@ export function calculateJisrFinalSettlement(
 }
 
 // ============================================================================
-// 9. EMPLOYEE 360° PROFILE COMPLETENESS ENGINE (Jisr / Qiwa / WPS / GOSI / CCHI)
+// 9. EMPLOYEE 360° PROFILE COMPLETENESS ENGINE (Qiwa / WPS / GOSI / CCHI)
 // ============================================================================
 
 export interface Employee360CompletenessResult {
@@ -1517,7 +1516,7 @@ export function computeEmployee360Completeness(
 }
 
 // ============================================================================
-// 10. JISR PAYROLL CUTOFF CALENDAR & RETROACTIVE PAY ENGINE (تاريخ القطع والأثر الرجعي)
+// 10. PAYROLL CUTOFF CALENDAR & RETROACTIVE PAY ENGINE (تاريخ القطع والأثر الرجعي)
 // ============================================================================
 
 export interface PayrollCutoffEvaluationResult {
@@ -1676,7 +1675,7 @@ export function evaluateLeaveQuotaAndReplacement(params: {
         maxAllowedPercent,
         replacementValid: false,
         blockingReasonAr:
-          'يتطلب نظام جسر تحديد زميل بديل مختلف داخل القسم وتأكيد استلامه للمهام قبل رفع طلب الإجازة.',
+          'يتطلب نظام الموارد البشرية تحديد زميل بديل مختلف داخل القسم وتأكيد استلامه للمهام قبل رفع طلب الإجازة.',
         advisoryAr: 'يرجى اختيار الموظف البديل لاستلام العهد والمهام التشغيلية.',
       };
     }

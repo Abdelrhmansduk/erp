@@ -1,7 +1,6 @@
 /**
- * jisrSpendCardsAndAttendanceCutoffEngine.ts
- * Enterprise Cards, Leave Rollover/Encashment & Time Cutoff Engine (Jisr 3.0 Parity):
- *   1. Jisr Corporate Cards (Virtual/Physical, Daily/Monthly Limits, MCC allowlist, Freeze/Unfreeze, ZATCA QR + GL)
+ * Enterprise Cards, Leave Rollover/Encashment & Time Cutoff Engine:
+ *   1. Corporate Spend Cards (Virtual/Physical, Daily/Monthly Limits, MCC allowlist, Freeze/Unfreeze, ZATCA QR + GL)
  *   2. Attendance Cut-Off Period Resolver (e.g., 25th -> 24th) & Monthly Permission Hours Quota Bucket
  *   3. Real-Time Biometric Cloud Push (ZKTeco ADMS ATTLOG parser + SHA-256-like deduplication)
  *   4. Year-End Leave Carryover & Forfeiture Cap + In-Service Leave Encashment with Balanced GL

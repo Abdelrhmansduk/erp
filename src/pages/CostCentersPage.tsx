@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useModalEscape } from '../hooks/useModalEscape';
 import { exportData } from '../services/exportService';
 import { ExportDropdown } from '../components/common/ExportDropdown';
@@ -7,13 +7,31 @@ import { useCompany } from '../contexts/CompanyContext';
 import { useAppStore } from '../stores/appStore';
 import { 
   PieChart, Plus, FileSpreadsheet, FileText, Search, X, Trash2, 
-  DollarSign, ArrowDownRight, CheckCircle2 
+  DollarSign, ArrowDownRight, CheckCircle2, Users, BookOpen, Sliders
 } from 'lucide-react';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { journalEngine } from '../services/accounting/journalEngine';
 import { isKasTradeCompany, scopeRecordsForCompany } from '../services/kasTradeScope';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
+
+export interface CostCenterAllocationItem {
+  costCenterCode: string;
+  costCenterName: string;
+  percentage: number;
+}
+
+export interface AllocatedEmployeeSummary {
+  employeeId: string;
+  name: string;
+  jobTitle: string;
+  department: string;
+  percentage: number;
+  monthlyGrossSalary: number;
+  monthlyIas19Accrual: number;
+  weightedMonthlyCost: number;
+  rawEmployee: Record<string, any>;
+}
 
 export interface CostCenterRecord {
   id: string;
@@ -125,6 +143,352 @@ export const CostCentersPage: React.FC = () => {
   const [name, setName] = useState('');
   const [managerName, setManagerName] = useState('');
   const [budget, setBudget] = useState('50000');
+
+  // Live HR Employees & Journal Entries for Cost Center Allocation (Gap #2)
+  const companyCode = activeCompanyId !== 'all' ? activeCompanyId : 'SAF';
+  const [liveEmployees, setLiveEmployees] = useState<Record<string, any>[]>([]);
+  const [liveStoreJournals, setLiveStoreJournals] = useState<Record<string, any>[]>([]);
+  const [selectedCostCenterForDetails, setSelectedCostCenterForDetails] = useState<CostCenterRecord | null>(null);
+  const [assignEmployeeId, setAssignEmployeeId] = useState<string>('');
+  const [assignPercentage, setAssignPercentage] = useState<string>('50');
+  const [refreshTick, setRefreshTick] = useState(0);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadLiveCostCenterSources = async () => {
+      try {
+        const [hrEmps, legacyEmps, storeJvs, finJvs] = await Promise.all([
+          typeof (realErpDataStore as any).getCompanyRecords === 'function'
+            ? (realErpDataStore as any).getCompanyRecords('hr_employees', companyCode)
+            : realErpDataStore.getRecords('hr_employees'),
+          realErpDataStore.getRecords('employees'),
+          realErpDataStore.getRecords('company_journal_entries'),
+          realErpDataStore.getRecords('finance_journals'),
+        ]);
+        if (!mounted) return;
+        const mergedMap = new Map<string, Record<string, any>>();
+        [...(Array.isArray(legacyEmps) ? legacyEmps : []), ...(Array.isArray(hrEmps) ? hrEmps : [])].forEach((emp: any) => {
+          const key = String(emp?.id || emp?.employee_id || emp?.national_id || emp?.name || '');
+          if (key) {
+            mergedMap.set(key, { ...mergedMap.get(key), ...emp, id: emp.id || key });
+          }
+        });
+        const empList = Array.from(mergedMap.values());
+        setLiveEmployees(empList);
+        if (empList.length > 0 && !assignEmployeeId) {
+          setAssignEmployeeId(String(empList[0].id));
+        }
+        setLiveStoreJournals([
+          ...(Array.isArray(storeJvs) ? storeJvs : []),
+          ...(Array.isArray(finJvs) ? finJvs : []),
+        ]);
+      } catch {
+        // Fallback if store read fails
+      }
+    };
+    void loadLiveCostCenterSources();
+    return () => {
+      mounted = false;
+    };
+  }, [companyCode, refreshTick]);
+
+  const engineJournals = useMemo(() => {
+    const anyEngine = journalEngine as any;
+    if (typeof anyEngine.getEntries === 'function') {
+      return anyEngine.getEntries(activeCompanyId);
+    }
+    return journalEngine.getJournalsByCompany(activeCompanyId);
+  }, [activeCompanyId, refreshTick, costCenters.length]);
+
+  const costCenterMetricsMap = useMemo(() => {
+    const map: Record<
+      string,
+      {
+        allocatedEmployees: AllocatedEmployeeSummary[];
+        totalWeightedMonthlyCost: number;
+        totalPostedJournalsAmount: number;
+        postedJournalItems: Array<{
+          id: string;
+          entryNumber: string;
+          entryDate: string;
+          description: string;
+          amount: number;
+          sourceModule: string;
+        }>;
+      }
+    > = {};
+
+    costCenters.forEach((cc, ccIdx) => {
+      const allocatedEmployees: AllocatedEmployeeSummary[] = [];
+
+      liveEmployees.forEach((emp, empIdx) => {
+        const rawAllocs: any[] = Array.isArray(emp.cost_center_allocations)
+          ? emp.cost_center_allocations
+          : [];
+        let matchedPct = 0;
+
+        if (rawAllocs.length > 0) {
+          const found = rawAllocs.find(
+            (a) =>
+              String(a.costCenterCode || a.code || '').toLowerCase() === cc.code.toLowerCase() ||
+              String(a.costCenterName || a.name || '').trim() === cc.name.trim()
+          );
+          if (found) {
+            matchedPct = Number(found.percentage ?? found.percent ?? 0);
+          }
+        } else if (
+          String(emp.cost_center_code || '').toLowerCase() === cc.code.toLowerCase() ||
+          String(emp.cost_center || '').trim() === cc.name.trim()
+        ) {
+          matchedPct = Number(emp.allocation_percent ?? 100);
+        } else {
+          // Deterministic department/branch fallback when employee has no explicit cost_center_allocations yet
+          const deptStr = String(emp.department || emp.branch || emp.job_title || '');
+          if (
+            (cc.code.includes('OPS') && (deptStr.includes('استقدام') || deptStr.includes('عمليات') || deptStr.includes('مساند'))) ||
+            (cc.code.includes('RENT') && (deptStr.includes('تأجير') || deptStr.includes('تشغيل') || deptStr.includes('سائق'))) ||
+            (cc.code.includes('SHELTER') && (deptStr.includes('إيواء') || deptStr.includes('تغذية') || deptStr.includes('رعاية'))) ||
+            (costCenters.length > 0 && empIdx % costCenters.length === ccIdx)
+          ) {
+            matchedPct = 100;
+          }
+        }
+
+        if (matchedPct > 0) {
+          const basic = Number(emp.basic_salary ?? emp.salary ?? 5500);
+          const housing = Number(emp.housing_allowance ?? Math.round(basic * 0.25));
+          const transport = Number(emp.transport_allowance ?? Math.round(basic * 0.1));
+          const other = Number(emp.other_allowances ?? 0);
+          const monthlyGrossSalary = basic + housing + transport + other;
+
+          // IAS 19 Monthly Accrual: EOSB (basic+housing+transport)/24 + Annual Leave (21/360) + Ticket (200)
+          const monthlyEosbAccrual = monthlyGrossSalary / 24;
+          const monthlyLeaveAccrual = (monthlyGrossSalary * 21) / 360;
+          const monthlyTicketAccrual = Number(emp.annual_ticket_amount ?? 2400) / 12;
+          const monthlyIas19Accrual = Math.round((monthlyEosbAccrual + monthlyLeaveAccrual + monthlyTicketAccrual) * 100) / 100;
+
+          const weightedMonthlyCost =
+            Math.round(((monthlyGrossSalary + monthlyIas19Accrual) * (matchedPct / 100)) * 100) / 100;
+
+          allocatedEmployees.push({
+            employeeId: String(emp.id),
+            name: String(emp.name || emp.full_name || 'موظف'),
+            jobTitle: String(emp.job_title || emp.role || 'موظف'),
+            department: String(emp.department || emp.branch || 'الإدارة العامة'),
+            percentage: matchedPct,
+            monthlyGrossSalary,
+            monthlyIas19Accrual,
+            weightedMonthlyCost,
+            rawEmployee: emp,
+          });
+        }
+      });
+
+      const totalWeightedMonthlyCost =
+        Math.round(allocatedEmployees.reduce((sum, item) => sum + item.weightedMonthlyCost, 0) * 100) / 100;
+
+      // Collect posted journal entries for this cost center from journalEngine + realErpDataStore
+      const postedJournalItems: Array<{
+        id: string;
+        entryNumber: string;
+        entryDate: string;
+        description: string;
+        amount: number;
+        sourceModule: string;
+      }> = [];
+      const seenJournalIds = new Set<string>();
+
+      engineJournals.forEach((j: any) => {
+        const matchedLines = (Array.isArray(j.lines) ? j.lines : []).filter(
+          (l: any) =>
+            l.costCenterCode === cc.code ||
+            j.costCenterCode === cc.code ||
+            l.costCenterName === cc.name
+        );
+        if (matchedLines.length > 0) {
+          const lineDebit = matchedLines.reduce((s: number, l: any) => s + Number(l.debit || 0), 0);
+          const lineCredit = matchedLines.reduce((s: number, l: any) => s + Number(l.credit || 0), 0);
+          const amt = Math.max(lineDebit, lineCredit, Number(j.totalDebit || 0));
+          const jId = String(j.id || j.entryNumber);
+          if (!seenJournalIds.has(jId) && amt > 0) {
+            seenJournalIds.add(jId);
+            postedJournalItems.push({
+              id: jId,
+              entryNumber: String(j.entryNumber || jId),
+              entryDate: String(j.entryDate || new Date().toISOString().slice(0, 10)),
+              description: String(j.description || 'قيد يومية على مركز التكلفة'),
+              amount: amt,
+              sourceModule: String(j.sourceModule || 'JOURNAL_ENGINE'),
+            });
+          }
+        }
+      });
+
+      liveStoreJournals.forEach((sj: any) => {
+        const sjCc = String(sj.cost_center_code || sj.costCenterCode || '');
+        if (sjCc === cc.code || String(sj.cost_center_name || '') === cc.name) {
+          const jId = String(sj.id || sj.entry_number || '');
+          const amt = Number(sj.total_debit ?? sj.amount ?? 0);
+          if (jId && !seenJournalIds.has(jId) && amt > 0) {
+            seenJournalIds.add(jId);
+            postedJournalItems.push({
+              id: jId,
+              entryNumber: String(sj.entry_number || jId),
+              entryDate: String(sj.entry_date || sj.date || new Date().toISOString().slice(0, 10)),
+              description: String(sj.description || 'قيد محاسبي مرحل'),
+              amount: amt,
+              sourceModule: String(sj.source_module || 'HR_FINANCE'),
+            });
+          }
+        }
+      });
+
+      const totalPostedJournalsAmount =
+        Math.round(postedJournalItems.reduce((s, item) => s + item.amount, 0) * 100) / 100;
+
+      map[cc.code] = {
+        allocatedEmployees,
+        totalWeightedMonthlyCost,
+        totalPostedJournalsAmount,
+        postedJournalItems,
+      };
+    });
+
+    return map;
+  }, [costCenters, liveEmployees, engineJournals, liveStoreJournals]);
+
+  const handleSaveEmployeeAllocation = async (
+    targetCc: CostCenterRecord,
+    employeeId: string,
+    newPct: number
+  ) => {
+    const cleanPct = Math.max(0, Math.min(100, Math.round(Number(newPct) || 0)));
+    const emp = liveEmployees.find((e) => String(e.id) === String(employeeId));
+    if (!emp) return;
+
+    const existingAllocs: CostCenterAllocationItem[] = Array.isArray(emp.cost_center_allocations)
+      ? emp.cost_center_allocations.map((a: any) => ({
+          costCenterCode: String(a.costCenterCode || a.code || ''),
+          costCenterName: String(a.costCenterName || a.name || ''),
+          percentage: Number(a.percentage ?? a.percent ?? 0),
+        }))
+      : [
+          {
+            costCenterCode: targetCc.code,
+            costCenterName: targetCc.name,
+            percentage: cleanPct,
+          },
+        ];
+
+    const otherAllocs = existingAllocs.filter(
+      (a) => a.costCenterCode.toLowerCase() !== targetCc.code.toLowerCase()
+    );
+    const updatedAllocs: CostCenterAllocationItem[] =
+      cleanPct > 0
+        ? [
+            ...otherAllocs,
+            {
+              costCenterCode: targetCc.code,
+              costCenterName: targetCc.name,
+              percentage: cleanPct,
+            },
+          ]
+        : otherAllocs;
+
+    const updatedFields = {
+      cost_center_code: targetCc.code,
+      cost_center: targetCc.name,
+      allocation_percent: cleanPct,
+      cost_center_allocations: updatedAllocs,
+    };
+
+    await realErpDataStore.updateRecord<any>('hr_employees', String(emp.id), updatedFields);
+    await realErpDataStore.updateRecord<any>('employees', String(emp.id), updatedFields);
+
+    setLiveEmployees((prev) =>
+      prev.map((item) => (String(item.id) === String(emp.id) ? { ...item, ...updatedFields } : item))
+    );
+    setRefreshTick((t) => t + 1);
+
+    addNotification({
+      title: 'تحديث توزيع مركز التكلفة للموظف',
+      message: `تم اعتماد تحميل الموظف (${emp.name || emp.full_name}) بنسبة ${cleanPct}% على (${targetCc.name} - ${targetCc.code}) في قاعدة البيانات الحية.`,
+      type: 'success',
+    });
+  };
+
+  const handlePostCostCenterHrAccrualJournal = async (targetCc: CostCenterRecord) => {
+    const metrics = costCenterMetricsMap[targetCc.code];
+    if (!metrics || metrics.totalWeightedMonthlyCost <= 0) return;
+
+    const targetCompany = (activeCompanyId !== 'all' ? activeCompanyId : 'SAF') as any;
+    const totalAmt = metrics.totalWeightedMonthlyCost;
+    const refNo = `CC-HR-${targetCc.code}-${Date.now().toString().slice(-4)}`;
+    const desc = `تحميل رواتب ومخصصات IAS 19 لعدد (${metrics.allocatedEmployees.length}) موظفين على ${targetCc.name} [${targetCc.code}]`;
+
+    const res = journalEngine.createJournalEntry(targetCompany, {
+      entryDate: new Date().toISOString().slice(0, 10),
+      entryType: 'AUTOMATIC',
+      sourceModule: 'HR_COST_CENTER_ALLOCATION',
+      sourceReference: refNo,
+      description: desc,
+      costCenterCode: targetCc.code,
+      createdBy: 'محرك توزيع مراكز التكلفة وIAS 19',
+      autoPost: true,
+      lines: [
+        {
+          accountCode: '530101',
+          accountName: 'رواتب وأجور ومخصصات الموارد البشرية (IAS 19)',
+          description: desc,
+          debit: totalAmt,
+          credit: 0,
+          costCenterCode: targetCc.code,
+          costCenterName: targetCc.name,
+        },
+        {
+          accountCode: '220101',
+          accountName: 'مخصصات ومستحقات الموظفين المتراكمة (IAS 19)',
+          description: desc,
+          debit: 0,
+          credit: totalAmt,
+          costCenterCode: targetCc.code,
+          costCenterName: targetCc.name,
+        },
+      ],
+    });
+
+    await realErpDataStore.addRecord('company_journal_entries', {
+      id: res.entry?.id || `JV-CCHR-${Date.now()}`,
+      company_id: targetCompany,
+      entry_number: res.entry?.entryNumber || refNo,
+      entry_date: new Date().toISOString().slice(0, 10),
+      entry_type: 'AUTOMATIC',
+      source_module: 'HR_COST_CENTER_ALLOCATION',
+      source_reference: refNo,
+      description: desc,
+      total_debit: totalAmt,
+      total_credit: totalAmt,
+      status: 'POSTED',
+      cost_center_code: targetCc.code,
+      cost_center_name: targetCc.name,
+      created_by: 'محرك توزيع مراكز التكلفة وIAS 19',
+      created_at: new Date().toISOString(),
+    });
+
+    await updateItem.mutateAsync({
+      id: targetCc.id,
+      data: {
+        actual_spent: Math.round(((targetCc.actual_spent || 0) + totalAmt) * 100) / 100,
+      },
+    });
+
+    setRefreshTick((t) => t + 1);
+    addNotification({
+      title: 'تم ترحيل قيد تحميل الكوادر ومخصصات IAS 19',
+      message: `تم ترحيل القيد (${res.entry?.entryNumber || refNo}) بقيمة ${totalAmt.toLocaleString()} ⃁ على مركز التكلفة (${targetCc.code}).`,
+      type: 'success',
+    });
+  };
 
   const handleRecordExpense = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -317,6 +681,19 @@ export const CostCentersPage: React.FC = () => {
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>{remainingBudget.toLocaleString()} ⃁</div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>سيولة متبقية</span>
         </div>
+
+        <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
+          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>إجمالي التحميل الشهري للكوادر (HR + IAS 19)</span>
+          <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>
+            {Object.values(costCenterMetricsMap)
+              .reduce((s, m) => s + m.totalWeightedMonthlyCost, 0)
+              .toLocaleString()}{' '}
+            ⃁
+          </div>
+          <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>
+            {liveEmployees.length} موظف موزع على المراكز
+          </span>
+        </div>
       </div>
 
       {/* Table Card */}
@@ -346,6 +723,8 @@ export const CostCentersPage: React.FC = () => {
                 <th className="p-3.5">كود المركز</th>
                 <th className="p-3.5">اسم مركز التكلفة</th>
                 <th className="p-3.5">المسؤول</th>
+                <th className="p-3.5">الكوادر والرواتب المحملة (IAS 19)</th>
+                <th className="p-3.5">القيود المرحلة</th>
                 <th className="p-3.5">الميزانية المعتمدة</th>
                 <th className="p-3.5">المنصرف الفعلي</th>
                 <th className="p-3.5">المتبقي</th>
@@ -356,13 +735,13 @@ export const CostCentersPage: React.FC = () => {
             <tbody className="divide-y divide-zinc-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="py-10 text-center text-[#707070]">
+                  <td colSpan={10} className="py-10 text-center text-[#707070]">
                     جاري استرجاع مراكز التكلفة...
                   </td>
                 </tr>
               ) : filteredCostCenters.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-10 text-center text-[#707070]">
+                  <td colSpan={10} className="py-10 text-center text-[#707070]">
                     لا توجد مراكز تكلفة مسجلة
                   </td>
                 </tr>
@@ -370,6 +749,12 @@ export const CostCentersPage: React.FC = () => {
                 filteredCostCenters.map((c) => {
                   const spentPct = c.budget > 0 ? Math.min(100, Math.round((c.actual_spent / c.budget) * 100)) : 0;
                   const remaining = c.budget - c.actual_spent;
+                  const ccMetrics = costCenterMetricsMap[c.code] || {
+                    allocatedEmployees: [],
+                    totalWeightedMonthlyCost: 0,
+                    totalPostedJournalsAmount: 0,
+                    postedJournalItems: [],
+                  };
 
                   return (
                     <tr key={c.id} className="hover:bg-zinc-50 transition-colors">
@@ -386,6 +771,26 @@ export const CostCentersPage: React.FC = () => {
                           <span>{c.manager_name || 'غير محدد'}</span>
                         </div>
                       </td>
+                      <td className="p-3.5">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-bold text-[#141414]">
+                            {ccMetrics.allocatedEmployees.length} موظف • {ccMetrics.totalWeightedMonthlyCost.toLocaleString()} ⃁/شهرياً
+                          </span>
+                          <span className="text-[10.5px] text-[#707070]">
+                            شامل الرواتب ومخصص IAS 19
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-3.5 font-mono">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-bold text-[#141414]">
+                            {ccMetrics.totalPostedJournalsAmount.toLocaleString()} ⃁
+                          </span>
+                          <span className="text-[10px] text-[#707070] font-sans">
+                            {ccMetrics.postedJournalItems.length} قيود مرحلة
+                          </span>
+                        </div>
+                      </td>
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{c.budget.toLocaleString()} ⃁</td>
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{c.actual_spent.toLocaleString()} ⃁</td>
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{remaining.toLocaleString()} ⃁</td>
@@ -393,9 +798,7 @@ export const CostCentersPage: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <div className="flex-1 bg-zinc-200 h-2 rounded-full overflow-hidden">
                             <div
-                              className={`h-full rounded-full ${
-                                spentPct > 80 ? 'bg-[#141414]' : spentPct > 50 ? 'bg-[#141414]' : 'bg-[#141414]'
-                              }`}
+                              className="h-full rounded-full bg-[#141414]"
                               style={{ width: `${spentPct}%` }}
                             />
                           </div>
@@ -403,7 +806,16 @@ export const CostCentersPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="p-3.5 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
+                        <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                          <button
+                            onClick={() => setSelectedCostCenterForDetails(c)}
+                            className="button-primary-pill bg-[#141414] text-white flex items-center gap-1 font-bold"
+                            style={{ padding: '3px 10px', fontSize: '11px', minHeight: '26px' }}
+                            title="تفصيل الكوادر والقيود المحملة على مركز التكلفة"
+                          >
+                            <Users className="w-3 h-3 text-white" />
+                            <span>الكوادر والقيود ({ccMetrics.allocatedEmployees.length})</span>
+                          </button>
                           <button
                             onClick={() => setSelectedCostCenterForExpense(c)}
                             className="button-outline-on-light text-[#141414] hover:bg-[#eaeaea] flex items-center gap-1 font-bold"
@@ -415,9 +827,12 @@ export const CostCentersPage: React.FC = () => {
                           </button>
                           <button
                             onClick={() => {
-                              if (window.confirm(`هل أنت متأكد من حذف مركز التكلفة (${c.name})؟`)) {
-                                deleteItem.mutate(c.id);
-                              }
+                              deleteItem.mutate(c.id);
+                              addNotification({
+                                title: 'حذف مركز التكلفة',
+                                message: `تم حذف مركز التكلفة (${c.name}) بنجاح.`,
+                                type: 'info',
+                              });
                             }}
                             aria-label="حذف المركز"
                             className="p-1 text-[#707070] hover:text-[#141414] transition-colors"
@@ -692,6 +1107,256 @@ export const CostCentersPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Interactive Modal: تفصيل الكوادر والقيود المحملة على مركز التكلفة */}
+      {selectedCostCenterForDetails && (() => {
+        const detailsMetrics = costCenterMetricsMap[selectedCostCenterForDetails.code] || {
+          allocatedEmployees: [],
+          totalWeightedMonthlyCost: 0,
+          totalPostedJournalsAmount: 0,
+          postedJournalItems: [],
+        };
+        return (
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4"
+            dir="rtl"
+            data-erp-modal-overlay="true"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setSelectedCostCenterForDetails(null);
+            }}
+          >
+            <div className="w-full max-w-4xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-y-auto font-sans max-h-[90vh]">
+              <div className="p-5 bg-[#141414] text-white flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-base text-white m-0 flex items-center gap-2">
+                    <Sliders className="w-4 h-4 text-white" />
+                    <span>تفصيل الكوادر والقيود المحملة على مركز التكلفة</span>
+                  </h3>
+                  <p className="text-xs text-zinc-300 mt-1">
+                    {selectedCostCenterForDetails.name} ({selectedCostCenterForDetails.code}) — إدارة نسب تحميل رواتب الموظفين ومخصصات IAS 19 والقيود المالية
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedCostCenterForDetails(null)}
+                  className="p-1.5 rounded-full text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6 bg-white text-[#141414]">
+                {/* Summary Strip */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0]">
+                    <div className="text-xs text-[#707070] font-bold">عدد الكوادر المحملة</div>
+                    <div className="text-2xl font-bold font-mono text-[#141414] mt-1">
+                      {detailsMetrics.allocatedEmployees.length} موظف
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0]">
+                    <div className="text-xs text-[#707070] font-bold">التكلفة الشهرية المرجحة (رواتب + IAS 19)</div>
+                    <div className="text-2xl font-bold font-mono text-[#141414] mt-1">
+                      {detailsMetrics.totalWeightedMonthlyCost.toLocaleString()} ⃁
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0]">
+                    <div className="text-xs text-[#707070] font-bold">إجمالي القيود المرحلة على المركز</div>
+                    <div className="text-2xl font-bold font-mono text-[#141414] mt-1">
+                      {detailsMetrics.totalPostedJournalsAmount.toLocaleString()} ⃁
+                    </div>
+                  </div>
+                </div>
+
+                {/* Assign or Update Employee Cost Center Percentage directly in realErpDataStore */}
+                <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <h4 className="text-xs font-bold text-[#141414] m-0">
+                      تخصيص أو تعديل نسبة تحميل موظف على هذا المركز في قاعدة البيانات الحية:
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => void handlePostCostCenterHrAccrualJournal(selectedCostCenterForDetails)}
+                      className="button-primary-pill bg-[#141414] text-white text-xs font-bold"
+                      style={{ padding: '5px 14px', minHeight: '30px' }}
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5 ml-1" />
+                      <span>ترحيل قيد تحميل الرواتب وIAS 19 للمركز ({detailsMetrics.totalWeightedMonthlyCost.toLocaleString()} ⃁)</span>
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                    <div>
+                      <label className="block text-[11px] font-bold text-[#707070] mb-1">الموظف</label>
+                      <select
+                        value={assignEmployeeId}
+                        onChange={(e) => setAssignEmployeeId(e.target.value)}
+                        className="w-full bg-white border border-[#e0e0e0] rounded-full py-2 px-3 text-xs font-bold text-[#141414]"
+                      >
+                        {liveEmployees.map((emp) => (
+                          <option key={String(emp.id)} value={String(emp.id)}>
+                            {emp.name || emp.full_name} — ({emp.job_title || emp.department || 'موظف'})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-[#707070] mb-1">نسبة التحميل على المركز (%)</label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={assignPercentage}
+                        onChange={(e) => setAssignPercentage(e.target.value)}
+                        className="w-full bg-white border border-[#e0e0e0] rounded-full py-2 px-3 text-xs font-mono font-bold text-[#141414]"
+                      />
+                    </div>
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!assignEmployeeId) return;
+                          void handleSaveEmployeeAllocation(
+                            selectedCostCenterForDetails,
+                            assignEmployeeId,
+                            Number(assignPercentage)
+                          );
+                        }}
+                        className="w-full button-primary-pill bg-[#141414] text-white text-xs font-bold justify-center"
+                        style={{ minHeight: '36px' }}
+                      >
+                        حفظ واعتماد نسبة التحميل
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Allocated Employees Table */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold text-[#141414]">
+                    الكوادر المحملة حالياً على ({selectedCostCenterForDetails.name}):
+                  </h4>
+                  <div className="overflow-x-auto border border-[#e0e0e0] rounded-2xl">
+                    <table className="w-full text-right text-xs">
+                      <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
+                        <tr>
+                          <th className="p-3">الموظف</th>
+                          <th className="p-3">المسمى والقسم</th>
+                          <th className="p-3 font-mono">الراتب الإجمالي (⃁)</th>
+                          <th className="p-3 font-mono">مخصص IAS 19 الشهري (⃁)</th>
+                          <th className="p-3 font-mono">نسبة التحميل %</th>
+                          <th className="p-3 font-mono">التكلفة المحملة (⃁)</th>
+                          <th className="p-3 text-center">تعديل مباشر</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#e0e0e0]">
+                        {detailsMetrics.allocatedEmployees.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="p-6 text-center text-[#707070]">
+                              لا يوجد موظفون محملون حالياً على هذا المركز. استخدم النموذج أعلاه لإسناد موظف.
+                            </td>
+                          </tr>
+                        ) : (
+                          detailsMetrics.allocatedEmployees.map((item) => (
+                            <tr key={item.employeeId} className="hover:bg-[#f3f3f3]/40">
+                              <td className="p-3 font-bold text-[#141414]">{item.name}</td>
+                              <td className="p-3 text-[#707070]">
+                                {item.jobTitle} • {item.department}
+                              </td>
+                              <td className="p-3 font-mono font-bold text-[#141414]">
+                                {item.monthlyGrossSalary.toLocaleString()} ⃁
+                              </td>
+                              <td className="p-3 font-mono text-[#707070]">
+                                {item.monthlyIas19Accrual.toLocaleString()} ⃁
+                              </td>
+                              <td className="p-3 font-mono font-bold text-[#141414]">
+                                <span className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0]">
+                                  {item.percentage}%
+                                </span>
+                              </td>
+                              <td className="p-3 font-mono font-bold text-[#141414]">
+                                {item.weightedMonthlyCost.toLocaleString()} ⃁
+                              </td>
+                              <td className="p-3 text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                  {[25, 50, 100].map((pctVal) => (
+                                    <button
+                                      key={pctVal}
+                                      type="button"
+                                      onClick={() =>
+                                        void handleSaveEmployeeAllocation(
+                                          selectedCostCenterForDetails,
+                                          item.employeeId,
+                                          pctVal
+                                        )
+                                      }
+                                      className={`px-2 py-0.5 rounded-full text-[10.5px] font-mono font-bold border ${
+                                        item.percentage === pctVal
+                                          ? 'bg-[#141414] text-white border-[#141414]'
+                                          : 'bg-white text-[#141414] border-[#e0e0e0] hover:bg-[#f3f3f3]'
+                                      }`}
+                                    >
+                                      {pctVal}%
+                                    </button>
+                                  ))}
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Posted Journal Entries Table */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
+                    <BookOpen className="w-4 h-4 text-[#141414]" />
+                    <span>سجل القيود المحاسبية المرحلة على مركز التكلفة ({detailsMetrics.postedJournalItems.length}):</span>
+                  </h4>
+                  <div className="overflow-x-auto border border-[#e0e0e0] rounded-2xl">
+                    <table className="w-full text-right text-xs">
+                      <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
+                        <tr>
+                          <th className="p-3">رقم القيد</th>
+                          <th className="p-3">التاريخ</th>
+                          <th className="p-3">المصدر</th>
+                          <th className="p-3">البيان المحاسبي</th>
+                          <th className="p-3 font-mono">المبلغ المحمل (⃁)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#e0e0e0]">
+                        {detailsMetrics.postedJournalItems.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="p-5 text-center text-[#707070]">
+                              لا توجد قيود يومية مرحلة على هذا المركز حتى الآن.
+                            </td>
+                          </tr>
+                        ) : (
+                          detailsMetrics.postedJournalItems.map((jv) => (
+                            <tr key={jv.id} className="hover:bg-[#f3f3f3]/40">
+                              <td className="p-3 font-mono font-bold text-[#141414]">{jv.entryNumber}</td>
+                              <td className="p-3 font-mono text-[#707070]">{jv.entryDate}</td>
+                              <td className="p-3">
+                                <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[10px] font-bold">
+                                  {jv.sourceModule}
+                                </span>
+                              </td>
+                              <td className="p-3 text-[#141414]">{jv.description}</td>
+                              <td className="p-3 font-mono font-bold text-[#141414]">
+                                {jv.amount.toLocaleString()} ⃁
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

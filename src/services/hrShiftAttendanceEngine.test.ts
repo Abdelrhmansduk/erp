@@ -5,7 +5,7 @@ import {
   DEFAULT_GEOFENCE_LOCATIONS,
 } from './hrShiftAttendanceEngine';
 
-describe('HrShiftAttendanceEngine (Jisr Time, Shifts & Geofencing)', () => {
+describe('HrShiftAttendanceEngine (Time, Shifts & Geofencing)', () => {
   it('validates GPS Geofence inside branch radius and rejects outside or mocked coordinates', () => {
     const inside = HrShiftAttendanceEngine.verifyGeofencePunch({
       latitude: 24.7986,

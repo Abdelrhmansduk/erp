@@ -20,7 +20,7 @@ import {
   computeEmployee360Completeness,
 } from './jisrAdvancedComplianceEngine';
 
-describe('Jisr Advanced Compliance Engine (Saudi Labor Law, ZATCA, EWA & Live Qiwa Nitaqat)', () => {
+describe('HR Advanced Compliance Engine (Saudi Labor Law, ZATCA, EWA & Live Qiwa Nitaqat)', () => {
   it('excludes official Saudi public holidays (Eid Al-Fitr & National Day) from annual leave balance deduction', () => {
     expect(DEFAULT_SAUDI_PUBLIC_HOLIDAYS.length).toBeGreaterThanOrEqual(4);
     const res = calculateNetLeaveDaysExcludingHolidays('2026-03-19', '2026-03-25');
@@ -173,7 +173,7 @@ describe('Jisr Advanced Compliance Engine (Saudi Labor Law, ZATCA, EWA & Live Qi
     );
   });
 
-  it('resolves verified worked days from real attendance punches or hire/month start and computes Jisr Pay EWA', () => {
+  it('resolves verified worked days from real attendance punches or hire/month start and computes Earned Wage Access (EWA)', () => {
     const punchBased = resolveRealWorkedDaysForMonth({
       employeeId: 'EMP-50',
       employeeName: 'عبدالله السبيعي',
@@ -300,7 +300,7 @@ describe('Jisr Advanced Compliance Engine (Saudi Labor Law, ZATCA, EWA & Live Qi
     expect(ot.netAttendancePayrollImpact).toBe(0);
   });
 
-  it('computes Jisr comprehensive final settlement across Art. 84, Art. 85 resignation tiers, Art. 87, Art. 80, and Art. 111 leave encashment', () => {
+  it('computes comprehensive final settlement across Art. 84, Art. 85 resignation tiers, Art. 87, Art. 80, and Art. 111 leave encashment', () => {
     expect(mapSeparationReasonLabelToType('استقالة نظامية (المادة 85)')).toBe('RESIGNATION_ART85');
     expect(mapSeparationReasonLabelToType('فسخ عقد تأديبي (المادة 80)')).toBe('DISCIPLINARY_ART80');
     expect(mapSeparationReasonLabelToType('استقالة زواج / وضع للموظفة (المادة 87)')).toBe(

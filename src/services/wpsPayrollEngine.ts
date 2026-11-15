@@ -1141,7 +1141,7 @@ export class WpsPayrollEngine {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // JISR 2.0 FINANCIAL ERP EXTENSIONS:
+  // HR 2.0 FINANCIAL ERP EXTENSIONS:
   // Cost Center Splitting, Monthly IFRS Accruals, Loan Skip-Installment,
   // Advance Leave Salary Payout, YTD Sick-Leave Tracker, & Travel Per Diem
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1475,7 +1475,7 @@ export class WpsPayrollEngine {
   }
 
   /**
-   * Jisr Loan Skip-Installment Helper: returns 0 if payrollMonth is in deferred_months
+   * Loan Skip-Installment Helper: returns 0 if payrollMonth is in deferred_months
    */
   public static getEffectiveAdvanceInstallmentForMonth(
     advance: {

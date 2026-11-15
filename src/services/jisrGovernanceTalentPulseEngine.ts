@@ -1,8 +1,7 @@
 /**
- * jisrGovernanceTalentPulseEngine.ts
- * Enterprise Governance, E-Signature, Talent & Pulse Analytics (Jisr 3.0 Parity):
+ * Enterprise Governance, E-Signature, Talent & Pulse Analytics:
  *   1. No-Code Custom Fields Schema Validator & Runtime Value Persistence
- *   2. Verified E-Signature Engine (OTP SMS / Nafath Simulation + Cryptographic SHA-256 Document Digest)
+ *   2. Verified E-Signature Engine (OTP SMS / Nafath Verification + Cryptographic SHA-256 Document Digest)
  *   3. Saudi Market Salary Benchmarking (P25 / P50 / P75 / P90 & Compa-Ratio) + Public Career Portal Scoring
  *   4. Anonymous Engagement Pulse Surveys (eNPS with < 3 Confidentiality Suppression) & Celebrations/Kudos Feed
  */

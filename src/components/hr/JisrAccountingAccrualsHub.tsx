@@ -166,7 +166,7 @@ export const JisrAccountingAccrualsHub: React.FC<JisrAccountingAccrualsHubProps>
         sourceModule: 'HR_PAYROLL',
         sourceReference: jvRef,
         description: jp.description,
-        createdBy: 'محرك مخصصات جسر المالي (IAS 19)',
+        createdBy: 'محرك المخصصات المالي للموارد البشرية (IAS 19)',
         autoPost: true,
         lines: jp.lines.map((l) => ({
           accountCode: l.accountCode,
@@ -315,7 +315,7 @@ export const JisrAccountingAccrualsHub: React.FC<JisrAccountingAccrualsHubProps>
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#262626] text-xs font-bold text-[#ffffff] mb-2">
             <Calculator className="w-3.5 h-3.5" />
-            <span>المركز المالي للموارد البشرية والمخصصات (Jisr Accounting Hub)</span>
+            <span>المركز المالي للموارد البشرية والمخصصات (IAS 19)</span>
           </div>
           <h3 className="text-lg font-bold text-[#ffffff] m-0">
             المخصصات الشهرية (IAS 19)، تقسيم مراكز التكلفة، وصرف راتب الإجازة مقدماً — {companyName}

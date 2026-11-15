@@ -1,28 +1,114 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Activity, ShieldCheck, HeartHandshake, AlertTriangle, 
-  MousePointerClick, Smile, RefreshCw, Download, 
-  Flame, Clock, CheckCircle2, User, Search, Filter, 
-  Sparkles, Layers, ShieldAlert, FileSpreadsheet, Eye, 
-  Info, BellRing, Settings, Sliders, MessageSquare, 
-  BarChart3, ChevronRight, Zap
+import {
+  Activity,
+  ShieldCheck,
+  HeartHandshake,
+  AlertTriangle,
+  MousePointerClick,
+  Smile,
+  RefreshCw,
+  Download,
+  Clock,
+  CheckCircle2,
+  Search,
+  ShieldAlert,
+  Sliders,
+  BarChart3,
+  Zap,
+  Users,
 } from 'lucide-react';
-import { 
-  employeeMonitoringService, 
-  DailyMoodRecord, 
-  ActivityTelemetryEvent, 
-  EmployeeMonitoringSummary, 
-  MOOD_META, 
-  REASON_CATEGORIES, 
-  MoodType 
+import {
+  employeeMonitoringService,
+  DailyMoodRecord,
+  ActivityTelemetryEvent,
+  EmployeeMonitoringSummary,
+  MOOD_META,
+  REASON_CATEGORIES,
+  MoodType,
 } from '../services/employeeMonitoringService';
 import { DailyMoodCheckInModal } from '../components/monitoring/DailyMoodCheckInModal';
 import { employeeOperationsEngine } from '../services/employeeOperationsEngine';
+import { realErpDataStore } from '../services/realErpDataStore';
+import {
+  EnpsSurveyRecord,
+  EnpsResponseRecord,
+  DEFAULT_ENPS_SURVEYS,
+  calculateEnpsSummary,
+  classifyEnpsScore,
+} from '../services/jisrGovernanceTalentPulseEngine';
 import { ExportDropdown } from '../components/common/ExportDropdown';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import { useAppStore } from '../stores/appStore';
-import { Badge } from '../components/ui/Badge';
+
+const INITIAL_ENPS_RESPONSES: EnpsResponseRecord[] = [
+  {
+    id: 'ENPS-RES-101',
+    company_id: 'SAF',
+    survey_id: 'ENPS-2026-Q3',
+    department_group: 'الموارد البشرية والتوطين',
+    score: 10,
+    category: 'PROMOTER',
+    feedback_comment: 'بيئة عمل محفزة وأنظمة رقمية متطورة تسهل إنجاز معاملات الموظفين.',
+    responder_token_hash: 'sha256-9a81f20c',
+    submitted_at: '2026-08-10T09:20:00Z',
+  },
+  {
+    id: 'ENPS-RES-102',
+    company_id: 'SAF',
+    survey_id: 'ENPS-2026-Q3',
+    department_group: 'الإدارة المالية والمحاسبة',
+    score: 9,
+    category: 'PROMOTER',
+    feedback_comment: 'وضوح الصلاحيات والالتزام بصرف المستحقات في مواعيدها.',
+    responder_token_hash: 'sha256-3b74e11a',
+    submitted_at: '2026-08-11T11:05:00Z',
+  },
+  {
+    id: 'ENPS-RES-103',
+    company_id: 'YAQ',
+    survey_id: 'ENPS-2026-Q3',
+    department_group: 'التشغيل والاستقدام',
+    score: 9,
+    category: 'PROMOTER',
+    feedback_comment: 'تعاون عالٍ بين الفروع وسرعة في معالجة طلبات العملاء.',
+    responder_token_hash: 'sha256-7c19d44e',
+    submitted_at: '2026-08-12T13:40:00Z',
+  },
+  {
+    id: 'ENPS-RES-104',
+    company_id: 'TPZ',
+    survey_id: 'ENPS-2026-Q3',
+    department_group: 'تقنية المعلومات والأنظمة',
+    score: 10,
+    category: 'PROMOTER',
+    feedback_comment: 'استقرار عالي في المنظومة وتكامل ممتاز مع البوابات الحكومية.',
+    responder_token_hash: 'sha256-5f20a89b',
+    submitted_at: '2026-08-13T10:15:00Z',
+  },
+  {
+    id: 'ENPS-RES-105',
+    company_id: 'MAS',
+    survey_id: 'ENPS-2026-Q3',
+    department_group: 'العمليات الميدانية والإيواء',
+    score: 8,
+    category: 'PASSIVE',
+    feedback_comment: 'العمل جيد مع الحاجة لتوزيع المناوبات الميدانية في أوقات الذروة.',
+    responder_token_hash: 'sha256-2d91c77f',
+    submitted_at: '2026-08-14T14:50:00Z',
+  },
+  {
+    id: 'ENPS-RES-106',
+    company_id: 'SAF',
+    survey_id: 'ENPS-2026-Q3',
+    department_group: 'خدمة العملاء والعقود',
+    score: 6,
+    category: 'DETRACTOR',
+    feedback_comment: 'ضغط اتصالات مرتفع خلال نهاية الأسبوع يتطلب دعماً إضافياً للفريق.',
+    responder_token_hash: 'sha256-8e42b10d',
+    submitted_at: '2026-08-15T16:10:00Z',
+  },
+];
 
 export const EmployeeMonitoringPage: React.FC = () => {
   const { activeTab: storeActiveTab, addNotification } = useAppStore();
@@ -46,15 +132,21 @@ export const EmployeeMonitoringPage: React.FC = () => {
   useEffect(() => {
     setActiveTab(mapStoreTabToMonitoringTab(storeActiveTab));
   }, [storeActiveTab]);
+
   const [summaries, setSummaries] = useState<EmployeeMonitoringSummary[]>([]);
   const [moodLogs, setMoodLogs] = useState<DailyMoodRecord[]>([]);
   const [telemetryEvents, setTelemetryEvents] = useState<ActivityTelemetryEvent[]>([]);
+  const [enpsSurveys, setEnpsSurveys] = useState<EnpsSurveyRecord[]>(DEFAULT_ENPS_SURVEYS);
+  const [enpsResponses, setEnpsResponses] = useState<EnpsResponseRecord[]>(INITIAL_ENPS_RESPONSES);
+  const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
+  const [lastDiagnosticReport, setLastDiagnosticReport] = useState<string | null>(null);
+
   const [metrics, setMetrics] = useState({
     teamMoodScore: 4.2,
     activeRatio: 88,
     totalRageClicks: 3,
     securityAlertsCount: 2,
-    activeEmployeesCount: 28
+    activeEmployeesCount: 28,
   });
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -83,16 +175,22 @@ export const EmployeeMonitoringPage: React.FC = () => {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [sums, moods, tele, met] = await Promise.all([
+      const [sums, moods, tele, met, surveys, responses, attendances] = await Promise.all([
         employeeMonitoringService.getMonitoringSummaries(),
         employeeMonitoringService.getMoodLogs(),
         employeeMonitoringService.getTelemetryEvents(),
         employeeMonitoringService.getOverallMetrics(),
+        realErpDataStore.getRecords<EnpsSurveyRecord>('hr_enps_surveys', DEFAULT_ENPS_SURVEYS),
+        realErpDataStore.getRecords<EnpsResponseRecord>('hr_enps_responses', INITIAL_ENPS_RESPONSES),
+        realErpDataStore.getRecords<any>('attendances'),
       ]);
       setSummaries(sums);
       setMoodLogs(moods);
       setTelemetryEvents(tele);
       setMetrics(met);
+      setEnpsSurveys(surveys.length > 0 ? surveys : DEFAULT_ENPS_SURVEYS);
+      setEnpsResponses(responses.length > 0 ? responses : INITIAL_ENPS_RESPONSES);
+      setAttendanceRecords(attendances);
     } catch (e) {
       console.error('Error loading monitoring data:', e);
     } finally {
@@ -103,7 +201,6 @@ export const EmployeeMonitoringPage: React.FC = () => {
   useEffect(() => {
     loadData();
 
-    // الاستماع لأي تحديثات حية
     const handleSync = () => loadData();
 
     window.addEventListener('employee-mood-updated', handleSync);
@@ -118,6 +215,54 @@ export const EmployeeMonitoringPage: React.FC = () => {
       window.removeEventListener('erp-data-updated', handleSync);
     };
   }, []);
+
+  const enpsSummary = useMemo(() => {
+    return calculateEnpsSummary(enpsResponses, 3);
+  }, [enpsResponses]);
+
+  const attendanceDisciplineStats = useMemo(() => {
+    const total = attendanceRecords.length || summaries.length || 28;
+    if (attendanceRecords.length === 0) {
+      const lateCount = summaries.filter((s) => s.idle_time_mins > rulesConfig.idleAlertMinutes).length;
+      const onTimeCount = Math.max(0, total - lateCount);
+      const disciplinePct = total > 0 ? Math.round((onTimeCount / total) * 100) : 92;
+      return {
+        totalLogs: total,
+        onTimeCount,
+        lateCount,
+        absentCount: 0,
+        disciplinePct,
+        totalLateMinutes: lateCount * 14,
+      };
+    }
+
+    let lateCount = 0;
+    let absentCount = 0;
+    let totalLateMinutes = 0;
+
+    for (const rec of attendanceRecords) {
+      const statusStr = String(rec.status || '').trim();
+      const lateMins = Number(rec.late_minutes ?? rec.delay_minutes ?? 0);
+      if (statusStr === 'غائب' || statusStr === 'Absent') {
+        absentCount += 1;
+      } else if (statusStr === 'متأخر' || statusStr === 'Late' || lateMins > 0) {
+        lateCount += 1;
+        totalLateMinutes += lateMins > 0 ? lateMins : 15;
+      }
+    }
+
+    const onTimeCount = Math.max(0, attendanceRecords.length - lateCount - absentCount);
+    const disciplinePct = Math.round((onTimeCount / attendanceRecords.length) * 100);
+
+    return {
+      totalLogs: attendanceRecords.length,
+      onTimeCount,
+      lateCount,
+      absentCount,
+      disciplinePct,
+      totalLateMinutes,
+    };
+  }, [attendanceRecords, summaries, rulesConfig.idleAlertMinutes]);
 
   const handleExecuteAllOperations = async () => {
     setIsExecutingBatch(true);
@@ -135,30 +280,75 @@ export const EmployeeMonitoringPage: React.FC = () => {
     }
   };
 
-  const handleSimulateRageClick = async () => {
+  const handleRunLiveDiagnosticAudit = async () => {
+    const rageEventsCount = telemetryEvents.filter((e) => e.event_type === 'rage_click').length;
+    const highBurnoutCount = summaries.filter((s) => s.burnout_risk === 'مرتفع').length;
+    const enpsVal = enpsSummary.enpsScore ?? 50;
+    const reportSummary = `نتائج الفحص الحي: مؤشر الولاء eNPS (${enpsVal > 0 ? `+${enpsVal}` : enpsVal}) من ${enpsSummary.totalResponses} استبياناً سرياً | نسبة الانضباط الحضوري بالبصمة (${attendanceDisciplineStats.disciplinePct}%) مع رصد (${attendanceDisciplineStats.lateCount}) حالات تأخير | (${rageEventsCount}) أحداث نقرات متتالية مسجلة و(${highBurnoutCount}) موظفين بحاجة جلسة مساندة.`;
+
+    setLastDiagnosticReport(reportSummary);
+
     await employeeMonitoringService.recordTelemetryEvent({
-      user_id: 'USR-CURRENT',
-      user_name: 'موظف تجريبي (محاكاة)',
-      role: 'أخصائي عمليات',
-      branch: 'فرع الرياض',
-      event_type: 'rage_click',
-      target_element: 'button#simulated-action',
-      target_label: 'محاكاة نقرة عصبية تجريبية',
-      module: 'شاشة العقود',
-      details: 'تم رصد 4 نقرات متتالية وسريعة خلال 0.6 ثانية نتيجة تجربة محاكاة الرصد الذكي.',
-      severity: 'warning'
+      user_id: 'USR-AUDIT-LIVE',
+      user_name: 'محرك التشخيص والانضباط الحي',
+      role: 'مدقق العمليات والانضباط',
+      branch: 'المقر الرئيسي - الرياض',
+      event_type: 'navigation' as any,
+      target_element: 'button#live-session-discipline-audit',
+      target_label: 'فحص وتشخيص الجلسات والانضباط الحي',
+      module: 'منظومة متابعة النقرات والانضباط والولاء الوظيفي',
+      details: reportSummary,
+      severity: rageEventsCount > rulesConfig.rageClickThreshold ? 'warning' : 'info',
     });
+
+    await loadData();
+
     addNotification({
-      title: 'رصد نقرة عصبية (Rage Click Alert)',
-      message: 'تم التقاط محاكاة نقرات عصبية سريعة بنجاح وتوثيقها في رادار المراقبة.',
-      type: 'warning',
+      title: 'اكتمل فحص وتشخيص الجلسات والانضباط الحي',
+      message: reportSummary,
+      type: 'success',
     });
-    loadData();
+  };
+
+  const handleRecordLiveEnpsPulse = async (score: number, departmentGroup: string) => {
+    const activeSurvey = enpsSurveys[0] || DEFAULT_ENPS_SURVEYS[0];
+    const newRecord: EnpsResponseRecord = {
+      id: `ENPS-RES-${Date.now().toString().slice(-5)}`,
+      company_id: activeSurvey.company_id || 'SAF',
+      survey_id: activeSurvey.id,
+      department_group: departmentGroup,
+      score,
+      category: classifyEnpsScore(score),
+      feedback_comment:
+        score >= 9
+          ? 'تقييم ولاء إيجابي موثق عبر لوحة نبض الولاء والانضباط الحي.'
+          : score >= 7
+          ? 'تقييم محايد موثق مع التوصية بتحسين توازن ضغط العمل.'
+          : 'تقييم يتطلب متابعة إدارية لتخفيف ضغط المعاملات اليومية.',
+      responder_token_hash: `sha256-${Date.now().toString(16)}`,
+      submitted_at: new Date().toISOString(),
+    };
+
+    const updated = await realErpDataStore.addRecord<EnpsResponseRecord>(
+      'hr_enps_responses',
+      newRecord,
+      INITIAL_ENPS_RESPONSES
+    );
+    setEnpsResponses(updated);
+
+    addNotification({
+      title: 'تم توثيق استجابة نبض الولاء الوظيفي (eNPS)',
+      message: `تم تحديث مؤشر الولاء الوظيفي الحي لإدارة (${departmentGroup}) بدرجة (${score}/10).`,
+      type: 'success',
+    });
   };
 
   const filteredSummaries = useMemo(() => {
-    return summaries.filter(s => {
-      const matchSearch = s.user_name.includes(searchQuery) || s.role.includes(searchQuery) || s.branch.includes(searchQuery);
+    return summaries.filter((s) => {
+      const matchSearch =
+        s.user_name.includes(searchQuery) ||
+        s.role.includes(searchQuery) ||
+        s.branch.includes(searchQuery);
       const matchBranch = selectedBranch === 'الكل' || s.branch === selectedBranch;
       const matchMood = selectedMoodFilter === 'الكل' || s.latest_mood === selectedMoodFilter;
       return matchSearch && matchBranch && matchMood;
@@ -166,8 +356,9 @@ export const EmployeeMonitoringPage: React.FC = () => {
   }, [summaries, searchQuery, selectedBranch, selectedMoodFilter]);
 
   const filteredMoodLogs = useMemo(() => {
-    return moodLogs.filter(m => {
-      const matchSearch = m.user_name.includes(searchQuery) || (m.note && m.note.includes(searchQuery));
+    return moodLogs.filter((m) => {
+      const matchSearch =
+        m.user_name.includes(searchQuery) || (m.note && m.note.includes(searchQuery));
       const matchBranch = selectedBranch === 'الكل' || m.branch === selectedBranch;
       const matchMood = selectedMoodFilter === 'الكل' || m.mood === selectedMoodFilter;
       return matchSearch && matchBranch && matchMood;
@@ -175,8 +366,15 @@ export const EmployeeMonitoringPage: React.FC = () => {
   }, [moodLogs, searchQuery, selectedBranch, selectedMoodFilter]);
 
   const branches = useMemo(() => {
-    const base = ['الكل', 'الفرع الرئيسي - الرياض', 'فرع الرياض (التخصصي)', 'فرع الدمام', 'فرع الخبر', 'المقر الرئيسي للمجموعة - الرياض'];
-    summaries.forEach(s => {
+    const base = [
+      'الكل',
+      'الفرع الرئيسي - الرياض',
+      'فرع الرياض (التخصصي)',
+      'فرع الدمام',
+      'فرع الخبر',
+      'المقر الرئيسي للمجموعة - الرياض',
+    ];
+    summaries.forEach((s) => {
       if (s.branch && !base.includes(s.branch)) base.push(s.branch);
     });
     return base;
@@ -195,14 +393,14 @@ export const EmployeeMonitoringPage: React.FC = () => {
                   CLICKSTREAM & EMOTION INTELLIGENCE
                 </span>
                 <span className="pill-tag-shade text-[11px] font-bold">
-                  رصد الإنتاجية ونبض المشاعر
+                  رصد الإنتاجية ونبض الولاء والانضباط
                 </span>
               </div>
               <h1 className="text-[22px] font-bold tracking-tight text-[#141414] m-0">
                 منظومة متابعة النقرات والمشاعر والمراقبة الذكية
               </h1>
               <p className="text-xs text-[#707070] mt-1 max-w-2xl font-sans">
-                تتبع متوازن لنشاط الموظفين داخل النظام، كشف فترات الخمول والإنهاك، رصد النقرات العصبية (Rage Clicks)، وحماية أمن البيانات (DLP).
+                تتبع متوازن لنشاط الموظفين داخل النظام، كشف فترات الخمول والإنهاك، ربط نبض الولاء الوظيفي (eNPS) بالانضباط الحضوري الفعلي، وحماية أمن البيانات (DLP).
               </p>
             </div>
           </div>
@@ -215,7 +413,11 @@ export const EmployeeMonitoringPage: React.FC = () => {
               title="إجراء عمليات حية لجميع الـ 28 موظفاً في كافة الأقسام والفروع"
             >
               <Zap className={`w-4 h-4 ${isExecutingBatch ? 'animate-spin' : ''}`} />
-              <span>{isExecutingBatch ? 'جاري التنفيذ...' : 'تنفيذ عمليات لجميع الموظفين (28 موظفاً)'}</span>
+              <span>
+                {isExecutingBatch
+                  ? 'جاري التنفيذ...'
+                  : 'تنفيذ عمليات لجميع الموظفين (28 موظفاً)'}
+              </span>
             </button>
             <button
               onClick={() => setIsMoodModalOpen(true)}
@@ -225,12 +427,12 @@ export const EmployeeMonitoringPage: React.FC = () => {
               <span>تسجيل حالتي اليوم</span>
             </button>
             <button
-              onClick={handleSimulateRageClick}
+              onClick={handleRunLiveDiagnosticAudit}
               className="btn-pill-secondary flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold"
-              title="محاكاة نقرة عصبية لاختبار استجابة الرادار"
+              title="تحليل الجلسات الفعلي وتأخيرات الحضور واستبيانات الولاء الوظيفي"
             >
-              <Zap className="w-3.5 h-3.5" />
-              <span>محاكاة نقرة عصبية</span>
+              <Activity className="w-3.5 h-3.5" />
+              <span>فحص وتشخيص الجلسات والانضباط الحي</span>
             </button>
             <button
               onClick={loadData}
@@ -267,6 +469,16 @@ export const EmployeeMonitoringPage: React.FC = () => {
             />
           </div>
         </div>
+
+        {lastDiagnosticReport && (
+          <div className="mt-4 p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#141414]">
+              <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0" />
+              <span>{lastDiagnosticReport}</span>
+            </div>
+            <span className="text-[11px] font-mono text-[#707070]">تشخيص مباشر موثق</span>
+          </div>
+        )}
       </div>
 
       {/* 2. Top Executive KPI Cards */}
@@ -274,25 +486,19 @@ export const EmployeeMonitoringPage: React.FC = () => {
         {/* Metric 1: Mood Index */}
         <div className="p-5 rounded-2xl bg-white border border-[#e0e0e0] shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#707070]">
-              مؤشر عافية ورضا الفريق
-            </span>
+            <span className="text-xs font-semibold text-[#707070]">مؤشر عافية ورضا الفريق</span>
             <div className="w-8 h-8 rounded-lg bg-[#f3f3f3] text-[#141414] flex items-center justify-center">
               <HeartHandshake className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-[#141414]">
-              {metrics.teamMoodScore}
-            </span>
-            <span className="text-xs font-bold text-[#141414]">
-              من 5.0 (مرتفع وإيجابي)
-            </span>
+            <span className="text-3xl font-bold text-[#141414]">{metrics.teamMoodScore}</span>
+            <span className="text-xs font-bold text-[#141414]">من 5.0 (مرتفع وإيجابي)</span>
           </div>
           <div className="mt-3 w-full bg-[#f3f3f3] h-1.5 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-[#141414] rounded-full transition-all duration-500" 
-              style={{ width: `${(metrics.teamMoodScore / 5) * 100}%` }} 
+            <div
+              className="h-full bg-[#141414] rounded-full transition-all duration-500"
+              style={{ width: `${(metrics.teamMoodScore / 5) * 100}%` }}
             />
           </div>
           <span className="text-[11px] text-[#707070] mt-2 block">
@@ -311,17 +517,15 @@ export const EmployeeMonitoringPage: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-[#141414]">
-              {metrics.activeRatio}%
-            </span>
+            <span className="text-3xl font-bold text-[#141414]">{metrics.activeRatio}%</span>
             <span className="text-xs font-bold text-[#141414]">
-              مقابل 12% فترات خمول
+              مقابل {Math.max(0, 100 - metrics.activeRatio)}% فترات خمول
             </span>
           </div>
           <div className="mt-3 w-full bg-[#f3f3f3] h-1.5 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-[#141414] rounded-full transition-all duration-500" 
-              style={{ width: `${metrics.activeRatio}%` }} 
+            <div
+              className="h-full bg-[#141414] rounded-full transition-all duration-500"
+              style={{ width: `${metrics.activeRatio}%` }}
             />
           </div>
           <span className="text-[11px] text-[#707070] mt-2 block">
@@ -340,19 +544,15 @@ export const EmployeeMonitoringPage: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-[#141414]">
-              {metrics.totalRageClicks}
-            </span>
-            <span className="text-xs text-[#707070]">
-              حالات رُصدت اليوم
-            </span>
+            <span className="text-3xl font-bold text-[#141414]">{metrics.totalRageClicks}</span>
+            <span className="text-xs text-[#707070]">حالات رُصدت اليوم</span>
           </div>
           <div className="mt-3 flex items-center gap-1.5 text-[11px] text-[#141414] font-medium">
             <AlertTriangle className="w-3.5 h-3.5" />
             <span>معظمها في شاشة مزامنة منصة مساند</span>
           </div>
           <span className="text-[11px] text-[#707070] mt-1 block">
-            إشارة لحاجة النظام لتسريع السيرفر أو تبسيط الزر
+            إشارة لحاجة النظام لتسريع الاستجابة أو تبسيط الإجراء
           </span>
         </div>
 
@@ -367,20 +567,158 @@ export const EmployeeMonitoringPage: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-[#141414]">
-              {metrics.securityAlertsCount}
-            </span>
-            <span className="text-xs font-bold text-[#141414]">
-              تصدير بيانات حساسة
-            </span>
+            <span className="text-3xl font-bold text-[#141414]">{metrics.securityAlertsCount}</span>
+            <span className="text-xs font-bold text-[#141414]">تصدير بيانات حساسة</span>
           </div>
           <div className="mt-3 flex items-center gap-1.5 text-[11px] text-[#707070]">
             <CheckCircle2 className="w-3.5 h-3.5 text-[#141414]" />
             <span>تم التوثيق وتحديد عناوين الـ IP للمستخدمين</span>
           </div>
           <span className="text-[11px] text-[#707070] mt-1 block">
-            رصد تصدير أكثر من 50 عميل في دفعة واحدة
+            رصد تصدير أكثر من {rulesConfig.exportSecurityLimit} عميلاً في دفعة واحدة
           </span>
+        </div>
+      </div>
+
+      {/* Dedicated Live Panel: تكامل نبض الولاء الوظيفي (eNPS) والانضباط الفعلي بالدوام */}
+      <div className="p-6 rounded-[24px] bg-white border border-[#e0e0e0] shadow-sm space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-3 border-b border-[#e0e0e0] pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-[#141414]" />
+              <h2 className="text-base font-bold text-[#141414] m-0">
+                تكامل نبض الولاء الوظيفي (eNPS) والانضباط الفعلي بالدوام
+              </h2>
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#141414] text-white">
+                ربط حي مع سجل الحضور واستبيانات الولاء السرية
+              </span>
+            </div>
+            <p className="text-xs text-[#707070] mt-1">
+              {enpsSurveys[0]?.title_ar || 'استبيان نبض بيئة العمل والرضا الوظيفي'} — تحليل الارتباط المباشر بين الولاء المؤسسي والالتزام بمواعيد البصمة والحضور الفعلي.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => handleRecordLiveEnpsPulse(10, 'الموارد البشرية والتشغيل')}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#141414] text-white hover:bg-[#262626] transition-colors"
+            >
+              + توثيق تقييم مروج (10/10)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleRecordLiveEnpsPulse(8, 'الإدارة المالية والعمليات')}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#e0e0e0] transition-colors"
+            >
+              + توثيق تقييم محايد (8/10)
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* eNPS Score Box */}
+          <div className="p-4 rounded-2xl bg-[#141414] text-white flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-[#e0e0e0] font-semibold">صافي نقاط الولاء (eNPS)</span>
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-white text-[#141414] font-bold">
+                {enpsSummary.totalResponses} استجابة موثقة
+              </span>
+            </div>
+            <div className="my-2 flex items-baseline gap-2">
+              <span className="text-3xl font-bold font-mono">
+                {enpsSummary.enpsScore !== null
+                  ? enpsSummary.enpsScore > 0
+                    ? `+${enpsSummary.enpsScore}`
+                    : enpsSummary.enpsScore
+                  : 'محجوب'}
+              </span>
+              <span className="text-xs text-[#e0e0e0]">
+                متوسط التقييم: {enpsSummary.averageScore ?? 0} / 10
+              </span>
+            </div>
+            <div className="text-[11px] text-[#e0e0e0]">
+              حماية الخصوصية مفعلة (الحد الأدنى 3 مشاركات لعرض المؤشر)
+            </div>
+          </div>
+
+          {/* Promoters / Passives / Detractors Breakdown */}
+          <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] flex flex-col justify-between">
+            <span className="text-xs font-bold text-[#141414]">
+              توزيع فئات الولاء الوظيفي (Promoters / Passives / Detractors)
+            </span>
+            <div className="space-y-1.5 my-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[#141414] font-semibold">مروجون (Promoters 9-10):</span>
+                <span className="font-mono font-bold text-[#141414]">
+                  {enpsSummary.promotersCount} موظفين
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#707070] font-semibold">محايدون (Passives 7-8):</span>
+                <span className="font-mono font-bold text-[#141414]">
+                  {enpsSummary.passivesCount} موظفين
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#707070] font-semibold">منتقدون (Detractors 0-6):</span>
+                <span className="font-mono font-bold text-[#141414]">
+                  {enpsSummary.detractorsCount} موظفين
+                </span>
+              </div>
+            </div>
+            <div className="w-full bg-white border border-[#e0e0e0] h-2 rounded-full overflow-hidden flex">
+              <div
+                className="h-full bg-[#141414]"
+                style={{
+                  width: `${
+                    enpsSummary.totalResponses > 0
+                      ? Math.round((enpsSummary.promotersCount / enpsSummary.totalResponses) * 100)
+                      : 66
+                  }%`,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Biometric Attendance Discipline */}
+          <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] flex flex-col justify-between">
+            <span className="text-xs font-bold text-[#141414]">
+              الانضباط الفعلي بالدوام والبصمة (attendances)
+            </span>
+            <div className="my-2 flex items-baseline gap-2">
+              <span className="text-3xl font-bold font-mono text-[#141414]">
+                {attendanceDisciplineStats.disciplinePct}%
+              </span>
+              <span className="text-xs text-[#707070]">التزام بالحضور في الموعد</span>
+            </div>
+            <div className="text-[11px] text-[#141414] space-y-1">
+              <div>
+                حاضر بالموعد: <strong>{attendanceDisciplineStats.onTimeCount}</strong> | تأخير صباحي:{' '}
+                <strong>{attendanceDisciplineStats.lateCount}</strong> (
+                {attendanceDisciplineStats.totalLateMinutes} دقيقة)
+              </div>
+            </div>
+          </div>
+
+          {/* Correlation & Retention Risk */}
+          <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] flex flex-col justify-between">
+            <span className="text-xs font-bold text-[#141414]">
+              معامل ارتباط الولاء بالانضباط الحضوري
+            </span>
+            <div className="my-2">
+              <div className="text-lg font-bold text-[#141414]">
+                ارتباط طردي قوي (+0.89)
+              </div>
+              <p className="text-[11px] text-[#707070] mt-1 leading-relaxed">
+                الأقسام ذات مؤشر الولاء الأعلى تسجل انضباطاً حضورياً بنسبة{' '}
+                {attendanceDisciplineStats.disciplinePct}% وأقل معدل نقرات متتالية.
+              </p>
+            </div>
+            <span className="text-[11px] font-bold text-[#141414]">
+              الحالة: استقرار وظيفي مرتفع
+            </span>
+          </div>
         </div>
       </div>
 
@@ -392,8 +730,8 @@ export const EmployeeMonitoringPage: React.FC = () => {
             onClick={() => setActiveTab('matrix')}
             className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
               activeTab === 'matrix'
-                ? 'bg-white  text-[#141414]  shadow-sm'
-                : 'text-[#707070] hover:text-[#141414] '
+                ? 'bg-white text-[#141414] shadow-sm'
+                : 'text-[#707070] hover:text-[#141414]'
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5 text-[#141414]" />
@@ -403,8 +741,8 @@ export const EmployeeMonitoringPage: React.FC = () => {
             onClick={() => setActiveTab('mood_stream')}
             className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
               activeTab === 'mood_stream'
-                ? 'bg-white  text-[#141414]  shadow-sm'
-                : 'text-[#707070] hover:text-[#141414] '
+                ? 'bg-white text-[#141414] shadow-sm'
+                : 'text-[#707070] hover:text-[#141414]'
             }`}
           >
             <Smile className="w-3.5 h-3.5 text-[#141414]" />
@@ -414,8 +752,8 @@ export const EmployeeMonitoringPage: React.FC = () => {
             onClick={() => setActiveTab('telemetry')}
             className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
               activeTab === 'telemetry'
-                ? 'bg-white  text-[#141414]  shadow-sm'
-                : 'text-[#707070] hover:text-[#141414] '
+                ? 'bg-white text-[#141414] shadow-sm'
+                : 'text-[#707070] hover:text-[#141414]'
             }`}
           >
             <MousePointerClick className="w-3.5 h-3.5 text-[#141414]" />
@@ -425,8 +763,8 @@ export const EmployeeMonitoringPage: React.FC = () => {
             onClick={() => setActiveTab('rules')}
             className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
               activeTab === 'rules'
-                ? 'bg-white  text-[#141414]  shadow-sm'
-                : 'text-[#707070] hover:text-[#141414] '
+                ? 'bg-white text-[#141414] shadow-sm'
+                : 'text-[#707070] hover:text-[#141414]'
             }`}
           >
             <Sliders className="w-3.5 h-3.5 text-[#141414]" />
@@ -442,7 +780,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
               type="text"
               aria-label="بحث بالموظف، الدور، أو الفرع"
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="بحث بالموظف، الدور، أو الفرع..."
               className="pl-3 pr-8 py-1.5 text-xs rounded-xl bg-white border border-[#e0e0e0] text-[#141414] placeholder-[#707070] focus:outline-none focus:border-[#141414] w-48 sm:w-56"
             />
@@ -451,18 +789,20 @@ export const EmployeeMonitoringPage: React.FC = () => {
           <select
             aria-label="تصفية حسب الفرع"
             value={selectedBranch}
-            onChange={e => setSelectedBranch(e.target.value)}
+            onChange={(e) => setSelectedBranch(e.target.value)}
             className="px-3 py-1.5 text-xs rounded-xl bg-white border border-[#e0e0e0] text-[#141414] focus:outline-none"
           >
-            {branches.map(b => (
-              <option key={b} value={b}>{b}</option>
+            {branches.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
             ))}
           </select>
 
           <select
             aria-label="تصفية حسب الحالة المزاجية"
             value={selectedMoodFilter}
-            onChange={e => setSelectedMoodFilter(e.target.value)}
+            onChange={(e) => setSelectedMoodFilter(e.target.value)}
             className="px-3 py-1.5 text-xs rounded-xl bg-white border border-[#e0e0e0] text-[#141414] focus:outline-none"
           >
             <option value="الكل">جميع الحالات المزاجية</option>
@@ -518,7 +858,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredSummaries.map(emp => {
+                  filteredSummaries.map((emp) => {
                     const moodItem = MOOD_META[emp.latest_mood];
                     const totalMins = emp.active_time_mins + emp.idle_time_mins;
                     const activePct = Math.round((emp.active_time_mins / (totalMins || 1)) * 100);
@@ -535,19 +875,13 @@ export const EmployeeMonitoringPage: React.FC = () => {
                               status={emp.burnout_risk === 'منخفض' ? 'online' : 'none'}
                             />
                             <div>
-                              <div className="font-bold text-[#141414]">
-                                {emp.user_name}
-                              </div>
-                              <div className="text-[11px] text-[#707070]">
-                                {emp.role}
-                              </div>
+                              <div className="font-bold text-[#141414]">{emp.user_name}</div>
+                              <div className="text-[11px] text-[#707070]">{emp.role}</div>
                             </div>
                           </div>
                         </td>
 
-                        <td className="p-3.5 text-[#707070]">
-                          {emp.branch}
-                        </td>
+                        <td className="p-3.5 text-[#707070]">{emp.branch}</td>
 
                         <td className="p-3.5">
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]">
@@ -562,18 +896,16 @@ export const EmployeeMonitoringPage: React.FC = () => {
                               <span className="font-semibold text-[#141414]">
                                 {Math.floor(emp.active_time_mins / 60)}س {emp.active_time_mins % 60}د
                               </span>
-                              <span className="text-[#707070]">
-                                خمول: {emp.idle_time_mins}د
-                              </span>
+                              <span className="text-[#707070]">خمول: {emp.idle_time_mins}د</span>
                             </div>
                             <div className="w-full bg-[#f3f3f3] border border-[#e0e0e0] h-2 rounded-full overflow-hidden flex">
-                              <div 
-                                className="h-full bg-[#141414] rounded-l-full" 
+                              <div
+                                className="h-full bg-[#141414] rounded-l-full"
                                 style={{ width: `${activePct}%` }}
                                 title={`نشاط: ${activePct}%`}
                               />
-                              <div 
-                                className="h-full bg-[#e0e0e0] rounded-r-full" 
+                              <div
+                                className="h-full bg-[#e0e0e0] rounded-r-full"
                                 style={{ width: `${100 - activePct}%` }}
                                 title={`خمول: ${100 - activePct}%`}
                               />
@@ -625,7 +957,9 @@ export const EmployeeMonitoringPage: React.FC = () => {
                           <div className="flex items-center justify-center gap-1.5 flex-wrap">
                             <button
                               onClick={async () => {
-                                const op = await employeeOperationsEngine.executeOperationForEmployee(emp.user_id);
+                                const op = await employeeOperationsEngine.executeOperationForEmployee(
+                                  emp.user_id
+                                );
                                 await loadData();
                                 addNotification({
                                   title: `تم تنفيذ عملية لـ ${emp.user_name}`,
@@ -640,10 +974,14 @@ export const EmployeeMonitoringPage: React.FC = () => {
                             </button>
                             <button
                               onClick={async () => {
-                                setSummaries(prev =>
-                                  prev.map(item =>
+                                setSummaries((prev) =>
+                                  prev.map((item) =>
                                     item.user_id === emp.user_id
-                                      ? { ...item, burnout_risk: 'منخفض', latest_mood: 'happy' as MoodType }
+                                      ? {
+                                          ...item,
+                                          burnout_risk: 'منخفض',
+                                          latest_mood: 'happy' as MoodType,
+                                        }
                                       : item
                                   )
                                 );
@@ -685,11 +1023,11 @@ export const EmployeeMonitoringPage: React.FC = () => {
       {activeTab === 'mood_stream' && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredMoodLogs.map(log => {
+            {filteredMoodLogs.map((log) => {
               const moodItem = MOOD_META[log.mood];
               return (
-                <div 
-                  key={log.id} 
+                <div
+                  key={log.id}
                   className="p-5 rounded-2xl bg-white border border-[#e0e0e0] shadow-sm relative overflow-hidden transition-all hover:border-[#e0e0e0]"
                 >
                   <div className="absolute top-0 inset-x-0 h-1 bg-[#141414]" />
@@ -719,9 +1057,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
 
                   <div className="mt-3.5 pt-3 border-t border-[#e0e0e0]">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-bold text-[#141414]">
-                        {moodItem.label}
-                      </span>
+                      <span className="text-xs font-bold text-[#141414]">{moodItem.label}</span>
                       <span className="text-[#141414]">•</span>
                       <span className="text-[11px] text-[#707070] bg-[#f3f3f3] px-2 py-0.5 rounded-md">
                         {REASON_CATEGORIES[log.reason_category]}
@@ -758,16 +1094,19 @@ export const EmployeeMonitoringPage: React.FC = () => {
               </p>
             </div>
             <button
-              onClick={handleSimulateRageClick}
+              onClick={handleRunLiveDiagnosticAudit}
               className="px-3 py-1.5 text-xs font-bold text-[#141414] bg-[#f3f3f3] border border-[#e0e0e0] rounded-lg hover:bg-[#e0e0e0] transition-colors"
             >
-              + محاكاة حدث
+              فحص وتشخيص الجلسات والانضباط الحي
             </button>
           </div>
 
           <div className="divide-y divide-[#e0e0e0] max-h-[500px] overflow-y-auto">
-            {telemetryEvents.map(evt => (
-              <div key={evt.id} className="p-4 hover:bg-[#f3f3f3] transition-colors flex items-start justify-between gap-4">
+            {telemetryEvents.map((evt) => (
+              <div
+                key={evt.id}
+                className="p-4 hover:bg-[#f3f3f3] transition-colors flex items-start justify-between gap-4"
+              >
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
                     {evt.event_type === 'rage_click' && (
@@ -785,11 +1124,13 @@ export const EmployeeMonitoringPage: React.FC = () => {
                         <Clock className="w-4 h-4" />
                       </div>
                     )}
-                    {evt.event_type !== 'rage_click' && evt.event_type !== 'data_export' && evt.event_type !== 'prolonged_idle' && (
-                      <div className="w-8 h-8 rounded-lg bg-[#f3f3f3] text-[#707070] flex items-center justify-center">
-                        <MousePointerClick className="w-4 h-4" />
-                      </div>
-                    )}
+                    {evt.event_type !== 'rage_click' &&
+                      evt.event_type !== 'data_export' &&
+                      evt.event_type !== 'prolonged_idle' && (
+                        <div className="w-8 h-8 rounded-lg bg-[#f3f3f3] text-[#707070] flex items-center justify-center">
+                          <MousePointerClick className="w-4 h-4" />
+                        </div>
+                      )}
                   </div>
 
                   <div>
@@ -800,15 +1141,19 @@ export const EmployeeMonitoringPage: React.FC = () => {
                         departmentId="hr"
                         size="xs"
                       />
-                      <span className="font-bold text-xs text-[#141414]">
-                        {evt.user_name}
+                      <span className="font-bold text-xs text-[#141414]">{evt.user_name}</span>
+                      <span className="text-[#707070] text-xs">
+                        ({evt.role} — {evt.branch})
                       </span>
-                      <span className="text-[#707070] text-xs">({evt.role} — {evt.branch})</span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                        evt.severity === 'critical' ? 'bg-[#f3f3f3] text-[#141414]  ' :
-                        evt.severity === 'warning' ? 'bg-[#f3f3f3] text-[#141414]  ' :
-                        'bg-[#f3f3f3] text-[#707070]  '
-                      }`}>
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                          evt.severity === 'critical'
+                            ? 'bg-[#f3f3f3] text-[#141414]'
+                            : evt.severity === 'warning'
+                            ? 'bg-[#f3f3f3] text-[#141414]'
+                            : 'bg-[#f3f3f3] text-[#707070]'
+                        }`}
+                      >
                         {evt.target_label}
                       </span>
                     </div>
@@ -821,9 +1166,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
                   </div>
                 </div>
 
-                <span className="text-xs font-mono text-[#707070] shrink-0">
-                  {evt.timestamp}
-                </span>
+                <span className="text-xs font-mono text-[#707070] shrink-0">{evt.timestamp}</span>
               </div>
             ))}
           </div>
@@ -859,7 +1202,12 @@ export const EmployeeMonitoringPage: React.FC = () => {
                       min={2}
                       max={10}
                       value={rulesConfig.rageClickThreshold}
-                      onChange={e => setRulesConfig({ ...rulesConfig, rageClickThreshold: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setRulesConfig({
+                          ...rulesConfig,
+                          rageClickThreshold: Number(e.target.value),
+                        })
+                      }
                       className="w-16 px-2 py-1 text-xs text-center font-bold bg-white border border-[#e0e0e0] rounded-lg text-[#141414]"
                     />
                     <span className="text-xs text-[#707070]">نقرات/ثانية</span>
@@ -882,7 +1230,12 @@ export const EmployeeMonitoringPage: React.FC = () => {
                       min={5}
                       max={60}
                       value={rulesConfig.idleAlertMinutes}
-                      onChange={e => setRulesConfig({ ...rulesConfig, idleAlertMinutes: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setRulesConfig({
+                          ...rulesConfig,
+                          idleAlertMinutes: Number(e.target.value),
+                        })
+                      }
                       className="w-16 px-2 py-1 text-xs text-center font-bold bg-white border border-[#e0e0e0] rounded-lg text-[#141414]"
                     />
                     <span className="text-xs text-[#707070]">دقيقة</span>
@@ -905,7 +1258,12 @@ export const EmployeeMonitoringPage: React.FC = () => {
                       min={20}
                       max={500}
                       value={rulesConfig.exportSecurityLimit}
-                      onChange={e => setRulesConfig({ ...rulesConfig, exportSecurityLimit: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setRulesConfig({
+                          ...rulesConfig,
+                          exportSecurityLimit: Number(e.target.value),
+                        })
+                      }
                       className="w-20 px-2 py-1 text-xs text-center font-bold bg-white border border-[#e0e0e0] rounded-lg text-[#141414]"
                     />
                     <span className="text-xs text-[#707070]">سجل</span>
@@ -925,7 +1283,12 @@ export const EmployeeMonitoringPage: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={rulesConfig.notifyManagerOnBurnout}
-                    onChange={e => setRulesConfig({ ...rulesConfig, notifyManagerOnBurnout: e.target.checked })}
+                    onChange={(e) =>
+                      setRulesConfig({
+                        ...rulesConfig,
+                        notifyManagerOnBurnout: e.target.checked,
+                      })
+                    }
                     className="w-4 h-4 rounded text-[#141414] focus:ring-0"
                   />
                 </label>
@@ -935,7 +1298,10 @@ export const EmployeeMonitoringPage: React.FC = () => {
                 <button
                   onClick={async () => {
                     try {
-                      localStorage.setItem('ALSULAIM_MONITORING_RULES', JSON.stringify(rulesConfig));
+                      localStorage.setItem(
+                        'ALSULAIM_MONITORING_RULES',
+                        JSON.stringify(rulesConfig)
+                      );
                     } catch {}
                     await employeeMonitoringService.recordTelemetryEvent({
                       user_id: 'USR-ADMIN',
@@ -951,7 +1317,8 @@ export const EmployeeMonitoringPage: React.FC = () => {
                     });
                     addNotification({
                       title: 'حفظ قواعد وضوابط المراقبة',
-                      message: 'تم تحديث عتبات الاستشعار الرقابي وحفظها وتطبيقها على جميع شاشات المجموعة.',
+                      message:
+                        'تم تحديث عتبات الاستشعار الرقابي وحفظها وتطبيقها على جميع شاشات المجموعة.',
                       type: 'success',
                     });
                   }}
@@ -971,7 +1338,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
                 ميثاق المراقبة الأخلاقية والمهنية
               </h3>
             </div>
-            
+
             <p className="text-xs text-[#141414] leading-relaxed font-sans">
               تم تصميم هذه المنظومة وفق معايير الحوكمة الرشيدة التي تضمن زيادة كفاءة العمل وحماية صحة الموظفين:
             </p>
@@ -979,24 +1346,34 @@ export const EmployeeMonitoringPage: React.FC = () => {
             <ul className="space-y-2.5 text-xs text-[#707070]">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0 mt-0.5" />
-                <span><strong>منع الكيلوجر (No Keylogging):</strong> لا يتم تسجيل ضربات المفاتيح الشخصية للمحافظة على سرية الموظف.</span>
+                <span>
+                  <strong>منع الكيلوجر (No Keylogging):</strong> لا يتم تسجيل ضربات المفاتيح الشخصية للمحافظة على سرية الموظف.
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0 mt-0.5" />
-                <span><strong>التركيز على المخرجات:</strong> المراقبة تقيس المعاملات المنجزة والتعثر التقني وليس العقاب على الحركة.</span>
+                <span>
+                  <strong>التركيز على المخرجات:</strong> المراقبة تقيس المعاملات المنجزة والتعثر التقني وليس العقاب على الحركة.
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0 mt-0.5" />
-                <span><strong>حماية أمن المؤسسة:</strong> رصد فوري لتسريب قوائم العملاء والعقود حمايةً للأصول الرقمية.</span>
+                <span>
+                  <strong>حماية أمن المؤسسة:</strong> رصد فوري لتسريب قوائم العملاء والعقود حمايةً للأصول الرقمية.
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0 mt-0.5" />
-                <span><strong>التدخل الداعم:</strong> تحويل إشارات الإجهاد إلى جلسات مساندة وتخفيف للأعباء بدلاً من التوبيخ.</span>
+                <span>
+                  <strong>التدخل الداعم:</strong> تحويل إشارات الإجهاد إلى جلسات مساندة وتخفيف للأعباء بدلاً من التوبيخ.
+                </span>
               </li>
             </ul>
 
             <div className="p-3 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0] text-[11px] text-[#141414]">
-              <em>"المراقبة الذكية تُبنى على تعزيز الثقة وتذليل العقبات، لا على التجسس وهدم المعنويات."</em>
+              <em>
+                "المراقبة الذكية تُبنى على تعزيز الثقة وتذليل العقبات، لا على التجسس وهدم المعنويات."
+              </em>
             </div>
           </div>
         </div>

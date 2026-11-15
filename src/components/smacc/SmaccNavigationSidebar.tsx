@@ -70,6 +70,9 @@ export const SMACC_MENU_STRUCTURE: SmaccMenuItem[] = [
       { id: 'income-statement', title: '8. قائمة الدخل والأرباح والخسائر', route: 'smacc-accounting' },
       { id: 'balance-sheet', title: '9. قائمة المركز المالي (الميزانية)', route: 'smacc-accounting' },
       { id: 'fiscal-closing', title: '10. إقفال السنـة والربط المالي', route: 'smacc-accounting' },
+      { id: 'jisr-accruals', title: '11. المخصصات الشهرية ومراكز التكلفة (IAS 19)', route: 'jisr-accruals' },
+      { id: 'jisr-cards-rollover', title: '12. البطاقات المؤسسية وترحيل وتسييل الإجازات', route: 'jisr-cards-rollover' },
+      { id: 'jisr-arrears-b2b', title: '13. الأثر الرجعي والمسيرات الإضافية ودفعات البنوك B2B', route: 'jisr-arrears-b2b' },
     ]
   },
   {
@@ -103,6 +106,9 @@ export const SMACC_MENU_STRUCTURE: SmaccMenuItem[] = [
       { id: 'attendance-leaves', title: 'الحضور والانصراف والإجازات', route: 'attendances' },
       { id: 'advances-custodies', title: 'السلفيات والعهد المالية', route: 'custodies' },
       { id: 'eosb-calc', title: 'مكافأة نهاية الخدمة والتسويات', route: 'smacc-hr-settings' },
+      { id: 'hr-accruals-link', title: 'المخصصات الشهرية ومراكز التكلفة (IAS 19)', route: 'jisr-accruals' },
+      { id: 'hr-cards-rollover-link', title: 'البطاقات المؤسسية وترحيل وتسييل الإجازات', route: 'jisr-cards-rollover' },
+      { id: 'hr-arrears-b2b-link', title: 'الأثر الرجعي والمسيرات الإضافية ودفعات البنوك B2B', route: 'jisr-arrears-b2b' },
     ]
   },
   {
@@ -202,7 +208,7 @@ export const SmaccNavigationSidebar: React.FC<SmaccNavigationSidebarProps> = ({
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#c1fbd4]' : 'text-[#707070]'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#707070]'}`} />
                   <span>{item.title}</span>
                 </div>
                 {hasChildren && (
@@ -233,7 +239,7 @@ export const SmaccNavigationSidebar: React.FC<SmaccNavigationSidebarProps> = ({
                       >
                         <span>{child.title}</span>
                         {child.badge && (
-                          <span className="text-[9.5px] px-2 py-0.5 rounded-full bg-[#c1fbd4] text-[#141414] font-semibold">
+                          <span className="text-[9.5px] px-2 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] font-semibold">
                             {child.badge}
                           </span>
                         )}

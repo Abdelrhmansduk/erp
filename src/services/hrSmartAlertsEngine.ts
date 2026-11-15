@@ -1,6 +1,5 @@
 /**
- * hrSmartAlertsEngine.ts
- * Enterprise Jisr Proactive HR & Regulatory Smart Notifications Engine (`نظام التنبيهات الاستباقية الموحد`)
+ * Enterprise Proactive HR & Regulatory Smart Notifications Engine (`نظام التنبيهات الاستباقية الموحد`)
  *
  * Scans real-time HR & Saudi Labor Law compliance radars per company:
  *   1. Probation Expiry Radar (المادة 53 — انتهاء فترة التجربة 90 / 180 يوماً)
@@ -710,7 +709,7 @@ export function buildVoiceHrAlertsBriefing(alerts: HrSmartAlertRecord[]): string
     .map((a) => a.titleAr)
     .join('، وكذلك ');
 
-  return `يوجد حالياً ${unacked.length} تنبيهاً نشطاً في رادار جسر للموارد البشرية، منها ${criticalCount} تنبيهات حرجة و${warningCount} تنبيهات تحذيرية. أبرزها: ${topTwo}.`;
+  return `يوجد حالياً ${unacked.length} تنبيهاً نشطاً في رادار الموارد البشرية، منها ${criticalCount} تنبيهات حرجة و${warningCount} تنبيهات تحذيرية. أبرزها: ${topTwo}.`;
 }
 
 /**
@@ -803,7 +802,7 @@ export async function runAndDispatchHrSmartAlerts(
           recipientNameAr: item.employeeName || 'إدارة الموارد البشرية',
           customDetailsAr: item.messageAr,
           referenceNo: alertRefNo,
-          moduleName: 'تنبيهات الامتثال العمالي (جسر)',
+          moduleName: 'تنبيهات الامتثال العمالي للموارد البشرية',
           openOutlookWebFallbackIfUnconfigured: false,
           skipSentMessagesLog: true,
         });
@@ -864,7 +863,7 @@ export async function runAndDispatchHrSmartAlerts(
         recipient: `${item.employeeName || 'إدارة الموارد البشرية'} <${composed.toEmails.join(', ')}>`,
         channel: options?.dispatchOfficialEmail
           ? `بريد الموارد البشرية المباشر (${REEM_HR_SIGNATORY.email})`
-          : 'واتساب وبريد الموارد البشرية (رادار جسر)',
+          : 'واتساب وبريد الموارد البشرية (رادار الموارد البشرية)',
         subject: composed.subject,
         content: `${item.messageAr}\n• من: ${REEM_HR_SIGNATORY.email} • نسخة: ${REEM_HR_SIGNATORY.defaultCc.join(', ')}\n---\n${REEM_HR_ALERT_SIGNATURE_BLOCK}`,
         status: deliveredDirectly
@@ -1214,7 +1213,7 @@ export async function executeHrSmartAlertCorrectiveAction(
     recipientNameEn: correctiveRecipient.nameEn,
     customDetailsAr: summaryAr,
     referenceNo: corRefNo,
-    moduleName: 'الإجراء التصحيحي الذكي (جسر)',
+    moduleName: 'الإجراء التصحيحي الذكي للموارد البشرية',
     openOutlookWebFallbackIfUnconfigured: false,
     skipSentMessagesLog: true,
   });

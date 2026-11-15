@@ -24,6 +24,8 @@ import {
   generateStrongClientPassword,
   saveCustomEmployeePassword,
 } from '../config/kasEmployeePasswordHashes';
+import { SIDEBAR_MENU } from '../data/sidebarMenu';
+import { resolveUserVisibilityAccess, isVisibilityControllerUser } from './moduleVisibility';
 
 export {
   KAS_ALLOWED_EMPLOYEES,
@@ -153,6 +155,8 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'gov-integration-hub',
       'jisr-accruals',
       'jisr-expenses',
+      'jisr-cards-rollover',
+      'jisr-arrears-b2b',
       'profile',
     ],
   },
@@ -329,22 +333,22 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'hr-eosb',
       'gosi-insurance',
       'gosi-integration',
-      'legal-compliance',
-      'gov-integrations',
-      'government-hub',
-      'gov-integration-hub',
-      'smacc-hr-settings',
-      'smacc-employees',
       'compliance-radar',
       'nitaqat',
       'jisr-alerts-compliance',
       'hr-smart-alerts',
-      'jisr-accruals',
-      'jisr-expenses',
       'jisr-org-muqeem',
       'jisr-talent-360',
+      'jisr-welcome-signage',
+      'welcome-screens',
+      'signage-screens',
+      'jisr-shifts-overtime',
+      'jisr-arrears-b2b',
+      'jisr-cards-rollover',
+      'jisr-workflows-pulse',
       'reem-hr-emails',
       'hr-official-emails',
+      'legal-compliance',
       'ess-self-service',
       'profile',
     ],
@@ -484,8 +488,8 @@ export interface UserProfile {
   extra_allowed_departments?: DepartmentId[];
   linked_google_email?: string;
   authenticated_via?: 'strong_password' | 'approved_google' | 'supabase';
-  status: string;
-  created_at: string;
+  status?: string;
+  created_at?: string;
 }
 
 export interface AuthState {
@@ -1308,7 +1312,12 @@ export const authService = {
     if (!profile) return false;
     if (tabHref === 'profile' || tabHref === 'ess-self-service') return true;
 
-    if (this.isAdmin(profile) || profile.department_id === 'executive') {
+    // Visibility controllers (Eng. Abdulrahman `a.salif.dev@kas.sa` & Chairman `khalid@kas.sa`)
+    // always retain access to the Visibility Manager and Executive Dashboard.
+    if (
+      isVisibilityControllerUser(profile) &&
+      (tabHref === 'module-visibility' || tabHref === 'dashboard' || tabHref === 'settings')
+    ) {
       return true;
     }
 
@@ -1319,6 +1328,27 @@ export const authService = {
     const effectiveDept = officialKas?.department_id || profile.department_id;
     const effectiveCompany = (officialKas?.company_id || profile.company_id || '').toUpperCase();
     const effectiveDefaultTab = officialKas?.defaultTab || profile.default_tab;
+
+    // Check granular Department & Per-Employee Visibility Engine (controlled by Eng. Abdulrahman):
+    // 1) Explicit blocks (e.g., hiding Finance & Gov Hub from HR, or hiding any module from a specific employee) take priority!
+    // 2) Explicit grants (`grantedHrefs`) allow Abdulrahman to unlock ANY department/screen for ANY individual employee!
+    const canonicalHref =
+      tabHref === 'government-hub' || tabHref === 'gov-integration-hub' ? 'gov-integrations' : tabHref;
+    const vis = resolveUserVisibilityAccess(SIDEBAR_MENU, {
+      ...profile,
+      company_id: effectiveCompany || profile.company_id,
+      department_id: effectiveDept || profile.department_id,
+    });
+    if (vis.blockedHrefs.has(tabHref) || vis.blockedHrefs.has(canonicalHref)) {
+      return false;
+    }
+    if (vis.grantedHrefs.has(tabHref) || vis.grantedHrefs.has(canonicalHref)) {
+      return true;
+    }
+
+    if (this.isAdmin(profile) || effectiveDept === 'executive') {
+      return true;
+    }
 
     // Two-Way Strict Company System Separation:
     // "شركة كاس شركة خاصة بالتجارة نظامها منفصل ليس له علاقة بالاستقدام"
@@ -2151,6 +2181,11 @@ export const authService = {
       user.role.includes('مطور النظام') ||
       ['رئيس مجلس الإدارة', 'رئيس المجموعة', 'مدير نظام', 'مدير تنفيذي'].includes(user.role)
     );
+  },
+
+  canManageModuleVisibility(user: UserProfile | null): boolean {
+    if (!user) return false;
+    return isVisibilityControllerUser(user) || this.isAdmin(user);
   },
 
   isFinance(user: UserProfile | null): boolean {

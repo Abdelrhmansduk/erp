@@ -73,6 +73,9 @@ export const BiometricCameraAttendanceGateModal: React.FC<
   const [barcodeInput, setBarcodeInput] = useState<string>('');
   const [opticalScannerSupported, setOpticalScannerSupported] = useState<boolean>(false);
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
+  const [liveDateKey, setLiveDateKey] = useState<string>(() =>
+    new Date().toISOString().slice(0, 10)
+  );
   const [liveTimeStr, setLiveTimeStr] = useState<string>(() =>
     new Date().toLocaleTimeString('ar-SA', {
       hour: '2-digit',
@@ -87,7 +90,11 @@ export const BiometricCameraAttendanceGateModal: React.FC<
   const barcodeInputRef = useRef<HTMLInputElement | null>(null);
   const isCompletingRef = useRef<boolean>(false);
 
-  const identity = useMemo(() => generateEmployeeBarcodeIdentity(user), [user]);
+  const identity = useMemo(
+    () => generateEmployeeBarcodeIdentity(user, new Date()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user, liveDateKey]
+  );
   const entityBranding = useMemo(
     () => resolveDocumentBranding(user, { entityCode: identity.companyCode }),
     [user, identity.companyCode]
@@ -208,18 +215,21 @@ export const BiometricCameraAttendanceGateModal: React.FC<
     }
   }, [cameraState, capturedSnapshot]);
 
-  // Live clock ticker while modal is open
+  // Live clock ticker + automatic midnight daily-barcode rotation while modal is open
   useEffect(() => {
     if (!isOpen) return;
     const timer = window.setInterval(() => {
+      const nowObj = new Date();
       setLiveTimeStr(
-        new Date().toLocaleTimeString('ar-SA', {
+        nowObj.toLocaleTimeString('ar-SA', {
           hour: '2-digit',
           minute: '2-digit',
           second: '2-digit',
           hour12: false,
         })
       );
+      const nextDateKey = `${nowObj.getFullYear()}-${String(nowObj.getMonth() + 1).padStart(2, '0')}-${String(nowObj.getDate()).padStart(2, '0')}`;
+      setLiveDateKey((prev) => (prev === nextDateKey ? prev : nextDateKey));
     }, 1000);
     return () => window.clearInterval(timer);
   }, [isOpen]);
@@ -951,7 +961,8 @@ export const BiometricCameraAttendanceGateModal: React.FC<
                         dangerouslySetInnerHTML={{ __html: code128Svg }}
                       />
                       <span className="text-[11px] text-[#707070] font-mono">
-                        الرمز المختصر: <strong className="text-[#141414]">{identity.shortPinCode}</strong>
+                        الرمز اليومي المختصر: <strong className="text-[#141414]">{identity.shortPinCode}</strong> •{' '}
+                        <span className="text-[#141414] font-semibold">يتجدد تلقائياً كل يوم ({identity.validForDate})</span>
                       </span>
                     </div>
                     <div

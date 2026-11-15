@@ -12,6 +12,8 @@ import {
   UserProfile,
 } from '../services/authService';
 import { chartOfAccountsService } from '../services/accounting/chartOfAccountsService';
+import { SIDEBAR_MENU } from '../data/sidebarMenu';
+import { resolveUserVisibilityAccess } from '../services/moduleVisibility';
 
 function buildProfileForKasEmail(email: string): UserProfile {
   const emp = findAllowedKasEmployee(email);
@@ -181,8 +183,15 @@ describe('KAS Official Email Whitelist & 9-Department / Standalone KAS Trade RBA
 
     const hrDirector = buildProfileForKasEmail('hr@kas.sa');
     expect(authService.isTabAuthorizedForUser(hrDirector, 'employees')).toBe(true);
+    expect(authService.isTabAuthorizedForUser(hrDirector, 'welcome-screens')).toBe(true);
+    expect(authService.isTabAuthorizedForUser(hrDirector, 'signage-screens')).toBe(true);
+    expect(authService.isTabAuthorizedForUser(hrDirector, 'jisr-welcome-signage')).toBe(true);
     expect(authService.isTabAuthorizedForUser(hrDirector, 'legal-compliance')).toBe(true);
     expect(authService.isTabAuthorizedForUser(hrDirector, 'settings')).toBe(false);
+
+    const hrVis = resolveUserVisibilityAccess(SIDEBAR_MENU, hrDirector);
+    const hrSection = hrVis.visibleMenu.find((s) => s.id === 'dept-6-hr');
+    expect(hrSection?.children?.some((c) => c.href === 'welcome-screens')).toBe(true);
 
     const chairman = buildProfileForKasEmail('khalid@kas.sa');
     expect(authService.isAdmin(chairman)).toBe(true);

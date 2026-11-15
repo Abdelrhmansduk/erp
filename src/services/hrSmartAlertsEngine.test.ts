@@ -84,7 +84,7 @@ describe('HR Smart Alerts & Real Operational Corrective Actions Engine', () => {
     expect(slaAlert?.correctiveActionCode).toBe('ESCALATE_SLA_APPROVAL');
 
     const voiceSummary = buildVoiceHrAlertsBriefing(alerts);
-    expect(voiceSummary).toContain('تنبيهاً نشطاً في رادار جسر');
+    expect(voiceSummary).toContain('تنبيهاً نشطاً في رادار الموارد البشرية');
   });
 
   it('executes real 1-click corrective actions (Art. 53 probation extension to 180d, Muqeem Iqama renewal, and SLA escalation)', async () => {

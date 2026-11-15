@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useModalEscape } from '../hooks/useModalEscape';
 import { Badge } from '../components/ui/Badge';
 import { ExportDropdown } from '../components/common/ExportDropdown';
@@ -30,103 +30,207 @@ import {
   X,
   ShieldCheck,
   Building2,
+  CheckCircle2,
+  Clock,
+  Send,
+  UserCheck,
 } from 'lucide-react';
 
-interface Custody {
+export interface Custody {
   id: string;
   company_id?: string;
+  employee_id?: string;
+  employee_code?: string;
   item_name: string;
   employee_name: string;
+  emp_name?: string;
   employee_phone?: string;
   employee_email?: string;
   location: string;
   received_date: string;
+  handover_date?: string;
   serial_number: string;
+  serial_no?: string;
   estimated_value: number;
   status: 'في حوزة الموظف' | 'تم الاسترجاع' | 'صيانة';
+  acknowledged_by_employee?: boolean;
+  acknowledgment_status?: 'مُقر إلكترونياً من بوابة الموظف' | 'بانتظار إقرار الموظف';
+  acknowledged_at?: string;
+  acknowledgment_requested_at?: string;
   notes?: string;
+}
+
+interface HrEmployeeOption {
+  id: string;
+  employee_code: string;
+  name: string;
+  phone: string;
+  email: string;
+  company_id: string;
+  branch: string;
+  department: string;
 }
 
 const INITIAL_CUSTODIES: Custody[] = [
   {
     id: 'CUST-01',
     company_id: 'SAF',
+    employee_id: 'emp-101',
+    employee_code: 'EMP-SAF-101',
     item_name: 'جهاز لاب توب MacBook Pro M2',
     employee_name: 'محمد مصطفي',
+    emp_name: 'محمد مصطفي',
     employee_phone: '0501122334',
     employee_email: 'm.mustafa@saf-rec.sa',
     location: 'مقر الإدارة العليا',
     received_date: '2024-06-01',
+    handover_date: '2024-06-01',
     serial_number: 'C02GX891Q6L4',
+    serial_no: 'C02GX891Q6L4',
     estimated_value: 8500,
     status: 'في حوزة الموظف',
+    acknowledged_by_employee: true,
+    acknowledgment_status: 'مُقر إلكترونياً من بوابة الموظف',
+    acknowledged_at: '2024-06-01 10:15',
   },
   {
     id: 'CUST-02',
     company_id: 'YAQ',
+    employee_id: 'emp-102',
+    employee_code: 'EMP-YAQ-102',
     item_name: 'سيارة تويوتا كامري 2025 (استقبال مطار)',
     employee_name: 'سائق الاستقبال - أحمد',
+    emp_name: 'سائق الاستقبال - أحمد',
     employee_phone: '0552233445',
     location: 'فرع مطار الملك خالد',
     received_date: '2025-01-15',
+    handover_date: '2025-01-15',
     serial_number: 'KSA-9941-KSA',
+    serial_no: 'KSA-9941-KSA',
     estimated_value: 95000,
     status: 'في حوزة الموظف',
+    acknowledged_by_employee: false,
+    acknowledgment_status: 'بانتظار إقرار الموظف',
   },
   {
     id: 'CUST-03',
     company_id: 'KAS',
+    employee_id: 'emp-103',
+    employee_code: 'EMP-KAS-103',
     item_name: 'جهاز ايفون 15 بروماكس (هاتف خدمة العملاء)',
     employee_name: 'سارة خالد',
+    emp_name: 'سارة خالد',
     employee_phone: '0543344556',
     employee_email: 's.khalid@kas.sa',
     location: 'فرع الرياض الرئيسي',
     received_date: '2025-03-10',
+    handover_date: '2025-03-10',
     serial_number: 'IPH-99281-2025',
+    serial_no: 'IPH-99281-2025',
     estimated_value: 5200,
     status: 'في حوزة الموظف',
+    acknowledged_by_employee: true,
+    acknowledgment_status: 'مُقر إلكترونياً من بوابة الموظف',
+    acknowledged_at: '2025-03-10 11:30',
   },
   {
     id: 'CUST-04',
     company_id: 'TOP',
+    employee_id: 'emp-104',
+    employee_code: 'EMP-TOP-104',
     item_name: 'طابعة ملونة ليزر HP Enterprise',
     employee_name: 'فهد العتيبي',
+    emp_name: 'فهد العتيبي',
     employee_phone: '0564455667',
     location: 'فرع جدة',
     received_date: '2024-11-20',
+    handover_date: '2024-11-20',
     serial_number: 'HP-ENT-44102',
+    serial_no: 'HP-ENT-44102',
     estimated_value: 4100,
     status: 'صيانة',
+    acknowledged_by_employee: false,
+    acknowledgment_status: 'بانتظار إقرار الموظف',
   },
 ];
 
-const normalizeCustodyRecord = (raw: any, idx: number): Custody => ({
-  id: String(raw?.id || raw?.custody_code || raw?.custody_number || `CUST-0${idx + 1}`),
-  company_id: String(raw?.company_id || raw?.companyCode || 'SAF'),
-  item_name: String(raw?.item_name || raw?.asset_name || raw?.itemName || 'أصل مؤسسي مسجل'),
-  employee_name: String(raw?.employee_name || raw?.emp_name || raw?.employeeName || 'موظف مستلم'),
-  employee_phone: String(raw?.employee_phone || raw?.phone || ''),
-  employee_email: String(raw?.employee_email || raw?.email || ''),
-  location: String(raw?.location || raw?.branch || 'فرع الرياض الرئيسي'),
-  received_date: String(
+const normalizeCustodyRecord = (
+  raw: any,
+  idx: number,
+  employeesDirectory: HrEmployeeOption[] = []
+): Custody => {
+  const rawEmpName = String(raw?.employee_name || raw?.emp_name || raw?.employeeName || 'موظف مستلم').trim();
+  const rawEmpId = String(raw?.employee_id || raw?.employeeId || '').trim();
+  const matchedEmp = employeesDirectory.find(
+    (e) =>
+      (rawEmpId && (e.id === rawEmpId || e.employee_code === rawEmpId)) ||
+      (rawEmpName &&
+        (e.name === rawEmpName ||
+          e.name.includes(rawEmpName) ||
+          rawEmpName.includes(e.name)))
+  );
+
+  const recDate = String(
     raw?.received_date ||
       raw?.handover_date ||
+      raw?.assigned_date ||
       (raw?.created_at ? String(raw.created_at).slice(0, 10) : '2025-01-15')
-  ),
-  serial_number: String(raw?.serial_number || raw?.serialNumber || `SN-${1000 + idx}`),
-  estimated_value: Number(raw?.estimated_value ?? raw?.value ?? 0),
-  status:
+  );
+  const serial = String(raw?.serial_number || raw?.serial_no || raw?.serialNumber || `SN-${1000 + idx}`);
+  const isAcked = Boolean(
+    raw?.acknowledged_by_employee ||
+      raw?.acknowledgment_status === 'مُقر إلكترونياً من بوابة الموظف' ||
+      raw?.acknowledged_at
+  );
+
+  const normalizedStatus: Custody['status'] =
     raw?.status === 'في حوزة الموظف' || raw?.status === 'تم الاسترجاع' || raw?.status === 'صيانة'
       ? raw.status
-      : 'في حوزة الموظف',
-  notes: raw?.notes ? String(raw.notes) : '',
-});
+      : raw?.status === 'مسلمة للموظف'
+      ? 'في حوزة الموظف'
+      : 'في حوزة الموظف';
+
+  return {
+    id: String(raw?.id || raw?.custody_code || raw?.custody_number || `CUST-0${idx + 1}`),
+    company_id: String(raw?.company_id || raw?.companyCode || matchedEmp?.company_id || 'SAF'),
+    employee_id: rawEmpId || matchedEmp?.id || `emp-cust-${idx + 1}`,
+    employee_code: String(raw?.employee_code || matchedEmp?.employee_code || rawEmpId || `EMP-${101 + idx}`),
+    item_name: String(raw?.item_name || raw?.asset_name || raw?.itemName || 'أصل مؤسسي مسجل'),
+    employee_name: rawEmpName,
+    emp_name: rawEmpName,
+    employee_phone: String(raw?.employee_phone || raw?.phone || matchedEmp?.phone || ''),
+    employee_email: String(raw?.employee_email || raw?.email || matchedEmp?.email || ''),
+    location: String(raw?.location || raw?.branch || matchedEmp?.branch || 'فرع الرياض الرئيسي'),
+    received_date: recDate,
+    handover_date: recDate,
+    serial_number: serial,
+    serial_no: serial,
+    estimated_value: Number(raw?.estimated_value ?? raw?.value ?? 0),
+    status: normalizedStatus,
+    acknowledged_by_employee: isAcked,
+    acknowledgment_status: isAcked
+      ? 'مُقر إلكترونياً من بوابة الموظف'
+      : 'بانتظار إقرار الموظف',
+    acknowledged_at: raw?.acknowledged_at
+      ? String(raw.acknowledged_at)
+      : isAcked
+      ? `${recDate} 09:30`
+      : undefined,
+    acknowledgment_requested_at: raw?.acknowledgment_requested_at
+      ? String(raw.acknowledgment_requested_at)
+      : undefined,
+    notes: raw?.notes ? String(raw.notes) : '',
+  };
+};
 
 export const CustodiesPage: React.FC = () => {
   useModalEscape();
   const { addNotification } = useAppStore();
   const [custodies, setCustodies] = useState<Custody[]>([]);
+  const [hrEmployees, setHrEmployees] = useState<HrEmployeeOption[]>([]);
+  const [clearanceRecordsCount, setClearanceRecordsCount] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [ackFilter, setAckFilter] = useState<'ALL' | 'ACKED' | 'PENDING_ACK' | 'RETURNED'>('ALL');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCustody, setEditingCustody] = useState<Custody | null>(null);
   const [showRecycleBin, setShowRecycleBin] = useState(false);
@@ -137,16 +241,168 @@ export const CustodiesPage: React.FC = () => {
     'أتعهد بالمحافظة على الأصل المسلّم واستخدامه لأغراض العمل الرسمية فقط وإعادته بحالته التشغيلية عند الطلب أو عند إخلاء الطرف.'
   );
 
-  useEffect(() => {
-    realErpDataStore.getRecords<Custody>('custodies', INITIAL_CUSTODIES).then((data) => {
-      const list = Array.isArray(data) && data.length > 0 ? data : INITIAL_CUSTODIES;
-      setCustodies(list.map((item, idx) => normalizeCustodyRecord(item, idx)));
-    });
+  const persistDualCustodyTables = useCallback(async (nextList: Custody[]) => {
+    await Promise.all([
+      realErpDataStore.saveRecords('hr_custodies', nextList),
+      realErpDataStore.saveRecords('custodies', nextList),
+    ]);
   }, []);
+
+  const loadCustodiesAndEmployees = useCallback(async () => {
+    const [hrEmpsRaw, coreEmpsRaw, hrCustodiesRaw, legacyCustodiesRaw, clearancesRaw] =
+      await Promise.all([
+        realErpDataStore.getRecords<any>('hr_employees', []),
+        realErpDataStore.getRecords<any>('employees', []),
+        realErpDataStore.getRecords<any>('hr_custodies', []),
+        realErpDataStore.getRecords<any>('custodies', INITIAL_CUSTODIES),
+        realErpDataStore.getRecords<any>('hr_offboarding_clearances', []),
+      ]);
+
+    const empMap = new Map<string, HrEmployeeOption>();
+    const registerEmp = (raw: any, index: number) => {
+      if (!raw) return;
+      const id = String(raw.id || raw.employee_code || `emp-${index + 1}`);
+      const name = String(raw.name || raw.full_name || '').trim();
+      if (!name) return;
+      empMap.set(id, {
+        id,
+        employee_code: String(raw.employee_code || id),
+        name,
+        phone: String(raw.phone || raw.mobile || ''),
+        email: String(raw.email || ''),
+        company_id: String(raw.company_id || 'SAF'),
+        branch: String(raw.branch || 'فرع الرياض الرئيسي'),
+        department: String(raw.department || 'الإدارة العامة'),
+      });
+    };
+
+    (Array.isArray(coreEmpsRaw) ? coreEmpsRaw : []).forEach(registerEmp);
+    (Array.isArray(hrEmpsRaw) ? hrEmpsRaw : []).forEach(registerEmp);
+    const mergedEmployees = Array.from(empMap.values());
+    setHrEmployees(mergedEmployees);
+    setClearanceRecordsCount(Array.isArray(clearancesRaw) ? clearancesRaw.length : 0);
+
+    // Merge hr_custodies and custodies by ID
+    const custodyMap = new Map<string, any>();
+    const seedList =
+      (Array.isArray(legacyCustodiesRaw) && legacyCustodiesRaw.length > 0
+        ? legacyCustodiesRaw
+        : INITIAL_CUSTODIES) || INITIAL_CUSTODIES;
+
+    seedList.forEach((item: any, idx: number) => {
+      const key = String(item?.id || item?.custody_code || `CUST-0${idx + 1}`);
+      custodyMap.set(key, item);
+    });
+    (Array.isArray(hrCustodiesRaw) ? hrCustodiesRaw : []).forEach((item: any, idx: number) => {
+      const key = String(item?.id || item?.custody_code || `CUST-HR-${idx + 1}`);
+      custodyMap.set(key, { ...(custodyMap.get(key) || {}), ...item });
+    });
+
+    const normalizedList = Array.from(custodyMap.values()).map((item, idx) =>
+      normalizeCustodyRecord(item, idx, mergedEmployees)
+    );
+    setCustodies(normalizedList);
+
+    if (!Array.isArray(hrCustodiesRaw) || hrCustodiesRaw.length === 0) {
+      await realErpDataStore.saveRecords('hr_custodies', normalizedList);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadCustodiesAndEmployees();
+    const onUpdated = () => void loadCustodiesAndEmployees();
+    window.addEventListener('erp-data-updated', onUpdated);
+    return () => window.removeEventListener('erp-data-updated', onUpdated);
+  }, [loadCustodiesAndEmployees]);
+
+  /**
+   * Automatically checks if all custodies for a given employee are returned ('تم الاسترجاع').
+   * When true, updates or creates their offboarding clearance record in `hr_offboarding_clearances`
+   * with `assetsCleared: true`, `custody_cleared: true`, and `assetsNotes: 'تم إخلاء واسترجاع كافة العهد والأصول آلياً'`.
+   */
+  const syncOffboardingClearanceOnReturn = useCallback(
+    async (targetCustody: Custody, allCustodies: Custody[]) => {
+      const empId = (targetCustody.employee_id || '').trim();
+      const empName = (targetCustody.employee_name || '').trim();
+
+      const employeeCustodies = allCustodies.filter((c) => {
+        const cId = (c.employee_id || '').trim();
+        const cName = (c.employee_name || '').trim();
+        return (empId && cId === empId) || (empName && cName === empName);
+      });
+
+      if (employeeCustodies.length === 0) return;
+      const allReturned = employeeCustodies.every((c) => c.status === 'تم الاسترجاع');
+      if (!allReturned) return;
+
+      const clearanceNotes = 'تم إخلاء واسترجاع كافة العهد والأصول آلياً';
+      const existingClearances = await realErpDataStore.getRecords<any>(
+        'hr_offboarding_clearances',
+        []
+      );
+      const matchingClearances = (Array.isArray(existingClearances) ? existingClearances : []).filter(
+        (clr) =>
+          (empId && String(clr.employee_id || '').trim() === empId) ||
+          (empName && String(clr.employee_name || '').trim() === empName)
+      );
+
+      if (matchingClearances.length > 0) {
+        for (const clr of matchingClearances) {
+          const allGatesCleared = Boolean(
+            clr.it_access_revoked &&
+              clr.finance_loans_settled &&
+              clr.manager_handover_done &&
+              clr.hr_qiwa_gosi_closed
+          );
+          await realErpDataStore.updateRecord<any>('hr_offboarding_clearances', clr.id, {
+            custody_cleared: true,
+            assetsCleared: true,
+            assetsNotes: clearanceNotes,
+            all_gates_cleared: allGatesCleared,
+            updated_at: new Date().toISOString(),
+          });
+        }
+      } else {
+        const newClearance = {
+          id: `CLR-AST-${empId || Date.now().toString().slice(-5)}`,
+          company_id: targetCustody.company_id || 'SAF',
+          employee_id: empId || `emp-${Date.now().toString().slice(-4)}`,
+          employee_name: empName || 'موظف',
+          separation_reason: 'إخلاء طرف عهد وأصول وظيفية',
+          last_working_day: new Date().toISOString().slice(0, 10),
+          custody_cleared: true,
+          assetsCleared: true,
+          assetsNotes: clearanceNotes,
+          it_access_revoked: false,
+          finance_loans_settled: false,
+          manager_handover_done: false,
+          hr_qiwa_gosi_closed: false,
+          all_gates_cleared: false,
+          created_at: new Date().toISOString().slice(0, 10),
+        };
+        await realErpDataStore.addRecord('hr_offboarding_clearances', newClearance);
+      }
+
+      const refreshedClearances = await realErpDataStore.getRecords<any>(
+        'hr_offboarding_clearances',
+        []
+      );
+      setClearanceRecordsCount(Array.isArray(refreshedClearances) ? refreshedClearances.length : 0);
+
+      addNotification({
+        title: 'إخلاء طرف العُهد والأصول آلياً',
+        message: `تم التحقق من استرجاع كافة عهد الموظف (${targetCustody.employee_name}) وتحديث سجل إخلاء الطرف (hr_offboarding_clearances): ${clearanceNotes}.`,
+        type: 'success',
+      });
+    },
+    [addNotification]
+  );
 
   const defaultCompany = detectActiveSessionEntityCode();
   const [addForm, setAddForm] = useState({
     company_id: defaultCompany,
+    employee_id: '',
+    employee_code: '',
     item_name: '',
     employee_name: '',
     employee_phone: '',
@@ -156,22 +412,27 @@ export const CustodiesPage: React.FC = () => {
     serial_number: '',
     estimated_value: '',
     status: 'في حوزة الموظف' as Custody['status'],
+    acknowledged_by_employee: false,
     notes: '',
   });
 
   const openCreateCustodyModal = () => {
     setEditingCustody(null);
+    const firstEmp = hrEmployees[0];
     setAddForm({
-      company_id: detectActiveSessionEntityCode(),
+      company_id: (firstEmp?.company_id as any) || detectActiveSessionEntityCode(),
+      employee_id: firstEmp?.id || '',
+      employee_code: firstEmp?.employee_code || '',
       item_name: '',
-      employee_name: '',
-      employee_phone: '',
-      employee_email: '',
-      location: 'فرع الرياض الرئيسي',
+      employee_name: firstEmp?.name || '',
+      employee_phone: firstEmp?.phone || '',
+      employee_email: firstEmp?.email || '',
+      location: firstEmp?.branch || 'فرع الرياض الرئيسي',
       received_date: new Date().toISOString().slice(0, 10),
       serial_number: '',
       estimated_value: '',
       status: 'في حوزة الموظف',
+      acknowledged_by_employee: false,
       notes: '',
     });
     setShowAddModal(true);
@@ -181,6 +442,8 @@ export const CustodiesPage: React.FC = () => {
     setEditingCustody(row);
     setAddForm({
       company_id: normalizeCanonicalEntityCode(row.company_id) || detectActiveSessionEntityCode(),
+      employee_id: row.employee_id || '',
+      employee_code: row.employee_code || '',
       item_name: row.item_name,
       employee_name: row.employee_name,
       employee_phone: row.employee_phone || '',
@@ -190,6 +453,7 @@ export const CustodiesPage: React.FC = () => {
       serial_number: row.serial_number,
       estimated_value: String(row.estimated_value ?? 0),
       status: row.status,
+      acknowledged_by_employee: Boolean(row.acknowledged_by_employee),
       notes: row.notes || '',
     });
     setShowAddModal(true);
@@ -202,28 +466,66 @@ export const CustodiesPage: React.FC = () => {
     setSelectedCustodyForDoc(row);
   };
 
+  const handleEmployeeSelectChange = (empId: string) => {
+    const found = hrEmployees.find((e) => e.id === empId);
+    if (!found) {
+      setAddForm((prev) => ({ ...prev, employee_id: empId }));
+      return;
+    }
+    setAddForm((prev) => ({
+      ...prev,
+      employee_id: found.id,
+      employee_code: found.employee_code,
+      employee_name: found.name,
+      employee_phone: found.phone || prev.employee_phone,
+      employee_email: found.email || prev.employee_email,
+      company_id: (normalizeCanonicalEntityCode(found.company_id) || prev.company_id) as any,
+      location: found.branch || prev.location,
+    }));
+  };
+
   const handleSaveCustody = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!addForm.item_name.trim() || !addForm.employee_name.trim()) return;
+
+    const nowStamp = new Date().toISOString().replace('T', ' ').slice(0, 16);
+    const matchedEmp = hrEmployees.find(
+      (emp) =>
+        (addForm.employee_id && emp.id === addForm.employee_id) ||
+        emp.name === addForm.employee_name.trim()
+    );
+    const resolvedEmpId = addForm.employee_id || matchedEmp?.id || `emp-${Date.now().toString().slice(-4)}`;
+    const resolvedEmpCode = addForm.employee_code || matchedEmp?.employee_code || resolvedEmpId;
+    const isAck = Boolean(addForm.acknowledged_by_employee);
 
     if (editingCustody) {
       const nextRecord: Custody = {
         ...editingCustody,
         company_id: addForm.company_id || 'SAF',
+        employee_id: resolvedEmpId,
+        employee_code: resolvedEmpCode,
         item_name: addForm.item_name.trim(),
         employee_name: addForm.employee_name.trim(),
+        emp_name: addForm.employee_name.trim(),
         employee_phone: addForm.employee_phone.trim(),
         employee_email: addForm.employee_email.trim(),
         location: addForm.location,
         received_date: addForm.received_date || editingCustody.received_date,
+        handover_date: addForm.received_date || editingCustody.received_date,
         serial_number: addForm.serial_number.trim() || 'N/A',
+        serial_no: addForm.serial_number.trim() || 'N/A',
         estimated_value: parseFloat(addForm.estimated_value) || 0,
         status: addForm.status,
+        acknowledged_by_employee: isAck,
+        acknowledgment_status: isAck
+          ? 'مُقر إلكترونياً من بوابة الموظف'
+          : 'بانتظار إقرار الموظف',
+        acknowledged_at: isAck ? editingCustody.acknowledged_at || nowStamp : undefined,
         notes: addForm.notes.trim(),
       };
 
       recordFieldLevelChanges({
-        tableName: 'custodies',
+        tableName: 'hr_custodies',
         recordId: editingCustody.id,
         recordLabel: `${nextRecord.item_name} — ${nextRecord.employee_name}`,
         before: editingCustody,
@@ -231,41 +533,58 @@ export const CustodiesPage: React.FC = () => {
         companyId: nextRecord.company_id,
       });
 
-      const updated = await realErpDataStore.updateRecord<Custody>(
-        'custodies',
-        editingCustody.id,
-        nextRecord,
-        INITIAL_CUSTODIES
-      );
-      setCustodies(updated.map((item, idx) => normalizeCustodyRecord(item, idx)));
+      const nextList = custodies.map((c) => (c.id === editingCustody.id ? nextRecord : c));
+      setCustodies(nextList);
+      await persistDualCustodyTables(nextList);
+
       addNotification({
-        title: 'تحديث بيانات العُهدة',
-        message: `تم حفظ تعديلات العُهدة (${nextRecord.item_name}) وتوثيقها في سجل المراجعة.`,
+        title: 'تحديث بيانات العُهدة ومزامنة بوابة الموظف',
+        message: `تم حفظ تعديلات العُهدة (${nextRecord.item_name}) للموظف (${nextRecord.employee_name}) في سجلات (hr_custodies).`,
         type: 'success',
       });
+
+      if (nextRecord.status === 'تم الاسترجاع') {
+        await syncOffboardingClearanceOnReturn(nextRecord, nextList);
+      }
     } else {
       const newC: Custody = {
         id: `CUST-0${custodies.length + 1}`,
         company_id: addForm.company_id || 'SAF',
+        employee_id: resolvedEmpId,
+        employee_code: resolvedEmpCode,
         item_name: addForm.item_name.trim(),
         employee_name: addForm.employee_name.trim(),
+        emp_name: addForm.employee_name.trim(),
         employee_phone: addForm.employee_phone.trim(),
         employee_email: addForm.employee_email.trim(),
         location: addForm.location,
         received_date: addForm.received_date || new Date().toISOString().slice(0, 10),
+        handover_date: addForm.received_date || new Date().toISOString().slice(0, 10),
         serial_number: addForm.serial_number.trim() || 'N/A',
+        serial_no: addForm.serial_number.trim() || 'N/A',
         estimated_value: parseFloat(addForm.estimated_value) || 0,
         status: addForm.status,
+        acknowledged_by_employee: isAck,
+        acknowledgment_status: isAck
+          ? 'مُقر إلكترونياً من بوابة الموظف'
+          : 'بانتظار إقرار الموظف',
+        acknowledged_at: isAck ? nowStamp : undefined,
         notes: addForm.notes.trim(),
       };
 
-      const updated = await realErpDataStore.addRecord('custodies', newC, INITIAL_CUSTODIES);
-      setCustodies(updated.map((item, idx) => normalizeCustodyRecord(item, idx)));
+      const nextList = [newC, ...custodies];
+      setCustodies(nextList);
+      await persistDualCustodyTables(nextList);
+
       addNotification({
-        title: 'تسليم عهدة جديدة',
-        message: `تم تسليم (${addForm.item_name}) للموظف (${addForm.employee_name}) بنجاح.`,
+        title: 'تسليم عهدة جديدة ومزامنتها مع بوابة الموظف',
+        message: `تم تسليم (${newC.item_name}) للموظف (${newC.employee_name}) وربطها بالمعرف (${newC.employee_id}).`,
         type: 'success',
       });
+
+      if (newC.status === 'تم الاسترجاع') {
+        await syncOffboardingClearanceOnReturn(newC, nextList);
+      }
     }
 
     setShowAddModal(false);
@@ -275,17 +594,74 @@ export const CustodiesPage: React.FC = () => {
   const toggleCustodyStatus = async (id: string) => {
     const target = custodies.find((c) => c.id === id);
     if (!target) return;
-    const nextStatus = target.status === 'في حوزة الموظف' ? 'تم الاسترجاع' : 'في حوزة الموظف';
-    const updated = await realErpDataStore.updateRecord<Custody>(
-      'custodies',
-      id,
-      { status: nextStatus },
-      INITIAL_CUSTODIES
-    );
-    setCustodies(updated.map((item, idx) => normalizeCustodyRecord(item, idx)));
+    const nextStatus: Custody['status'] =
+      target.status === 'في حوزة الموظف' ? 'تم الاسترجاع' : 'في حوزة الموظف';
+    const updatedTarget: Custody = {
+      ...target,
+      status: nextStatus,
+    };
+
+    const nextList = custodies.map((c) => (c.id === id ? updatedTarget : c));
+    setCustodies(nextList);
+    await persistDualCustodyTables(nextList);
+
     addNotification({
       title: 'تحديث حالة العهدة',
       message: `تم تغيير حالة (${target.item_name}) إلى (${nextStatus}).`,
+      type: 'info',
+    });
+
+    if (nextStatus === 'تم الاسترجاع') {
+      await syncOffboardingClearanceOnReturn(updatedTarget, nextList);
+    }
+  };
+
+  const handleRecordEmployeeAcknowledgment = async (row: Custody) => {
+    const nowStamp = new Date().toISOString().replace('T', ' ').slice(0, 16);
+    const updatedRow: Custody = {
+      ...row,
+      acknowledged_by_employee: true,
+      acknowledgment_status: 'مُقر إلكترونياً من بوابة الموظف',
+      acknowledged_at: nowStamp,
+    };
+    const nextList = custodies.map((c) => (c.id === row.id ? updatedRow : c));
+    setCustodies(nextList);
+    await persistDualCustodyTables(nextList);
+
+    addNotification({
+      title: 'توثيق إقرار استلام العُهدة إلكترونياً',
+      message: `تم توثيق إقرار الموظف (${row.employee_name}) باستلام (${row.item_name}) بتاريخ ${nowStamp} ومزامنته مع بوابة الخدمة الذاتية.`,
+      type: 'success',
+    });
+  };
+
+  const handleRequestEmployeeAcknowledgment = async (row: Custody) => {
+    const nowStamp = new Date().toISOString().replace('T', ' ').slice(0, 16);
+    const updatedRow: Custody = {
+      ...row,
+      acknowledgment_requested_at: nowStamp,
+      acknowledgment_status: 'بانتظار إقرار الموظف',
+    };
+    const nextList = custodies.map((c) => (c.id === row.id ? updatedRow : c));
+    setCustodies(nextList);
+    await persistDualCustodyTables(nextList);
+
+    await realErpDataStore.addRecord('hr_smart_alerts', {
+      id: `ALT-CUST-ACK-${row.id}-${Date.now().toString().slice(-4)}`,
+      company_id: row.company_id || 'SAF',
+      employeeId: row.employee_id,
+      employeeName: row.employee_name,
+      category: 'CUSTODY_ACKNOWLEDGMENT',
+      severity: 'WARNING',
+      titleAr: `مطلوب إقرار استلام عهدة إلكترونياً (${row.item_name})`,
+      descriptionAr: `يرجى الدخول إلى بوابة الخدمة الذاتية للموظف والمصادقة على استلام الأصل (${row.item_name} — الرقم التسلسلي: ${row.serial_number}).`,
+      acknowledged: false,
+      createdAt: new Date().toISOString(),
+    });
+
+    addNotification({
+      title: 'إرسال طلب إقرار إلكتروني لبوابة الموظف',
+      message: `تم إرسال إشعار طلب إقرار استلام الأصل (${row.item_name}) إلى بوابة الخدمة الذاتية للموظف (${row.employee_name}).`,
       type: 'info',
     });
   };
@@ -298,7 +674,10 @@ export const CustodiesPage: React.FC = () => {
       reason: reason || 'نقل عهدة إلى أرشيف الاستعادة (30 يوماً)',
       companyId: row.company_id || 'SAF',
     });
-    await realErpDataStore.deleteRecord('custodies', row.id);
+    await Promise.all([
+      realErpDataStore.deleteRecord('custodies', row.id),
+      realErpDataStore.deleteRecord('hr_custodies', row.id),
+    ]);
     setCustodies((prev) => prev.filter((c) => c.id !== row.id));
     addNotification({
       title: 'نقل العهدة لسلة المحذوفات',
@@ -309,9 +688,10 @@ export const CustodiesPage: React.FC = () => {
 
   const handleRestoreCustody = async (entry: RecycleBinEntry) => {
     if (!entry?.payload) return;
-    const restored = normalizeCustodyRecord(entry.payload, custodies.length);
-    const updated = await realErpDataStore.addRecord('custodies', restored, INITIAL_CUSTODIES);
-    setCustodies(updated.map((item, idx) => normalizeCustodyRecord(item, idx)));
+    const restored = normalizeCustodyRecord(entry.payload, custodies.length, hrEmployees);
+    const nextList = [restored, ...custodies.filter((c) => c.id !== restored.id)];
+    setCustodies(nextList);
+    await persistDualCustodyTables(nextList);
     addNotification({
       title: 'استعادة سجل العهدة',
       message: `تمت استعادة العهدة (${restored.item_name}) بنجاح.`,
@@ -319,14 +699,29 @@ export const CustodiesPage: React.FC = () => {
     });
   };
 
+  const kpiStats = useMemo(() => {
+    const totalCount = custodies.length;
+    const totalValue = custodies.reduce((s, c) => s + (Number(c.estimated_value) || 0), 0);
+    const ackedCount = custodies.filter((c) => c.acknowledged_by_employee).length;
+    const pendingAckCount = custodies.filter((c) => !c.acknowledged_by_employee).length;
+    const returnedCount = custodies.filter((c) => c.status === 'تم الاسترجاع').length;
+    return { totalCount, totalValue, ackedCount, pendingAckCount, returnedCount };
+  }, [custodies]);
+
   const q = searchQuery.toLowerCase();
-  const filteredCustodies = custodies.filter(
-    (c) =>
+  const filteredCustodies = custodies.filter((c) => {
+    const matchesSearch =
       (c.item_name || '').toLowerCase().includes(q) ||
       (c.employee_name || '').toLowerCase().includes(q) ||
+      (c.employee_id || '').toLowerCase().includes(q) ||
       (c.serial_number || '').toLowerCase().includes(q) ||
-      (c.company_id || '').toLowerCase().includes(q)
-  );
+      (c.company_id || '').toLowerCase().includes(q);
+    if (!matchesSearch) return false;
+    if (ackFilter === 'ACKED') return Boolean(c.acknowledged_by_employee);
+    if (ackFilter === 'PENDING_ACK') return !c.acknowledged_by_employee;
+    if (ackFilter === 'RETURNED') return c.status === 'تم الاسترجاع';
+    return true;
+  });
 
   const activeDocBranding = selectedCustodyForDoc
     ? resolveDocumentBranding(selectedCustodyForDoc, {
@@ -365,6 +760,9 @@ export const CustodiesPage: React.FC = () => {
               <span className="pill-tag-shade" style={{ fontSize: '11px' }}>
                 HR ASSETS & CUSTODIES
               </span>
+              <span className="pill-tag-shade" style={{ fontSize: '11px' }}>
+                مربوط ببوابة الخدمة الذاتية وإخلاء الطرف الآلي
+              </span>
             </div>
             <h1
               className="display-sm"
@@ -376,10 +774,10 @@ export const CustodiesPage: React.FC = () => {
                 margin: 0,
               }}
             >
-              إدارة عُهد وأصول الموظفين
+              إدارة عُهد وأصول الموظفين والإقرار الإلكتروني
             </h1>
             <p style={{ fontSize: '13px', color: '#707070', margin: '4px 0 0 0', fontWeight: 500 }}>
-              تسليم الأصول، السيارات، الأجهزة الذكية، وتوليد سندات الاستلام الرسمية باسم المنشأة الفعلية
+              ربط مباشر بسجلات الموظفين (hr_employees) وبوابة الموظف (hr_custodies) مع تحديث إخلاء الطرف تلقائياً عند الاسترجاع
             </p>
           </div>
         </div>
@@ -413,6 +811,51 @@ export const CustodiesPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Live Custody & ESS Sync KPI Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-5 rounded-[24px] bg-[#ffffff] border border-[#e0e0e0]">
+          <div className="text-xs font-bold text-[#707070]">إجمالي العُهد المسجلة وقيمتها</div>
+          <div className="text-2xl font-bold text-[#141414] mt-1.5 font-mono">
+            {kpiStats.totalCount} عُهدة — {kpiStats.totalValue.toLocaleString()} ⃁
+          </div>
+          <div className="text-[11px] text-[#707070] mt-1">
+            مرتبطة بـ {hrEmployees.length} ملف وظيفي نشط في (hr_employees)
+          </div>
+        </div>
+
+        <div className="p-5 rounded-[24px] bg-[#ffffff] border border-[#e0e0e0]">
+          <div className="text-xs font-bold text-[#707070]">مُقر إلكترونياً من بوابة الموظف</div>
+          <div className="text-2xl font-bold text-[#141414] mt-1.5 font-mono">
+            {kpiStats.ackedCount} عُهدة موثقة
+          </div>
+          <div className="text-[11px] text-[#141414] font-semibold mt-1 flex items-center gap-1">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>توقيع استلام رقمي متزامن مع بوابة الخدمة الذاتية</span>
+          </div>
+        </div>
+
+        <div className="p-5 rounded-[24px] bg-[#ffffff] border border-[#e0e0e0]">
+          <div className="text-xs font-bold text-[#707070]">بانتظار إقرار الموظف</div>
+          <div className="text-2xl font-bold text-[#141414] mt-1.5 font-mono">
+            {kpiStats.pendingAckCount} عُهدة معلقة
+          </div>
+          <div className="text-[11px] text-[#707070] mt-1 flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5" />
+            <span>يمكن إرسال طلب إقرار فوري لبوابة الموظف</span>
+          </div>
+        </div>
+
+        <div className="p-5 rounded-[24px] bg-[#141414] text-[#ffffff] border border-[#141414]">
+          <div className="text-xs font-bold text-[#e0e0e0]">العُهد المسترجعة وإخلاء الطرف الآلي</div>
+          <div className="text-2xl font-bold text-[#ffffff] mt-1.5 font-mono">
+            {kpiStats.returnedCount} مسترجعة
+          </div>
+          <div className="text-[11px] text-[#e0e0e0] mt-1">
+            تحديث تلقائي لبوابة (hr_offboarding_clearances — {clearanceRecordsCount} سجل)
+          </div>
+        </div>
+      </div>
+
       {/* Table Card */}
       <div
         className="card-pricing"
@@ -425,24 +868,49 @@ export const CustodiesPage: React.FC = () => {
         }}
       >
         <div className="flex items-center justify-between p-4 border-b border-[#e0e0e0] bg-[#ffffff] flex-wrap gap-3">
-          <div className="relative w-full md:w-80">
-            <Search className="w-4 h-4 absolute right-3 top-3 text-[#707070]" />
-            <input
-              type="text"
-              aria-label="ابحث باسم العُهدة، الموظف، الشركة، أو الرقم التسلسلي"
-              placeholder="ابحث باسم العُهدة، الموظف، الشركة، أو الرقم التسلسلي..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="text-input"
-              style={{
-                width: '100%',
-                height: '36px',
-                minHeight: '36px',
-                borderRadius: '9999px',
-                paddingRight: '36px',
-                fontSize: '12px',
-              }}
-            />
+          <div className="flex items-center gap-2 flex-wrap flex-1">
+            <div className="relative w-full md:w-80">
+              <Search className="w-4 h-4 absolute right-3 top-3 text-[#707070]" />
+              <input
+                type="text"
+                aria-label="ابحث باسم العُهدة، الموظف، الشركة، أو الرقم التسلسلي"
+                placeholder="ابحث باسم العُهدة، الموظف، الرقم الوظيفي، أو التسلسلي..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="text-input"
+                style={{
+                  width: '100%',
+                  height: '36px',
+                  minHeight: '36px',
+                  borderRadius: '9999px',
+                  paddingRight: '36px',
+                  fontSize: '12px',
+                }}
+              />
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {[
+                { id: 'ALL', label: `كافة العُهد (${custodies.length})` },
+                { id: 'ACKED', label: `مُقر إلكترونياً (${kpiStats.ackedCount})` },
+                { id: 'PENDING_ACK', label: `بانتظار الإقرار (${kpiStats.pendingAckCount})` },
+                { id: 'RETURNED', label: `تم الاسترجاع (${kpiStats.returnedCount})` },
+              ].map((flt) => (
+                <button
+                  key={flt.id}
+                  type="button"
+                  onClick={() => setAckFilter(flt.id as any)}
+                  className="px-3 py-1.5 rounded-full text-xs font-bold transition-colors cursor-pointer"
+                  style={{
+                    backgroundColor: ackFilter === flt.id ? '#141414' : '#f3f3f3',
+                    color: ackFilter === flt.id ? '#ffffff' : '#141414',
+                    border: '1px solid #e0e0e0',
+                  }}
+                >
+                  {flt.label}
+                </button>
+              ))}
+            </div>
           </div>
           <span className="pill-tag-shade" style={{ fontSize: '11px' }}>
             العدد: {filteredCustodies.length} عُهدة
@@ -455,10 +923,11 @@ export const CustodiesPage: React.FC = () => {
               <tr>
                 <th className="p-3.5">رمز العُهدة</th>
                 <th className="p-3.5">اسم العُهدة والرقم التسلسلي</th>
-                <th className="p-3.5">الموظف والمنشأة</th>
+                <th className="p-3.5">الموظف والمنشأة (employee_id)</th>
                 <th className="p-3.5">المقر / الفرع</th>
                 <th className="p-3.5">القيمة التقديرية</th>
                 <th className="p-3.5">تاريخ التسليم</th>
+                <th className="p-3.5">إقرار الموظف الإلكتروني (بوابة الموظف)</th>
                 <th className="p-3.5">الحالة</th>
                 <th className="p-3.5 text-center">التواصل والإجراءات</th>
               </tr>
@@ -466,6 +935,7 @@ export const CustodiesPage: React.FC = () => {
             <tbody className="divide-y divide-[#e0e0e0]">
               {filteredCustodies.map((row, idx) => {
                 const rowEntity = resolveDocumentBranding(row);
+                const isAcked = Boolean(row.acknowledged_by_employee);
                 return (
                   <tr key={`${row.id}-${idx}`} className="hover:bg-[#f3f3f3]/60">
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{row.id}</td>
@@ -487,7 +957,8 @@ export const CustodiesPage: React.FC = () => {
                         <div>
                           <div>{row.employee_name}</div>
                           <div className="text-[10px] text-[#707070] font-normal">
-                            {rowEntity.entity.shortNameAr} ({rowEntity.code})
+                            {rowEntity.entity.shortNameAr} ({rowEntity.code}) •{' '}
+                            <span className="font-mono">{row.employee_id || 'emp-101'}</span>
                           </div>
                         </div>
                       </div>
@@ -499,6 +970,53 @@ export const CustodiesPage: React.FC = () => {
                       {(row.estimated_value ?? 0).toLocaleString()} ⃁
                     </td>
                     <td className="p-3.5 font-mono text-[#707070]">{row.received_date}</td>
+                    <td className="p-3.5">
+                      <div className="space-y-1.5">
+                        {isAcked ? (
+                          <div>
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold">
+                              <CheckCircle2 className="w-3 h-3" />
+                              <span>مُقر إلكترونياً من بوابة الموظف</span>
+                            </span>
+                            {row.acknowledged_at && (
+                              <div className="text-[10px] text-[#707070] font-mono mt-0.5">
+                                التوثيق: {row.acknowledged_at}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="space-y-1">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] text-[11px] font-bold">
+                              <Clock className="w-3 h-3" />
+                              <span>بانتظار إقرار الموظف</span>
+                            </span>
+                            {row.acknowledgment_requested_at && (
+                              <div className="text-[10px] text-[#707070] font-mono">
+                                طُلب بتاريخ: {row.acknowledgment_requested_at}
+                              </div>
+                            )}
+                            <div className="flex items-center gap-1 flex-wrap pt-0.5">
+                              <button
+                                type="button"
+                                onClick={() => void handleRecordEmployeeAcknowledgment(row)}
+                                className="px-2 py-1 rounded-full bg-[#141414] text-[#ffffff] text-[10px] font-bold hover:opacity-90 cursor-pointer inline-flex items-center gap-1"
+                              >
+                                <UserCheck className="w-3 h-3" />
+                                <span>توثيق الإقرار</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => void handleRequestEmployeeAcknowledgment(row)}
+                                className="px-2 py-1 rounded-full bg-[#ffffff] text-[#141414] border border-[#e0e0e0] text-[10px] font-bold hover:bg-[#f3f3f3] cursor-pointer inline-flex items-center gap-1"
+                              >
+                                <Send className="w-3 h-3" />
+                                <span>طلب إقرار</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </td>
                     <td className="p-3.5">
                       <Badge
                         text={row.status}
@@ -517,7 +1035,7 @@ export const CustodiesPage: React.FC = () => {
                           type="button"
                           className="button-outline-on-light"
                           style={{ padding: '3px 10px', fontSize: '11px', minHeight: '26px' }}
-                          onClick={() => toggleCustodyStatus(row.id)}
+                          onClick={() => void toggleCustodyStatus(row.id)}
                         >
                           <RotateCcw className="w-3 h-3 ml-1" />
                           <span>{row.status === 'في حوزة الموظف' ? 'استرجاع' : 'إعادة تسليم'}</span>
@@ -546,6 +1064,10 @@ export const CustodiesPage: React.FC = () => {
                               {
                                 label: 'القيمة التقديرية',
                                 value: `${(row.estimated_value ?? 0).toLocaleString()} ⃁`,
+                              },
+                              {
+                                label: 'حالة الإقرار الإلكتروني',
+                                value: row.acknowledgment_status || 'بانتظار إقرار الموظف',
                               },
                               { label: 'الحالة', value: row.status },
                             ],
@@ -594,6 +1116,24 @@ export const CustodiesPage: React.FC = () => {
             </div>
 
             <form onSubmit={handleSaveCustody} className="p-6 space-y-4 bg-[#ffffff] text-[#141414]">
+              <div>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">
+                  اختيار الموظف من السجل الموحد (hr_employees) — مزامنة تلقائية مع بوابة الموظف
+                </label>
+                <select
+                  value={addForm.employee_id}
+                  onChange={(e) => handleEmployeeSelectChange(e.target.value)}
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs font-bold text-[#141414] focus:border-[#141414] focus:outline-none"
+                >
+                  <option value="">-- اختر موظفاً من القائمة أو أدخل الاسم يدوياً أدناه --</option>
+                  {hrEmployees.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.name} ({emp.employee_code} — {emp.department})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-[#141414] mb-1">
                   المنشأة المالكة للأصل (الشركة المصدرة للسند) *
@@ -741,6 +1281,17 @@ export const CustodiesPage: React.FC = () => {
                 </select>
               </div>
 
+              <label className="flex items-center gap-2 p-3 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-semibold text-[#141414] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={addForm.acknowledged_by_employee}
+                  onChange={(e) =>
+                    setAddForm({ ...addForm, acknowledged_by_employee: e.target.checked })
+                  }
+                />
+                <span>توثيق إقرار الموظف الإلكتروني الفوري باستلام العُهدة</span>
+              </label>
+
               <div className="flex justify-end gap-3 pt-4 border-t border-[#e0e0e0]">
                 <button
                   type="button"
@@ -846,8 +1397,9 @@ export const CustodiesPage: React.FC = () => {
               <p className="text-xs text-[#141414] leading-relaxed m-0">
                 أقر أنا الموظف /{' '}
                 <strong className="text-[#141414]">{selectedCustodyForDoc.employee_name}</strong>{' '}
-                العامل لدى <strong>{activeDocBranding.displayNameAr}</strong> بأنني استلمت العُهدة
-                المبينة أدناه بحالة تشغيلية سليمة:
+                (الرقم الوظيفي: <span className="font-mono">{selectedCustodyForDoc.employee_id}</span>) العامل لدى{' '}
+                <strong>{activeDocBranding.displayNameAr}</strong> بأنني استلمت العُهدة المبينة أدناه
+                بحالة تشغيلية سليمة:
               </p>
 
               <div className="p-4 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
@@ -872,7 +1424,10 @@ export const CustodiesPage: React.FC = () => {
                   <strong>المقر / الفرع:</strong> {selectedCustodyForDoc.location}
                 </div>
                 <div>
-                  <strong>الحالة المسجلة:</strong> {selectedCustodyForDoc.status}
+                  <strong>حالة الإقرار الإلكتروني:</strong>{' '}
+                  {selectedCustodyForDoc.acknowledged_by_employee
+                    ? `مُقر إلكترونياً من بوابة الموظف (${selectedCustodyForDoc.acknowledged_at || ''})`
+                    : 'بانتظار إقرار الموظف'}
                 </div>
               </div>
 

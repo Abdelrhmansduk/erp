@@ -24,11 +24,16 @@ import {
   DEFAULT_WELCOME_BROADCASTS,
   KAS_SIGNAGE_BROADCAST_CHANNEL,
   KAS_SIGNAGE_STORAGE_PING_KEY,
+  buildWelcomeEmailQrPayload,
   filterActiveBroadcastsForScreen,
   type DigitalSignageScreenRecord,
   type WelcomeBroadcastRecord,
 } from '../../services/employeeWelcomeBroadcastService';
-import { generateRealQrSvg } from '../../utils/realBarcodeGenerator';
+import { generateEmployeeBarcodeIdentity } from '../../services/biometricAttendanceGateService';
+import {
+  generateRealCode128BarcodeSvg,
+  generateRealQrSvg,
+} from '../../utils/realBarcodeGenerator';
 
 export interface CorporateDigitalSignagePlayerProps {
   screenId?: string;
@@ -185,21 +190,45 @@ export const CorporateDigitalSignagePlayer: React.FC<CorporateDigitalSignagePlay
     [screens]
   );
 
+  const currentDateKey = nowTime.toISOString().slice(0, 10);
+
+  const dailyBadgeIdentity = useMemo(() => {
+    if (!currentSlide) return null;
+    return generateEmployeeBarcodeIdentity(
+      {
+        id: currentSlide.employee_id,
+        employee_code: currentSlide.employee_code,
+        email: currentSlide.corporate_email,
+        full_name: currentSlide.employee_name,
+        company_id: currentSlide.company_id,
+      },
+      new Date()
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSlide, currentDateKey]);
+
   const qrSvgMarkup = useMemo(() => {
     if (!currentSlide) return '';
-    const qrPayload = [
-      'KAS-WELCOME-CARD',
-      currentSlide.employee_code,
-      currentSlide.corporate_email || 'HR@kas.sa',
-      currentSlide.hire_date,
-    ].join('|');
+    const qrPayload = buildWelcomeEmailQrPayload(currentSlide, new Date());
     return generateRealQrSvg(qrPayload, {
-      sizePx: 112,
+      sizePx: 118,
       darkColor: '#141414',
       lightColor: '#FFFFFF',
       borderStyle: false,
     });
-  }, [currentSlide]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSlide, currentDateKey]);
+
+  const dailyBadgeCode128Svg = useMemo(() => {
+    if (!dailyBadgeIdentity) return '';
+    return generateRealCode128BarcodeSvg(dailyBadgeIdentity.badgeCode, {
+      widthPx: 188,
+      heightPx: 40,
+      darkColor: '#141414',
+      lightColor: '#FFFFFF',
+      showText: true,
+    });
+  }, [dailyBadgeIdentity]);
 
   const initials = useMemo(() => {
     if (!currentSlide?.employee_name) return 'KS';
@@ -442,21 +471,37 @@ export const CorporateDigitalSignagePlayer: React.FC<CorporateDigitalSignagePlay
                 </div>
               </div>
 
-              {/* Left Column: Scannable Welcome QR & Broadcast Verification */}
+              {/* Left Column: Scannable Welcome Email Info QR + Real Daily-Rotating Employee Barcode */}
               <div
-                className={`w-full lg:w-64 shrink-0 rounded-[24px] border p-5 flex flex-col items-center text-center space-y-3 ${subtleBg}`}
+                className={`w-full lg:w-72 shrink-0 rounded-[24px] border p-5 flex flex-col items-center text-center space-y-3 ${subtleBg}`}
               >
                 <div className="bg-[#ffffff] p-3 rounded-[18px] border border-[#e0e0e0]">
                   <div dangerouslySetInnerHTML={{ __html: qrSvgMarkup }} />
                 </div>
                 <div className="space-y-1">
-                  <div className="text-xs font-bold">بطاقة الترحيب والتواصل الرقمية</div>
+                  <div className="text-xs font-bold">باركود الترحيب ومعلومات الإيميل</div>
                   <p className={`text-[11px] leading-snug m-0 ${mutedText}`}>
-                    امسح الرمز لحفظ بيانات الزميل وإرسال تهنئة الانضمام عبر شبكة المجموعة
+                    امسح الرمز لإرسال واستلام معلومات البريد الوظيفي (@kas.sa) وبوابة النظام فوراً
                   </p>
                 </div>
-                <div className="w-full pt-2 border-t border-current/10 text-[11px] font-mono">
-                  {currentSlide.corporate_email || 'HR@kas.sa'}
+                {dailyBadgeCode128Svg && (
+                  <div className="w-full bg-[#ffffff] p-2.5 rounded-[14px] border border-[#e0e0e0] flex flex-col items-center gap-1">
+                    <div
+                      className="max-w-full overflow-hidden"
+                      dangerouslySetInnerHTML={{ __html: dailyBadgeCode128Svg }}
+                    />
+                    <span className="text-[10px] font-mono text-[#707070]">
+                      باركود الموظف اليومي المتجدد ({dailyBadgeIdentity?.validForDate})
+                    </span>
+                  </div>
+                )}
+                <div className="w-full pt-2 border-t border-current/10 text-[11px] font-mono space-y-0.5">
+                  <div className="font-bold">{currentSlide.corporate_email || 'HR@kas.sa'}</div>
+                  {currentSlide.auto_email_sent && (
+                    <div className="text-[10px] font-sans font-semibold">
+                      أُرسل الترحيب تلقائياً لإيميل الموظف ✓
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

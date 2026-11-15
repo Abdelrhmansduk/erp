@@ -1,5 +1,5 @@
 /**
- * Jisr-Grade Multi-Level Approval Workflow, Manager Delegation, SLA Escalation & Team Overlap Engine
+ * Enterprise Multi-Level Approval Workflow, Manager Delegation, SLA Escalation & Team Overlap Engine
  */
 
 export type HrRequestCategory =

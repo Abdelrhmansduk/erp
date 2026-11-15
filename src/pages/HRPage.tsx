@@ -15,7 +15,8 @@ import {
   X, Trash2, TrendingUp, Shield, Key, Sparkles, Check, ChevronRight,
   Briefcase, Building2, Star, CheckCircle2, UserCog, Edit3,
   FileSignature, Scale, Printer, Fingerprint, Eye, Download, Lock, Calculator, BellRing,
-  RotateCcw, Settings, Scissors, CalendarCheck, CheckSquare, Square, MailCheck, Mail, Tv
+  RotateCcw, Settings, Scissors, CalendarCheck, CheckSquare, Square, MailCheck, Mail, Tv,
+  Radio, Wifi, WifiOff, RefreshCw, Copy
 } from 'lucide-react';
 import {
   ALL_ENTITY_OPTIONS,
@@ -68,7 +69,13 @@ import { HrExpensesAndTravelHub } from '../components/hr/HrExpensesAndTravelHub'
 import { JisrTalent360OffboardingHub } from '../components/hr/JisrTalent360OffboardingHub';
 import { JisrShiftRosterAndOvertimeHub } from '../components/hr/JisrShiftRosterAndOvertimeHub';
 import { NewEmployeeWelcomeAndSignageHub } from '../components/hr/NewEmployeeWelcomeAndSignageHub';
-import { triggerNewEmployeeOnboardingConsequences } from '../services/employeeWelcomeBroadcastService';
+import {
+  DEFAULT_COMPANY_DISPLAY_SCREENS,
+  runLiveSignageNetworkScan,
+  triggerNewEmployeeOnboardingConsequences,
+  type DigitalSignageScreenRecord,
+  type SignageNetworkScanReport,
+} from '../services/employeeWelcomeBroadcastService';
 import {
   JisrSmartAlertsAndComplianceHub,
   type EwaWithdrawalRecordStored,
@@ -94,7 +101,8 @@ import {
 } from '../services/hrSmartAlertsEngine';
 import { journalEngine } from '../services/accounting/journalEngine';
 import { maskNationalId, maskIban } from '../utils/pdplMasking';
-import { KAS_ALLOWED_EMPLOYEES, CORPORATE_DEPARTMENTS } from '../services/authService';
+import { authService, KAS_ALLOWED_EMPLOYEES, CORPORATE_DEPARTMENTS } from '../services/authService';
+import { useModuleVisibility } from '../hooks/useModuleVisibility';
 
 export interface EmployeeRecord {
   id: string;
@@ -464,6 +472,7 @@ export type HrSubTab =
   | 'jisr-talent-360'
   | 'jisr-shifts-overtime'
   | 'jisr-welcome-signage'
+  | 'welcome-screens'
   | 'jisr-alerts-compliance'
   | 'jisr-arrears-b2b'
   | 'jisr-cards-rollover'
@@ -501,6 +510,7 @@ export const mapGlobalTabToHrTab = (tabKey: string): HRTabType => {
     case 'sanctions':
       return 'sanctions';
     case 'jisr-alerts-compliance':
+    case 'hr-alerts-compliance':
     case 'hr-smart-alerts':
     case 'nitaqat':
     case 'compliance-radar':
@@ -536,23 +546,32 @@ export const mapGlobalTabToHrTab = (tabKey: string): HRTabType => {
     case 'hr-expenses':
       return 'jisr-expenses';
     case 'jisr-org-muqeem':
+    case 'hr-org-muqeem':
     case 'org-chart':
       return 'jisr-org-muqeem';
     case 'jisr-talent-360':
+    case 'hr-talent-360':
     case 'hr-ats':
       return 'jisr-talent-360';
     case 'jisr-shifts-overtime':
+    case 'hr-shifts-overtime':
     case 'shift-rosters':
     case 'overtime':
       return 'jisr-shifts-overtime';
     case 'jisr-welcome-signage':
-    case 'welcome-screens':
+    case 'hr-welcome-signage':
       return 'jisr-welcome-signage';
+    case 'welcome-screens':
+    case 'signage-screens':
+      return 'welcome-screens';
     case 'jisr-arrears-b2b':
+    case 'hr-arrears-b2b':
       return 'jisr-arrears-b2b';
     case 'jisr-cards-rollover':
+    case 'hr-cards-rollover':
       return 'jisr-cards-rollover';
     case 'jisr-workflows-pulse':
+    case 'hr-workflows-pulse':
       return 'jisr-workflows-pulse';
     case 'maids-hr':
     case 'domestic-fleet':
@@ -562,9 +581,13 @@ export const mapGlobalTabToHrTab = (tabKey: string): HRTabType => {
   }
 };
 
+export const resolveInitialTab = mapGlobalTabToHrTab;
+
 export const HRPage: React.FC = () => {
   useModalEscape();
   const { activeCompanyId, activeCompany } = useCompany();
+  const currentHrUser = authService.getCurrentUser();
+  const { isHrefBlocked } = useModuleVisibility();
   const effectiveCompanyCode = activeCompanyId && activeCompanyId !== 'all' ? activeCompanyId : 'SAF';
   const { data: rawEmployees = [] } = useEmployees();
   const { createItem, updateItem, deleteItem } = useTableMutation('employees');
@@ -595,6 +618,46 @@ export const HRPage: React.FC = () => {
   }>({});
   const [revealPii, setRevealPii] = useState<boolean>(true);
   const syncedRadarCompanyRef = useRef<string | null>(null);
+  const [hrSignageScreens, setHrSignageScreens] = useState<DigitalSignageScreenRecord[]>(
+    DEFAULT_COMPANY_DISPLAY_SCREENS
+  );
+  const [hrNetworkScan, setHrNetworkScan] = useState<SignageNetworkScanReport | null>(null);
+  const [isScanningHrScreens, setIsScanningHrScreens] = useState<boolean>(false);
+  const hasAutoProbedHrScreensRef = useRef<boolean>(false);
+
+  const handleQuickHrScreenScan = useCallback(
+    async (silent = false) => {
+      setIsScanningHrScreens(true);
+      try {
+        const stored = await realErpDataStore.getRecords<DigitalSignageScreenRecord>(
+          'hr_digital_signage_screens',
+          DEFAULT_COMPANY_DISPLAY_SCREENS
+        );
+        const targetScreens =
+          Array.isArray(stored) && stored.length > 0 ? stored : DEFAULT_COMPANY_DISPLAY_SCREENS;
+        const report = await runLiveSignageNetworkScan(targetScreens, effectiveCompanyCode);
+        setHrSignageScreens(targetScreens);
+        setHrNetworkScan(report);
+        if (!silent) {
+          addNotification({
+            type: report.summary.registered_reachable > 0 ? 'success' : 'info',
+            title: 'تم تحديث فحص شاشات العرض للموارد البشرية',
+            message: `${report.summary.registered_reachable} متصلة من أصل ${report.summary.registered_total} شاشة مسجلة • ${report.summary.discovered_count} أجهزة عرض مكتشفة على الشبكة المحلية.`,
+          });
+        }
+      } finally {
+        setIsScanningHrScreens(false);
+      }
+    },
+    [effectiveCompanyCode, addNotification]
+  );
+
+  useEffect(() => {
+    if (!hasAutoProbedHrScreensRef.current) {
+      hasAutoProbedHrScreensRef.current = true;
+      void handleQuickHrScreenScan(true);
+    }
+  }, [handleQuickHrScreenScan]);
 
   const reloadHrData = useCallback(() => {
     const companyScope = activeCompanyId && activeCompanyId !== 'all' ? activeCompanyId : undefined;
@@ -860,7 +923,7 @@ export const HRPage: React.FC = () => {
         user_type: department,
         branch,
         phone: empPhone || '0500000000',
-        email: empEmail || `${username}@alsulaim.sa`,
+        email: empEmail || `${username}@kas.sa`,
         status: 'نشط',
         two_factor_enabled: enable2FA,
         two_factor_method: enable2FA ? 'Google Authenticator' : undefined,
@@ -883,18 +946,19 @@ export const HRPage: React.FC = () => {
         hireDate: newRecord.hire_date,
         salary: sal,
         phone: empPhone,
-        email: empEmail,
+        email: empEmail || `${name.split(' ')[0].toLowerCase()}@kas.sa`,
         systemRole: createSystemUser ? assignedRole : undefined,
         autoBroadcastToScreens: true,
+        autoSendWelcomeEmail: true,
       });
       setWelcomeTargetEmpId(newRecord.id);
     }
 
     addNotification({
-      title: isEditingExisting ? 'تم تحديث بيانات الموظف' : 'إدراج موظف وتفعيل تبعيات المباشرة وبث الترحيب',
+      title: isEditingExisting ? 'تم تحديث بيانات الموظف' : 'إدراج موظف وإرسال إيميل الترحيب التلقائي وبث الشاشات',
       message: isEditingExisting
         ? `تم حفظ التعديلات على ملف (${name}) وتوثيقها في سجل التدقيق.`
-        : `تم إدراج الموظف (${name}) بكود #${employeeCode} وتفعيل إجراءات المباشرة الـ 7 وبث الترحيب على شاشات الشركة.`,
+        : `تم إدراج الموظف (${name}) بكود #${employeeCode} وإرسال بريد الترحيب التلقائي وباركود اليوم وبث الشاشات.`,
       type: 'success',
     });
 
@@ -1293,7 +1357,7 @@ export const HRPage: React.FC = () => {
         if (!cancelled && newCount > 0 && mergedForCompany.length > 0) {
           addNotification({
             title: mergedForCompany[0].titleAr,
-            message: `رصد رادار جسر (${mergedForCompany.length}) تنبيهات امتثال حية (الإقامة، التجربة م53، عقود قوى، SLA).`,
+            message: `رصد رادار الموارد البشرية (${mergedForCompany.length}) تنبيهات امتثال حية (الإقامة، التجربة م53، عقود قوى، SLA).`,
             type: mergedForCompany.some((a) => a.severity === 'critical') ? 'warning' : 'info',
             category: 'hr',
             companyId: effectiveCompanyCode,
@@ -2152,6 +2216,7 @@ export const HRPage: React.FC = () => {
       defaultTab: 'employees',
       tabs: [
         { id: 'employees', label: `سجل الموظفين (${employeesList.length})`, icon: Users },
+        { id: 'welcome-screens', label: 'شاشات العرض الموصولة بالشبكة (Live LAN)', icon: Radio },
         { id: 'jisr-welcome-signage', label: 'الترحيب بالموظف الجديد وشاشات العرض الذكية (TV)', icon: Tv },
         { id: 'reem-hr-emails', label: 'مراسلات وقوالب بريد الموارد البشرية — HR@kas.sa', icon: MailCheck },
         { id: 'jisr-org-muqeem', label: 'الهيكل التنظيمي ومقيم والخطابات', icon: Building2 },
@@ -2169,8 +2234,12 @@ export const HRPage: React.FC = () => {
         { id: 'payroll', label: 'مسير الرواتب (WPS)', icon: ShieldCheck },
         { id: 'jisr-arrears-b2b', label: 'الأثر الرجعي و Off-Cycle ومدد والبنوك B2B', icon: Calculator },
         { id: 'jisr-cards-rollover', label: 'بطاقات الشركة وترحيل وتسييل الإجازات', icon: ShieldCheck },
-        { id: 'jisr-accruals', label: 'المخصصات ومراكز التكلفة (IAS 19)', icon: Calculator },
-        { id: 'jisr-expenses', label: 'النفقات والعهد والانتدابات', icon: DollarSign },
+        ...(authService.isTabAuthorizedForUser(currentHrUser, 'jisr-accruals') && !isHrefBlocked('jisr-accruals')
+          ? [{ id: 'jisr-accruals', label: 'المخصصات ومراكز التكلفة (IAS 19)', icon: Calculator }]
+          : []),
+        ...(authService.isTabAuthorizedForUser(currentHrUser, 'jisr-expenses') && !isHrefBlocked('jisr-expenses')
+          ? [{ id: 'jisr-expenses', label: 'النفقات والعهد والانتدابات', icon: DollarSign }]
+          : []),
         { id: 'gosi', label: 'التأمينات الاجتماعية (GOSI)', icon: ShieldCheck },
         { id: 'end-of-service', label: 'حاسبة نهاية الخدمة والمخالصة', icon: Calculator },
       ],
@@ -2258,7 +2327,21 @@ export const HRPage: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => setActiveTab('jisr-welcome-signage')}
+            onClick={() => setActiveGlobalTab('welcome-screens')}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-bold transition-colors cursor-pointer ${
+              activeTab === 'welcome-screens'
+                ? 'bg-[#141414] border-[#141414] text-[#ffffff]'
+                : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] border-[#e0e0e0] text-[#141414]'
+            }`}
+            title="رادار وفحص شاشات العرض الموصولة بشبكة الشركة المحلية"
+          >
+            <Radio className="w-3.5 h-3.5" />
+            <span>شاشات العرض بالشبكة (LAN)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveGlobalTab('jisr-welcome-signage')}
             className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-bold transition-colors cursor-pointer ${
               activeTab === 'jisr-welcome-signage'
                 ? 'bg-[#141414] border-[#141414] text-[#ffffff]'
@@ -2493,6 +2576,112 @@ export const HRPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Above-the-Fold HR Live Network Display Screens Summary */}
+      {activeTab === 'employees' && (
+        <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-4 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-[12px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center shrink-0">
+                <Radio className="w-4 h-4 text-[#141414]" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-xs sm:text-sm font-bold text-[#141414] m-0">
+                  شاشات العرض الموصولة بالشبكة — لوحة تحكم الموارد البشرية (HR)
+                </h2>
+                <p className="text-[11px] text-[#707070] m-0 mt-0.5">
+                  متصل فعلياً:{' '}
+                  <span className="font-mono font-bold text-[#141414]">
+                    {hrNetworkScan?.summary.registered_reachable ??
+                      hrSignageScreens.filter((s) => s.is_online).length}{' '}
+                    / {hrNetworkScan?.summary.registered_total ?? hrSignageScreens.length}
+                  </span>{' '}
+                  • أجهزة مكتشفة بالشبكة:{' '}
+                  <span className="font-mono font-bold text-[#141414]">
+                    {hrNetworkScan?.summary.discovered_count ?? 0}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap" data-no-dyn-enhancer="true">
+              {hrNetworkScan?.kiosk_broadcast_urls[0]?.kiosk_url && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const url = hrNetworkScan.kiosk_broadcast_urls[0].kiosk_url;
+                    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+                      void navigator.clipboard.writeText(url);
+                    }
+                    addNotification({
+                      type: 'success',
+                      title: 'تم نسخ رابط البث المباشر لشاشات TV',
+                      message: url,
+                    });
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-[11px] font-bold cursor-pointer"
+                  title={hrNetworkScan.kiosk_broadcast_urls[0].kiosk_url}
+                >
+                  <Copy className="w-3 h-3" />
+                  <span>نسخ رابط البث المباشر</span>
+                </button>
+              )}
+              <button
+                type="button"
+                disabled={isScanningHrScreens}
+                onClick={() => void handleQuickHrScreenScan(false)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-[11px] font-bold cursor-pointer disabled:opacity-60"
+              >
+                <RefreshCw className={`w-3 h-3 ${isScanningHrScreens ? 'animate-spin' : ''}`} />
+                <span>{isScanningHrScreens ? 'جاري الفحص...' : 'فحص حي للشاشات'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveGlobalTab('welcome-screens')}
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-[11px] font-bold cursor-pointer"
+              >
+                <Tv className="w-3 h-3" />
+                <span>إدارة وربط شاشات العرض</span>
+              </button>
+            </div>
+          </div>
+
+          {hrNetworkScan && (
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#e0e0e0]">
+              {hrNetworkScan.screen_health_checks.slice(0, 4).map((chk) => (
+                <span
+                  key={chk.screen_code}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
+                    chk.reachable
+                      ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                      : 'bg-[#f3f3f3] text-[#707070] border-[#e0e0e0]'
+                  }`}
+                >
+                  {chk.reachable ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+                  <span className="font-mono">{chk.screen_code}</span>
+                  {typeof chk.latency_ms === 'number' && (
+                    <span className="font-mono text-[10px]">({chk.latency_ms} ms)</span>
+                  )}
+                </span>
+              ))}
+              {hrNetworkScan.discovered_devices.map((dev) => (
+                <button
+                  key={dev.ip}
+                  type="button"
+                  onClick={() => setActiveGlobalTab('welcome-screens')}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] cursor-pointer"
+                >
+                  <Tv className="w-3 h-3" />
+                  <span>{dev.label_ar}</span>
+                  <span className="font-mono text-[10px]">
+                    {dev.ip} ({dev.latency_ms} ms)
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Tab 1: Employees List */}
       {activeTab === 'employees' && (
@@ -4259,7 +4448,7 @@ export const HRPage: React.FC = () => {
         );
       })()}
 
-      {/* Tab: Jisr Accounting Hub, IAS 19 Accruals & Multi-Cost-Center Allocations */}
+      {/* Tab: HR Accounting Hub, IAS 19 Accruals & Multi-Cost-Center Allocations */}
       {activeTab === 'jisr-accruals' && (
         <JisrAccountingAccrualsHub
           employees={companyScopedEmployees}
@@ -4276,7 +4465,7 @@ export const HRPage: React.FC = () => {
         />
       )}
 
-      {/* Tab: Jisr Employee Expense Claims, Petty Cash & Business Travel Per Diem */}
+      {/* Tab: Employee Expense Claims, Petty Cash & Business Travel Per Diem */}
       {activeTab === 'jisr-expenses' && (
         <HrExpensesAndTravelHub
           employees={companyScopedEmployees}
@@ -4329,18 +4518,19 @@ export const HRPage: React.FC = () => {
       )}
 
       {/* Tab: New Employee Welcome, 7-Step Onboarding Consequences & Smart Display Screens */}
-      {activeTab === 'jisr-welcome-signage' && (
+      {(activeTab === 'jisr-welcome-signage' || activeTab === 'welcome-screens') && (
         <NewEmployeeWelcomeAndSignageHub
           employees={companyScopedEmployees}
           companyCode={activeCompanyId !== 'all' ? activeCompanyId : 'SAF'}
           companyName={activeCompany.name}
           payrollMonth={payrollMonth}
           initialEmployeeId={welcomeTargetEmpId}
+          initialSubTab={activeTab === 'welcome-screens' ? 'SIGNAGE_SCREENS' : 'WELCOME_CONSEQUENCES'}
           onSyncedToPayroll={() => reloadHrData()}
         />
       )}
 
-      {/* Tab: Jisr Shift Rosters, Colleague Swaps, Overtime (Art. 107) & Circulars */}
+      {/* Tab: Shift Rosters, Colleague Swaps, Overtime (Art. 107) & Circulars */}
       {activeTab === 'jisr-shifts-overtime' && (
         <JisrShiftRosterAndOvertimeHub
           employees={companyScopedEmployees}
@@ -4366,7 +4556,7 @@ export const HRPage: React.FC = () => {
         />
       )}
 
-      {/* Tab: Jisr Smart Alerts Radar, HRSD Disciplinary Matrix, EWA & Nitaqat */}
+      {/* Tab: HR Smart Alerts Radar, HRSD Disciplinary Matrix, EWA & Nitaqat */}
       {activeTab === 'jisr-alerts-compliance' && (
         <JisrSmartAlertsAndComplianceHub
           companyId={effectiveCompanyCode}
@@ -4376,7 +4566,7 @@ export const HRPage: React.FC = () => {
         />
       )}
 
-      {/* Tab: Jisr 3.0 Retroactive Payroll, Off-Cycle, Mudad & B2B Bank */}
+      {/* Tab: Retroactive Payroll, Off-Cycle, Mudad & B2B Bank */}
       {activeTab === 'jisr-arrears-b2b' && (
         <JisrPayrollArrearsB2BHub
           companyId={effectiveCompanyCode}
@@ -4404,7 +4594,7 @@ export const HRPage: React.FC = () => {
         />
       )}
 
-      {/* Tab: Jisr 3.0 Corporate Cards & Leave Rollover */}
+      {/* Tab: Corporate Cards & Leave Rollover */}
       {activeTab === 'jisr-cards-rollover' && (
         <JisrCorporateCardsAndLeaveRolloverHub
           companyId={effectiveCompanyCode}
@@ -4419,7 +4609,7 @@ export const HRPage: React.FC = () => {
         />
       )}
 
-      {/* Tab: Jisr 3.0 Custom Builder, E-Sign, Career Portal & Pulse */}
+      {/* Tab: Custom Builder, E-Sign, Career Portal & Pulse */}
       {activeTab === 'jisr-workflows-pulse' && (
         <JisrCustomBuilderEsignPulseHub
           companyId={effectiveCompanyCode}
@@ -5465,7 +5655,7 @@ export const HRPage: React.FC = () => {
         />
       )}
 
-      {/* Jisr 12-Template QR Letters Studio Modal */}
+      {/* 12-Template QR Letters Studio Modal */}
       {studioLetterEmp && (
         <HrLettersStudioModal
           employee={studioLetterEmp}

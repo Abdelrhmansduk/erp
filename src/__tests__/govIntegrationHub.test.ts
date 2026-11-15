@@ -16,6 +16,7 @@ import {
   isValidSaudiIban,
   isValidSaudiVatNumber,
   isValidVisaNumber,
+  loadLiveGovSnapshot,
   maskSensitivePayloadText,
   runReadinessAudit,
   setGovEnvironment,
@@ -307,5 +308,80 @@ describe('Roadmap', () => {
     expect(GOV_ROADMAP).toHaveLength(4);
     const all = GOV_ROADMAP.flatMap((p) => p.agencies).sort();
     expect(all).toEqual([...GOV_AGENCY_IDS].sort());
+  });
+});
+
+describe('Live Snapshot & Multi-Company (SAF • YAQ • TOP • KAS • DAR) Readiness', () => {
+  it('loads valid records across SAF • YAQ • TOP • KAS • DAR with all 11 agencies READY and zero BLOCKED/NO_DATA', async () => {
+    localStorage.clear();
+    const snapshot = await loadLiveGovSnapshot();
+    const report = runReadinessAudit(snapshot, {
+      environment: 'SIMULATION',
+      gatewayConfigured: false,
+      now: NOW,
+    });
+
+    expect(report.agencies).toHaveLength(11);
+    for (const agency of report.agencies) {
+      expect(agency.status).toBe('READY');
+      expect(agency.totalRecords).toBeGreaterThan(0);
+      expect(agency.validRecords).toBe(agency.totalRecords);
+    }
+
+    // Per-company filter works cleanly for each of the 5 companies
+    for (const cid of ['SAF', 'YAQ', 'TOP', 'KAS', 'DAR'] as const) {
+      const companyReport = runReadinessAudit(snapshot, {
+        environment: 'SIMULATION',
+        gatewayConfigured: false,
+        activeCompany: cid,
+        now: NOW,
+      });
+      const supported = companyReport.agencies.filter((a) =>
+        GOV_ADAPTER_REGISTRY[a.agencyId].companies.includes(cid)
+      );
+      expect(supported.length).toBeGreaterThan(0);
+      for (const a of supported) {
+        expect(a.status).not.toBe('BLOCKED');
+      }
+    }
+  });
+
+  it('handles HR employee records with salary + 10-digit Saudi ID and KAS Etimad competitions without false errors', () => {
+    const hrSaudiEmployee = {
+      id: 'HR-SA-1',
+      company_id: 'SAF',
+      national_id: '1045678912',
+      iban: VALID_IBAN,
+      salary: 8000,
+      housing: 2000,
+      transport: 800,
+      gosi_deduction: 975,
+      net_salary: 9825,
+      job_title: 'أخصائي موارد بشرية',
+    };
+
+    expect(
+      validateRecordForAgency('mudad', hrSaudiEmployee, { now: NOW }).filter(
+        (i) => i.severity === 'error'
+      )
+    ).toHaveLength(0);
+    expect(
+      validateRecordForAgency('gosi', hrSaudiEmployee, { now: NOW }).filter(
+        (i) => i.severity === 'error'
+      )
+    ).toHaveLength(0);
+    expect(validateRecordForAgency('muqeem', hrSaudiEmployee, { now: NOW })).toHaveLength(0);
+
+    const kasEtimadComp = {
+      id: 'ETM-KAS-1',
+      company_id: 'KAS',
+      referenceNumber: '250339098765',
+      totalItemsValue: 2450000,
+    };
+    expect(
+      validateRecordForAgency('etimad', kasEtimadComp, { companyId: 'KAS', now: NOW }).filter(
+        (i) => i.severity === 'error'
+      )
+    ).toHaveLength(0);
   });
 });

@@ -21,6 +21,29 @@ const ttsPlugin = () => ({
         }
       }
 
+      if (req.url && req.url.startsWith('/api/signage-scan')) {
+        try {
+          // @ts-ignore - Dynamic import of pure ESM Node helper
+          const { handleSignageNetworkScanHttpRequest } = await import(
+            './src/services/signageNetworkScannerServer.mjs'
+          );
+          await handleSignageNetworkScanHttpRequest(req, res);
+          return;
+        } catch (err: any) {
+          if (!res.headersSent) {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(
+              JSON.stringify({
+                ok: false,
+                errorAr: err?.message || 'Signage LAN scanner server error',
+              })
+            );
+          }
+          return;
+        }
+      }
+
       if (req.url && req.url.startsWith('/api/health')) {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');

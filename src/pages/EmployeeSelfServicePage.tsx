@@ -225,7 +225,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
   const [reqSubType, setReqSubType] = useState<string>('إجازة سنوية');
   const [reqNotes, setReqNotes] = useState<string>('');
 
-  // Jisr 360 ESS Extended Fields (Circulars, Overtime, Dependent CCHI, Leave Replacement, Family Tickets, Exit Interview)
+  // 360 ESS Extended Fields (Circulars, Overtime, Dependent CCHI, Leave Replacement, Family Tickets, Exit Interview)
   const [companyCirculars, setCompanyCirculars] = useState<
     Array<{
       id: string;
@@ -1079,7 +1079,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
       await realErpDataStore.addRecord('hr_ewa_withdrawals', newEwaRecord);
       setEwaWithdrawals((prev) => [newEwaRecord, ...prev]);
 
-      const jvDescription = `صرف راتب مرن مكتسب (Jisr Pay EWA) للموظف ${currentEmployeeProfile.name} عن (${ewaQuote.workedDaysToDate} أيام عمل فعلية) — تسوية مسير ${currentMonthKey}`;
+      const jvDescription = `صرف راتب مرن مكتسب (EWA Pay) للموظف ${currentEmployeeProfile.name} عن (${ewaQuote.workedDaysToDate} أيام عمل فعلية) — تسوية مسير ${currentMonthKey}`;
       try {
         journalEngine.createJournalEntry(safeCompanyCode as any, {
           entryDate: todayIso,
@@ -1156,7 +1156,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
         type: 'success',
         category: 'hr',
         companyId: safeCompanyCode,
-        title: 'نجاح سحب الراتب المرن (Jisr Pay EWA)',
+        title: 'نجاح سحب الراتب المرن المبكر (EWA)',
         message: `تم إيداع ⃁ ${amount.toLocaleString()} في حسابك البنكي وترحيل قيد الأستاذ العام رقم (JV-${ewaId}).`,
       });
 
@@ -1878,7 +1878,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
 
   return (
     <div className="space-y-6" dir="rtl">
-      {/* Mandatory Company Circulars Read-Acknowledgment Banner (Jisr Circular Gate) */}
+      {/* Mandatory Company Circulars Read-Acknowledgment Banner (Circular Gate) */}
       {unacknowledgedMandatoryCirculars.length > 0 && (
         <div className="rounded-[24px] bg-[#ffffff] border-2 border-[#141414] p-5 space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
@@ -1935,7 +1935,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
             <div>
               <div className="flex items-center gap-2 flex-wrap mb-1.5">
                 <span className="px-3 py-0.5 rounded-full text-[11px] font-semibold bg-[#262626] text-[#ffffff] border border-[#3f3f46]">
-                  بوابة جسر الذاتية للموظف والمدير (ESS & MSS)
+                  بوابة الخدمة الذاتية للموظف والمدير (ESS & MSS)
                 </span>
                 <span className="px-3 py-0.5 rounded-full text-[11px] font-mono bg-[#262626] text-[#d4d4d8]">
                   {currentEmployeeProfile.employee_code}
@@ -2188,16 +2188,16 @@ export const EmployeeSelfServicePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Personal Active Smart Alerts + Jisr Pay Earned Wage Access (EWA) + Colleague Shift Swap */}
+          {/* Personal Active Smart Alerts + Earned Wage Access (EWA) + Colleague Shift Swap */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Jisr Pay Earned Wage Access (EWA) Self-Service Card */}
+            {/* Earned Wage Access (EWA) Self-Service Card */}
             <div className="lg:col-span-7 rounded-[24px] bg-[#ffffff] border border-[#141414] p-6 space-y-4">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <Wallet className="w-5 h-5 text-[#141414]" />
                   <div>
                     <h2 className="text-base font-bold text-[#141414] m-0">
-                      الراتب المرن المستحق (Jisr Pay EWA) — صرف فوري للأجر المكتسب
+                      الراتب المرن المبكر (EWA) — صرف فوري للأجر المكتسب
                     </h2>
                     <p className="text-xs text-[#707070] m-0 mt-0.5">
                       يُحتسب آلياً من بصمات حضورك الفعلية المسجلة لشهر ({currentMonthKey}) وبسقف توافقي (50%) مع ترحيل قيد أستاذ عام فوري
@@ -3185,7 +3185,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
           <div className="w-full max-w-lg rounded-[24px] bg-[#ffffff] border border-[#e0e0e0] p-6 space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-[#141414] m-0">
-                تقديم طلب ذاتي جديد (مركز طلبات جسر الموحد — 10 مسارات)
+                تقديم طلب ذاتي جديد (مركز الطلبات الذاتية الموحد — 10 مسارات)
               </h3>
               <button
                 type="button"

@@ -1,6 +1,5 @@
 /**
- * jisrPayrollArrearsAndB2BEngine.ts
- * Enterprise Payroll Extensions (Jisr 3.0 Parity):
+ * Enterprise Payroll Extensions:
  *   1. Retroactive Payroll Calculator (New Hire Pro-Rata + Mid-Month Promotion Diff + Backpay)
  *   2. Automatic Upfront Annual Leave Salary Payroll Deduction Guard
  *   3. Off-Cycle Payroll Runs (Bonuses, Commissions, Retro, EOSB, Leave Encashment) + Balanced GL

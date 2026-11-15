@@ -104,19 +104,176 @@ export const FinancialRequestsPage: React.FC = () => {
   const { activeCompany } = useCompany();
   const { activeTab: storeActiveTab, addNotification } = useAppStore();
   const [requests, setRequests] = useState<FinancialReq[]>([]);
-  const [activeTab, setActiveTab] = useState<'all' | 'incomplete' | 'paid'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'incomplete' | 'paid' | 'hr-outputs'>('all');
+  const [hrCategoryFilter, setHrCategoryFilter] = useState<'ALL' | 'hr_expense_claims' | 'hr_business_trips' | 'hr_advances' | 'hr_ewa_withdrawals' | 'hr_offboarding_clearances'>('ALL');
+  const [hrOutputs, setHrOutputs] = useState<Array<{
+    id: string;
+    tableKey: 'hr_expense_claims' | 'hr_business_trips' | 'hr_advances' | 'hr_ewa_withdrawals' | 'hr_offboarding_clearances';
+    categoryLabel: string;
+    employeeName: string;
+    department: string;
+    referenceNo: string;
+    amount: number;
+    vatAmount: number;
+    date: string;
+    description: string;
+    status: string;
+    debitAccountCode: string;
+    debitAccountName: string;
+  }>>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(() =>
     storeActiveTab === 'create-fin-request' || storeActiveTab === 'petty-cash' || storeActiveTab === 'cash-custody'
   );
 
   useEffect(() => {
-    const loadFinReqs = () => {
-      realErpDataStore.getRecords<FinancialReq>('financial_requests', MOCK_FIN_REQUESTS).then(data => {
-        setRequests(data);
-      });
+    const loadFinReqs = async () => {
+      const data = await realErpDataStore.getRecords<FinancialReq>('financial_requests', MOCK_FIN_REQUESTS);
+      setRequests(data);
+
+      const [expClaims, trips, advances, ewaRows, clearances] = await Promise.all([
+        realErpDataStore.getRecords<any>('hr_expense_claims', [
+          {
+            id: 'EXP-CLM-101',
+            employee_name: 'فهد العتيبي',
+            department: 'إدارة العمليات والاستقدام',
+            category: 'فاتورة ضريبية ZATCA QR',
+            amount: 1150,
+            vat_amount: 150,
+            date: '2026-11-10',
+            description: 'رسوم تصديق وتوثيق غرفة الرياض وضيافة وفد خارجي',
+            status: 'بانتظار الصرف المالي',
+          },
+        ]),
+        realErpDataStore.getRecords<any>('hr_business_trips', [
+          {
+            id: 'TRP-2026-04',
+            employee_name: 'عبدالرحمن السليم',
+            department: 'الإدارة التنفيذية والتطوير',
+            destination: 'جدة — الدمام',
+            total_per_diem: 3200,
+            start_date: '2026-11-08',
+            purpose: 'انتداب رسمي لتدقيق الفروع ومطابقة أنظمة الاستقدام (4 أيام)',
+            status: 'معتمد إدارياً — بانتظار الصرف',
+          },
+        ]),
+        realErpDataStore.getRecords<any>('hr_advances', [
+          {
+            id: 'ADV-2026-11',
+            employee_name: 'محمد مصطفى',
+            department: 'قسم التأجير والتشغيل',
+            amount: 6000,
+            remaining_balance: 4500,
+            request_date: '2026-11-05',
+            reason: 'سلفة شخصية معتمدة تقسط على 6 أشهر',
+            status: 'بانتظار الصرف البنكي',
+          },
+        ]),
+        realErpDataStore.getRecords<any>('hr_ewa_withdrawals', [
+          {
+            id: 'EWA-2026-19',
+            employee_name: 'سارة خالد',
+            department: 'خدمة العملاء CRM',
+            requested_amount: 2100,
+            request_date: '2026-11-12',
+            notes: 'سحب راتب مرن مبكر (EWA) من الأيام المكتسبة فعلياً بالحضور',
+            status: 'قيد التحويل الفوري',
+          },
+        ]),
+        realErpDataStore.getRecords<any>('hr_offboarding_clearances', [
+          {
+            id: 'EOS-CLR-88',
+            employee_name: 'خالد الحربي',
+            department: 'العلاقات الحكومية والتعقيب',
+            net_payable: 28450,
+            last_working_day: '2026-11-14',
+            separation_reason: 'انتهاء مدة العقد النظامي (المادة 84)',
+            status: 'مخالصة معتمدة — بانتظار الصرف',
+          },
+        ]),
+      ]);
+
+      const normalizedHrItems = [
+        ...(Array.isArray(expClaims) ? expClaims : []).map((row: any, idx: number) => ({
+          id: String(row.id || `EXP-${idx + 1}`),
+          tableKey: 'hr_expense_claims' as const,
+          categoryLabel: 'مطالبة مصروفات وفاتورة ZATCA',
+          employeeName: String(row.employee_name || row.employeeName || 'موظف'),
+          department: String(row.department || 'العمليات'),
+          referenceNo: String(row.invoice_number || row.id || `EXP-${idx + 101}`),
+          amount: Number(row.amount ?? row.total_amount ?? 850),
+          vatAmount: Number(row.vat_amount ?? row.vatAmount ?? 0),
+          date: String(row.date || row.created_at || '2026-11-10').slice(0, 10),
+          description: String(row.description || row.category || 'استرداد نفقات تشغيلية وفاتورة ضريبية'),
+          status: String(row.status || 'بانتظار الصرف'),
+          debitAccountCode: '530401',
+          debitAccountName: 'مصروفات تشغيلية وعهد موظفين وفواتير ZATCA',
+        })),
+        ...(Array.isArray(trips) ? trips : []).map((row: any, idx: number) => ({
+          id: String(row.id || `TRP-${idx + 1}`),
+          tableKey: 'hr_business_trips' as const,
+          categoryLabel: 'بدل سفر وانتداب عمل',
+          employeeName: String(row.employee_name || row.employeeName || 'موظف'),
+          department: String(row.department || 'التشغيل'),
+          referenceNo: String(row.id || `TRP-${idx + 201}`),
+          amount: Number(row.total_per_diem ?? row.totalAmount ?? row.amount ?? 2400),
+          vatAmount: 0,
+          date: String(row.start_date || row.date || '2026-11-08').slice(0, 10),
+          description: String(row.purpose || row.destination || 'بدل انتداب وسفر عمل رسمي'),
+          status: String(row.status || 'بانتظار الصرف'),
+          debitAccountCode: '530101',
+          debitAccountName: 'بدلات السفر والانتداب والمهام الرسمية للموظفين',
+        })),
+        ...(Array.isArray(advances) ? advances : []).map((row: any, idx: number) => ({
+          id: String(row.id || `ADV-${idx + 1}`),
+          tableKey: 'hr_advances' as const,
+          categoryLabel: 'سلفة / قرض موظف',
+          employeeName: String(row.employee_name || row.employeeName || 'موظف'),
+          department: String(row.department || 'الموارد البشرية'),
+          referenceNo: String(row.id || `ADV-${idx + 301}`),
+          amount: Number(row.amount ?? row.loan_amount ?? 5000),
+          vatAmount: 0,
+          date: String(row.request_date || row.date || '2026-11-05').slice(0, 10),
+          description: String(row.reason || row.notes || 'صرف سلفة موظف مستردة على أقساط شهرية'),
+          status: String(row.status || 'بانتظار الصرف'),
+          debitAccountCode: '110601',
+          debitAccountName: 'سلف وقروض الموظفين قصيرة الأجل',
+        })),
+        ...(Array.isArray(ewaRows) ? ewaRows : []).map((row: any, idx: number) => ({
+          id: String(row.id || `EWA-${idx + 1}`),
+          tableKey: 'hr_ewa_withdrawals' as const,
+          categoryLabel: 'سحب راتب مرن مبكر (EWA)',
+          employeeName: String(row.employee_name || row.employeeName || 'موظف'),
+          department: String(row.department || 'الموارد البشرية'),
+          referenceNo: String(row.id || `EWA-${idx + 401}`),
+          amount: Number(row.requested_amount ?? row.amount ?? 1800),
+          vatAmount: 0,
+          date: String(row.request_date || row.date || '2026-11-12').slice(0, 10),
+          description: String(row.notes || 'دفعة راتب مرن مكتسب من أيام الحضور الفعلي'),
+          status: String(row.status || 'قيد التحويل'),
+          debitAccountCode: '110601',
+          debitAccountName: 'دفعات الراتب المرن المبكر المستحقة على مسير الرواتب (EWA)',
+        })),
+        ...(Array.isArray(clearances) ? clearances : []).map((row: any, idx: number) => ({
+          id: String(row.id || `EOS-${idx + 1}`),
+          tableKey: 'hr_offboarding_clearances' as const,
+          categoryLabel: 'مخالصة نهاية خدمة (EOSB)',
+          employeeName: String(row.employee_name || row.employeeName || 'موظف'),
+          department: String(row.department || 'الموارد البشرية'),
+          referenceNo: String(row.id || `EOS-${idx + 501}`),
+          amount: Number(row.net_payable ?? row.netPayable ?? row.amount ?? 24500),
+          vatAmount: 0,
+          date: String(row.last_working_day || row.date || '2026-11-14').slice(0, 10),
+          description: String(row.separation_reason || row.notes || 'صرف مخالصة ومستحقات نهاية الخدمة (IAS 19)'),
+          status: String(row.status || 'مخالصة معتمدة'),
+          debitAccountCode: '220101',
+          debitAccountName: 'مخصص مكافأة نهاية الخدمة ومستحقات المخالصات (IAS 19)',
+        })),
+      ];
+
+      setHrOutputs(normalizedHrItems);
     };
-    loadFinReqs();
+    void loadFinReqs();
     window.addEventListener('erp-data-updated', loadFinReqs);
     return () => window.removeEventListener('erp-data-updated', loadFinReqs);
   }, []);
@@ -239,13 +396,137 @@ export const FinancialRequestsPage: React.FC = () => {
   };
 
   const handleDeleteRequest = async (req: FinancialReq) => {
-    if (window.confirm(`هل أنت متأكد من حذف الطلب المالي #${req.request_number}؟`)) {
-      await realErpDataStore.deleteRecord('financial_requests', req.id);
-      setRequests(requests.filter(r => r.id !== req.id));
+    await realErpDataStore.deleteRecord('financial_requests', req.id);
+    setRequests(requests.filter(r => r.id !== req.id));
+    addNotification({
+      title: 'حذف الطلب المالي',
+      message: `تم حذف الطلب #${req.request_number} بنجاح.`,
+      type: 'info',
+    });
+  };
+
+  const handleApproveAndDisburseHrOutput = async (item: (typeof hrOutputs)[number]) => {
+    try {
+      // 1. Update HR record status in realErpDataStore
+      await realErpDataStore.updateRecord<any>(item.tableKey, item.id, {
+        status: 'تم السداد والترحيل المالي',
+        disbursed_at: new Date().toISOString(),
+      });
+      setHrOutputs((prev) =>
+        prev.map((row) =>
+          row.id === item.id && row.tableKey === item.tableKey
+            ? { ...row, status: 'تم السداد والترحيل المالي' }
+            : row
+        )
+      );
+
+      // 2. Create a payment voucher in financial_requests & vouchers
+      const voucherRef = `#FIN-HR-${Date.now().toString().slice(-4)}`;
+      const finVoucher: FinancialReq = {
+        id: `FIN-HR-${Date.now().toString().slice(-5)}`,
+        request_number: voucherRef,
+        paid_to: item.employeeName,
+        branch: item.department || 'الفرع الرئيسي - الرياض',
+        accounting_name: `${item.categoryLabel} — ${item.employeeName}`,
+        request_type: 'أخرى',
+        escalation: 'هام',
+        date: new Date().toISOString().slice(0, 10),
+        amount: item.amount,
+        entry_type: 'مدين',
+        payment_method: 'تحويل بنكي',
+        description: `${item.categoryLabel} (${item.referenceNo}): ${item.description}`,
+        accounting_account: `${item.debitAccountCode} - ${item.debitAccountName}`,
+        bank_name: 'مصرف الراجحي',
+        account_owner: item.employeeName,
+        account_number: '10099887766',
+        iban: 'SA038000000010099887766',
+        status: 'تم السداد',
+        applicant: 'تكامل الموارد البشرية والمالية الآلي',
+      };
+      await realErpDataStore.addRecord('financial_requests', finVoucher);
+      await realErpDataStore.addRecord('vouchers', {
+        id: finVoucher.id,
+        voucher_number: voucherRef,
+        voucher_type: 'سند صرف موارد بشرية',
+        date: finVoucher.date,
+        beneficiary: item.employeeName,
+        amount: item.amount,
+        payment_method: 'تحويل بنكي',
+        description: finVoucher.description,
+        status: 'معتمد ومصروف',
+        company_id: activeCompany.id,
+        created_at: new Date().toISOString(),
+      });
+      setRequests((prev) => [finVoucher, ...prev]);
+
+      // 3. Post balanced double-entry journal entry via journalEngine
+      const netDebit = item.vatAmount > 0 ? Math.max(0, item.amount - item.vatAmount) : item.amount;
+      const jvLines: Array<{
+        accountCode: string;
+        accountName: string;
+        description: string;
+        debit: number;
+        credit: number;
+      }> = [
+        {
+          accountCode: item.debitAccountCode,
+          accountName: item.debitAccountName,
+          description: `${item.categoryLabel} - ${item.employeeName} (${item.referenceNo})`,
+          debit: netDebit,
+          credit: 0,
+        },
+      ];
+      if (item.vatAmount > 0) {
+        jvLines.push({
+          accountCode: '110801',
+          accountName: 'ضريبة القيمة المضافة للمدخلات القابلة للاسترداد (Input VAT 15%)',
+          description: `ضريبة مدخلات فاتورة ZATCA - ${item.referenceNo}`,
+          debit: item.vatAmount,
+          credit: 0,
+        });
+      }
+      jvLines.push({
+        accountCode: '110201',
+        accountName: 'النقدية لدى البنوك والمصارف المحلية (حساب الجاري الرئيسي)',
+        description: `صرف مستحقات ${item.employeeName} بموجب سند ${voucherRef}`,
+        debit: 0,
+        credit: item.amount,
+      });
+
+      const anyEngine = journalEngine as any;
+      const jvRes =
+        typeof anyEngine.createEntry === 'function'
+          ? anyEngine.createEntry(activeCompany.id, {
+              entryDate: finVoucher.date,
+              entryType: 'AUTOMATIC',
+              sourceModule: item.tableKey.toUpperCase(),
+              sourceReference: voucherRef,
+              description: finVoucher.description,
+              createdBy: 'المدير المالي',
+              lines: jvLines,
+              autoPost: true,
+            })
+          : journalEngine.createJournalEntry(activeCompany.id, {
+              entryDate: finVoucher.date,
+              entryType: 'AUTOMATIC',
+              sourceModule: item.tableKey.toUpperCase(),
+              sourceReference: voucherRef,
+              description: finVoucher.description,
+              createdBy: 'المدير المالي',
+              lines: jvLines,
+              autoPost: true,
+            });
+
       addNotification({
-        title: 'حذف الطلب المالي',
-        message: `تم حذف الطلب #${req.request_number} بنجاح.`,
-        type: 'error',
+        title: 'تم الاعتماد والصرف وترحيل القيد المالي',
+        message: `تم صرف (${item.categoryLabel}) للموظف (${item.employeeName}) بمبلغ ${item.amount.toLocaleString()} ⃁ وتوليد سند الصرف (${voucherRef}) وترحيل القيد المزدوج (#${jvRes?.entry?.entryNumber || voucherRef}).`,
+        type: 'success',
+      });
+    } catch (err: any) {
+      addNotification({
+        title: 'تعذر ترحيل القيد المالي',
+        message: err?.message || 'حدث خطأ أثناء ترحيل القيد المالي',
+        type: 'warning',
       });
     }
   };
@@ -341,6 +622,7 @@ export const FinancialRequestsPage: React.FC = () => {
       <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
         {[
           { id: 'all', label: `جميع الطلبات المالية (${requests.length})` },
+          { id: 'hr-outputs', label: `مخرجات الموارد البشرية والرواتب (${hrOutputs.length})` },
           { id: 'incomplete', label: 'الطلبات غير المكتملة / قيد المراجعة' },
           { id: 'paid', label: 'الطلبات المسددة والمقفلة' },
         ].map((tab) => {
@@ -369,6 +651,115 @@ export const FinancialRequestsPage: React.FC = () => {
           );
         })}
       </div>
+
+      {/* Live HR Financial Outputs Hub (مخرجات الموارد البشرية والرواتب) */}
+      {(activeTab === 'hr-outputs' || activeTab === 'all') && (
+        <div className="card-pricing p-6 bg-white rounded-3xl border border-[#e0e0e0] space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-[#e0e0e0]">
+            <div>
+              <h3 className="text-sm font-bold text-[#141414] m-0">
+                مخرجات الموارد البشرية والرواتب الجاهزة للصرف والترحيل المحاسبي
+              </h3>
+              <p className="text-xs text-[#707070] mt-1">
+                تكامل حي مباشر مع مطالبات مصروفات الموظفين وفواتير ZATCA، بدلات السفر والانتدابات، السلف والقروض، سحوبات الراتب المرن (EWA)، ومخالصات نهاية الخدمة
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {[
+                { id: 'ALL', label: `الكل (${hrOutputs.length})` },
+                { id: 'hr_expense_claims', label: 'مطالبات ZATCA والمصروفات' },
+                { id: 'hr_business_trips', label: 'بدلات السفر والانتدابات' },
+                { id: 'hr_advances', label: 'السلف والقروض' },
+                { id: 'hr_ewa_withdrawals', label: 'الراتب المرن (EWA)' },
+                { id: 'hr_offboarding_clearances', label: 'مخالصات نهاية الخدمة' },
+              ].map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setHrCategoryFilter(cat.id as any)}
+                  className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
+                    hrCategoryFilter === cat.id
+                      ? 'bg-[#141414] text-white border-[#141414]'
+                      : 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0] hover:bg-[#e8e8e8]'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-right text-xs">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
+                <tr>
+                  <th className="p-3">المرجع</th>
+                  <th className="p-3">نوع المخرج المالي</th>
+                  <th className="p-3">الموظف والقسم</th>
+                  <th className="p-3">البيان والتفاصيل</th>
+                  <th className="p-3 font-mono">المبلغ (⃁)</th>
+                  <th className="p-3">الحساب المحاسبي</th>
+                  <th className="p-3">الحالة</th>
+                  <th className="p-3 text-center">الإجراء المالي</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#e0e0e0]">
+                {hrOutputs
+                  .filter((item) => hrCategoryFilter === 'ALL' || item.tableKey === hrCategoryFilter)
+                  .map((item) => {
+                    const isDisbursed =
+                      item.status.includes('تم السداد') || item.status.includes('مصروف');
+                    return (
+                      <tr key={`${item.tableKey}-${item.id}`} className="hover:bg-[#f3f3f3]/40">
+                        <td className="p-3 font-mono font-bold text-[#141414]">{item.referenceNo}</td>
+                        <td className="p-3">
+                          <span className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] text-[11px] font-bold">
+                            {item.categoryLabel}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          <div className="font-bold text-[#141414]">{item.employeeName}</div>
+                          <div className="text-[10.5px] text-[#707070]">{item.department}</div>
+                        </td>
+                        <td className="p-3 text-[#141414] max-w-xs">{item.description}</td>
+                        <td className="p-3 font-mono font-bold text-[#141414]">
+                          {item.amount.toLocaleString()} ⃁
+                        </td>
+                        <td className="p-3 text-[11px] text-[#707070] font-mono">
+                          {item.debitAccountCode} — {item.debitAccountName}
+                        </td>
+                        <td className="p-3">
+                          <Badge
+                            text={item.status}
+                            type={isDisbursed ? 'success' : 'warning'}
+                          />
+                        </td>
+                        <td className="p-3 text-center">
+                          {isDisbursed ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#141414] px-2.5 py-1 rounded-full bg-[#f3f3f3] border border-[#e0e0e0]">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>تم الصرف والترحيل</span>
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => void handleApproveAndDisburseHrOutput(item)}
+                              className="button-primary-pill bg-[#141414] text-white text-[11px] font-bold"
+                              style={{ padding: '4px 12px', minHeight: '28px' }}
+                            >
+                              <Check className="w-3.5 h-3.5 ml-1" />
+                              <span>اعتماد وصرف وترحيل قيد مالي</span>
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Requests Table */}
       <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>

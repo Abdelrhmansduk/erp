@@ -11,6 +11,8 @@ import { getCompanyIfrsClassifications } from '../services/accounting/ifrsExtend
 import { enterpriseAccountingSuiteService } from '../services/accounting/enterpriseAccountingSuiteService';
 import { useAppStore } from '../stores/appStore';
 import { realErpDataStore } from '../services/realErpDataStore';
+import { WpsPayrollEngine } from '../services/wpsPayrollEngine';
+import { calculateJisrFinalSettlement, type JisrSeparationType } from '../services/jisrAdvancedComplianceEngine';
 import { BudgetVsActualWidget } from '../components/finance/BudgetVsActualWidget';
 import { IfrsFinancialEngineWorkspace } from '../components/finance/IfrsFinancialEngineWorkspace';
 import { OdooAccountingConfigWorkspace } from '../components/accounting/OdooAccountingConfigWorkspace';
@@ -371,6 +373,51 @@ export const FinancePage: React.FC = () => {
   });
 
   const { createItem: createJournalEntry } = useTableMutation('company_journal_entries');
+
+  // Live HR Employees & Advances for EOSB Final Settlement (Gap #4)
+  const [eosbEmployees, setEosbEmployees] = useState<Record<string, any>[]>([]);
+  const [eosbAdvances, setEosbAdvances] = useState<Record<string, any>[]>([]);
+  const [selectedEosbEmployeeId, setSelectedEosbEmployeeId] = useState<string>('');
+  const [eosbSeparationType, setEosbSeparationType] = useState<JisrSeparationType>('CONTRACT_EXPIRY_OR_EMPLOYER_ART84');
+  const [eosbLastWorkingDay, setEosbLastWorkingDay] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [eosbUnusedLeaveDays, setEosbUnusedLeaveDays] = useState<string>('21');
+
+  useEffect(() => {
+    let mounted = true;
+    const loadEosbLiveSources = async () => {
+      try {
+        const companyCode = activeCompany.id !== 'all' ? activeCompany.id : 'SAF';
+        const [hrEmps, legacyEmps, advs] = await Promise.all([
+          typeof (realErpDataStore as any).getCompanyRecords === 'function'
+            ? (realErpDataStore as any).getCompanyRecords('hr_employees', companyCode)
+            : realErpDataStore.getRecords('hr_employees'),
+          realErpDataStore.getRecords('employees'),
+          realErpDataStore.getRecords('hr_advances'),
+        ]);
+        if (!mounted) return;
+        const map = new Map<string, Record<string, any>>();
+        [...(Array.isArray(legacyEmps) ? legacyEmps : []), ...(Array.isArray(hrEmps) ? hrEmps : [])].forEach((e: any) => {
+          const key = String(e?.id || e?.employee_id || e?.national_id || e?.name || '');
+          if (key) map.set(key, { ...map.get(key), ...e, id: e.id || key });
+        });
+        const list = Array.from(map.values());
+        setEosbEmployees(list);
+        if (list.length > 0 && !selectedEosbEmployeeId) {
+          setSelectedEosbEmployeeId(String(list[0].id));
+          if (list[0].annual_leave_balance !== undefined) {
+            setEosbUnusedLeaveDays(String(list[0].annual_leave_balance));
+          }
+        }
+        setEosbAdvances(Array.isArray(advs) ? advs : []);
+      } catch {
+        // ignore fallback
+      }
+    };
+    void loadEosbLiveSources();
+    return () => {
+      mounted = false;
+    };
+  }, [activeCompany.id]);
 
   // Modals
   const [showAddVoucherModal, setShowAddVoucherModal] = useState(false);
@@ -2059,95 +2106,359 @@ export const FinancePage: React.FC = () => {
       )}
 
       {/* TAB 8: EOSB & ZAKAT CALCULATOR */}
-      {activeTab === 'eosb-zakat' && (
-        <div className="card-pricing p-6 bg-white rounded-3xl border border-zinc-200 space-y-6 motion-snap-enter">
-          <h3 className="text-sm font-bold text-[#141414] m-0 flex items-center gap-2 pb-3 border-b border-zinc-100">
-            <Calculator className="w-4 h-4 text-[#141414]" />
-            <span>حاسبة مخصص مكافأة نهاية الخدمة (EOSB) والزكاة الشرعية (نظام العمل السعودي)</span>
-          </h3>
+      {activeTab === 'eosb-zakat' && (() => {
+        const selectedEmp = eosbEmployees.find((e) => String(e.id) === String(selectedEosbEmployeeId)) || eosbEmployees[0];
+        const empBasic = Number(selectedEmp?.basic_salary ?? selectedEmp?.salary ?? eosbCalc.salary ?? 6000);
+        const empHousing = Number(selectedEmp?.housing_allowance ?? Math.round(empBasic * 0.25));
+        const empTransport = Number(selectedEmp?.transport_allowance ?? Math.round(empBasic * 0.1));
+        const empOther = Number(selectedEmp?.other_allowances ?? 0);
+        const empHireDate = String(selectedEmp?.hire_date || '2021-01-01').slice(0, 10);
+        const empIsSaudi = String(selectedEmp?.nationality || 'سعودي').includes('سعود');
+        const empLoanBalance = eosbAdvances
+          .filter(
+            (adv) =>
+              String(adv.employee_id || '') === String(selectedEmp?.id || '') ||
+              String(adv.employee_name || '').trim() === String(selectedEmp?.name || selectedEmp?.full_name || '').trim()
+          )
+          .reduce((sum, adv) => sum + Number(adv.remaining_balance ?? adv.amount ?? 0), 0);
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-            <div className="p-5 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-4">
-              <h4 className="font-bold text-xs text-zinc-800">بيانات احتساب مكافأة الموظف:</h4>
-              <div>
-                <label className="block text-xs font-bold text-zinc-600 mb-1">الراتب الأساسي الأخير (⃁)</label>
-                <input
-                  type="number"
-                  value={eosbCalc.salary}
-                  onChange={(e) => setEosbCalc({ ...eosbCalc, salary: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-white border border-zinc-200 rounded-full text-xs font-bold text-[#141414] focus:border-[#141414] focus:outline-none"
-                />
+        const wpsEosbFn = (WpsPayrollEngine as any).calculateSaudiEosb || WpsPayrollEngine.calculateEndOfService;
+        const wpsMappedReason =
+          eosbSeparationType === 'RESIGNATION_ART85'
+            ? 'RESIGNATION'
+            : eosbSeparationType === 'FORCE_MAJEURE_OR_MATERNITY_ART87'
+            ? 'FORCE_MAJEURE'
+            : 'CONTRACT_END';
+        const wpsEosbResult = wpsEosbFn.call(
+          WpsPayrollEngine,
+          empBasic,
+          empHousing,
+          empTransport,
+          Math.max(1, Number(eosbCalc.years) || 4),
+          wpsMappedReason
+        );
+
+        const liveSettlement = calculateJisrFinalSettlement({
+          hireDate: empHireDate,
+          lastWorkingDay: eosbLastWorkingDay,
+          basicSalary: empBasic,
+          housingAllowance: empHousing,
+          transportAllowance: empTransport,
+          otherAllowances: empOther,
+          isSaudi: empIsSaudi,
+          separationType: eosbSeparationType,
+          unusedLeaveDays: Number(eosbUnusedLeaveDays) || 0,
+          remainingAdvancesBalance: empLoanBalance,
+        });
+
+        return (
+          <div className="card-pricing p-6 bg-white rounded-3xl border border-zinc-200 space-y-6 motion-snap-enter">
+            <h3 className="text-sm font-bold text-[#141414] m-0 flex items-center gap-2 pb-3 border-b border-zinc-100">
+              <Calculator className="w-4 h-4 text-[#141414]" />
+              <span>حاسبة المخالصة النهائية للموظف ومخصص مكافأة نهاية الخدمة (EOSB — المواد 84 / 85 / 87 / 80 / 111)</span>
+            </h3>
+
+            {/* Live Employee Final Settlement & EOSB Engine Section */}
+            <div className="p-5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <h4 className="text-xs font-bold text-[#141414] m-0">
+                    محرك التسوية والمخالصة النهائية الحية للموظفين (مرتبط بسجل الموظفين والسلف ودفتر اليومية)
+                  </h4>
+                  <p className="text-[11px] text-[#707070] mt-0.5">
+                    يحتسب مكافأة نهاية الخدمة (م84/85/87/80)، راتب أيام الشهر، تسييل رصيد الإجازات (م111)، ويخصم أرصدة السلف النشطة آلياً
+                  </p>
+                </div>
+                <span className="px-3 py-1 rounded-full bg-[#141414] text-white text-[11px] font-bold">
+                  {liveSettlement.eosbLegalReferenceAr}
+                </span>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-zinc-600 mb-1">سنوات الخدمة الإجمالية</label>
-                <input
-                  type="number"
-                  step="0.5"
-                  value={eosbCalc.years}
-                  onChange={(e) => setEosbCalc({ ...eosbCalc, years: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-white border border-zinc-200 rounded-full text-xs font-bold text-[#141414] focus:border-[#141414] focus:outline-none"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-[#141414] mb-1">اختر الموظف من السجل الحي</label>
+                  <select
+                    value={selectedEosbEmployeeId}
+                    onChange={(e) => {
+                      const empId = e.target.value;
+                      setSelectedEosbEmployeeId(empId);
+                      const found = eosbEmployees.find((item) => String(item.id) === empId);
+                      if (found && found.annual_leave_balance !== undefined) {
+                        setEosbUnusedLeaveDays(String(found.annual_leave_balance));
+                      }
+                    }}
+                    className="w-full px-3 py-2 bg-white border border-[#e0e0e0] rounded-full text-xs font-bold text-[#141414]"
+                  >
+                    {eosbEmployees.map((emp) => (
+                      <option key={String(emp.id)} value={String(emp.id)}>
+                        {emp.name || emp.full_name} — ({Number(emp.basic_salary ?? emp.salary ?? 6000).toLocaleString()} ⃁)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#141414] mb-1">المادة النظامية لإنهاء الخدمة</label>
+                  <select
+                    value={eosbSeparationType}
+                    onChange={(e) => setEosbSeparationType(e.target.value as JisrSeparationType)}
+                    className="w-full px-3 py-2 bg-white border border-[#e0e0e0] rounded-full text-xs font-bold text-[#141414]"
+                  >
+                    <option value="CONTRACT_EXPIRY_OR_EMPLOYER_ART84">إنهاء عقد / انتهاء المدة (المادة 84 — 100%)</option>
+                    <option value="RESIGNATION_ART85">استقالة الموظف (المادة 85 — متدرج)</option>
+                    <option value="FORCE_MAJEURE_OR_MATERNITY_ART87">قوة قاهرة / زواج أو وضع (المادة 87 — 100%)</option>
+                    <option value="DISCIPLINARY_ART80">فسخ عقد لمخالفة جسيمة (المادة 80 — 0%)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#141414] mb-1">تاريخ آخر يوم عمل فعلي</label>
+                  <input
+                    type="date"
+                    value={eosbLastWorkingDay}
+                    onChange={(e) => setEosbLastWorkingDay(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-[#e0e0e0] rounded-full text-xs font-mono font-bold text-[#141414]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#141414] mb-1">رصيد الإجازات غير المستنفد (يوم — م111)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={eosbUnusedLeaveDays}
+                    onChange={(e) => setEosbUnusedLeaveDays(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-[#e0e0e0] rounded-full text-xs font-mono font-bold text-[#141414]"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-zinc-600 mb-1">سبب انتهاء العلاقة العمالية</label>
-                <select
-                  value={eosbCalc.reason}
-                  onChange={(e) => setEosbCalc({ ...eosbCalc, reason: e.target.value as any })}
-                  className="w-full px-3 py-1.5 bg-white border border-zinc-200 rounded-full text-xs font-bold text-[#141414] focus:border-[#141414] focus:outline-none"
+              {/* Settlement Breakdown Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div className="p-3.5 rounded-2xl bg-white border border-[#e0e0e0]">
+                  <div className="text-[10.5px] text-[#707070] font-bold">مدة الخدمة الفعلية</div>
+                  <div className="text-sm font-mono font-bold text-[#141414] mt-1">
+                    {liveSettlement.serviceYears} سنة
+                  </div>
+                  <div className="text-[10px] text-[#707070]">تاريخ المباشرة: {empHireDate}</div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-white border border-[#e0e0e0]">
+                  <div className="text-[10.5px] text-[#707070] font-bold">صافي مكافأة نهاية الخدمة</div>
+                  <div className="text-sm font-mono font-bold text-[#141414] mt-1">
+                    {liveSettlement.netEosbEntitlement.toLocaleString()} ⃁
+                  </div>
+                  <div className="text-[10px] text-[#707070]">
+                    نسبة الاستحقاق: {Math.round(liveSettlement.eosbRatioApplied * 100)}%
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-white border border-[#e0e0e0]">
+                  <div className="text-[10.5px] text-[#707070] font-bold">تعويض رصيد الإجازات (م111)</div>
+                  <div className="text-sm font-mono font-bold text-[#141414] mt-1">
+                    {liveSettlement.unusedLeaveCompensation.toLocaleString()} ⃁
+                  </div>
+                  <div className="text-[10px] text-[#707070]">
+                    + راتب أيام الشهر: {liveSettlement.proRataCurrentMonthNet.toLocaleString()} ⃁
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-white border border-[#e0e0e0]">
+                  <div className="text-[10.5px] text-[#707070] font-bold">حسم السلف والقروض النشطة</div>
+                  <div className="text-sm font-mono font-bold text-[#141414] mt-1">
+                    {liveSettlement.remainingAdvancesBalance.toLocaleString()} ⃁
+                  </div>
+                  <div className="text-[10px] text-[#707070]">من سجل السلف الحي</div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-[#141414] text-white">
+                  <div className="text-[10.5px] text-zinc-300 font-bold">صافي المخالصة المستحق للصرف</div>
+                  <div className="text-base font-mono font-bold text-white mt-1">
+                    {liveSettlement.netPayable.toLocaleString()} ⃁
+                  </div>
+                  <div className="text-[10px] text-zinc-300">
+                    معيار WPS: {Number(wpsEosbResult?.netEosbAmount ?? liveSettlement.netEosbEntitlement).toLocaleString()} ⃁
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const empName = String(selectedEmp?.name || selectedEmp?.full_name || 'موظف');
+                    const refId = `EOSB-CLR-${Date.now().toString().slice(-5)}`;
+                    const totalEntitlement = Math.max(0, liveSettlement.totalEntitlements);
+                    if (totalEntitlement <= 0) return;
+
+                    try {
+                      const jvLines: Array<{
+                        accountCode: string;
+                        accountName: string;
+                        description: string;
+                        debit: number;
+                        credit: number;
+                      }> = [
+                        {
+                          accountCode: '220101',
+                          accountName: 'مخصص مكافأة نهاية الخدمة ومستحقات الموظفين (IAS 19)',
+                          description: `تسوية نهاية خدمة وتعويض إجازات (${empName}) — ${liveSettlement.eosbLegalReferenceAr}`,
+                          debit: totalEntitlement,
+                          credit: 0,
+                        },
+                      ];
+                      if (liveSettlement.remainingAdvancesBalance > 0) {
+                        jvLines.push({
+                          accountCode: '110601',
+                          accountName: 'سلف وقروض الموظفين (استرداد من المخالصة)',
+                          description: `استرداد رصيد السلفة القائمة للموظف (${empName})`,
+                          debit: 0,
+                          credit: liveSettlement.remainingAdvancesBalance,
+                        });
+                      }
+                      const netBankCredit = Math.max(0, totalEntitlement - liveSettlement.remainingAdvancesBalance);
+                      if (netBankCredit > 0) {
+                        jvLines.push({
+                          accountCode: '110201',
+                          accountName: 'النقدية لدى البنوك والمصارف المحلية',
+                          description: `صرف صافي المخالصة النهائية للموظف (${empName})`,
+                          debit: 0,
+                          credit: netBankCredit,
+                        });
+                      }
+
+                      const posted = journalEngine.createJournalEntry(activeCompany.id, {
+                        entryDate: eosbLastWorkingDay,
+                        entryType: 'AUTOMATIC',
+                        sourceModule: 'EOSB_SETTLEMENT',
+                        sourceReference: refId,
+                        description: `تسوية وصرف مخالصة نهاية الخدمة للموظف (${empName}) — صافي ${liveSettlement.netPayable.toLocaleString()} ⃁`,
+                        createdBy: 'المحاسب المالي',
+                        lines: jvLines,
+                        autoPost: true,
+                      });
+
+                      await realErpDataStore.addRecord('hr_offboarding_clearances', {
+                        id: refId,
+                        employee_id: selectedEmp?.id,
+                        employee_name: empName,
+                        department: selectedEmp?.department || 'الإدارة العامة',
+                        last_working_day: eosbLastWorkingDay,
+                        separation_reason: liveSettlement.eosbLegalReferenceAr,
+                        eosb_amount: liveSettlement.netEosbEntitlement,
+                        leave_encashment: liveSettlement.unusedLeaveCompensation,
+                        loan_deduction: liveSettlement.remainingAdvancesBalance,
+                        net_payable: liveSettlement.netPayable,
+                        status: 'تم السداد والترحيل المالي',
+                        journal_entry_number: posted.entry?.entryNumber || refId,
+                        created_at: new Date().toISOString(),
+                      });
+
+                      addNotification({
+                        title: 'تم اعتماد المخالصة النهائية وترحيل قيد التسوية (IAS 19)',
+                        message: `تم حفظ مخالصة الموظف (${empName}) بصافي ${liveSettlement.netPayable.toLocaleString()} ⃁ وترحيل القيد المتوازن (#${posted.entry?.entryNumber || refId}).`,
+                        type: 'success',
+                      });
+                    } catch (err: any) {
+                      addNotification({
+                        title: 'تعذر ترحيل قيد المخالصة',
+                        message: err?.message || 'حدث خطأ أثناء ترحيل القيد',
+                        type: 'warning',
+                      });
+                    }
+                  }}
+                  className="button-primary-pill bg-[#141414] text-white text-xs font-bold"
+                  style={{ padding: '7px 18px' }}
                 >
-                  <option value="resignation">استقالة من الموظف (المادة 85)</option>
-                  <option value="termination">إنهاء عقد من المنشأة / انتهاء المدة (المادة 84)</option>
-                </select>
+                  <CheckCircle2 className="w-3.5 h-3.5 ml-1" />
+                  <span>اعتماد المخالصة وترحيل قيد تسوية نهاية الخدمة ({liveSettlement.netPayable.toLocaleString()} ⃁)</span>
+                </button>
               </div>
             </div>
 
-            <div className="bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] p-6 rounded-2xl space-y-3">
-              <h4 className="text-xs font-bold text-[#707070]">النتيجة النظامية المعتمدة:</h4>
-              <div className="text-3xl font-light font-mono text-[#141414]">
-                {calculateEOSBResult().toLocaleString()} ⃁
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+              <div className="p-5 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-4">
+                <h4 className="font-bold text-xs text-zinc-800">حاسبة تقديرية سريعة لمكافأة الموظف:</h4>
+                <div>
+                  <label className="block text-xs font-bold text-zinc-600 mb-1">الراتب الأساسي الأخير (⃁)</label>
+                  <input
+                    type="number"
+                    value={eosbCalc.salary}
+                    onChange={(e) => setEosbCalc({ ...eosbCalc, salary: e.target.value })}
+                    className="w-full px-3 py-1.5 bg-white border border-zinc-200 rounded-full text-xs font-bold text-[#141414] focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-zinc-600 mb-1">سنوات الخدمة الإجمالية</label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    value={eosbCalc.years}
+                    onChange={(e) => setEosbCalc({ ...eosbCalc, years: e.target.value })}
+                    className="w-full px-3 py-1.5 bg-white border border-zinc-200 rounded-full text-xs font-bold text-[#141414] focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-zinc-600 mb-1">سبب انتهاء العلاقة العمالية</label>
+                  <select
+                    value={eosbCalc.reason}
+                    onChange={(e) => setEosbCalc({ ...eosbCalc, reason: e.target.value as any })}
+                    className="w-full px-3 py-1.5 bg-white border border-zinc-200 rounded-full text-xs font-bold text-[#141414] focus:border-[#141414] focus:outline-none"
+                  >
+                    <option value="resignation">استقالة من الموظف (المادة 85)</option>
+                    <option value="termination">إنهاء عقد من المنشأة / انتهاء المدة (المادة 84)</option>
+                  </select>
+                </div>
               </div>
-              <p className="text-[11px] text-[#707070] leading-relaxed">
-                تم الاحتساب وفقاً للمادتين 84 و 85 من نظام العمل السعودي المعتمد من وزارة الموارد البشرية والتنمية الاجتماعية.
-              </p>
-              <button
-                onClick={() => {
-                  const eosbAmt = calculateEOSBResult();
-                  if (eosbAmt <= 0) return;
-                  try {
-                    const entry = journalEngine.autoPostOperationalTransaction({
-                      companyId: activeCompany.id,
-                      transactionType: 'EOSB_SETTLEMENT',
-                      referenceId: `EOSB-${Date.now().toString().slice(-5)}`,
-                      partyName: 'تسوية مستحقات نهاية الخدمة للموظف',
-                      amount: eosbAmt,
-                      description: `صرف وتسوية مخصص مكافأة نهاية الخدمة (IAS 19) لخدمة ${eosbCalc.years} سنوات`,
-                      createdBy: 'المحاسب المالي',
-                    });
-                    addNotification({
-                      title: 'تم اعتماد وصرف مكافأة نهاية الخدمة',
-                      message: `تم ترحيل قيد التسوية ${entry.entryNumber} بمبلغ ${eosbAmt.toLocaleString()} ⃁ وخصمه من حساب مخصص نهاية الخدمة (220101).`,
-                      type: 'success',
-                    });
-                  } catch (err: any) {
-                    addNotification({
-                      title: 'تعذر ترحيل القيد',
-                      message: err?.message || 'الفترة المالية مقفلة',
-                      type: 'warning',
-                    });
-                  }
-                }}
-                className="button-primary-pill mt-2"
-                style={{ padding: '6px 16px', fontSize: '11.5px' }}
-              >
-                <CheckCircle2 className="w-3.5 h-3.5 ml-1" />
-                <span>اعتماد وصرف تسوية مكافأة نهاية الخدمة (IAS 19)</span>
-              </button>
+
+              <div className="bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] p-6 rounded-2xl space-y-3">
+                <h4 className="text-xs font-bold text-[#707070]">النتيجة النظامية المعتمدة:</h4>
+                <div className="text-3xl font-light font-mono text-[#141414]">
+                  {calculateEOSBResult().toLocaleString()} ⃁
+                </div>
+                <p className="text-[11px] text-[#707070] leading-relaxed">
+                  تم الاحتساب وفقاً للمادتين 84 و 85 من نظام العمل السعودي المعتمد من وزارة الموارد البشرية والتنمية الاجتماعية.
+                </p>
+                <button
+                  onClick={() => {
+                    const eosbAmt = calculateEOSBResult();
+                    if (eosbAmt <= 0) return;
+                    try {
+                      const entry = journalEngine.autoPostOperationalTransaction({
+                        companyId: activeCompany.id,
+                        transactionType: 'EOSB_SETTLEMENT',
+                        referenceId: `EOSB-${Date.now().toString().slice(-5)}`,
+                        partyName: 'تسوية مستحقات نهاية الخدمة للموظف',
+                        amount: eosbAmt,
+                        description: `صرف وتسوية مخصص مكافأة نهاية الخدمة (IAS 19) لخدمة ${eosbCalc.years} سنوات`,
+                        createdBy: 'المحاسب المالي',
+                      });
+                      addNotification({
+                        title: 'تم اعتماد وصرف مكافأة نهاية الخدمة',
+                        message: `تم ترحيل قيد التسوية ${entry.entryNumber} بمبلغ ${eosbAmt.toLocaleString()} ⃁ وخصمه من حساب مخصص نهاية الخدمة (220101).`,
+                        type: 'success',
+                      });
+                    } catch (err: any) {
+                      addNotification({
+                        title: 'تعذر ترحيل القيد',
+                        message: err?.message || 'الفترة المالية مقفلة',
+                        type: 'warning',
+                      });
+                    }
+                  }}
+                  className="button-primary-pill mt-2"
+                  style={{ padding: '6px 16px', fontSize: '11.5px' }}
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 ml-1" />
+                  <span>اعتماد وصرف تسوية مكافأة نهاية الخدمة (IAS 19)</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* TAB: AGING REPORT (تقرير أعمار الذمم والتقادم) */}
       {activeTab === 'aging' && (
