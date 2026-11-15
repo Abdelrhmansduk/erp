@@ -44,6 +44,18 @@ export interface ZatcaProcessingResult {
 }
 
 /**
+ * Escapes XML special characters so names containing & < > " ' never produce an invalid UBL document
+ */
+function escapeXml(raw: unknown): string {
+  return String(raw ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+/**
  * Encodes Tag-Length-Value (TLV) for ZATCA Phase 2 QR Code
  */
 function encodeTLV(tag: number, value: string | Uint8Array): Uint8Array {
@@ -83,14 +95,14 @@ async function computeSha256(text: string): Promise<string> {
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
-  // Fallback simple checksum if WebCrypto unavailable
-  let hash = 0;
-  for (let i = 0; i < text.length; i++) {
-    const char = text.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash |= 0;
+  // Deterministic 256-bit (64 hex chars) digest fallback when WebCrypto is unavailable
+  const state = new Uint32Array([0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]);
+  for (let i = 0; i < data.length; i++) {
+    const idx = i & 7;
+    state[idx] = Math.imul(state[idx] ^ data[i], 0x01000193) >>> 0;
+    state[(idx + 1) & 7] = (state[(idx + 1) & 7] + ((state[idx] >>> 13) ^ data[i])) >>> 0;
   }
-  return Math.abs(hash).toString(16).padStart(64, '0');
+  return Array.from(state).map(w => w.toString(16).padStart(8, '0')).join('');
 }
 
 /**
@@ -128,17 +140,17 @@ export class RealZatcaEngine {
          xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
          xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
     <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
-    <cbc:ID>${data.invoiceNumber}</cbc:ID>
-    <cbc:UUID>${invoiceUuid}</cbc:UUID>
-    <cbc:IssueDate>${data.issueDate}</cbc:IssueDate>
-    <cbc:IssueTime>${time}</cbc:IssueTime>
+    <cbc:ID>${escapeXml(data.invoiceNumber)}</cbc:ID>
+    <cbc:UUID>${escapeXml(invoiceUuid)}</cbc:UUID>
+    <cbc:IssueDate>${escapeXml(data.issueDate)}</cbc:IssueDate>
+    <cbc:IssueTime>${escapeXml(time)}</cbc:IssueTime>
     <cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>
     <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
     <cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>
     <cac:AdditionalDocumentReference>
         <cbc:ID>PIH</cbc:ID>
         <cac:Attachment>
-            <cbc:EmbeddedDocumentBinaryObject mimeCode="text/plain">${pih}</cbc:EmbeddedDocumentBinaryObject>
+            <cbc:EmbeddedDocumentBinaryObject mimeCode="text/plain">${escapeXml(pih)}</cbc:EmbeddedDocumentBinaryObject>
         </cac:Attachment>
     </cac:AdditionalDocumentReference>
 
@@ -146,7 +158,7 @@ export class RealZatcaEngine {
     <cac:AccountingSupplierParty>
         <cac:Party>
             <cac:PartyIdentification>
-                <cbc:ID schemeID="CRN">${data.sellerCrNumber || this.DEFAULT_SELLER.crNumber}</cbc:ID>
+                <cbc:ID schemeID="CRN">${escapeXml(data.sellerCrNumber || this.DEFAULT_SELLER.crNumber)}</cbc:ID>
             </cac:PartyIdentification>
             <cac:PostalAddress>
                 <cbc:CityName>${this.DEFAULT_SELLER.city}</cbc:CityName>
@@ -156,13 +168,13 @@ export class RealZatcaEngine {
                 </cac:Country>
             </cac:PostalAddress>
             <cac:PartyTaxScheme>
-                <cbc:CompanyID>${data.sellerVatNumber || this.DEFAULT_SELLER.vatNumber}</cbc:CompanyID>
+                <cbc:CompanyID>${escapeXml(data.sellerVatNumber || this.DEFAULT_SELLER.vatNumber)}</cbc:CompanyID>
                 <cac:TaxScheme>
                     <cbc:ID>VAT</cbc:ID>
                 </cac:TaxScheme>
             </cac:PartyTaxScheme>
             <cac:PartyLegalEntity>
-                <cbc:RegistrationName>${data.sellerName || this.DEFAULT_SELLER.name}</cbc:RegistrationName>
+                <cbc:RegistrationName>${escapeXml(data.sellerName || this.DEFAULT_SELLER.name)}</cbc:RegistrationName>
             </cac:PartyLegalEntity>
         </cac:Party>
     </cac:AccountingSupplierParty>
@@ -171,13 +183,13 @@ export class RealZatcaEngine {
     <cac:AccountingCustomerParty>
         <cac:Party>
             <cac:PartyTaxScheme>
-                <cbc:CompanyID>${data.buyerVatNumber || '300000000000003'}</cbc:CompanyID>
+                <cbc:CompanyID>${escapeXml(data.buyerVatNumber || '300000000000003')}</cbc:CompanyID>
                 <cac:TaxScheme>
                     <cbc:ID>VAT</cbc:ID>
                 </cac:TaxScheme>
             </cac:PartyTaxScheme>
             <cac:PartyLegalEntity>
-                <cbc:RegistrationName>${data.buyerName}</cbc:RegistrationName>
+                <cbc:RegistrationName>${escapeXml(data.buyerName)}</cbc:RegistrationName>
             </cac:PartyLegalEntity>
         </cac:Party>
     </cac:AccountingCustomerParty>
@@ -213,10 +225,10 @@ export class RealZatcaEngine {
         <cbc:InvoicedQuantity unitCode="PCE">${it.quantity}</cbc:InvoicedQuantity>
         <cbc:LineExtensionAmount currencyID="SAR">${it.totalPrice.toFixed(2)}</cbc:LineExtensionAmount>
         <cac:Item>
-            <cbc:Name>${it.name}</cbc:Name>
+            <cbc:Name>${escapeXml(it.name)}</cbc:Name>
             <cac:ClassifiedTaxCategory>
                 <cbc:ID>S</cbc:ID>
-                <cbc:Percent>15.00</cbc:Percent>
+                <cbc:Percent>${(data.vatRate || 15).toFixed(2)}</cbc:Percent>
                 <cac:TaxScheme>
                     <cbc:ID>VAT</cbc:ID>
                 </cac:TaxScheme>
@@ -267,7 +279,7 @@ export class RealZatcaEngine {
   public static async processInvoice(data: ZatcaInvoiceData): Promise<ZatcaProcessingResult> {
     const uuid = data.uuid || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `uuid-${Date.now()}`);
     const nowIso = new Date().toISOString();
-    const formattedTimestamp = `${data.issueDate}T${data.issueTime || nowIso.split('T')[1].slice(0, 8)}Z`;
+    const formattedTimestamp = `${escapeXml(data.issueDate)}T${data.issueTime || nowIso.split('T')[1].slice(0, 8)}Z`;
 
     // 1. Generate UBL XML
     const ublXml = this.generateUblXml(data, uuid);

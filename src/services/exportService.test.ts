@@ -1,7 +1,9 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import * as XLSX from 'xlsx';
 import {
   exportData,
+  exportToPrint,
+  generateExecutivePdfArtifact,
   sanitizeCSVField,
   getActiveCompanyInfo,
   generateExecutiveReportHtml,
@@ -437,5 +439,65 @@ describe('Executive Export Suite 4.0 & Security Standards', () => {
       role: 'مدير', department: 'الإدارة', basic_salary: 10000, housing_allowance: 2500, transport_allowance: 1000, salary: 13500, status: 'نشط',
     }]);
     expect(html).not.toContain('#0066FF');
+    expect(html).toContain('class="toolbar no-print"');
+  });
+
+  it('omits duplicate inner toolbar when embedPreview is enabled for ExportPreviewModal and generates valid PDF artifacts', async () => {
+    const sampleRows = [
+      {
+        employee_code: 'EMP-01',
+        name: 'فارس السليم',
+        national_id: '1012345678',
+        role: 'مدير',
+        department: 'الإدارة',
+        basic_salary: 10000,
+        housing_allowance: 2500,
+        transport_allowance: 1000,
+        salary: 13500,
+        status: 'نشط',
+      },
+    ];
+
+    const previewHtml = generateExecutiveReportHtml('employees', sampleRows, 'كشف الموظفين', false, {
+      embedPreview: true,
+    });
+    expect(previewHtml).not.toContain('class="toolbar no-print"');
+    expect(previewHtml).toContain('فارس السليم');
+
+    const artifact = await generateExecutivePdfArtifact('employees', sampleRows, 'كشف الموظفين');
+    expect(artifact).not.toBeNull();
+    expect(artifact?.file).toBeInstanceOf(File);
+    expect(artifact?.file.type).toBe('application/pdf');
+    expect(artifact?.fileName.endsWith('.pdf')).toBe(true);
+
+    // Verify exportToPrint writes HTML and invokes print() on popup window
+    const printSpy = vi.fn();
+    const focusSpy = vi.fn();
+    const docWriteSpy = vi.fn();
+    const docCloseSpy = vi.fn();
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(
+      () =>
+        ({
+          document: {
+            open: vi.fn(),
+            write: docWriteSpy,
+            close: docCloseSpy,
+            fonts: { ready: Promise.resolve() },
+          },
+          focus: focusSpy,
+          print: printSpy,
+          closed: false,
+        }) as unknown as Window
+    );
+
+    exportToPrint('employees', sampleRows, 'كشف الموظفين');
+    expect(openSpy).toHaveBeenCalledTimes(1);
+    expect(docWriteSpy).toHaveBeenCalledTimes(1);
+    expect(docCloseSpy).toHaveBeenCalledTimes(1);
+
+    await new Promise((r) => setTimeout(r, 380));
+    expect(focusSpy).toHaveBeenCalled();
+    expect(printSpy).toHaveBeenCalled();
+    openSpy.mockRestore();
   });
 });

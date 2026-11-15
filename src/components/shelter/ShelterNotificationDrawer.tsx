@@ -18,6 +18,7 @@ import {
   Filter,
 } from 'lucide-react';
 import shelterTransferStore from '../../services/shelterTransferStore';
+import { shareViaWhatsApp } from '../../services/quickShareService';
 import {
   ShelterProactiveAlert,
   AlertUrgencyLevel,
@@ -65,13 +66,23 @@ export const ShelterNotificationDrawer: React.FC<ShelterNotificationDrawerProps>
     });
   }, [rawAlerts, categoryFilter]);
 
-  // Handle WhatsApp action
-  const handleSendWhatsApp = (phone?: string, template?: string) => {
-    if (!phone) return;
-    const cleanPhone = phone.replace(/\D/g, '');
-    const saudiPhone = cleanPhone.startsWith('05') ? `966${cleanPhone.slice(1)}` : cleanPhone;
-    const encodedText = encodeURIComponent(template || 'السلام عليكم ورحمة الله وبركاته، بخصوص نقل الخدمات وتجربة العاملة المنزلية.');
-    window.open(`https://api.whatsapp.com/send?phone=${saudiPhone}&text=${encodedText}`, '_blank');
+  // Handle WhatsApp action (Official PDF + Text)
+  const handleSendWhatsApp = (alertItem: ShelterProactiveAlert) => {
+    if (!alertItem.clientPhone) return;
+    shareViaWhatsApp({
+      title: alertItem.title || 'إشعار متابعة تجربة ونقل خدمات العمالة المنزلية',
+      recipientName: alertItem.clientName || 'عميلنا الكريم',
+      recipientPhone: alertItem.clientPhone,
+      referenceNumber: alertItem.workerCode || alertItem.id,
+      moduleName: 'shelter_alerts',
+      summaryLines: [
+        { label: 'اسم العاملة', value: alertItem.workerName },
+        { label: 'الجنسية', value: alertItem.nationality || 'مستقدمة' },
+      ],
+      bodyText:
+        alertItem.whatsappMessageTemplate ||
+        'السلام عليكم ورحمة الله وبركاته، بخصوص نقل الخدمات وتجربة العاملة المنزلية.',
+    });
   };
 
   // Handle dismissal
@@ -362,14 +373,14 @@ export const ShelterNotificationDrawer: React.FC<ShelterNotificationDrawerProps>
                   {/* Action Buttons */}
                   <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-100 flex-wrap">
                     <div className="flex items-center gap-2">
-                      {/* WhatsApp Button with Pre-filled message */}
+                      {/* WhatsApp Button with Official PDF + Pre-filled message */}
                       {alert.clientPhone && alert.whatsappMessageTemplate && (
                         <button
-                          onClick={() => handleSendWhatsApp(alert.clientPhone, alert.whatsappMessageTemplate)}
-                          className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#141414] hover:bg-[#262626] text-white flex items-center gap-1.5 shadow-sm transition-all"
+                          onClick={() => handleSendWhatsApp(alert)}
+                          className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#141414] hover:bg-[#262626] text-white flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
                         >
                           <MessageSquare className="w-3.5 h-3.5" />
-                          <span>واتساب فوري</span>
+                          <span>واتساب (PDF + نص)</span>
                         </button>
                       )}
 

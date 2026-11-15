@@ -1,5 +1,6 @@
 import i18n from '../i18n/config';
 import React, { useState, useEffect } from 'react';
+import { useModalEscape } from '../hooks/useModalEscape';
 import { Badge } from '../components/ui/Badge';
 import { ExportDropdown } from '../components/common/ExportDropdown';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
@@ -91,6 +92,7 @@ const INITIAL_STAGES: ConstantItem[] = [
 ];
 
 export const MasterConstantsPage: React.FC = () => {
+  useModalEscape();
   const { addNotification } = useAppStore();
   const [activeTab, setActiveTab] = useState<
     'nationalities' | 'professions' | 'religions' | 'skills' | 'airports' | 'social_statuses' | 'stages'
@@ -381,8 +383,8 @@ export const MasterConstantsPage: React.FC = () => {
 
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Plus className="w-4 h-4 text-[#141414]" />

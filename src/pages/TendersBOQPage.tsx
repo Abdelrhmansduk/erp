@@ -2151,7 +2151,7 @@ export const TendersBOQPage: React.FC = () => {
                       created_at: new Date().toISOString(),
                     });
                     exportData(
-                      'orders',
+                      'purchase_orders',
                       selectedTender.items.map((item, idx) => ({
                         'م': idx + 1,
                         'رقم أمر التوريد': poNo,
@@ -2212,8 +2212,8 @@ export const TendersBOQPage: React.FC = () => {
 
       {/* 1. Modal: Create New Tender */}
       {showNewTenderModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div role="dialog" aria-modal="true" onClick={() => setShowNewTenderModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Plus className="w-4 h-4 text-[#141414]" />
@@ -2327,8 +2327,8 @@ export const TendersBOQPage: React.FC = () => {
 
       {/* 2. Modal: Create New Supplier */}
       {showNewSupplierModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
-          <div className="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div role="dialog" aria-modal="true" onClick={() => setShowNewSupplierModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Users className="w-4 h-4 text-[#141414]" />
@@ -2436,8 +2436,8 @@ export const TendersBOQPage: React.FC = () => {
 
       {/* 3. Modal: Supplier Price Comparison */}
       {showComparisonModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
-          <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans max-h-[90vh] flex flex-col">
+        <div role="dialog" aria-modal="true" onClick={() => setShowComparisonModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-4xl bg-white rounded-[24px] border border-zinc-200 overflow-hidden font-sans max-h-[90vh] flex flex-col">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <ArrowRightLeft className="w-4 h-4 text-[#141414]" />
@@ -2493,7 +2493,7 @@ export const TendersBOQPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-4 bg-zinc-50 border-t border-zinc-200 flex justify-end gap-2">
+            <div className="no-print print:hidden p-4 bg-zinc-50 border-t border-zinc-200 flex justify-end gap-2">
               <button
                 onClick={() => setShowComparisonModal(false)}
                 className="button-primary-pill text-xs px-5 py-2"
@@ -2507,14 +2507,14 @@ export const TendersBOQPage: React.FC = () => {
 
       {/* 4. Modal: ZATCA Phase 2 Live Invoice & QR */}
       {showZatcaModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans max-h-[90vh] flex flex-col">
+        <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setShowZatcaModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="erp-printable-sheet w-full max-w-2xl bg-white rounded-[24px] border border-zinc-200 overflow-hidden font-sans max-h-[90vh] flex flex-col">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <QrCode className="w-4 h-4 text-[#141414]" />
                 <span>فاتورة مبيعات ضريبية إلكترونية ZATCA Phase 2 (FATOORAH)</span>
               </h3>
-              <button onClick={() => setShowZatcaModal(false)} className="p-1 text-[#707070] hover:text-[#141414]">
+              <button onClick={() => setShowZatcaModal(false)} className="no-print print:hidden p-1 text-[#707070] hover:text-[#141414]">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -2591,7 +2591,7 @@ export const TendersBOQPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-4 bg-zinc-50 border-t border-zinc-200 flex justify-end gap-2">
+            <div className="no-print print:hidden p-4 bg-zinc-50 border-t border-zinc-200 flex justify-end gap-2">
               <button
                 onClick={() => setShowZatcaModal(false)}
                 className="button-outline-on-light text-xs px-4 py-2"
@@ -2614,8 +2614,8 @@ export const TendersBOQPage: React.FC = () => {
 
       {/* 5. Modal: Import BOQ Items */}
       {showImportModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
-          <div className="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div role="dialog" aria-modal="true" onClick={() => setShowImportModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <FileUp className="w-4 h-4 text-[#141414]" />
@@ -2669,8 +2669,8 @@ export const TendersBOQPage: React.FC = () => {
 
       {/* 6. Modal: Profit Margin Simulator */}
       {showMarginModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div role="dialog" aria-modal="true" onClick={() => setShowMarginModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Percent className="w-4 h-4 text-[#141414]" />
@@ -2724,8 +2724,8 @@ export const TendersBOQPage: React.FC = () => {
 
       {/* 7. Modal: Official Print Modal (Matching Excel File Layout Exactly) */}
       {showPrintModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[2200] flex items-center justify-center p-4">
-          <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl border border-zinc-300 overflow-hidden font-sans max-h-[95vh] flex flex-col">
+        <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setShowPrintModal(false)} className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[2200] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-5xl bg-white rounded-[24px] border border-zinc-300 overflow-hidden font-sans max-h-[95vh] flex flex-col">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between print:hidden">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Printer className="w-4 h-4 text-[#141414]" />
@@ -2737,7 +2737,7 @@ export const TendersBOQPage: React.FC = () => {
             </div>
 
             {/* Print Body */}
-            <div className="p-6 overflow-y-auto space-y-4 bg-white text-[#141414]">
+            <div className="erp-printable-sheet p-6 overflow-y-auto space-y-4 bg-white text-[#141414]">
               {/* Header Box matching Image */}
               <div className="border-2 border-[#e0e0e0] rounded-xl overflow-hidden">
                 <div className="bg-[#f3f3f3] text-[#141414] border-b border-[#e0e0e0] p-3 text-center">
@@ -2844,8 +2844,8 @@ export const TendersBOQPage: React.FC = () => {
 
       {/* 8. Modal: Edit Supplier */}
       {showEditSupplierModal && editingSupplier && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
-          <div className="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div role="dialog" aria-modal="true" onClick={() => setShowEditSupplierModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Edit3 className="w-4 h-4 text-[#141414]" />
@@ -2985,8 +2985,8 @@ export const TendersBOQPage: React.FC = () => {
 
       {/* 9. Modal: Edit Tender Metadata */}
       {showEditTenderModal && editingTender && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div role="dialog" aria-modal="true" onClick={() => setShowEditTenderModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Edit3 className="w-4 h-4 text-[#141414]" />
@@ -3103,8 +3103,8 @@ export const TendersBOQPage: React.FC = () => {
 
       {/* 10. Modal: Supplier Profile Print Card */}
       {showPrintSupplierModal && selectedSupplierForPrint && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[2300] flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-zinc-300 overflow-hidden font-sans max-h-[95vh] flex flex-col">
+        <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setShowPrintSupplierModal(false)} className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[2300] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-white rounded-[24px] border border-zinc-300 overflow-hidden font-sans max-h-[95vh] flex flex-col">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between print:hidden">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Printer className="w-4 h-4 text-[#141414]" />
@@ -3115,7 +3115,7 @@ export const TendersBOQPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto space-y-4 bg-white text-[#141414]">
+            <div className="erp-printable-sheet p-6 overflow-y-auto space-y-4 bg-white text-[#141414]">
               <div className="border-2 border-[#e0e0e0] rounded-2xl overflow-hidden p-6 space-y-4">
                 <div className="flex items-center justify-between border-b-2 border-[#e0e0e0] pb-3">
                   <div>

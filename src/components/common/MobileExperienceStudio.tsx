@@ -315,10 +315,21 @@ export const MobileExperienceStudio: React.FC = () => {
       {/* Full Interactive Mobile Experience Studio Modal — Mobbin Pure Light Mode */}
       {isOpen && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="مركز نسخة الهاتف الذكي"
           className="fixed inset-0 z-[10000] bg-[#141414]/60 backdrop-blur-md flex flex-col lg:flex-row items-center justify-center p-2 sm:p-4 overflow-y-auto"
           dir="rtl"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsOpen(false);
+          }}
         >
-          <div className="w-full max-w-7xl flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-6 my-auto">
+          <div
+            className="w-full max-w-7xl flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-6 my-auto"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsOpen(false);
+            }}
+          >
             {/* Right Panel: Controls, Notifications, Background Sync & Real Phone QR */}
             <div className="w-full lg:w-[440px] bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-5 text-[#141414] flex flex-col justify-between shadow-2xl shrink-0">
               <div className="space-y-4">

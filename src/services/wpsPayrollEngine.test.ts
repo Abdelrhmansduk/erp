@@ -251,4 +251,96 @@ describe('WpsPayrollEngine — Saudi Labor Law & WPS Enterprise Suite', () => {
       expect(unpaid.unpaidDaysForPayroll).toBe(4);
     });
   });
+
+  describe('7. Jisr 2.0 Extensions: Art. 87 EOSB, Cost-Center Splitting, IFRS Accruals & Skip Installment', () => {
+    it('awards 100% EOSB under Article 87 (female marriage/maternity resignation) even under 2 years', () => {
+      const eos = WpsPayrollEngine.calculateEndOfService({
+        startDate: '2025-06-01',
+        endDate: '2026-11-01',
+        lastBasicSalary: 6000,
+        totalAllowances: 3000,
+        contractType: 'FIXED_TERM',
+        separationReason: 'MARRIAGE_OR_MATERNITY_ART87',
+      });
+      expect(eos.entitlementPercentage).toBe(100);
+      expect(eos.awardAmount).toBeGreaterThan(6000);
+      expect(eos.legalArticleNote).toContain('87');
+    });
+
+    it('splits payroll GL journal debit lines across employee cost center allocations with exact equilibrium', () => {
+      const item = WpsPayrollEngine.calculateComprehensivePayrollItem({
+        employeeId: 'emp-split',
+        employeeNumber: 'EMP-900',
+        nationalIdOrIqama: '1012345678',
+        employeeName: 'طلال الشهري',
+        isSaudi: true,
+        basicSalary: 7000,
+        housingAllowance: 2000,
+        transportAllowance: 1000,
+      });
+      item.costCenterAllocations = [
+        { code: 'CC-OPS-01', name: 'عمليات الاستقدام', percent: 60 },
+        { code: 'CC-SHELTER-03', name: 'مركز الإيواء', percent: 40 },
+      ];
+
+      const gl = WpsPayrollEngine.buildCostAllocatedPayrollGlJournal('2026-11', 'SAF', [item]);
+      expect(gl.isBalanced).toBe(true);
+      expect(gl.totalDebit).toBe(gl.totalCredit);
+
+      const salaryDebits = gl.lines.filter((l) => l.accountCode === '530101');
+      expect(salaryDebits).toHaveLength(2);
+      expect(salaryDebits[0].debit).toBe(6000);
+      expect(salaryDebits[1].debit).toBe(4000);
+    });
+
+    it('builds balanced monthly IFRS HR accruals (EOSB, Leave, Tickets, Medical Amortization)', () => {
+      const acc = WpsPayrollEngine.buildMonthlyHrAccrualsJournal('2026-11', 'SAF', [
+        {
+          id: 'emp-1',
+          name: 'موظف 1',
+          hire_date: '2024-01-01',
+          salary: 12000,
+          annual_ticket_allowance: 2400,
+          medical_insurance_annual_cost: 3600,
+          status: 'نشط',
+        },
+      ]);
+      expect(acc.eosbProvisionAmount).toBe(500); // (12000/2)/12
+      expect(acc.leaveProvisionAmount).toBe(700); // (12000/30)*1.75
+      expect(acc.ticketProvisionAmount).toBe(200);
+      expect(acc.medicalAmortizationAmount).toBe(300);
+      expect(acc.journalPayload.isBalanced).toBe(true);
+      expect(acc.journalPayload.totalDebit).toBe(acc.journalPayload.totalCredit);
+    });
+
+    it('defers loan installment when payrollMonth is in deferred_months (Skip Installment)', () => {
+      const deferred = WpsPayrollEngine.getEffectiveAdvanceInstallmentForMonth(
+        {
+          amount: 6000,
+          remaining_amount: 4000,
+          monthly_installment: 1000,
+          installments_count: 6,
+          deferred_months: ['2026-03'],
+          status: 'معتمد',
+        },
+        '2026-03'
+      );
+      expect(deferred.isDeferredThisMonth).toBe(true);
+      expect(deferred.effectiveInstallment).toBe(0);
+
+      const normal = WpsPayrollEngine.getEffectiveAdvanceInstallmentForMonth(
+        {
+          amount: 6000,
+          remaining_amount: 4000,
+          monthly_installment: 1000,
+          installments_count: 6,
+          deferred_months: ['2026-03'],
+          status: 'معتمد',
+        },
+        '2026-04'
+      );
+      expect(normal.isDeferredThisMonth).toBe(false);
+      expect(normal.effectiveInstallment).toBe(1000);
+    });
+  });
 });

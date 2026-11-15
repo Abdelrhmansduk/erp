@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../data/erp_system_data.dart';
+import '../data/supabase_ess_sync_service.dart';
+import '../services/hr_direct_mail_client.dart';
 import '../theme/erp_tokens.dart';
 
 /// Exact Replica of `src/components/smacc/SmaccDashboardWidget.tsx`
@@ -1107,6 +1110,276 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
   String _statusFilter = 'الكل';
   int _smaccOperationalSubTab = 0;
 
+  // Jisr Mobile HR & ESS Interactive State
+  String? _jisrCheckInTime;
+  String? _jisrCheckOutTime;
+  String _selectedJisrRequestType = 'طلب إجازة سنوية';
+  String _cloudSyncStatusLabel = 'جاهز للمزامنة السحابية الفورية (Supabase ESS)';
+  bool _isCloudSyncing = false;
+  bool _corporateCardFrozen = false;
+  double _permissionQuotaUsedHours = 1.5;
+  static const double _permissionQuotaMonthlyHours = 4.0;
+  String? _esignVerifiedHash;
+  int _selectedEnpsScore = 9;
+  final List<({String id, String type, String status})> _jisrMobileRequests = [
+    (id: 'WFR-901', type: 'إجازة سنوية صافية (5 أيام)', status: 'خطوة 1/2: المدير المباشر'),
+    (id: 'WFR-902', type: 'تسوية فاتورة عهدة ZATCA (\u20C1 575)', status: 'معتمد ومرحل ✓'),
+  ];
+
+  // Smart Alerts Center State (Iqama, Art. 53 Probation, Qiwa SLA)
+  final List<({String id, String code, String title, String actionLabel, bool acknowledged})> _jisrSmartAlerts = [
+    (
+      id: 'ALR-IQM-104',
+      code: 'مقيم • إقامة',
+      title: 'قرب انتهاء إقامة موظف خلال 24 يوماً — يلزم إصدار طلب تجديد بمكتب مقيم',
+      actionLabel: 'إقرار وإصدار تجديد مقيم',
+      acknowledged: false,
+    ),
+    (
+      id: 'ALR-PRB-053',
+      code: 'نظام العمل م53',
+      title: 'بلوغ اليوم 78 من فترة التجربة — متاح قرار التثبيت أو التمديد الرسمي إلى 180 يوماً',
+      actionLabel: 'إقرار وتوثيق قرار م53',
+      acknowledged: false,
+    ),
+    (
+      id: 'ALR-QIW-209',
+      code: 'قوى • نطاقات',
+      title: 'مؤشر نطاقات المنشأة في النطاق الأخضر المرتفع — بوابة أهلية التأشيرات مفعلة',
+      actionLabel: 'إقرار ومطابقة السجل',
+      acknowledged: false,
+    ),
+  ];
+
+  // Earned Wage Access (الراتب المرن المستحق — ح/110701) State
+  static const double _monthlyNetWage = 9549.38;
+  static const int _workedDaysInCycle = 18;
+  double _ewaWithdrawnTotal = 0.0;
+  double _selectedEwaPayoutAmount = 1000.0;
+  final List<({String id, double amount, String glRef})> _ewaDisbursements = [];
+
+  // Colleague Shift Swap (تبديل وردية مع زميل — راحة نظامية >= 12 ساعة) State
+  String _selectedSwapColleague = 'ريم احمد بن حسين (hr@kas.sa)';
+  String _selectedSwapShift = 'الوردية المسائية (14:00 - 22:00)';
+  final List<({String id, String colleague, String shiftLabel, String status})> _shiftSwapRequests = [
+    (
+      id: 'SWP-401',
+      colleague: 'الجوري العنزي (a.alanazi@kas.sa)',
+      shiftLabel: 'الوردية الصباحية (08:00 - 16:00)',
+      status: 'معتمد ومحدث في جدول المناوبات ✓',
+    ),
+  ];
+
+  static const List<String> _swapColleagueOptions = [
+    'ريم احمد بن حسين (hr@kas.sa)',
+    'الجوري العنزي (a.alanazi@kas.sa)',
+    'حذيفه رمضان على حسن (h.hassan.safir@kas.sa)',
+    'اكرم محمد الكناني (a.alkinani.acc@kas.sa)',
+  ];
+
+  static const List<String> _swapShiftOptions = [
+    'الوردية الصباحية (08:00 - 16:00)',
+    'الوردية المسائية (14:00 - 22:00)',
+    'مناوبة نهاية الأسبوع المعتمدة (10:00 - 18:00)',
+  ];
+
+  static const Set<String> _jisrHrTabs = {
+    'employees',
+    'payrolls',
+    'attendances',
+    'employee-monitoring',
+    'custodies',
+    'jisr-alerts-compliance',
+    'hr-smart-alerts',
+    'jisr-accruals',
+    'jisr-expenses',
+    'jisr-org-muqeem',
+    'jisr-talent-360',
+    'reem-hr-emails',
+    'hr-official-emails',
+    'ess-self-service',
+    'profile',
+    'self-service',
+  };
+
+  // Reem Bin Hussein Official Bilingual HR Email Suite (HR@kas.sa • CC: Khalid@kas.sa)
+  String _selectedReemTemplateId = 'CUSTOM_OFFICIAL_CORRESPONDENCE';
+  String _selectedReemScope = 'جميع الأقسام (69 حساب @kas.sa)';
+  bool _isSendingReemEmail = false;
+  late final TextEditingController _reemBodyArController;
+  late final TextEditingController _reemBodyEnController;
+
+  List<String> _resolveReemScopeEmails(String scope) {
+    if (scope.contains('Khalid@kas.sa') && scope.contains('h.alsalim@kas.sa')) {
+      return const ['Khalid@kas.sa', 'h.alsalim@kas.sa'];
+    }
+    if (scope.contains('n.alshetwi@kas.sa')) {
+      return const ['n.alshetwi@kas.sa'];
+    }
+    if (scope.contains('HR@kas.sa')) {
+      return const ['HR@kas.sa'];
+    }
+    if (scope.contains('a.farahat@kas.sa')) {
+      return const ['a.farahat@kas.sa'];
+    }
+    return const [
+      'Khalid@kas.sa',
+      'h.alsalim@kas.sa',
+      'n.alshetwi@kas.sa',
+      'HR@kas.sa',
+      'a.farahat@kas.sa',
+    ];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final initialTpl = _reemOfficialTemplates.firstWhere(
+      (t) => t.id == _selectedReemTemplateId,
+      orElse: () => _reemOfficialTemplates.first,
+    );
+    _reemBodyArController = TextEditingController(text: initialTpl.bodyAr);
+    _reemBodyEnController = TextEditingController(text: initialTpl.bodyEn);
+  }
+
+  @override
+  void dispose() {
+    _reemBodyArController.dispose();
+    _reemBodyEnController.dispose();
+    super.dispose();
+  }
+
+  static const List<String> _reemScopeOptions = [
+    'جميع الأقسام (69 حساب @kas.sa)',
+    'الإدارة العليا وتطوير الأعمال (Khalid@kas.sa • h.alsalim@kas.sa)',
+    'التطوير والمتابعة (n.alshetwi@kas.sa)',
+    'الموارد البشرية والشؤون الإدارية (HR@kas.sa)',
+    'الإيواء والخدمات اللوجستية (a.farahat@kas.sa)',
+  ];
+
+  static const List<({
+    String id,
+    String titleAr,
+    String titleEn,
+    String subjectEn,
+    String subjectAr,
+    String bodyAr,
+    String bodyEn,
+  })> _reemOfficialTemplates = [
+    (
+      id: 'CUSTOM_OFFICIAL_CORRESPONDENCE',
+      titleAr: '١. خطاب / مراسلة رسمية مخصصة (تحرير حر بالقالب المعتمد)',
+      titleEn: 'Custom Official HR Correspondence',
+      subjectEn: 'Official Human Resources Correspondence - Khalid Al-Sulaim Group',
+      subjectAr: 'مراسلة رسمية صادرة عن إدارة الموارد البشرية — مجموعة الخالد السليم',
+      bodyAr:
+          'نفيدكم باعتماد التوجيه الإداري الصادر عن إدارة الموارد البشرية بمجموعة الخالد السليم، ونأمل من الجميع الالتزام باستكمال الإجراءات المعتمدة ضمن المهلة المحددة.',
+      bodyEn:
+          'Please be advised of the official administrative directive issued by the Human Resources Department at Khalid Al-Sulaim Trading Group, and kindly ensure timely completion of all approved procedures.',
+    ),
+    (
+      id: 'EMPLOYMENT_TRANSACTION_DECISION',
+      titleAr: '٢. قرار معاملة وظيفية معتمد',
+      titleEn: 'Official Employment Transaction Decision',
+      subjectEn: 'Official Employment Transaction Decision',
+      subjectAr: 'قرار معاملة وظيفية معتمد — الموارد البشرية',
+      bodyAr:
+          'نفيدكم باعتماد المعاملة الوظيفية وتحديث السجل الوظيفي والدرجة المعتمدة في منظومة الموارد البشرية وفق اللوائح المعتمدة لدى مجموعة الخالد السليم.',
+      bodyEn:
+          'Please be informed that your employment transaction has been officially approved and updated in the Khalid Al-Sulaim Trading Group HR registry.',
+    ),
+    (
+      id: 'ADMINISTRATIVE_WARNING_ART71',
+      titleAr: '٣. إنذار وقرار إداري نظامي (المواد 66–72)',
+      titleEn: 'Official Administrative Warning (Labor Law Art. 71)',
+      subjectEn: 'Official Written Administrative Notice - Saudi Labor Law Art. 71',
+      subjectAr: 'إبلاغ خطي بقرار إداري نظامي وفق المادة (71) من نظام العمل',
+      bodyAr:
+          'استناداً إلى محضر التحقيق الإداري وأحكام المواد (66–72) من نظام العمل السعودي، نبلغكم كتابةً بقرار الجزاء المعتمد مع حفظ حق التظلم النظامي عبر البريد الرسمي HR@kas.sa.',
+      bodyEn:
+          'Pursuant to Articles 66-72 of the Saudi Labor Law and the documented investigation minutes, please take formal written notice of the approved disciplinary decision.',
+    ),
+    (
+      id: 'PROACTIVE_COMPLIANCE_ALERT',
+      titleAr: '٤. تنبيه امتثال استباقي وتجديد وثائق',
+      titleEn: 'Proactive HR & Regulatory Compliance Alert',
+      subjectEn: 'Proactive HR Compliance & Document Renewal Notice',
+      subjectAr: 'تنبيه امتثال استباقي وتحديث الوثائق النظامية',
+      bodyAr:
+          'نود تذكيركم بقرب موعد الاستحقاق النظامي لتجديد الوثائق الرسمية (الهوية/الإقامة، عقد قوى، التأمين الطبي، أو فترة التجربة م53)، ونأمل استكمال المتطلبات عبر HR@kas.sa.',
+      bodyEn:
+          'Kindly note the upcoming statutory due date for renewing your official HR/government compliance documents (Iqama, Qiwa contract, CCHI insurance, or Art. 53 probation review).',
+    ),
+    (
+      id: 'ONBOARDING_WELCOME_PACKAGE',
+      titleAr: '٥. حزمة الترحيب والمباشرة الوظيفية',
+      titleEn: 'Official Onboarding & Welcome Package',
+      subjectEn: 'Welcome to Khalid Al-Sulaim Trading Group - Onboarding Package',
+      subjectAr: 'الترحيب بالانضمام واعتماد المباشرة الوظيفية',
+      bodyAr:
+          'نرحب بانضمامكم إلى فريق عمل مجموعة الخالد السليم، ونرفق لكم بيانات البريد الرسمي (@kas.sa) وخطة المباشرة والتأهيل الوظيفي المعتمدة.',
+      bodyEn:
+          'Welcome to Khalid Al-Sulaim Trading Group. Enclosed are your official @kas.sa credentials, onboarding checklist, and the approved onboarding plan.',
+    ),
+    (
+      id: 'INTERDEPARTMENTAL_WORK_TASK',
+      titleAr: '٦. تكليف ومهمة عمل رسمية بين الأقسام',
+      titleEn: 'Official Interdepartmental Work Task Assignment',
+      subjectEn: 'Official Interdepartmental Work Assignment',
+      subjectAr: 'تكليف مهمة عمل رسمية والتنسيق بين الأقسام',
+      bodyAr:
+          'يرجى الاطلاع على ملفات ومخرجات مهمة العمل المشتركة واستكمال الإجراء المطلوب ضمن المهلة المحددة مع إبقاء نسخة المتابعة لبريد الإدارة العليا.',
+      bodyEn:
+          'Please review the assigned interdepartmental deliverables and complete the required action within the scheduled SLA, keeping executive management copied.',
+    ),
+    (
+      id: 'PAYROLL_WPS_PAYSLIP_NOTICE',
+      titleAr: '٧. إشعار مسير الرواتب وحماية الأجور (WPS)',
+      titleEn: 'Monthly Payroll & WPS Disbursement Notice',
+      subjectEn: 'Official Monthly Payroll & WPSPayslip Notification',
+      subjectAr: 'إشعار إيداع مسير الرواتب الشهري وحماية الأجور (WPS)',
+      bodyAr:
+          'نفيدكم باعتماد وصرف مسير الرواتب الشهري بالعملة الرسمية (\u20C1) عبر نظام حماية الأجور (WPS / مدد)، ويمكنكم مراجعة قسيمة الراتب التفصيلية عبر بوابة الخدمة الذاتية.',
+      bodyEn:
+          'Please be advised that the monthly WPS payroll (\u20C1) has been processed and transferred. Detailed payslips are available via the Employee Self-Service portal.',
+    ),
+    (
+      id: 'GENERAL_HR_CIRCULAR',
+      titleAr: '٨. تعميم إداري وتنظيمي عام للمجموعة',
+      titleEn: 'General Corporate HR & Administrative Circular',
+      subjectEn: 'Official Corporate HR Circular - Khalid Al-Sulaim Group',
+      subjectAr: 'تعميم إداري وتنظيمي عام — إدارة الموارد البشرية',
+      bodyAr:
+          'يُعتمد العمل بموجب هذا التعميم الإداري في كافة شركات وأقسام مجموعة الخالد السليم اعتباراً من تاريخ صدوره، ونشكر للجميع حسن التعاون والالتزام.',
+      bodyEn:
+          'This official HR circular takes immediate effect across all Khalid Al-Sulaim Trading Group entities and departments. Thank you for your continuous cooperation.',
+    ),
+  ];
+
+  final List<({String id, String subjectAr, String scope, String status})> _reemDispatchedLog = [
+    (
+      id: 'REEM-2026-01',
+      subjectAr: 'تعميم إداري تنظيمي — ضوابط الدوام الرسمي واعتماد المعاملات الوظيفية',
+      scope: 'جميع الأقسام (69 حساب @kas.sa)',
+      status: 'صادر من HR@kas.sa • نسخة Khalid@kas.sa ✓',
+    ),
+  ];
+
+  static const List<String> _jisrTenRequestTypes = [
+    'طلب إجازة سنوية',
+    'طلب سلفة مالية',
+    'تأجيل قسط سلفة الشهر',
+    'استئذان شخصي',
+    'تصحيح بصمة / مهمة ميدانية',
+    'تسوية مصروفات وعهدة',
+    'رحلة عمل وبدل انتداب',
+    'صرف تذكرة سفر سنوية',
+    'تحديث آيبان وبيانات',
+    'طلب استقالة وإخلاء طرف',
+  ];
+
+  bool get _isJisrHrModule => _jisrHrTabs.contains(widget.activeTab);
+
   static const Set<String> _smaccFinanceTabs = {
     'smacc-accounting',
     'journals',
@@ -1265,11 +1538,14 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
         ),
         const SizedBox(height: 12),
 
-        // SMACC 6-Division Accounting Navigator OR 4-Division Operational Sub-Bar
+        // SMACC 6-Division Accounting Navigator, Jisr HR Mobile Hub, OR 4-Division Operational Sub-Bar
         if (_isSmaccFinanceModule) ...[
           _buildSmaccSixDivisionsNavigator(),
           const SizedBox(height: 12),
           _buildSmaccAccountingDivisionDetails(),
+          const SizedBox(height: 12),
+        ] else if (_isJisrHrModule) ...[
+          _buildJisrMobileHrAndSelfServiceHub(),
           const SizedBox(height: 12),
         ] else ...[
           _buildOperationalSmaccSubTabsBar(),
@@ -1959,6 +2235,1529 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
               }),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildJisrMobileHrAndSelfServiceHub() {
+    final now = TimeOfDay.now();
+    final formattedNow =
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+
+    final accruedWageToDate = (_monthlyNetWage / 30.0) * _workedDaysInCycle;
+    final maxEwaCap = accruedWageToDate * 0.50;
+    final availableEwaBalance =
+        (maxEwaCap - _ewaWithdrawnTotal).clamp(0.0, maxEwaCap);
+    final pendingAlertsCount =
+        _jisrSmartAlerts.where((a) => !a.acknowledged).length;
+    final isReemEmailTabActive = widget.activeTab == 'reem-hr-emails' ||
+        widget.activeTab == 'hr-official-emails';
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFFFF),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (isReemEmailTabActive) ...[
+            _buildReemHrOfficialEmailSection(),
+            const SizedBox(height: 12),
+          ],
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Expanded(
+                child: Row(
+                  children: [
+                    Icon(Icons.fingerprint_rounded, size: 17, color: Color(0xFF141414)),
+                    SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'منظومة جسر للموارد البشرية والخدمة الذاتية والامتثال',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF141414),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: pendingAlertsCount > 0
+                      ? const Color(0xFF141414)
+                      : const Color(0xFFF3F3F3),
+                  borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                  border: Border.all(color: const Color(0xFFE0E0E0)),
+                ),
+                child: Text(
+                  pendingAlertsCount > 0
+                      ? 'تنبيهات نشطة: $pendingAlertsCount'
+                      : 'مكتمل الإقرار ✓',
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    color: pendingAlertsCount > 0
+                        ? const Color(0xFFFFFFFF)
+                        : const Color(0xFF141414),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // 1. GPS Geofence Check-in / Check-out Strip
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF141414),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _jisrCheckInTime == null
+                      ? 'المقر الرئيسي — الرياض (ضمن السياج الجغرافي 250m • KAS-HQ-CORP)'
+                      : 'بصمة اليوم الموثقة: دخول $_jisrCheckInTime${_jisrCheckOutTime != null ? ' | انصراف $_jisrCheckOutTime' : ''}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFFFFFFFF),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          setState(() => _jisrCheckInTime = formattedNow);
+                          widget.onTriggerInstantNotification();
+                        },
+                        borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFFFFF),
+                            borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text(
+                            'تسجيل حضور GPS',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF141414),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          setState(() => _jisrCheckOutTime = formattedNow);
+                          widget.onTriggerInstantNotification();
+                        },
+                        borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF262626),
+                            borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                            border: Border.all(color: const Color(0xFFE0E0E0).withValues(alpha: 0.25)),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text(
+                            'تسجيل انصراف',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFFFFFFF),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // 2. Digital Payslip + Leave Wallet Summary
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3F3F3),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFE0E0E0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'صافي قسيمة الراتب (WPS)',
+                        style: TextStyle(fontSize: 10, color: Color(0xFF707070)),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '\u20C1 ${(_monthlyNetWage - _ewaWithdrawnTotal).toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF141414),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3F3F3),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFE0E0E0)),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'رصيد الإجازة السنوية الصافي',
+                        style: TextStyle(fontSize: 10, color: Color(0xFF707070)),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        '21 يوماً (باستثناء العطل الرسمية)',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF141414),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // 3. Interactive Smart Alerts Radar & Compliance Acknowledgment
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F3F3),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE0E0E0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.notifications_active_outlined, size: 15, color: Color(0xFF141414)),
+                    SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'رادار التنبيهات الذكية والامتثال العمالي (مقيم • م53 • قوى)',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF141414),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ...List.generate(_jisrSmartAlerts.length, (index) {
+                  final alert = _jisrSmartAlerts[index];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 6),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFFFFF),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFE0E0E0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF3F3F3),
+                                borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                                border: Border.all(color: const Color(0xFFE0E0E0)),
+                              ),
+                              child: Text(
+                                '${alert.id} • ${alert.code}',
+                                style: const TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF141414),
+                                ),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: alert.acknowledged
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        _jisrSmartAlerts[index] = (
+                                          id: alert.id,
+                                          code: alert.code,
+                                          title: alert.title,
+                                          actionLabel: alert.actionLabel,
+                                          acknowledged: true,
+                                        );
+                                        _jisrMobileRequests.insert(0, (
+                                          id: alert.id,
+                                          type: '${alert.actionLabel} (${alert.code})',
+                                          status: 'تم التنفيذ والتوثيق ✓',
+                                        ));
+                                      });
+                                      widget.onTriggerInstantNotification();
+                                    },
+                              borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: alert.acknowledged
+                                      ? const Color(0xFFF3F3F3)
+                                      : const Color(0xFF141414),
+                                  borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                                  border: Border.all(color: const Color(0xFFE0E0E0)),
+                                ),
+                                child: Text(
+                                  alert.acknowledged
+                                      ? 'تم الإقرار والتنفيذ ✓'
+                                      : alert.actionLabel,
+                                  style: TextStyle(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: alert.acknowledged
+                                        ? const Color(0xFF141414)
+                                        : const Color(0xFFFFFFFF),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          alert.title,
+                          style: const TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF141414),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // 4. Real Earned Wage Access (الراتب المرن المستحق — Jisr Pay EWA)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F3F3),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE0E0E0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.account_balance_wallet_outlined, size: 15, color: Color(0xFF141414)),
+                        SizedBox(width: 6),
+                        Text(
+                          'الراتب المرن المستحق (أيام عمل فعلية: 18 يوماً)',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF141414),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      'متاح: \u20C1 ${availableEwaBalance.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF141414),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [500.0, 1000.0, 1500.0].map((amt) {
+                    final isSelected = _selectedEwaPayoutAmount == amt;
+                    final isEnabled = amt <= availableEwaBalance;
+                    return InkWell(
+                      onTap: isEnabled
+                          ? () => setState(() => _selectedEwaPayoutAmount = amt)
+                          : null,
+                      borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? const Color(0xFF141414)
+                              : const Color(0xFFFFFFFF),
+                          borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                          border: Border.all(color: const Color(0xFFE0E0E0)),
+                        ),
+                        child: Text(
+                          '\u20C1 ${amt.toStringAsFixed(0)}',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w800,
+                            color: !isEnabled
+                                ? const Color(0xFF707070)
+                                : isSelected
+                                    ? const Color(0xFFFFFFFF)
+                                    : const Color(0xFF141414),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: availableEwaBalance >= 100
+                      ? () {
+                          final payout = _selectedEwaPayoutAmount <= availableEwaBalance
+                              ? _selectedEwaPayoutAmount
+                              : availableEwaBalance;
+                          if (payout <= 0) return;
+                          final stamp = (DateTime.now().millisecondsSinceEpoch % 100000)
+                              .toString()
+                              .padLeft(5, '0');
+                          setState(() {
+                            _ewaWithdrawnTotal += payout;
+                            _ewaDisbursements.insert(0, (
+                              id: 'EWA-$stamp',
+                              amount: payout,
+                              glRef: 'JE-EWA-$stamp (مدين 110701 / دائن 110201)',
+                            ));
+                            _jisrMobileRequests.insert(0, (
+                              id: 'EWA-$stamp',
+                              type: 'صرف راتب مرن مستحق (\u20C1 ${payout.toStringAsFixed(2)})',
+                              status: 'مرحل للأستاذ العام وسند الصرف ✓',
+                            ));
+                          });
+                          widget.onTriggerInstantNotification();
+                        }
+                      : null,
+                  borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 14),
+                    decoration: BoxDecoration(
+                      color: availableEwaBalance >= 100
+                          ? const Color(0xFF141414)
+                          : const Color(0xFFE0E0E0),
+                      borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      availableEwaBalance >= 100
+                          ? 'صرف الراتب المرن وترحيل قيد اليومية (\u20C1 ${(_selectedEwaPayoutAmount <= availableEwaBalance ? _selectedEwaPayoutAmount : availableEwaBalance).toStringAsFixed(0)})'
+                          : 'تم استيفاء السقف المستحق للشهر الحالي',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: availableEwaBalance >= 100
+                            ? const Color(0xFFFFFFFF)
+                            : const Color(0xFF707070),
+                      ),
+                    ),
+                  ),
+                ),
+                if (_ewaDisbursements.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  ..._ewaDisbursements.take(2).map(
+                        (d) => Padding(
+                          padding: const EdgeInsets.only(top: 3),
+                          child: Text(
+                            '${d.id}: \u20C1 ${d.amount.toStringAsFixed(2)} • ${d.glRef}',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF141414),
+                            ),
+                          ),
+                        ),
+                      ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // 5. Real Colleague Shift Swap Submission (تبديل وردية مع زميل)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F3F3),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE0E0E0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.swap_horiz_rounded, size: 16, color: Color(0xFF141414)),
+                    SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'تبديل وردية مع زميل (تحقق فاصل الراحة النظامي >= 12 ساعة)',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF141414),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  height: 36,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFFFF),
+                    borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                    border: Border.all(color: const Color(0xFFE0E0E0)),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _selectedSwapColleague,
+                      isExpanded: true,
+                      style: const TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF141414),
+                      ),
+                      items: _swapColleagueOptions
+                          .map((c) => DropdownMenuItem<String>(value: c, child: Text(c)))
+                          .toList(),
+                      onChanged: (v) {
+                        if (v != null) setState(() => _selectedSwapColleague = v);
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 36,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFFFFF),
+                          borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                          border: Border.all(color: const Color(0xFFE0E0E0)),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedSwapShift,
+                            isExpanded: true,
+                            style: const TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF141414),
+                            ),
+                            items: _swapShiftOptions
+                                .map((s) => DropdownMenuItem<String>(value: s, child: Text(s)))
+                                .toList(),
+                            onChanged: (v) {
+                              if (v != null) setState(() => _selectedSwapShift = v);
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    InkWell(
+                      onTap: () {
+                        final stamp = (DateTime.now().millisecondsSinceEpoch % 10000)
+                            .toString()
+                            .padLeft(4, '0');
+                        setState(() {
+                          _shiftSwapRequests.insert(0, (
+                            id: 'SWP-$stamp',
+                            colleague: _selectedSwapColleague,
+                            shiftLabel: _selectedSwapShift,
+                            status: 'بانتظار اعتماد المشرف',
+                          ));
+                          _jisrMobileRequests.insert(0, (
+                            id: 'SWP-$stamp',
+                            type: 'تبديل وردية مع $_selectedSwapColleague',
+                            status: 'بانتظار اعتماد المشرف',
+                          ));
+                        });
+                        widget.onTriggerInstantNotification();
+                      },
+                      borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF141414),
+                          borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                        ),
+                        child: const Text(
+                          'تقديم التبديل',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFFFFFFFF),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                ..._shiftSwapRequests.take(2).map((swap) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${swap.id} • ${swap.colleague} — ${swap.shiftLabel}',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF141414),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              final idx = _shiftSwapRequests.indexOf(swap);
+                              if (idx >= 0) {
+                                _shiftSwapRequests[idx] = (
+                                  id: swap.id,
+                                  colleague: swap.colleague,
+                                  shiftLabel: swap.shiftLabel,
+                                  status: 'معتمد ومحدث في جدول المناوبات ✓',
+                                );
+                              }
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFFFFF),
+                              borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                              border: Border.all(color: const Color(0xFFE0E0E0)),
+                            ),
+                            child: Text(
+                              swap.status,
+                              style: const TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF141414),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // 6. Quick 10-Request Launcher
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 36,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3F3F3),
+                    borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                    border: Border.all(color: const Color(0xFFE0E0E0)),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _selectedJisrRequestType,
+                      isExpanded: true,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF141414),
+                      ),
+                      items: _jisrTenRequestTypes
+                          .map((t) => DropdownMenuItem<String>(value: t, child: Text(t)))
+                          .toList(),
+                      onChanged: (v) {
+                        if (v != null) setState(() => _selectedJisrRequestType = v);
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: () {
+                  final stamp = (DateTime.now().millisecondsSinceEpoch % 10000)
+                      .toString()
+                      .padLeft(4, '0');
+                  setState(() {
+                    _jisrMobileRequests.insert(0, (
+                      id: 'WFR-$stamp',
+                      type: _selectedJisrRequestType,
+                      status: 'خطوة 1: بانتظار المدير المباشر',
+                    ));
+                  });
+                  widget.onTriggerInstantNotification();
+                },
+                borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF141414),
+                    borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                  ),
+                  child: const Text(
+                    'إطلاق الطلب',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFFFFFFFF),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ..._jisrMobileRequests.take(4).map(
+                (req) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${req.id} • ${req.type}',
+                          style: const TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF141414),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () {
+                          setState(() {
+                            final idx = _jisrMobileRequests.indexOf(req);
+                            if (idx >= 0) {
+                              _jisrMobileRequests[idx] = (
+                                id: req.id,
+                                type: req.type,
+                                status: 'معتمد نهائياً ✓',
+                              );
+                            }
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF3F3F3),
+                            borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                            border: Border.all(color: const Color(0xFFE0E0E0)),
+                          ),
+                          child: Text(
+                            req.status,
+                            style: const TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF141414),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          const SizedBox(height: 12),
+          // 7. Jisr 3.0 Mobile Suite (Supabase Cloud Sync, Corporate Card, Permission Quota, E-Sign, eNPS)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F3F3),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFE0E0E0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'منظومة جسر 3.0 المتنقلة (البطاقة • الاستئذان • التوقيع OTP • نبض eNPS)',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF141414),
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: _isCloudSyncing
+                          ? null
+                          : () async {
+                              setState(() => _isCloudSyncing = true);
+                              final res = await SupabaseEssSyncService.fetchEmployeeEssSnapshot(
+                                'SAF',
+                              );
+                              if (!mounted) return;
+                              setState(() {
+                                _isCloudSyncing = false;
+                                _cloudSyncStatusLabel = res.statusLabel;
+                              });
+                            },
+                      borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF141414),
+                          borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                        ),
+                        child: Text(
+                          _isCloudSyncing ? 'جاري المزامنة...' : 'مزامنة Supabase',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFFFFFFFF),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  _cloudSyncStatusLabel,
+                  style: const TextStyle(fontSize: 10, color: Color(0xFF707070)),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    // Corporate Card Freeze/Unfreeze
+                    InkWell(
+                      onTap: () {
+                        setState(() => _corporateCardFrozen = !_corporateCardFrozen);
+                        SupabaseEssSyncService.pushMobileEssAction(
+                          'hr_corporate_cards',
+                          <String, dynamic>{
+                            'status': _corporateCardFrozen ? 'FROZEN' : 'ACTIVE',
+                            'updated_at': DateTime.now().toIso8601String(),
+                          },
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _corporateCardFrozen
+                              ? const Color(0xFF141414)
+                              : const Color(0xFFFFFFFF),
+                          borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                          border: Border.all(color: const Color(0xFFE0E0E0)),
+                        ),
+                        child: Text(
+                          _corporateCardFrozen
+                              ? 'البطاقة مجمدة (اضغط للفك)'
+                              : 'بطاقة المصروفات نشطة •\u20C1 20,000/شهر',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: _corporateCardFrozen
+                                ? const Color(0xFFFFFFFF)
+                                : const Color(0xFF141414),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Monthly Permission Quota Pill
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          _permissionQuotaUsedHours =
+                              (_permissionQuotaUsedHours + 0.5) > _permissionQuotaMonthlyHours
+                                  ? 0.5
+                                  : _permissionQuotaUsedHours + 0.5;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFFFFF),
+                          borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                          border: Border.all(color: const Color(0xFFE0E0E0)),
+                        ),
+                        child: Text(
+                          'رصيد الاستئذان: ${_permissionQuotaUsedHours.toStringAsFixed(1)} / ${_permissionQuotaMonthlyHours.toStringAsFixed(0)} س (فترة 25-24)',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF141414),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // OTP E-Sign Action
+                    InkWell(
+                      onTap: () {
+                        final stamp = DateTime.now().millisecondsSinceEpoch.toRadixString(16);
+                        setState(() {
+                          _esignVerifiedHash = 'SHA256-OTP-$stamp'.toUpperCase();
+                        });
+                        SupabaseEssSyncService.pushMobileEssAction(
+                          'hr_verified_esignatures',
+                          <String, dynamic>{
+                            'document_type': 'EMPLOYMENT_CONTRACT',
+                            'verification_channel': 'OTP_SMS',
+                            'document_sha256': 'SHA256-OTP-$stamp',
+                            'otp_verified': true,
+                          },
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _esignVerifiedHash != null
+                              ? const Color(0xFF141414)
+                              : const Color(0xFFFFFFFF),
+                          borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                          border: Border.all(color: const Color(0xFFE0E0E0)),
+                        ),
+                        child: Text(
+                          _esignVerifiedHash != null
+                              ? 'موقّع عبر OTP ✓ ($_esignVerifiedHash)'
+                              : 'توثيق عقد بـ OTP (SHA-256)',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: _esignVerifiedHash != null
+                                ? const Color(0xFFFFFFFF)
+                                : const Color(0xFF141414),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Text(
+                      'نبض eNPS السري:',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF141414),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        children: List<int>.generate(11, (i) => i).map((score) {
+                          final selected = _selectedEnpsScore == score;
+                          return InkWell(
+                            onTap: () => setState(() => _selectedEnpsScore = score),
+                            borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                            child: Container(
+                              width: 22,
+                              height: 22,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: selected
+                                    ? const Color(0xFF141414)
+                                    : const Color(0xFFFFFFFF),
+                                borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                                border: Border.all(color: const Color(0xFFE0E0E0)),
+                              ),
+                              child: Text(
+                                '$score',
+                                style: TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: selected
+                                      ? const Color(0xFFFFFFFF)
+                                      : const Color(0xFF141414),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          if (!isReemEmailTabActive) ...[
+            const SizedBox(height: 12),
+            _buildReemHrOfficialEmailSection(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReemHrOfficialEmailSection() {
+    final activeTpl = _reemOfficialTemplates.firstWhere(
+      (t) => t.id == _selectedReemTemplateId,
+      orElse: () => _reemOfficialTemplates.first,
+    );
+    final effectiveBodyAr = _reemBodyArController.text.trim().isEmpty
+        ? activeTpl.bodyAr
+        : _reemBodyArController.text.trim();
+    final effectiveBodyEn = _reemBodyEnController.text.trim().isEmpty
+        ? activeTpl.bodyEn
+        : _reemBodyEnController.text.trim();
+    final combinedSubject = '${activeTpl.subjectEn} - ${activeTpl.subjectAr}';
+    final fullBilingualDraft = '''
+From: Reem Bin Hussein - HR <HR@kas.sa>
+To: $_selectedReemScope
+CC: Khalid@kas.sa
+Subject: $combinedSubject
+
+السلام عليكم ورحمة الله وبركاته
+الزميلات والزملاء الكرام في جميع الأقسام،
+
+$effectiveBodyAr
+
+شكرا لكم على حسن تعاونكم الدائم مع تمنياتنا للجميع بالتوفيق والنجاح ..
+تفضلوا بقبول فائق الاحترام ..
+ريم بن حسين — مديرة الموارد البشرية
+
+--------------------------------------------------
+
+Peace, mercy, and blessings of Allah be upon you.
+Dear colleagues across all departments,
+
+$effectiveBodyEn
+
+Thank you for your continuous cooperation, wishing everyone continued success.
+Please accept our utmost respect,
+
+Reem Bin Hussain
+International HR & Talent Acquisition Consultant
+Email: HR@kas.sa
+Mobile: +966 553452122
+KHALID AL-SULAIM TRADING GROUP — مجموعة الخالد السليم
+'''
+        .trim();
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F3F3),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Expanded(
+                child: Row(
+                  children: [
+                    Icon(Icons.mark_email_read_rounded, size: 16, color: Color(0xFF141414)),
+                    SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'بريد وتعميمات الموارد البشرية الرسمي (HR@kas.sa • نسخة Khalid@kas.sa)',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF141414),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF141414),
+                  borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                ),
+                child: const Text(
+                  'أ. ريم بن حسين',
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFFFFFFFF),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Bilingual Template Selector
+          Container(
+            height: 38,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFFFF),
+              borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+              border: Border.all(color: const Color(0xFFE0E0E0)),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _selectedReemTemplateId,
+                isExpanded: true,
+                style: const TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF141414),
+                ),
+                items: _reemOfficialTemplates
+                    .map(
+                      (tpl) => DropdownMenuItem<String>(
+                        value: tpl.id,
+                        child: Text(
+                          '${tpl.titleAr} — ${tpl.titleEn}',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (v) {
+                  if (v != null) {
+                    final nextTpl = _reemOfficialTemplates.firstWhere(
+                      (t) => t.id == v,
+                      orElse: () => _reemOfficialTemplates.first,
+                    );
+                    setState(() {
+                      _selectedReemTemplateId = v;
+                      _reemBodyArController.text = nextTpl.bodyAr;
+                      _reemBodyEnController.text = nextTpl.bodyEn;
+                    });
+                  }
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+
+          // Recipient Scope Selector
+          Container(
+            height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFFFF),
+              borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+              border: Border.all(color: const Color(0xFFE0E0E0)),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _selectedReemScope,
+                isExpanded: true,
+                style: const TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF141414),
+                ),
+                items: _reemScopeOptions
+                    .map((s) => DropdownMenuItem<String>(value: s, child: Text(s, overflow: TextOverflow.ellipsis)))
+                    .toList(),
+                onChanged: (v) {
+                  if (v != null) setState(() => _selectedReemScope = v);
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Live Bilingual Outlook Frame & Direct Editor Card
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFFFF),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE0E0E0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'من: HR@kas.sa (ريم احمد بن حسين) • نسخة إلزامية: Khalid@kas.sa',
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF141414),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  combinedSubject,
+                  style: const TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF141414),
+                  ),
+                ),
+                const Divider(height: 12, color: Color(0xFFE0E0E0)),
+                const Text(
+                  'السلام عليكم ورحمة الله وبركاته — الزميلات والزملاء الكرام في جميع الأقسام،',
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF141414),
+                  ),
+                ),
+                const SizedBox(height: 5),
+                TextField(
+                  controller: _reemBodyArController,
+                  minLines: 2,
+                  maxLines: 3,
+                  onChanged: (_) => setState(() {}),
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF141414),
+                    height: 1.4,
+                  ),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    filled: true,
+                    fillColor: const Color(0xFFF0F0F0),
+                    hintText: 'اكتب نص المراسلة الرسمية بالعربية هنا...',
+                    hintStyle: const TextStyle(fontSize: 9.5, color: Color(0xFF707070)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFF141414), width: 1.5),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'تفضلوا بقبول فائق الاحترام .. ريم بن حسين — مديرة الموارد البشرية',
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF141414),
+                  ),
+                ),
+                const Divider(height: 12, color: Color(0xFFE0E0E0)),
+                Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text(
+                        'Peace, mercy, and blessings of Allah be upon you — Dear colleagues across all departments,',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF141414),
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      TextField(
+                        controller: _reemBodyEnController,
+                        minLines: 2,
+                        maxLines: 3,
+                        onChanged: (_) => setState(() {}),
+                        style: const TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF141414),
+                          height: 1.38,
+                        ),
+                        decoration: InputDecoration(
+                          isDense: true,
+                          filled: true,
+                          fillColor: const Color(0xFFF0F0F0),
+                          hintText: 'Write custom official English HR correspondence body...',
+                          hintStyle: const TextStyle(fontSize: 9, color: Color(0xFF707070)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Color(0xFF141414), width: 1.5),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F3F3),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFE0E0E0)),
+                        ),
+                        child: const Text(
+                          'Reem Bin Hussain\nInternational HR & Talent Acquisition Consultant\nEmail: HR@kas.sa\nMobile: +966 553452122\nKHALID AL-SULAIM TRADING GROUP — مجموعة الخالد السليم',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF141414),
+                            height: 1.38,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Copy-to-Clipboard & Official Dispatch Actions
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: () async {
+                    final messenger = ScaffoldMessenger.maybeOf(context);
+                    await Clipboard.setData(ClipboardData(text: fullBilingualDraft));
+                    messenger?.showSnackBar(
+                      const SnackBar(
+                        backgroundColor: Color(0xFF141414),
+                        content: Text(
+                          'تم نسخ المسودة الثنائية (عربي/EN) بتوقيع أ. ريم بن حسين للصق في Outlook',
+                          style: TextStyle(color: Color(0xFFFFFFFF), fontSize: 11.5),
+                        ),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFFFFF),
+                      borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                      border: Border.all(color: const Color(0xFFE0E0E0)),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.copy_rounded, size: 13, color: Color(0xFF141414)),
+                        SizedBox(width: 5),
+                        Flexible(
+                          child: Text(
+                            'نسخ لـ Outlook',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF141414),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: InkWell(
+                  onTap: () async {
+                    if (_isSendingReemEmail) return;
+                    setState(() => _isSendingReemEmail = true);
+                    final res = await HrDirectMailService.dispatchOfficialEmail(
+                      subject: combinedSubject,
+                      toEmails: _resolveReemScopeEmails(_selectedReemScope),
+                      bodyAr: effectiveBodyAr,
+                      bodyEn: effectiveBodyEn,
+                    );
+                    if (!mounted) return;
+                    final stamp = (DateTime.now().millisecondsSinceEpoch % 10000)
+                        .toString()
+                        .padLeft(4, '0');
+                    setState(() {
+                      _isSendingReemEmail = false;
+                      _reemDispatchedLog.insert(0, (
+                        id: 'REEM-$stamp',
+                        subjectAr: activeTpl.subjectAr,
+                        scope: _selectedReemScope,
+                        status: res.ok
+                            ? 'تم الإرسال المباشر (${res.provider ?? 'SMTP'}) • نسخة Khalid@kas.sa ✓'
+                            : 'بانتظار تفعيل بوابة البريد على الخادم',
+                      ));
+                      if (res.ok) {
+                        _jisrMobileRequests.insert(0, (
+                          id: 'REEM-$stamp',
+                          type: 'بريد رسمي HR@kas.sa: ${activeTpl.subjectAr}',
+                          status:
+                              'تم الإرسال المباشر (${res.provider ?? 'SMTP'}) • نسخة Khalid@kas.sa ✓',
+                        ));
+                      }
+                    });
+                    if (res.ok) {
+                      widget.onTriggerInstantNotification();
+                    }
+                    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+                      SnackBar(
+                        backgroundColor: const Color(0xFF141414),
+                        content: Text(
+                          res.messageAr,
+                          style: const TextStyle(color: Color(0xFFFFFFFF), fontSize: 11.5),
+                        ),
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF141414),
+                      borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
+                    ),
+                    alignment: Alignment.center,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.send_rounded, size: 13, color: Color(0xFFFFFFFF)),
+                        const SizedBox(width: 5),
+                        Flexible(
+                          child: Text(
+                            _isSendingReemEmail
+                                ? 'جاري الإرسال المباشر...'
+                                : 'إرسال مباشر رسمي (HR@kas.sa)',
+                            style: const TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFFFFFFFF),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ..._reemDispatchedLog.take(2).map(
+                (entry) => Padding(
+                  padding: const EdgeInsets.only(top: 3),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${entry.id} • ${entry.subjectAr}',
+                          style: const TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF141414),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        entry.status,
+                        style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF141414),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
         ],
       ),
     );

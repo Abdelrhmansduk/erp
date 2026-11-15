@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useModalEscape } from '../hooks/useModalEscape';
 import { Badge } from '../components/ui/Badge';
 import { exportData } from '../services/exportService';
 import { ExportDropdown } from '../components/common/ExportDropdown';
@@ -99,6 +100,7 @@ const MOCK_FIN_REQUESTS: FinancialReq[] = [
 ];
 
 export const FinancialRequestsPage: React.FC = () => {
+  useModalEscape();
   const { activeCompany } = useCompany();
   const { activeTab: storeActiveTab, addNotification } = useAppStore();
   const [requests, setRequests] = useState<FinancialReq[]>([]);
@@ -146,18 +148,41 @@ export const FinancialRequestsPage: React.FC = () => {
 
   const handleCreateRequest = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!paidTo || !amount) return;
+    const parsedAmount = parseFloat(amount);
+    if (!paidTo.trim() || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      addNotification({
+        title: 'بيانات الطلب غير مكتملة',
+        message: 'يرجى إدخال المستفيد ومبلغ أكبر من صفر قبل الحفظ.',
+        type: 'warning',
+      });
+      return;
+    }
+    const cleanIban = iban.replace(/\s+/g, '').toUpperCase();
+    if (cleanIban.startsWith('SA') && !/^SA\d{22}$/.test(cleanIban)) {
+      addNotification({
+        title: 'رقم الآيبان غير صالح',
+        message: 'الآيبان السعودي يجب أن يتكون من 24 خانة (SA متبوعة بـ 22 رقماً).',
+        type: 'warning',
+      });
+      return;
+    }
+
+    const nextSeq =
+      requests.reduce((max, r) => {
+        const n = parseInt(String(r.request_number || '').replace(/\D/g, '').slice(-3), 10);
+        return Number.isFinite(n) && n > max ? n : max;
+      }, 0) + 1;
 
     const newReq: FinancialReq = {
       id: `FIN-${Date.now().toString().slice(-4)}`,
-      request_number: `#FIN-2026-00${requests.length + 1}`,
+      request_number: `#FIN-2026-${String(nextSeq).padStart(3, '0')}`,
       paid_to: paidTo,
       branch,
       accounting_name: accountingName || 'طلب مصروفات تشغيلية',
       request_type: requestType,
       escalation,
       date: new Date().toISOString().slice(0, 10),
-      amount: parseFloat(amount) || 0,
+      amount: parsedAmount,
       entry_type: entryType,
       payment_method: paymentMethod,
       description,
@@ -165,7 +190,7 @@ export const FinancialRequestsPage: React.FC = () => {
       bank_name: bankName,
       account_owner: accountOwner || paidTo,
       account_number: accountNumber || '10000000',
-      iban: iban || 'SA0000000000000000',
+      iban: cleanIban || 'SA0000000000000000',
       status: 'بانتظار الاعتماد',
       applicant: 'عبد الفتاح (مشرف عام)',
     };
@@ -437,8 +462,8 @@ export const FinancialRequestsPage: React.FC = () => {
 
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
+          <div className="w-full max-w-2xl bg-white rounded-[24px] border border-zinc-200 overflow-hidden font-sans max-h-[90vh] flex flex-col">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between shrink-0">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <FileText className="w-4 h-4 text-[#141414]" />

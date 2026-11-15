@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useModalEscape } from '../hooks/useModalEscape';
 import { exportData } from '../services/exportService';
 import { ExportDropdown } from '../components/common/ExportDropdown';
 import { useCostCenters, useTableMutation } from '../hooks/queries/useErpQueries';
@@ -92,6 +93,7 @@ const KAS_DEFAULT_COST_CENTERS: CostCenterRecord[] = [
 ];
 
 export const CostCentersPage: React.FC = () => {
+  useModalEscape();
   const { activeCompanyId, activeCompany } = useCompany();
   const isKasTrade = isKasTradeCompany(activeCompanyId);
   const { data: rawCostCenters = [], isLoading } = useCostCenters();
@@ -519,8 +521,8 @@ export const CostCentersPage: React.FC = () => {
 
       {/* Add Cost Center Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <PieChart className="w-4 h-4 text-[#141414]" />
@@ -590,8 +592,8 @@ export const CostCentersPage: React.FC = () => {
       )}
       {/* Record Expense Modal */}
       {selectedCostCenterForExpense && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setSelectedCostCenterForExpense(null); }}>
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans animate-in fade-in zoom-in-95 max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <DollarSign className="w-5 h-5 text-[#141414]" />

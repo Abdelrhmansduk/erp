@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useModalEscape } from '../hooks/useModalEscape';
 import {
   DollarSign,
   Plus,
@@ -232,6 +233,7 @@ const DEFAULT_MOCK_VOUCHERS: VoucherRecord[] = [
 ];
 
 export const SmaccAccountingPage: React.FC = () => {
+  useModalEscape();
   const { activeTab: storeActiveTab, setActiveTab: setGlobalActiveTab, addNotification } = useAppStore();
   const { activeCompanyId, activeCompany } = useCompany();
   const isKasTrade = isKasTradeCompany(activeCompanyId);
@@ -2455,8 +2457,8 @@ export const SmaccAccountingPage: React.FC = () => {
 
       {/* PREVIEW MODAL 1: View Journal */}
       {selectedJournalForPreview && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden text-[#141414] font-sans">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setSelectedJournalForPreview(null); }}>
+          <div className="w-full max-w-2xl bg-white rounded-[24px] border border-zinc-200 overflow-y-auto text-[#141414] font-sans max-h-[90vh]">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between print:hidden">
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-[#141414]" />
@@ -2548,8 +2550,8 @@ export const SmaccAccountingPage: React.FC = () => {
 
       {/* PREVIEW MODAL 2: View Voucher */}
       {selectedVoucherForPreview && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden text-[#141414] font-sans">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setSelectedVoucherForPreview(null); }}>
+          <div className="w-full max-w-2xl bg-white rounded-[24px] border border-zinc-200 overflow-y-auto text-[#141414] font-sans max-h-[90vh]">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between print:hidden">
               <div className="flex items-center gap-2">
                 <Receipt className="w-4 h-4 text-[#141414]" />

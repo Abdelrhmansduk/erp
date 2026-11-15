@@ -128,8 +128,12 @@ export const GoogleAccountBindingModal: React.FC<GoogleAccountBindingModalProps>
       aria-labelledby="google-binding-modal-title"
       dir="rtl"
       className="fixed inset-0 z-50 bg-[#141414]/65 backdrop-blur-xs flex items-center justify-center p-4"
+      onClick={onRemindLater}
     >
-      <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[28px] max-w-lg w-full p-6 sm:p-7 space-y-5 text-right shadow-2xl">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 sm:p-7 space-y-5 text-right"
+      >
         {/* Header */}
         <div className="flex items-start justify-between gap-3 border-b border-[#f0f0f0] pb-4">
           <div className="flex items-center gap-3">
@@ -215,7 +219,7 @@ export const GoogleAccountBindingModal: React.FC<GoogleAccountBindingModalProps>
             {errorMsg && (
               <div
                 role="alert"
-                className="p-3.5 rounded-2xl bg-[#fff1f2] border border-[#fecdd3] text-[#141414] text-xs font-bold flex items-center gap-2"
+                className="p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#141414] text-[#141414] text-xs font-bold flex items-center gap-2"
               >
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{errorMsg}</span>

@@ -453,8 +453,8 @@ export const ClientPortalPage: React.FC = () => {
 
       {/* Contract Detail Modal */}
       {selectedContract && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl p-6 max-w-xl w-full border border-slate-200 shadow-2xl relative space-y-5">
+        <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setSelectedContract(null)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div onClick={(e) => e.stopPropagation()} className="erp-printable-sheet bg-white rounded-[24px] p-6 max-w-xl w-full border border-slate-200 relative space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-6 h-6 text-[#141414]" />
@@ -465,7 +465,7 @@ export const ClientPortalPage: React.FC = () => {
               <button 
                 type="button"
                 onClick={() => setSelectedContract(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer"
+                className="no-print print:hidden w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer"
                 aria-label="إغلاق"
               >
                 ✕
@@ -524,7 +524,7 @@ export const ClientPortalPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-between items-center gap-2 pt-3 border-t border-zinc-100 flex-wrap">
+            <div className="no-print print:hidden flex justify-between items-center gap-2 pt-3 border-t border-zinc-100 flex-wrap">
               <button
                 type="button"
                 onClick={() => window.print()}
@@ -560,8 +560,8 @@ export const ClientPortalPage: React.FC = () => {
 
       {/* Support / Complaint Modal */}
       {showSupportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="card-pricing bg-white rounded-3xl p-6 max-w-lg w-full border border-zinc-200 shadow-2xl space-y-4 text-right dir-rtl">
+        <div role="dialog" aria-modal="true" onClick={() => setShowSupportModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white rounded-[24px] p-6 max-w-lg w-full border border-zinc-200 space-y-4 text-right dir-rtl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
               <div className="flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-[#141414]" />
@@ -673,8 +673,8 @@ export const ClientPortalPage: React.FC = () => {
 
       {/* Pay Contract Balance Modal */}
       {showPayModal && payingContract && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="card-pricing bg-white rounded-3xl p-6 max-w-md w-full border border-zinc-200 shadow-2xl space-y-4 text-right dir-rtl">
+        <div role="dialog" aria-modal="true" onClick={() => { setShowPayModal(false); setPayingContract(null); }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white rounded-[24px] p-6 max-w-md w-full border border-zinc-200 space-y-4 text-right dir-rtl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
               <div className="flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-[#141414]" />

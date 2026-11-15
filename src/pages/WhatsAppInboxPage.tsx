@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Badge } from '../components/ui/Badge';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import { exportData } from '../services/exportService';
+import { shareViaWhatsApp } from '../services/quickShareService';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { useAppStore } from '../stores/appStore';
 import { useCompany } from '../contexts/CompanyContext';
 import { isKasTradeCompany, scopeRecordsForCompany, tagKasRecords } from '../services/kasTradeScope';
-import { MessageSquare, PhoneCall, Send, Search, FileSpreadsheet, FileText, CheckCheck, Sparkles, Plus, X, Users } from 'lucide-react';
+import { MessageSquare, PhoneCall, Send, Search, FileSpreadsheet, FileText, Sparkles, Plus, X, Paperclip } from 'lucide-react';
 
 interface WhatsAppChat {
   id: string;
@@ -65,6 +66,8 @@ export const WhatsAppInboxPage: React.FC = () => {
   const [chats, setChats] = useState<WhatsAppChat[]>(initialChatList);
   const [activeChat, setActiveChat] = useState<WhatsAppChat>(initialChatList[0]);
   const [replyText, setReplyText] = useState('');
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchFilter, setSearchFilter] = useState('');
   const [showNewChatModal, setShowNewChatModal] = useState(false);
   const [clientOptions, setClientOptions] = useState<any[]>([]);
@@ -100,6 +103,42 @@ export const WhatsAppInboxPage: React.FC = () => {
       }
     });
   }, [activeCompanyId]);
+
+  const handleSendWhatsAppWithFile = () => {
+    const messageBody =
+      replyText.trim() ||
+      (isKasTrade
+        ? 'مرحباً بكم من شركة كاس للتجارة والمنافسات، مرفق لكم المستند الرسمي المعتمد.'
+        : 'مرحباً بكم من مجموعة السليم للاستقدام، مرفق لكم المستند الرسمي المعتمد.');
+
+    shareViaWhatsApp({
+      title: attachedFile
+        ? `مراسلة رسمية مرفقة (${attachedFile.name})`
+        : isKasTrade
+        ? 'إشعار ومستند تجاري رسمي — شركة كاس للتجارة'
+        : 'إشعار ومستند رسمي — مجموعة خالد السليم',
+      recipientName: activeChat.client_name,
+      recipientPhone: activeChat.phone,
+      entityCode: activeCompanyId,
+      moduleName: 'whatsapp_inbox',
+      bodyText: messageBody,
+      attachmentFile: attachedFile || undefined,
+      attachmentFileName: attachedFile?.name,
+    });
+
+    const attachmentLabel = attachedFile ? ` [مرفق: ${attachedFile.name}]` : ' [مرفق: مستند PDF رسمي]';
+    const newMsg = {
+      sender: 'system',
+      text: `${messageBody}${attachmentLabel}`,
+      time: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
+    };
+    setMessages((prev) => [...prev, newMsg]);
+    setReplyText('');
+    setAttachedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -372,17 +411,16 @@ export const WhatsAppInboxPage: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <a
-                href={`https://wa.me/${activeChat.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(replyText || (isKasTrade ? 'مرحباً بك من شركة كاس للتجارة والمنافسات' : 'مرحباً بك من مجموعة السليم للاستقدام'))}`}
-                target="_blank"
-                rel="noreferrer"
-                className="button-outline-on-light inline-flex items-center gap-1.5"
+              <button
+                type="button"
+                onClick={handleSendWhatsAppWithFile}
+                className="button-outline-on-light inline-flex items-center gap-1.5 cursor-pointer"
                 style={{ minHeight: '30px', padding: '4px 12px', fontSize: '11px' }}
-                title="فتح تطبيق WhatsApp Web المباشر"
+                title="توليد ملف PDF رسمي وإرساله مع النص عبر WhatsApp"
               >
                 <PhoneCall className="w-3.5 h-3.5 text-[#141414]" />
-                <span>فتح WhatsApp Web</span>
-              </a>
+                <span>إرسال واتساب (PDF + نص)</span>
+              </button>
               <Badge text="متصل بـ WhatsApp Cloud API" type="gold" />
             </div>
           </div>
@@ -409,31 +447,77 @@ export const WhatsAppInboxPage: React.FC = () => {
           </div>
 
           {/* Reply Form */}
-          <form onSubmit={handleSendMessage} className="p-3 border-t border-zinc-200 bg-white flex items-center gap-2">
-            <input
-              type="text"
-              aria-label="اكتب ردك للعميل أو اختر قالباً جاهزاً من الأعلى"
-              placeholder="اكتب ردك للعميل أو اختر قالباً جاهزاً من الأعلى..."
-              value={replyText}
-              onChange={e => setReplyText(e.target.value)}
-              className="flex-1 px-4 py-2 bg-zinc-50 border border-zinc-200 rounded-full text-xs text-[#141414] focus:outline-none focus:border-[#141414]"
-            />
-            <button
-              type="submit"
-              className="button-primary-pill"
-              style={{ padding: '6px 18px', minHeight: '36px', fontSize: '12px' }}
-            >
-              <Send className="w-3.5 h-3.5 ml-1" />
-              <span>إرسال</span>
-            </button>
+          <form onSubmit={handleSendMessage} className="p-3 border-t border-zinc-200 bg-white space-y-2">
+            {attachedFile && (
+              <div className="flex items-center justify-between px-3 py-1.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[11px]">
+                <span className="font-bold text-[#141414] truncate">
+                  ملف مرفق جاهز للإرسال مع النص: {attachedFile.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAttachedFile(null);
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="text-[#707070] hover:text-[#141414] p-0.5 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+            <div className="flex items-center gap-2 flex-wrap">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xlsx"
+                onChange={(e) => setAttachedFile(e.target.files?.[0] || null)}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="button-outline-on-light cursor-pointer"
+                style={{ padding: '6px 12px', minHeight: '36px', fontSize: '11.5px' }}
+                title="إرفاق ملف مخصص (أو اتركه فارغاً لتوليد PDF رسمي تلقائياً)"
+              >
+                <Paperclip className="w-3.5 h-3.5 ml-1" />
+                <span>{attachedFile ? 'تغيير الملف' : 'إرفاق ملف'}</span>
+              </button>
+              <input
+                type="text"
+                aria-label="اكتب ردك للعميل أو اختر قالباً جاهزاً من الأعلى"
+                placeholder="اكتب ردك للعميل أو اختر قالباً جاهزاً من الأعلى..."
+                value={replyText}
+                onChange={e => setReplyText(e.target.value)}
+                className="flex-1 min-w-[180px] px-4 py-2 bg-zinc-50 border border-zinc-200 rounded-full text-xs text-[#141414] focus:outline-none focus:border-[#141414]"
+              />
+              <button
+                type="button"
+                onClick={handleSendWhatsAppWithFile}
+                className="button-outline-on-light cursor-pointer"
+                style={{ padding: '6px 14px', minHeight: '36px', fontSize: '11.5px' }}
+                title="إرسال ملف PDF الرسمي + النص عبر واتساب"
+              >
+                <FileText className="w-3.5 h-3.5 ml-1" />
+                <span>واتساب (PDF + نص)</span>
+              </button>
+              <button
+                type="submit"
+                className="button-primary-pill"
+                style={{ padding: '6px 18px', minHeight: '36px', fontSize: '12px' }}
+              >
+                <Send className="w-3.5 h-3.5 ml-1" />
+                <span>إرسال</span>
+              </button>
+            </div>
           </form>
         </div>
       </div>
 
       {/* New Chat Modal */}
       {showNewChatModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div role="dialog" aria-modal="true" onClick={() => setShowNewChatModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <PhoneCall className="w-4 h-4 text-[#141414]" />

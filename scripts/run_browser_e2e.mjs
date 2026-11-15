@@ -197,6 +197,26 @@ async function main() {
       await new Promise((r) => setTimeout(r, 1300));
     }
 
+    // Verify Mandatory Biometric + Live Camera + Barcode Fallback Gate opens on Launcher entry
+    const hasBiometricGateOnOpen = Boolean(
+      await page.$('[data-slot="biometric-attendance-gate-modal"]')
+    );
+    console.log(
+      `  3.5️⃣ Biometric + Camera + Barcode Gate visible upon opening: ${hasBiometricGateOnOpen}`
+    );
+    if (hasBiometricGateOnOpen) {
+      const switchBarcodeBtn = await page.$('[data-slot="switch-to-barcode-fallback-btn"]');
+      if (switchBarcodeBtn) {
+        await switchBarcodeBtn.click();
+        await new Promise((r) => setTimeout(r, 350));
+      }
+      const verifyBadgeBtn = await page.$('[data-slot="verify-digital-badge-btn"]');
+      if (verifyBadgeBtn) {
+        await verifyBadgeBtn.click();
+        await new Promise((r) => setTimeout(r, 900));
+      }
+    }
+
     // Click "فتح شاشة القسم الرئيسية" to open the full Executive Dashboard with financial KPIs
     await page.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('button'));

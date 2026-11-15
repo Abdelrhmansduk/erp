@@ -498,8 +498,8 @@ export const TravelPage: React.FC = () => {
 
       {/* Add Flight Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
-          <div className="w-full max-w-xl bg-white border border-zinc-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white border border-zinc-200 rounded-[24px] overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="text-base font-bold text-[#141414] flex items-center gap-2">
                 <Plane className="w-4 h-4 text-[#141414]" />
@@ -629,9 +629,9 @@ export const TravelPage: React.FC = () => {
 
       {/* Airport Reception Order Printable Modal */}
       {selectedFlightForPrint && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
-          <div className="w-full max-w-2xl bg-white border border-zinc-200 rounded-3xl shadow-2xl overflow-hidden p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4 border-b border-zinc-100 pb-3">
+        <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setSelectedFlightForPrint(null)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-white border border-zinc-200 rounded-[24px] p-6 max-h-[90vh] overflow-y-auto">
+            <div className="no-print print:hidden flex justify-between items-center mb-4 border-b border-zinc-100 pb-3">
               <div className="flex items-center gap-2">
                 <Car className="w-5 h-5 text-[#141414]" />
                 <h3 className="font-bold text-[#141414] text-base">أمر استقبال وتفويج سائق المطار الرسمي</h3>
@@ -645,7 +645,7 @@ export const TravelPage: React.FC = () => {
             </div>
 
             {/* Printable Order Body */}
-            <div className="p-6 bg-white border-2 border-zinc-900 rounded-2xl space-y-4 font-sans text-xs">
+            <div className="erp-printable-sheet p-6 bg-white border-2 border-zinc-900 rounded-2xl space-y-4 font-sans text-xs">
               {/* Header */}
               <div className="flex items-center justify-between border-b-2 border-zinc-900 pb-4">
                 <div>
@@ -709,7 +709,7 @@ export const TravelPage: React.FC = () => {
             </div>
 
             {/* Actions */}
-            <div className="flex justify-between items-center gap-2 pt-4 border-t border-zinc-100 mt-4">
+            <div className="no-print print:hidden flex justify-between items-center gap-2 pt-4 border-t border-zinc-100 mt-4">
               <button
                 type="button"
                 onClick={() => window.print()}

@@ -35,6 +35,7 @@ supabase/.branches/
 
 # Local artifacts
 *.local
+.hr-mail-gateway.local
 .cache/
 .agents/skills/awesome-skills/
 .agents/skills/community-skills/

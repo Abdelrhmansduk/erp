@@ -285,6 +285,19 @@ export const AI_TOOL_REGISTRY: AiToolDefinition[] = [
   },
 
   // ═══════════════════════════════════════════════════════════
+  {
+    id: 'scan_hr_smart_alerts',
+    nameAr: 'رادار جسر للتنبيهات الذكية وفترة التجربة ونطاقات',
+    descriptionAr: 'فحص شامل لتنبيهات الموارد البشرية الاستباقية: انتهاء فترة التجربة (المادة 53)، الإقامات، عقود قوى (المادة 55)، تجاوز SLA للاعتمادات، ومؤشر نطاقات التوطين.',
+    companyScope: [],
+    departmentScope: ['hr', 'executive', 'finance'],
+    requiredPermission: 'hr.monitoring.read',
+    riskLevel: 'low',
+    category: 'hr',
+    isMutating: false,
+    parameters: [],
+  },
+
   //  6. CRM, CLIENTS & COMPLAINTS (قسم المبيعات وخدمة العملاء والشكاوى)
   // ═══════════════════════════════════════════════════════════
   {

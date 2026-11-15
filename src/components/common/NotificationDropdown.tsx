@@ -13,9 +13,14 @@ import {
   Info,
   ArrowUpLeft,
   ShieldAlert,
+  MessageCircle,
+  Mail,
+  RefreshCw,
 } from 'lucide-react';
 import { useAppStore, AppNotification } from '../../stores/appStore';
 import { notificationPopupEngine } from '../../services/notificationPopupEngine';
+import { shareViaWhatsApp, shareViaEmail } from '../../services/quickShareService';
+import { runStartupGlobalSmartAlertsScan } from '../../services/hrSmartAlertsEngine';
 
 interface NotificationDropdownProps {
   isOpen: boolean;
@@ -45,6 +50,16 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
     notificationPopupEngine.getIsFocusMode()
   );
   const [category, setCategory] = useState<NotifCategory>('all');
+  const [isScanningRadar, setIsScanningRadar] = useState(false);
+
+  const handleRefreshRadar = async () => {
+    setIsScanningRadar(true);
+    try {
+      await runStartupGlobalSmartAlertsScan(undefined, true);
+    } finally {
+      setIsScanningRadar(false);
+    }
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -258,6 +273,18 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
           <div className="flex items-center gap-1 shrink-0">
             <button
               type="button"
+              disabled={isScanningRadar}
+              onClick={() => void handleRefreshRadar()}
+              className="p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] transition-colors cursor-pointer"
+              title="فحص رادار الوثائق وإعادات الإجازات وتراخيص الشركات الآن"
+            >
+              <RefreshCw
+                className={`w-3.5 h-3.5 text-[#141414] ${isScanningRadar ? 'animate-spin' : ''}`}
+              />
+            </button>
+
+            <button
+              type="button"
               onClick={() => {
                 const next = notificationPopupEngine.toggleFocusMode();
                 setIsFocusMode(next);
@@ -391,22 +418,58 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                       {notif.message}
                     </p>
 
-                    <div className="flex items-center justify-between gap-2 pt-1.5">
-                      {notif.link ? (
+                    <div className="flex items-center justify-between gap-2 pt-1.5 flex-wrap">
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {notif.link ? (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleItemClick(notif);
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#141414] text-[#ffffff] hover:bg-[#262626] text-[10px] font-bold transition-colors cursor-pointer"
+                          >
+                            <span>{notif.actionLabel || 'فتح القسم المختص'}</span>
+                            <ArrowUpLeft className="w-3 h-3" />
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-[#707070]">تنبيه نظام داخلي</span>
+                        )}
+
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleItemClick(notif);
+                            shareViaWhatsApp({
+                              title: notif.title,
+                              bodyText: notif.message,
+                              entityCode: notif.companyId,
+                              moduleName: 'مركز التنبيهات الذكية',
+                            });
                           }}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#141414] text-[#ffffff] hover:bg-[#262626] text-[10px] font-bold transition-colors cursor-pointer"
+                          title="إرسال تذكير فوري عبر واتساب باسم الشركة المعنية"
+                          className="w-6 h-6 rounded-full bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] inline-flex items-center justify-center transition-colors cursor-pointer"
                         >
-                          <span>{notif.actionLabel || 'فتح القسم المختص'}</span>
-                          <ArrowUpLeft className="w-3 h-3" />
+                          <MessageCircle className="w-3 h-3" />
                         </button>
-                      ) : (
-                        <span className="text-[10px] text-[#707070]">تنبيه نظام داخلي</span>
-                      )}
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            shareViaEmail({
+                              title: notif.title,
+                              bodyText: notif.message,
+                              entityCode: notif.companyId,
+                              moduleName: 'مركز التنبيهات الذكية',
+                            });
+                          }}
+                          title="إرسال تذكير عبر البريد الإلكتروني الرسمي"
+                          className="w-6 h-6 rounded-full bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] inline-flex items-center justify-center transition-colors cursor-pointer"
+                        >
+                          <Mail className="w-3 h-3" />
+                        </button>
+                      </div>
 
                       {!notif.read && (
                         <button
@@ -417,7 +480,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                           }}
                           className="px-2.5 py-1 rounded-full bg-[#ffffff] hover:bg-[#e5e5e5] border border-[#e0e0e0] text-[10px] font-bold text-[#141414] cursor-pointer"
                         >
-                          تحديد كمقروء 
+                          تحديد كمقروء
                         </button>
                       )}
                     </div>

@@ -1,0 +1,268 @@
+/* ==========================================================================
+   Global Enterprise A4 Print Engine (`src/styles/print.css`)
+   - Screen-hidden `#erp-print-stage` body portal isolates topmost printable
+     modals, live A4 reports, and individual barcode/official cards onto white
+     A4 paper with zero background bleed, zero right sidebar offset, and zero
+     premature Print Preview reset.
+   - Clean fallback for CSS `@media print` emulation (`:has([data-printable-modal="true"])`).
+   - Full-width A4 workspace reset when printing a page directly (`Ctrl+P` with
+     no modal open), overriding `AppShell` inline `marginRight: 280px` & hiding
+     floating widgets (`AICopilotWidget`, `UniversalNotificationToaster`, navs).
+   ========================================================================== */
+
+@media screen {
+  #erp-print-stage {
+    display: none !important;
+  }
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
+  html,
+  body {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #141414 !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* ========================================================================
+     1. Dedicated `#erp-print-stage` Body Portal Mode (`printManager.ts`)
+     Hides every sibling under `<body>` (including `#root`, toasts, & copilot)
+     so ONLY the staged A4 document renders at 100% paper width.
+     ======================================================================== */
+  body[data-erp-stage-printing="true"] > *:not(#erp-print-stage) {
+    display: none !important;
+  }
+
+  body[data-erp-stage-printing="true"] > #erp-print-stage {
+    display: block !important;
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #141414 !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  body[data-erp-stage-printing="true"] #erp-print-stage,
+  body[data-erp-stage-printing="true"] #erp-print-stage * {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  body[data-erp-stage-printing="true"] #erp-print-stage .erp-printable-sheet,
+  body[data-erp-stage-printing="true"] #erp-print-stage .erp-iframe-print-body {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 auto !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #141414 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+    page-break-inside: auto;
+  }
+
+  body[data-erp-stage-printing="true"] #erp-print-stage .overflow-y-auto,
+  body[data-erp-stage-printing="true"] #erp-print-stage .overflow-x-auto,
+  body[data-erp-stage-printing="true"] #erp-print-stage .overflow-auto,
+  body[data-erp-stage-printing="true"] #erp-print-stage .overflow-hidden:not(.h-1):not(.h-1\.5):not(.h-2):not(.h-2\.5):not(.h-3) {
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* ========================================================================
+     2. Pure-CSS `:has([data-printable-modal="true"])` Fallback
+     Used only when CSS `@media print` emulation runs without `#erp-print-stage`.
+     (Inline cards use `data-printable-card="true"` so they never trigger this.)
+     ======================================================================== */
+  body:not([data-erp-stage-printing="true"]):has([data-printable-modal="true"]) > *:not(:has([data-printable-modal="true"])):not([data-printable-modal="true"]),
+  body:not([data-erp-stage-printing="true"]):has([data-printable-modal="true"]) :has([data-printable-modal="true"]) > *:not(:has([data-printable-modal="true"])):not([data-printable-modal="true"]) {
+    display: none !important;
+  }
+
+  body:not([data-erp-stage-printing="true"]):has([data-printable-modal="true"]) :has([data-printable-modal="true"]) {
+    display: block !important;
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    transform: none !important;
+    animation: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  body:not([data-erp-stage-printing="true"]) [data-printable-modal="true"] {
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 auto !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    transform: none !important;
+    animation: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  body:not([data-erp-stage-printing="true"]) [data-printable-modal="true"] .overflow-y-auto,
+  body:not([data-erp-stage-printing="true"]) [data-printable-modal="true"] .overflow-x-auto,
+  body:not([data-erp-stage-printing="true"]) [data-printable-modal="true"] .overflow-auto,
+  body:not([data-erp-stage-printing="true"]) [data-printable-modal="true"] .overflow-hidden:not(.h-1):not(.h-1\.5):not(.h-2):not(.h-2\.5):not(.h-3) {
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* ========================================================================
+     3. Full-Page Workspace Print (`Ctrl+P` when no modal is staged)
+     Overrides AppShell inline `marginRight: 280px` & `width: calc(...)` so
+     ERP workspaces span 100% of printable A4 width without truncated headings.
+     ======================================================================== */
+  body:not([data-erp-stage-printing="true"]):not(:has([data-printable-modal="true"])) #root,
+  body:not([data-erp-stage-printing="true"]):not(:has([data-printable-modal="true"])) .app-container,
+  body:not([data-erp-stage-printing="true"]):not(:has([data-printable-modal="true"])) .main-wrapper,
+  body:not([data-erp-stage-printing="true"]):not(:has([data-printable-modal="true"])) main,
+  body:not([data-erp-stage-printing="true"]):not(:has([data-printable-modal="true"])) main.content-body {
+    display: block !important;
+    position: static !important;
+    inset: auto !important;
+    margin: 0 !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+  }
+
+  body:not([data-erp-stage-printing="true"]):not(:has([data-printable-modal="true"])) h1,
+  body:not([data-erp-stage-printing="true"]):not(:has([data-printable-modal="true"])) h2,
+  body:not([data-erp-stage-printing="true"]):not(:has([data-printable-modal="true"])) h3,
+  body:not([data-erp-stage-printing="true"]):not(:has([data-printable-modal="true"])) .page-title {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+
+  body:not([data-erp-stage-printing="true"]):not(:has([data-printable-modal="true"])) .stat-card-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .erp-printable-sheet {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 auto !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+    page-break-inside: auto;
+  }
+
+  /* ========================================================================
+     4. Multi-Page A4 Table Pagination & Signature Protection
+     ======================================================================== */
+  table {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: auto !important;
+    page-break-inside: auto;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  /* Prevent Grand Totals from repeating on every printed page */
+  tfoot {
+    display: table-row-group !important;
+  }
+
+  tr,
+  .sig-box,
+  .signatures-grid,
+  .kpi-grid,
+  .erp-avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  th,
+  td {
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  /* ========================================================================
+     5. Non-Printable Chrome, Floating Widgets & Explicit `.print:hidden`
+     Placed LAST so nothing ever overrides explicit print-hide markers.
+     ======================================================================== */
+  aside,
+  nav,
+  header:not(.erp-printable-sheet header):not(#erp-print-stage header):not([data-active-print-root="true"] header):not([data-printable-modal="true"] header),
+  .app-sidebar,
+  .app-header,
+  [data-slot="sidebar"],
+  [data-slot="topbar"],
+  [data-slot="mobile-bottom-nav"],
+  [data-ai-copilot="true"],
+  [data-notification-toaster="true"],
+  [aria-label="الإشعارات"],
+  .no-print,
+  .print\:hidden,
+  [data-no-print="true"] {
+    display: none !important;
+  }
+}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useModalEscape } from '../hooks/useModalEscape';
 import { 
   ShieldCheck, Users, Building2, Layers, KeyRound, UserCheck, 
   Clock, ShieldAlert, Sparkles, Plus, Search, Filter, RefreshCw, 
@@ -34,6 +35,7 @@ type IamTab =
   | 'audit-logs';
 
 export const IdentityAccessManagementPage: React.FC = () => {
+  useModalEscape();
   const { activeTab: storeActiveTab, addNotification } = useAppStore();
   const { 
     currentUser, 
@@ -997,8 +999,8 @@ export const IdentityAccessManagementPage: React.FC = () => {
 
       {/* MODAL: NEW DELEGATION */}
       {showNewDelegationModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-50" dir="rtl">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 text-xs">
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-[2000]" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowNewDelegationModal(false); }}>
+          <div className="bg-white rounded-[24px] max-w-lg w-full p-6 space-y-4 text-xs max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-900">إنشاء تفويض صلاحيات مؤقت</h3>
               <button type="button" onClick={() => setShowNewDelegationModal(false)} className="text-slate-400 hover:text-[#141414]">
@@ -1047,8 +1049,8 @@ export const IdentityAccessManagementPage: React.FC = () => {
 
       {/* MODAL: NEW SOD RULE */}
       {showNewSoDModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-50" dir="rtl">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 text-xs">
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-[2000]" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowNewSoDModal(false); }}>
+          <div className="bg-white rounded-[24px] max-w-lg w-full p-6 space-y-4 text-xs max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-900">إضافة قاعدة فصل مهام رقابية (SoD)</h3>
               <button type="button" onClick={() => setShowNewSoDModal(false)} className="text-slate-400 hover:text-[#141414]">
@@ -1089,8 +1091,8 @@ export const IdentityAccessManagementPage: React.FC = () => {
 
       {/* MODAL: NEW USER */}
       {showNewUserModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200" dir="rtl">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-xl w-full p-6 lg:p-8 shadow-2xl space-y-6">
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-[2000] animate-in fade-in duration-200" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowNewUserModal(false); }}>
+          <div className="bg-white border border-slate-200 rounded-[24px] max-w-xl w-full p-6 lg:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-4 border-b border-slate-100">
               <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <Users className="w-5 h-5 text-[#141414]" />

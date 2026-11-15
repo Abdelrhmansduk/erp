@@ -1213,7 +1213,9 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
       {/* 1. Docked Edge Orb (Compact circular avatar in corner — expands on hover) */}
       {!isOpen && (
         <div
-          className={`dock-pill-slide-in fixed bottom-[calc(74px+env(safe-area-inset-bottom,0px))] lg:bottom-3 left-3 z-[9990] ${
+          data-ai-copilot="true"
+          data-no-print="true"
+          className={`no-print print:hidden dock-pill-slide-in fixed bottom-[calc(74px+env(safe-area-inset-bottom,0px))] lg:bottom-3 left-3 z-[9990] ${
             isDocked ? 'block' : 'block lg:hidden'
           }`}
           style={{ direction: 'rtl' }}
@@ -1251,7 +1253,9 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
       {/* 2. Frameless 3D Mascot Character (Desktop Only so it never blocks mobile viewport) */}
       {!isDocked && !isOpen && (
         <div
-          className="mascot-pop-in group hidden lg:flex fixed bottom-4 left-6 z-[9999] flex-col items-center"
+          data-ai-copilot="true"
+          data-no-print="true"
+          className="no-print print:hidden mascot-pop-in group hidden lg:flex fixed bottom-4 left-6 z-[9999] flex-col items-center"
           style={{
             direction: 'rtl',
           }}
@@ -1379,7 +1383,9 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
       {/* 3. Clean Minimalist Advisor Window */}
       {isOpen && (
         <div
-          className="speech-bubble-anim fixed inset-x-2.5 bottom-[calc(70px+env(safe-area-inset-bottom,0px))] lg:inset-x-auto lg:bottom-6 lg:left-6 lg:w-[410px] max-w-[calc(100vw-20px)] h-[calc(100dvh-96px-env(safe-area-inset-bottom,0px))] lg:h-[580px] lg:max-h-[82vh] z-[9999] flex flex-col overflow-hidden rounded-[22px] bg-[#ffffff] border border-[#e0e0e0] shadow-2xl"
+          data-ai-copilot="true"
+          data-no-print="true"
+          className="no-print print:hidden speech-bubble-anim fixed inset-x-2.5 bottom-[calc(70px+env(safe-area-inset-bottom,0px))] lg:inset-x-auto lg:bottom-6 lg:left-6 lg:w-[410px] max-w-[calc(100vw-20px)] h-[calc(100dvh-96px-env(safe-area-inset-bottom,0px))] lg:h-[580px] lg:max-h-[82vh] z-[9999] flex flex-col overflow-hidden rounded-[22px] bg-[#ffffff] border border-[#e0e0e0] shadow-2xl"
           style={{
             fontFamily: 'var(--font-family-ui)',
             direction: 'rtl',

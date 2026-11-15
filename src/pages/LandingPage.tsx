@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useModalEscape } from '../hooks/useModalEscape';
 import { useLanguage } from '../i18n/LanguageContext';
 import { CompanyLogo } from '../components/common/CompanyLogo';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
@@ -44,6 +45,7 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => {
+  useModalEscape();
   const { currentLanguage } = useLanguage();
   const { setActiveCompanyId } = useCompany();
   const { signIn, signInWithGoogle, user: authUser } = useAuthContext();
@@ -1617,7 +1619,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
           role="dialog"
           aria-modal="true"
           aria-labelledby="landing-google-modal-title"
-          className="fixed inset-0 z-[200] bg-[#141414]/60 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[200] bg-[#141414]/60 flex items-center justify-center p-4" data-erp-modal-overlay="true"
           onClick={() => setShowGoogleModal(false)}
         >
           <div

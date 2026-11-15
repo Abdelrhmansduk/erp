@@ -18,8 +18,16 @@ import {
   Landmark,
   Eye,
   SlidersHorizontal,
+  MessageCircle,
 } from 'lucide-react';
-import { exportData, ExportFormat } from '../../services/exportService';
+import {
+  buildExecutivePdfFileName,
+  exportData,
+  ExportFormat,
+  generateExecutivePdfArtifact,
+  getActiveCompanyInfo,
+} from '../../services/exportService';
+import { shareViaWhatsApp } from '../../services/quickShareService';
 import { useAppStore } from '../../stores/appStore';
 import { ExportPreviewModal } from './ExportPreviewModal';
 
@@ -184,6 +192,26 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
     setResolvedRows(targetData);
     setIsOpen(false);
     setIsPreviewOpen(true);
+  };
+
+  const handleSendWhatsAppPdfAndText = () => {
+    const targetData = getEffectiveData();
+    const docTitle = customTitle || resolvedButtonLabel;
+    const companyInfo = getActiveCompanyInfo();
+    const pdfFileName = buildExecutivePdfFileName(docTitle);
+    setIsOpen(false);
+    shareViaWhatsApp({
+      title: docTitle,
+      moduleName: sectionKey,
+      summaryLines: [
+        { label: 'الشركة المصدرة', value: companyInfo.nameAr },
+        { label: 'إجمالي السجلات المعتمدة', value: `${targetData.length} سجل` },
+      ],
+      attachmentFileName: pdfFileName,
+      attachmentFilePromise: generateExecutivePdfArtifact(sectionKey, targetData, customTitle).then(
+        (artifact) => artifact?.file ?? null
+      ),
+    });
   };
 
   const getButtonClass = () => {
@@ -373,16 +401,39 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
                     </div>
                     <div className="text-right min-w-0">
                       <div className="text-xs font-bold text-[#ffffff] flex items-center gap-1.5">
-                        <span>معاينة وتخصيص الوثيقة قبل التصدير</span>
+                        <span>معاينة وتحرير الحقول وهوية الشركة قبل التصدير</span>
                       </div>
                       <p className="text-[10.5px] text-[#a1a1aa] mt-0.5 truncate">
-                        اختيار الأعمدة، إضافة مذكرة تنفيذية، التحكم بالتفقيط والختم ومعاينة A4
+                        تحرير الخلايا، اختيار الشركة وإلغاء جملة المجموعة، ضبط مقاس PDF/A4، وإرسال واتساب/بريد
                       </p>
                     </div>
                   </div>
                   <span className="px-2.5 py-1 rounded-full bg-[#ffffff] text-[#141414] text-[10px] font-bold shrink-0 inline-flex items-center gap-1">
                     <SlidersHorizontal className="w-3 h-3" />
-                    <span>تخصيص</span>
+                    <span>تحرير</span>
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSendWhatsAppPdfAndText}
+                  className="w-full mt-2 p-2.5 rounded-[16px] bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] hover:border-[#141414] transition-all flex items-center justify-between gap-2.5 group cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-[10px] bg-[#ffffff] group-hover:bg-[#262626] border border-[#e0e0e0] group-hover:border-[#3f3f46] flex items-center justify-center text-[#141414] group-hover:text-[#ffffff] shrink-0 transition-colors">
+                      <MessageCircle className="w-4 h-4" />
+                    </div>
+                    <div className="text-right min-w-0">
+                      <div className="text-xs font-bold">
+                        إرسال عبر واتساب (ملف PDF معتمد + نص رسمي)
+                      </div>
+                      <p className="text-[10px] text-[#707070] group-hover:text-[#d4d4d8] mt-0.5 truncate">
+                        توليد وتنزيل مستند PDF الرسمي A4 وفتح واتساب بالنص المعتمد تلقائياً
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-[#ffffff] text-[#141414] border border-[#e0e0e0] text-[9.5px] font-bold shrink-0">
+                    PDF + نص
                   </span>
                 </button>
               </div>

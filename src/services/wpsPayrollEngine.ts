@@ -9,11 +9,34 @@
  * 6. Double-Entry GL Payroll Journal Builder & Nitaqat / Document Expiry Compliance Radar
  */
 
+export interface CostCenterAllocation {
+  code: string;
+  name: string;
+  percent: number; // 0..100, sum per employee = 100
+}
+
+export type PayGroupType =
+  | 'الإدارة العامة'
+  | 'الفروع والتشغيل'
+  | 'مراكز الإيواء'
+  | 'الكوادر الميدانية';
+
+export type SeparationReasonCode =
+  | 'RESIGNATION'
+  | 'TERMINATION_BY_EMPLOYER'
+  | 'CONTRACT_EXPIRY'
+  | 'FORCE_MAJEURE'
+  | 'CONSENT'
+  | 'MARRIAGE_OR_MATERNITY_ART87'
+  | 'DISCIPLINARY_ART80';
+
 export interface EmployeePayrollRecord {
   employeeId: string;
   employeeNumber: string;
   nationalIdOrIqama: string;
   employeeName: string;
+  payGroup?: PayGroupType | string;
+  costCenterAllocations?: CostCenterAllocation[];
   bankCode: string; // e.g. 'ALRAJHI', 'SNB', 'RIBL', 'ALINMA', 'BSFR', 'SABB'
   iban: string;
   isSaudi: boolean;
@@ -59,7 +82,7 @@ export interface EndOfServiceCalculation {
   totalAllowances: number;
   totalWage: number;
   contractType: 'FIXED_TERM' | 'UNLIMITED';
-  separationReason: 'RESIGNATION' | 'TERMINATION_BY_EMPLOYER' | 'CONTRACT_EXPIRY' | 'FORCE_MAJEURE' | 'CONSENT';
+  separationReason: SeparationReasonCode;
   entitlementPercentage: number;
   awardAmount: number;
   leaveBalanceCompensation: number;
@@ -85,7 +108,21 @@ export interface PayrollGlJournalLine {
   accountName: string;
   debit: number;
   credit: number;
+  costCenterCode?: string;
+  costCenterName?: string;
   memo: string;
+}
+
+export interface MonthlyHrAccrualSummary {
+  accrualMonth: string;
+  companyCode: string;
+  employeesCount: number;
+  eosbProvisionAmount: number;
+  leaveProvisionAmount: number;
+  ticketProvisionAmount: number;
+  medicalAmortizationAmount: number;
+  totalAccrualAmount: number;
+  journalPayload: PayrollGlJournalPayload;
 }
 
 export interface PayrollGlJournalPayload {
@@ -813,7 +850,7 @@ export class WpsPayrollEngine {
     lastBasicSalary: number;
     totalAllowances: number;
     contractType: 'FIXED_TERM' | 'UNLIMITED';
-    separationReason: 'RESIGNATION' | 'TERMINATION_BY_EMPLOYER' | 'CONTRACT_EXPIRY' | 'FORCE_MAJEURE' | 'CONSENT';
+    separationReason: SeparationReasonCode;
     unusedLeaveDays?: number;
   }): EndOfServiceCalculation {
     const start = new Date(params.startDate);
@@ -844,11 +881,18 @@ export class WpsPayrollEngine {
       baseGratuity = firstFiveYearsGratuity + beyondFiveYearsGratuity;
     }
 
-    // Determine percentage based on separation reason (Article 85)
+    // Determine percentage based on separation reason (Articles 80, 84, 85 & 87)
     let entitlementPercentage = 100;
     let legalArticleNote = 'المادة (84): استحقاق كامل المكافأة.';
 
-    if (params.separationReason === 'RESIGNATION') {
+    if (params.separationReason === 'DISCIPLINARY_ART80') {
+      entitlementPercentage = 0;
+      legalArticleNote = 'المادة (80): فسخ العقد لسبب تأديبي مشروع دون مكافأة نهاية خدمة.';
+    } else if (params.separationReason === 'MARRIAGE_OR_MATERNITY_ART87') {
+      entitlementPercentage = 100;
+      legalArticleNote =
+        'المادة (87): استحقاق كامل المكافأة (100%) لاستقالة العاملة خلال 6 أشهر من عقد الزواج أو 3 أشهر من الوضع.';
+    } else if (params.separationReason === 'RESIGNATION') {
       if (exactYears < 2) {
         entitlementPercentage = 0;
         legalArticleNote = 'المادة (85): استقالة قبل إتمام سنتين (لا يستحق مكافأة).';
@@ -902,7 +946,7 @@ export class WpsPayrollEngine {
     lastBasicSalary: number;
     totalAllowances: number;
     contractType: 'FIXED_TERM' | 'UNLIMITED';
-    separationReason: 'RESIGNATION' | 'TERMINATION_BY_EMPLOYER' | 'CONTRACT_EXPIRY' | 'FORCE_MAJEURE' | 'CONSENT';
+    separationReason: SeparationReasonCode;
     unusedLeaveDays?: number;
     workedDaysInFinalMonth?: number;
     remainingAdvanceBalance?: number;
@@ -1094,5 +1138,459 @@ export class WpsPayrollEngine {
     }
 
     return alerts.sort((a, b) => a.daysRemaining - b.daysRemaining);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // JISR 2.0 FINANCIAL ERP EXTENSIONS:
+  // Cost Center Splitting, Monthly IFRS Accruals, Loan Skip-Installment,
+  // Advance Leave Salary Payout, YTD Sick-Leave Tracker, & Travel Per Diem
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Builds a Cost-Center-Allocated Double-Entry GL Payroll Journal (مركز القيود وتوزيع مراكز التكلفة)
+   * Uses standard 6-digit Level-4 COA leaf codes (`530101`, `530102`, `210201`, `110702`, `420101`, `110201`)
+   */
+  public static buildCostAllocatedPayrollGlJournal(
+    payrollMonth: string,
+    companyCode: string,
+    items: EmployeePayrollRecord[],
+    defaultCostCenter: CostCenterAllocation = {
+      code: 'CC-OPS-01',
+      name: 'مركز تكلفة العمليات الرئيسي',
+      percent: 100,
+    }
+  ): PayrollGlJournalPayload {
+    const grossByCostCenter = new Map<string, { name: string; amount: number }>();
+    const gosiEmpByCostCenter = new Map<string, { name: string; amount: number }>();
+
+    let totalGross = 0;
+    let totalGosiEmployee = 0;
+    let totalGosiEmployer = 0;
+    let totalAdvancesRecovered = 0;
+    let totalSanctionsAndAbsences = 0;
+    let totalNetPayable = 0;
+
+    for (const r of items) {
+      const gross =
+        r.grossSalary ??
+        r.basicSalary +
+          r.housingAllowance +
+          r.transportAllowance +
+          r.otherAllowances +
+          (r.overtimePay || 0) +
+          (r.rewardsAmount || 0);
+      const gosiEmpr = r.gosiEmployerShare || 0;
+
+      totalGross += gross;
+      totalGosiEmployee += r.gosiDeduction || 0;
+      totalGosiEmployer += gosiEmpr;
+
+      const rawAdv = r.advanceDeduction || 0;
+      const rawSanc = (r.sanctionDeduction || 0) + (r.absenceDeduction || 0);
+      const actualNonGosi = r.deductions || 0;
+      if (rawAdv + rawSanc > 0 && actualNonGosi > 0) {
+        const ratio = Math.min(1, actualNonGosi / (rawAdv + rawSanc));
+        totalAdvancesRecovered += rawAdv * ratio;
+        totalSanctionsAndAbsences += rawSanc * ratio;
+      } else {
+        totalSanctionsAndAbsences += actualNonGosi;
+      }
+      totalNetPayable += r.netSalary;
+
+      const allocations =
+        r.costCenterAllocations && r.costCenterAllocations.length > 0
+          ? r.costCenterAllocations
+          : [defaultCostCenter];
+      const pctSum = allocations.reduce((s, a) => s + (Number(a.percent) || 0), 0) || 100;
+
+      allocations.forEach((alloc, idx) => {
+        const weight = (Number(alloc.percent) || 0) / pctSum;
+        const ccGross =
+          idx === allocations.length - 1 && allocations.length === 1
+            ? gross
+            : gross * weight;
+        const ccGosi =
+          idx === allocations.length - 1 && allocations.length === 1
+            ? gosiEmpr
+            : gosiEmpr * weight;
+
+        const prevG = grossByCostCenter.get(alloc.code) || { name: alloc.name, amount: 0 };
+        prevG.amount += ccGross;
+        grossByCostCenter.set(alloc.code, prevG);
+
+        const prevGosi = gosiEmpByCostCenter.get(alloc.code) || { name: alloc.name, amount: 0 };
+        prevGosi.amount += ccGosi;
+        gosiEmpByCostCenter.set(alloc.code, prevGosi);
+      });
+    }
+
+    const lines: PayrollGlJournalLine[] = [];
+
+    // Debit lines split by Cost Center (530101 — Salaries & Allowances)
+    let sumGrossRounded = 0;
+    const grossEntries = Array.from(grossByCostCenter.entries());
+    grossEntries.forEach(([ccCode, info], idx) => {
+      const rounded =
+        idx === grossEntries.length - 1
+          ? Number((Number(totalGross.toFixed(2)) - sumGrossRounded).toFixed(2))
+          : Number(info.amount.toFixed(2));
+      sumGrossRounded = Number((sumGrossRounded + rounded).toFixed(2));
+      if (rounded > 0) {
+        lines.push({
+          accountCode: '530101',
+          accountName: 'الرواتب الأساسية وبدلات السكن والنقل للموظفين الإداريين',
+          debit: rounded,
+          credit: 0,
+          costCenterCode: ccCode,
+          costCenterName: info.name,
+          memo: `استحقاق رواتب وأجور شهر ${payrollMonth} — مركز تكلفة (${ccCode})`,
+        });
+      }
+    });
+
+    // Debit lines split by Cost Center (530102 — Employer GOSI Share)
+    let sumGosiRounded = 0;
+    const gosiEntries = Array.from(gosiEmpByCostCenter.entries());
+    gosiEntries.forEach(([ccCode, info], idx) => {
+      const rounded =
+        idx === gosiEntries.length - 1
+          ? Number((Number(totalGosiEmployer.toFixed(2)) - sumGosiRounded).toFixed(2))
+          : Number(info.amount.toFixed(2));
+      sumGosiRounded = Number((sumGosiRounded + rounded).toFixed(2));
+      if (rounded > 0) {
+        lines.push({
+          accountCode: '530102',
+          accountName: 'حصة الشركة في التأمينات الاجتماعية والتأمين الطبي ومكافأة نهاية الخدمة',
+          debit: rounded,
+          credit: 0,
+          costCenterCode: ccCode,
+          costCenterName: info.name,
+          memo: `حصة المنشأة في التأمينات الاجتماعية GOSI لشهر ${payrollMonth} — (${ccCode})`,
+        });
+      }
+    });
+
+    const gosiPayable = Number((totalGosiEmployee + totalGosiEmployer).toFixed(2));
+    if (gosiPayable > 0) {
+      lines.push({
+        accountCode: '210201',
+        accountName: 'الرواتب والأجور المستحقة وأمانات التأمينات الاجتماعية (WPS & GOSI)',
+        debit: 0,
+        credit: gosiPayable,
+        costCenterCode: defaultCostCenter.code,
+        memo: `إجمالي فاتورة التأمينات الاجتماعية (حصة الموظف + الشركة) لشهر ${payrollMonth}`,
+      });
+    }
+
+    const advRounded = Number(totalAdvancesRecovered.toFixed(2));
+    if (advRounded > 0) {
+      lines.push({
+        accountCode: '110702',
+        accountName: 'سلف الموظفين والدفعات المقدمة',
+        debit: 0,
+        credit: advRounded,
+        costCenterCode: defaultCostCenter.code,
+        memo: `استرداد أقساط سلف الموظفين الشهرية لمسير ${payrollMonth}`,
+      });
+    }
+
+    const sancRounded = Number(totalSanctionsAndAbsences.toFixed(2));
+    if (sancRounded > 0) {
+      lines.push({
+        accountCode: '420101',
+        accountName: 'إيرادات رسوم وتسويات خصومات الجزاءات الإدارية',
+        debit: 0,
+        credit: sancRounded,
+        costCenterCode: defaultCostCenter.code,
+        memo: `تسوية استقطاعات الجزاءات والغياب لمسير ${payrollMonth}`,
+      });
+    }
+
+    const totalDebit = Number(lines.reduce((s, l) => s + l.debit, 0).toFixed(2));
+    const creditsSoFar = Number(lines.reduce((s, l) => s + l.credit, 0).toFixed(2));
+    const bankCredit = Number(Math.max(0, totalDebit - creditsSoFar).toFixed(2));
+
+    if (bankCredit > 0) {
+      lines.push({
+        accountCode: '110201',
+        accountName: 'مصرف الراجحي - الحساب التشغيلي الرئيسي (WPS)',
+        debit: 0,
+        credit: bankCredit,
+        costCenterCode: defaultCostCenter.code,
+        memo: `صافي الرواتب المحولة عبر حماية الأجور مدد لشهر ${payrollMonth} (${totalNetPayable.toFixed(2)} ⃁)`,
+      });
+    }
+
+    const finalCredit = Number(lines.reduce((s, l) => s + l.credit, 0).toFixed(2));
+
+    return {
+      companyCode,
+      payrollMonth,
+      entryDate: new Date().toISOString().slice(0, 10),
+      description: `قيد مسير الرواتب الموزع على مراكز التكلفة (${payrollMonth})`,
+      totalDebit,
+      totalCredit: finalCredit,
+      isBalanced: Math.abs(totalDebit - finalCredit) < 0.01,
+      lines,
+    };
+  }
+
+  /**
+   * Builds Monthly IFRS HR Accruals Journal (IAS 19 EOSB + Annual Leave + Air Tickets + Medical Amortization)
+   */
+  public static buildMonthlyHrAccrualsJournal(
+    accrualMonth: string,
+    companyCode: string,
+    employees: Array<{
+      id: string;
+      name: string;
+      hire_date?: string;
+      salary: number;
+      annual_ticket_allowance?: number;
+      medical_insurance_annual_cost?: number;
+      status?: string;
+    }>
+  ): MonthlyHrAccrualSummary {
+    const active = employees.filter((e) => e.status !== 'نهاية خدمة');
+    let eosbSum = 0;
+    let leaveSum = 0;
+    let ticketSum = 0;
+    let medicalSum = 0;
+
+    const refDate = `${accrualMonth}-28`;
+
+    for (const emp of active) {
+      const wage = Math.max(0, Number(emp.salary) || 0);
+      const entitlement = this.calculateAnnualLeaveEntitlement(emp.hire_date || '2024-01-01', refDate);
+
+      // Monthly EOSB provision: <= 5 years -> (wage / 2) / 12 ; > 5 years -> wage / 12
+      const monthlyEosb = entitlement.serviceYears < 5 ? wage / 2 / 12 : wage / 12;
+      // Monthly Annual Leave provision: dailyWage * monthlyAccrualRate (1.75 or 2.5 days)
+      const monthlyLeave = (wage / 30) * entitlement.monthlyAccrualRate;
+      const monthlyTicket = Math.max(0, Number(emp.annual_ticket_allowance ?? 2400)) / 12;
+      const monthlyMedical = Math.max(0, Number(emp.medical_insurance_annual_cost ?? 3600)) / 12;
+
+      eosbSum += monthlyEosb;
+      leaveSum += monthlyLeave;
+      ticketSum += monthlyTicket;
+      medicalSum += monthlyMedical;
+    }
+
+    const eosbProvisionAmount = Number(eosbSum.toFixed(2));
+    const leaveProvisionAmount = Number(leaveSum.toFixed(2));
+    const ticketProvisionAmount = Number(ticketSum.toFixed(2));
+    const medicalAmortizationAmount = Number(medicalSum.toFixed(2));
+    const leaveAndTicketTotal = Number((leaveProvisionAmount + ticketProvisionAmount).toFixed(2));
+    const totalAccrualAmount = Number(
+      (eosbProvisionAmount + leaveAndTicketTotal + medicalAmortizationAmount).toFixed(2)
+    );
+
+    const lines: PayrollGlJournalLine[] = [];
+    if (eosbProvisionAmount > 0) {
+      lines.push(
+        {
+          accountCode: '530102',
+          accountName: 'حصة الشركة في التأمينات الاجتماعية والتأمين الطبي ومكافأة نهاية الخدمة',
+          debit: eosbProvisionAmount,
+          credit: 0,
+          costCenterCode: 'CC-HR-ACC',
+          memo: `مصروف مخصص مكافأة نهاية الخدمة الشهري (IAS 19) لشهر ${accrualMonth}`,
+        },
+        {
+          accountCode: '220301',
+          accountName: 'مخصص مكافأة نهاية الخدمة للكادر الإداري والعمليات (تقييم اكتواري IAS 19)',
+          debit: 0,
+          credit: eosbProvisionAmount,
+          costCenterCode: 'CC-HR-ACC',
+          memo: `استحقاق مخصص مكافأة نهاية الخدمة المتراكم لشهر ${accrualMonth}`,
+        }
+      );
+    }
+
+    if (leaveAndTicketTotal > 0) {
+      lines.push(
+        {
+          accountCode: '530101',
+          accountName: 'الرواتب الأساسية وبدلات السكن والنقل للموظفين الإداريين',
+          debit: leaveAndTicketTotal,
+          credit: 0,
+          costCenterCode: 'CC-HR-ACC',
+          memo: `مصروف مخصص الإجازات السنوية وتذاكر السفر لشهر ${accrualMonth}`,
+        },
+        {
+          accountCode: '210201',
+          accountName: 'الرواتب والأجور المستحقة وأمانات التأمينات الاجتماعية (WPS & GOSI)',
+          debit: 0,
+          credit: leaveAndTicketTotal,
+          costCenterCode: 'CC-HR-ACC',
+          memo: `مخصص الإجازات السنوية (${leaveProvisionAmount} ⃁) وتذاكر السفر (${ticketProvisionAmount} ⃁) المستحقة`,
+        }
+      );
+    }
+
+    if (medicalAmortizationAmount > 0) {
+      lines.push(
+        {
+          accountCode: '530102',
+          accountName: 'حصة الشركة في التأمينات الاجتماعية والتأمين الطبي ومكافأة نهاية الخدمة',
+          debit: medicalAmortizationAmount,
+          credit: 0,
+          costCenterCode: 'CC-HR-ACC',
+          memo: `إطفاء قسط التأمين الطبي الشهري للموظفين والتابعين لشهر ${accrualMonth}`,
+        },
+        {
+          accountCode: '110701',
+          accountName: 'إيجارات مقرات وتأمين طبي ورخص مدفوعة مقدماً',
+          debit: 0,
+          credit: medicalAmortizationAmount,
+          costCenterCode: 'CC-HR-ACC',
+          memo: `تخفيض رصيد التأمين الطبي المدفوع مقدماً لشهر ${accrualMonth}`,
+        }
+      );
+    }
+
+    const totalDebit = Number(lines.reduce((s, l) => s + l.debit, 0).toFixed(2));
+    const totalCredit = Number(lines.reduce((s, l) => s + l.credit, 0).toFixed(2));
+
+    return {
+      accrualMonth,
+      companyCode,
+      employeesCount: active.length,
+      eosbProvisionAmount,
+      leaveProvisionAmount,
+      ticketProvisionAmount,
+      medicalAmortizationAmount,
+      totalAccrualAmount,
+      journalPayload: {
+        companyCode,
+        payrollMonth: accrualMonth,
+        entryDate: new Date().toISOString().slice(0, 10),
+        description: `قيد المخصصات الشهرية للموارد البشرية (نهاية الخدمة، الإجازات، التذاكر، التأمين) — ${accrualMonth}`,
+        totalDebit,
+        totalCredit,
+        isBalanced: Math.abs(totalDebit - totalCredit) < 0.01,
+        lines,
+      },
+    };
+  }
+
+  /**
+   * Jisr Loan Skip-Installment Helper: returns 0 if payrollMonth is in deferred_months
+   */
+  public static getEffectiveAdvanceInstallmentForMonth(
+    advance: {
+      amount: number;
+      remaining_amount?: number;
+      monthly_installment?: number;
+      installments_count: number;
+      deferred_months?: string[];
+      status: string;
+    },
+    payrollMonth: string
+  ): {
+    effectiveInstallment: number;
+    isDeferredThisMonth: boolean;
+  } {
+    if (advance.status !== 'معتمد') {
+      return { effectiveInstallment: 0, isDeferredThisMonth: false };
+    }
+    const rem = advance.remaining_amount ?? advance.amount;
+    if (rem <= 0) {
+      return { effectiveInstallment: 0, isDeferredThisMonth: false };
+    }
+    if (advance.deferred_months && advance.deferred_months.includes(payrollMonth)) {
+      return { effectiveInstallment: 0, isDeferredThisMonth: true };
+    }
+    const baseMonthly =
+      advance.monthly_installment || advance.amount / Math.max(1, advance.installments_count);
+    return {
+      effectiveInstallment: Number(Math.min(rem, baseMonthly).toFixed(2)),
+      isDeferredThisMonth: false,
+    };
+  }
+
+  /**
+   * Calculates Upfront Leave Salary Payout (صرف راتب الإجازة مقدماً قبل التمتع بالإجازة)
+   */
+  public static calculateAdvanceLeavePayout(
+    monthlyTotalSalary: number,
+    approvedLeaveDays: number,
+    includeTicketAllowance = 0
+  ): {
+    dailyRate: number;
+    leaveSalaryAmount: number;
+    ticketAllowance: number;
+    totalUpfrontPayout: number;
+  } {
+    const dailyRate = Number((Math.max(0, monthlyTotalSalary) / 30).toFixed(2));
+    const leaveSalaryAmount = Number((dailyRate * Math.max(0, approvedLeaveDays)).toFixed(2));
+    const ticketAllowance = Number(Math.max(0, includeTicketAllowance).toFixed(2));
+    return {
+      dailyRate,
+      leaveSalaryAmount,
+      ticketAllowance,
+      totalUpfrontPayout: Number((leaveSalaryAmount + ticketAllowance).toFixed(2)),
+    };
+  }
+
+  /**
+   * Calculates Cumulative Sick Leave Days Used in the Same Year for Art. 117 Tiers
+   */
+  public static calculateEmployeeYtdSickDays(
+    employeeIdOrName: string,
+    yearPrefix: string,
+    leaveRequests: Array<{
+      employee_id?: string;
+      employee_name: string;
+      vacation_type: string;
+      from_date: string;
+      days_count: number;
+      status: string;
+    }>
+  ): number {
+    return leaveRequests
+      .filter(
+        (r) =>
+          r.status === 'معتمد' &&
+          (r.employee_id === employeeIdOrName || r.employee_name === employeeIdOrName) &&
+          r.from_date.startsWith(yearPrefix) &&
+          (r.vacation_type.includes('مرض') || /sick/i.test(r.vacation_type))
+      )
+      .reduce((sum, r) => sum + (Number(r.days_count) || 0), 0);
+  }
+
+  /**
+   * Calculates Business Travel Per Diem Allowance (بدل الانتداب اليومي حسب الدرجة والوجهة)
+   */
+  public static calculateBusinessTripPerDiem(params: {
+    grade: string;
+    tripScope: 'DOMESTIC' | 'INTERNATIONAL';
+    nightsCount: number;
+    estimatedTicketCost?: number;
+  }): {
+    dailyPerDiem: number;
+    perDiemTotal: number;
+    estimatedTicketCost: number;
+    totalTripAllowance: number;
+  } {
+    const isExecutive = params.grade.includes('الخامسة') || params.grade.includes('قيادي');
+    const isLead = params.grade.includes('الرابعة') || params.grade.includes('مدير');
+
+    let dailyPerDiem = 400; // Standard Domestic Specialist
+    if (params.tripScope === 'DOMESTIC') {
+      dailyPerDiem = isExecutive ? 800 : isLead ? 600 : 400;
+    } else {
+      dailyPerDiem = isExecutive ? 1500 : isLead ? 1100 : 750;
+    }
+
+    const nights = Math.max(1, Math.round(params.nightsCount));
+    const perDiemTotal = Number((dailyPerDiem * nights).toFixed(2));
+    const ticket = Number(Math.max(0, params.estimatedTicketCost || 0).toFixed(2));
+    return {
+      dailyPerDiem,
+      perDiemTotal,
+      estimatedTicketCost: ticket,
+      totalTripAllowance: Number((perDiemTotal + ticket).toFixed(2)),
+    };
   }
 }

@@ -1025,8 +1025,8 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
       {/* MODAL 1: ADD TENDER MODAL */}
       {/* ========================================================================= */}
       {showAddTenderModal && (
-        <div className="fixed inset-0 z-[500] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddTenderModal(false)} className="fixed inset-0 z-[500] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div onClick={(e) => e.stopPropagation()} className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] w-full max-w-lg animate-in fade-in max-h-[90vh] overflow-y-auto">
             <div className="p-4 border-b border-[#e0e0e0] bg-[#f3f3f3] flex items-center justify-between">
               <h3 className="text-sm font-bold text-[#141414] flex items-center gap-2">
                 <Plus className="w-4 h-4 text-[#141414]" />
@@ -1119,8 +1119,8 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
       {/* MODAL 2: ADD SUPPLIER MODAL */}
       {/* ========================================================================= */}
       {showAddSupplierModal && (
-        <div className="fixed inset-0 z-[500] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddSupplierModal(false)} className="fixed inset-0 z-[500] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div onClick={(e) => e.stopPropagation()} className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] w-full max-w-lg animate-in fade-in max-h-[90vh] overflow-y-auto">
             <div className="p-4 border-b border-[#e0e0e0] bg-[#f3f3f3] flex items-center justify-between">
               <h3 className="text-sm font-bold text-[#141414] flex items-center gap-2">
                 <Store className="w-4 h-4 text-[#141414]" />
@@ -1189,8 +1189,8 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
       {/* MODAL 3: ADD PURCHASE ORDER MODAL */}
       {/* ========================================================================= */}
       {showAddPoModal && (
-        <div className="fixed inset-0 z-[500] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddPoModal(false)} className="fixed inset-0 z-[500] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div onClick={(e) => e.stopPropagation()} className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] w-full max-w-lg animate-in fade-in max-h-[90vh] overflow-y-auto">
             <div className="p-4 border-b border-[#e0e0e0] bg-[#f3f3f3] flex items-center justify-between">
               <h3 className="text-sm font-bold text-[#141414] flex items-center gap-2">
                 <Truck className="w-4 h-4 text-[#141414]" />
@@ -1282,8 +1282,8 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
       {/* MODAL 4: ADD ZATCA INVOICE MODAL */}
       {/* ========================================================================= */}
       {showAddInvoiceModal && (
-        <div className="fixed inset-0 z-[500] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddInvoiceModal(false)} className="fixed inset-0 z-[500] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div onClick={(e) => e.stopPropagation()} className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] w-full max-w-lg animate-in fade-in max-h-[90vh] overflow-y-auto">
             <div className="p-4 border-b border-[#e0e0e0] bg-[#f3f3f3] flex items-center justify-between">
               <h3 className="text-sm font-bold text-[#141414] flex items-center gap-2">
                 <Receipt className="w-4 h-4 text-[#141414]" />

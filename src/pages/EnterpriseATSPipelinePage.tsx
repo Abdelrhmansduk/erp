@@ -403,8 +403,8 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
 
       {/* INTERVIEW MODAL */}
       {showInterviewModal && activeCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
-          <div className="w-full max-w-md bg-white border border-zinc-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+        <div role="dialog" aria-modal="true" onClick={() => setShowInterviewModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white border border-zinc-200 rounded-[24px] flex flex-col max-h-[90vh] overflow-y-auto">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h2 className="text-base font-bold text-[#141414] flex items-center gap-2">
                 <Video className="w-4 h-4 text-[#141414]" />
@@ -482,8 +482,8 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
 
       {/* New Candidate / Requisition Modal */}
       {showNewCandidateModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-fade-in border border-zinc-200">
+        <div role="dialog" aria-modal="true" onClick={() => setShowNewCandidateModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] w-full max-w-lg animate-fade-in border border-zinc-200 max-h-[90vh] overflow-y-auto">
             <div className="p-5 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-[#f3f3f3] text-[#141414] flex items-center justify-center font-bold text-xs">

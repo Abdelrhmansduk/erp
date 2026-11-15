@@ -346,8 +346,8 @@ export const KasCommercialDivisionsPage: React.FC = () => {
 
       {/* Add Deal Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-[24px] bg-[#ffffff] border border-[#e0e0e0] p-6 space-y-4">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddModal(false)} className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg rounded-[24px] bg-[#ffffff] border border-[#e0e0e0] p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-[#141414] m-0">تسجيل عقد أميال أو مبيعات معرض جديدة</h3>
               <button

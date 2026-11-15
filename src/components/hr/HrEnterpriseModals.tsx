@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   Printer,
@@ -6,6 +7,11 @@ import {
   FileText,
   AlertTriangle,
   RefreshCw,
+  Building2,
+  CheckSquare,
+  Square,
+  MessageCircle,
+  Mail,
 } from 'lucide-react';
 import {
   EmployeePayrollRecord,
@@ -19,13 +25,26 @@ import {
 } from '../../utils/realBarcodeGenerator';
 import { ExportDropdown } from '../common/ExportDropdown';
 import { maskNationalId, maskIban } from '../../utils/pdplMasking';
+import {
+  ALL_ENTITY_OPTIONS,
+  CanonicalEntityCode,
+  resolveDocumentBranding,
+  setEntityHideHoldingPreference,
+} from '../../services/entityBrandingService';
+import { RecordQuickActions } from '../common/RecordQuickActions';
+import { shareViaEmail, shareViaWhatsApp } from '../../services/quickShareService';
 
 export interface PayslipModalProps {
-  record: EmployeePayrollRecord;
+  record: EmployeePayrollRecord & {
+    company_id?: string;
+    phone?: string;
+    email?: string;
+  };
   department: string;
   jobTitle: string;
   payrollMonth: string;
-  companyName: string;
+  companyName?: string;
+  companyCode?: string;
   onClose: () => void;
 }
 
@@ -35,9 +54,24 @@ export const EmployeePayslipModal: React.FC<PayslipModalProps> = ({
   jobTitle,
   payrollMonth,
   companyName,
+  companyCode,
   onClose,
 }) => {
+  const initialBranding = resolveDocumentBranding(
+    record.company_id || companyCode || companyName
+  );
+  const [selectedEntity, setSelectedEntity] = useState<CanonicalEntityCode>(initialBranding.code);
+  const [hideHoldingGroupBrand, setHideHoldingGroupBrand] = useState<boolean>(
+    initialBranding.hideHoldingGroupBrand
+  );
+  const [payslipNote, setPayslipNote] = useState<string>('');
   const [revealPii, setRevealPii] = useState(false);
+
+  const branding = resolveDocumentBranding(record, {
+    entityCode: selectedEntity,
+    hideHoldingGroupBrand,
+  });
+
   const piiRole = revealPii ? 'SUPER_ADMIN' : 'VIEWER';
   const gross =
     record.grossSalary ??
@@ -56,40 +90,126 @@ export const EmployeePayslipModal: React.FC<PayslipModalProps> = ({
       ? '9.75%'
       : '0%';
 
-  return (
+  const serialNumber = `WPS-${branding.code}-${payrollMonth}-${record.employeeNumber}`;
+
+  const payslipModalNode = (
     <div
-      className="fixed inset-0 bg-[#141414]/60 backdrop-blur-sm z-[2300] flex items-center justify-center p-4 font-sans"
+      data-printable-modal="true"
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 bg-[#141414]/60 backdrop-blur-sm z-[11000] flex items-center justify-center p-4 font-sans"
       onClick={onClose}
+      dir="rtl"
     >
       <div
-        className="w-full max-w-2xl bg-[#ffffff] rounded-[24px] shadow-2xl border border-[#e0e0e0] overflow-hidden max-h-[92vh] flex flex-col"
+        className="w-full max-w-2xl bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden max-h-[92vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-5 py-4 bg-[#f3f3f3] text-[#141414] border-b border-[#e0e0e0] flex items-center justify-between print:hidden">
+        <div className="no-print print:hidden px-5 py-3.5 bg-[#f3f3f3] text-[#141414] border-b border-[#e0e0e0] flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2.5">
             <ShieldCheck className="w-4 h-4 text-[#141414]" />
             <h3 className="font-bold text-sm text-[#141414] m-0">
               قسيمة راتب إلكترونية معتمدة (WPS Payslip) — {payrollMonth}
             </h3>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 text-[#707070] hover:text-[#141414] hover:bg-[#e0e0e0] rounded-full transition-colors cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <RecordQuickActions
+              onPrint={() => window.print()}
+              sharePayload={{
+                title: `قسيمة راتب شهر ${payrollMonth}`,
+                referenceNumber: serialNumber,
+                recipientName: record.employeeName,
+                recipientPhone: record.phone,
+                recipientEmail: record.email,
+                entityCode: branding.code,
+                hideHoldingGroupBrand,
+                moduleName: 'wps_payslip',
+                summaryLines: [
+                  { label: 'الشركة المصدرة', value: branding.displayNameAr },
+                  { label: 'الموظف', value: `${record.employeeName} (#${record.employeeNumber})` },
+                  { label: 'إجمالي الاستحقاقات', value: `⃁ ${gross.toFixed(2)}` },
+                  { label: 'إجمالي الاستقطاعات', value: `⃁ ${totalDeductions.toFixed(2)}` },
+                  { label: 'صافي الراتب المحول', value: `⃁ ${record.netSalary.toFixed(2)}` },
+                ],
+                bodyText: payslipNote.trim() || undefined,
+              }}
+            />
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 text-[#707070] hover:text-[#141414] hover:bg-[#e0e0e0] rounded-full transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        <div className="p-6 overflow-y-auto space-y-5 bg-[#ffffff] text-[#141414]">
+        {/* Pre-Print Branding & Field Bar */}
+        <div className="no-print print:hidden px-5 py-2.5 bg-[#ffffff] border-b border-[#e0e0e0] flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#141414]">
+              <Building2 className="w-3.5 h-3.5" />
+              <span>الشركة:</span>
+            </span>
+            <select
+              value={selectedEntity}
+              onChange={(e) => {
+                const next = e.target.value as CanonicalEntityCode;
+                setSelectedEntity(next);
+                setHideHoldingGroupBrand(
+                  resolveDocumentBranding(next, { entityCode: next }).hideHoldingGroupBrand
+                );
+              }}
+              className="px-2.5 py-1 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[11px] font-bold text-[#141414]"
+            >
+              {ALL_ENTITY_OPTIONS.map((opt) => (
+                <option key={opt.code} value={opt.code}>
+                  {opt.labelAr}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => {
+                const next = !hideHoldingGroupBrand;
+                setHideHoldingGroupBrand(next);
+                setEntityHideHoldingPreference(selectedEntity, next);
+              }}
+              className={`px-3 py-1 rounded-full border text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer ${
+                hideHoldingGroupBrand
+                  ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                  : 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0]'
+              }`}
+            >
+              {hideHoldingGroupBrand ? (
+                <CheckSquare className="w-3.5 h-3.5" />
+              ) : (
+                <Square className="w-3.5 h-3.5 text-[#707070]" />
+              )}
+              <span>إلغاء جملة المجموعة</span>
+            </button>
+          </div>
+          <input
+            type="text"
+            value={payslipNote}
+            onChange={(e) => setPayslipNote(e.target.value)}
+            placeholder="ملاحظة مخصصة تظهر على القسيمة..."
+            className="px-3 py-1 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[11px] font-semibold text-[#141414] min-w-[200px]"
+          />
+        </div>
+
+        <div className="erp-printable-sheet p-6 overflow-y-auto space-y-5 bg-[#ffffff] text-[#141414]">
           {/* Header */}
           <div className="flex items-center justify-between border-b-2 border-[#141414] pb-4 flex-wrap gap-3">
             <div>
               <div className="text-[11px] font-bold text-[#707070]">
-                المملكة العربية السعودية — نظام حماية الأجور (مدد)
+                {branding.letterheadSovereignLineAr} — نظام حماية الأجور (مدد)
               </div>
               <div className="text-base font-bold text-[#141414] mt-0.5">
-                {companyName}
+                {branding.displayNameAr}
+              </div>
+              <div className="text-[11px] text-[#707070] font-semibold">
+                س.ت: {branding.crNumber} • الرقم الضريبي: {branding.taxNumber}
               </div>
               <div className="text-xs font-bold text-[#141414] mt-0.5">
                 إشعار استحقاق وصرف راتب شهري ({payrollMonth})
@@ -103,13 +223,10 @@ export const EmployeePayslipModal: React.FC<PayslipModalProps> = ({
                 </div>
                 <div
                   dangerouslySetInnerHTML={{
-                    __html: generateRealCode128BarcodeSvg(
-                      `WPS-${payrollMonth}-${record.employeeNumber}`,
-                      {
-                        widthPx: 112,
-                        heightPx: 22,
-                      }
-                    ),
+                    __html: generateRealCode128BarcodeSvg(serialNumber, {
+                      widthPx: 112,
+                      heightPx: 22,
+                    }),
                   }}
                 />
               </div>
@@ -117,12 +234,12 @@ export const EmployeePayslipModal: React.FC<PayslipModalProps> = ({
                 dangerouslySetInnerHTML={{
                   __html: generateRealQrSvg(
                     encodeZatcaTlvBase64({
-                      sellerName: companyName,
-                      vatNumber: '310928374100003',
+                      sellerName: branding.displayNameAr,
+                      vatNumber: branding.taxNumber,
                       timestampIso: new Date().toISOString(),
                       totalWithVat: record.netSalary,
                       vatAmount: 0,
-                      serialNumber: `WPS-${payrollMonth}-${record.employeeNumber}`,
+                      serialNumber,
                     }),
                     { sizePx: 68 }
                   ),
@@ -264,11 +381,17 @@ export const EmployeePayslipModal: React.FC<PayslipModalProps> = ({
             </div>
           </div>
 
+          {payslipNote.trim() && (
+            <div className="p-3 rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-semibold text-[#141414]">
+              ملاحظة الإدارة المالية / الموارد البشرية: {payslipNote.trim()}
+            </div>
+          )}
+
           {/* Net Payable Banner — Mobbin Monochrome */}
           <div className="p-4 rounded-[20px] bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] flex items-center justify-between flex-wrap gap-3">
             <div>
               <span className="text-xs text-[#707070] block">
-                صافي الراتب المستحق للتحويل البنكي (WPS Net Salary)
+                صافي الراتب المستحق للتحويل البنكي (WPS Net Salary) — {branding.displayNameAr}
               </span>
               <span className="text-[11px] text-[#141414] font-semibold">
                 شامل مساهمة المنشأة في التأمينات الاجتماعية (⃁{' '}
@@ -285,7 +408,7 @@ export const EmployeePayslipModal: React.FC<PayslipModalProps> = ({
           </div>
         </div>
 
-        <div className="px-5 py-3.5 bg-[#f3f3f3] border-t border-[#e0e0e0] flex justify-end gap-2 print:hidden">
+        <div className="no-print print:hidden px-5 py-3.5 bg-[#f3f3f3] border-t border-[#e0e0e0] flex justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
@@ -299,12 +422,16 @@ export const EmployeePayslipModal: React.FC<PayslipModalProps> = ({
             className="px-5 py-2 rounded-full bg-[#141414] hover:bg-[#262626] text-xs font-bold text-[#ffffff] flex items-center gap-1.5 cursor-pointer"
           >
             <Printer className="w-4 h-4" />
-            <span>طباعة قسيمة الراتب PDF</span>
+            <span>طباعة قسيمة الراتب A4 / PDF</span>
           </button>
         </div>
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined'
+    ? createPortal(payslipModalNode, document.body)
+    : payslipModalNode;
 };
 
 export interface OfficialLetterModalProps {
@@ -321,9 +448,13 @@ export interface OfficialLetterModalProps {
     basic_salary?: number;
     housing_allowance?: number;
     transport_allowance?: number;
+    company_id?: string;
+    phone?: string;
+    email?: string;
   };
   letterType: 'SALARY_CERTIFICATE' | 'CLEARANCE_CERTIFICATE';
-  companyName: string;
+  companyName?: string;
+  companyCode?: string;
   clearanceSummary?: {
     endDate: string;
     separationReasonLabel: string;
@@ -339,27 +470,46 @@ export const HrOfficialLetterModal: React.FC<OfficialLetterModalProps> = ({
   employee,
   letterType,
   companyName,
+  companyCode,
   clearanceSummary,
   onClose,
 }) => {
+  const initialBranding = resolveDocumentBranding(
+    employee.company_id || companyCode || companyName
+  );
+  const [selectedEntity, setSelectedEntity] = useState<CanonicalEntityCode>(initialBranding.code);
+  const [hideHoldingGroupBrand, setHideHoldingGroupBrand] = useState<boolean>(
+    initialBranding.hideHoldingGroupBrand
+  );
   const [recipientEntity, setRecipientEntity] = useState(
     'إلى من يهمه الأمر / الجهات التمويلية والبنوك المعتمدة'
   );
+  const [customSignatory, setCustomSignatory] = useState<string>('');
+
+  const branding = resolveDocumentBranding(employee, {
+    entityCode: selectedEntity,
+    hideHoldingGroupBrand,
+  });
+
   const basic = employee.basic_salary || Math.round(employee.salary * 0.7);
   const housing = employee.housing_allowance || Math.round(employee.salary * 0.2);
   const transport = employee.transport_allowance || Math.round(employee.salary * 0.1);
-  const refNo = `HR-CERT-${new Date().getFullYear()}-${employee.employee_code.slice(-3)}`;
+  const refNo = `HR-${branding.code}-${new Date().getFullYear()}-${employee.employee_code.slice(-3)}`;
 
-  return (
+  const letterModalNode = (
     <div
-      className="fixed inset-0 bg-[#141414]/60 backdrop-blur-sm z-[2300] flex items-center justify-center p-4 font-sans"
+      data-printable-modal="true"
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 bg-[#141414]/60 backdrop-blur-sm z-[11000] flex items-center justify-center p-4 font-sans"
       onClick={onClose}
+      dir="rtl"
     >
       <div
-        className="w-full max-w-2xl bg-[#ffffff] rounded-[24px] shadow-2xl border border-[#e0e0e0] overflow-hidden max-h-[92vh] flex flex-col"
+        className="w-full max-w-2xl bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden max-h-[92vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-5 py-4 bg-[#f3f3f3] text-[#141414] border-b border-[#e0e0e0] flex items-center justify-between print:hidden">
+        <div className="no-print print:hidden px-5 py-3.5 bg-[#f3f3f3] text-[#141414] border-b border-[#e0e0e0] flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2.5">
             <FileText className="w-4 h-4 text-[#141414]" />
             <h3 className="font-bold text-sm text-[#141414] m-0">
@@ -368,18 +518,95 @@ export const HrOfficialLetterModal: React.FC<OfficialLetterModalProps> = ({
                 : 'شهادة مخالصة نهائية وإبراء ذمة وشهادة خبرة'}
             </h3>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 text-[#707070] hover:text-[#141414] hover:bg-[#e0e0e0] rounded-full transition-colors cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <RecordQuickActions
+              onPrint={() => window.print()}
+              sharePayload={{
+                title:
+                  letterType === 'SALARY_CERTIFICATE'
+                    ? 'شهادة تعريف بالراتب'
+                    : 'سند مخالصة نهائية وإخلاء طرف',
+                referenceNumber: refNo,
+                recipientName: employee.name,
+                recipientPhone: employee.phone,
+                recipientEmail: employee.email,
+                entityCode: branding.code,
+                hideHoldingGroupBrand,
+                summaryLines: [
+                  { label: 'الشركة المصدرة', value: branding.displayNameAr },
+                  { label: 'اسم الموظف', value: employee.name },
+                  { label: 'المسمى الوظيفي', value: employee.job_title },
+                  { label: 'إجمالي الراتب', value: `⃁ ${employee.salary.toLocaleString()}` },
+                ],
+              }}
+            />
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 text-[#707070] hover:text-[#141414] hover:bg-[#e0e0e0] rounded-full transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Entity & Branding Controls */}
+        <div className="no-print print:hidden px-5 py-2.5 bg-[#ffffff] border-b border-[#e0e0e0] flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#141414]">
+              <Building2 className="w-3.5 h-3.5" />
+              <span>الشركة المصدرة:</span>
+            </span>
+            <select
+              value={selectedEntity}
+              onChange={(e) => {
+                const next = e.target.value as CanonicalEntityCode;
+                setSelectedEntity(next);
+                setHideHoldingGroupBrand(
+                  resolveDocumentBranding(next, { entityCode: next }).hideHoldingGroupBrand
+                );
+              }}
+              className="px-2.5 py-1 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[11px] font-bold text-[#141414]"
+            >
+              {ALL_ENTITY_OPTIONS.map((opt) => (
+                <option key={opt.code} value={opt.code}>
+                  {opt.labelAr}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => {
+                const next = !hideHoldingGroupBrand;
+                setHideHoldingGroupBrand(next);
+                setEntityHideHoldingPreference(selectedEntity, next);
+              }}
+              className={`px-3 py-1 rounded-full border text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer ${
+                hideHoldingGroupBrand
+                  ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                  : 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0]'
+              }`}
+            >
+              {hideHoldingGroupBrand ? (
+                <CheckSquare className="w-3.5 h-3.5" />
+              ) : (
+                <Square className="w-3.5 h-3.5 text-[#707070]" />
+              )}
+              <span>إلغاء جملة المجموعة</span>
+            </button>
+          </div>
+          <input
+            type="text"
+            value={customSignatory}
+            onChange={(e) => setCustomSignatory(e.target.value)}
+            placeholder={`المعتمد: ${branding.displayNameAr}`}
+            className="px-3 py-1 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[11px] font-semibold text-[#141414]"
+          />
         </div>
 
         <div className="p-6 overflow-y-auto space-y-4 bg-[#ffffff] text-[#141414]">
           {letterType === 'SALARY_CERTIFICATE' && (
-            <div className="print:hidden bg-[#f3f3f3] p-3.5 rounded-[20px] border border-[#e0e0e0]">
+            <div className="no-print print:hidden bg-[#f3f3f3] p-3.5 rounded-[20px] border border-[#e0e0e0]">
               <label className="block text-xs font-bold text-[#141414] mb-1.5">
                 الجهة الموجه إليها الخطاب:
               </label>
@@ -393,15 +620,20 @@ export const HrOfficialLetterModal: React.FC<OfficialLetterModalProps> = ({
           )}
 
           {/* Printable Certificate Frame */}
-          <div className="border-2 border-[#141414] rounded-[20px] p-6 space-y-5">
+          <div className="erp-printable-sheet border-2 border-[#141414] rounded-[20px] p-6 space-y-5 bg-[#ffffff]">
             <div className="flex items-center justify-between border-b-2 border-[#141414] pb-4 flex-wrap gap-3">
               <div>
-                <div className="text-xs font-bold text-[#707070]">المملكة العربية السعودية</div>
+                <div className="text-xs font-bold text-[#707070]">
+                  {branding.letterheadSovereignLineAr}
+                </div>
                 <div className="text-base font-bold text-[#141414] mt-0.5">
-                  {companyName}
+                  {branding.displayNameAr}
+                </div>
+                <div className="text-[11px] font-semibold text-[#707070]">
+                  س.ت: {branding.crNumber} • الرقم الضريبي: {branding.taxNumber}
                 </div>
                 <div className="text-xs font-bold text-[#141414] mt-0.5">
-                  إدارة الموارد البشرية والشؤون الإدارية
+                  {branding.hrIssuerTitleAr}
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -423,8 +655,8 @@ export const HrOfficialLetterModal: React.FC<OfficialLetterModalProps> = ({
                   dangerouslySetInnerHTML={{
                     __html: generateRealQrSvg(
                       encodeZatcaTlvBase64({
-                        sellerName: companyName,
-                        vatNumber: '310928374100003',
+                        sellerName: branding.displayNameAr,
+                        vatNumber: branding.taxNumber,
                         timestampIso: new Date().toISOString(),
                         totalWithVat: employee.salary,
                         vatAmount: 0,
@@ -452,8 +684,8 @@ export const HrOfficialLetterModal: React.FC<OfficialLetterModalProps> = ({
                   <span>المحترمين</span>
                 </div>
                 <p className="text-xs text-[#141414] leading-relaxed text-justify">
-                  تشهد إدارة الموارد البشرية في <strong>{companyName}</strong> بأن الموظف الموضحة
-                  بياناته أدناه يعمل لدينا على رأس العمل حتى تاريخه، وفيما يلي تفاصيل بياناته
+                  تشهد إدارة الموارد البشرية في <strong>{branding.displayNameAr}</strong> بأن الموظف
+                  الموضحة بياناته أدناه يعمل لدينا على رأس العمل حتى تاريخه، وفيما يلي تفاصيل بياناته
                   الوظيفية ومفردات راتبه الشهري المسجل في التأمينات الاجتماعية ونظام حماية الأجور:
                 </p>
 
@@ -502,15 +734,16 @@ export const HrOfficialLetterModal: React.FC<OfficialLetterModalProps> = ({
 
                 <p className="text-xs text-[#707070] leading-relaxed">
                   وقد أُعطي للموظف هذا الخطاب بناءً على طلبه لتقديمه إلى من يهمه الأمر دون أدنى
-                  مسؤولية مالية أو التزام قانوني على الشركة تجاه حقوق الغير.
+                  مسؤولية مالية أو التزام قانوني على {branding.displayNameAr} تجاه حقوق الغير.
                 </p>
               </>
             ) : (
               <>
                 <p className="text-xs text-[#141414] leading-relaxed text-justify">
-                  تشهد <strong>{companyName}</strong> بأن الموظف / <strong>{employee.name}</strong>{' '}
-                  (هوية/إقامة رقم: <span className="font-mono">{employee.national_id}</span>) قد عمل
-                  لدينا بوظيفة (<strong>{employee.job_title}</strong>) من تاريخ{' '}
+                  تشهد <strong>{branding.displayNameAr}</strong> بأن الموظف /{' '}
+                  <strong>{employee.name}</strong> (هوية/إقامة رقم:{' '}
+                  <span className="font-mono">{employee.national_id}</span>) قد عمل لدينا بوظيفة (
+                  <strong>{employee.job_title}</strong>) من تاريخ{' '}
                   <span className="font-mono">{employee.hire_date}</span> وحتى تاريخ{' '}
                   <span className="font-mono">
                     {clearanceSummary?.endDate || new Date().toISOString().slice(0, 10)}
@@ -547,7 +780,7 @@ export const HrOfficialLetterModal: React.FC<OfficialLetterModalProps> = ({
                 <p className="text-xs text-[#141414] leading-relaxed text-justify">
                   <strong>إقرار إبراء الذمة الشامل:</strong> يقر الموظف باستلامه كافة حقوقه النظامية
                   من رواتب وبدلات وأجور إجازات ومكافأة نهاية الخدمة، وتعتبر هذه الوثيقة مخالصة
-                  نهائية شاملة ومبرئة لذمة الشركة إبراءً عاماً مطلقاً لا رجعة فيه.
+                  نهائية شاملة ومبرئة لذمة {branding.displayNameAr} إبراءً عاماً مطلقاً لا رجعة فيه.
                 </p>
               </>
             )}
@@ -555,7 +788,12 @@ export const HrOfficialLetterModal: React.FC<OfficialLetterModalProps> = ({
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#e0e0e0] text-xs">
               <div>
                 <div className="text-[#707070]">اعتماد إدارة الموارد البشرية:</div>
-                <div className="font-bold text-[#141414] mt-1">مجموعة خالد السليم التجارية</div>
+                <div className="font-bold text-[#141414] mt-1">
+                  {customSignatory.trim() || branding.displayNameAr}
+                </div>
+                <div className="font-semibold text-[11px] text-[#707070] mt-0.5">
+                  {branding.hrSignatoryNameAr} • س.ت {branding.crNumber}
+                </div>
                 <div className="font-mono text-[10px] text-[#141414] mt-0.5">
                   ختم إلكتروني موثق • {refNo}
                 </div>
@@ -569,7 +807,7 @@ export const HrOfficialLetterModal: React.FC<OfficialLetterModalProps> = ({
           </div>
         </div>
 
-        <div className="px-5 py-3.5 bg-[#f3f3f3] border-t border-[#e0e0e0] flex justify-end gap-2 print:hidden">
+        <div className="no-print print:hidden px-5 py-3.5 bg-[#f3f3f3] border-t border-[#e0e0e0] flex justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
@@ -583,12 +821,16 @@ export const HrOfficialLetterModal: React.FC<OfficialLetterModalProps> = ({
             className="px-5 py-2 rounded-full bg-[#141414] hover:bg-[#262626] text-xs font-bold text-[#ffffff] flex items-center gap-1.5 cursor-pointer"
           >
             <Printer className="w-4 h-4" />
-            <span>طباعة الوثيقة الرسمية</span>
+            <span>طباعة الوثيقة الرسمية A4</span>
           </button>
         </div>
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined'
+    ? createPortal(letterModalNode, document.body)
+    : letterModalNode;
 };
 
 export interface HrComplianceRadarPanelProps {
@@ -672,7 +914,7 @@ export const HrComplianceRadarPanel: React.FC<HrComplianceRadarPanelProps> = ({
               <span>رادار انتهاء الوثائق الحكومية والعقود والتأمين الطبي</span>
             </h2>
             <p className="text-xs text-[#707070] mt-1">
-              متابعة آلية لصلاحية الهويات/الإقامات، عقود قوى، جوازات السفر، والتأمين الطبي لمنع إيقاف الخدمات
+              متابعة آلية لصلاحية الهويات/الإقامات، عقود قوى، جوازات السفر، والتأمين الطبي مع تذكير فوري عبر واتساب والبريد
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -724,7 +966,7 @@ export const HrComplianceRadarPanel: React.FC<HrComplianceRadarPanelProps> = ({
                 <th>تاريخ الانتهاء</th>
                 <th>المدة المتبقية</th>
                 <th>مستوى التنبيه</th>
-                <th className="text-center">إجراء التجديد الفوري</th>
+                <th className="text-center">إجراء التجديد والتذكير الفوري</th>
               </tr>
             </thead>
             <tbody>
@@ -742,6 +984,18 @@ export const HrComplianceRadarPanel: React.FC<HrComplianceRadarPanelProps> = ({
                       : alert.severity === 'WARNING_30D' || alert.severity === 'UPCOMING_60D'
                       ? 'bg-[#262626] text-[#ffffff]'
                       : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]';
+
+                  const reminderPayload = {
+                    title: `تذكير تجديد وثيقة: ${alert.documentLabelAr}`,
+                    recipientName: alert.employeeName,
+                    moduleName: 'hr_compliance_radar',
+                    summaryLines: [
+                      { label: 'الموظف', value: `${alert.employeeName} (${alert.employeeCode})` },
+                      { label: 'الوثيقة', value: alert.documentLabelAr },
+                      { label: 'تاريخ الانتهاء', value: alert.expiryDate },
+                      { label: 'الحالة', value: alert.statusLabelAr },
+                    ],
+                  };
 
                   return (
                     <tr key={`${alert.employeeId}-${alert.documentType}-${idx}`}>
@@ -762,15 +1016,33 @@ export const HrComplianceRadarPanel: React.FC<HrComplianceRadarPanelProps> = ({
                         </span>
                       </td>
                       <td className="text-center">
-                        <button
-                          type="button"
-                          onClick={() => onRenewDocument(alert.employeeId, alert.documentType)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold transition-colors cursor-pointer"
-                          title="تحديث وتمديد صلاحية الوثيقة لمدة سنة إضافية"
-                        >
-                          <RefreshCw className="size-3 text-[#ffffff]" />
-                          <span>تجديد (+1 سنة)</span>
-                        </button>
+                        <div className="inline-flex items-center gap-1.5 flex-wrap justify-center">
+                          <button
+                            type="button"
+                            onClick={() => shareViaWhatsApp(reminderPayload)}
+                            className="w-7 h-7 rounded-full bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] inline-flex items-center justify-center transition-colors cursor-pointer"
+                            title="إرسال تذكير تجديد عبر واتساب"
+                          >
+                            <MessageCircle className="size-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => shareViaEmail(reminderPayload)}
+                            className="w-7 h-7 rounded-full bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] inline-flex items-center justify-center transition-colors cursor-pointer"
+                            title="إرسال تذكير تجديد عبر البريد الإلكتروني"
+                          >
+                            <Mail className="size-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onRenewDocument(alert.employeeId, alert.documentType)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold transition-colors cursor-pointer"
+                            title="تحديث وتمديد صلاحية الوثيقة لمدة سنة إضافية"
+                          >
+                            <RefreshCw className="size-3 text-[#ffffff]" />
+                            <span>تجديد (+1 سنة)</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

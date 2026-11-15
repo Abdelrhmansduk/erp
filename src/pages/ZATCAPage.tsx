@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useModalEscape } from '../hooks/useModalEscape';
 import { Badge } from '../components/ui/Badge';
 import { exportData } from '../services/exportService';
 import { ExportDropdown } from '../components/common/ExportDropdown';
@@ -7,6 +8,7 @@ import { useZatcaInvoices, useTableMutation } from '../hooks/queries/useErpQueri
 import { useCompany } from '../contexts/CompanyContext';
 import { generateZatcaQR } from '../services/zatcaPhase2Service';
 import { realZatcaEngine } from '../services/realZatcaEngine';
+import { generateRealQrSvg } from '../utils/realBarcodeGenerator';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { useAppStore } from '../stores/appStore';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
@@ -121,6 +123,7 @@ const DEFAULT_MOCK_INVOICES: ZatcaInvoiceRecord[] = [
 ];
 
 export const ZATCAPage: React.FC = () => {
+  useModalEscape();
   const { addNotification, activeTab: storeActiveTab, setActiveTab } = useAppStore();
   const { activeCompanyId, activeCompany } = useCompany();
   const { data: rawInvoices = [], isLoading, refetch } = useZatcaInvoices();
@@ -186,14 +189,73 @@ export const ZATCAPage: React.FC = () => {
   const [subtotalInput, setSubtotalInput] = useState('10000');
   const [contractRef, setContractRef] = useState('');
 
-  const subtotal = parseFloat(subtotalInput) || 0;
+  const subtotal = Math.round((parseFloat(subtotalInput) || 0) * 100) / 100;
   const vatRate = 0.15;
-  const vatAmount = subtotal * vatRate;
-  const totalAmount = subtotal + vatAmount;
+  const vatAmount = Math.round(subtotal * vatRate * 100) / 100;
+  const totalAmount = Math.round((subtotal + vatAmount) * 100) / 100;
+
+  /** Builds the full ZATCA UBL 2.1 XML (escaped, with PIH/TaxTotal/lines) for preview and download. */
+  const buildInvoiceXml = (inv: any): string => {
+    const sub = Number(inv.subtotal ?? 0);
+    const vat = Number(inv.vat_amount ?? 0);
+    const total = Number(inv.total_amount ?? sub + vat);
+    const hex = String(inv.xml_hash || '').replace(/[^0-9a-f]/gi, '').padEnd(32, '0').slice(0, 32);
+    const uuid = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+    return realZatcaEngine.generateUblXml(
+      {
+        invoiceNumber: inv.invoice_number,
+        issueDate: inv.issue_date,
+        issueTime: inv.issue_time,
+        sellerName: activeCompany.name,
+        sellerVatNumber: activeCompany.taxNumber,
+        sellerCrNumber: activeCompany.crNumber,
+        buyerName: inv.client_name,
+        buyerVatNumber: inv.client_vat_number,
+        subtotal: sub,
+        vatRate: 15,
+        vatAmount: vat,
+        grandTotal: total,
+        items: [
+          {
+            name: inv.contract_ref ? `خدمات / سلع (${inv.contract_ref})` : 'خدمات / سلع معتمدة',
+            quantity: 1,
+            unitPrice: sub,
+            totalPrice: sub,
+            vatAmount: vat,
+            totalWithVat: total,
+          },
+        ],
+      },
+      uuid
+    );
+  };
 
   const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientName || subtotal <= 0) return;
+    if (!clientName.trim() || subtotal <= 0) {
+      addNotification({
+        title: 'بيانات الفاتورة غير مكتملة',
+        message: 'يرجى إدخال اسم العميل ومبلغ خاضع للضريبة أكبر من صفر.',
+        type: 'warning',
+      });
+      return;
+    }
+    if (invoiceType === 'STANDARD' && !/^3\d{13}3$/.test(clientVat.trim())) {
+      addNotification({
+        title: 'الرقم الضريبي للعميل غير صالح',
+        message: 'الفاتورة القياسية (B2B) تتطلب رقماً ضريبياً من 15 رقماً يبدأ وينتهي بالرقم 3 (BR-KSA-39).',
+        type: 'warning',
+      });
+      return;
+    }
+    if (clientNationalId.trim() && !/^[12]\d{9}$/.test(clientNationalId.trim())) {
+      addNotification({
+        title: 'رقم الهوية غير صالح',
+        message: 'يجب أن يتكون رقم الهوية الوطنية / الإقامة من 10 أرقام ويبدأ بـ 1 أو 2.',
+        type: 'warning',
+      });
+      return;
+    }
 
     const companyCode = activeCompanyId !== 'all' ? activeCompanyId : 'SAF';
     const invoiceNumber = `${companyCode}-INV-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(4, '0')}`;
@@ -571,8 +633,8 @@ export const ZATCAPage: React.FC = () => {
 
       {/* Create New Invoice Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
+          <div className="w-full max-w-xl bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <FileText className="w-4 h-4 text-[#141414]" />
@@ -691,8 +753,8 @@ export const ZATCAPage: React.FC = () => {
 
       {/* XML & QR Inspection Modal */}
       {selectedInvoiceForXml && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setSelectedInvoiceForXml(null); }}>
+          <div className="w-full max-w-2xl bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <QrCode className="w-4 h-4 text-[#141414]" />
@@ -717,10 +779,13 @@ export const ZATCAPage: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col items-center justify-center p-3 bg-white rounded-2xl border border-zinc-200">
-                  <div className="w-20 h-20 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex flex-col items-center justify-center rounded-xl p-2 text-center">
-                    <QrCode className="w-8 h-8 text-[#141414]" />
-                    <span className="text-[8px] font-mono mt-1 text-[#141414]">ZATCA TLV</span>
-                  </div>
+                  <div
+                    className="w-32 h-32 flex items-center justify-center"
+                    aria-label="رمز ZATCA QR الفعلي (TLV Base64)"
+                    dangerouslySetInnerHTML={{
+                      __html: generateRealQrSvg(selectedInvoiceForXml.qr_code_payload || selectedInvoiceForXml.invoice_number, { sizePx: 124 }),
+                    }}
+                  />
                   <span className="text-[10px] text-[#707070] font-bold mt-1">رمز التحقق الفوري</span>
                 </div>
               </div>
@@ -728,25 +793,7 @@ export const ZATCAPage: React.FC = () => {
               <div>
                 <label className="block text-xs font-semibold text-zinc-700 mb-1">محتوى ملف UBL 2.1 XML المعتمد:</label>
                 <pre className="p-3 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] rounded-2xl font-mono text-[11px] overflow-x-auto max-h-44 whitespace-pre-wrap">
-{`<?xml version="1.0" encoding="UTF-8"?>
-<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">
-  <ID>${selectedInvoiceForXml.invoice_number}</ID>
-  <IssueDate>${selectedInvoiceForXml.issue_date}</IssueDate>
-  <InvoiceTypeCode name="0100000">${selectedInvoiceForXml.invoice_type}</InvoiceTypeCode>
-  <AccountingSupplierParty>
-    <PartyName>${activeCompany.name}</PartyName>
-    <CompanyID>${activeCompany.taxNumber}</CompanyID>
-  </AccountingSupplierParty>
-  <AccountingCustomerParty>
-    <PartyName>${selectedInvoiceForXml.client_name}</PartyName>
-  </AccountingCustomerParty>
-  <TaxTotal>
-    <TaxAmount currencyID="SAR">${(selectedInvoiceForXml.vat_amount ?? 0).toFixed(2)}</TaxAmount>
-  </TaxTotal>
-  <LegalMonetaryTotal>
-    <PayableAmount currencyID="SAR">${(selectedInvoiceForXml.total_amount ?? 0).toFixed(2)}</PayableAmount>
-  </LegalMonetaryTotal>
-</Invoice>`}
+{buildInvoiceXml(selectedInvoiceForXml)}
                 </pre>
               </div>
 
@@ -754,11 +801,7 @@ export const ZATCAPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
-<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">
-  <ID>${selectedInvoiceForXml.invoice_number}</ID>
-  <IssueDate>${selectedInvoiceForXml.issue_date}</IssueDate>
-</Invoice>`;
+                    const xmlContent = buildInvoiceXml(selectedInvoiceForXml);
                     const blob = new Blob([xmlContent], { type: 'application/xml;charset=utf-8' });
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
@@ -805,8 +848,8 @@ export const ZATCAPage: React.FC = () => {
 
       {/* CSID Settings Modal */}
       {showCsidModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowCsidModal(false); }}>
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Key className="w-4 h-4 text-[#141414]" />
@@ -870,7 +913,7 @@ export const ZATCAPage: React.FC = () => {
       {/* Invoice Attachment Preview Modal */}
       {selectedInvoiceAttachment && (
         <div
-          className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[2100] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[2100] flex items-center justify-center p-4" data-erp-modal-overlay="true"
           onClick={() => setSelectedInvoiceAttachment(null)}
         >
           <div

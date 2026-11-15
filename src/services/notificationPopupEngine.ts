@@ -10,7 +10,7 @@ export interface PopupNotification {
   id: string;
   title: string;
   message: string;
-  type: 'success' | 'warning' | 'error' | 'info' | 'zatca' | 'etimad' | 'musaned' | 'shelter' | 'system' | 'sponsorship';
+  type: 'success' | 'warning' | 'error' | 'info' | 'zatca' | 'etimad' | 'musaned' | 'shelter' | 'system' | 'sponsorship' | 'hr';
   priority?: 'critical' | 'actionable' | 'micro';
   companyId?: string;
   companyName?: string;
@@ -204,7 +204,7 @@ class NotificationPopupEngine {
           : 'info';
 
       const storeCategory: 'zatca' | 'etimad' | 'musaned' | 'shelter' | 'hr' | 'finance' | 'system' =
-        params.type === 'zatca' || params.type === 'etimad' || params.type === 'musaned' || params.type === 'shelter'
+        params.type === 'zatca' || params.type === 'etimad' || params.type === 'musaned' || params.type === 'shelter' || params.type === 'hr'
           ? params.type
           : 'system';
 

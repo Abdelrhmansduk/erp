@@ -73,7 +73,27 @@ function bytesToBase64(bytes: number[]): string {
 /**
  * Generates an official ZATCA TLV Base64 string for e-Invoices and Financial Reports.
  */
-export function encodeZatcaTlvBase64(input: ZatcaQrPayloadInput): string {
+function normalizeZatcaAmount(value: number | string | null | undefined): string {
+  const n =
+    typeof value === 'number' ? value : parseFloat(String(value ?? '').replace(/[^\d.-]/g, ''));
+  return (Number.isFinite(n) ? n : 0).toFixed(2);
+}
+
+function sanitizeZatcaInput(raw: ZatcaQrPayloadInput): ZatcaQrPayloadInput {
+  const vatDigits = String(raw?.vatNumber ?? '').replace(/\D/g, '');
+  const ts = raw?.timestampIso ? new Date(raw.timestampIso) : null;
+  return {
+    ...raw,
+    sellerName: String(raw?.sellerName ?? '').trim(),
+    vatNumber: /^\d{15}$/.test(vatDigits) ? vatDigits : '',
+    timestampIso: ts && !Number.isNaN(ts.getTime()) ? ts.toISOString() : '',
+    totalWithVat: normalizeZatcaAmount(raw?.totalWithVat),
+    vatAmount: normalizeZatcaAmount(raw?.vatAmount),
+  };
+}
+
+export function encodeZatcaTlvBase64(rawInput: ZatcaQrPayloadInput): string {
+  const input = sanitizeZatcaInput(rawInput);
   const totalFormatted =
     typeof input.totalWithVat === 'number'
       ? input.totalWithVat.toFixed(2)
@@ -558,4 +578,68 @@ export function generateRealCode128BarcodeSvg(
     : '';
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${widthPx}" height="${heightPx}" viewBox="0 0 ${totalWidthModules} ${heightPx}" shape-rendering="crispEdges" style="background:${lightColor}; border:1px solid #e5e5e5; border-radius:6px; padding:2px 4px; display:block;" role="img" aria-label="Barcode ${escapedLabel}"><rect width="${totalWidthModules}" height="${heightPx}" fill="${lightColor}"/>${barsSvg}${textNode}</svg>`;
+}
+
+// ─── 4. ZATCA Phase 2 TLV Decoder & Validator ────────────────────────────────
+export interface DecodedZatcaTlv {
+  tags: Record<number, string>;
+  sellerName: string;
+  vatNumber: string;
+  timestamp: string;
+  totalWithVat: string;
+  vatAmount: string;
+}
+
+function base64ToBytes(b64: string): number[] {
+  if (typeof atob === 'function') {
+    const bin = atob(b64);
+    const out: number[] = [];
+    for (let i = 0; i < bin.length; i++) out.push(bin.charCodeAt(i));
+    return out;
+  }
+  const buf = (globalThis as any).Buffer;
+  return buf ? Array.from(buf.from(b64, 'base64') as Uint8Array) : [];
+}
+
+/** Decodes a ZATCA TLV Base64 payload into tag map + the 5 mandatory Phase 1/2 fields. */
+export function decodeZatcaTlvBase64(b64: string): DecodedZatcaTlv {
+  const bytes = base64ToBytes(String(b64 || ''));
+  const tags: Record<number, string> = {};
+  let i = 0;
+  while (i + 1 < bytes.length) {
+    const tag = bytes[i];
+    const len = bytes[i + 1];
+    const slice = bytes.slice(i + 2, i + 2 + len);
+    tags[tag] =
+      typeof TextDecoder !== 'undefined'
+        ? new TextDecoder().decode(new Uint8Array(slice))
+        : String.fromCharCode(...slice);
+    i += 2 + len;
+  }
+  return {
+    tags,
+    sellerName: tags[1] ?? '',
+    vatNumber: tags[2] ?? '',
+    timestamp: tags[3] ?? '',
+    totalWithVat: tags[4] ?? '',
+    vatAmount: tags[5] ?? '',
+  };
+}
+
+export interface ZatcaTlvValidation {
+  valid: boolean;
+  errors: string[];
+  fields: DecodedZatcaTlv;
+}
+
+/** Validates the mandatory ZATCA fields: seller, 15-digit VAT (3…3), ISO timestamp, 2-decimal amounts. */
+export function validateZatcaTlvBase64(b64: string): ZatcaTlvValidation {
+  const fields = decodeZatcaTlvBase64(b64);
+  const errors: string[] = [];
+  if (!fields.sellerName) errors.push('MISSING_SELLER_NAME');
+  if (!/^3\d{13}3$/.test(fields.vatNumber)) errors.push('INVALID_VAT_NUMBER');
+  if (!fields.timestamp || Number.isNaN(new Date(fields.timestamp).getTime())) errors.push('INVALID_TIMESTAMP');
+  if (!/^-?\d+\.\d{2}$/.test(fields.totalWithVat)) errors.push('INVALID_TOTAL_WITH_VAT');
+  if (!/^-?\d+\.\d{2}$/.test(fields.vatAmount)) errors.push('INVALID_VAT_AMOUNT');
+  return { valid: errors.length === 0, errors, fields };
 }

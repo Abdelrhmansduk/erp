@@ -1,10 +1,26 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 
 const ttsPlugin = () => ({
   name: 'tts-api',
   configureServer(server: any) {
     server.middlewares.use(async (req: any, res: any, next: any) => {
+      if (req.url && req.url.startsWith('/api/hr-email-send')) {
+        try {
+          // @ts-ignore - Dynamic import of pure ESM Node helper
+          const { handleHrDirectMailHttpRequest } = await import('./src/services/hrDirectMailServer.mjs');
+          await handleHrDirectMailHttpRequest(req, res);
+          return;
+        } catch (err: any) {
+          if (!res.headersSent) {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ ok: false, errorAr: err?.message || 'HR Direct Mail server error' }));
+          }
+          return;
+        }
+      }
+
       if (req.url && req.url.startsWith('/api/health')) {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -238,7 +254,20 @@ const ttsPlugin = () => ({
 });
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const serverEnv = loadEnv(mode, process.cwd(), '');
+  for (const [k, v] of Object.entries(serverEnv)) {
+    if (
+      (k.startsWith('HR_MAIL_') ||
+        k.startsWith('HR_SMTP_') ||
+        k.startsWith('AZURE_') ||
+        k === 'RESEND_API_KEY') &&
+      process.env[k] === undefined
+    ) {
+      process.env[k] = v;
+    }
+  }
+  return {
   base: '/',
   plugins: [react(), ttsPlugin()],
   resolve: {
@@ -310,4 +339,5 @@ export default defineConfig({
       }
     }
   }
+  };
 })

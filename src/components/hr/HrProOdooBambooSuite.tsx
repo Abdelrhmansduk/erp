@@ -9,10 +9,12 @@ import {
   TrendingUp,
   UserPlus,
   X,
+  Mail,
 } from 'lucide-react';
 import { WpsPayrollEngine, EmployeePayrollRecord } from '../../services/wpsPayrollEngine';
 import { realErpDataStore } from '../../services/realErpDataStore';
 import { ExportDropdown } from '../common/ExportDropdown';
+import { shareHrOfficialEmailEml } from '../../services/quickShareService';
 
 export interface SuiteEmployeeSummary {
   id: string;
@@ -200,14 +202,36 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
 }) => {
   const [subTab, setSubTab] = useState<'odoo-rules' | 'hr-pro-playbook' | 'bamboohr-sync'>('odoo-rules');
 
-  // --- Sub-tab 1: Odoo Salary Structure & Rule Simulator State ---
+  // --- Sub-tab 1: Odoo Salary Structure & Real Payroll Rule Calculator State ---
   const [selectedEmpId, setSelectedEmpId] = useState<string>(employees[0]?.id || '1');
-  const [simRewardInput, setSimRewardInput] = useState<number>(0);
-  const [simAdvanceInput, setSimAdvanceInput] = useState<number>(0);
-  const [simSanctionInput, setSimSanctionInput] = useState<number>(0);
-  const [simOvertimeHours, setSimOvertimeHours] = useState<number>(0);
-  const [simUnpaidDays, setSimUnpaidDays] = useState<number>(0);
-  const [simPostJuly2024Gosi, setSimPostJuly2024Gosi] = useState<boolean>(false);
+  const [basicSalaryInput, setBasicSalaryInput] = useState<number>(0);
+  const [housingAllowanceInput, setHousingAllowanceInput] = useState<number>(0);
+  const [transportAllowanceInput, setTransportAllowanceInput] = useState<number>(0);
+  const [rewardInput, setRewardInput] = useState<number>(0);
+  const [advanceInput, setAdvanceInput] = useState<number>(0);
+  const [sanctionInput, setSanctionInput] = useState<number>(0);
+  const [overtimeHoursInput, setOvertimeHoursInput] = useState<number>(0);
+  const [unpaidDaysInput, setUnpaidDaysInput] = useState<number>(0);
+  const [postJuly2024Gosi, setPostJuly2024Gosi] = useState<boolean>(false);
+  const [savedSalaryOverrides, setSavedSalaryOverrides] = useState<
+    Record<
+      string,
+      {
+        basic_salary: number;
+        housing_allowance: number;
+        transport_allowance: number;
+        salary: number;
+      }
+    >
+  >({});
+  const [lastSavedStructureInfo, setLastSavedStructureInfo] = useState<{
+    refNo: string;
+    jvRef: string;
+    employeeName: string;
+    netSalary: number;
+    savedAt: string;
+  } | null>(null);
+  const [isPersistingStructure, setIsPersistingStructure] = useState<boolean>(false);
 
   // --- Sub-tab 2: HR-Pro Onboarding & Performance State ---
   const [onboardingPlans, setOnboardingPlans] = useState<OnboardingPlanRecord[]>(DEFAULT_ONBOARDING_PLANS);
@@ -238,18 +262,62 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
     let mounted = true;
     (async () => {
       try {
-        const [savedOnb, savedRev, savedDep] = await Promise.all([
+        const [savedOnb, savedRev, savedDep, savedStructures] = await Promise.all([
           realErpDataStore.getRecords<OnboardingPlanRecord>('hr_onboarding_plans', DEFAULT_ONBOARDING_PLANS),
           realErpDataStore.getRecords<PerformanceReviewRecord>('hr_performance_reviews', DEFAULT_PERFORMANCE_REVIEWS),
           realErpDataStore.getRecords<DependentBenefitRecord>('hr_dependents', DEFAULT_DEPENDENTS),
+          realErpDataStore.getRecords<{
+            id: string;
+            employee_id: string;
+            employee_name: string;
+            basic_salary: number;
+            housing_allowance: number;
+            transport_allowance: number;
+            total_contract_salary: number;
+            net_salary: number;
+            jv_ref: string;
+            saved_at: string;
+          }>('hr_salary_structures', []),
         ]);
         if (mounted) {
           if (savedOnb.length > 0) setOnboardingPlans(savedOnb);
           if (savedRev.length > 0) setReviews(savedRev);
           if (savedDep.length > 0) setDependents(savedDep);
+          if (savedStructures.length > 0) {
+            const overridesMap: Record<
+              string,
+              {
+                basic_salary: number;
+                housing_allowance: number;
+                transport_allowance: number;
+                salary: number;
+              }
+            > = {};
+            savedStructures.forEach((rec) => {
+              if (rec.employee_id && !overridesMap[rec.employee_id]) {
+                overridesMap[rec.employee_id] = {
+                  basic_salary: Number(rec.basic_salary || 0),
+                  housing_allowance: Number(rec.housing_allowance || 0),
+                  transport_allowance: Number(rec.transport_allowance || 0),
+                  salary: Number(rec.total_contract_salary || 0),
+                };
+              }
+            });
+            setSavedSalaryOverrides(overridesMap);
+            const latest = savedStructures[0];
+            if (latest) {
+              setLastSavedStructureInfo({
+                refNo: latest.id,
+                jvRef: latest.jv_ref || 'JV-WPS',
+                employeeName: latest.employee_name,
+                netSalary: Number(latest.net_salary || 0),
+                savedAt: latest.saved_at || new Date().toISOString(),
+              });
+            }
+          }
         }
       } catch {
-        // Fallback to defaults
+        // Keep initial records if store read fails
       }
     })();
     return () => {
@@ -257,19 +325,33 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
     };
   }, []);
 
-  const selectedEmployee = useMemo(
-    () => employees.find((e) => e.id === selectedEmpId) || employees[0],
-    [employees, selectedEmpId]
-  );
+  const selectedEmployee = useMemo(() => {
+    const baseEmp = employees.find((e) => e.id === selectedEmpId) || employees[0];
+    if (!baseEmp) return undefined;
+    const override = savedSalaryOverrides[baseEmp.id];
+    return override ? { ...baseEmp, ...override } : baseEmp;
+  }, [employees, selectedEmpId, savedSalaryOverrides]);
 
-  // Live Simulated Payslip & GL Journal via WpsPayrollEngine
-  const simulatedPayslip = useMemo(() => {
+  useEffect(() => {
+    if (!selectedEmployee) return;
+    const basic = selectedEmployee.basic_salary ?? Math.round(selectedEmployee.salary * 0.7);
+    const housing = selectedEmployee.housing_allowance ?? Math.round(selectedEmployee.salary * 0.2);
+    const transport = selectedEmployee.transport_allowance ?? Math.round(selectedEmployee.salary * 0.1);
+    setBasicSalaryInput(basic);
+    setHousingAllowanceInput(housing);
+    setTransportAllowanceInput(transport);
+  }, [selectedEmployee?.id, selectedEmployee?.basic_salary, selectedEmployee?.housing_allowance, selectedEmployee?.transport_allowance, selectedEmployee?.salary]);
+
+  // Real Operational Payslip & GL Journal Calculation via WpsPayrollEngine
+  const computedPayslip = useMemo(() => {
     if (!selectedEmployee) return null;
-    const basic = selectedEmployee.basic_salary || Math.round(selectedEmployee.salary * 0.7);
-    const housing = selectedEmployee.housing_allowance || Math.round(selectedEmployee.salary * 0.2);
-    const transport = selectedEmployee.transport_allowance || Math.round(selectedEmployee.salary * 0.1);
+    const basic = basicSalaryInput > 0 ? basicSalaryInput : (selectedEmployee.basic_salary || Math.round(selectedEmployee.salary * 0.7));
+    const housing = housingAllowanceInput >= 0 ? housingAllowanceInput : (selectedEmployee.housing_allowance || Math.round(selectedEmployee.salary * 0.2));
+    const transport = transportAllowanceInput >= 0 ? transportAllowanceInput : (selectedEmployee.transport_allowance || Math.round(selectedEmployee.salary * 0.1));
     const other = selectedEmployee.allowances || 0;
     const isSaudi = selectedEmployee.national_id ? selectedEmployee.national_id.startsWith('1') : true;
+    const activeCompany =
+      (typeof window !== 'undefined' ? localStorage.getItem('alsulaim_active_company') : null) || 'SAF';
 
     const item = WpsPayrollEngine.calculateComprehensivePayrollItem({
       employeeId: selectedEmployee.id,
@@ -279,30 +361,142 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
       bankCode: 'ALRAJHI',
       iban: selectedEmployee.iban || 'SA0380000000608010167519',
       isSaudi,
-      isNewSubscriberPostJuly2024: simPostJuly2024Gosi,
+      isNewSubscriberPostJuly2024: postJuly2024Gosi,
       basicSalary: basic,
       housingAllowance: housing,
       transportAllowance: transport,
       otherAllowances: other,
-      overtimeHours: simOvertimeHours,
-      rewardsAmount: simRewardInput,
-      advanceInstallment: simAdvanceInput,
-      sanctionAmount: simSanctionInput,
-      unpaidAbsenceDays: simUnpaidDays,
+      overtimeHours: overtimeHoursInput,
+      rewardsAmount: rewardInput,
+      advanceInstallment: advanceInput,
+      sanctionAmount: sanctionInput,
+      unpaidAbsenceDays: unpaidDaysInput,
       workingDays: 30,
     });
 
-    const glEntry = WpsPayrollEngine.buildPayrollGlJournalEntry('2026-11', 'SAF', [item]);
-    return { item, glEntry };
+    const periodMonth = new Date().toISOString().slice(0, 7);
+    const glEntry = WpsPayrollEngine.buildPayrollGlJournalEntry(
+      periodMonth,
+      activeCompany === 'all' ? 'SAF' : activeCompany,
+      [item]
+    );
+    return { item, glEntry, periodMonth, companyCode: activeCompany === 'all' ? 'SAF' : activeCompany };
   }, [
     selectedEmployee,
-    simRewardInput,
-    simAdvanceInput,
-    simSanctionInput,
-    simOvertimeHours,
-    simUnpaidDays,
-    simPostJuly2024Gosi,
+    basicSalaryInput,
+    housingAllowanceInput,
+    transportAllowanceInput,
+    rewardInput,
+    advanceInput,
+    sanctionInput,
+    overtimeHoursInput,
+    unpaidDaysInput,
+    postJuly2024Gosi,
   ]);
+
+  const handlePersistSalaryStructure = async () => {
+    if (!selectedEmployee || !computedPayslip || isPersistingStructure) return;
+    setIsPersistingStructure(true);
+    try {
+      const otherAllowances = selectedEmployee.allowances || 0;
+      const totalContractSalary =
+        basicSalaryInput + housingAllowanceInput + transportAllowanceInput + otherAllowances;
+      const nowIso = new Date().toISOString();
+      const structureId = `STR-${selectedEmployee.employee_code || selectedEmployee.id}-${Date.now().toString().slice(-5)}`;
+      const jvRef = `JV-SAL-${Date.now().toString().slice(-6)}`;
+
+      await realErpDataStore.updateRecord<SuiteEmployeeSummary>('employees', selectedEmployee.id, {
+        basic_salary: basicSalaryInput,
+        housing_allowance: housingAllowanceInput,
+        transport_allowance: transportAllowanceInput,
+        salary: totalContractSalary,
+      });
+
+      await realErpDataStore.addRecord('hr_salary_structures', {
+        id: structureId,
+        company_id: computedPayslip.companyCode,
+        employee_id: selectedEmployee.id,
+        employee_code: selectedEmployee.employee_code,
+        employee_name: selectedEmployee.name,
+        period_month: computedPayslip.periodMonth,
+        basic_salary: basicSalaryInput,
+        housing_allowance: housingAllowanceInput,
+        transport_allowance: transportAllowanceInput,
+        other_allowances: otherAllowances,
+        total_contract_salary: totalContractSalary,
+        overtime_hours: overtimeHoursInput,
+        rewards_amount: rewardInput,
+        advance_installment: advanceInput,
+        sanction_amount: sanctionInput,
+        unpaid_absence_days: unpaidDaysInput,
+        post_july_2024_gosi: postJuly2024Gosi,
+        gross_salary: computedPayslip.item.grossSalary || 0,
+        gosi_employee_share: computedPayslip.item.gosiDeduction,
+        gosi_employer_share: computedPayslip.item.gosiEmployerShare || 0,
+        carried_forward_deduction: computedPayslip.item.carriedForwardDeduction || 0,
+        net_salary: computedPayslip.item.netSalary,
+        jv_ref: jvRef,
+        saved_at: nowIso,
+      });
+
+      await realErpDataStore.addRecord('company_journal_entries', {
+        id: `jv-sal-${Date.now()}`,
+        company_id: computedPayslip.companyCode,
+        ref_no: jvRef,
+        date: nowIso.slice(0, 10),
+        branch: 'المركز الرئيسي - الرياض',
+        description: `قيد استحقاق وهيكل أجر الموظف (${selectedEmployee.name}) — ${computedPayslip.periodMonth}`,
+        total_debit: computedPayslip.glEntry.totalDebit,
+        total_credit: computedPayslip.glEntry.totalCredit,
+        status: 'معتمد',
+        lines: computedPayslip.glEntry.lines,
+        created_at: nowIso,
+      });
+
+      setSavedSalaryOverrides((prev) => ({
+        ...prev,
+        [selectedEmployee.id]: {
+          basic_salary: basicSalaryInput,
+          housing_allowance: housingAllowanceInput,
+          transport_allowance: transportAllowanceInput,
+          salary: totalContractSalary,
+        },
+      }));
+
+      setLastSavedStructureInfo({
+        refNo: structureId,
+        jvRef,
+        employeeName: selectedEmployee.name,
+        netSalary: computedPayslip.item.netSalary,
+        savedAt: nowIso,
+      });
+
+      onNotify?.(
+        'اعتماد هيكل الأجر وترحيل قيد الاستحقاق',
+        `تم تحديث عقد الموظف (${selectedEmployee.name}) وحفظ هيكل الأجر (${structureId}) وترحيل القيد المتوازن (${jvRef}) بصافي ${computedPayslip.item.netSalary.toLocaleString()} ⃁.`,
+        'success'
+      );
+    } finally {
+      setIsPersistingStructure(false);
+    }
+  };
+
+  const handleResetToContractValues = () => {
+    if (!selectedEmployee) return;
+    setBasicSalaryInput(selectedEmployee.basic_salary ?? Math.round(selectedEmployee.salary * 0.7));
+    setHousingAllowanceInput(selectedEmployee.housing_allowance ?? Math.round(selectedEmployee.salary * 0.2));
+    setTransportAllowanceInput(selectedEmployee.transport_allowance ?? Math.round(selectedEmployee.salary * 0.1));
+    setOvertimeHoursInput(0);
+    setRewardInput(0);
+    setAdvanceInput(0);
+    setSanctionInput(0);
+    setUnpaidDaysInput(0);
+    onNotify?.(
+      'استعادة بنود العقد المسجلة',
+      `تمت استعادة بنود الأجر التعاقدي للموظف ${selectedEmployee.name} وتصفير المتغيرات الشهرية.`,
+      'info'
+    );
+  };
 
   const toggleOnboardingStep = async (
     plan: OnboardingPlanRecord,
@@ -462,9 +656,9 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
       </div>
 
       {/* =====================================================================
-          SUB-TAB 1: ODOO HR PAYROLL SALARY STRUCTURE & RULE SIMULATOR
+          SUB-TAB 1: ODOO HR PAYROLL SALARY STRUCTURE & REAL PAYROLL CALCULATOR
       ===================================================================== */}
-      {subTab === 'odoo-rules' && simulatedPayslip && (
+      {subTab === 'odoo-rules' && computedPayslip && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Pattern: data-table — Ordered Salary Structure Rules Table */}
           <div data-slot="data-table" className="lg:col-span-7 table-card mb-0">
@@ -484,18 +678,18 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                 <ExportDropdown
                   sectionKey="hr_salary_rules"
                   data={[
-                    { seq: 10, code: 'BASIC', name: 'الراتب الأساسي (Basic)', cat: 'Basic', formula: 'contract.basic_salary', gl: '510101 (مدين)', val: simulatedPayslip.item.basicSalary },
-                    { seq: 20, code: 'HRA', name: 'بدل السكن (Housing)', cat: 'Allowance', formula: 'contract.housing_allowance', gl: '510102 (مدين)', val: simulatedPayslip.item.housingAllowance },
-                    { seq: 30, code: 'TRANS', name: 'بدل النقل والبدلات الأخرى', cat: 'Allowance', formula: 'contract.transport + contract.other', gl: '510103 (مدين)', val: simulatedPayslip.item.otherAllowances },
-                    { seq: 40, code: 'OT_107', name: 'عمل إضافي (مادة 107 — 150%)', cat: 'Allowance', formula: 'BASIC/240 * 0.5 + GROSS/240 * hrs', gl: '510101 (مدين)', val: simulatedPayslip.item.overtimePay || 0 },
-                    { seq: 50, code: 'REWARD', name: 'المكافآت والحوافز المعتمدة', cat: 'Allowance', formula: 'inputs.REWARD.amount', gl: '510101 (مدين)', val: simulatedPayslip.item.rewardsAmount || 0 },
-                    { seq: 100, code: 'GROSS', name: 'إجمالي الاستحقاقات (Gross Pay)', cat: 'Gross', formula: 'BASIC + HRA + TRANS + OT_107 + REWARD', gl: '—', val: simulatedPayslip.item.grossSalary || 0 },
-                    { seq: 110, code: 'GOSI_EMP', name: 'حصة الموظف في التأمينات GOSI', cat: 'Deduction', formula: 'isSaudi ? -min(BASIC+HRA, 45000)*rate : 0', gl: '210302 (دائن)', val: -simulatedPayslip.item.gosiDeduction },
-                    { seq: 120, code: 'GOSI_COMP', name: 'حصة الشركة في التأمينات (أثر GL)', cat: 'Employer', formula: 'min(BASIC+HRA, 45000) * (isSaudi ? 11.75% : 2%)', gl: '510104 / 210302', val: simulatedPayslip.item.gosiEmployerShare || 0 },
-                    { seq: 130, code: 'ADV_DED', name: 'استرداد قسط السلفة الشهرية', cat: 'Deduction', formula: '-inputs.ADVANCE.amount', gl: '110401 (دائن)', val: -(simulatedPayslip.item.advanceDeduction || 0) },
-                    { seq: 140, code: 'SANC_DED', name: 'حسم الجزاءات والغياب (مادة 92)', cat: 'Deduction', formula: '-(inputs.SANCTION + UNPAID_LEAVE)', gl: '420105 (دائن)', val: -((simulatedPayslip.item.sanctionDeduction || 0) + (simulatedPayslip.item.absenceDeduction || 0)) },
-                    { seq: 190, code: 'ART92_CAP', name: 'مرحل للشهر القادم (تجاوز سقف 50% م92)', cat: 'CarryForward', formula: 'max(0, TOTAL_RAW_DED - GROSS * 0.50)', gl: 'ذمم مؤجلة', val: simulatedPayslip.item.carriedForwardDeduction || 0 },
-                    { seq: 200, code: 'NET', name: 'صافي الراتب للتحويل البنكي (WPS Net)', cat: 'Net', formula: 'GROSS - min(TOTAL_RAW_DED, GROSS * 0.50)', gl: '210301 (دائن)', val: simulatedPayslip.item.netSalary },
+                    { seq: 10, code: 'BASIC', name: 'الراتب الأساسي (Basic)', cat: 'Basic', formula: 'contract.basic_salary', gl: '510101 (مدين)', val: computedPayslip.item.basicSalary },
+                    { seq: 20, code: 'HRA', name: 'بدل السكن (Housing)', cat: 'Allowance', formula: 'contract.housing_allowance', gl: '510102 (مدين)', val: computedPayslip.item.housingAllowance },
+                    { seq: 30, code: 'TRANS', name: 'بدل النقل والبدلات الأخرى', cat: 'Allowance', formula: 'contract.transport + contract.other', gl: '510103 (مدين)', val: computedPayslip.item.otherAllowances },
+                    { seq: 40, code: 'OT_107', name: 'عمل إضافي (مادة 107 — 150%)', cat: 'Allowance', formula: 'BASIC/240 * 0.5 + GROSS/240 * hrs', gl: '510101 (مدين)', val: computedPayslip.item.overtimePay || 0 },
+                    { seq: 50, code: 'REWARD', name: 'المكافآت والحوافز المعتمدة', cat: 'Allowance', formula: 'inputs.REWARD.amount', gl: '510101 (مدين)', val: computedPayslip.item.rewardsAmount || 0 },
+                    { seq: 100, code: 'GROSS', name: 'إجمالي الاستحقاقات (Gross Pay)', cat: 'Gross', formula: 'BASIC + HRA + TRANS + OT_107 + REWARD', gl: '—', val: computedPayslip.item.grossSalary || 0 },
+                    { seq: 110, code: 'GOSI_EMP', name: 'حصة الموظف في التأمينات GOSI', cat: 'Deduction', formula: 'isSaudi ? -min(BASIC+HRA, 45000)*rate : 0', gl: '210302 (دائن)', val: -computedPayslip.item.gosiDeduction },
+                    { seq: 120, code: 'GOSI_COMP', name: 'حصة الشركة في التأمينات (أثر GL)', cat: 'Employer', formula: 'min(BASIC+HRA, 45000) * (isSaudi ? 11.75% : 2%)', gl: '510104 / 210302', val: computedPayslip.item.gosiEmployerShare || 0 },
+                    { seq: 130, code: 'ADV_DED', name: 'استرداد قسط السلفة الشهرية', cat: 'Deduction', formula: '-inputs.ADVANCE.amount', gl: '110401 (دائن)', val: -(computedPayslip.item.advanceDeduction || 0) },
+                    { seq: 140, code: 'SANC_DED', name: 'حسم الجزاءات والغياب (مادة 92)', cat: 'Deduction', formula: '-(inputs.SANCTION + UNPAID_LEAVE)', gl: '420105 (دائن)', val: -((computedPayslip.item.sanctionDeduction || 0) + (computedPayslip.item.absenceDeduction || 0)) },
+                    { seq: 190, code: 'ART92_CAP', name: 'مرحل للشهر القادم (تجاوز سقف 50% م92)', cat: 'CarryForward', formula: 'max(0, TOTAL_RAW_DED - GROSS * 0.50)', gl: 'ذمم مؤجلة', val: computedPayslip.item.carriedForwardDeduction || 0 },
+                    { seq: 200, code: 'NET', name: 'صافي الراتب للتحويل البنكي (WPS Net)', cat: 'Net', formula: 'GROSS - min(TOTAL_RAW_DED, GROSS * 0.50)', gl: '210301 (دائن)', val: computedPayslip.item.netSalary },
                   ]}
                   label="تصدير القواعد (12 صيغة)"
                 />
@@ -514,7 +708,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                     <th>البيان والفئة</th>
                     <th>المعادلة البرمجية (Formula)</th>
                     <th>حساب GL</th>
-                    <th className="text-left">ناتج المحاكاة</th>
+                    <th className="text-left">القيمة المحتسبة الفعلية</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -526,7 +720,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                       cat: 'Basic',
                       formula: 'contract.basic_salary',
                       gl: '510101 (مدين)',
-                      val: simulatedPayslip.item.basicSalary,
+                      val: computedPayslip.item.basicSalary,
                       strong: false,
                     },
                     {
@@ -536,7 +730,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                       cat: 'Allowance',
                       formula: 'contract.housing_allowance',
                       gl: '510102 (مدين)',
-                      val: simulatedPayslip.item.housingAllowance,
+                      val: computedPayslip.item.housingAllowance,
                       strong: false,
                     },
                     {
@@ -546,7 +740,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                       cat: 'Allowance',
                       formula: 'contract.transport + contract.other',
                       gl: '510103 (مدين)',
-                      val: simulatedPayslip.item.otherAllowances,
+                      val: computedPayslip.item.otherAllowances,
                       strong: false,
                     },
                     {
@@ -556,7 +750,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                       cat: 'Allowance',
                       formula: 'BASIC/240 * 0.5 + GROSS/240 * hrs',
                       gl: '510101 (مدين)',
-                      val: simulatedPayslip.item.overtimePay || 0,
+                      val: computedPayslip.item.overtimePay || 0,
                       strong: false,
                     },
                     {
@@ -566,7 +760,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                       cat: 'Allowance',
                       formula: 'inputs.REWARD.amount',
                       gl: '510101 (مدين)',
-                      val: simulatedPayslip.item.rewardsAmount || 0,
+                      val: computedPayslip.item.rewardsAmount || 0,
                       strong: false,
                     },
                     {
@@ -576,7 +770,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                       cat: 'Gross',
                       formula: 'BASIC + HRA + TRANS + OT_107 + REWARD',
                       gl: '—',
-                      val: simulatedPayslip.item.grossSalary || 0,
+                      val: computedPayslip.item.grossSalary || 0,
                       strong: true,
                     },
                     {
@@ -586,7 +780,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                       cat: 'Deduction',
                       formula: 'isSaudi ? -min(BASIC+HRA, 45000)*rate : 0',
                       gl: '210302 (دائن)',
-                      val: -simulatedPayslip.item.gosiDeduction,
+                      val: -computedPayslip.item.gosiDeduction,
                       strong: false,
                     },
                     {
@@ -596,7 +790,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                       cat: 'Employer',
                       formula: 'min(BASIC+HRA, 45000) * (isSaudi ? 11.75% : 2%)',
                       gl: '510104 / 210302',
-                      val: simulatedPayslip.item.gosiEmployerShare || 0,
+                      val: computedPayslip.item.gosiEmployerShare || 0,
                       strong: false,
                     },
                     {
@@ -606,7 +800,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                       cat: 'Deduction',
                       formula: '-inputs.ADVANCE.amount',
                       gl: '110401 (دائن)',
-                      val: -(simulatedPayslip.item.advanceDeduction || 0),
+                      val: -(computedPayslip.item.advanceDeduction || 0),
                       strong: false,
                     },
                     {
@@ -617,8 +811,8 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                       formula: '-(inputs.SANCTION + UNPAID_LEAVE)',
                       gl: '420105 (دائن)',
                       val: -(
-                        (simulatedPayslip.item.sanctionDeduction || 0) +
-                        (simulatedPayslip.item.absenceDeduction || 0)
+                        (computedPayslip.item.sanctionDeduction || 0) +
+                        (computedPayslip.item.absenceDeduction || 0)
                       ),
                       strong: false,
                     },
@@ -629,8 +823,8 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                       cat: 'CarryForward',
                       formula: 'max(0, TOTAL_RAW_DED - GROSS * 0.50)',
                       gl: 'ذمم مؤجلة',
-                      val: simulatedPayslip.item.carriedForwardDeduction || 0,
-                      strong: (simulatedPayslip.item.carriedForwardDeduction || 0) > 0,
+                      val: computedPayslip.item.carriedForwardDeduction || 0,
+                      strong: (computedPayslip.item.carriedForwardDeduction || 0) > 0,
                     },
                     {
                       seq: 200,
@@ -639,7 +833,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                       cat: 'Net',
                       formula: 'GROSS - min(TOTAL_RAW_DED, GROSS * 0.50)',
                       gl: '210301 (دائن)',
-                      val: simulatedPayslip.item.netSalary,
+                      val: computedPayslip.item.netSalary,
                       strong: true,
                     },
                   ].map((r) => (
@@ -664,150 +858,263 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
             </div>
           </div>
 
-          {/* Right 5 Cols: Interactive Payslip Rule Simulator & GL Journal Preview */}
+          {/* Right 5 Cols: Operational Salary Structure Calculator, Employee Persistence & GL Journal */}
           <div className="lg:col-span-5 space-y-6">
             {/* Pattern: form-section */}
             <div data-slot="form-section" className="mobbin-card p-6 space-y-4">
               <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
                 <h3 className="text-sm font-bold text-[#141414]">
-                  محاكي ومختبر قواعد الرواتب (Salary Rule Inputs)
+                  احتساب واعتماد هيكل الأجر وبنود الشهر (Salary Structure & Payroll Inputs)
                 </h3>
                 <span className="px-3 py-1 rounded-full bg-[#f3f3f3] text-[11px] font-mono text-[#707070]">
-                  Odoo Inputs
+                  WPS Live Engine
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div className="sm:col-span-2">
-                  <label htmlFor="sim-emp-select" className="block text-[#707070] font-semibold mb-1.5">
-                    اختر الموظف للمحاكاة
+                  <label htmlFor="rule-emp-select" className="block text-[#707070] font-semibold mb-1.5">
+                    الموظف المستهدف لاحتساب واعتماد هيكل الأجر
                   </label>
                   <select
-                    id="sim-emp-select"
+                    id="rule-emp-select"
                     value={selectedEmpId}
                     onChange={(e) => setSelectedEmpId(e.target.value)}
                     className="w-full min-h-[40px] bg-[#e0e0e0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-semibold text-[#141414]"
                   >
-                    {employees.map((e) => (
-                      <option key={e.id} value={e.id}>
-                        {e.name} — {e.role} ({e.salary.toLocaleString()} ⃁)
-                      </option>
-                    ))}
+                    {employees.map((e) => {
+                      const effectiveSalary = savedSalaryOverrides[e.id]?.salary ?? e.salary;
+                      return (
+                        <option key={e.id} value={e.id}>
+                          {e.name} — {e.role} ({effectiveSalary.toLocaleString()} ⃁)
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 
                 <div>
-                  <label htmlFor="sim-ot-input" className="block text-[#707070] font-semibold mb-1.5">
-                    ساعات إضافية (Overtime)
+                  <label htmlFor="rule-basic-input" className="block text-[#707070] font-semibold mb-1.5">
+                    الراتب الأساسي التعاقدي (Basic)
                   </label>
                   <input
-                    id="sim-ot-input"
-                    type="number"
-                    min={0}
-                    max={120}
-                    value={simOvertimeHours}
-                    onChange={(e) => setSimOvertimeHours(Number(e.target.value) || 0)}
-                    className="w-full min-h-[40px] bg-[#e0e0e0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-mono text-[#141414]"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="sim-rew-input" className="block text-[#707070] font-semibold mb-1.5">
-                    مكافأة شهرية (inputs.REWARD)
-                  </label>
-                  <input
-                    id="sim-rew-input"
+                    id="rule-basic-input"
                     type="number"
                     min={0}
                     step={100}
-                    value={simRewardInput}
-                    onChange={(e) => setSimRewardInput(Number(e.target.value) || 0)}
+                    value={basicSalaryInput}
+                    onChange={(e) => setBasicSalaryInput(Math.max(0, Number(e.target.value) || 0))}
                     className="w-full min-h-[40px] bg-[#e0e0e0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-mono text-[#141414]"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="sim-adv-input" className="block text-[#707070] font-semibold mb-1.5">
-                    قسط سلفة (inputs.ADVANCE)
+                  <label htmlFor="rule-housing-input" className="block text-[#707070] font-semibold mb-1.5">
+                    بدل السكن التعاقدي (Housing)
                   </label>
                   <input
-                    id="sim-adv-input"
+                    id="rule-housing-input"
                     type="number"
                     min={0}
                     step={100}
-                    value={simAdvanceInput}
-                    onChange={(e) => setSimAdvanceInput(Number(e.target.value) || 0)}
+                    value={housingAllowanceInput}
+                    onChange={(e) => setHousingAllowanceInput(Math.max(0, Number(e.target.value) || 0))}
                     className="w-full min-h-[40px] bg-[#e0e0e0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-mono text-[#141414]"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="sim-sanc-input" className="block text-[#707070] font-semibold mb-1.5">
-                    جزاء مالي (inputs.SANCTION)
+                  <label htmlFor="rule-transport-input" className="block text-[#707070] font-semibold mb-1.5">
+                    بدل النقل التعاقدي (Transport)
                   </label>
                   <input
-                    id="sim-sanc-input"
+                    id="rule-transport-input"
                     type="number"
                     min={0}
                     step={50}
-                    value={simSanctionInput}
-                    onChange={(e) => setSimSanctionInput(Number(e.target.value) || 0)}
+                    value={transportAllowanceInput}
+                    onChange={(e) => setTransportAllowanceInput(Math.max(0, Number(e.target.value) || 0))}
                     className="w-full min-h-[40px] bg-[#e0e0e0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-mono text-[#141414]"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="sim-unpaid-input" className="block text-[#707070] font-semibold mb-1.5">
-                    أيام غياب بدون أجر
+                  <label htmlFor="rule-ot-input" className="block text-[#707070] font-semibold mb-1.5">
+                    ساعات إضافية (Overtime)
                   </label>
                   <input
-                    id="sim-unpaid-input"
+                    id="rule-ot-input"
                     type="number"
                     min={0}
-                    max={30}
-                    value={simUnpaidDays}
-                    onChange={(e) => setSimUnpaidDays(Number(e.target.value) || 0)}
+                    max={120}
+                    value={overtimeHoursInput}
+                    onChange={(e) => setOvertimeHoursInput(Number(e.target.value) || 0)}
                     className="w-full min-h-[40px] bg-[#e0e0e0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-mono text-[#141414]"
                   />
                 </div>
 
-                <div className="flex items-center gap-2 pt-6">
+                <div>
+                  <label htmlFor="rule-rew-input" className="block text-[#707070] font-semibold mb-1.5">
+                    مكافأة شهرية (inputs.REWARD)
+                  </label>
+                  <input
+                    id="rule-rew-input"
+                    type="number"
+                    min={0}
+                    step={100}
+                    value={rewardInput}
+                    onChange={(e) => setRewardInput(Number(e.target.value) || 0)}
+                    className="w-full min-h-[40px] bg-[#e0e0e0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-mono text-[#141414]"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="rule-adv-input" className="block text-[#707070] font-semibold mb-1.5">
+                    قسط سلفة (inputs.ADVANCE)
+                  </label>
+                  <input
+                    id="rule-adv-input"
+                    type="number"
+                    min={0}
+                    step={100}
+                    value={advanceInput}
+                    onChange={(e) => setAdvanceInput(Number(e.target.value) || 0)}
+                    className="w-full min-h-[40px] bg-[#e0e0e0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-mono text-[#141414]"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="rule-sanc-input" className="block text-[#707070] font-semibold mb-1.5">
+                    جزاء مالي (inputs.SANCTION)
+                  </label>
+                  <input
+                    id="rule-sanc-input"
+                    type="number"
+                    min={0}
+                    step={50}
+                    value={sanctionInput}
+                    onChange={(e) => setSanctionInput(Number(e.target.value) || 0)}
+                    className="w-full min-h-[40px] bg-[#e0e0e0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-mono text-[#141414]"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="rule-unpaid-input" className="block text-[#707070] font-semibold mb-1.5">
+                    أيام غياب بدون أجر
+                  </label>
+                  <input
+                    id="rule-unpaid-input"
+                    type="number"
+                    min={0}
+                    max={30}
+                    value={unpaidDaysInput}
+                    onChange={(e) => setUnpaidDaysInput(Number(e.target.value) || 0)}
+                    className="w-full min-h-[40px] bg-[#e0e0e0] border-2 border-transparent focus:border-[#141414] rounded-[16px] px-3 py-2 font-mono text-[#141414]"
+                  />
+                </div>
+
+                <div className="sm:col-span-2 flex items-center gap-2 pt-2">
                   <input
                     id="postJuly2024Toggle"
                     type="checkbox"
-                    checked={simPostJuly2024Gosi}
-                    onChange={(e) => setSimPostJuly2024Gosi(e.target.checked)}
+                    checked={postJuly2024Gosi}
+                    onChange={(e) => setPostJuly2024Gosi(e.target.checked)}
                     className="size-4 accent-[#141414]"
                   />
                   <label htmlFor="postJuly2024Toggle" className="text-xs font-semibold text-[#141414] cursor-pointer">
-                    مشترك جديد بعد يوليو 2024 (تدرج GOSI)
+                    مشترك جديد بعد يوليو 2024 (تدرج نسب التأمينات الاجتماعية GOSI)
                   </label>
                 </div>
               </div>
 
-              {(simulatedPayslip.item.carriedForwardDeduction || 0) > 0 && (
+              <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-[#e0e0e0]">
+                <button
+                  type="button"
+                  disabled={isPersistingStructure}
+                  onClick={handlePersistSalaryStructure}
+                  className="btn-odoo btn-odoo-primary flex-1 justify-center"
+                >
+                  <CheckCircle2 className="size-3.5" />
+                  <span>
+                    {isPersistingStructure
+                      ? 'جارٍ الحفظ والترحيل...'
+                      : 'اعتماد وحفظ هيكل الأجر وترحيل قيد الاستحقاق'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!selectedEmployee || !computedPayslip) return;
+                    shareHrOfficialEmailEml({
+                      title: `إشعار هيكل الأجر وقسيمة الراتب المعتمدة — ${selectedEmployee.name}`,
+                      customSubjectEn: `Official Salary Structure & WPS Payslip Notice - ${selectedEmployee.name}`,
+                      referenceNumber: `WPS-${selectedEmployee.employee_code}`,
+                      recipientName: selectedEmployee.name,
+                      moduleName: 'hr_salary_structures',
+                      department: 'hr',
+                      templateId: 'PAYROLL_WPS_PAYSLIP_NOTICE',
+                      summaryLines: [
+                        { label: 'الموظف', value: selectedEmployee.name },
+                        { label: 'الرقم الوظيفي', value: selectedEmployee.employee_code },
+                        { label: 'المسمى الوظيفي', value: selectedEmployee.role },
+                        { label: 'الراتب الأساسي', value: `${computedPayslip.item.basicSalary.toLocaleString()} ⃁` },
+                        { label: 'إجمالي الاستحقاقات', value: `${(computedPayslip.item.grossSalary ?? 0).toLocaleString()} ⃁` },
+                        { label: 'حصة التأمينات (GOSI)', value: `${computedPayslip.item.gosiDeduction.toLocaleString()} ⃁` },
+                        { label: 'صافي الراتب للتحويل (WPS Net)', value: `${computedPayslip.item.netSalary.toLocaleString()} ⃁` },
+                      ],
+                    });
+                  }}
+                  className="btn-odoo btn-odoo-secondary inline-flex items-center gap-1.5"
+                >
+                  <Mail className="size-3.5" />
+                  <span>إرسال القسيمة مباشرة بريد HR@kas.sa</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetToContractValues}
+                  className="btn-odoo btn-odoo-secondary"
+                >
+                  <span>استعادة بنود العقد</span>
+                </button>
+              </div>
+
+              {lastSavedStructureInfo && (
+                <div className="p-3 rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] text-xs text-[#141414] flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <span className="font-bold">آخر اعتماد مسجل:</span>{' '}
+                    <span>{lastSavedStructureInfo.employeeName}</span> •{' '}
+                    <span className="font-mono font-semibold">{lastSavedStructureInfo.refNo}</span> • قيد{' '}
+                    <span className="font-mono font-semibold">{lastSavedStructureInfo.jvRef}</span>
+                  </div>
+                  <span className="font-mono font-bold">
+                    {lastSavedStructureInfo.netSalary.toLocaleString()} ⃁
+                  </span>
+                </div>
+              )}
+
+              {(computedPayslip.item.carriedForwardDeduction || 0) > 0 && (
                 <div className="p-3 rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] text-xs text-[#141414]">
                   <strong>تنبيه حماية الأجور (المادة 92):</strong> إجمالي الاستقطاعات المطلوبة تجاوز 50% من إجمالي الأجر. تم اكتفاء الحسم بمبلغ{' '}
                   <span className="font-mono font-bold">
-                    {(simulatedPayslip.item.deductions + simulatedPayslip.item.gosiDeduction).toLocaleString()} ⃁
+                    {(computedPayslip.item.deductions + computedPayslip.item.gosiDeduction).toLocaleString()} ⃁
                   </span>{' '}
                   وترحيل{' '}
                   <span className="font-mono font-bold">
-                    {(simulatedPayslip.item.carriedForwardDeduction || 0).toLocaleString()} ⃁
+                    {(computedPayslip.item.carriedForwardDeduction || 0).toLocaleString()} ⃁
                   </span>{' '}
                   للشهر القادم تلقائياً.
                 </div>
               )}
             </div>
 
-            {/* Resulting GL Double-Entry Journal Entry Preview */}
+            {/* Resulting GL Double-Entry Journal Entry */}
             <div data-slot="data-table" className="table-card mb-0">
               <div className="table-card-header">
                 <h3 className="text-sm font-bold text-[#141414]">
-                  معاينة قيد اليومية المحاسبي الآلي (Payroll GL Entry)
+                  قيد اليومية المحاسبي المزدوج للاستحقاق (Payroll GL Entry)
                 </h3>
                 <span className="px-3 py-1 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-semibold">
-                  {simulatedPayslip.glEntry.isBalanced ? 'متوازن (Balanced)' : 'غير متوازن'}
+                  {computedPayslip.glEntry.isBalanced ? 'متوازن (Balanced)' : 'غير متوازن'}
                 </span>
               </div>
 
@@ -822,7 +1129,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                     </tr>
                   </thead>
                   <tbody>
-                    {simulatedPayslip.glEntry.lines.map((line, i) => (
+                    {computedPayslip.glEntry.lines.map((line, i) => (
                       <tr key={i}>
                         <td className="font-mono font-bold text-[#141414]">{line.accountCode}</td>
                         <td className="text-[#141414]">{line.accountName}</td>
@@ -841,10 +1148,10 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                         الإجمالي المطابق للأستاذ العام
                       </td>
                       <td className="py-3 px-4 font-mono text-left text-[#141414]">
-                        {simulatedPayslip.glEntry.totalDebit.toLocaleString()} ⃁
+                        {computedPayslip.glEntry.totalDebit.toLocaleString()} ⃁
                       </td>
                       <td className="py-3 px-4 font-mono text-left text-[#141414]">
-                        {simulatedPayslip.glEntry.totalCredit.toLocaleString()} ⃁
+                        {computedPayslip.glEntry.totalCredit.toLocaleString()} ⃁
                       </td>
                     </tr>
                   </tfoot>
@@ -936,7 +1243,34 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
 
                     <div className="text-xs text-[#707070] border-t border-[#e0e0e0] pt-3 flex items-center justify-between flex-wrap gap-2">
                       <span>الزميل المرافق (Buddy): {plan.buddy_name}</span>
-                      <span>{plan.notes}</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span>{plan.notes}</span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            shareHrOfficialEmailEml({
+                              title: `حزمة التهيئة والمباشرة الوظيفية (30/60/90) — ${plan.employee_name}`,
+                              customSubjectEn: `Official Onboarding 30/60/90 Plan - ${plan.employee_name}`,
+                              referenceNumber: plan.id,
+                              recipientName: plan.employee_name,
+                              moduleName: 'hr_onboarding_plans',
+                              department: 'hr',
+                              templateId: 'ONBOARDING_WELCOME_PACKAGE',
+                              summaryLines: [
+                                { label: 'الموظف', value: plan.employee_name },
+                                { label: 'المسمى والإدارة', value: `${plan.role} — ${plan.department}` },
+                                { label: 'تاريخ المباشرة', value: plan.start_date },
+                                { label: 'الزميل المرافق', value: plan.buddy_name },
+                                { label: 'نسبة إنجاز خطة المباشرة', value: `${progressPct}%` },
+                              ],
+                            })
+                          }
+                          className="px-3 py-1 rounded-full bg-[#ffffff] border border-[#141414] text-[#141414] hover:bg-[#141414] hover:text-[#ffffff] font-bold inline-flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                          <Mail className="size-3" />
+                          <span>إرسال مباشر HR@kas.sa</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -984,6 +1318,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                     <th className="text-center">المبادرة</th>
                     <th className="text-center">المتوسط</th>
                     <th>مستهدفات SMART / حالة PIP</th>
+                    <th className="text-center">مراسلة HR</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1028,6 +1363,35 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                           ) : (
                             <span className="text-[11px] text-[#707070]">أداء مستوفٍ للمعايير القياسية</span>
                           )}
+                        </td>
+                        <td className="text-center">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              shareHrOfficialEmailEml({
+                                title: `إشعار تقييم الأداء ومصفوفة الجدارات — ${rev.employee_name}`,
+                                customSubjectEn: `Official Competency Review & Performance Notice - ${rev.employee_name}`,
+                                referenceNumber: rev.id,
+                                recipientName: rev.employee_name,
+                                moduleName: 'hr_performance_reviews',
+                                department: 'hr',
+                                templateId: 'EMPLOYMENT_TRANSACTION_DECISION',
+                                summaryLines: [
+                                  { label: 'الموظف', value: rev.employee_name },
+                                  { label: 'المسمى والدورة', value: `${rev.role} (${rev.cycle})` },
+                                  { label: 'المتوسط المعياري', value: `${avg.toFixed(1)} / 5.0` },
+                                  { label: 'مستهدف SMART', value: rev.smart_goal_summary },
+                                  ...(rev.pip_required
+                                    ? [{ label: 'خطة تحسين الأداء (PIP)', value: rev.pip_coaching_plan }]
+                                    : []),
+                                ],
+                              })
+                            }
+                            className="px-2.5 py-1 rounded-full bg-[#ffffff] border border-[#141414] text-[#141414] hover:bg-[#141414] hover:text-[#ffffff] font-bold inline-flex items-center gap-1 text-[11px] transition-colors cursor-pointer"
+                          >
+                            <Mail className="size-3" />
+                            <span>HR@kas.sa</span>
+                          </button>
                         </td>
                       </tr>
                     );
@@ -1139,6 +1503,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                     <th>تاريخ الميلاد</th>
                     <th>فئة التأمين والبوليصة</th>
                     <th>الحالة</th>
+                    <th className="text-center">مراسلة HR</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1160,6 +1525,34 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
                         <span className="px-3 py-1 rounded-full bg-[#f3f3f3] text-[#141414] font-semibold text-[11px]">
                           {dep.status}
                         </span>
+                      </td>
+                      <td className="text-center">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            shareHrOfficialEmailEml({
+                              title: `إشعار إضافة تابع وتفعيل التغطية التأمينية الطبية — ${dep.dependent_name}`,
+                              customSubjectEn: `Official Medical Insurance & Dependent Enrollment - ${dep.dependent_name}`,
+                              referenceNumber: dep.policy_number || dep.id,
+                              recipientName: dep.employee_name,
+                              moduleName: 'hr_dependents_insurance',
+                              department: 'hr',
+                              templateId: 'CUSTOM_OFFICIAL_CORRESPONDENCE',
+                              summaryLines: [
+                                { label: 'الموظف الأساسي', value: dep.employee_name },
+                                { label: 'اسم التابع', value: dep.dependent_name },
+                                { label: 'صلة القرابة', value: dep.relationship },
+                                { label: 'فئة التأمين الطبي', value: dep.insurance_plan },
+                                { label: 'رقم البوليصة', value: dep.policy_number },
+                                { label: 'حالة التغطية', value: dep.status },
+                              ],
+                            })
+                          }
+                          className="px-2.5 py-1 rounded-full bg-[#ffffff] border border-[#141414] text-[#141414] hover:bg-[#141414] hover:text-[#ffffff] font-bold inline-flex items-center gap-1 text-[11px] transition-colors cursor-pointer"
+                        >
+                          <Mail className="size-3" />
+                          <span>HR@kas.sa</span>
+                        </button>
                       </td>
                     </tr>
                   ))}

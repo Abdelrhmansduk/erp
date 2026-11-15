@@ -104,7 +104,19 @@ export const realErpDataStore = {
       'cvs', 'shelter_inmates', 'shelter_records',
       'complaints', 'sponsorship_transfers', 'ingaz_delegations', 'flights',
       'finance_journals', 'finance_vouchers', 'company_journal_entries',
-      'zatca_invoices', 'cost_centers', 'attendances', 'custodies', 'activity_log'
+      'zatca_invoices', 'cost_centers', 'attendances', 'custodies', 'activity_log',
+      'hr_shifts', 'hr_geofence_locations', 'hr_attendance_corrections',
+      'hr_workflow_definitions', 'hr_approval_requests', 'hr_delegations',
+      'hr_accrual_runs', 'hr_muqeem_requests', 'hr_official_letters',
+      'hr_expense_claims', 'hr_business_trips', 'hr_corporate_candidates',
+      'hr_360_reviews', 'hr_training_courses', 'hr_offboarding_clearances',
+      'hr_shift_rosters', 'hr_shift_swap_requests', 'hr_public_holidays',
+      'hr_disciplinary_records', 'hr_ewa_withdrawals', 'hr_smart_alerts',
+      'hr_official_emails', 'hr_onboarding_plans', 'hr_performance_reviews',
+      'hr_dependents', 'hr_overtime_records', 'hr_company_circulars',
+      'hr_final_settlements', 'hr_attendance_payroll_sync', 'hr_employee_documents',
+      'hr_payroll_cutoff_configs', 'hr_retroactive_adjustments', 'hr_exit_interviews',
+      'hr_onboarding_journeys', 'hr_digital_signage_screens', 'hr_welcome_broadcasts'
     ];
     try {
       localStorage.setItem(EXPLICIT_PURGE_KEY, 'true');
@@ -271,6 +283,21 @@ export const realErpDataStore = {
     initialSeed: T[] = []
   ): Promise<T[]> {
     return this.addRecord<T>(entityKey, newRecord, initialSeed);
+  },
+
+  /**
+   * Alias for addRecord (auto-generates id if omitted) so modules calling createRecord work seamlessly
+   */
+  async createRecord<T extends { id?: string | number }>(
+    entityKey: string,
+    newRecord: T,
+    initialSeed: Array<T & { id: string | number }> = []
+  ): Promise<Array<T & { id: string | number }>> {
+    const recordWithId = {
+      ...newRecord,
+      id: newRecord.id ?? `${entityKey}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    } as T & { id: string | number };
+    return this.addRecord(entityKey, recordWithId, initialSeed);
   },
 
   /**

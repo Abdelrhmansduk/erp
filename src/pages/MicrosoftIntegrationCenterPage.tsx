@@ -1,5 +1,6 @@
 import i18n from '../i18n/config';
 import React, { useState, useEffect } from 'react';
+import { useModalEscape } from '../hooks/useModalEscape';
 import { useCompany } from '../contexts/CompanyContext';
 import { useAppStore } from '../stores/appStore';
 import { MsProjectTask, PowerBiDashboardItem, CompanyId } from '../types';
@@ -56,6 +57,7 @@ const INITIAL_TASKS: MsProjectTask[] = [
 ];
 
 export const MicrosoftIntegrationCenterPage: React.FC = () => {
+  useModalEscape();
   const { activeCompany } = useCompany();
   const { addNotification } = useAppStore();
   const [activeTab, setActiveTab] = useState<'project' | 'powerbi' | 'visio'>('project');
@@ -404,8 +406,8 @@ export const MicrosoftIntegrationCenterPage: React.FC = () => {
 
       {/* MODAL: Add MS Project Task */}
       {showAddProjectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-zinc-200 font-sans">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAddProjectModal(false); }}>
+          <div className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-3 mb-4 border-b border-zinc-100">
               <h3 className="text-sm font-bold text-[#141414] m-0">مزامنة مشروع جديد في Microsoft Project</h3>
               <button onClick={() => setShowAddProjectModal(false)} className="text-[#707070] hover:text-[#141414]">
@@ -494,7 +496,7 @@ export const MicrosoftIntegrationCenterPage: React.FC = () => {
                   </label>
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">
+              <div className="no-print print:hidden flex justify-end gap-2 pt-2 border-t border-zinc-100">
                 <button
                   type="button"
                   onClick={() => setShowAddProjectModal(false)}
@@ -516,8 +518,8 @@ export const MicrosoftIntegrationCenterPage: React.FC = () => {
 
       {/* Power BI Embedded Live Viewer Modal */}
       {selectedPowerBiDash && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-zinc-200 space-y-5">
+        <div className="fixed inset-0 z-[2000] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" data-printable-modal="true" onClick={(e) => { if (e.target === e.currentTarget) setSelectedPowerBiDash(null); }}>
+          <div className="erp-printable-sheet bg-white rounded-[24px] max-w-2xl w-full p-6 border border-zinc-200 space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-[#141414] text-[#ffffff] flex items-center justify-center">
@@ -533,7 +535,7 @@ export const MicrosoftIntegrationCenterPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedPowerBiDash(null)}
-                className="p-1.5 rounded-full hover:bg-zinc-100 text-[#707070]"
+                className="no-print print:hidden p-1.5 rounded-full hover:bg-zinc-100 text-[#707070]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -581,7 +583,7 @@ export const MicrosoftIntegrationCenterPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">
+            <div className="no-print print:hidden flex justify-end gap-2 pt-2 border-t border-zinc-100">
               <button
                 type="button"
                 onClick={() => window.print()}

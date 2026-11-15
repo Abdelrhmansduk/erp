@@ -148,6 +148,11 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'financial-reports',
       'reports',
       'data-import',
+      'gov-integrations',
+      'government-hub',
+      'gov-integration-hub',
+      'jisr-accruals',
+      'jisr-expenses',
       'profile',
     ],
   },
@@ -325,8 +330,22 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'gosi-insurance',
       'gosi-integration',
       'legal-compliance',
+      'gov-integrations',
+      'government-hub',
+      'gov-integration-hub',
       'smacc-hr-settings',
       'smacc-employees',
+      'compliance-radar',
+      'nitaqat',
+      'jisr-alerts-compliance',
+      'hr-smart-alerts',
+      'jisr-accruals',
+      'jisr-expenses',
+      'jisr-org-muqeem',
+      'jisr-talent-360',
+      'reem-hr-emails',
+      'hr-official-emails',
+      'ess-self-service',
       'profile',
     ],
   },
@@ -428,6 +447,9 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'etmad-cloud',
       'etmad',
       'kas-cloud-suite',
+      'gov-integrations',
+      'government-hub',
+      'gov-integration-hub',
       'profile',
     ],
   },
@@ -1284,7 +1306,7 @@ export const authService = {
     if (!tabHref) return false;
     if (tabHref === 'logout') return true;
     if (!profile) return false;
-    if (tabHref === 'profile') return true;
+    if (tabHref === 'profile' || tabHref === 'ess-self-service') return true;
 
     if (this.isAdmin(profile) || profile.department_id === 'executive') {
       return true;

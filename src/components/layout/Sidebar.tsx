@@ -32,7 +32,7 @@ import {
   MessageSquare, Smartphone, MessagesSquare, Megaphone, Radio,
   GitPullRequest, Globe, FolderSync, UploadCloud, Settings, Sliders,
   History, Settings2, Lock, TrendingUp, PanelRightClose, PanelRightOpen,
-  ChevronsDownUp, ChevronsUpDown,
+  ChevronsDownUp, ChevronsUpDown, Bell, Calculator,
 } from 'lucide-react';
 
 const LUCIDE_ICONS: Record<string, React.FC<{ className?: string }>> = {
@@ -51,7 +51,7 @@ const LUCIDE_ICONS: Record<string, React.FC<{ className?: string }>> = {
   Wallet, BarChart4, FolderTree, Landmark, FolderKanban, BookOpen,
   MessageSquare, Smartphone, MessagesSquare, Megaphone, Radio,
   GitPullRequest, Globe, FolderSync, UploadCloud, Settings, Sliders,
-  History, Settings2, Folder, CircleDot, TrendingUp,
+  History, Settings2, Folder, CircleDot, TrendingUp, Bell, Calculator,
 };
 
 interface SidebarProps {
@@ -208,6 +208,86 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
+  const getSidebarIconPalette = (iconName?: string) => {
+    switch (iconName) {
+      case 'LayoutDashboard':
+      case 'BarChart3':
+      case 'PieChart':
+      case 'Activity':
+      case 'TrendingUp':
+        return {
+          pill: 'bg-[#eff6ff] text-[#2563eb] border-[#bfdbfe]',
+          icon: 'text-[#2563eb]',
+        };
+      case 'Users':
+      case 'UserCheck':
+      case 'UserPlus':
+      case 'Briefcase':
+      case 'Building2':
+      case 'IdCard':
+        return {
+          pill: 'bg-[#eef2ff] text-[#4f46e5] border-[#c7d2fe]',
+          icon: 'text-[#4f46e5]',
+        };
+      case 'Wallet':
+      case 'Banknote':
+      case 'Coins':
+      case 'Receipt':
+      case 'Landmark':
+      case 'CreditCard':
+      case 'Calculator':
+      case 'Scale':
+        return {
+          pill: 'bg-[#ecfdf5] text-[#059669] border-[#a7f3d0]',
+          icon: 'text-[#059669]',
+        };
+      case 'Fingerprint':
+      case 'ShieldCheck':
+      case 'Shield':
+      case 'Lock':
+      case 'CheckCircle2':
+        return {
+          pill: 'bg-[#f0fdfa] text-[#0d9488] border-[#99f6e4]',
+          icon: 'text-[#0d9488]',
+        };
+      case 'Clock':
+      case 'Calendar':
+      case 'CalendarDays':
+      case 'Bell':
+      case 'AlertTriangle':
+      case 'Award':
+        return {
+          pill: 'bg-[#fffbeb] text-[#d97706] border-[#fde68a]',
+          icon: 'text-[#d97706]',
+        };
+      case 'Sparkles':
+      case 'FileText':
+      case 'FolderOpen':
+      case 'ClipboardList':
+      case 'FileCheck2':
+      case 'Settings':
+        return {
+          pill: 'bg-[#f5f3ff] text-[#7c3aed] border-[#ddd6fe]',
+          icon: 'text-[#7c3aed]',
+        };
+      case 'Package':
+      case 'Truck':
+      case 'Store':
+      case 'ShoppingCart':
+      case 'Globe':
+      case 'Server':
+        return {
+          pill: 'bg-[#f0f9ff] text-[#0284c7] border-[#bae6fd]',
+          icon: 'text-[#0284c7]',
+        };
+      default:
+        return {
+          pill: 'bg-[#fff1f2] text-[#e11d48] border-[#fecdd3]',
+          icon: 'text-[#e11d48]',
+        };
+    }
+  };
+
   const renderIcon = (iconName?: string, className = 'w-4 h-4') => {
     if (!iconName) return <CircleDot className={className} />;
     const Component = LUCIDE_ICONS[iconName];
@@ -253,10 +333,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       .map((item) => filterLeafOrNode(item))
       .filter((item): item is NavItem => item !== null);
 
-    // Always provide Employee Self-Service portal entry, especially for support staff restricted to `['profile']`
+    // Always provide Employee Self-Service portal entry when not already present in authorizedList (including nested children)
+    const hasProfileEntry = authorizedList.some((navItem) => itemContainsTab(navItem, 'profile'));
     if (
       effectiveProfile &&
       !isAdminUser &&
+      !hasProfileEntry &&
       (!query || 'بوابة الخدمة الذاتية للموظف'.includes(query))
     ) {
       authorizedList.push({
@@ -315,13 +397,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <div
-                className={`w-7 h-7 app-icon-squircle flex items-center justify-center shrink-0 transition-colors ${
+                className={`w-7 h-7 app-icon-squircle flex items-center justify-center shrink-0 transition-colors border ${
                   isBranchActive || isExpanded
-                    ? 'bg-[#141414] text-[#ffffff]'
-                    : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
+                    ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                    : getSidebarIconPalette(item.icon).pill
                 }`}
               >
-                {renderIcon(item.icon, 'w-3.5 h-3.5')}
+                {renderIcon(
+                  item.icon,
+                  `w-3.5 h-3.5 ${isBranchActive || isExpanded ? 'text-[#38bdf8]' : getSidebarIconPalette(item.icon).icon}`
+                )}
               </div>
               <span className="truncate text-right">{getItemTitle(item)}</span>
             </div>
@@ -374,7 +459,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }`}
         >
           <div className="flex items-center gap-2 min-w-0">
-            <span className={`shrink-0 ${isDirectActive ? 'text-[#ffffff]' : 'text-[#707070]'}`}>
+            <span
+              className={`shrink-0 ${isDirectActive ? 'text-[#38bdf8]' : getSidebarIconPalette(item.icon).icon}`}
+              data-colored-icon="true"
+            >
               {renderIcon(item.icon, 'w-3.5 h-3.5')}
             </span>
             <span className="truncate text-right">{getItemTitle(item)}</span>
@@ -482,7 +570,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {effectiveMode !== 'compact' && (
           <div className="px-3 py-1.5 rounded-[14px] bg-[#f3f3f3] flex items-center justify-between text-[11px]">
             <span className="font-semibold text-[#141414] flex items-center gap-1.5 truncate">
-              <Lock className="w-3.5 h-3.5 text-[#707070] shrink-0" />
+              <Lock className="w-3.5 h-3.5 text-[#059669] shrink-0" data-colored-icon="true" />
               <span className="truncate">{departmentDef.nameAr}</span>
             </span>
             <span className="px-2 py-0.5 rounded-full bg-[#141414] text-[#ffffff] text-[10px] font-bold font-mono shrink-0">
@@ -538,7 +626,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {effectiveMode !== 'compact' && (
           <div className="flex items-center gap-1.5">
             <div className="flex-1 flex items-center gap-2 bg-[#f0f0f0] rounded-[14px] px-3 py-1.5 text-xs">
-              <Search className="w-3.5 h-3.5 text-[#707070] shrink-0" />
+              <Search className="w-3.5 h-3.5 text-[#0284c7] shrink-0" data-colored-icon="true" />
               <input
                 type="text"
                 aria-label={t('sidebar.searchPlaceholder', 'بحث في الأقسام الـ 9...')}
@@ -600,13 +688,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     }
                   }}
                   title={getItemTitle(item)}
-                  className={`relative w-11 h-11 app-icon-squircle flex items-center justify-center transition-colors cursor-pointer ${
+                  className={`relative w-11 h-11 app-icon-squircle flex items-center justify-center transition-colors cursor-pointer border ${
                     isActive
-                      ? 'bg-[#141414] text-[#ffffff]'
-                      : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414]'
+                      ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                      : getSidebarIconPalette(item.icon).pill
                   }`}
                 >
-                  {renderIcon(item.icon, 'w-4 h-4')}
+                  <span
+                    data-colored-icon="true"
+                    className={`inline-flex ${isActive ? 'text-[#38bdf8]' : getSidebarIconPalette(item.icon).icon}`}
+                  >
+                    {renderIcon(item.icon, 'w-4 h-4')}
+                  </span>
                   {deptNum && (
                     <span
                       className={`absolute -top-1 -left-1 w-4 h-4 rounded-full text-[9px] font-mono font-bold flex items-center justify-center border ${
@@ -628,14 +721,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="space-y-2.5 p-1">
             {filteredMenu.map((item) => {
               const leaves = collectLeafItems(item);
+              const palette = getSidebarIconPalette(item.icon);
               return (
                 <div
                   key={item.id}
                   className="p-3.5 bg-[#f3f3f3] rounded-[24px] space-y-2.5 border border-[#e0e0e0]"
                 >
                   <div className="flex items-center gap-2.5 text-xs font-semibold text-[#141414]">
-                    <div className="w-7 h-7 app-icon-squircle bg-[#141414] text-[#ffffff] flex items-center justify-center">
-                      {renderIcon(item.icon, 'w-3.5 h-3.5 text-[#ffffff]')}
+                    <div className={`w-7 h-7 app-icon-squircle border flex items-center justify-center ${palette.pill}`}>
+                      <span data-colored-icon="true" className={`inline-flex ${palette.icon}`}>
+                        {renderIcon(item.icon, 'w-3.5 h-3.5')}
+                      </span>
                     </div>
                     <span>{getItemTitle(item)}</span>
                   </div>

@@ -128,14 +128,77 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
       }
     });
 
-    if (currentUser && !seenHrefs.has('profile')) {
-      list.push({
+    const jisrCanonicalScreens: Array<{
+      id: string;
+      href: string;
+      title: string;
+      subtitle: string;
+    }> = [
+      {
         id: 'screen-self-service',
-        title: 'بوابة الخدمة الذاتية للموظف',
-        subtitle: 'الملف الوظيفي وطلبات الإجازات والتعريف بالراتب',
         href: 'profile',
-        kind: 'screen',
-        badge: '#profile',
+        title: 'بوابة الخدمة الذاتية للموظف والمدير (ESS)',
+        subtitle: 'الحضور الجغرافي GPS، الراتب المرن المستحق EWA، تبديل الورديات، وطلبات الإجازات',
+      },
+      {
+        id: 'screen-jisr-alerts-compliance',
+        href: 'jisr-alerts-compliance',
+        title: 'رادار التنبيهات والجزاءات والراتب المرن ونطاقات',
+        subtitle: 'تنبيهات الإقامة والتجربة (م53)، لائحة الجزاءات (م66-72)، الراتب المرن، ورقابة نطاقات قوى',
+      },
+      {
+        id: 'screen-jisr-accruals',
+        href: 'jisr-accruals',
+        title: 'المخصصات الشهرية ومراكز التكلفة (IAS 19)',
+        subtitle: 'احتساب وترحيل مخصصات نهاية الخدمة والإجازات وتذاكر السفر وتوزيع مراكز التكلفة',
+      },
+      {
+        id: 'screen-jisr-expenses',
+        href: 'jisr-expenses',
+        title: 'النفقات وفواتير ZATCA والانتدابات',
+        subtitle: 'مطالبات مصروفات الموظفين، قارئ فواتير ZATCA QR المانع للتكرار، وبدلات الانتداب',
+      },
+      {
+        id: 'screen-jisr-org-muqeem',
+        href: 'jisr-org-muqeem',
+        title: 'الهيكل التنظيمي ومكتب مقيم والخطابات',
+        subtitle: 'الهيكل التنظيمي التفاعلي، طلبات تجديد الإقامة والتأشيرات في مقيم، والخطابات الرسمية',
+      },
+      {
+        id: 'screen-jisr-talent-360',
+        href: 'jisr-talent-360',
+        title: 'التوظيف الداخلي وتقييم 360° وإخلاء الطرف',
+        subtitle: 'شواغر التوظيف الداخلي، تقييم الأداء 360 درجة، وإجراءات إخلاء الطرف والمخالصة النهائية',
+      },
+      {
+        id: 'screen-reem-hr-emails',
+        href: 'reem-hr-emails',
+        title: 'مراسلات وقوالب بريد الموارد البشرية (HR@kas.sa)',
+        subtitle: 'استوديو مراسلات أ. ريم بن حسين الثنائية (عربي/إنجليزي)، إرسال مباشر من HR@kas.sa، ودليل إيميلات @kas.sa بنسخة Khalid@kas.sa',
+      },
+    ];
+
+    if (currentUser) {
+      jisrCanonicalScreens.forEach((screen) => {
+        if (!canAccessItem(screen.href)) return;
+        const existingIdx = list.findIndex((entry) => entry.href === screen.href);
+        if (existingIdx >= 0) {
+          list[existingIdx] = {
+            ...list[existingIdx],
+            title: screen.title,
+            subtitle: `${list[existingIdx].subtitle} • ${screen.subtitle}`,
+          };
+        } else {
+          seenHrefs.add(screen.href);
+          list.push({
+            id: screen.id,
+            title: screen.title,
+            subtitle: screen.subtitle,
+            href: screen.href,
+            kind: 'screen',
+            badge: `#${screen.href}`,
+          });
+        }
       });
     }
 
@@ -172,6 +235,33 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
             })
           );
         },
+      },
+      {
+        id: 'act-jisr-smart-alerts',
+        title: 'فتح رادار التنبيهات الذكية والراتب المرن ورقابة نطاقات',
+        subtitle: 'مراجعة تنبيهات الإقامة والتجربة (م53) وصرف الراتب المرن وأهلية تأشيرات قوى ومقيم',
+        href: 'jisr-alerts-compliance',
+        requiredHref: 'jisr-alerts-compliance',
+        kind: 'action',
+        badge: 'HR Radar',
+      },
+      {
+        id: 'act-reem-hr-emails',
+        title: 'إصدار تعميم أو بريد رسمي للموارد البشرية (HR@kas.sa — نسخة Khalid@kas.sa)',
+        subtitle: 'قوالب أ. ريم بن حسين الثنائية (عربي/إنجليزي)، إرسال مباشر من HR@kas.sa، ودليل إيميلات المجموعة',
+        href: 'reem-hr-emails',
+        requiredHref: 'reem-hr-emails',
+        kind: 'action',
+        badge: 'HR@kas.sa',
+      },
+      {
+        id: 'act-ess-portal',
+        title: 'فتح بوابة الخدمة الذاتية والراتب المرن وتبديل الورديات (ESS)',
+        subtitle: 'تسجيل الحضور الجغرافي الفعلي، سحب الراتب المرن المستحق، وطلبات الموظفين',
+        href: 'profile',
+        requiredHref: 'profile',
+        kind: 'action',
+        badge: 'ESS',
       },
       {
         id: 'act-new-zatca',
@@ -431,15 +521,44 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
     ];
   }, [searchTerm, categoryFilter, allScreenItems, quickActionItems, liveRecordItems]);
 
-  // Keyboard shortcut listener (Ctrl+K or Cmd+K)
+  // Keyboard shortcut listener (Ctrl+K or Cmd+K) + global Escape-to-close for every shared/page modal
   useEffect(() => {
+    const closeTopmostModal = (): boolean => {
+      const backdrops = Array.from(
+        document.querySelectorAll<HTMLElement>('div.fixed.inset-0')
+      ).filter((el) => {
+        if (el.hasAttribute('data-no-esc-close')) return false;
+        if (el.getAttribute('aria-hidden') === 'true') return false;
+        const style = window.getComputedStyle(el);
+        // Only real dimmed modal overlays (not transparent click-catchers) that are visible
+        return style.display !== 'none' && style.visibility !== 'hidden' && el.children.length > 0;
+      });
+      if (backdrops.length === 0) return false;
+      let top = backdrops[0];
+      let topZ = Number.parseInt(window.getComputedStyle(top).zIndex, 10) || 0;
+      for (const el of backdrops) {
+        const z = Number.parseInt(window.getComputedStyle(el).zIndex, 10) || 0;
+        if (z >= topZ) {
+          top = el;
+          topZ = z;
+        }
+      }
+      top.click();
+      return true;
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setQuickSearchOpen(!isQuickSearchOpen);
+        return;
       }
-      if (e.key === 'Escape' && isQuickSearchOpen) {
-        setQuickSearchOpen(false);
+      if (e.key === 'Escape') {
+        if (isQuickSearchOpen) {
+          setQuickSearchOpen(false);
+        } else {
+          closeTopmostModal();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);

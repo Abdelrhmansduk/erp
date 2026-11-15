@@ -1,23 +1,42 @@
 import i18n from '../i18n/config';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Badge } from '../components/ui/Badge';
 import { exportData } from '../services/exportService';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { useAppStore } from '../stores/appStore';
 import { useCompany } from '../contexts/CompanyContext';
 import { isKasTradeCompany, scopeRecordsForCompany, tagKasRecords } from '../services/kasTradeScope';
-import { MessageSquare, Plus, FileSpreadsheet, FileText, Send, RotateCw, CheckCircle2, Clock, Layers, Server, Search, PhoneCall } from 'lucide-react';
+import { MessageSquare, FileSpreadsheet, FileText, Send, RotateCw, CheckCircle2, Layers, Server, Search, PhoneCall, Mail } from 'lucide-react';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
+import { ReemHrEmailStudioHub } from '../components/hr/ReemHrEmailStudioHub';
+import {
+  composeReemHrOfficialEmail,
+  REEM_HR_SIGNATORY,
+  KAS_TRADING_GROUP_LOGO_DATA_URI,
+} from '../services/reemHrEmailTemplatesEngine';
+import {
+  dispatchComposedHrEmailDirect,
+  getHrMailGatewayStatus,
+  saveHrMailGatewayConfig,
+  verifyHrMailGatewayConfig,
+  getProviderDisplayNameAr,
+  type HrMailGatewayStatus,
+} from '../services/hrDirectEmailDispatchService';
+import { KAS_ALLOWED_EMPLOYEES, EXCLUDED_KAS_EMAILS } from '../config/kasAllowedEmails';
+
+type SentMessagesTabId = 'logs' | 'compose' | 'templates' | 'gateways' | 'hr-emails';
 
 interface MessageLog {
   id: string;
   recipient_name: string;
+  recipient?: string;
   phone: string;
-  channel: 'SMS' | 'WhatsApp';
+  channel: 'SMS' | 'WhatsApp' | 'Email (HR@kas.sa)' | string;
   template: string;
+  subject?: string;
   content: string;
-  status: 'تم التسليم' | 'قيد الإرسال' | 'فشل الإرسال';
+  status: 'تم التسليم' | 'قيد الإرسال' | 'فشل الإرسال' | string;
   cost_sar: number;
   sent_at: string;
 }
@@ -192,16 +211,18 @@ export const SentMessagesPage: React.FC = () => {
   const { activeCompanyId } = useCompany();
   const isKasTrade = isKasTradeCompany(activeCompanyId);
 
-  const getMappedState = (tabKey: string): { tab: 'logs' | 'compose' | 'templates' | 'gateways', channel: 'SMS' | 'WhatsApp' } => {
+  const getMappedState = (tabKey: string): { tab: SentMessagesTabId, channel: 'SMS' | 'WhatsApp' | 'Email (HR@kas.sa)' } => {
     if (tabKey === 'whatsapp-dispatch') return { tab: 'compose', channel: 'WhatsApp' };
     if (tabKey === 'sms-dispatch') return { tab: 'compose', channel: 'SMS' };
+    if (tabKey === 'email-dispatch') return { tab: 'compose', channel: 'Email (HR@kas.sa)' };
     if (tabKey === 'message-templates') return { tab: 'templates', channel: 'WhatsApp' };
     if (tabKey === 'sms-gateways') return { tab: 'gateways', channel: 'WhatsApp' };
+    if (tabKey === 'hr-official-emails' || tabKey === 'reem-hr-emails') return { tab: 'hr-emails', channel: 'Email (HR@kas.sa)' };
     return { tab: 'logs', channel: 'WhatsApp' };
   };
 
-  const [activeTab, setActiveTab] = useState<'logs' | 'compose' | 'templates' | 'gateways'>(() => getMappedState(storeActiveTab).tab);
-  const [composeChannel, setComposeChannel] = useState<'SMS' | 'WhatsApp'>(() => getMappedState(storeActiveTab).channel);
+  const [activeTab, setActiveTab] = useState<SentMessagesTabId>(() => getMappedState(storeActiveTab).tab);
+  const [composeChannel, setComposeChannel] = useState<'SMS' | 'WhatsApp' | 'Email (HR@kas.sa)'>(() => getMappedState(storeActiveTab).channel);
 
   useEffect(() => {
     const s = getMappedState(storeActiveTab);
@@ -209,7 +230,7 @@ export const SentMessagesPage: React.FC = () => {
     setComposeChannel(s.channel);
   }, [storeActiveTab]);
 
-  const [channelFilter, setChannelFilter] = useState<'all' | 'SMS' | 'WhatsApp'>('all');
+  const [channelFilter, setChannelFilter] = useState<'all' | 'SMS' | 'WhatsApp' | 'Email (HR@kas.sa)'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [messages, setMessages] = useState<MessageLog[]>([]);
   const [templates, setTemplates] = useState<MessageTemplate[]>(isKasTrade ? KAS_MOCK_TEMPLATES : MOCK_TEMPLATES);
@@ -217,17 +238,126 @@ export const SentMessagesPage: React.FC = () => {
   // Quick Composer State
   const [recipientName, setRecipientName] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [emailSubjectAr, setEmailSubjectAr] = useState('');
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [messageBody, setMessageBody] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [sendSuccess, setSendSuccess] = useState(false);
+  const [sendFeedback, setSendFeedback] = useState<{
+    type: 'success' | 'warning' | 'error';
+    text: string;
+  } | null>(null);
 
-  useEffect(() => {
-    setTemplates(isKasTrade ? KAS_MOCK_TEMPLATES : MOCK_TEMPLATES);
+  // Live Direct HR Mail Gateway Status & Setup (Zero Simulation)
+  const [gatewayStatus, setGatewayStatus] = useState<HrMailGatewayStatus | null>(null);
+  const [gatewayProvider, setGatewayProvider] = useState<'smtp' | 'microsoft_graph' | 'resend'>('smtp');
+  const [smtpHost, setSmtpHost] = useState('smtp.office365.com');
+  const [smtpPort, setSmtpPort] = useState('587');
+  const [smtpSecure, setSmtpSecure] = useState(false);
+  const [smtpUser, setSmtpUser] = useState<string>(REEM_HR_SIGNATORY.email);
+  const [smtpPass, setSmtpPass] = useState('');
+  const [graphTenantId, setGraphTenantId] = useState('');
+  const [graphClientId, setGraphClientId] = useState('');
+  const [graphClientSecret, setGraphClientSecret] = useState('');
+  const [resendApiKey, setResendApiKey] = useState('');
+  const [gatewayBusy, setGatewayBusy] = useState(false);
+  const [gatewayNotice, setGatewayNotice] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
+
+  const allowedHrDirectory = KAS_ALLOWED_EMPLOYEES.filter(
+    (emp) => !Object.keys(EXCLUDED_KAS_EMAILS).some((ex) => ex.trim().toLowerCase() === emp.email.trim().toLowerCase())
+  );
+
+  const refreshSentMessages = useCallback(() => {
     realErpDataStore.getRecords<MessageLog>('sent_messages', MOCK_MESSAGES).then(raw => {
       setMessages(scopeRecordsForCompany(raw, activeCompanyId, KAS_MOCK_MESSAGES));
     });
-  }, [activeCompanyId, isKasTrade]);
+  }, [activeCompanyId]);
+
+  const refreshGatewayStatus = useCallback(async () => {
+    const st = await getHrMailGatewayStatus();
+    setGatewayStatus(st);
+    setSmtpHost(st.smtpHost || 'smtp.office365.com');
+    setSmtpPort(String(st.smtpPort || 587));
+    setSmtpSecure(Boolean(st.smtpSecure));
+    setSmtpUser(st.smtpUser || REEM_HR_SIGNATORY.email);
+    if (
+      st.activeProvider === 'smtp' ||
+      st.activeProvider === 'microsoft_graph' ||
+      st.activeProvider === 'resend'
+    ) {
+      setGatewayProvider(st.activeProvider);
+    }
+  }, []);
+
+  useEffect(() => {
+    setTemplates(isKasTrade ? KAS_MOCK_TEMPLATES : MOCK_TEMPLATES);
+    refreshSentMessages();
+    void refreshGatewayStatus();
+  }, [activeCompanyId, isKasTrade, refreshSentMessages, refreshGatewayStatus]);
+
+  const handleVerifyHrGateway = async () => {
+    setGatewayBusy(true);
+    setGatewayNotice(null);
+    const res = await verifyHrMailGatewayConfig();
+    setGatewayStatus(res.status);
+    setGatewayBusy(false);
+    if (res.ok) {
+      setGatewayNotice({
+        type: 'success',
+        text: `تم التحقق الفعلي من اتصال بوابة ${getProviderDisplayNameAr(res.provider)} لـ ${REEM_HR_SIGNATORY.email}.`,
+      });
+    } else {
+      setGatewayNotice({
+        type: 'error',
+        text: res.errorAr || 'تعذر التحقق من البوابة — تأكد من إدخال بيانات الاعتماد وحفظها أولاً.',
+      });
+    }
+  };
+
+  const handleSaveHrGateway = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGatewayBusy(true);
+    setGatewayNotice(null);
+    const payload =
+      gatewayProvider === 'smtp'
+        ? {
+            provider: 'smtp' as const,
+            smtpHost: smtpHost.trim() || 'smtp.office365.com',
+            smtpPort: Number(smtpPort) || 587,
+            smtpSecure,
+            smtpUser: smtpUser.trim() || REEM_HR_SIGNATORY.email,
+            smtpPass: smtpPass.trim(),
+          }
+        : gatewayProvider === 'microsoft_graph'
+        ? {
+            provider: 'microsoft_graph' as const,
+            tenantId: graphTenantId.trim(),
+            clientId: graphClientId.trim(),
+            clientSecret: graphClientSecret.trim(),
+          }
+        : {
+            provider: 'resend' as const,
+            resendApiKey: resendApiKey.trim(),
+          };
+    const res = await saveHrMailGatewayConfig(payload);
+    setGatewayStatus(res.status);
+    setGatewayBusy(false);
+    if (res.ok) {
+      setGatewayNotice({
+        type: 'success',
+        text: `تم حفظ بوابة ${getProviderDisplayNameAr(res.status.activeProvider)} وتفعيل الإرسال المباشر لـ ${REEM_HR_SIGNATORY.email}.`,
+      });
+    } else {
+      setGatewayNotice({
+        type: 'error',
+        text: res.errorAr || 'تعذر حفظ إعدادات بوابة البريد المباشر.',
+      });
+    }
+  };
 
   const handleTemplateSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const tmpId = e.target.value;
@@ -235,26 +365,119 @@ export const SentMessagesPage: React.FC = () => {
     const found = templates.find(t => t.id === tmpId);
     if (found) {
       setMessageBody(found.text);
+      if (!emailSubjectAr.trim()) {
+        setEmailSubjectAr(found.title);
+      }
     }
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!recipientPhone.trim() || !messageBody.trim()) return;
+    const isHrEmailChannel = composeChannel === 'Email (HR@kas.sa)';
+    if (!messageBody.trim()) return;
+    if (!isHrEmailChannel && !recipientPhone.trim()) return;
 
     setIsSending(true);
-    await new Promise(r => setTimeout(r, 600));
+    await new Promise(r => setTimeout(r, 350));
+
+    const nowIso = new Date().toISOString();
+    const selectedTplTitle = selectedTemplateId
+      ? templates.find(t => t.id === selectedTemplateId)?.title || 'مخصص'
+      : isHrEmailChannel
+      ? 'مراسلة رسمية مخصصة (HR@kas.sa)'
+      : 'رسالة فورية مخصصة';
+
+    if (isHrEmailChannel) {
+      const excludedSet = new Set(Object.keys(EXCLUDED_KAS_EMAILS).map((ex) => ex.trim().toLowerCase()));
+      const rawEmail = recipientEmail.trim();
+      const matchedDir = allowedHrDirectory.find(
+        (emp) =>
+          (rawEmail && emp.email.toLowerCase() === rawEmail.toLowerCase()) ||
+          (recipientName.trim() && emp.nameAr.includes(recipientName.trim()))
+      );
+      const safeToEmail =
+        rawEmail && rawEmail.includes('@') && !excludedSet.has(rawEmail.toLowerCase())
+          ? rawEmail
+          : matchedDir?.email || allowedHrDirectory[0]?.email || REEM_HR_SIGNATORY.email;
+
+      const resolvedNameAr = recipientName.trim() || matchedDir?.nameAr || 'الزميل المختص';
+      const resolvedSubjectAr = emailSubjectAr.trim() || selectedTplTitle;
+
+      const composed = composeReemHrOfficialEmail({
+        templateId: 'CUSTOM_OFFICIAL_CORRESPONDENCE',
+        recipientEmails: [safeToEmail],
+        ccEmails: [...REEM_HR_SIGNATORY.defaultCc],
+        recipientNameAr: resolvedNameAr,
+        recipientNameEn: matchedDir?.nameEn || resolvedNameAr,
+        customSubjectAr: resolvedSubjectAr,
+        customSubjectEn: 'Official Human Resources Correspondence - Khalid Al-Sulaim Group',
+        customBodyAr: messageBody.trim(),
+      });
+
+      const refNo = `HR-KAS-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`;
+      const result = await dispatchComposedHrEmailDirect({
+        composed,
+        companyId: activeCompanyId || 'SAF',
+        categoryAr: 'مراسلة رسمية فورية (مركز الرسائل)',
+        templateTitleAr: resolvedSubjectAr,
+        recipientNameAr: resolvedNameAr,
+        recipientNameEn: matchedDir?.nameEn || resolvedNameAr,
+        customDetailsAr: messageBody.trim(),
+        referenceNo: refNo,
+        moduleName: 'مركز الرسائل الموحد (HR@kas.sa)',
+        openOutlookWebFallbackIfUnconfigured: true,
+      });
+
+      refreshSentMessages();
+      void refreshGatewayStatus();
+      setIsSending(false);
+
+      if (result.ok) {
+        setSendSuccess(true);
+        setSendFeedback({
+          type: 'success',
+          text: `تم الإرسال المباشر للبريد من HR@kas.sa عبر ${getProviderDisplayNameAr(result.provider)} بنسخة إلى Khalid@kas.sa (دون تنزيل أي ملفات).`,
+        });
+        setRecipientName('');
+        setRecipientEmail('');
+        setEmailSubjectAr('');
+        setMessageBody('');
+        setTimeout(() => {
+          setSendSuccess(false);
+          setSendFeedback(null);
+        }, 4500);
+      } else if (result.openedInOutlookWeb) {
+        setSendSuccess(false);
+        setSendFeedback({
+          type: 'warning',
+          text:
+            result.errorAr ||
+            'بوابة الإرسال الصامت غير مفعلة بعد — تم فتح Outlook Web مباشرة ونسخ القالب الرسمي دون تنزيل ملفات. فعّل البوابة من تبويب «البوابات» لإرسال فوري صامت.',
+        });
+        setRecipientName('');
+        setRecipientEmail('');
+        setEmailSubjectAr('');
+        setMessageBody('');
+      } else {
+        setSendSuccess(false);
+        setSendFeedback({
+          type: 'error',
+          text: result.errorAr || 'تعذر إرسال البريد مباشرة عبر بوابة HR@kas.sa.',
+        });
+      }
+      return;
+    }
 
     const newMsg: MessageLog = {
       id: `MSG-${Date.now().toString().slice(-4)}`,
-      recipient_name: recipientName.trim() || 'عميل تجريبي',
+      recipient_name: recipientName.trim() || 'عميل معتمد',
       phone: recipientPhone.trim(),
       channel: composeChannel,
-      template: selectedTemplateId ? templates.find(t => t.id === selectedTemplateId)?.title || 'مخصص' : 'رسالة فورية مخصصة',
+      template: selectedTplTitle,
       content: messageBody,
       status: 'تم التسليم',
       cost_sar: composeChannel === 'WhatsApp' ? 0.15 : 0.12,
-      sent_at: new Date().toISOString().replace('T', ' ').slice(0, 16)
+      sent_at: nowIso.replace('T', ' ').slice(0, 16)
     };
 
     const updated = await realErpDataStore.addRecord<MessageLog>('sent_messages', newMsg, MOCK_MESSAGES);
@@ -268,14 +491,21 @@ export const SentMessagesPage: React.FC = () => {
   };
 
   const filteredMessages = messages.filter(m => {
-    if (channelFilter !== 'all' && m.channel !== channelFilter) return false;
+    if (channelFilter !== 'all') {
+      if (channelFilter === 'Email (HR@kas.sa)') {
+        const ch = String(m.channel || '');
+        if (!ch.includes('HR@kas.sa') && !ch.includes('Email')) return false;
+      } else if (m.channel !== channelFilter) {
+        return false;
+      }
+    }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       return (
         String(m.id || '').toLowerCase().includes(q) ||
-        (m.recipient_name || '').toLowerCase().includes(q) ||
-        (m.phone || '').includes(q) ||
-        (m.content || '').toLowerCase().includes(q)
+        (m.recipient_name || m.recipient || '').toLowerCase().includes(q) ||
+        (m.phone || '').toLowerCase().includes(q) ||
+        (m.content || m.subject || '').toLowerCase().includes(q)
       );
     }
     return true;
@@ -306,17 +536,25 @@ export const SentMessagesPage: React.FC = () => {
               <span className="pill-tag-mint" style={{ fontSize: '11px' }}>{i18n.t("crm.communicationHub", "مركز الاتصالات والإشعارات")}</span>
             </div>
             <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, margin: '0', letterSpacing: '-0.02em', color: '#ffffff', fontFamily: 'var(--font-family-display)' }}>
-              مركز الرسائل الموحد (SMS & WhatsApp Business)
+              مركز الرسائل الموحد (SMS & WhatsApp Business & HR@kas.sa)
             </h1>
             <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#a1a1aa', fontWeight: 420 }}>
               {isKasTrade
-                ? 'إرسال عروض الأسعار، إشعارات التوريد والشحن، الفواتير الإلكترونية ZATCA، والحملات التجارية'
-                : 'إرسال إشعارات مساند، تذاكر الوصول، الفواتير الإلكترونية ZATCA، والحملات التسويقية'}
+                ? 'إرسال عروض الأسعار، إشعارات التوريد والشحن، الفواتير الإلكترونية ZATCA، ومراسلات الموارد البشرية الرسمية'
+                : 'إرسال إشعارات مساند، تذاكر الوصول، الفواتير الإلكترونية ZATCA، ومراسلات الموارد البشرية الرسمية (HR@kas.sa)'}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setActiveTab('hr-emails')}
+            className="button-white-pill"
+            style={{ fontSize: '12.5px', padding: '6px 18px', minHeight: '38px' }}
+          >
+            <Mail className="w-4 h-4 ml-1" />
+            <span>مراسلات وقوالب الموارد البشرية (HR@kas.sa)</span>
+          </button>
           <button
             onClick={() => setActiveTab('compose')}
             className="button-white-pill"
@@ -346,7 +584,7 @@ export const SentMessagesPage: React.FC = () => {
           <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>الرسائل المرسلة اليوم</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>{messages.length}</div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>
-            {isKasTrade ? 'إشعارات المبيعات و ZATCA' : 'إشعارات مساند و ZATCA'}
+            {isKasTrade ? 'إشعارات المبيعات و ZATCA' : 'إشعارات مساند و ZATCA و HR@kas.sa'}
           </span>
         </div>
 
@@ -360,17 +598,18 @@ export const SentMessagesPage: React.FC = () => {
       {/* Navigation Tabs */}
       <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
         {[
-          { id: 'logs', label: `سجل وأرشيف الرسائل (${messages.length})`, icon: MessageSquare },
-          { id: 'compose', label: 'محرر الإرسال الفوري', icon: Send },
-          { id: 'templates', label: `قوالب ونماذج الإشعارات (${templates.length})`, icon: Layers },
-          { id: 'gateways', label: 'إعدادات بوابات الربط (Gateways)', icon: Server },
+          { id: 'logs' as SentMessagesTabId, label: `سجل وأرشيف الرسائل (${messages.length})`, icon: MessageSquare },
+          { id: 'hr-emails' as SentMessagesTabId, label: 'مراسلات وقوالب الموارد البشرية (HR@kas.sa)', icon: Mail },
+          { id: 'compose' as SentMessagesTabId, label: 'محرر الإرسال الفوري', icon: Send },
+          { id: 'templates' as SentMessagesTabId, label: `قوالب ونماذج الإشعارات (${templates.length})`, icon: Layers },
+          { id: 'gateways' as SentMessagesTabId, label: 'إعدادات بوابات الربط (Gateways)', icon: Server },
         ].map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id)}
               style={{
                 padding: '6px 16px',
                 borderRadius: '9999px',
@@ -394,6 +633,14 @@ export const SentMessagesPage: React.FC = () => {
           );
         })}
       </div>
+
+      {/* TAB: REEM HR OFFICIAL EMAIL STUDIO HUB (HR@kas.sa) */}
+      {activeTab === 'hr-emails' && (
+        <ReemHrEmailStudioHub
+          companyId={activeCompanyId}
+          onEmailDispatched={refreshSentMessages}
+        />
+      )}
 
       {/* TAB 1: LOGS */}
       {activeTab === 'logs' && (
@@ -420,6 +667,13 @@ export const SentMessagesPage: React.FC = () => {
                 style={{ padding: '4px 14px', fontSize: '11.5px', minHeight: '30px' }}
               >
                 رسائل نصية (SMS)
+              </button>
+              <button
+                onClick={() => setChannelFilter('Email (HR@kas.sa)')}
+                className={channelFilter === 'Email (HR@kas.sa)' ? 'button-primary-pill' : 'button-outline-on-light'}
+                style={{ padding: '4px 14px', fontSize: '11.5px', minHeight: '30px' }}
+              >
+                بريد الموارد البشرية (HR@kas.sa)
               </button>
             </div>
 
@@ -451,7 +705,7 @@ export const SentMessagesPage: React.FC = () => {
               <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
                 <tr>
                   <th className="p-3.5">كود الرسالة</th>
-                  <th className="p-3.5">المستلم ورقم الجوال</th>
+                  <th className="p-3.5">المستلم ورقم الجوال / البريد</th>
                   <th className="p-3.5">القناة</th>
                   <th className="p-3.5">نوع النموذج</th>
                   <th className="p-3.5">نص الرسالة</th>
@@ -471,52 +725,62 @@ export const SentMessagesPage: React.FC = () => {
                       </div>
                     </td>
                   </tr>
-                ) : filteredMessages.map(row => (
-                  <tr key={row.id} className="hover:bg-zinc-50 transition-colors">
-                    <td className="p-3.5 font-mono font-bold text-[#141414]">{row.id}</td>
-                    <td className="p-3.5">
-                      <div className="flex items-center gap-2">
-                        <CorporateAvatar name={row.recipient_name} size="xs" departmentId="crm" />
-                        <div>
-                          <div className="font-bold text-[#141414]">{row.recipient_name}</div>
-                          <div className="text-[11px] text-[#707070] font-mono">{row.phone}</div>
+                ) : filteredMessages.map(row => {
+                  const displayRecipient = row.recipient_name || row.recipient || 'مستلم معتمد';
+                  const displayContact = row.phone || '';
+                  const displayTemplate = row.template || row.subject || 'رسالة رسمية';
+                  const isOfficialEmail = String(row.channel || '').includes('HR@kas.sa') || String(row.channel || '').includes('Email');
+                  return (
+                    <tr key={row.id} className="hover:bg-zinc-50 transition-colors">
+                      <td className="p-3.5 font-mono font-bold text-[#141414]">{row.id}</td>
+                      <td className="p-3.5">
+                        <div className="flex items-center gap-2">
+                          <CorporateAvatar name={displayRecipient} size="xs" departmentId={isOfficialEmail ? 'hr' : 'crm'} />
+                          <div>
+                            <div className="font-bold text-[#141414]">{displayRecipient}</div>
+                            <div className="text-[11px] text-[#707070] font-mono">{displayContact}</div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="p-3.5">
-                      <Badge
-                        text={row.channel}
-                        type={row.channel === 'WhatsApp' ? 'success' : 'info'}
-                      />
-                    </td>
-                    <td className="p-3.5 font-semibold text-[#141414]">{row.template}</td>
-                    <td className="p-3.5 max-w-xs truncate text-zinc-600" title={row.content}>{row.content}</td>
-                    <td className="p-3.5 font-mono font-bold text-[#141414]">{(row.cost_sar ?? 0.12).toFixed(2)} ⃁</td>
-                    <td className="p-3.5 font-mono text-[#707070] text-[11px]">{row.sent_at}</td>
-                    <td className="p-3.5">
-                      <Badge
-                        text={row.status}
-                        type={row.status === 'تم التسليم' ? 'success' : row.status === 'قيد الإرسال' ? 'warning' : 'danger'}
-                      />
-                    </td>
-                    <td className="p-3.5 text-center">
-                      <button
-                        className="button-outline-on-light"
-                        style={{ padding: '3px 10px', fontSize: '11px', minHeight: '26px' }}
-                        onClick={() => {
-                          setComposeChannel(row.channel);
-                          setRecipientName(row.recipient_name);
-                          setRecipientPhone(row.phone);
-                          setMessageBody(row.content);
-                          setActiveTab('compose');
-                        }}
-                      >
-                        <RotateCw className="w-3 h-3 ml-1" />
-                        <span>إعادة إرسال</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="p-3.5">
+                        <Badge
+                          text={row.channel}
+                          type={row.channel === 'WhatsApp' ? 'success' : 'info'}
+                        />
+                      </td>
+                      <td className="p-3.5 font-semibold text-[#141414]">{displayTemplate}</td>
+                      <td className="p-3.5 max-w-xs truncate text-zinc-600" title={row.content}>{row.content}</td>
+                      <td className="p-3.5 font-mono font-bold text-[#141414]">{(row.cost_sar ?? 0).toFixed(2)} ⃁</td>
+                      <td className="p-3.5 font-mono text-[#707070] text-[11px]">{row.sent_at}</td>
+                      <td className="p-3.5">
+                        <Badge
+                          text={row.status}
+                          type={row.status === 'تم التسليم' || row.status === 'تم التبليغ والأرشفة' ? 'success' : row.status === 'قيد الإرسال' ? 'warning' : 'danger'}
+                        />
+                      </td>
+                      <td className="p-3.5 text-center">
+                        <button
+                          className="button-outline-on-light"
+                          style={{ padding: '3px 10px', fontSize: '11px', minHeight: '26px' }}
+                          onClick={() => {
+                            if (isOfficialEmail) {
+                              setActiveTab('hr-emails');
+                              return;
+                            }
+                            setComposeChannel(row.channel === 'SMS' ? 'SMS' : 'WhatsApp');
+                            setRecipientName(displayRecipient);
+                            setRecipientPhone(displayContact);
+                            setMessageBody(row.content);
+                            setActiveTab('compose');
+                          }}
+                        >
+                          <RotateCw className="w-3 h-3 ml-1" />
+                          <span>{isOfficialEmail ? 'فتح استوديو HR' : 'إعادة إرسال'}</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -531,10 +795,12 @@ export const SentMessagesPage: React.FC = () => {
             <span>إرسال رسالة فورية أو تعميم</span>
           </h2>
 
-          {sendSuccess && (
-            <div className="bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] p-3 rounded-2xl mb-4 font-bold text-xs flex items-center gap-2 shadow-xs">
-              <CheckCircle2 className="w-4 h-4 text-[#141414]" />
-              <span>تم إرسال الرسالة بنجاح وتسجيلها في الأرشيف المعتمد!</span>
+          {(sendSuccess || sendFeedback) && (
+            <div className="bg-[#f3f3f3] border border-[#141414] text-[#141414] p-3 rounded-2xl mb-4 font-bold text-xs flex items-center gap-2 shadow-xs">
+              <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0" />
+              <span>
+                {sendFeedback?.text || 'تم إرسال الرسالة بنجاح وتسجيلها في الأرشيف المعتمد!'}
+              </span>
             </div>
           )}
 
@@ -542,7 +808,7 @@ export const SentMessagesPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-zinc-700 mb-1">قناة الإرسال *</label>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <label className={`flex items-center gap-2 p-2.5 border rounded-2xl cursor-pointer text-xs flex-1 transition-all ${composeChannel === 'WhatsApp' ? 'border-[#141414] bg-zinc-50 font-bold' : 'border-zinc-200 bg-white'}`}>
                     <input
                       type="radio"
@@ -563,6 +829,17 @@ export const SentMessagesPage: React.FC = () => {
                     />
                     <span>رسالة نصية SMS</span>
                   </label>
+                  <label className={`flex items-center gap-2 p-2.5 border rounded-2xl cursor-pointer text-xs flex-1 transition-all ${composeChannel === 'Email (HR@kas.sa)' ? 'border-[#141414] bg-[#f3f3f3] font-bold' : 'border-zinc-200 bg-white'}`}>
+                    <input
+                      type="radio"
+                      name="channel"
+                      value="Email (HR@kas.sa)"
+                      checked={composeChannel === 'Email (HR@kas.sa)'}
+                      onChange={() => setComposeChannel('Email (HR@kas.sa)')}
+                    />
+                    <Mail className="w-3.5 h-3.5 text-[#141414]" />
+                    <span>Email (HR@kas.sa)</span>
+                  </label>
                 </div>
               </div>
 
@@ -581,7 +858,7 @@ export const SentMessagesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم المستلم / العميل</label>
+                <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم المستلم / الموظف</label>
                 <input
                   type="text"
                   placeholder="مثال: فهد عبدالرحمن الشمري"
@@ -591,18 +868,79 @@ export const SentMessagesPage: React.FC = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">رقم الجوال (مع المفتاح الدولي) *</label>
-                <input
-                  type="text"
-                  placeholder="+9665XXXXXXXX"
-                  value={recipientPhone}
-                  onChange={(e) => setRecipientPhone(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs font-mono text-[#141414] focus:border-[#141414] focus:outline-none"
-                  required
-                />
-              </div>
+              {composeChannel === 'Email (HR@kas.sa)' ? (
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-700 mb-1">
+                    البريد الإلكتروني للمستلم (@kas.sa) *
+                  </label>
+                  <input
+                    type="email"
+                    list="kas-compose-hr-emails"
+                    placeholder="employee@kas.sa"
+                    value={recipientEmail}
+                    onChange={(e) => setRecipientEmail(e.target.value)}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs font-mono text-[#141414] focus:border-[#141414] focus:outline-none"
+                    required
+                  />
+                  <datalist id="kas-compose-hr-emails">
+                    {allowedHrDirectory.map((emp) => (
+                      <option key={emp.email} value={emp.email}>
+                        {emp.nameAr} — {emp.nameEn}
+                      </option>
+                    ))}
+                  </datalist>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-700 mb-1">رقم الجوال (مع المفتاح الدولي) *</label>
+                  <input
+                    type="text"
+                    placeholder="+9665XXXXXXXX"
+                    value={recipientPhone}
+                    onChange={(e) => setRecipientPhone(e.target.value)}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs font-mono text-[#141414] focus:border-[#141414] focus:outline-none"
+                    required
+                  />
+                </div>
+              )}
             </div>
+
+            {composeChannel === 'Email (HR@kas.sa)' && (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-700 mb-1">عنوان البريد الرسمي (Subject)</label>
+                  <input
+                    type="text"
+                    placeholder="مراسلة رسمية صادرة عن إدارة الموارد البشرية — مجموعة الخالد السليم"
+                    value={emailSubjectAr}
+                    onChange={(e) => setEmailSubjectAr(e.target.value)}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+                <div className="p-3.5 rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-between flex-wrap gap-3 text-xs">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={KAS_TRADING_GROUP_LOGO_DATA_URI}
+                      alt="Khalid Al-Sulaim Trading Group"
+                      className="w-11 h-11 object-contain rounded-[12px] bg-[#ffffff] border border-[#e0e0e0] p-1"
+                    />
+                    <div dir="ltr" className="text-left leading-snug text-[#141414]">
+                      <div className="font-bold">{REEM_HR_SIGNATORY.signatureNameEn}</div>
+                      <div className="text-[11px] text-[#707070]">{REEM_HR_SIGNATORY.consultantTitleEn}</div>
+                      <div className="text-[11px] font-mono">
+                        Email: {REEM_HR_SIGNATORY.email} • Mobile: {REEM_HR_SIGNATORY.mobile}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-[11px] font-bold text-[#141414]">
+                    المرسل المباشر: {REEM_HR_SIGNATORY.email} • نسخة إلزامية: {REEM_HR_SIGNATORY.defaultCc.join(', ')} •{' '}
+                    {gatewayStatus?.configured
+                      ? `متصل (${getProviderDisplayNameAr(gatewayStatus.activeProvider)})`
+                      : 'بوابة Outlook Web / بانتظار SMTP/Graph'}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div>
               <label className="block text-xs font-semibold text-zinc-700 mb-1">نص الرسالة *</label>
@@ -616,7 +954,13 @@ export const SentMessagesPage: React.FC = () => {
               />
               <div className="flex justify-between text-[11px] text-[#707070] mt-1">
                 <span>عدد الحروف: {messageBody.length}</span>
-                <span>{composeChannel === 'SMS' ? `عدد أجزاء الرسالة: ${Math.ceil(messageBody.length / 70) || 1}` : 'رسالة واتساب مشفرة'}</span>
+                <span>
+                  {composeChannel === 'SMS'
+                    ? `عدد أجزاء الرسالة: ${Math.ceil(messageBody.length / 70) || 1}`
+                    : composeChannel === 'Email (HR@kas.sa)'
+                    ? 'إرسال مباشر من HR@kas.sa بشعار المجموعة والتوقيع المعتمد دون تنزيل ملفات'
+                    : 'رسالة واتساب مشفرة'}
+                </span>
               </div>
             </div>
 
@@ -628,11 +972,15 @@ export const SentMessagesPage: React.FC = () => {
                 style={{ padding: '8px 24px', fontSize: '13px', minHeight: '38px' }}
               >
                 {isSending ? (
-                  <span>جاري الإرسال الفوري...</span>
+                  <span>جاري الإرسال المباشر والأرشفة...</span>
                 ) : (
                   <>
                     <Send className="w-4 h-4 ml-1" />
-                    <span>إرسال الرسالة الآن</span>
+                    <span>
+                      {composeChannel === 'Email (HR@kas.sa)'
+                        ? 'إرسال مباشر ببريد HR@kas.sa (بالتوقيع الرسمي)'
+                        : 'إرسال الرسالة الآن'}
+                    </span>
                   </>
                 )}
               </button>
@@ -682,43 +1030,227 @@ export const SentMessagesPage: React.FC = () => {
 
       {/* TAB 4: GATEWAYS */}
       {activeTab === 'gateways' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="card-pricing" style={{ padding: '20px', borderRadius: '16px', background: '#ffffff' }}>
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm font-bold text-[#141414] flex items-center gap-2">
-                <Server className="w-4 h-4 text-[#141414]" />
-                <span>بوابة SMS المعتمدة (Taqnyat / Unifonic)</span>
-              </h3>
-              <Badge text="متصل ومفعل" type="success" />
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="card-pricing" style={{ padding: '20px', borderRadius: '16px', background: '#ffffff' }}>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-sm font-bold text-[#141414] flex items-center gap-2">
+                  <Server className="w-4 h-4 text-[#141414]" />
+                  <span>بوابة SMS المعتمدة (Taqnyat / Unifonic)</span>
+                </h3>
+                <Badge text="متصل ومفعل" type="success" />
+              </div>
+              <p className="text-xs text-zinc-600 mb-3">
+                بوابة إرسال الرسائل القصيرة الرسمية داخل المملكة العربية السعودية بمعرف Sender ID مسجل لدى هيئة الاتصالات.
+              </p>
+              <div className="bg-zinc-50 p-3 rounded-xl text-xs text-zinc-700 space-y-1 border border-zinc-100">
+                <div><strong>اسم المرسل المعتمد:</strong> ALSULAIM</div>
+                <div><strong>الرصيد المتبقي:</strong> 48,250 رسالة</div>
+                <div><strong>زمن الاستجابة:</strong> 0.8 ثانية</div>
+              </div>
             </div>
-            <p className="text-xs text-zinc-600 mb-3">
-              بوابة إرسال الرسائل القصيرة الرسمية داخل المملكة العربية السعودية بمعرف Sender ID مسجل لدى هيئة الاتصالات.
-            </p>
-            <div className="bg-zinc-50 p-3 rounded-xl text-xs text-zinc-700 space-y-1 border border-zinc-100">
-              <div><strong>اسم المرسل المعتمد:</strong> ALSULAIM</div>
-              <div><strong>الرصيد المتبقي:</strong> 48,250 رسالة</div>
-              <div><strong>زمن الاستجابة:</strong> 0.8 ثانية</div>
+
+            <div className="card-pricing" style={{ padding: '20px', borderRadius: '16px', background: '#ffffff' }}>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-sm font-bold text-[#141414] flex items-center gap-2">
+                  <PhoneCall className="w-4 h-4 text-[#141414]" />
+                  <span>واتساب للأعمال (Meta Cloud API)</span>
+                </h3>
+                <Badge text="توثيق معتمد" type="gold" />
+              </div>
+              <p className="text-xs text-zinc-600 mb-3">
+                {isKasTrade
+                  ? 'ربط مباشر وموثق بالعلامة الخضراء لإرسال عروض الأسعار وتأكيدات التوريد والفواتير الضريبية.'
+                  : 'ربط مباشر وموثق بالعلامة الخضراء لإرسال قوالب التفييز والرحلات والفواتير الضريبية.'}
+              </p>
+              <div className="bg-zinc-50 p-3 rounded-xl text-xs text-zinc-700 space-y-1 border border-zinc-100">
+                <div><strong>الرقم الموثق:</strong> +966 11 400 2026</div>
+                <div><strong>مستوى الجودة (Quality):</strong> عالي (High)</div>
+                <div><strong>حد الإرسال اليومي (Tier):</strong> غير محدود (Tier Unlimited)</div>
+              </div>
             </div>
           </div>
 
           <div className="card-pricing" style={{ padding: '20px', borderRadius: '16px', background: '#ffffff' }}>
-            <div className="flex justify-between items-center mb-3">
+            <div className="flex flex-wrap justify-between items-center gap-3 mb-3">
               <h3 className="text-sm font-bold text-[#141414] flex items-center gap-2">
-                <PhoneCall className="w-4 h-4 text-[#141414]" />
-                <span>واتساب للأعمال (Meta Cloud API)</span>
+                <Mail className="w-4 h-4 text-[#141414]" />
+                <span>بوابة البريد الرسمي المباشر Microsoft 365 / SMTP ({REEM_HR_SIGNATORY.email})</span>
               </h3>
-              <Badge text="توثيق معتمد" type="gold" />
+              <div className="flex items-center gap-2">
+                <Badge
+                  text={
+                    gatewayStatus?.configured
+                      ? `مفعّلة (${getProviderDisplayNameAr(gatewayStatus.activeProvider)})`
+                      : 'تحتاج بيانات اتصال'
+                  }
+                  type={gatewayStatus?.configured ? 'success' : 'gold'}
+                />
+                <button
+                  type="button"
+                  disabled={gatewayBusy}
+                  onClick={() => void handleVerifyHrGateway()}
+                  className="px-3 py-1.5 rounded-full border border-[#e0e0e0] bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] text-xs font-bold cursor-pointer inline-flex items-center gap-1"
+                >
+                  <RotateCw className="w-3.5 h-3.5" />
+                  <span>فحص الاتصال الفعلي</span>
+                </button>
+              </div>
             </div>
-            <p className="text-xs text-zinc-600 mb-3">
-              {isKasTrade
-                ? 'ربط مباشر وموثق بالعلامة الخضراء لإرسال عروض الأسعار وتأكيدات التوريد والفواتير الضريبية.'
-                : 'ربط مباشر وموثق بالعلامة الخضراء لإرسال قوالب التفييز والرحلات والفواتير الضريبية.'}
+
+            <p className="text-xs text-[#707070] mb-3">
+              تُرسل جميع خطابات وإيميلات الموارد البشرية مباشرة عبر <code className="font-mono">POST /api/hr-email-send</code> من{' '}
+              <strong>{REEM_HR_SIGNATORY.email}</strong> بنسخة إلزامية إلى{' '}
+              <strong>{REEM_HR_SIGNATORY.defaultCc.join(', ')}</strong> مع شعار المجموعة والتوقيع الرسمي دون تنزيل ملفات.
             </p>
-            <div className="bg-zinc-50 p-3 rounded-xl text-xs text-zinc-700 space-y-1 border border-zinc-100">
-              <div><strong>الرقم الموثق:</strong> +966 11 400 2026</div>
-              <div><strong>مستوى الجودة (Quality):</strong> عالي (High)</div>
-              <div><strong>حد الإرسال اليومي (Tier):</strong> غير محدود (Tier Unlimited)</div>
-            </div>
+
+            {gatewayNotice && (
+              <div className="mb-3 p-3 rounded-xl bg-[#f3f3f3] border border-[#141414] text-xs font-bold text-[#141414]">
+                {gatewayNotice.text}
+              </div>
+            )}
+
+            <form onSubmit={handleSaveHrGateway} className="space-y-3 bg-[#f3f3f3] p-4 rounded-2xl border border-[#e0e0e0]">
+              <div className="flex flex-wrap gap-2">
+                {([
+                  { id: 'smtp', label: 'Office 365 SMTP (TLS/587)' },
+                  { id: 'microsoft_graph', label: 'Microsoft 365 Graph OAuth2' },
+                  { id: 'resend', label: 'Resend Cloud API' },
+                ] as const).map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setGatewayProvider(opt.id)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer border transition-colors ${
+                      gatewayProvider === opt.id
+                        ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                        : 'bg-[#ffffff] text-[#141414] border-[#e0e0e0]'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+
+              {gatewayProvider === 'smtp' && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#141414] mb-1">خادم SMTP</label>
+                    <input
+                      type="text"
+                      value={smtpHost}
+                      onChange={(e) => setSmtpHost(e.target.value)}
+                      className="w-full bg-[#ffffff] border border-[#e0e0e0] rounded-xl py-1.5 px-2.5 text-[#141414]"
+                      dir="ltr"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#141414] mb-1">المنفذ (Port)</label>
+                    <input
+                      type="number"
+                      value={smtpPort}
+                      onChange={(e) => {
+                        setSmtpPort(e.target.value);
+                        setSmtpSecure(e.target.value.trim() === '465');
+                      }}
+                      className="w-full bg-[#ffffff] border border-[#e0e0e0] rounded-xl py-1.5 px-2.5 text-[#141414]"
+                      dir="ltr"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#141414] mb-1">البريد المرسل</label>
+                    <input
+                      type="email"
+                      value={smtpUser}
+                      onChange={(e) => setSmtpUser(e.target.value)}
+                      className="w-full bg-[#ffffff] border border-[#e0e0e0] rounded-xl py-1.5 px-2.5 text-[#141414]"
+                      dir="ltr"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#141414] mb-1">كلمة مرور التطبيق</label>
+                    <input
+                      type="password"
+                      value={smtpPass}
+                      onChange={(e) => setSmtpPass(e.target.value)}
+                      placeholder={gatewayStatus?.hasSmtpPassword ? '•••••••• (محفوظة)' : 'App Password'}
+                      className="w-full bg-[#ffffff] border border-[#e0e0e0] rounded-xl py-1.5 px-2.5 text-[#141414]"
+                      dir="ltr"
+                      required={!gatewayStatus?.hasSmtpPassword}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {gatewayProvider === 'microsoft_graph' && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#141414] mb-1">Azure Tenant ID</label>
+                    <input
+                      type="text"
+                      value={graphTenantId}
+                      onChange={(e) => setGraphTenantId(e.target.value)}
+                      placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                      className="w-full bg-[#ffffff] border border-[#e0e0e0] rounded-xl py-1.5 px-2.5 text-[#141414]"
+                      dir="ltr"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#141414] mb-1">Application (Client) ID</label>
+                    <input
+                      type="text"
+                      value={graphClientId}
+                      onChange={(e) => setGraphClientId(e.target.value)}
+                      placeholder="Client ID"
+                      className="w-full bg-[#ffffff] border border-[#e0e0e0] rounded-xl py-1.5 px-2.5 text-[#141414]"
+                      dir="ltr"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#141414] mb-1">Client Secret</label>
+                    <input
+                      type="password"
+                      value={graphClientSecret}
+                      onChange={(e) => setGraphClientSecret(e.target.value)}
+                      placeholder={gatewayStatus?.hasGraphCredentials ? '•••••••• (محفوظ)' : 'Client Secret'}
+                      className="w-full bg-[#ffffff] border border-[#e0e0e0] rounded-xl py-1.5 px-2.5 text-[#141414]"
+                      dir="ltr"
+                      required={!gatewayStatus?.hasGraphCredentials}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {gatewayProvider === 'resend' && (
+                <div className="text-xs">
+                  <label className="block text-[11px] font-bold text-[#141414] mb-1">Resend API Key</label>
+                  <input
+                    type="password"
+                    value={resendApiKey}
+                    onChange={(e) => setResendApiKey(e.target.value)}
+                    placeholder={gatewayStatus?.hasResendKey ? '•••••••• (محفوظ)' : 're_...'}
+                    className="w-full bg-[#ffffff] border border-[#e0e0e0] rounded-xl py-1.5 px-2.5 text-[#141414]"
+                    dir="ltr"
+                    required={!gatewayStatus?.hasResendKey}
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={gatewayBusy}
+                  className="px-4 py-2 rounded-full bg-[#141414] text-[#ffffff] text-xs font-bold cursor-pointer"
+                >
+                  {gatewayBusy ? 'جاري الحفظ والتحقق...' : 'حفظ وتفعيل الإرسال المباشر'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

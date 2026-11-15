@@ -14,6 +14,7 @@ import { employeeMonitoringService } from './employeeMonitoringService';
 import { shelterTransferStore } from './shelterTransferStore';
 import { realErpDataStore } from './realErpDataStore';
 import { authService } from './authService';
+import { runAndDispatchHrSmartAlerts } from './hrSmartAlertsEngine';
 
 // ═══════════════════════════════════════════════════════════
 //  TYPES
@@ -439,6 +440,9 @@ export function inferToolCallFromArabicPrompt(
     return validateToolCall({ id: 'get_expiring_iqamas', params: { days_ahead: days } }, companyId, currentUserEmail);
   }
 
+  if (/(?:رادار\s*جسر|تنبيهات\s*الموارد|فحص\s*نطاقات|انتهاء\s*فتر[ةه]\s*التجرب[ةه])/i.test(clean)) {
+    return validateToolCall({ id: 'scan_hr_smart_alerts', params: {} }, companyId, currentUserEmail);
+  }
   if (/(?:تقرير|فحص).*(?:أداء|اداء|سرع[ةه]|إنتاجي[ةه]|انتاجي[ةه]).*(?:موظف|فريق)/i.test(clean)) {
     return validateToolCall({ id: 'get_employee_monitoring_summary', params: { period: 'today' } }, companyId, currentUserEmail);
   }
@@ -587,6 +591,37 @@ export async function executeToolCall(
       case 'calculate_eos_benefits':
         result = executeCalculateEosBenefits(params);
         break;
+      case 'scan_hr_smart_alerts': {
+        const emps = await realErpDataStore.getRecords<any>('employees', [], effectiveCompany);
+        const reqs = await realErpDataStore.getRecords<any>('hr_approval_requests', [], effectiveCompany);
+        const scanOut = await runAndDispatchHrSmartAlerts(
+          {
+            companyId: effectiveCompany,
+            employees: emps.map((e: any) => ({
+              id: String(e.id || ''),
+              name: String(e.name || e.full_name || 'موظف'),
+              nationality: e.nationality,
+              basicSalary: Number(e.basicSalary ?? e.basic_salary ?? 4000),
+              housingAllowance: Number(e.housingAllowance ?? e.housing_allowance ?? 1000),
+              hireDate: e.hireDate || e.hire_date || e.join_date,
+              iqamaExpiry: e.iqamaExpiry || e.iqama_expiry,
+              qiwaContractExpiry: e.qiwa_contract_expiry || e.contractEndDate,
+              passportExpiry: e.passport_expiry,
+              medicalInsuranceExpiry: e.medical_insurance_expiry,
+              status: e.status,
+            })),
+            approvalRequests: reqs,
+          },
+          { showPopups: true }
+        );
+        result = {
+          success: true,
+          message: `تم فحص رادار جسر للتنبيهات الاستباقية بنجاح (${scanOut.alerts.length} تنبيهاً مرصوداً).\n\n${scanOut.spokenSummary}`,
+          spokenSummary: scanOut.spokenSummary,
+          data: scanOut.alerts,
+        };
+        break;
+      }
       case 'get_employee_monitoring_summary':
         result = await executeGetEmployeeMonitoringSummary(params);
         break;

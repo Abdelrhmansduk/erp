@@ -213,10 +213,18 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
       className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-[#141414]/60 backdrop-blur-sm"
       dir="rtl"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
-      <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] shadow-2xl w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden">
+      <div
+        className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Clean Mobbin Light Header */}
         <div className="bg-[#ffffff] text-[#141414] px-6 py-4 border-b border-[#e5e5e5] flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">

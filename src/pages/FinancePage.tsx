@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useModalEscape } from '../hooks/useModalEscape';
 import { Badge } from '../components/ui/Badge';
 import { exportData } from '../services/exportService';
 import { ExportDropdown } from '../components/common/ExportDropdown';
@@ -135,6 +136,7 @@ export type FinanceTab =
   | 'tax';
 
 export const FinancePage: React.FC = () => {
+  useModalEscape();
   const { activeCompany } = useCompany();
   const isKasTrade = activeCompany.id === 'KAS';
   const TRIAL_BALANCE_DATA = isKasTrade ? KAS_TRADE_TRIAL_BALANCE_DATA : RECRUITMENT_TRIAL_BALANCE_DATA;
@@ -3159,8 +3161,8 @@ export const FinancePage: React.FC = () => {
 
       {/* MODAL: FINANCIAL DRILL-DOWN */}
       {selectedAccountForDrilldown && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setSelectedAccountForDrilldown(null); }}>
+          <div className="w-full max-w-2xl bg-white rounded-[24px] border border-zinc-200 overflow-y-auto max-h-[90vh]">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileCheck className="w-4 h-4 text-[#141414]" />
@@ -3236,8 +3238,8 @@ export const FinancePage: React.FC = () => {
 
       {/* Add Voucher Modal */}
       {showAddVoucherModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAddVoucherModal(false); }}>
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto max-h-[90vh]">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] m-0">إصدار سند مالي جديد (قبض / صرف)</h3>
               <button onClick={() => setShowAddVoucherModal(false)} className="text-[#707070] hover:text-[#141414]">
@@ -3321,8 +3323,8 @@ export const FinancePage: React.FC = () => {
 
       {/* Add Journal Modal */}
       {showAddJournalModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAddJournalModal(false); }}>
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto max-h-[90vh]">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] m-0">تسجيل قيد محاسبي يومي جديد</h3>
               <button onClick={() => setShowAddJournalModal(false)} className="text-[#707070] hover:text-[#141414]">
@@ -3395,8 +3397,8 @@ export const FinancePage: React.FC = () => {
 
       {/* Add Bank Adjustment Modal */}
       {showAddAdjustmentModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAddAdjustmentModal(false); }}>
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto max-h-[90vh]">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] m-0">تسجيل تسوية بنكية جديدة (Bank Adjustment)</h3>
               <button onClick={() => setShowAddAdjustmentModal(false)} className="text-[#707070] hover:text-[#141414]">
@@ -3488,8 +3490,8 @@ export const FinancePage: React.FC = () => {
 
       {/* Printable Official Voucher Modal */}
       {selectedVoucherForPrint && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden text-[#141414] font-sans">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setSelectedVoucherForPrint(null); }}>
+          <div className="w-full max-w-2xl bg-white rounded-[24px] border border-zinc-200 overflow-y-auto text-[#141414] font-sans max-h-[90vh]">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between print:hidden">
               <div className="flex items-center gap-2">
                 <Printer className="w-4 h-4 text-[#141414]" />
@@ -3613,8 +3615,8 @@ export const FinancePage: React.FC = () => {
 
       {/* Printable Official Journal Modal */}
       {selectedJournalForPrint && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden text-[#141414] font-sans">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setSelectedJournalForPrint(null); }}>
+          <div className="w-full max-w-3xl bg-white rounded-[24px] border border-zinc-200 overflow-y-auto text-[#141414] font-sans max-h-[90vh]">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between print:hidden">
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-[#141414]" />

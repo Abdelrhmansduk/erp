@@ -6,11 +6,13 @@
 import * as XLSX from 'xlsx';
 import { useAppStore } from '../stores/appStore';
 import { COMPANIES_LIST } from '../contexts/CompanyContext';
+import { resolveDocumentBranding } from './entityBrandingService';
 import {
   encodeZatcaTlvBase64,
   generateRealQrSvg,
   generateRealCode128BarcodeSvg,
 } from '../utils/realBarcodeGenerator';
+import { KAS_ALLOWED_EMPLOYEES, EXCLUDED_KAS_EMAILS } from '../config/kasAllowedEmails';
 
 export interface SectionExportConfig {
   sectionTitle: string;
@@ -335,7 +337,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
         r.national_id || r.nationalId || '',
         r.name || '',
         r.bank_name || r.bankName || 'مصرف الراجحي',
-        r.iban || `SA03800000000${r.national_id || r.nationalId || '1092837410'}12`,
+        normalizeSaudiIban(r.iban, String(r.national_id || r.nationalId || '1092837410')),
         basic.toFixed(2),
         housing.toFixed(2),
         transport.toFixed(2),
@@ -560,10 +562,163 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
     ]
   },
 
+  // 9.11.a جدولة الورديات وسياسات الدوام (Jisr Shifts)
+  hr_shifts: {
+    sectionTitle: 'جدول الورديات وسياسات الدوام الرسمي ودوام رمضان (المادة 98)',
+    headers: ['كود الوردية', 'اسم الوردية', 'نوع الدوام', 'بداية الدوام', 'نهاية الدوام', 'ساعات العمل اليومية', 'ساعات رمضان', 'فترة السماح (دقيقة)', 'معامل الإضافي'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.name_ar || '',
+      r.shift_type || 'FIXED',
+      r.start_time || '08:00',
+      r.end_time || '16:30',
+      Number(r.required_daily_hours ?? 8),
+      Number(r.ramadan_daily_hours ?? 6),
+      Number(r.grace_in_minutes ?? 15),
+      Number(r.overtime_multiplier ?? 1.5)
+    ]
+  },
+
+  // 9.11.b قيود المخصصات الشهرية للموارد البشرية (IFRS Accruals)
+  hr_accrual_runs: {
+    sectionTitle: 'كشف قيود المخصصات الشهرية للموارد البشرية (نهاية الخدمة، الإجازات، التذاكر، التأمين)',
+    headers: ['رقم المسير', 'الشهر المالي', 'عدد الموظفين', 'مخصص نهاية الخدمة (⃁)', 'مخصص الإجازات (⃁)', 'مخصص التذاكر (⃁)', 'إطفاء التأمين الطبي (⃁)', 'الإجمالي المرحل (⃁)', 'مرجع القيد المحاسبي'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.accrual_month || '',
+      Number(r.employees_count ?? 0),
+      Number(r.eosb_provision_amount ?? 0),
+      Number(r.leave_provision_amount ?? 0),
+      Number(r.ticket_provision_amount ?? 0),
+      Number(r.medical_amortization_amount ?? 0),
+      Number(r.total_accrual_amount ?? 0),
+      r.gl_journal_ref || ''
+    ]
+  },
+
+  // 9.11.c مطالبات مصروفات الموظفين والعهد النقدية
+  hr_expense_claims: {
+    sectionTitle: 'سجل مطالبات مصروفات الموظفين وتسوية العهد النقدية وضريبة المدخلات',
+    headers: ['رقم المطالبة', 'اسم الموظف', 'القسم', 'مركز التكلفة', 'الفئة', 'الجهة / المورد', 'المبلغ قبل الضريبة (⃁)', 'ضريبة القيمة المضافة 15% (⃁)', 'الإجمالي (⃁)', 'طريقة الصرف', 'الحالة'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.employee_name || '',
+      r.department || '',
+      r.cost_center_code || 'CC-OPS-01',
+      r.category || '',
+      r.merchant_name || '',
+      Number(r.subtotal_amount ?? 0),
+      Number(r.vat_amount ?? 0),
+      Number(r.total_amount ?? 0),
+      r.payout_method || 'BANK_TRANSFER',
+      r.status || 'بانتظار الاعتماد'
+    ]
+  },
+
+  // 9.11.d رحلات العمل وبدلات الانتداب (Per Diem)
+  hr_business_trips: {
+    sectionTitle: 'سجل رحلات العمل ومهام الانتداب الداخلي والدولي (Per Diem)',
+    headers: ['رقم المهمة', 'اسم الموظف', 'الدرجة الوظيفية', 'وجهة الانتداب', 'النطاق', 'تاريخ البدء', 'عدد الليالي', 'البدل اليومي (⃁)', 'تكلفة التذكرة (⃁)', 'إجمالي الاستحقاق (⃁)', 'الحالة'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.employee_name || '',
+      r.grade || '',
+      r.destination_city || '',
+      r.trip_scope === 'INTERNATIONAL' ? 'دولي' : 'داخلي',
+      r.start_date || '',
+      Number(r.nights_count ?? 1),
+      Number(r.daily_per_diem ?? 400),
+      Number(r.estimated_ticket_cost ?? 0),
+      Number(r.total_trip_allowance ?? 400),
+      r.status || 'بانتظار الاعتماد'
+    ]
+  },
+
+  // 9.11.e سجل سلسلة الموافقات متعددة المستويات
+  hr_approval_requests: {
+    sectionTitle: 'سجل سلسلة الموافقات متعددة المستويات وتفويض الصلاحيات',
+    headers: ['رقم المعاملة', 'نوع الطلب', 'مقدم الطلب', 'القسم', 'ملخص الطلب', 'المبلغ (⃁)', 'المرحلة الحالية', 'الحالة النهائية', 'تاريخ التقديم'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.category_label_ar || r.request_category || '',
+      r.requester_name || '',
+      r.department || '',
+      r.summary_ar || '',
+      Number(r.amount ?? 0),
+      `المستوى ${(Number(r.current_step_index ?? 0) + 1)}`,
+      r.overall_status || 'PENDING',
+      r.submitted_at ? String(r.submitted_at).slice(0, 10) : ''
+    ]
+  },
+
+  // 9.11.f رادار التنبيهات الاستباقية والالتزام النظامي (Jisr Smart Alerts)
+  hr_smart_alerts: {
+    sectionTitle: 'سجل رادار التنبيهات الاستباقية والالتزام النظامي (المادة 53 • مقيم • قوى • SLA • نطاقات)',
+    headers: ['كود التنبيه', 'التصنيف', 'الأولوية', 'الموظف المعني', 'عنوان التنبيه', 'تاريخ الاستحقاق', 'الأيام المتبقية', 'الحالة'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.category || '',
+      r.severity === 'critical' ? 'حرج وعاجل' : r.severity === 'warning' ? 'تحذيري' : 'معلوماتي',
+      r.employeeName || r.employee_name || 'عام للمنشأة',
+      r.titleAr || r.title_ar || '',
+      r.dueDate || r.due_date || '—',
+      r.daysRemaining ?? r.days_remaining ?? '—',
+      r.acknowledged ? 'تم الإقرار والمعالجة' : 'نشط بانتظار الإجراء'
+    ]
+  },
+
+  // 9.11.g سجل الجزاءات والمخالفات التأديبية (المواد 66-72)
+  hr_disciplinary_records: {
+    sectionTitle: 'سجل الجزاءات والمخالفات التأديبية المعتمد (نظام العمل م66-72)',
+    headers: ['رقم القرار', 'الموظف', 'المخالفة', 'المرة', 'تاريخ المخالفة', 'محضر التحقيق (م71)', 'أيام الخصم المطبقة (م67)', 'مرحل للشهر القادم', 'مبلغ الخصم (⃁)', 'سقوط التكرار (180 يوم)'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.employeeName || r.employee_name || '',
+      r.violationTitleAr || r.violation_title_ar || '',
+      `المرة ${r.occurrenceNumber || r.occurrence_number || 1}`,
+      r.incidentDate || r.incident_date || '',
+      r.investigationMinutesRef || r.investigation_minutes_ref || 'إنذار كتابي',
+      Number(r.appliedMonthDays ?? r.applied_month_days ?? 0),
+      Number(r.carriedForwardDays ?? r.carried_forward_days ?? 0),
+      Number(r.deductionAmount ?? r.deduction_amount ?? 0),
+      r.repeatDecayDate || r.repeat_decay_date || ''
+    ]
+  },
+
+  // 9.11.h سجل الراتب المرن المبكر (Jisr Pay EWA)
+  hr_ewa_withdrawals: {
+    sectionTitle: 'سجل مسحوبات الراتب المرن المبكر المستحق (Jisr Pay — Earned Wage Access)',
+    headers: ['رقم العملية', 'الموظف', 'شهر المسير', 'أيام العمل الفعلية', 'الأجر المكتسب (⃁)', 'المبلغ المسحوب (⃁)', 'الرسوم (⃁)', 'الحالة'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.employeeName || r.employee_name || '',
+      r.payrollMonth || r.payroll_month || '',
+      Number(r.workedDaysToDate ?? r.worked_days_to_date ?? 0),
+      Number(r.earnedWageToDate ?? r.earned_wage_to_date ?? 0),
+      Number(r.requestedAmount ?? r.requested_amount ?? 0),
+      Number(r.transferFee ?? r.transfer_fee ?? 0),
+      r.status || 'تم الصرف الفوري'
+    ]
+  },
+
+  // 9.11.i جدول تسكين المناوبات الشهري
+  hr_shift_rosters: {
+    sectionTitle: 'جدول تسكين المناوبات الشهرية اليومية للموظفين',
+    headers: ['المعرف', 'الموظف', 'التاريخ', 'الوردية المسندة', 'حالة اليوم', 'الفرع'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.employeeName || r.employee_name || '',
+      r.rosterDate || r.roster_date || '',
+      r.shiftName || r.shift_name || '',
+      (r.isDayOff ?? r.is_day_off) ? 'راحة أسبوعية' : 'دوام فعلي',
+      r.branchName || r.branch_name || 'المركز الرئيسي'
+    ]
+  },
+
   // 9.12 هيكلة قواعد الرواتب والأجور (Odoo Salary Rules)
   hr_salary_rules: {
     sectionTitle: 'مصفوفة قواعد هيكلة الرواتب والربط المحاسبي (KSA_WPS_MONTHLY)',
-    headers: ['التسلسل', 'كود القاعدة', 'اسم القاعدة', 'الفئة', 'المعادلة البرمجية (Formula)', 'حساب الأستاذ العام (GL)', 'ناتج المحاكاة (⃁)'],
+    headers: ['التسلسل', 'كود القاعدة', 'اسم القاعدة', 'الفئة', 'المعادلة البرمجية (Formula)', 'حساب الأستاذ العام (GL)', 'القيمة المحتسبة الفعلية (⃁)'],
     dataMapper: (r: any) => [
       r.seq || '',
       r.code || '',
@@ -637,6 +792,210 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
       r.insurance_plan || 'Class A',
       r.policy_number || '',
       r.status || 'نشط'
+    ]
+  },
+
+  // 9.16 سجل المراسلات والتعميمات الرسمية الصادرة من بريد الموارد البشرية (HR@kas.sa)
+  hr_official_emails: {
+    sectionTitle: 'سجل المراسلات والتعميمات الرسمية الصادرة من بريد الموارد البشرية HR@kas.sa',
+    headers: [
+      'الرقم المرجعي',
+      'التصنيف والقالب',
+      'المرسل الرسمي',
+      'المستلمون (@kas.sa)',
+      'نسخة علم (CC)',
+      'موضوع الرسالة (EN / AR)',
+      'المرفقات والنماذج',
+      'قناة الاعتماد والإرسال',
+      'تاريخ الإرسال',
+      'الحالة'
+    ],
+    dataMapper: (r: any) => {
+      const toList = Array.isArray(r.toEmails)
+        ? r.toEmails.join('، ')
+        : Array.isArray(r.to_emails)
+        ? r.to_emails.join('، ')
+        : r.recipientNameAr || r.recipient_name_ar || r.to_emails || r.toEmails || '';
+      const ccList = Array.isArray(r.ccEmails)
+        ? r.ccEmails.join('، ')
+        : Array.isArray(r.cc_emails)
+        ? r.cc_emails.join('، ')
+        : r.cc_emails || r.ccEmails || 'Khalid@kas.sa';
+      const sentTime = r.sent_at || r.sentAt || r.created_at || r.createdAt || '';
+      return [
+        r.reference_no || r.referenceNo || r.id || '',
+        r.template_title_ar || r.templateTitleAr || r.category_ar || r.categoryAr || r.template_id || r.templateId || '',
+        r.from_email || r.fromEmail || 'HR@kas.sa',
+        toList,
+        ccList,
+        r.subject || r.subject_ar || r.subjectAr || '',
+        r.attached_file_name || r.attachmentFileName || '—',
+        r.dispatch_channel || r.dispatchChannel || 'Direct Official Email (HR@kas.sa)',
+        sentTime ? String(sentTime).replace('T', ' ').slice(0, 16) : '',
+        r.status || 'معتمد ومرسل رسمياً'
+      ];
+    }
+  },
+
+  // 9.17 دليل البريد المؤسسي المعتمد لمنسوبي المجموعة (@kas.sa)
+  kas_official_emails_directory: {
+    sectionTitle: 'دليل البريد المؤسسي المعتمد لمنسوبي المجموعة (@kas.sa)',
+    headers: [
+      'م',
+      'الرقم الوظيفي',
+      'الاسم بالعربية',
+      'الاسم بالإنجليزية (EN)',
+      'المسمى الوظيفي / القسم',
+      'البريد الإلكتروني الرسمي (@kas.sa)',
+      'اسم المستخدم',
+      'الكيان / الشركة',
+      'الإدارة المختصة',
+      'الفرع والمقر'
+    ],
+    dataMapper: (r: any) => [
+      r.serial ?? r.seq ?? '',
+      r.id || r.employee_code || '',
+      r.nameAr || r.name_ar || r.name || '',
+      r.nameEn || r.name_en || '',
+      r.titleAr || r.roleAr || r.job_title || r.role || '',
+      r.email || '',
+      r.username || String(r.email || '').split('@')[0] || '',
+      r.company_id === 'all' ? 'مجموعة خالد السليم (المقر الرئيسي)' : (r.company_id || 'ALL'),
+      r.department_id || r.department || '',
+      r.branch || 'المقر الرئيسي للمجموعة - الرياض'
+    ]
+  },
+
+  // 9.18 مسيرات الرواتب الإضافية (Off-Cycle Payroll Runs)
+  hr_offcycle_payroll_runs: {
+    sectionTitle: 'سجل مسيرات الرواتب الإضافية والمكافآت والعمولات (Off-Cycle Payroll)',
+    headers: ['كود المسير', 'الشركة', 'الفترة', 'العنوان', 'التصنيف', 'تاريخ الصرف', 'عدد الموظفين', 'الإجمالي (⃁)', 'الاستقطاعات (⃁)', 'الصافي (⃁)', 'الحالة'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.company_id || '',
+      r.period_month || '',
+      r.run_title || '',
+      r.run_category || '',
+      r.payment_date || '',
+      Number(r.employee_count || 0),
+      Number(r.total_gross_sar || 0),
+      Number(r.total_deductions_sar || 0),
+      Number(r.total_net_sar || 0),
+      r.status || ''
+    ]
+  },
+
+  // 9.19 تبريرات مخالفات نظام حماية الأجور (Mudad Justifications)
+  hr_mudad_justifications: {
+    sectionTitle: 'سجل تبريرات مخالفات نظام حماية الأجور ومنصة مدد (Mudad Compliance)',
+    headers: ['المعرف', 'الفترة', 'الموظف', 'الهوية (مقنعة)', 'نوع المخالفة', 'كود التبرير', 'المبرر المعتمد', 'نسبة الحسم %', 'فارق GOSI (⃁)', 'الحالة'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.period_month || '',
+      r.employee_name || '',
+      r.national_id_masked || '',
+      r.violation_type || '',
+      r.mudad_reason_code || '',
+      r.mudad_reason_label_ar || '',
+      Number(r.deduction_ratio_pct || 0),
+      Number(r.gosi_variance_sar || 0),
+      r.submission_status || ''
+    ]
+  },
+
+  // 9.20 دفعات التحويل البنكي المباشر ISO-20022 B2B
+  hr_b2b_bank_batches: {
+    sectionTitle: 'سجل دفعات الصرف البنكي المباشر للرواتب (ISO-20022 B2B pain.001)',
+    headers: ['رقم الرسالة', 'الشركة', 'الفترة', 'البنك', 'حساب الخصم', 'عدد الحوالات', 'الإجمالي (⃁)', 'حالة التسوية', 'مرجع البنك'],
+    dataMapper: (r: any) => [
+      r.message_id || r.id || '',
+      r.company_id || '',
+      r.period_month || '',
+      r.bank_code || '',
+      r.debit_iban || '',
+      Number(r.instruction_count || 0),
+      Number(r.total_amount_sar || 0),
+      r.settlement_status || '',
+      r.bank_ack_reference || '—'
+    ]
+  },
+
+  // 9.21 بطاقات المصروفات المؤسسية وسقوف الإنفاق (Corporate Cards)
+  hr_corporate_cards: {
+    sectionTitle: 'سجل بطاقات المصروفات المؤسسية وحدود الصرف (Corporate Cards)',
+    headers: ['كود البطاقة', 'الموظف', 'النوع', 'الرقم المقنع', 'الحد اليومي (⃁)', 'الحد الشهري (⃁)', 'المصروف الشهري (⃁)', 'الحالة'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.employee_name || '',
+      r.card_type || '',
+      r.masked_pan || '',
+      Number(r.daily_limit_sar || 0),
+      Number(r.monthly_limit_sar || 0),
+      Number(r.spent_month_sar || 0),
+      r.status || ''
+    ]
+  },
+
+  // 9.22 سجل ترحيل الإجازات نهاية العام (Year-End Carryover)
+  hr_leave_carryover_runs: {
+    sectionTitle: 'سجل عمليات ترحيل وإسقاط أرصدة الإجازات بنهاية السنة المالية',
+    headers: ['كود الترحيل', 'السنة', 'السقف الأقصى (أيام)', 'عدد الموظفين', 'الأيام المرحلة', 'الأيام المسقطة', 'المنفذ', 'التاريخ'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.fiscal_year || '',
+      Number(r.max_carryover_cap_days || 0),
+      Number(r.employee_count || 0),
+      Number(r.total_carried_days || 0),
+      Number(r.total_forfeited_days || 0),
+      r.executed_by || '',
+      r.executed_at ? String(r.executed_at).slice(0, 10) : ''
+    ]
+  },
+
+  // 9.23 بصمات الدفع السحابي المباشر (ADMS Biometric Webhook)
+  hr_adms_punch_events: {
+    sectionTitle: 'سجل بصمات الدفع السحابي اللحظي من أجهزة الحضور (ZKTeco ADMS / BioTime)',
+    headers: ['المعرف', 'الرقم التسلسلي للجهاز', 'رقم البصمة', 'اسم الموظف', 'توقيت البصمة', 'نوع الحركة', 'طريقة التحقق', 'المزامنة'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.device_sn || '',
+      r.employee_pin || '',
+      r.employee_name || 'غير مربوط',
+      r.punch_timestamp || '',
+      r.punch_state || '',
+      r.verify_mode || '',
+      r.synced_to_attendance ? 'تمت المزامنة' : 'بانتظار الربط'
+    ]
+  },
+
+  // 9.24 متقدمي بوابة التوظيف العامة (Career Portal Applications)
+  hr_career_applications: {
+    sectionTitle: 'سجل المرشحين عبر بوابة التوظيف العامة (Career Portal ATS)',
+    headers: ['رقم الطلب', 'الوظيفة', 'المرشح', 'البريد', 'الجوال', 'الجنسية', 'سنوات الخبرة', 'الراتب المتوقع (⃁)', 'نسبة التطابق %', 'المرحلة'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.job_title || '',
+      r.candidate_name || '',
+      r.email || '',
+      r.phone || '',
+      r.nationality || '',
+      Number(r.years_experience || 0),
+      Number(r.expected_salary_sar || 0),
+      `${Number(r.ai_match_score || 0)}%`,
+      r.stage || ''
+    ]
+  },
+
+  // 9.25 استبيانات الولاء الوظيفي (eNPS Pulse)
+  hr_enps_surveys: {
+    sectionTitle: 'سجل استبيانات نبض الولاء الوظيفي السرية (eNPS Pulse)',
+    headers: ['كود الاستبيان', 'العنوان', 'الربع', 'الحالة', 'تاريخ الإغلاق'],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.title_ar || '',
+      r.quarter_label || '',
+      r.is_active ? 'نشط' : 'مغلق',
+      r.closes_at || ''
     ]
   },
 
@@ -1669,6 +2028,397 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   }
 };
 
+// ─── Extended Section Registry (all remaining pages / tabs / kebab & snake aliases) ───────────
+function pickField(r: any, keys: string[], fallback: string | number = ''): any {
+  if (r && typeof r === 'object') {
+    for (const k of keys) {
+      const v = r[k];
+      if (v !== undefined && v !== null && v !== '') return v;
+    }
+  }
+  return fallback;
+}
+
+function pickNumber(r: any, keys: string[]): number {
+  const n = Number(pickField(r, keys, 0));
+  return Number.isFinite(n) ? n : 0;
+}
+
+type SectionColumnSpec = [header: string, keys: string[], kind?: 'num'];
+
+function sectionKeyVariants(name: string): string[] {
+  return Array.from(new Set([name, name.replace(/[\s-]+/g, '_'), name.replace(/[\s_]+/g, '-')]));
+}
+
+function defineSection(title: string, cols: SectionColumnSpec[], aliases: string[]): void {
+  const cfg: SectionExportConfig = {
+    sectionTitle: title,
+    headers: cols.map(c => c[0]),
+    dataMapper: (r: any) =>
+      cols.map(([, keys, kind]) => (kind === 'num' ? pickNumber(r, keys) : pickField(r, keys))),
+  };
+  aliases.forEach(alias =>
+    sectionKeyVariants(alias).forEach(k => {
+      if (!SECTION_CONFIGS[k]) SECTION_CONFIGS[k] = cfg;
+    })
+  );
+}
+
+function aliasSection(existingKey: string, aliases: string[]): void {
+  const target = SECTION_CONFIGS[existingKey];
+  if (!target) return;
+  aliases.forEach(alias =>
+    sectionKeyVariants(alias).forEach(k => {
+      if (!SECTION_CONFIGS[k]) SECTION_CONFIGS[k] = target;
+    })
+  );
+}
+
+// Aliases onto existing, fully-specified configs
+aliasSection('inventory_assets', ['inventory']);
+aliasSection('journals', ['journal_entries', 'journal-entries', 'auto-journals-ledger']);
+aliasSection('activity_log', ['activity_logs', 'activity-logs', 'activity-log']);
+aliasSection('sponsorship_transfers', ['sponsorship_transfer', 'sponsorship-transfers']);
+aliasSection('shelter', ['shelter_workers', 'shelter-workers']);
+aliasSection('cvs', ['cvs_recruitment', 'cvs_rental', 'cvs_bank', 'cvs-recruitment', 'cvs-rental', 'cvs-bank']);
+aliasSection('agency_candidates', ['agency-candidates', 'foreign-agency-portal', 'foreign_agency_portal']);
+aliasSection('ats_candidates', ['ats-pipeline', 'ats_pipeline', 'ats-candidates']);
+aliasSection('payroll', ['wps', 'wps-generator', 'wps_generator']);
+aliasSection('attendances', ['attendance', 'attendance-logs']);
+aliasSection('iam', ['users-list', 'roles-permissions', 'iam-matrix']);
+aliasSection('legal_compliance', ['legal-compliance']);
+aliasSection('tenders_boq', ['tenders-boq', 'tenders']);
+aliasSection('zatca', ['zatca-vat-zakat', 'zatca_vat_zakat']);
+aliasSection('chart_of_accounts', ['fixed-assets-ias16', 'fixed_assets_ias16']);
+aliasSection('trial-balance', ['trial_balance']);
+aliasSection('income-statement', ['income_statement']);
+aliasSection('balance-sheet', ['balance_sheet']);
+aliasSection('cash-flow', ['cash_flow']);
+aliasSection('equity-changes', ['equity_changes']);
+aliasSection('ifrs-notes', ['ifrs_notes', 'ifrs-notes-12', 'ifrs_notes_12']);
+aliasSection('budget-variance', ['budget_variance']);
+aliasSection('hr_official_emails', ['hr-official-emails', 'reem-hr-emails', 'reem_hr_emails']);
+aliasSection('kas_official_emails_directory', ['kas-official-emails-directory', 'employees_emails_directory', 'employees-emails-directory']);
+
+defineSection(
+  'سجل بوابة التكامل الحكومي (Gov Integrations Hub)',
+  [
+    ['رمز الجهة', ['agency_code', 'code', 'id']],
+    ['اسم الجهة', ['agency_name_ar', 'name_ar', 'name']],
+    ['الوزارة / الجهة الحكومية', ['ministry_ar', 'ministry']],
+    ['بيئة الربط', ['environment', 'env']],
+    ['نسبة الجاهزية %', ['readiness_score', 'readiness'], 'num'],
+    ['حالة الربط', ['status_ar', 'status']],
+    ['بروتوكول الربط', ['protocol']],
+    ['طلبات قيد الانتظار', ['pending_queue_count', 'pending'], 'num'],
+    ['العمليات المزامنة', ['synced_count', 'synced'], 'num'],
+    ['العمليات الفاشلة', ['failed_count', 'failed'], 'num'],
+    ['الشركات المدعومة', ['supported_companies', 'companies']],
+    ['آخر مزامنة', ['last_sync_at', 'last_sync']],
+  ],
+  ['gov-integrations', 'government-hub']
+);
+
+defineSection(
+  'الخطة الرئيسية للتكامل مع منصة مساند (Musaned Master Plan)',
+  [
+    ['الرقم', ['number', 'id']],
+    ['البند / الخدمة', ['title', 'name']],
+    ['التصنيف', ['category']],
+    ['الحالة', ['status_ar', 'status']],
+    ['بروتوكول الأمان', ['security_protocol', 'security']],
+    ['نطاق الشركات', ['companies_scope', 'companies']],
+  ],
+  ['musaned-plan', 'musaned-master-plan', 'musaned-integration-plan']
+);
+
+defineSection(
+  'إقرار ضريبة القيمة المضافة (VAT Declaration)',
+  [
+    ['البند الضريبي', ['tax_item', 'item', 'name', 'label']],
+    ['المبيعات / المشتريات الخاضعة (⃁)', ['taxable_amount', 'base', 'amount'], 'num'],
+    ['نسبة الضريبة', ['rate', 'tax_rate'], undefined],
+    ['قيمة الضريبة 15% (⃁)', ['vat_amount', 'vat', 'tax'], 'num'],
+  ],
+  ['vat-declaration', 'vat']
+);
+
+defineSection(
+  'سجل التعهدات والإقرارات القانونية',
+  [
+    ['الرقم المرجعي', ['id']],
+    ['اسم الموظف', ['employee_name', 'name']],
+    ['الدور الوظيفي', ['role']],
+    ['القسم / الإدارة', ['department']],
+    ['عنوان التعهد', ['undertaking_title', 'title']],
+    ['تاريخ التوقيع', ['signed_at', 'date']],
+    ['عنوان الشبكة (IP)', ['ip_address']],
+    ['الحالة', ['status']],
+  ],
+  ['legal-undertakings']
+);
+
+defineSection(
+  'الثوابت العامة وجداول الأكواد المرجعية',
+  [
+    ['الكود', ['code', 'id']],
+    ['الاسم بالعربية', ['name_ar', 'title', 'name']],
+    ['الاسم بالإنجليزية', ['name_en']],
+    ['التصنيف', ['category', 'subtext']],
+    ['معلومات إضافية', ['extra_info', 'subtext']],
+    ['الحالة', ['status']],
+  ],
+  [
+    'master-constants',
+    'master_constants_banks',
+    'master_constants_nationalities',
+    'master_constants_professions',
+    'master_constants_religions',
+    'master_constants_skills',
+    'master_constants_airports',
+    'master_constants_branches',
+    'master_constants_countries',
+  ]
+);
+
+defineSection(
+  'طلبات الخدمة الذاتية للموظف',
+  [
+    ['الرقم المرجعي', ['id']],
+    ['نوع الطلب', ['type']],
+    ['التفاصيل', ['details', 'description']],
+    ['التاريخ', ['date', 'created_at']],
+    ['المبلغ (⃁)', ['amount'], 'num'],
+    ['الحالة', ['status']],
+  ],
+  ['employee-self-service', 'profile']
+);
+
+defineSection(
+  'ملخص مؤشرات الرقابة والإدارة العليا',
+  [
+    ['الوحدة', ['module']],
+    ['المؤشر', ['metric']],
+    ['القيمة', ['value']],
+    ['الحالة', ['status']],
+    ['آخر تحديث', ['updated_at']],
+  ],
+  ['admin-dashboard', 'dashboard']
+);
+
+defineSection(
+  'سجل مشاريع وتكاملات Microsoft 365 و Azure',
+  [
+    ['الرقم المرجعي', ['id']],
+    ['اسم التكامل / المشروع', ['name']],
+    ['الخدمة', ['service']],
+    ['المسؤول', ['owner']],
+    ['نسبة الإنجاز %', ['progress'], 'num'],
+    ['الحالة', ['status']],
+  ],
+  ['microsoft-integrations', 'microsoft-center']
+);
+
+defineSection(
+  'مصفوفة الصلاحيات والأدوار (RBAC)',
+  [
+    ['الدور', ['role']],
+    ['قراءة (R)', ['r']],
+    ['إنشاء (C)', ['c']],
+    ['تعديل (E)', ['e']],
+    ['حذف (D)', ['d']],
+    ['اعتماد (A)', ['a']],
+    ['تصدير (X)', ['x']],
+  ],
+  ['settings-rbac']
+);
+
+const KAS_TENDER_COLS: SectionColumnSpec[] = [
+  ['الرقم المرجعي', ['reference_number', 'reference_no', 'id']],
+  ['عنوان المنافسة / المشروع', ['title', 'name', 'project_name']],
+  ['الجهة الحكومية', ['entity_name', 'entity', 'client_name']],
+  ['القيمة التقديرية (⃁)', ['amount', 'estimated_value', 'total_amount'], 'num'],
+  ['الموعد النهائي', ['deadline', 'due_date', 'closing_date']],
+  ['الحالة', ['status']],
+];
+defineSection('سجل منافسات كاس وسحابة اعتماد', KAS_TENDER_COLS, [
+  'kas-etmad',
+  'kas-etimad',
+  'kas-competitions',
+  'kas-monafasat',
+]);
+
+const KAS_GENERIC_COLS: SectionColumnSpec[] = [
+  ['الرقم المرجعي', ['number', 'reference_no', 'ref_no', 'code', 'id']],
+  ['البيان / الاسم', ['title', 'name', 'subject', 'description', 'item_name']],
+  ['العميل / الجهة', ['client_name', 'customer', 'customer_name', 'company', 'entity_name', 'assignee']],
+  ['المبلغ (⃁)', ['total', 'total_amount', 'amount', 'price'], 'num'],
+  ['الحالة', ['status', 'stage']],
+  ['التاريخ', ['date', 'created_at', 'due_date', 'issue_date']],
+];
+const KAS_TAB_TITLES: Array<[string, string]> = [
+  ['estimates', 'سجل عروض الأسعار التقديرية (Estimates)'],
+  ['proposals', 'سجل العروض والمقترحات (Proposals)'],
+  ['subscriptions', 'سجل الاشتراكات (Subscriptions)'],
+  ['credit_notes', 'سجل الإشعارات الدائنة (Credit Notes)'],
+  ['payments', 'سجل المدفوعات والتحصيلات (Payments)'],
+  ['items', 'سجل الأصناف والخدمات (Items)'],
+  ['leads', 'سجل العملاء المحتملين (Leads)'],
+  ['projects', 'سجل المشاريع (Projects)'],
+  ['tasks', 'سجل المهام (Tasks)'],
+  ['expenses', 'سجل المصروفات (Expenses)'],
+  ['tickets', 'سجل تذاكر الدعم الفني (Tickets)'],
+  ['staff', 'سجل الكوادر والموظفين (Staff)'],
+  ['categories', 'سجل التصنيفات (Categories)'],
+  ['kas_suppliers', 'سجل الموردين - كاس'],
+  ['kas_purchase_orders', 'سجل أوامر الشراء - كاس'],
+  ['kas_zatca_invoices', 'سجل الفواتير الضريبية - كاس'],
+  ['kas_suite', 'سجل بوابة كاس المتكاملة (KAS Suite)'],
+];
+KAS_TAB_TITLES.forEach(([key, title]) => defineSection(title, KAS_GENERIC_COLS, [key]));
+
+defineSection(
+  'سجل الصفقات التجارية - كاس (الأميال والمعرض)',
+  [
+    ['الرقم المرجعي', ['reference_no', 'id']],
+    ['القسم التجاري', ['division']],
+    ['اسم العميل', ['client_name']],
+    ['وصف الصنف / الخدمة', ['item_description']],
+    ['المبلغ قبل الضريبة (⃁)', ['amount_before_vat', 'subtotal', 'unit_price'], 'num'],
+    ['ضريبة القيمة المضافة 15% (⃁)', ['vat_amount'], 'num'],
+    ['الإجمالي شامل الضريبة (⃁)', ['total_with_vat', 'total_amount'], 'num'],
+    ['الحالة', ['status']],
+    ['تاريخ الإنشاء', ['created_at']],
+  ],
+  ['kas-commercial', 'invoices']
+);
+
+defineSection(
+  'باقات التأجير المعتمدة (Rent Packages)',
+  [
+    ['الرقم', ['id']],
+    ['اسم الباقة', ['name']],
+    ['الجنسية', ['nationality']],
+    ['المهنة', ['profession']],
+    ['المدة (أشهر)', ['durationMonths', 'duration_months'], 'num'],
+    ['السعر الشهري (⃁)', ['monthlyPrice', 'monthly_price'], 'num'],
+    ['الضريبة (⃁)', ['vatAmount', 'vat_amount'], 'num'],
+    ['الإجمالي شامل الضريبة (⃁)', ['totalWithVat', 'total_with_vat'], 'num'],
+    ['الحالة', ['isActive', 'status']],
+  ],
+  ['rent-packages']
+);
+
+defineSection(
+  'سجل المراسلات الموحدة (Unified Correspondence)',
+  [
+    ['الرقم المرجعي', ['refNo', 'ref_no', 'id']],
+    ['القناة', ['channel']],
+    ['الموضوع', ['subject']],
+    ['الإدارة المرسلة', ['senderDept', 'sender_dept']],
+    ['الجهة المستلمة', ['recipientEntity', 'recipient_entity']],
+    ['الأولوية', ['priority']],
+    ['الحالة', ['status']],
+    ['التوقيت', ['timestamp', 'created_at']],
+  ],
+  ['unified-correspondence', 'unified-communication']
+);
+
+defineSection(
+  'سجل الرسائل المرسلة (SMS / WhatsApp)',
+  [
+    ['الرقم المرجعي', ['id']],
+    ['اسم المستلم', ['recipientName', 'recipient_name']],
+    ['جوال المستلم', ['recipientPhone', 'phone']],
+    ['القناة', ['channel']],
+    ['القالب', ['templateTitle', 'template']],
+    ['الحالة', ['status']],
+    ['وقت الإرسال', ['sentAt', 'sent_at']],
+    ['المرسل', ['sentBy', 'sent_by']],
+    ['التكلفة (⃁)', ['cost_sar'], 'num'],
+  ],
+  ['sent-messages']
+);
+
+defineSection(
+  'سجل مراسلات الفروع (Branch Communication)',
+  [
+    ['الرقم المرجعي', ['id']],
+    ['من فرع', ['fromBranch', 'from_branch']],
+    ['إلى فرع', ['toBranch', 'to_branch']],
+    ['المرسل', ['senderName', 'sender_name']],
+    ['الموضوع', ['subject']],
+    ['الأولوية', ['priority']],
+    ['الحالة', ['status']],
+    ['التوقيت', ['timestamp', 'created_at']],
+  ],
+  ['branch-communication']
+);
+
+defineSection(
+  'سجل تعاميم وتكليفات المجموعة (Group Dispatch)',
+  [
+    ['الرقم المرجعي', ['refNumber', 'dispatch_no', 'id']],
+    ['العنوان / الموضوع', ['title', 'subject']],
+    ['الجهة المستهدفة', ['targetCompany', 'target_entity']],
+    ['الفرع المستهدف', ['targetBranch', 'source_entity']],
+    ['الأولوية', ['priority']],
+    ['الحالة', ['status']],
+    ['أُنشئ بواسطة', ['createdBy', 'assigned_officer']],
+    ['تاريخ الإنشاء', ['createdAt', 'created_at']],
+  ],
+  ['group-dispatch']
+);
+
+defineSection(
+  'سجل دفعات استيراد السير من الوكلاء (Agent Imports)',
+  [
+    ['الرقم', ['id']],
+    ['كود الدفعة', ['batchCode', 'batch_code']],
+    ['اسم الوكالة', ['agencyName', 'agency_name']],
+    ['الدولة', ['country']],
+    ['إجمالي المرشحين', ['totalCandidates', 'total_candidates'], 'num'],
+    ['المعتمد', ['approvedCount', 'approved_count'], 'num'],
+    ['الحالة', ['status']],
+    ['تاريخ الاستيراد', ['importedAt', 'imported_at']],
+  ],
+  ['agent-imports']
+);
+
+defineSection(
+  'سجل بوابة العملاء وطلباتهم (Client Portal)',
+  [
+    ['الرقم المرجعي', ['id', 'request_id']],
+    ['اسم العميل', ['client_name', 'name']],
+    ['نوع الطلب', ['type', 'request_type', 'service']],
+    ['الحالة', ['status']],
+    ['التاريخ', ['created_at', 'date']],
+  ],
+  ['client-portal', 'command-center', 'group-command-center']
+);
+
+defineSection(
+  'سجل مراقبة أخطاء النظام (Error Monitor)',
+  [
+    ['الرقم المرجعي', ['id', 'code']],
+    ['مستوى الأهمية', ['severity', 'level']],
+    ['الرسالة', ['message']],
+    ['الوحدة', ['module', 'source']],
+    ['التوقيت', ['timestamp', 'created_at']],
+  ],
+  ['error-monitor']
+);
+
+defineSection(
+  'النسب والمؤشرات المالية (Financial Ratios)',
+  [
+    ['المؤشر', ['label', 'name', 'ratio']],
+    ['القيمة', ['value']],
+    ['التقييم', ['evaluation', 'status']],
+  ],
+  ['financial-ratios', 'ifrs-diagnostics', 'ifrs-mappings', 'aging-ifrs9-ecl']
+);
+
 // ─── Comprehensive Arabic Field Dictionary (160+ Enterprise Keys) ────
 export const ARABIC_FIELD_DICTIONARY: Record<string, string> = {
   id: 'الرقم المرجعي',
@@ -1881,6 +2631,17 @@ export interface ExportCustomizationOptions {
   showSignatures?: boolean;
   showTafqeet?: boolean;
   showQrCode?: boolean;
+  entityCode?: string;
+  hideHoldingGroupBrand?: boolean;
+  customCompanyNameAr?: string;
+  fontScale?: number;
+  editableHeaders?: string[] | Record<number, string>;
+  editableRows?: (string | number)[][];
+  customPreparerName?: string;
+  customFinanceSignatory?: string;
+  customExecutiveSignatory?: string;
+  /** When true, renders clean A4 sheet HTML for live studio preview without the inner toolbar */
+  embedPreview?: boolean;
 }
 
 function isRunningInTest(): boolean {
@@ -1892,47 +2653,38 @@ function isRunningInTest(): boolean {
   }
 }
 
-export function getActiveCompanyInfo(): CompanyBrandingInfo {
-  try {
-    const storeCompany = useAppStore.getState()?.activeCompanyId;
-    const raw =
-      typeof localStorage !== 'undefined'
-        ? localStorage.getItem('ALSULAIM_ACTIVE_COMPANY') ||
-          localStorage.getItem('alsulaim_active_company') ||
-          localStorage.getItem('ALSULAIM_LOCKED_COMPANY') ||
-          localStorage.getItem('ALSULAIM_TARGET_SYSTEM') ||
-          storeCompany ||
-          ''
-        : storeCompany || '';
-    const norm = String(raw).toUpperCase();
-    if (norm && norm !== 'ALL') {
-      const match = COMPANIES_LIST.find(
-        c => c.id.toUpperCase() === norm || c.code.toUpperCase() === norm
-      );
-      if (match) {
-        return {
-          code: match.code.toUpperCase(),
-          nameAr: match.name,
-          nameEn: match.nameEn,
-          tagline: `منظومة تخطيط الموارد الموحدة — ${match.name}`,
-          crNumber: match.crNumber,
-          taxNumber: match.taxNumber,
-          address: match.address,
-          phone: match.phone,
-          email: match.email,
-          logo: match.logo || '/logo.png',
-        };
-      }
-    }
-  } catch {
-    // ignore
+export function getActiveCompanyInfo(
+  targetDataOrCode?: unknown,
+  options?: ExportCustomizationOptions
+): CompanyBrandingInfo {
+  const branding = resolveDocumentBranding(targetDataOrCode, {
+    entityCode: options?.entityCode,
+    hideHoldingGroupBrand: options?.hideHoldingGroupBrand,
+    customCompanyNameAr: options?.customCompanyNameAr,
+    customFinanceSignatory: options?.customFinanceSignatory,
+    customExecutiveSignatory: options?.customExecutiveSignatory,
+  });
+
+  if (branding.code !== 'HQ') {
+    return {
+      code: branding.code,
+      nameAr: branding.displayNameAr,
+      nameEn: branding.displayNameEn,
+      tagline: `منظومة تخطيط الموارد الموحدة — ${branding.displayNameAr}`,
+      crNumber: branding.crNumber,
+      taxNumber: branding.taxNumber,
+      address: branding.address,
+      phone: branding.phone,
+      email: branding.email,
+      logo: branding.logoUrl || '/logo.png',
+    };
   }
 
   return {
     code: 'ALL',
-    nameAr: GROUP_COMPANY_INFO.nameAr,
-    nameEn: GROUP_COMPANY_INFO.nameEn,
-    tagline: GROUP_COMPANY_INFO.tagline,
+    nameAr: branding.hideHoldingGroupBrand ? branding.displayNameAr : GROUP_COMPANY_INFO.nameAr,
+    nameEn: branding.hideHoldingGroupBrand ? branding.displayNameEn : GROUP_COMPANY_INFO.nameEn,
+    tagline: branding.hideHoldingGroupBrand ? branding.systemPlatformTitleAr : GROUP_COMPANY_INFO.tagline,
     crNumber: GROUP_COMPANY_INFO.crNumber,
     taxNumber: GROUP_COMPANY_INFO.taxNumber,
     address: 'المملكة العربية السعودية - الرياض - طريق الملك فهد',
@@ -1993,7 +2745,7 @@ function translateFieldToArabic(key: string): string {
 }
 
 // ─── Smart Fallback & Customization Resolver ─────────────────────────
-export function resolveConfig(
+function resolveConfigRaw(
   sectionKey: string,
   data: any[],
   customTitle?: string,
@@ -2071,7 +2823,7 @@ export function resolveConfig(
       idx => idx >= 0 && idx < baseConfig.headers.length
     );
     if (validIndices.length > 0) {
-      return {
+      baseConfig = {
         sectionTitle: baseConfig.sectionTitle,
         headers: validIndices.map(idx => baseConfig.headers[idx]),
         dataMapper: (row: any) => {
@@ -2082,7 +2834,103 @@ export function resolveConfig(
     }
   }
 
+  // Apply custom header label overrides from Live Pre-Export Field Editor
+  if (options?.editableHeaders) {
+    if (Array.isArray(options.editableHeaders)) {
+      const headerArr = options.editableHeaders;
+      baseConfig = {
+        ...baseConfig,
+        headers: baseConfig.headers.map(
+          (orig, i) => String(headerArr[i] ?? '').trim() || orig
+        ),
+      };
+    } else if (typeof options.editableHeaders === 'object') {
+      const headerMap = options.editableHeaders as Record<number, string>;
+      baseConfig = {
+        ...baseConfig,
+        headers: baseConfig.headers.map((orig, i) =>
+          headerMap[i] !== undefined && String(headerMap[i]).trim() !== ''
+            ? String(headerMap[i]).trim()
+            : orig
+        ),
+      };
+    }
+  }
+
   return baseConfig;
+}
+
+export function resolveEffectiveMappedRows(
+  config: SectionExportConfig,
+  data: any[],
+  options?: ExportCustomizationOptions
+): (string | number)[][] {
+  if (options?.editableRows && Array.isArray(options.editableRows)) {
+    return options.editableRows.map((row) =>
+      config.headers.map((_, i) => sanitizeExportCellValue(Array.isArray(row) ? row[i] : ''))
+    );
+  }
+  let safeData = Array.isArray(data) ? data : [];
+  if (
+    safeData.length === 0 &&
+    config.sectionTitle === SECTION_CONFIGS.kas_official_emails_directory?.sectionTitle
+  ) {
+    const excludedSet = new Set(Object.keys(EXCLUDED_KAS_EMAILS).map((e) => e.toLowerCase()));
+    safeData = KAS_ALLOWED_EMPLOYEES.filter((e) => !excludedSet.has(e.email.toLowerCase()));
+  }
+  return safeData.map((r) => config.dataMapper(r));
+}
+
+// ─── Unified Safe Cell Sanitizer (never emits undefined / NaN / Invalid Date / [object Object]) ───
+const INVALID_EXPORT_TOKEN_TEST = /\b(?:undefined|NaN|Invalid Date)\b|\[object Object\]/;
+const INVALID_EXPORT_TOKEN_REPLACE = /\b(?:undefined|NaN|Invalid Date)\b|\[object Object\]/g;
+
+export function sanitizeExportCellValue(val: unknown): string | number {
+  if (val === null || val === undefined) return '';
+  if (typeof val === 'number') return Number.isFinite(val) ? val : 0;
+  if (typeof val === 'bigint') return Number(val);
+  if (typeof val === 'boolean') return val ? 'نعم' : 'لا';
+  if (typeof val === 'function' || typeof val === 'symbol') return '';
+  if (val instanceof Date) return Number.isNaN(val.getTime()) ? '' : val.toISOString().slice(0, 10);
+  if (Array.isArray(val)) {
+    return val
+      .map(v => String(sanitizeExportCellValue(v)))
+      .filter(s => s !== '')
+      .join('، ');
+  }
+  if (typeof val === 'object') {
+    try {
+      const json = JSON.stringify(val);
+      return json && json !== '{}' ? String(sanitizeExportCellValue(json)) : '';
+    } catch {
+      return '';
+    }
+  }
+  const str = String(val);
+  return INVALID_EXPORT_TOKEN_TEST.test(str) ? str.replace(INVALID_EXPORT_TOKEN_REPLACE, '').trim() : str;
+}
+
+/** Resolves the export configuration and wraps the row mapper so every output format is sanitized. */
+export function resolveConfig(
+  sectionKey: string,
+  data: any[],
+  customTitle?: string,
+  options?: ExportCustomizationOptions
+): SectionExportConfig {
+  const cfg = resolveConfigRaw(sectionKey, Array.isArray(data) ? data : [], customTitle, options);
+  return {
+    ...cfg,
+    dataMapper: (row: any) => {
+      let out: unknown;
+      try {
+        out = cfg.dataMapper(row ?? {});
+      } catch {
+        out = [];
+      }
+      const arr = Array.isArray(out) ? out : [];
+      return cfg.headers.map((_, i) => sanitizeExportCellValue(arr[i]));
+    },
+  };
 }
 
 // ─── Real ISO/IEC 18004 ZATCA QR SVG Generator (Mobbin Light Mode) ──
@@ -2120,7 +2968,7 @@ function parseExportCellNumber(v: any): number | null {
   }
   if (typeof v === 'string') {
     const cleaned = v
-      .replace(/[,⃁\u20C1\uE900\u200E\u200F\s$]|ر\.س|SAR/gi, '')
+      .replace(/[,⃁\u20C1\uE900\u200E\u200F\s$]|\u0631\.\u0633|SAR/gi, '')
       .trim();
     if (/^-?\d+(\.\d+)?$/.test(cleaned)) {
       const parsed = parseFloat(cleaned);
@@ -2254,21 +3102,29 @@ export function generateExecutiveReportHtml(
   isPrintPreview: boolean = true,
   options?: ExportCustomizationOptions
 ): string {
+  data = Array.isArray(data) ? data : [];
   const config = resolveConfig(sectionKey, data, customTitle, options);
   const rawTitle = options?.customTitle || customTitle || config.sectionTitle;
   const title = escapeHtmlReportText(rawTitle);
-  const company = getActiveCompanyInfo();
+  const branding = resolveDocumentBranding(data, {
+    entityCode: options?.entityCode,
+    hideHoldingGroupBrand: options?.hideHoldingGroupBrand,
+    customCompanyNameAr: options?.customCompanyNameAr,
+    customFinanceSignatory: options?.customFinanceSignatory,
+    customExecutiveSignatory: options?.customExecutiveSignatory,
+  });
+  const company = getActiveCompanyInfo(data, options);
   const rawExporter = getAuthenticatedExporterInfo();
   const exporter = {
     ...rawExporter,
-    name: escapeHtmlReportText(rawExporter.name),
+    name: escapeHtmlReportText(options?.customPreparerName?.trim() || rawExporter.name),
     role: escapeHtmlReportText(rawExporter.role),
     branch: escapeHtmlReportText(rawExporter.branch),
     department: escapeHtmlReportText(rawExporter.department),
     email: escapeHtmlReportText(rawExporter.email),
     id: escapeHtmlReportText(rawExporter.id),
   };
-  const monogramCode = company.code === 'ALL' ? 'KS' : company.code;
+  const monogramCode = branding.monogram || (company.code === 'ALL' ? 'KS' : company.code);
 
   const now = new Date();
   const dateAr = now.toLocaleDateString('ar-SA', {
@@ -2282,7 +3138,7 @@ export function generateExecutiveReportHtml(
   const serialNumber = `${company.code}-${now.getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
   const verificationHash = `SHA256:${Array.from({ length: 20 }, (_, i) => ((now.getTime() + i * 31) % 16).toString(16)).join('').toUpperCase()}`;
 
-  const mappedRows = data.map(r => config.dataMapper(r));
+  const mappedRows = resolveEffectiveMappedRows(config, data, options);
   const kpis = calculateReportKpis(config.headers, mappedRows);
 
   const showQr = options?.showQrCode !== false;
@@ -2293,12 +3149,21 @@ export function generateExecutiveReportHtml(
       ? true
       : options?.orientation === 'portrait'
       ? false
-      : config.headers.length > 7;
+      : config.headers.length > 6;
+
+  const autoScale =
+    options?.fontScale ??
+    (config.headers.length > 11 ? 86 : config.headers.length > 8 ? 92 : 100);
+  const scaleRatio = Math.min(125, Math.max(75, autoScale)) / 100;
+  const thFontPx = (11 * scaleRatio).toFixed(1);
+  const tdFontPx = (10.5 * scaleRatio).toFixed(1);
+  const cellPadY = config.headers.length > 9 ? 5 : 7;
+  const cellPadX = config.headers.length > 9 ? 6 : 9;
 
   const headersHtml = `
-    <th onclick="window.__sortTable && window.__sortTable(0)" style="padding: 10px 8px; background: #141414; color: #FFFFFF; border: 1px solid #262626; width: 44px; text-align: center; font-weight: 800; font-size: 11px; cursor: pointer;">#</th>
+    <th onclick="window.__sortTable && window.__sortTable(0)" style="padding: ${cellPadY + 2}px 6px; background: #141414; color: #FFFFFF; border: 1px solid #262626; width: 38px; text-align: center; font-weight: 800; font-size: ${thFontPx}px; cursor: pointer;">#</th>
     ${config.headers.map((h, i) => `
-      <th onclick="window.__sortTable && window.__sortTable(${i + 1})" style="padding: 10px 10px; background: #141414; color: #FFFFFF; border: 1px solid #262626; font-size: 11.5px; font-weight: 800; text-align: right; white-space: nowrap; cursor: pointer;">
+      <th onclick="window.__sortTable && window.__sortTable(${i + 1})" style="padding: ${cellPadY + 2}px ${cellPadX}px; background: #141414; color: #FFFFFF; border: 1px solid #262626; font-size: ${thFontPx}px; font-weight: 800; text-align: right; word-break: break-word; line-height: 1.35; cursor: pointer;">
         ${escapeHtmlReportText(h)}
       </th>
     `).join('')}
@@ -2306,8 +3171,8 @@ export function generateExecutiveReportHtml(
 
   const rowsHtml = mappedRows.map((row, idx) => {
     return `
-      <tr class="report-data-row" style="background-color: ${idx % 2 === 0 ? '#FFFFFF' : '#F8FAFC'}; page-break-inside: avoid;">
-        <td style="text-align: center; font-weight: 700; color: #707070; padding: 7px 6px; border: 1px solid #E4E4E7; font-size: 11px; font-family: monospace;">
+      <tr class="report-data-row" style="background-color: ${idx % 2 === 0 ? '#FFFFFF' : '#F8FAFC'}; page-break-inside: avoid; break-inside: avoid;">
+        <td style="text-align: center; font-weight: 700; color: #707070; padding: ${cellPadY}px 5px; border: 1px solid #E4E4E7; font-size: ${tdFontPx}px; font-family: monospace;">
           ${idx + 1}
         </td>
         ${row.map((val, cIdx) => {
@@ -2319,7 +3184,7 @@ export function generateExecutiveReportHtml(
           const displayVal = escapeHtmlReportText(rawDisplayVal || '-');
 
           return `
-            <td style="padding: 7px 10px; border: 1px solid #E4E4E7; font-size: 11px; color: #141414; ${align}">
+            <td style="padding: ${cellPadY}px ${cellPadX}px; border: 1px solid #E4E4E7; font-size: ${tdFontPx}px; color: #141414; word-break: break-word; line-height: 1.4; ${align}">
               ${displayVal}
             </td>
           `;
@@ -2334,18 +3199,18 @@ export function generateExecutiveReportHtml(
   if (hasTotals) {
     tfootHtml = `
       <tfoot>
-        <tr style="background-color: #F3F3F3; font-weight: 900; border-top: 2.5px solid #141414; page-break-inside: avoid;">
-          <td colspan="1" style="text-align: center; padding: 10px 8px; border: 1px solid #E0E0E0; font-size: 11px; color: #141414;">
+        <tr style="background-color: #F3F3F3; font-weight: 900; border-top: 2.5px solid #141414; page-break-inside: avoid; break-inside: avoid;">
+          <td colspan="1" style="text-align: center; padding: 9px 6px; border: 1px solid #E0E0E0; font-size: ${tdFontPx}px; color: #141414;">
             المجموع
           </td>
           ${config.headers.map((_, colIdx) => {
             const tot = kpis.columnTotals[colIdx];
             if (colIdx === 0 && tot === null) {
-              return `<td style="padding: 10px; border: 1px solid #E0E0E0; font-size: 11px; color: #141414; font-weight: 900;">الإجمالي العام المعتمد</td>`;
+              return `<td style="padding: 9px; border: 1px solid #E0E0E0; font-size: ${tdFontPx}px; color: #141414; font-weight: 900;">الإجمالي العام المعتمد</td>`;
             }
             if (tot !== null) {
               return `
-                <td style="padding: 10px; border: 1px solid #E0E0E0; font-size: 11.5px; color: #141414; font-weight: 900; font-family: 'saudi_riyal', monospace; text-align: left;">
+                <td style="padding: 9px; border: 1px solid #E0E0E0; font-size: ${thFontPx}px; color: #141414; font-weight: 900; font-family: 'saudi_riyal', monospace; text-align: left;">
                   \u200E\u20C1 ${tot.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </td>
               `;
@@ -2381,7 +3246,7 @@ export function generateExecutiveReportHtml(
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
       <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-      <style>
+      <style data-report-style="true">
         @font-face {
           font-family: 'saudi_riyal';
           src: url('data:font/woff2;base64,d09GMgABAAAAAAT0AA0AAAAAC2QAAASeAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP0ZGVE0cGhgGYACCZhEICocEhXcLGgABNgIkAzAEIAWHLgeBBRvVCSCOwnEvSojJ5ORhKiWep9/bPPc32mdnUaW+wXeJKlVIJCg8CIfcQWViVHSETJeZqNqErgZPp/28VaAy13pTkXvNQZv4IHCbHD9In+dyevP5Cfy7K+slmC3ybGwuLx2T18L1PKA2pnPbFCvQCdbLLSJq0N0AB31thACv29f9APD1k6ZUJ0tAD4aoQDO8bhmyFC1UI+oCuAO15AO2Q8G5MwSqDefwClCi9Be6wX9nQPsMEKAeA1AQUIMaLCGACzQCljAqQE+OwoCjcu0D6kv8/x/sl6sfkIpP/3/9/WpgdgoEQAeYoIR0QACkAlSghuJ31w3LAXyr/P+vAvSAOTCAzAK5B6CBQzRNhcGgGoYLL+dYrlnFKgu9iOcEj646uXaI2W3sJ9lTI4EetCRQAgulmH6SYMZBziQb1xBipCaQaS6l0vWRWr1q1aFDnTA52r1fr8fUTpXKWvLQ4KnSwb0+PppFHxtVC1at2uXrO9JOSIUWTzV+QWdXLT0K2uhG0jpJEiZs6WjSR9KuG9Zv1u+P2q1UujpcsT1L3dNzqhQszNevVtPHSYnHKlXoGEWtDpi6yX/duUgVJGGvzwIypcpt/Ni4Jly1atcq32n6zc+V4+ld7k6gz53h7vgOHLKN10L3KkUS7kouYUcPhGVony1zOi//ctkTdm/3kAqubk+P0MptoSFlXH1d5ZyIwuAyWX7+z+picypWzAjs1xCbVaGJLgqt5qqbqg/Y6ntEjm76aneF9Yjvano5HXrdrjSkllfHmVOk+o/IY8O89mBNc9Lbwcoe28z7DRmFzSmN4wbrT5X+B/E2SdMQn2S1PFaUu1OkJfIXKxVt+w1pFa2xjdll47yrvsvczl7/4ETotcmj56Zkzxs3b+7w0ZMNx9wX7srQ8rIsghhH+yj839cG7rwS/FVUQnWXgYUdjUP+HL5C8fybvBJ6ZQRWMKOhfsi7ZqHZEz4e3TZxMtEqXR8kGN0n/5/a9jk9IKKiFlmPtlWvYKy8rF34efCtxR9snP0uNWnu7Jj8kj9HHV1INdJDNT2jhozoFXwqYPLE+VjfWDBpsq7FUrJmU3brXPVwppI6gm8PCAjcX9RU3FdX8KtcJcczkIBc+4K9C8ZdxNPL/LtD9KcF19fLgOpBtODVPMNO+5d0/C2p2BEBPefddskgYA8Aa9mMABgKQwChUg9RkbGjprcJDW9v0SJ+QccrQRhDkk6Os7mYoEtPTCIZQk6xo9ALyCFMI3lIDtjnGFLlm9EzZJUcNNIoAAUACL10ULSMoCUYAkaUk2BRfgAnwm+QoZJMytlMKIQkH0pUBpAqdhjUMjIGGlTuklr2MTzoI92UJ23+wONVGmQ40WC8UgM5iCwsRBYopXLQcHEwXzrQIVosogW4IRrFwqmv4ZzGEQ2Em8tRFmff4c5x4kDgmpXdKAOJhsMnRWOAIg8/SVZ+YGXZ5ee18vMkZYbYopod2PHxMh22lbggxy4aiTp8UzunkRxGMUliNsQgyayTKk8k+l05RzpGmT7YjNb5FSWKKTxHRVTCPj0ISoRIUaJDEZowhCWctufXnHPwkJG/e0pZDQA=') format('woff2');
@@ -2393,7 +3258,7 @@ export function generateExecutiveReportHtml(
         body {
           font-family: 'saudi_riyal', 'Tajawal', 'Cairo', 'Inter', system-ui, -apple-system, sans-serif;
           margin: 0;
-          padding: 24px;
+          padding: ${options?.embedPreview ? '26px 30px' : '20px'};
           color: #141414;
           background: #FFFFFF;
           position: relative;
@@ -2403,7 +3268,7 @@ export function generateExecutiveReportHtml(
 
         @media print {
           @page {
-            size: ${isLandscape ? 'landscape' : 'portrait'};
+            size: A4 ${isLandscape ? 'landscape' : 'portrait'};
             margin: 8mm 10mm;
           }
           body {
@@ -2419,16 +3284,19 @@ export function generateExecutiveReportHtml(
           }
           table {
             page-break-inside: auto;
+            width: 100% !important;
+            table-layout: auto !important;
           }
           tr {
             page-break-inside: avoid;
+            break-inside: avoid;
             page-break-after: auto;
           }
           thead {
             display: table-header-group;
           }
           tfoot {
-            display: table-footer-group;
+            display: table-row-group;
           }
         }
 
@@ -2806,6 +3674,7 @@ export function generateExecutiveReportHtml(
     <body>
       <div class="security-watermark">${company.nameAr} • CERTIFIED ERP</div>
 
+      ${options?.embedPreview ? '' : `
       <!-- Interactive Screen Toolbar (Hidden on Print & PDF) -->
       <div class="toolbar no-print">
         <div style="display: flex; align-items: center; gap: 12px;">
@@ -2827,8 +3696,9 @@ export function generateExecutiveReportHtml(
           ` : ''}
         </div>
       </div>
+      `}
 
-      <!-- 1. Dual-Branding Header Banner -->
+      <!-- 1. Dual-Branding / Entity-Standalone Header Banner -->
       <div class="header-banner">
         <div class="company-brand">
           <div class="logo-emblem">
@@ -2836,13 +3706,13 @@ export function generateExecutiveReportHtml(
             <span style="font-size: 7.5px; color: #ADADAD; letter-spacing: 0.5px; margin-top: 3px;">ERP 4.0</span>
           </div>
           <div class="company-titles">
-            <span class="holding-badge">${GROUP_COMPANY_INFO.nameAr} • الإدارة العامة</span>
-            <h1>${company.nameAr}</h1>
-            <div class="en-name">${company.nameEn}</div>
+            ${branding.holdingBadgeAr ? `<span class="holding-badge">${escapeHtmlReportText(branding.holdingBadgeAr)}</span>` : ''}
+            <h1>${escapeHtmlReportText(company.nameAr)}</h1>
+            <div class="en-name">${escapeHtmlReportText(company.nameEn)}</div>
             <div class="legal-info">
-              <span>س.ت: <strong>${company.crNumber}</strong></span>
+              <span>س.ت: <strong>${escapeHtmlReportText(company.crNumber)}</strong></span>
               <span>•</span>
-              <span>الرقم الضريبي: <strong>${company.taxNumber}</strong></span>
+              <span>الرقم الضريبي: <strong>${escapeHtmlReportText(company.taxNumber)}</strong></span>
               <span>•</span>
               <span>الفرع المصدر: <strong>${exporter.branch}</strong></span>
             </div>
@@ -2938,7 +3808,7 @@ export function generateExecutiveReportHtml(
       </table>
 
       ${showSigs ? `
-      <!-- 4. Signatures & Approvals Matrix (Attributed to Real Employee & Branch) -->
+      <!-- 4. Signatures & Approvals Matrix (Attributed to Real Employee, Entity & Branch) -->
       <div class="signatures-grid">
         <div class="sig-box">
           <div class="sig-title">إعداد الموظف المختص (استخراج وتوثيق)</div>
@@ -2951,22 +3821,22 @@ export function generateExecutiveReportHtml(
 
         <div class="sig-box">
           <div class="sig-title">مراجعة وتدقيق الإدارة المالية</div>
-          <div class="sig-role">المدير المالي التنفيذي (Group CFO)</div>
+          <div class="sig-role">${escapeHtmlReportText(branding.financeSignatoryRoleAr)}</div>
           <div class="sig-line"></div>
-          <div class="sig-meta">الاسم: أ. محمد بن عبدالرحمن السليم</div>
+          <div class="sig-meta">الاسم: ${escapeHtmlReportText(branding.financeSignatoryNameAr)}</div>
           <div class="sig-meta">المطابقة الدفترية: ${isoDate}</div>
           <div class="sig-badge">✓ مطابق للدفاتر وميزان المراجعة</div>
         </div>
 
         <div class="sig-box">
           <div class="sig-title">اعتماد الإدارة والختم الرسمي (القيادة التنفيذية)</div>
-          <div class="sig-role">رئيس مجلس الإدارة / المفوض العام</div>
+          <div class="sig-role">${escapeHtmlReportText(branding.executiveSignatoryRoleAr)}</div>
           <div class="seal-stamp">
-            <div>${company.nameAr.slice(0, 18)}</div>
-            <div style="font-size: 7.5px; color: #707070; margin: 1px 0;">معتمد رسمياً • س.ت ${company.crNumber}</div>
+            <div>${escapeHtmlReportText(company.nameAr.slice(0, 18))}</div>
+            <div style="font-size: 7.5px; color: #707070; margin: 1px 0;">معتمد رسمياً • س.ت ${escapeHtmlReportText(company.crNumber)}</div>
             <div style="font-size: 7.5px;">${isoDate}</div>
           </div>
-          <div class="sig-badge">✓ اعتماد الشيخ خالد بن عبدالعزيز السليم</div>
+          <div class="sig-badge">${escapeHtmlReportText(branding.executiveApprovalBadgeAr)}</div>
         </div>
       </div>
       ` : ''}
@@ -2979,7 +3849,7 @@ export function generateExecutiveReportHtml(
           <span style="font-family: monospace; font-size: 9px; color: #707070;">${verificationHash} • الرقم المرجعي: ${serialNumber} • المستخرج: ${exporter.email}</span>
         </div>
         <div style="text-align: left; font-weight: 800; color: #141414;">
-          ${GROUP_COMPANY_INFO.nameAr} • ${company.nameAr}
+          ${escapeHtmlReportText(branding.footerOrganizationLineAr)}
         </div>
       </div>
 
@@ -3226,10 +4096,22 @@ export function buildStyledExcelBuffer(
   customTitle?: string,
   options?: ExportCustomizationOptions
 ): { buffer: Uint8Array; fileName: string } {
+  data = Array.isArray(data) ? data : [];
   const config = resolveConfig(sectionKey, data, customTitle, options);
   const title = options?.customTitle || customTitle || config.sectionTitle;
-  const company = getActiveCompanyInfo();
-  const exporter = getAuthenticatedExporterInfo();
+  const branding = resolveDocumentBranding(data, {
+    entityCode: options?.entityCode,
+    hideHoldingGroupBrand: options?.hideHoldingGroupBrand,
+    customCompanyNameAr: options?.customCompanyNameAr,
+    customFinanceSignatory: options?.customFinanceSignatory,
+    customExecutiveSignatory: options?.customExecutiveSignatory,
+  });
+  const company = getActiveCompanyInfo(data, options);
+  const rawExporter = getAuthenticatedExporterInfo();
+  const exporter = {
+    ...rawExporter,
+    name: options?.customPreparerName?.trim() || rawExporter.name,
+  };
 
   const now = new Date();
   const dateAr = now.toLocaleDateString('ar-SA', {
@@ -3242,9 +4124,9 @@ export function buildStyledExcelBuffer(
   const serialNo = `${company.code}-XLS-${now.getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
 
   // 1. Data Mapping with Smart Numeric & SAMA ⃁ Recognition
+  const rawSourceRows = resolveEffectiveMappedRows(config, data, options);
   const mappedRows: any[][] = [];
-  data.forEach(row => {
-    const rawVals = config.dataMapper(row);
+  rawSourceRows.forEach(rawVals => {
     const convertedVals = rawVals.map((val, colIdx) => {
       if (val === null || val === undefined || val === '') return '';
       if (typeof val === 'number') return val;
@@ -3255,7 +4137,7 @@ export function buildStyledExcelBuffer(
 
       if (!isIdOrPhoneOrCode) {
         const cleanedNumStr = str
-          .replace(/[,⃁\u20C1\uE900\u200E\u200F\s$]|ر\.س|ريال|SAR/gi, '')
+          .replace(/[,⃁\u20C1\uE900\u200E\u200F\s$]|\u0631\.\u0633|ريال|SAR/gi, '')
           .trim();
         if (/^-?\d+(\.\d+)?$/.test(cleanedNumStr)) {
           const num = parseFloat(cleanedNumStr);
@@ -3293,12 +4175,16 @@ export function buildStyledExcelBuffer(
     return arr;
   };
 
+  const bannerHeaderLine = branding.hideHoldingGroupBrand
+    ? `${company.nameAr} (${company.nameEn})`
+    : `${GROUP_COMPANY_INFO.nameAr} • ${company.nameAr} (${company.nameEn})`;
+
   // 3. Assemble Sheet 1: Detailed Data Worksheet (AOA)
   const wsData: any[][] = [
-    padMergedBannerRow(`${GROUP_COMPANY_INFO.nameAr} • ${company.nameAr} (${company.nameEn})`),
+    padMergedBannerRow(bannerHeaderLine),
     padMergedBannerRow(`${title}`),
     padMergedBannerRow(`سجل تجاري: ${company.crNumber} | الرقم الضريبي: ${company.taxNumber} | الرقم المرجعي: ${serialNo} | تاريخ الاستخراج: ${dateAr} (${timeStr})`),
-    padMergedBannerRow(`إعداد الموظف المختص: ${exporter.name} (${exporter.role}) | القسم: ${exporter.department} | الفرع: ${exporter.branch} | إجمالي السجلات: ${data.length}`),
+    padMergedBannerRow(`إعداد الموظف المختص: ${exporter.name} (${exporter.role}) | القسم: ${exporter.department} | الفرع: ${exporter.branch} | إجمالي السجلات: ${mappedRows.length}`),
     [], // Blank separator (Row 5)
     numberedHeaders, // Table Headers (Row 6)
     ...numberedRows,
@@ -3379,11 +4265,17 @@ export function buildStyledExcelBuffer(
 
   // 4. Assemble Sheet 2: Executive KPI & Approval Summary Sheet (ملخص المؤشرات والاعتماد)
   const summaryRows: any[][] = [
-    [`${GROUP_COMPANY_INFO.nameAr} — بطاقة الملخص التنفيذي والاعتماد الرسمي`, '', ''],
+    [
+      `${branding.hideHoldingGroupBrand ? company.nameAr : GROUP_COMPANY_INFO.nameAr} — بطاقة الملخص التنفيذي والاعتماد الرسمي`,
+      '',
+      '',
+    ],
     [`${title}`, '', ''],
     [],
     ['بيانات الجهة المصدرة والحوكمة المؤسسية', 'القيمة / البيان الرسمي', 'ملاحظات التوثيق'],
-    ['المجموعة القابضة', GROUP_COMPANY_INFO.nameAr, 'المقر الرئيسي - الرياض'],
+    ...(branding.hideHoldingGroupBrand
+      ? [['طبيعة الإصدار النظامي', 'إصدار مستقل باسم الكيان القانوني', company.address]]
+      : [['المجموعة القابضة', GROUP_COMPANY_INFO.nameAr, 'المقر الرئيسي - الرياض']]),
     ['الكيان التشغيلي النشط', `${company.nameAr} (${company.nameEn})`, company.code],
     ['رقم السجل التجاري الموحد', company.crNumber, 'ساري المفعول'],
     ['الرقم الضريبي (ZATCA VAT)', company.taxNumber, 'المرحلة الثانية (ربط وتكامل)'],
@@ -3405,8 +4297,16 @@ export function buildStyledExcelBuffer(
     [],
     ['مصفوفة الاعتمادات والتواقيع الرسمية', 'المسؤول المعتمد', 'الحالة والتاريخ'],
     ['1. إعداد واستخراج الكشف', `${exporter.name} (${exporter.role})`, `موثق إلكترونياً — ${isoDate}`],
-    ['2. المراجعة والتدقيق المالي', 'أ. محمد بن عبدالرحمن السليم (Group CFO)', `مطابق للدفاتر — ${isoDate}`],
-    ['3. الاعتماد التنفيذي النهائي', 'الشيخ خالد بن عبدالعزيز السليم (رئيس مجلس الإدارة)', `معتمد ونافذ — ${isoDate}`],
+    [
+      '2. المراجعة والتدقيق المالي',
+      `${branding.financeSignatoryNameAr} (${branding.financeSignatoryRoleAr})`,
+      `مطابق للدفاتر — ${isoDate}`,
+    ],
+    [
+      '3. الاعتماد التنفيذي النهائي',
+      `${branding.executiveSignatoryNameAr} (${branding.executiveSignatoryRoleAr})`,
+      `معتمد ونافذ — ${isoDate}`,
+    ],
   ];
 
   const summaryWs = XLSX.utils.aoa_to_sheet(summaryRows);
@@ -3440,6 +4340,7 @@ export function exportToExcel(
   customTitle?: string,
   options?: ExportCustomizationOptions
 ): void {
+  data = Array.isArray(data) ? data : [];
   const { buffer, fileName } = buildStyledExcelBuffer(sectionKey, data, customTitle, options);
   if (isRunningInTest()) {
     return;
@@ -3467,8 +4368,19 @@ export function buildMultiSheetExcelBuffer(
   sheets: MultiSheetSpec[],
   options?: ExportCustomizationOptions
 ): { buffer: Uint8Array; fileName: string } {
-  const company = getActiveCompanyInfo();
-  const exporter = getAuthenticatedExporterInfo();
+  const branding = resolveDocumentBranding(undefined, {
+    entityCode: options?.entityCode,
+    hideHoldingGroupBrand: options?.hideHoldingGroupBrand,
+    customCompanyNameAr: options?.customCompanyNameAr,
+    customFinanceSignatory: options?.customFinanceSignatory,
+    customExecutiveSignatory: options?.customExecutiveSignatory,
+  });
+  const company = getActiveCompanyInfo(undefined, options);
+  const rawExporter = getAuthenticatedExporterInfo();
+  const exporter = {
+    ...rawExporter,
+    name: options?.customPreparerName?.trim() || rawExporter.name,
+  };
   const now = new Date();
   const dateAr = now.toLocaleDateString('ar-SA', {
     year: 'numeric',
@@ -3524,8 +4436,12 @@ export function buildMultiSheetExcelBuffer(
       return arr;
     };
 
+    const topBannerLine = branding.hideHoldingGroupBrand
+      ? `${company.nameAr} (${company.nameEn})`
+      : `${GROUP_COMPANY_INFO.nameAr} • ${company.nameAr} (${company.nameEn})`;
+
     const wsData: any[][] = [
-      padBanner(`${GROUP_COMPANY_INFO.nameAr} • ${company.nameAr} (${company.nameEn})`),
+      padBanner(topBannerLine),
       padBanner(spec.title || workbookTitle),
       padBanner(
         `سجل تجاري: ${company.crNumber} | الرقم الضريبي: ${company.taxNumber} | المرجع: ${serialNo} | التاريخ: ${dateAr} (${timeStr})`
@@ -3731,43 +4647,309 @@ export function sanitizeCSVField(val: any): string {
   return str;
 }
 
+function csvQuoteCell(v: unknown): string {
+  const safe = sanitizeExportCellValue(v);
+  // Real numbers (incl. negatives) are emitted verbatim; text is protected against formula injection.
+  const text = typeof safe === 'number' ? String(safe) : sanitizeCSVField(safe);
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+/** Pure CSV builder: UTF-8 BOM + RFC 4180 quoting + CRLF so Excel renders Arabic correctly. */
+export function buildCsvContent(
+  sectionKey: string,
+  data: any[],
+  customTitle?: string,
+  options?: ExportCustomizationOptions
+): string {
+  const safeData = Array.isArray(data) ? data : [];
+  const config = resolveConfig(sectionKey, safeData, customTitle, options);
+  const rows: string[] = [];
+
+  rows.push(config.headers.map(csvQuoteCell).join(','));
+
+  const mappedRows = resolveEffectiveMappedRows(config, safeData, options);
+  mappedRows.forEach((mapped) => {
+    rows.push(mapped.map(csvQuoteCell).join(','));
+  });
+
+  const kpis = calculateReportKpis(config.headers, mappedRows);
+  if (kpis.columnTotals.some(t => t !== null)) {
+    const totCells = config.headers.map((_, idx) => {
+      const tot = kpis.columnTotals[idx];
+      if (idx === 0 && tot === null) return csvQuoteCell('الإجمالي العام (Total)');
+      return tot !== null ? csvQuoteCell(tot) : '""';
+    });
+    rows.push(totCells.join(','));
+  }
+
+  return '\uFEFF' + rows.join('\r\n');
+}
+
 export function exportToCSV(
   sectionKey: string,
   data: any[],
   customTitle?: string,
   options?: ExportCustomizationOptions
 ): void {
-  const config = resolveConfig(sectionKey, data, customTitle, options);
+  const safeData = Array.isArray(data) ? data : [];
+  const config = resolveConfig(sectionKey, safeData, customTitle, options);
   const title = options?.customTitle || customTitle || config.sectionTitle;
-  const rows: string[] = [];
+  const csvContent = buildCsvContent(sectionKey, safeData, customTitle, options);
+  if (typeof Blob !== 'undefined') {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    triggerBlobDownload(blob, `${title.replace(/[\s/\\:]+/g, '_')}_${new Date().toISOString().slice(0, 10)}.csv`);
+  }
+}
 
-  // Header row
-  rows.push(config.headers.map(h => `"${h}"`).join(','));
+/**
+ * Builds discrete A4 page HTML chunks for multi-page PDF rendering so that
+ * NO table row or signature block is ever sliced horizontally across page boundaries.
+ */
+export function buildRowAwarePdfPageHtmlChunks(
+  sectionKey: string,
+  data: any[],
+  customTitle: string | undefined,
+  isLandscape: boolean,
+  options?: ExportCustomizationOptions
+): string[] {
+  const config = resolveConfig(sectionKey, data, customTitle, options);
+  const allRows = resolveEffectiveMappedRows(config, data, options);
+  const firstPageMax = isLandscape ? 13 : 17;
+  const nextPageMax = isLandscape ? 19 : 24;
 
-  // Data rows
-  const mappedRows: any[][] = [];
-  data.forEach(row => {
-    const mapped = config.dataMapper(row);
-    mappedRows.push(mapped);
-    rows.push(mapped.map(v => `"${sanitizeCSVField(v).replace(/"/g, '""')}"`).join(','));
-  });
-
-  // Totals row if financial columns exist
-  const kpis = calculateReportKpis(config.headers, mappedRows);
-  if (kpis.columnTotals.some(t => t !== null)) {
-    const totCells = config.headers.map((_, idx) => {
-      const tot = kpis.columnTotals[idx];
-      if (idx === 0 && tot === null) return '"الإجمالي العام (Total)"';
-      return tot !== null ? `"${tot}"` : '""';
-    });
-    rows.push(totCells.join(','));
+  if (allRows.length <= firstPageMax) {
+    return [generateExecutiveReportHtml(sectionKey, data, customTitle, false, options)];
   }
 
-  const csvContent = rows.join('\n');
-  const BOM = '\uFEFF';
-  if (typeof Blob !== 'undefined') {
-    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
-    triggerBlobDownload(blob, `${title.replace(/[\s/\\:]+/g, '_')}_${new Date().toISOString().slice(0, 10)}.csv`);
+  const slices: Array<{ startIdx: number; rows: any[][] }> = [];
+  slices.push({ startIdx: 0, rows: allRows.slice(0, firstPageMax) });
+  for (let cursor = firstPageMax; cursor < allRows.length; cursor += nextPageMax) {
+    slices.push({ startIdx: cursor, rows: allRows.slice(cursor, cursor + nextPageMax) });
+  }
+
+  const totalPages = slices.length;
+  const branding = resolveDocumentBranding(data, {
+    entityCode: options?.entityCode,
+    hideHoldingGroupBrand: options?.hideHoldingGroupBrand,
+    customCompanyNameAr: options?.customCompanyNameAr,
+    customFinanceSignatory: options?.customFinanceSignatory,
+    customExecutiveSignatory: options?.customExecutiveSignatory,
+  });
+  const company = getActiveCompanyInfo(data, options);
+  const globalKpis = calculateReportKpis(config.headers, allRows);
+  const rawTitle = options?.customTitle || customTitle || config.sectionTitle;
+
+  return slices.map((slice, pageIdx) => {
+    const isFirstPage = pageIdx === 0;
+    const isLastPage = pageIdx === totalPages - 1;
+    const pageLabel = `صفحة ${pageIdx + 1} من ${totalPages}`;
+
+    // Render using generateExecutiveReportHtml with the slice's rows, then adjust numbering/headers/totals cleanly
+    const chunkHtml = generateExecutiveReportHtml(sectionKey, data, customTitle, false, {
+      ...options,
+      customTitle: isFirstPage ? rawTitle : `${rawTitle} — (${pageLabel})`,
+      editableRows: slice.rows,
+      showSignatures: isLastPage ? options?.showSignatures !== false : false,
+      showQrCode: isFirstPage ? options?.showQrCode !== false : false,
+      showTafqeet: isFirstPage ? options?.showTafqeet !== false : false,
+    });
+
+    // Parse & refine DOM in-memory if DOMParser is available
+    if (typeof DOMParser === 'undefined') return chunkHtml;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(chunkHtml, 'text/html');
+
+    // Fix continuous row numbers across pages (e.g. 18, 19, 20...)
+    if (slice.startIdx > 0) {
+      doc.querySelectorAll('#enterprise-report-tbody .report-data-row').forEach((tr, idx) => {
+        const firstTd = tr.querySelector('td');
+        if (firstTd) {
+          firstTd.textContent = String(slice.startIdx + idx + 1);
+        }
+      });
+    }
+
+    // Remove KPI grid & executive note on continuation pages (2..N) to maximize table space
+    if (!isFirstPage) {
+      doc.querySelectorAll('.kpi-grid, .tafqeet-ribbon, .executive-note-box').forEach((el) => el.remove());
+    } else {
+      // Ensure Page 1 KPI recordCount & totals reflect ALL rows, not just Page 1 slice!
+      const kpiVals = doc.querySelectorAll('.kpi-grid .kpi-box .val');
+      if (kpiVals[0]) {
+        kpiVals[0].innerHTML = `${globalKpis.recordCount} <span style="font-size: 11px; font-weight: normal;">سجل (${totalPages} صفحات)</span>`;
+      }
+      if (globalKpis.hasFinancials && globalKpis.totalAmount > 0 && kpiVals[1] && kpiVals[2]) {
+        kpiVals[1].textContent = `\u200E\u20C1 ${globalKpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        kpiVals[2].textContent = `\u200E\u20C1 ${globalKpis.totalVat.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      }
+    }
+
+    // Only show Grand Total tfoot on the LAST page, and replace slice totals with globalKpis totals!
+    const tfoot = doc.querySelector('#enterprise-report-table tfoot');
+    if (!isLastPage) {
+      tfoot?.remove();
+    } else if (tfoot && globalKpis.columnTotals.some((t) => t !== null)) {
+      const tds = tfoot.querySelectorAll('td');
+      config.headers.forEach((_, colIdx) => {
+        const targetCell = tds[colIdx + 1];
+        const tot = globalKpis.columnTotals[colIdx];
+        if (targetCell && tot !== null) {
+          targetCell.textContent = `\u200E\u20C1 ${tot.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+      });
+    }
+
+    // Add explicit Page X of N indicator in official-footer
+    const footerRight = doc.querySelector('.official-footer > div:last-child');
+    if (footerRight) {
+      footerRight.innerHTML = `${escapeHtmlReportText(branding.footerOrganizationLineAr || company.nameAr)} • <span style="font-family: monospace;">${pageLabel}</span>`;
+    }
+
+    const styleEl = doc.querySelector('style[data-report-style="true"]');
+    return `${styleEl ? styleEl.outerHTML : ''}${doc.body.innerHTML}`;
+  });
+}
+
+export interface GeneratedPdfArtifact {
+  blob: Blob;
+  file: File;
+  fileName: string;
+  pageCount: number;
+  title: string;
+}
+
+export function buildExecutivePdfFileName(rawTitle: string): string {
+  const safe = String(rawTitle || 'تقرير_تنفيذي')
+    .trim()
+    .replace(/[\s/\\:*?"<>|]+/g, '_')
+    .slice(0, 72);
+  return `${safe || 'تقرير_تنفيذي'}_${new Date().toISOString().slice(0, 10)}.pdf`;
+}
+
+// ─── Generate Reusable Multi-Page Executive A4 PDF Artifact (.pdf) ────
+export async function generateExecutivePdfArtifact(
+  sectionKey: string,
+  data: any[],
+  customTitle?: string,
+  options?: ExportCustomizationOptions
+): Promise<GeneratedPdfArtifact | null> {
+  data = Array.isArray(data) ? data : [];
+  const config = resolveConfig(sectionKey, data, customTitle, options);
+  const title = options?.customTitle || customTitle || config.sectionTitle;
+  const cleanFileName = buildExecutivePdfFileName(title);
+
+  if (typeof document === 'undefined') return null;
+
+  if (isRunningInTest()) {
+    generateExecutiveReportHtml(sectionKey, data, customTitle, false, options);
+    const minimalPdf = `%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Count 1/Kids[3 0 R]>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF`;
+    const blob = new Blob([minimalPdf], { type: 'application/pdf' });
+    const file = new File([blob], cleanFileName, { type: 'application/pdf' });
+    return {
+      blob,
+      file,
+      fileName: cleanFileName,
+      pageCount: 1,
+      title,
+    };
+  }
+
+  const isLandscape =
+    options?.orientation === 'landscape'
+      ? true
+      : options?.orientation === 'portrait'
+      ? false
+      : config.headers.length > 6;
+
+  const stageWidthPx = isLandscape ? 1140 : 820;
+  const container = document.createElement('div');
+  container.id = 'executive-pdf-stage';
+  container.style.position = 'fixed';
+  container.style.left = '-9999px';
+  container.style.top = '0';
+  container.style.width = `${stageWidthPx}px`;
+  container.style.backgroundColor = '#FFFFFF';
+  container.style.zIndex = '-9999';
+  document.body.appendChild(container);
+
+  try {
+    const [{ jsPDF }, { default: html2canvas }] = await Promise.all([
+      import('jspdf'),
+      import('html2canvas'),
+    ]);
+
+    const pageChunks = buildRowAwarePdfPageHtmlChunks(
+      sectionKey,
+      data,
+      customTitle,
+      isLandscape,
+      options
+    );
+
+    const doc = new jsPDF({
+      orientation: isLandscape ? 'landscape' : 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    const pageWidth = isLandscape ? 297 : 210;
+    const pageHeight = isLandscape ? 210 : 297;
+    const margin = 8;
+    const usableWidth = pageWidth - margin * 2;
+    const usableHeight = pageHeight - margin * 2;
+
+    for (let idx = 0; idx < pageChunks.length; idx++) {
+      container.innerHTML = pageChunks[idx];
+      container.querySelectorAll('.no-print, script').forEach((el) => el.remove());
+
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        windowWidth: stageWidthPx + 40,
+        onclone: (clonedDoc) => {
+          // Strip Tailwind v4 oklch stylesheets that crash html2canvas, while preserving report styles & fonts!
+          clonedDoc
+            .querySelectorAll('link[rel="stylesheet"]:not([href*="fonts.googleapis.com"])')
+            .forEach((el) => el.remove());
+          clonedDoc
+            .querySelectorAll('head style:not([data-report-style="true"])')
+            .forEach((el) => el.remove());
+        },
+      });
+
+      if (idx > 0) {
+        doc.addPage();
+      }
+
+      const naturalHeightMm = (canvas.height * usableWidth) / canvas.width;
+      const imgData = canvas.toDataURL('image/jpeg', 0.96);
+
+      if (naturalHeightMm <= usableHeight) {
+        doc.addImage(imgData, 'JPEG', margin, margin, usableWidth, naturalHeightMm);
+      } else {
+        // Fit cleanly onto A4 page without ever slicing a table row or signature horizontally
+        const fitRatio = usableHeight / naturalHeightMm;
+        const fittedWidth = usableWidth * fitRatio;
+        const centeredX = margin + (usableWidth - fittedWidth) / 2;
+        doc.addImage(imgData, 'JPEG', centeredX, margin, fittedWidth, usableHeight);
+      }
+    }
+
+    const blob = doc.output('blob');
+    const file = new File([blob], cleanFileName, { type: 'application/pdf' });
+    return {
+      blob,
+      file,
+      fileName: cleanFileName,
+      pageCount: pageChunks.length,
+      title,
+    };
+  } finally {
+    if (document.body.contains(container)) {
+      document.body.removeChild(container);
+    }
   }
 }
 
@@ -3778,100 +4960,33 @@ export async function exportToPDF(
   customTitle?: string,
   options?: ExportCustomizationOptions
 ): Promise<void> {
-  const config = resolveConfig(sectionKey, data, customTitle, options);
-  const title = options?.customTitle || customTitle || config.sectionTitle;
-
   if (typeof document === 'undefined') return;
-
   if (isRunningInTest()) {
     generateExecutiveReportHtml(sectionKey, data, customTitle, false, options);
     return;
   }
 
-  const isLandscape =
-    options?.orientation === 'landscape'
-      ? true
-      : options?.orientation === 'portrait'
-      ? false
-      : config.headers.length > 7;
-
-  const container = document.createElement('div');
-  container.id = 'executive-pdf-stage';
-  container.style.position = 'fixed';
-  container.style.left = '-9999px';
-  container.style.top = '0';
-  container.style.width = isLandscape ? '1140px' : '840px';
-  container.style.backgroundColor = '#FFFFFF';
-  container.style.zIndex = '-9999';
-
-  const html = generateExecutiveReportHtml(sectionKey, data, customTitle, false, options);
-  container.innerHTML = html;
-  container.querySelectorAll('.no-print, script').forEach((el) => el.remove());
-  document.body.appendChild(container);
-
   try {
-    const [{ jsPDF }, { default: html2canvas }] = await Promise.all([
-      import('jspdf'),
-      import('html2canvas'),
-    ]);
-    const canvas = await html2canvas(container, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-      windowWidth: isLandscape ? 1200 : 900,
-      onclone: (clonedDoc) => {
-        clonedDoc.querySelectorAll('link[rel="stylesheet"]').forEach((el) => el.remove());
-        clonedDoc.querySelectorAll('head style').forEach((el) => el.remove());
-      },
-    });
+    const artifact = await generateExecutivePdfArtifact(sectionKey, data, customTitle, options);
+    if (!artifact) return;
 
-    const doc = new jsPDF({
-      orientation: isLandscape ? 'landscape' : 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
-
-    const pageWidth = isLandscape ? 297 : 210;
-    const pageHeight = isLandscape ? 210 : 297;
-    const margin = 8;
-    const usableWidth = pageWidth - margin * 2;
-    const usableHeight = pageHeight - margin * 2;
-
-    const imgWidth = usableWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    let heightLeft = imgHeight;
-    let position = margin;
-
-    const imgData = canvas.toDataURL('image/jpeg', 0.96);
-    doc.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
-    heightLeft -= usableHeight;
-
-    let pageNum = 1;
-    while (heightLeft > 0) {
-      position = -(pageNum * usableHeight) + margin;
-      doc.addPage();
-      doc.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
-      heightLeft -= usableHeight;
-      pageNum++;
-    }
-
-    const cleanFileName = `${title.replace(/[\s/\\:]+/g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
-    doc.save(cleanFileName);
+    const url = URL.createObjectURL(artifact.blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = artifact.fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
 
     useAppStore.getState().addNotification({
       title: 'تحميل مستند PDF التنفيذي المعتمد',
-      message: `تم توليد وحفظ مستند PDF الرسمي (${title}) بجودة عالية وتوقيع إلكتروني موثق.`,
+      message: `تم توليد وحفظ مستند PDF الرسمي (${artifact.title}) بمقاس A4 دقيق (${artifact.pageCount} صفحة) دون قص أي صفوف.`,
       type: 'success',
     });
   } catch (err) {
     console.warn('Direct PDF canvas failed, falling back to print window:', err);
     exportToPrint(sectionKey, data, customTitle, options);
-  } finally {
-    if (document.body.contains(container)) {
-      document.body.removeChild(container);
-    }
   }
 }
 
@@ -3882,6 +4997,7 @@ export async function exportToPNG(
   customTitle?: string,
   options?: ExportCustomizationOptions
 ): Promise<void> {
+  data = Array.isArray(data) ? data : [];
   const config = resolveConfig(sectionKey, data, customTitle, options);
   const title = options?.customTitle || customTitle || config.sectionTitle;
 
@@ -3891,7 +5007,7 @@ export async function exportToPNG(
   container.style.position = 'fixed';
   container.style.left = '-9999px';
   container.style.top = '0';
-  container.style.width = config.headers.length > 7 ? '1160px' : '900px';
+  container.style.width = config.headers.length > 6 ? '1160px' : '900px';
   container.style.backgroundColor = '#FFFFFF';
   container.style.zIndex = '-9999';
 
@@ -3908,8 +5024,12 @@ export async function exportToPNG(
       backgroundColor: '#ffffff',
       logging: false,
       onclone: (clonedDoc) => {
-        clonedDoc.querySelectorAll('link[rel="stylesheet"]').forEach((el) => el.remove());
-        clonedDoc.querySelectorAll('head style').forEach((el) => el.remove());
+        clonedDoc
+          .querySelectorAll('link[rel="stylesheet"]:not([href*="fonts.googleapis.com"])')
+          .forEach((el) => el.remove());
+        clonedDoc
+          .querySelectorAll('head style:not([data-report-style="true"])')
+          .forEach((el) => el.remove());
       },
     });
 
@@ -3926,63 +5046,101 @@ export async function exportToPNG(
 }
 
 // ─── Export to Saudi Wage Protection System Bank File (WPS SIF) ──────
-export function exportToWPS(
+/** Normalizes to a 24-char Saudi IBAN (`^SA\d{22}$`); invalid inputs yield a format-valid deterministic placeholder. */
+export function normalizeSaudiIban(raw: unknown, seed: string = '0'): string {
+  const cleaned = String(raw ?? '').replace(/[\s-]/g, '').toUpperCase();
+  if (/^SA\d{22}$/.test(cleaned)) return cleaned;
+  const digits = (String(seed).replace(/\D/g, '') + '0000000000').slice(0, 10);
+  return `SA0380${'00000000'}${digits}`;
+}
+
+/** Normalizes to a 10-digit Saudi National ID (starts with 1) or Iqama (starts with 2): `^[12]\d{9}$`. */
+export function normalizeSaudiNationalId(raw: unknown, idx: number = 0): string {
+  const digits = String(raw ?? '').replace(/\D/g, '');
+  if (/^[12]\d{9}$/.test(digits)) return digits;
+  const base = digits.length > 0 ? digits : `092837${String(4000 + idx)}`;
+  return `1${base.padStart(9, '0').slice(-9)}`;
+}
+
+function wpsNum(v: unknown, fallback = 0): number {
+  if (v === null || v === undefined || v === '') return fallback;
+  const n = typeof v === 'number' ? v : parseFloat(String(v).replace(/[^\d.-]/g, ''));
+  return Number.isFinite(n) ? n : fallback;
+}
+
+export const GOSI_WAGE_CAP_SAR = 45000;
+
+/** Pure SIF builder (UTF-8 BOM, SCR control record, EDR employee records). */
+export function buildWpsSifContent(
   sectionKey: string,
   data: any[],
   customTitle?: string,
-  options?: ExportCustomizationOptions
-): void {
-  const company = getActiveCompanyInfo();
+  options?: ExportCustomizationOptions,
+  now: Date = new Date()
+): string {
+  const safeData = Array.isArray(data) ? data : [];
+  const company = getActiveCompanyInfo(safeData, options);
   const exporter = getAuthenticatedExporterInfo();
-  const now = new Date();
   const isoDate = now.toISOString().slice(0, 10).replace(/-/g, '');
   const timeStr = now.toTimeString().slice(0, 5).replace(':', '');
-  const title = options?.customTitle || customTitle || 'ملف_حماية_الأجور_WPS';
 
   let totalNetSalary = 0;
   const edrLines: string[] = [];
 
-  data.forEach((r, idx) => {
-    const nationalId = String(r.nationalIdOrIqama || r.national_id || r.nationalId || r.iqama_number || r.user_id || `10928374${String(idx + 10).slice(-2)}`).slice(0, 10);
-    const empName = String(r.employeeName || r.name || r.full_name || r.staff_name || r.user_name || r.maid_name || `Employee_${idx + 1}`).replace(/,/g, ' ');
-    const bankCode = String(r.bankCode || r.bank_code || 'RJHI');
-    const iban = String(r.iban || `SA038000000060801016${String(1000 + idx).slice(-4)}`);
-    const rawSalary = Number(r.grossSalary ?? r.salary ?? r.totalSalary ?? r.amount_sar ?? r.amount ?? r.total_amount ?? 6500);
-    const basicNum = Number(r.basicSalary ?? r.basic_salary ?? (rawSalary * 0.7));
-    const housingNum = Number(r.housingAllowance ?? r.housing_allowance ?? r.housing ?? (rawSalary * 0.2));
-    const otherIncomeNum = Number(
-      r.transportAllowance !== undefined || r.otherAllowances !== undefined
-        ? (Number(r.transportAllowance || 0) + Number(r.otherAllowances || 0) + Number(r.overtimePay || 0) + Number(r.bonuses || 0))
-        : (r.transport_allowance ?? r.transport ?? (rawSalary * 0.1))
+  safeData.forEach((rec, idx) => {
+    const r = rec ?? {};
+    const nationalId = normalizeSaudiNationalId(
+      r.nationalIdOrIqama || r.national_id || r.nationalId || r.iqama_number || r.user_id,
+      idx
     );
-    const deductionsNum = Number(r.totalDeductionsApplied ?? r.deductions ?? r.gosi_deduction ?? (rawSalary * 0.0975));
-    const netNum = r.netSalary !== undefined ? Number(r.netSalary) : (basicNum + housingNum + otherIncomeNum - deductionsNum);
+    const empName = String(
+      r.employeeName || r.name || r.full_name || r.staff_name || r.user_name || r.maid_name || `Employee_${idx + 1}`
+    ).replace(/[,\r\n]+/g, ' ').trim();
+    const bankCode = String(r.bankCode || r.bank_code || 'RJHI').replace(/[,\s]+/g, '');
+    const iban = normalizeSaudiIban(r.iban, nationalId);
 
-    const basic = basicNum.toFixed(2);
-    const housing = housingNum.toFixed(2);
-    const otherIncome = otherIncomeNum.toFixed(2);
-    const deductions = deductionsNum.toFixed(2);
+    const rawSalary = wpsNum(r.grossSalary ?? r.salary ?? r.totalSalary ?? r.amount_sar ?? r.amount ?? r.total_amount, 6500);
+    const basicNum = wpsNum(r.basicSalary ?? r.basic_salary, rawSalary * 0.7);
+    const housingNum = wpsNum(r.housingAllowance ?? r.housing_allowance ?? r.housing, rawSalary * 0.2);
+    const transportNum = wpsNum(r.transportAllowance ?? r.transport_allowance ?? r.transport, rawSalary * 0.1);
+    const otherAllowancesNum =
+      wpsNum(r.otherAllowances) + wpsNum(r.overtimePay) + wpsNum(r.bonuses);
+    const otherIncomeNum = transportNum + otherAllowancesNum;
+
+    const gosiNum = wpsNum(
+      r.gosiDeduction ?? r.gosi_deduction ?? r.gosi,
+      Math.min(basicNum + housingNum, GOSI_WAGE_CAP_SAR) * 0.0975
+    );
+    const deductionsNum =
+      r.totalDeductionsApplied !== undefined
+        ? wpsNum(r.totalDeductionsApplied)
+        : wpsNum(r.deductions) + gosiNum;
+    const netNum =
+      r.netSalary !== undefined && r.netSalary !== null && r.netSalary !== ''
+        ? wpsNum(r.netSalary)
+        : basicNum + housingNum + otherIncomeNum - deductionsNum;
+
     const net = netNum.toFixed(2);
     totalNetSalary += parseFloat(net);
 
-    // Standard SAMA / Mudad EDR (Employee Detail Record)
-    edrLines.push([
-      'EDR',
-      nationalId,
-      bankCode,
-      iban,
-      empName,
-      net,
-      basic,
-      housing,
-      otherIncome,
-      deductions,
-      'SAR',
-      `WPS-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-    ].join(','));
+    edrLines.push(
+      [
+        'EDR',
+        nationalId,
+        bankCode,
+        iban,
+        empName,
+        net,
+        basicNum.toFixed(2),
+        housingNum.toFixed(2),
+        otherIncomeNum.toFixed(2),
+        deductionsNum.toFixed(2),
+        'SAR',
+        `WPS-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`,
+      ].join(',')
+    );
   });
 
-  // SCR (Salary Control Record - Header/Footer Summary for Saudi Banks & Mudad)
   const scrHeader = [
     'SCR',
     company.crNumber,
@@ -3994,48 +5152,146 @@ export function exportToWPS(
     'SAR',
     totalNetSalary.toFixed(2),
     String(edrLines.length),
-    exporter.name
+    exporter.name,
   ].join(',');
 
-  const sifContent = '\uFEFF' + [
-    `# SAMA & MUDAD WAGE PROTECTION SYSTEM (WPS SIF) — ${company.nameAr}`,
-    `# EXPORTED BY: ${exporter.name} (${exporter.branch}) — SECTION: ${sectionKey}`,
-    scrHeader,
-    ...edrLines
-  ].join('\r\n');
+  return (
+    '\uFEFF' +
+    [
+      `# SAMA & MUDAD WAGE PROTECTION SYSTEM (WPS SIF) — ${company.nameAr}`,
+      `# EXPORTED BY: ${exporter.name} (${exporter.branch}) — SECTION: ${sectionKey}`,
+      scrHeader,
+      ...edrLines,
+    ].join('\r\n')
+  );
+}
 
+export function exportToWPS(
+  sectionKey: string,
+  data: any[],
+  customTitle?: string,
+  options?: ExportCustomizationOptions
+): void {
+  const now = new Date();
+  const title = options?.customTitle || customTitle || 'ملف_حماية_الأجور_WPS';
+  const sifContent = buildWpsSifContent(sectionKey, data, customTitle, options, now);
   if (typeof Blob !== 'undefined') {
     const blob = new Blob([sifContent], { type: 'text/plain;charset=utf-8;' });
     triggerBlobDownload(blob, `${title.replace(/[\s/\\:]+/g, '_')}_${now.toISOString().slice(0, 10)}.sif.csv`);
   }
 }
 
+function waitForPrintDocumentReady(doc: Document | null | undefined, maxWaitMs = 500): Promise<void> {
+  if (!doc) return Promise.resolve();
+  const fontsReady =
+    typeof (doc as Document & { fonts?: { ready?: Promise<unknown> } }).fonts?.ready?.then ===
+    'function'
+      ? (doc as Document & { fonts: { ready: Promise<unknown> } }).fonts.ready.then(() => undefined).catch(() => undefined)
+      : Promise.resolve();
+  const timeout = new Promise<void>((resolve) => setTimeout(resolve, maxWaitMs));
+  return Promise.race([fontsReady, timeout]);
+}
+
+function printViaHiddenIframe(htmlContent: string): boolean {
+  if (typeof document === 'undefined' || !document.body) return false;
+  try {
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('aria-hidden', 'true');
+    iframe.setAttribute('data-no-print', 'true');
+    iframe.style.cssText =
+      'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;pointer-events:none;';
+    document.body.appendChild(iframe);
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!doc || !iframe.contentWindow) {
+      document.body.removeChild(iframe);
+      return false;
+    }
+    doc.open();
+    doc.write(htmlContent);
+    doc.close();
+    const win = iframe.contentWindow;
+    void waitForPrintDocumentReady(doc, 500).then(() => {
+      setTimeout(() => {
+        try {
+          win.focus();
+          win.print();
+        } catch {
+          // printing blocked — HTML fallback already offered by caller
+        }
+        setTimeout(() => {
+          if (document.body.contains(iframe)) document.body.removeChild(iframe);
+        }, 60000);
+      }, 150);
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // ─── Export to Official Printable Report (High-fidelity A4 Print) ────
+// Returns true when a print surface (popup or hidden-iframe fallback) was opened.
 export function exportToPrint(
   sectionKey: string,
   data: any[],
   customTitle?: string,
   options?: ExportCustomizationOptions
-): void {
-  const htmlContent = generateExecutiveReportHtml(sectionKey, data, customTitle, true, options);
-  if (isRunningInTest()) {
-    return;
+): boolean {
+  const htmlContent = generateExecutiveReportHtml(sectionKey, data, customTitle, true, {
+    ...options,
+    embedPreview: false,
+  });
+  const openFn = typeof window !== 'undefined' ? (window.open as any) : undefined;
+  // jsdom does not implement window.open; only run the real path in tests when it has been mocked.
+  if (isRunningInTest() && !(openFn && openFn._isMockFunction)) {
+    return false;
   }
-  const printWindow = typeof window !== 'undefined' && typeof window.open === 'function'
-    ? window.open('', '_blank', 'width=1200,height=880')
-    : null;
-  
+  const printWindow =
+    typeof window !== 'undefined' && typeof window.open === 'function'
+      ? window.open('', '_blank', 'width=1200,height=880')
+      : null;
+
   if (!printWindow) {
+    const printedViaIframe = printViaHiddenIframe(htmlContent);
     useAppStore.getState().addNotification({
       title: 'تنبيه الطباعة',
-      message: 'يرجى السماح بالنوافذ المنبثقة (Popups) في المتصفح لمعاينة وطباعة التقرير.',
+      message: printedViaIframe
+        ? 'تم حظر النافذة المنبثقة من المتصفح؛ جاري تشغيل الطباعة المباشرة A4 عبر المحرك المدمج.'
+        : 'تعذر فتح نافذة الطباعة المباشرة؛ تم تنزيل نسخة التقرير الرسمية بصيغة HTML جاهزة للطباعة.',
       type: 'warning',
     });
-    return;
+    if (printedViaIframe) return true;
+    exportToHTML(sectionKey, data, customTitle, options);
+    return false;
   }
 
+  printWindow.document.open?.();
   printWindow.document.write(htmlContent);
   printWindow.document.close();
+
+  // Auto-trigger system print dialog once fonts & SVG QR/barcodes settle
+  void waitForPrintDocumentReady(printWindow.document, 500).then(() => {
+    setTimeout(() => {
+      try {
+        printWindow.focus?.();
+        printWindow.print?.();
+      } catch {
+        // User can still click the interactive print button inside the report window
+      }
+    }, 150);
+  });
+
+  return true;
+}
+
+/** Official alias used by pages/modules for printing the standard A4 RTL report. */
+export function printOfficialReport(
+  sectionKey: string,
+  data: any[],
+  customTitle?: string,
+  options?: ExportCustomizationOptions
+): boolean {
+  return exportToPrint(sectionKey, data, customTitle, options);
 }
 
 // ─── Export to Structured Enterprise JSON ────────────────────────────
@@ -4045,23 +5301,36 @@ export function exportToJSON(
   customTitle?: string,
   options?: ExportCustomizationOptions
 ): void {
+  data = Array.isArray(data) ? data : [];
   const config = resolveConfig(sectionKey, data, customTitle, options);
   const title = options?.customTitle || customTitle || config.sectionTitle;
-  const company = getActiveCompanyInfo();
+  const branding = resolveDocumentBranding(data, {
+    entityCode: options?.entityCode,
+    hideHoldingGroupBrand: options?.hideHoldingGroupBrand,
+    customCompanyNameAr: options?.customCompanyNameAr,
+    customFinanceSignatory: options?.customFinanceSignatory,
+    customExecutiveSignatory: options?.customExecutiveSignatory,
+  });
+  const company = getActiveCompanyInfo(data, options);
   const exporter = getAuthenticatedExporterInfo();
-  const mappedRows = data.map(r => config.dataMapper(r));
+  const mappedRows = resolveEffectiveMappedRows(config, data, options);
   const kpis = calculateReportKpis(config.headers, mappedRows);
 
   const payload = {
     metadata: {
-      system: 'KAS & Al-Sulaim Group Enterprise ERP v4.0',
-      holdingGroup: GROUP_COMPANY_INFO,
+      system: branding.hideHoldingGroupBrand
+        ? `${company.nameEn} Enterprise ERP v4.0`
+        : 'KAS & Al-Sulaim Group Enterprise ERP v4.0',
+      ...(branding.hideHoldingGroupBrand ? {} : { holdingGroup: GROUP_COMPANY_INFO }),
       activeEntity: company,
-      exportedByEmployee: exporter,
+      exportedByEmployee: {
+        ...exporter,
+        name: options?.customPreparerName?.trim() || exporter.name,
+      },
       reportTitle: title,
       sectionKey,
       exportedAt: new Date().toISOString(),
-      recordCount: data.length,
+      recordCount: mappedRows.length,
       executiveNote: options?.executiveNote || null,
       complianceStandards: ['ZATCA Phase 2 (Fatoora)', 'SAMA Banking', 'Mudad WPS', 'Saudi PDPL'],
     },
@@ -4072,7 +5341,7 @@ export function exportToJSON(
       tafqeetArabic: kpis.tafqeetAr,
     },
     headers: config.headers,
-    records: data
+    records: options?.editableRows ? mappedRows : data,
   };
 
   const jsonString = JSON.stringify(payload, null, 2);
@@ -4089,10 +5358,22 @@ export function exportToWord(
   customTitle?: string,
   options?: ExportCustomizationOptions
 ): void {
+  data = Array.isArray(data) ? data : [];
   const config = resolveConfig(sectionKey, data, customTitle, options);
   const title = options?.customTitle || customTitle || config.sectionTitle;
-  const company = getActiveCompanyInfo();
-  const exporter = getAuthenticatedExporterInfo();
+  const branding = resolveDocumentBranding(data, {
+    entityCode: options?.entityCode,
+    hideHoldingGroupBrand: options?.hideHoldingGroupBrand,
+    customCompanyNameAr: options?.customCompanyNameAr,
+    customFinanceSignatory: options?.customFinanceSignatory,
+    customExecutiveSignatory: options?.customExecutiveSignatory,
+  });
+  const company = getActiveCompanyInfo(data, options);
+  const rawExporter = getAuthenticatedExporterInfo();
+  const exporter = {
+    ...rawExporter,
+    name: options?.customPreparerName?.trim() || rawExporter.name,
+  };
 
   const now = new Date();
   const dateAr = now.toLocaleDateString('ar-SA', {
@@ -4102,19 +5383,19 @@ export function exportToWord(
   });
   const isoDate = now.toISOString().slice(0, 10);
 
-  const mappedRows = data.map(r => config.dataMapper(r));
+  const mappedRows = resolveEffectiveMappedRows(config, data, options);
   const kpis = calculateReportKpis(config.headers, mappedRows);
 
   const tableRowsHtml = mappedRows.map((row, idx) => `
     <tr style="background-color: ${idx % 2 === 0 ? '#FFFFFF' : '#F8FAFC'};">
       <td style="text-align: center; font-weight: bold; border: 1px solid #E4E4E7; padding: 6px; font-size: 10pt; color: #707070;">${idx + 1}</td>
-      ${row.map(val => `<td style="border: 1px solid #E4E4E7; padding: 6px 8px; font-size: 10pt; text-align: right; color: #141414;">${String(val ?? '-')}</td>`).join('')}
+      ${row.map(val => `<td style="border: 1px solid #E4E4E7; padding: 6px 8px; font-size: 10pt; text-align: right; color: #141414;">${escapeHtmlReportText(val === '' ? '-' : val)}</td>`).join('')}
     </tr>
   `).join('');
 
   const tableHeadersHtml = `
     <th style="background-color: #141414; color: #FFFFFF; font-weight: bold; border: 1px solid #262626; padding: 8px; width: 35px; text-align: center;">#</th>
-    ${config.headers.map(h => `<th style="background-color: #141414; color: #FFFFFF; font-weight: bold; border: 1px solid #262626; padding: 8px; text-align: right; font-size: 10.5pt;">${h}</th>`).join('')}
+    ${config.headers.map(h => `<th style="background-color: #141414; color: #FFFFFF; font-weight: bold; border: 1px solid #262626; padding: 8px; text-align: right; font-size: 10.5pt;">${escapeHtmlReportText(h)}</th>`).join('')}
   `;
 
   let totalRowHtml = '';
@@ -4136,7 +5417,7 @@ export function exportToWord(
     <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
     <head>
       <meta charset='utf-8'>
-      <title>${title}</title>
+      <title>${escapeHtmlReportText(title)}</title>
       <!--[if gte mso 9]>
       <xml>
         <w:WordDocument>
@@ -4194,15 +5475,15 @@ export function exportToWord(
     <body lang=AR-SA>
       <div style="border-bottom: 2.5pt solid #141414; padding-bottom: 12px; margin-bottom: 14px;">
         <div style="float: left; font-size: 9pt; color: #707070; text-align: left;">
-          <div><strong>${GROUP_COMPANY_INFO.nameAr}</strong></div>
-          <div>رقم السجل التجاري: ${company.crNumber}</div>
-          <div>الرقم الضريبي: ${company.taxNumber}</div>
-          <div>الفرع: ${exporter.branch}</div>
+          ${branding.hideHoldingGroupBrand ? '' : `<div><strong>${escapeHtmlReportText(GROUP_COMPANY_INFO.nameAr)}</strong></div>`}
+          <div>رقم السجل التجاري: ${escapeHtmlReportText(company.crNumber)}</div>
+          <div>الرقم الضريبي: ${escapeHtmlReportText(company.taxNumber)}</div>
+          <div>الفرع: ${escapeHtmlReportText(exporter.branch)}</div>
         </div>
-        <div class="header-title">${company.nameAr}</div>
-        <div style="font-size: 10.5pt; color: #707070; font-weight: bold;">${company.nameEn}</div>
+        <div class="header-title">${escapeHtmlReportText(company.nameAr)}</div>
+        <div style="font-size: 10.5pt; color: #707070; font-weight: bold;">${escapeHtmlReportText(company.nameEn)}</div>
         <div class="sub-header">
-          <strong>${title}</strong> • تاريخ الإصدار: ${dateAr} • إجمالي السجلات: ${data.length} • إعداد: ${exporter.name} (${exporter.role})
+          <strong>${escapeHtmlReportText(title)}</strong> • تاريخ الإصدار: ${dateAr} • إجمالي السجلات: ${mappedRows.length} • إعداد: ${escapeHtmlReportText(exporter.name)} (${escapeHtmlReportText(exporter.role)})
         </div>
         ${kpis.hasFinancials && kpis.totalAmount > 0 ? `
         <div style="background-color: #F3F3F3; border: 1pt solid #E0E0E0; border-right: 3pt solid #141414; padding: 6px 10px; font-size: 10pt; font-weight: bold; color: #141414; margin-top: 6px;">
@@ -4225,24 +5506,24 @@ export function exportToWord(
         <tr>
           <td>
             <div style="font-weight: bold; font-size: 11pt; color: #141414;">إعداد الموظف المختص</div>
-            <div style="color: #707070; font-size: 9.5pt; margin-top: 3px;">${exporter.name} — ${exporter.role}</div>
-            <div style="margin-top: 20px; border-top: 1pt dashed #E0E0E0; padding-top: 6px; font-size: 9pt; color: #707070;">الفرع: ${exporter.branch} • التاريخ: ${isoDate}</div>
+            <div style="color: #707070; font-size: 9.5pt; margin-top: 3px;">${escapeHtmlReportText(exporter.name)} — ${escapeHtmlReportText(exporter.role)}</div>
+            <div style="margin-top: 20px; border-top: 1pt dashed #E0E0E0; padding-top: 6px; font-size: 9pt; color: #707070;">الفرع: ${escapeHtmlReportText(exporter.branch)} • التاريخ: ${isoDate}</div>
           </td>
           <td>
             <div style="font-weight: bold; font-size: 11pt; color: #141414;">تدقيق الإدارة المالية</div>
-            <div style="color: #707070; font-size: 9.5pt; margin-top: 3px;">أ. محمد بن عبدالرحمن السليم (Group CFO)</div>
+            <div style="color: #707070; font-size: 9.5pt; margin-top: 3px;">${escapeHtmlReportText(branding.financeSignatoryNameAr)} (${escapeHtmlReportText(branding.financeSignatoryRoleAr)})</div>
             <div style="margin-top: 20px; border-top: 1pt dashed #E0E0E0; padding-top: 6px; font-size: 9pt; color: #707070;">مطابق للدفاتر • التاريخ: ${isoDate}</div>
           </td>
           <td>
             <div style="font-weight: bold; font-size: 11pt; color: #141414;">اعتماد الإدارة والختم الرسمي</div>
-            <div style="color: #707070; font-size: 9.5pt; margin-top: 3px;">الشيخ خالد بن عبدالعزيز السليم</div>
+            <div style="color: #707070; font-size: 9.5pt; margin-top: 3px;">${escapeHtmlReportText(branding.executiveSignatoryNameAr)}</div>
             <div style="margin-top: 20px; border-top: 1pt dashed #E0E0E0; padding-top: 6px; font-size: 9pt; color: #707070;">معتمد رسمياً • التاريخ: ${isoDate}</div>
           </td>
         </tr>
       </table>
 
       <div style="margin-top: 22px; border-top: 1pt solid #E0E0E0; padding-top: 8px; font-size: 8.5pt; color: #707070; text-align: center;">
-        وثيقة رسمية مستخرجة من منظومة ${GROUP_COMPANY_INFO.nameAr} (${company.nameAr}) • معتمدة بموجب نظام التعاملات الإلكترونية السعودي
+        وثيقة رسمية مستخرجة من ${escapeHtmlReportText(branding.footerOrganizationLineAr)} • معتمدة بموجب نظام التعاملات الإلكترونية السعودي
       </div>
     </body>
     </html>
@@ -4261,10 +5542,20 @@ export function exportToXML(
   customTitle?: string,
   options?: ExportCustomizationOptions
 ): void {
+  data = Array.isArray(data) ? data : [];
   const config = resolveConfig(sectionKey, data, customTitle, options);
   const title = options?.customTitle || customTitle || config.sectionTitle;
-  const company = getActiveCompanyInfo();
-  const exporter = getAuthenticatedExporterInfo();
+  const branding = resolveDocumentBranding(data, {
+    entityCode: options?.entityCode,
+    hideHoldingGroupBrand: options?.hideHoldingGroupBrand,
+    customCompanyNameAr: options?.customCompanyNameAr,
+  });
+  const company = getActiveCompanyInfo(data, options);
+  const rawExporter = getAuthenticatedExporterInfo();
+  const exporter = {
+    ...rawExporter,
+    name: options?.customPreparerName?.trim() || rawExporter.name,
+  };
 
   const now = new Date();
   const isoDate = now.toISOString().slice(0, 10);
@@ -4287,7 +5578,7 @@ export function exportToXML(
       .replace(/^([0-9])/, '_$1') || 'field';
   };
 
-  const mappedRows = data.map(r => config.dataMapper(r));
+  const mappedRows = resolveEffectiveMappedRows(config, data, options);
   const kpis = calculateReportKpis(config.headers, mappedRows);
 
   let recordsXml = '';
@@ -4301,16 +5592,20 @@ export function exportToXML(
     recordsXml += `    </Record>\n`;
   });
 
+  const xmlSystemLabel = branding.hideHoldingGroupBrand
+    ? `${escapeXml(company.nameEn)} Enterprise ERP v4.0`
+    : 'KAS &amp; Al-Sulaim Group Enterprise ERP v4.0';
+
   const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
-<EnterpriseReport xmlns="urn:alsulaim:erp:report:v4" xmlns:zatca="urn:zatca:tax:ubl:v2">
+<EnterpriseReport xmlns="urn:erp:report:v4" xmlns:zatca="urn:zatca:tax:ubl:v2">
   <ReportMetadata>
-    <System>KAS &amp; Al-Sulaim Group Enterprise ERP v4.0</System>
-    <HoldingGroup>${escapeXml(GROUP_COMPANY_INFO.nameAr)}</HoldingGroup>
+    <System>${xmlSystemLabel}</System>
+    ${branding.hideHoldingGroupBrand ? '' : `<HoldingGroup>${escapeXml(GROUP_COMPANY_INFO.nameAr)}</HoldingGroup>`}
     <ReportTitle>${escapeXml(title)}</ReportTitle>
     <SectionKey>${escapeXml(sectionKey)}</SectionKey>
     <IssueDate>${isoDate}</IssueDate>
     <IssueTime>${isoTime}</IssueTime>
-    <RecordCount>${data.length}</RecordCount>
+    <RecordCount>${mappedRows.length}</RecordCount>
     <AccountingSupplierParty>
       <EntityCode>${escapeXml(company.code)}</EntityCode>
       <NameAr>${escapeXml(company.nameAr)}</NameAr>
@@ -4353,6 +5648,7 @@ export function exportToHTML(
   customTitle?: string,
   options?: ExportCustomizationOptions
 ): void {
+  data = Array.isArray(data) ? data : [];
   const htmlContent = generateExecutiveReportHtml(sectionKey, data, customTitle, false, options);
   const title = options?.customTitle || customTitle || resolveConfig(sectionKey, data, customTitle, options).sectionTitle;
   const isoDate = new Date().toISOString().slice(0, 10);
@@ -4370,14 +5666,15 @@ export function exportToTSV(
   customTitle?: string,
   options?: ExportCustomizationOptions
 ): void {
+  data = Array.isArray(data) ? data : [];
   const config = resolveConfig(sectionKey, data, customTitle, options);
   const title = options?.customTitle || customTitle || config.sectionTitle;
   const rows: string[] = [];
 
   rows.push(config.headers.join('\t'));
 
-  data.forEach(row => {
-    const mapped = config.dataMapper(row);
+  const mappedRows = resolveEffectiveMappedRows(config, data, options);
+  mappedRows.forEach(mapped => {
     rows.push(mapped.map(v => String(v ?? '').replace(/\t/g, ' ').replace(/[\r\n]+/g, ' ')).join('\t'));
   });
 
@@ -4396,35 +5693,53 @@ export function exportToMarkdown(
   customTitle?: string,
   options?: ExportCustomizationOptions
 ): void {
+  data = Array.isArray(data) ? data : [];
   const config = resolveConfig(sectionKey, data, customTitle, options);
   const title = options?.customTitle || customTitle || config.sectionTitle;
-  const company = getActiveCompanyInfo();
-  const exporter = getAuthenticatedExporterInfo();
+  const branding = resolveDocumentBranding(data, {
+    entityCode: options?.entityCode,
+    hideHoldingGroupBrand: options?.hideHoldingGroupBrand,
+    customCompanyNameAr: options?.customCompanyNameAr,
+    customFinanceSignatory: options?.customFinanceSignatory,
+    customExecutiveSignatory: options?.customExecutiveSignatory,
+  });
+  const company = getActiveCompanyInfo(data, options);
+  const rawExporter = getAuthenticatedExporterInfo();
+  const exporter = {
+    ...rawExporter,
+    name: options?.customPreparerName?.trim() || rawExporter.name,
+  };
 
   const now = new Date();
   const dateAr = now.toLocaleDateString('ar-SA');
   const isoDate = now.toISOString().slice(0, 10);
 
-  const mappedRows = data.map(r => config.dataMapper(r));
+  const mappedRows = resolveEffectiveMappedRows(config, data, options);
   const kpis = calculateReportKpis(config.headers, mappedRows);
 
   let md = `---\n`;
   md += `title: "${title}"\n`;
-  md += `holding_group: "${GROUP_COMPANY_INFO.nameAr}"\n`;
+  if (!branding.hideHoldingGroupBrand) {
+    md += `holding_group: "${GROUP_COMPANY_INFO.nameAr}"\n`;
+  }
   md += `entity: "${company.nameAr} (${company.code})"\n`;
   md += `cr_number: "${company.crNumber}"\n`;
   md += `vat_number: "${company.taxNumber}"\n`;
   md += `exported_by: "${exporter.name} (${exporter.role})"\n`;
   md += `branch: "${exporter.branch}"\n`;
   md += `date: "${isoDate}"\n`;
-  md += `records_count: ${data.length}\n`;
+  md += `records_count: ${mappedRows.length}\n`;
   md += `---\n\n`;
 
   md += `# ${title}\n\n`;
-  md += `**المجموعة القابضة**: ${GROUP_COMPANY_INFO.nameAr} | **الكيان**: ${company.nameAr} (${company.nameEn})  \n`;
+  if (branding.hideHoldingGroupBrand) {
+    md += `**الكيان المصدر**: ${company.nameAr} (${company.nameEn})  \n`;
+  } else {
+    md += `**المجموعة القابضة**: ${GROUP_COMPANY_INFO.nameAr} | **الكيان**: ${company.nameAr} (${company.nameEn})  \n`;
+  }
   md += `**السجل التجاري**: \`${company.crNumber}\` | **الرقم الضريبي**: \`${company.taxNumber}\`  \n`;
   md += `**الموظف المستخرج**: ${exporter.name} (${exporter.role}) | **الفرع**: ${exporter.branch}  \n`;
-  md += `**تاريخ الاستخراج**: ${dateAr} | **إجمالي السجلات**: ${data.length}\n\n`;
+  md += `**تاريخ الاستخراج**: ${dateAr} | **إجمالي السجلات**: ${mappedRows.length}\n\n`;
 
   md += `### ملخص المؤشرات التنفيذية (Executive KPIs)\n`;
   md += `- **إجمالي السجلات المدققة**: ${kpis.recordCount} سجل\n`;
@@ -4460,9 +5775,9 @@ export function exportToMarkdown(
   md += `| مرحلة الاعتماد | المسؤول المختص | الفرع / الصفة | الحالة |\n`;
   md += `| :--- | :--- | :--- | :--- |\n`;
   md += `| **إعداد واستخراج** | ${exporter.name} | ${exporter.branch} (${exporter.role}) | ✓ موثق إلكترونياً |\n`;
-  md += `| **التدقيق المالي** | أ. محمد بن عبدالرحمن السليم | المدير المالي التنفيذي (Group CFO) | ✓ مطابق للدفاتر |\n`;
-  md += `| **اعتماد المجموعة** | الشيخ خالد بن عبدالعزيز السليم | رئيس مجلس الإدارة | ✓ معتمد ونافذ |\n\n`;
-  md += `*تم استخراج هذا التقرير آلياً عبر منظومة تخطيط الموارد المؤسسية ERP لمجموعة خالد السليم التجارية — \`SHA256:${isoDate}-${sectionKey}\`*\n`;
+  md += `| **التدقيق المالي** | ${branding.financeSignatoryNameAr} | ${branding.financeSignatoryRoleAr} | ✓ مطابق للدفاتر |\n`;
+  md += `| **الاعتماد التنفيذي** | ${branding.executiveSignatoryNameAr} | ${branding.executiveSignatoryRoleAr} | ✓ معتمد ونافذ |\n\n`;
+  md += `*تم استخراج هذا التقرير آلياً عبر ${branding.systemPlatformTitleAr} — \`SHA256:${isoDate}-${sectionKey}\`*\n`;
 
   if (typeof Blob !== 'undefined') {
     const blob = new Blob([md], { type: 'text/markdown;charset=utf-8;' });
@@ -4489,12 +5804,14 @@ function recordExportAuditTrail(
   sectionKey: string,
   title: string,
   format: ExportFormat,
-  recordCount: number
+  recordCount: number,
+  targetData?: any[],
+  options?: ExportCustomizationOptions
 ): void {
   if (isRunningInTest() || typeof localStorage === 'undefined') return;
   try {
     const exporter = getAuthenticatedExporterInfo();
-    const company = getActiveCompanyInfo();
+    const company = getActiveCompanyInfo(targetData, options);
     const nowFormatted = new Date().toISOString().replace('T', ' ').slice(0, 16);
     const key = 'ALSULAIM_ERP_DB_V1_activity_log';
     const existingRaw = localStorage.getItem(key);
@@ -4537,7 +5854,7 @@ export function exportData(
   format: ExportFormat = 'excel',
   customTitle?: string,
   options?: ExportCustomizationOptions
-): void {
+): Promise<void> | void {
   let sectionKey: string;
   let data: any[];
   let exportFmt: ExportFormat = format;
@@ -4556,15 +5873,15 @@ export function exportData(
   }
 
   const resolvedTitle = title || resolveConfig(sectionKey, data, title, options).sectionTitle;
-  recordExportAuditTrail(sectionKey, resolvedTitle, exportFmt, data.length);
+  const effectiveCount = options?.editableRows ? options.editableRows.length : data.length;
+  recordExportAuditTrail(sectionKey, resolvedTitle, exportFmt, effectiveCount, data, options);
 
   switch (exportFmt) {
     case 'excel':
       exportToExcel(sectionKey, data, title, options);
       break;
     case 'pdf':
-      void exportToPDF(sectionKey, data, title, options);
-      break;
+      return exportToPDF(sectionKey, data, title, options);
     case 'csv':
       exportToCSV(sectionKey, data, title, options);
       break;
@@ -4590,8 +5907,7 @@ export function exportData(
       exportToMarkdown(sectionKey, data, title, options);
       break;
     case 'png':
-      void exportToPNG(sectionKey, data, title, options);
-      break;
+      return exportToPNG(sectionKey, data, title, options);
     case 'wps':
       exportToWPS(sectionKey, data, title, options);
       break;

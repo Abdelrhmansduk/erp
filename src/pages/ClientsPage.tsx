@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useModalEscape } from '../hooks/useModalEscape';
 import { exportData } from '../services/exportService';
 import { ExportDropdown } from '../components/common/ExportDropdown';
 import { useClients, useTableMutation } from '../hooks/queries/useErpQueries';
@@ -14,6 +15,7 @@ import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 
 export const ClientsPage: React.FC = () => {
+  useModalEscape();
   const { data: clients = [], isLoading } = useClients();
   const { createItem, updateItem, deleteItem } = useTableMutation('clients');
   const { activeCompanyId } = useCompany();
@@ -424,8 +426,8 @@ export const ClientsPage: React.FC = () => {
 
       {/* Add Client Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <UserCheck className="w-4 h-4 text-[#141414]" />
@@ -517,8 +519,8 @@ export const ClientsPage: React.FC = () => {
 
       {/* Edit Client Modal */}
       {editingClient && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setEditingClient(null); }}>
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Edit className="w-4 h-4 text-[#141414]" />

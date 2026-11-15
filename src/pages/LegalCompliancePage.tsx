@@ -1,5 +1,6 @@
 import i18n from '../i18n/config';
 import React, { useState, useEffect } from 'react';
+import { useModalEscape } from '../hooks/useModalEscape';
 import { 
   Scale, ShieldCheck, FileText, Search, Plus, Filter, Download, 
   Printer, CheckCircle2, AlertTriangle, Eye, Lock, Fingerprint, 
@@ -106,6 +107,7 @@ const DEFAULT_MOCK_UNDERTAKINGS: SignedUndertakingRecord[] = [
 ];
 
 export const LegalCompliancePage: React.FC = () => {
+  useModalEscape();
   const { addNotification } = useAppStore();
   const [activeSubTab, setActiveSubTab] = useState<'undertakings' | 'policies' | 'audit'>('undertakings');
   const [undertakings, setUndertakings] = useState<SignedUndertakingRecord[]>([]);
@@ -491,8 +493,8 @@ export const LegalCompliancePage: React.FC = () => {
 
       {/* Printable / Viewable Official Legal Certificate Modal */}
       {selectedUndertaking && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[2200] flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-zinc-300 overflow-hidden font-sans max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[2200] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" data-printable-modal="true" onClick={(e) => { if (e.target === e.currentTarget) setSelectedUndertaking(null); }}>
+          <div className="w-full max-w-2xl bg-white rounded-[24px] border border-zinc-300 overflow-hidden font-sans max-h-[90vh] flex flex-col">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between print:hidden">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Scale className="w-4 h-4 text-[#141414]" />
@@ -504,7 +506,7 @@ export const LegalCompliancePage: React.FC = () => {
             </div>
 
             {/* Certificate Body (Print Optimized) */}
-            <div className="p-8 overflow-y-auto space-y-5 bg-white text-[#141414] border-4 border-double border-zinc-300 m-4 rounded-2xl">
+            <div className="erp-printable-sheet p-8 overflow-y-auto space-y-5 bg-white text-[#141414] border-4 border-double border-zinc-300 m-4 rounded-2xl">
               {/* Certificate Header */}
               <div className="text-center border-b-2 border-[#141414] pb-4">
                 <div className="text-xs font-bold text-[#707070] uppercase tracking-widest">المملكة العربية السعودية</div>

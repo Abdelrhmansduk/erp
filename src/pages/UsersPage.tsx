@@ -1,5 +1,6 @@
 import i18n from '../i18n/config';
 import React, { useState, useEffect } from 'react';
+import { useModalEscape } from '../hooks/useModalEscape';
 import { Badge } from '../components/ui/Badge';
 import { exportData } from '../services/exportService';
 import { ExportDropdown } from '../components/common/ExportDropdown';
@@ -57,6 +58,7 @@ const MOCK_USERS: UserAdmin[] = KAS_ALLOWED_EMPLOYEES.map((emp, idx) => ({
 }));
 
 export const UsersPage: React.FC = () => {
+  useModalEscape();
   const { addNotification } = useAppStore();
   const [users, setUsers] = useState<UserAdmin[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserAdmin | null>(null);
@@ -611,8 +613,8 @@ export const UsersPage: React.FC = () => {
 
       {/* Add User Modal */}
       {showAddUserModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAddUserModal(false); }}>
+          <div className="w-full max-w-lg bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <UserCheck className="w-4 h-4 text-[#141414]" />
@@ -750,8 +752,8 @@ export const UsersPage: React.FC = () => {
 
       {/* Edit Role & Permissions Modal */}
       {showEditRoleModal && userToEditRole && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowEditRoleModal(false); }}>
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <UserCog className="w-4 h-4 text-[#141414]" />
@@ -840,8 +842,8 @@ export const UsersPage: React.FC = () => {
 
       {/* 2FA & Biometric Management Modal */}
       {show2FAModal && selectedUser && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShow2FAModal(false); }}>
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Fingerprint className="w-4 h-4 text-[#141414]" />
@@ -1043,8 +1045,8 @@ export const UsersPage: React.FC = () => {
       )}
       {/* Dedicated Real Hardware Biometric Management Modal (WebAuthn / FIDO2) */}
       {showBiometricModal && userForBiometrics && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowBiometricModal(false); }}>
+          <div className="w-full max-w-2xl bg-white rounded-[24px] border border-zinc-200 overflow-hidden font-sans max-h-[90vh] flex flex-col">
             {/* Modal Header */}
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-3">

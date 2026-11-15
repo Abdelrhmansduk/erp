@@ -43,6 +43,7 @@ const DEFAULT_QUICK_LINKS: QuickLinkItem[] = [
 export const SettingsPage: React.FC = () => {
   const { addNotification } = useAppStore();
   const storeActiveTab = useAppStore(state => state.activeTab);
+  const setActiveTab = useAppStore(state => state.setActiveTab);
 
   const getMappedSection = (tabKey: string): string => {
     if (tabKey === 'system-backup' || tabKey === 'backup' || tabKey === 'database-backup') return 'system-backup';
@@ -1104,6 +1105,30 @@ export const SettingsPage: React.FC = () => {
               <div className="border-b border-zinc-100 pb-3">
                 <h3 className="text-sm font-bold text-[#141414] m-0">إدارة الروابط السريعة الحكومية والخدمية (Quick Links Bar)</h3>
                 <p className="text-xs text-[#707070] mt-1">الروابط المباشرة الظاهرة في القائمة والشريط العلوي لتسريع وصول الموظفين للبوابات الحكومية.</p>
+              </div>
+
+              {/* Unified Government Integration Hub quick card */}
+              <div className="p-4 rounded-[24px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-[30%] bg-[#141414] text-white flex items-center justify-center shrink-0">
+                    <Shield className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-[#141414]">مركز التكامل والربط الحكومي الموحد</div>
+                    <p className="text-[11px] text-[#707070] m-0 mt-0.5">
+                      مساند، ZATCA، قوى، مدد، التأمينات GOSI، أبشر، إنجاز — جاهزية الربط، فاحص التوافق، وسجل المزامنة في مكان واحد.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('gov-integrations', 'مركز التكامل والربط الحكومي الموحد')}
+                  className="button-primary-pill flex items-center gap-1 text-xs"
+                  style={{ padding: '6px 18px', minHeight: '36px' }}
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>فتح مركز الربط الحكومي</span>
+                </button>
               </div>
 
               {/* Add Quick Link Form */}

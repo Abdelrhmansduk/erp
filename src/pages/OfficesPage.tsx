@@ -585,8 +585,8 @@ export const OfficesPage: React.FC = () => {
 
       {/* ADD OFFICE MODAL */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden text-slate-900 relative">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddModal(false)} className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white rounded-[24px] border border-slate-200 text-slate-900 relative max-h-[90vh] overflow-y-auto">
             <div className="absolute top-0 right-0 left-0 h-1.5 bg-gradient-to-r from-[#f3f3f3] via-[#f3f3f3] to-[#f3f3f3] rounded-t-3xl" />
 
             <div className="p-5 border-b border-slate-100 flex items-center justify-between">
@@ -723,8 +723,8 @@ export const OfficesPage: React.FC = () => {
 
       {/* STATEMENT MODAL */}
       {selectedOfficeStatement && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden text-slate-900 relative">
+        <div role="dialog" aria-modal="true" onClick={() => setSelectedOfficeStatement(null)} className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white rounded-[24px] border border-slate-200 text-slate-900 relative max-h-[90vh] overflow-y-auto">
             <div className="absolute top-0 right-0 left-0 h-1.5 bg-gradient-to-r from-[#f3f3f3] via-[#f3f3f3] to-[#f3f3f3] rounded-t-3xl" />
 
             <div className="p-5 border-b border-slate-100 flex items-center justify-between">
@@ -799,8 +799,8 @@ export const OfficesPage: React.FC = () => {
       )}
       {/* AGENT PORTAL CREDENTIALS MODAL */}
       {selectedOfficeCredentials && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden text-slate-900 relative">
+        <div role="dialog" aria-modal="true" onClick={() => setSelectedOfficeCredentials(null)} className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-slate-200 text-slate-900 relative max-h-[90vh] overflow-y-auto">
             <div className="p-5 border-b border-slate-100 flex items-center justify-between">
               <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
                 <Key className="w-4 h-4 text-[#141414]" />

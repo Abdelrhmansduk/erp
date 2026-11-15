@@ -4,11 +4,15 @@ import { ExportDropdown } from '../common/ExportDropdown';
 import { useAppStore } from '../../stores/appStore';
 import { IMPORT_TEMPLATES, downloadTemplate } from '../../services/importEngine';
 import { BusinessIllustration } from '../common/BusinessIllustration';
+import { RecordQuickActions } from '../common/RecordQuickActions';
+import { QuickSharePayload } from '../../services/quickShareService';
+import { resolveDocumentBranding } from '../../services/entityBrandingService';
 
 export interface Column<T> {
   header: string;
   accessor: keyof T | ((row: T) => React.ReactNode);
   width?: string;
+  editable?: boolean;
 }
 
 export interface ExportConfig {
@@ -38,6 +42,14 @@ interface DataTableProps<T> {
   exportConfig?: ExportConfig;
   /** Import configuration — enables Excel/CSV/JSON import and template download */
   importConfig?: TableImportConfig;
+  /** Optional row edit callback */
+  onEditRow?: (row: T) => void;
+  /** Optional soft-delete callback */
+  onDeleteRow?: (row: T, reason?: string) => void;
+  /** Optional WhatsApp / Email / Copy share payload builder per row */
+  shareRowBuilder?: (row: T) => QuickSharePayload;
+  /** Optional inline cell editing handler (double-click cell to edit) */
+  onInlineCellEdit?: (row: T, accessorKey: string, newValue: string) => void;
 }
 
 type TableDensity = 'comfortable' | 'standard' | 'compact';
@@ -52,6 +64,10 @@ export function DataTable<T extends { id: string | number }>({
   filterContent,
   exportConfig,
   importConfig,
+  onEditRow,
+  onDeleteRow,
+  shareRowBuilder,
+  onInlineCellEdit,
 }: DataTableProps<T>) {
   const { setActiveTab } = useAppStore();
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,6 +75,14 @@ export function DataTable<T extends { id: string | number }>({
   const [selectedIds, setSelectedIds] = useState<Set<string | number>>(new Set());
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showImportMenu, setShowImportMenu] = useState(false);
+  const [editingCell, setEditingCell] = useState<{
+    rowId: string | number;
+    accessorKey: string;
+    value: string;
+  } | null>(null);
+
+  const hasQuickActionsColumn = Boolean(onEditRow || onDeleteRow || shareRowBuilder);
+  const sessionBranding = resolveDocumentBranding(data);
   const [density, setDensity] = useState<TableDensity>(() => {
     try {
       const saved = localStorage.getItem(TABLE_DENSITY_KEY) as TableDensity | null;
@@ -490,13 +514,28 @@ export function DataTable<T extends { id: string | number }>({
                   {col.header}
                 </th>
               ))}
+              {hasQuickActionsColumn && (
+                <th
+                  style={{
+                    width: '150px',
+                    padding: cellPadding,
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#52525b',
+                    textAlign: 'center',
+                    background: '#fafafa',
+                  }}
+                >
+                  الإجراءات والتواصل
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
             {filteredData.length === 0 ? (
               <tr>
                 <td
-                  colSpan={columns.length + 1}
+                  colSpan={columns.length + 1 + (hasQuickActionsColumn ? 1 : 0)}
                   style={{ textAlign: 'center', padding: '40px 16px', color: '#71717a' }}
                 >
                   <div className="flex flex-col items-center justify-center gap-3">
@@ -565,21 +604,84 @@ export function DataTable<T extends { id: string | number }>({
                       style={{ cursor: 'pointer', accentColor: '#141414' }}
                     />
                   </td>
-                  {columns.map((col, colIdx) => (
-                    <td
-                      key={colIdx}
-                      style={{
-                        padding: cellPadding,
-                        fontSize: cellFontSize,
-                        fontWeight: 420,
-                        color: '#141414',
-                      }}
-                    >
-                      {typeof col.accessor === 'function'
-                        ? col.accessor(row)
-                        : (row[col.accessor] as React.ReactNode)}
+                  {columns.map((col, colIdx) => {
+                    const isDirectAccessor = typeof col.accessor !== 'function';
+                    const accessorKey = isDirectAccessor ? String(col.accessor) : '';
+                    const isCellEditable =
+                      Boolean(onInlineCellEdit) &&
+                      isDirectAccessor &&
+                      col.editable !== false &&
+                      accessorKey !== 'id';
+                    const isEditingThis =
+                      isCellEditable &&
+                      editingCell?.rowId === row.id &&
+                      editingCell?.accessorKey === accessorKey;
+
+                    const commitInlineEdit = () => {
+                      if (editingCell && onInlineCellEdit) {
+                        const prevVal = String((row as any)[accessorKey] ?? '');
+                        if (editingCell.value !== prevVal) {
+                          onInlineCellEdit(row, accessorKey, editingCell.value);
+                        }
+                      }
+                      setEditingCell(null);
+                    };
+
+                    return (
+                      <td
+                        key={colIdx}
+                        onDoubleClick={() => {
+                          if (isCellEditable) {
+                            setEditingCell({
+                              rowId: row.id,
+                              accessorKey,
+                              value: String((row as any)[accessorKey] ?? ''),
+                            });
+                          }
+                        }}
+                        title={isCellEditable ? 'انقر مرتين لتعديل الحقل مباشرة' : undefined}
+                        style={{
+                          padding: cellPadding,
+                          fontSize: cellFontSize,
+                          fontWeight: 420,
+                          color: '#141414',
+                          cursor: isCellEditable ? 'text' : undefined,
+                        }}
+                      >
+                        {isEditingThis ? (
+                          <input
+                            type="text"
+                            autoFocus
+                            value={editingCell.value}
+                            onChange={(e) =>
+                              setEditingCell((prev) =>
+                                prev ? { ...prev, value: e.target.value } : null
+                              )
+                            }
+                            onBlur={commitInlineEdit}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') commitInlineEdit();
+                              if (e.key === 'Escape') setEditingCell(null);
+                            }}
+                            className="w-full px-2.5 py-1 rounded-[10px] bg-[#f3f3f3] border border-[#141414] text-xs font-bold text-[#141414] focus:outline-none"
+                          />
+                        ) : typeof col.accessor === 'function' ? (
+                          col.accessor(row)
+                        ) : (
+                          (row[col.accessor] as React.ReactNode)
+                        )}
+                      </td>
+                    );
+                  })}
+                  {hasQuickActionsColumn && (
+                    <td style={{ padding: cellPadding, textAlign: 'center' }}>
+                      <RecordQuickActions
+                        sharePayload={shareRowBuilder ? shareRowBuilder(row) : undefined}
+                        onEdit={onEditRow ? () => onEditRow(row) : undefined}
+                        onDelete={onDeleteRow ? (reason) => onDeleteRow(row, reason) : undefined}
+                      />
                     </td>
-                  ))}
+                  )}
                 </tr>
               ))
             )}
@@ -606,6 +708,11 @@ export function DataTable<T extends { id: string | number }>({
           إجمالي العناصر المعروضة:{' '}
           <strong style={{ color: '#141414' }}>{filteredData.length}</strong> من أصل{' '}
           <strong style={{ color: '#141414' }}>{data.length}</strong>
+          {onInlineCellEdit && (
+            <span style={{ marginRight: '10px', fontSize: '11px', color: '#707070' }}>
+              • نقر مزدوج لتعديل أي خلية مباشرة
+            </span>
+          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {searchQuery && (
@@ -613,7 +720,7 @@ export function DataTable<T extends { id: string | number }>({
               نتائج مصفاة
             </span>
           )}
-          <span>مجموعة خالد السليم • ERP UX 3.0</span>
+          <span>{sessionBranding.systemPlatformTitleAr} • ERP UX 4.0</span>
         </div>
       </div>
     </div>

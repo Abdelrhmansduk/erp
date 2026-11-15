@@ -1275,8 +1275,8 @@ export const RentContractsPage: React.FC = () => {
 
       {/* Add Rent Contract Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
-          <div className="w-full max-w-xl bg-white border border-zinc-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white border border-zinc-200 rounded-[24px] overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold text-[#141414]">إضافة عقد تأجير جديد</h3>
@@ -1535,8 +1535,8 @@ export const RentContractsPage: React.FC = () => {
 
       {/* 1. Add Driver Modal */}
       {showAddDriverModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-zinc-200 animate-in fade-in zoom-in-95">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddDriverModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
               <div className="flex items-center gap-2">
                 <Car className="w-5 h-5 text-[#141414]" />
@@ -1648,8 +1648,8 @@ export const RentContractsPage: React.FC = () => {
 
       {/* 2. Add Maid Modal */}
       {showAddMaidModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-zinc-200 animate-in fade-in zoom-in-95">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddMaidModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-[#141414]" />
@@ -1748,8 +1748,8 @@ export const RentContractsPage: React.FC = () => {
 
       {/* 3. Add Package Modal */}
       {showAddPackageModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-zinc-200 animate-in fade-in zoom-in-95">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddPackageModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
               <div className="flex items-center gap-2">
                 <Layers className="w-5 h-5 text-[#141414]" />

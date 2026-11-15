@@ -522,8 +522,8 @@ export const ForeignAgencyPortalPage: React.FC = () => {
 
       {/* Batch Payout Modal */}
       {showBatchPayoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="card-pricing bg-white rounded-3xl p-6 max-w-md w-full border border-zinc-200 shadow-2xl space-y-4 text-right dir-rtl">
+        <div role="dialog" aria-modal="true" onClick={() => setShowBatchPayoutModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white rounded-[24px] p-6 max-w-md w-full border border-zinc-200 space-y-4 text-right dir-rtl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
               <div className="flex items-center gap-2">
                 <DollarSign className="w-5 h-5 text-[#141414]" />
@@ -588,8 +588,8 @@ export const ForeignAgencyPortalPage: React.FC = () => {
 
       {/* Upload & Add Candidate Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="card-pricing bg-white rounded-3xl p-6 max-w-lg w-full border border-zinc-200 shadow-2xl space-y-4 text-right dir-rtl">
+        <div role="dialog" aria-modal="true" onClick={() => setShowUploadModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white rounded-[24px] p-6 max-w-lg w-full border border-zinc-200 space-y-4 text-right dir-rtl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
               <div className="flex items-center gap-2">
                 <UploadCloud className="w-5 h-5 text-[#141414]" />

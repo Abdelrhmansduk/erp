@@ -1539,8 +1539,8 @@ export const ShelterSuitePortalPage: React.FC = () => {
 
       {/* 1. Inmate Checkin Modal */}
       {showCheckinModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-[#e0e0e0] overflow-hidden text-[#141414]">
+        <div role="dialog" aria-modal="true" onClick={() => setShowCheckinModal(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white rounded-[24px] border border-[#e0e0e0] text-[#141414] max-h-[90vh] overflow-y-auto">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Hotel className="w-4 h-4 text-[#141414]" />
@@ -1665,8 +1665,8 @@ export const ShelterSuitePortalPage: React.FC = () => {
 
       {/* 2. Room Modal */}
       {showRoomModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-[#e0e0e0] overflow-hidden text-[#141414]">
+        <div role="dialog" aria-modal="true" onClick={() => setShowRoomModal(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] text-[#141414] max-h-[90vh] overflow-y-auto">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] m-0">إضافة غرفة / مهجع إيواء جديد</h3>
               <button
@@ -1742,8 +1742,8 @@ export const ShelterSuitePortalPage: React.FC = () => {
 
       {/* 3. Meal Modal */}
       {showMealModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-[#e0e0e0] overflow-hidden text-[#141414]">
+        <div role="dialog" aria-modal="true" onClick={() => setShowMealModal(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] text-[#141414] max-h-[90vh] overflow-y-auto">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] m-0">تسجيل وجبة جماعية وإعاشة</h3>
               <button
@@ -1840,8 +1840,8 @@ export const ShelterSuitePortalPage: React.FC = () => {
 
       {/* 4. Clinic Modal */}
       {showClinicModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-[#e0e0e0] overflow-hidden text-[#141414]">
+        <div role="dialog" aria-modal="true" onClick={() => setShowClinicModal(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] text-[#141414] max-h-[90vh] overflow-y-auto">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] m-0">تسجيل فحص طبي وكشف صحي</h3>
               <button

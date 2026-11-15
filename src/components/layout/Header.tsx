@@ -11,6 +11,8 @@ import { ProductionDataHubModal } from '../database/ProductionDataHubModal';
 import { UniversalDocumentExtractorModal } from '../common/UniversalDocumentExtractorModal';
 import { EnterpriseErrorMonitorPanel } from '../monitoring/EnterpriseErrorMonitorPanel';
 import { EmployeePhotoAvatar } from '../auth/EmployeePhotoAvatar';
+import { NotificationDropdown } from '../common/NotificationDropdown';
+import { runStartupGlobalSmartAlertsScan } from '../../services/hrSmartAlertsEngine';
 import { errorMonitorService } from '../../services/errorMonitorService';
 import { SIDEBAR_MENU } from '../../data/sidebarMenu';
 import { SLUG_ARABIC_TITLES } from '../../data/slugArabicTitles';
@@ -29,6 +31,9 @@ import {
   Sparkles,
   Maximize2,
   Minimize2,
+  Bell,
+  Fingerprint,
+  LogOut,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -43,11 +48,12 @@ export const Header: React.FC<HeaderProps> = ({
   activeTabTitle,
   onToggleSidebar,
   onOpenAppLauncher,
+  onLogout,
 }) => {
   const { currentLanguage, availableLanguages, setLanguage, t } = useLanguage();
   const { user: authUser } = useAuthContext();
   const { impersonatedState, stopImpersonation } = useImpersonation();
-  const { setQuickSearchOpen, activeTab, setActiveTab } = useAppStore();
+  const { setQuickSearchOpen, activeTab, unreadCount } = useAppStore();
 
   const parentSection = useMemo(() => {
     const targetSlug = (activeTab || 'dashboard').trim().toLowerCase();
@@ -108,6 +114,7 @@ export const Header: React.FC<HeaderProps> = ({
   );
   const [showBranchDropdown, setShowBranchDropdown] = useState<boolean>(false);
   const [showLangDropdown, setShowLangDropdown] = useState<boolean>(false);
+  const [showNotifications, setShowNotifications] = useState<boolean>(false);
   const [showDataHubModal, setShowDataHubModal] = useState<boolean>(false);
   const [showErrorMonitorModal, setShowErrorMonitorModal] = useState<boolean>(false);
   const [openErrorCount, setOpenErrorCount] = useState<number>(
@@ -185,6 +192,10 @@ export const Header: React.FC<HeaderProps> = ({
       setSelectedBranch(effectiveProfile.branch);
     }
   }, [effectiveProfile?.branch]);
+
+  useEffect(() => {
+    void runStartupGlobalSmartAlertsScan(resolvedScope.companyId);
+  }, [resolvedScope.companyId]);
 
   useEffect(() => {
     const handleOpenDocExtractor = () => {
@@ -271,7 +282,7 @@ export const Header: React.FC<HeaderProps> = ({
             title="القائمة الجانبية"
             aria-label="القائمة الجانبية"
           >
-            <Menu className="w-4 h-4 shrink-0" />
+            <Menu className="w-4 h-4 shrink-0 text-[#4f46e5]" data-colored-icon="true" />
           </button>
 
           <button
@@ -280,7 +291,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onOpenAppLauncher}
             title={t('appLauncherTitle', 'شاشات القسم المصرح بها')}
           >
-            <Grid className="w-3.5 h-3.5 shrink-0" />
+            <Grid className="w-3.5 h-3.5 shrink-0 text-[#2563eb]" data-colored-icon="true" />
             <span>{t('header.departmentScreens', 'شاشات القسم')}</span>
           </button>
 
@@ -299,7 +310,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="max-w-full px-3.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] cursor-pointer flex items-center gap-1.5 text-xs font-semibold transition-colors overflow-hidden"
               title={selectedBranch}
             >
-              <MapPin className="w-3.5 h-3.5 text-[#141414] shrink-0" />
+              <MapPin className="w-3.5 h-3.5 text-[#e11d48] shrink-0" data-colored-icon="true" />
               <span className="truncate">{selectedBranch}</span>
               <ChevronDown className="w-3.5 h-3.5 text-[#707070] shrink-0" />
             </button>
@@ -385,7 +396,7 @@ export const Header: React.FC<HeaderProps> = ({
               title="حالة الاتصال بقاعدة البيانات السحابية"
               aria-label="قاعدة البيانات"
             >
-              <Database className="w-4 h-4 text-[#141414] shrink-0" />
+              <Database className="w-4 h-4 text-[#0d9488] shrink-0" data-colored-icon="true" />
             </button>
           )}
 
@@ -396,7 +407,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer whitespace-nowrap"
             title="رادار مراقبة وتشخيص الأخطاء المباشر ومحرك الإصلاح الذاتي"
           >
-            <Activity className="w-3.5 h-3.5 text-[#141414] shrink-0" />
+            <Activity className="w-3.5 h-3.5 text-[#059669] shrink-0" data-colored-icon="true" />
             <span className="hidden 2xl:inline">
               {openErrorCount > 0
                 ? t('header.systemErrors', 'الأخطاء')
@@ -414,7 +425,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#141414] hover:bg-[#262626] text-[#ffffff] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer whitespace-nowrap"
             title="رفع واستخلاص آلي لأي مستند (100 صورة فاتورة / PDF / Word / Excel)"
           >
-            <UploadCloud className="w-3.5 h-3.5 text-[#ffffff] shrink-0" />
+            <UploadCloud className="w-3.5 h-3.5 text-[#38bdf8] shrink-0" data-colored-icon="true" />
             <span className="hidden xl:inline">{t('header.docExtractor', 'مستخرج المستندات')}</span>
           </button>
 
@@ -427,7 +438,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer whitespace-nowrap"
             title="استدعاء المستشار المؤسسي الصوتي والنصي (فارس / نُورة)"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#141414] shrink-0" />
+            <Sparkles className="w-3.5 h-3.5 text-[#7c3aed] shrink-0" data-colored-icon="true" />
             <span className="hidden 2xl:inline">{t('header.aiAdvisor', 'فارس ونُورة')}</span>
           </button>
 
@@ -450,7 +461,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="fixed inset-x-3 top-[calc(var(--header-height,64px)+8px)] sm:absolute sm:inset-x-auto sm:top-full sm:mt-2 sm:left-0 bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] sm:w-64 max-w-[calc(100vw-24px)] z-[350] p-3 space-y-2 text-right">
                 <div className="px-2 pt-1 pb-2 border-b border-[#f0f0f0] flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#141414] flex items-center gap-1.5">
-                    <Globe className="w-3.5 h-3.5 text-[#141414]" />
+                    <Globe className="w-3.5 h-3.5 text-[#0284c7]" data-colored-icon="true" />
                     <span>{t('header.officialLanguages', 'لغات النظام الرسمية')}</span>
                   </span>
                   <button
@@ -547,6 +558,49 @@ export const Header: React.FC<HeaderProps> = ({
             <Search className="w-4 h-4" />
           </button>
 
+          {/* Employee Biometric & Barcode Badge Button */}
+          <button
+            type="button"
+            data-slot="header-biometric-badge-btn"
+            onClick={() =>
+              window.dispatchEvent(
+                new CustomEvent('alsulaim-open-attendance-gate', {
+                  detail: { mode: 'BADGE_VIEW' },
+                })
+              )
+            }
+            className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] flex items-center justify-center text-[#141414] transition-colors shrink-0 cursor-pointer"
+            title="بطاقة الباركود الوظيفي وحالة بصمة الجلسة"
+            aria-label="بطاقة الباركود الوظيفي وحالة البصمة"
+          >
+            <Fingerprint className="w-4 h-4 text-[#059669]" data-colored-icon="true" />
+          </button>
+
+          {/* Smart Notifications & Proactive Compliance Bell */}
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              data-slot="header-notifications-bell"
+              onClick={() => setShowNotifications((prev) => !prev)}
+              className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] flex items-center justify-center text-[#141414] transition-colors shrink-0 cursor-pointer relative"
+              title="مركز التنبيهات والوثائق وإعادات الإجازات"
+              aria-label="مركز التنبيهات والإشعارات"
+            >
+              <Bell className="w-4 h-4 text-[#d97706]" data-colored-icon="true" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#141414] text-[#ffffff] text-[10px] font-bold font-mono flex items-center justify-center leading-none border border-[#ffffff]">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            <NotificationDropdown
+              isOpen={showNotifications}
+              onClose={() => setShowNotifications(false)}
+              onNavigate={(href, title) => navigateGuarded(href, title)}
+            />
+          </div>
+
           {/* Synced Google / Employee Profile Avatar Pill */}
           <button
             type="button"
@@ -568,6 +622,19 @@ export const Header: React.FC<HeaderProps> = ({
               {effectiveProfile?.full_name || 'حسابي'}
             </span>
           </button>
+
+          {onLogout && (
+            <button
+              type="button"
+              data-slot="header-logout-btn"
+              onClick={onLogout}
+              className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] flex items-center justify-center text-[#141414] transition-colors shrink-0 cursor-pointer"
+              title="تسجيل الخروج وتوثيق بصمة الانصراف بالكاميرا أو الباركود"
+              aria-label="تسجيل الخروج"
+            >
+              <LogOut className="w-4 h-4 text-[#e11d48]" data-colored-icon="true" />
+            </button>
+          )}
         </div>
       </header>
 

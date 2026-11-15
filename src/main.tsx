@@ -12,7 +12,12 @@ import {
   processUrlUnsubscribeParam,
   scrubTelemetryPayload,
 } from './services/menaLegalComplianceService';
+import { initGlobalPrintIsolator } from './utils/printManager';
 import './styles/index.css';
+import './styles/print.css';
+
+// Initialize global A4 print modal isolation & multi-page unclipping engine
+initGlobalPrintIsolator();
 
 // Immediately honor any 1-click marketing unsubscribe link (?unsubscribe=...) per Qatar PDPPL Art. 22 / Saudi PDPL Art. 25 / Egypt PDPL Art. 17
 void processUrlUnsubscribeParam();

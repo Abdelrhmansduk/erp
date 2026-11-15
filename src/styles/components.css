@@ -1128,7 +1128,6 @@ button[data-dyn-state="completed"] {
 .content-body .stat-card-grid > div div[class*="rounded-full"][class*="w-8"],
 .content-body .stat-card-grid > div div[class*="rounded-lg"][class*="w-7"] {
   background: #f3f3f3 !important;
-  color: #141414 !important;
   border: 1px solid #e0e0e0 !important;
   border-radius: 30% !important;
 }
@@ -1414,18 +1413,18 @@ button[data-dyn-state="completed"] {
   color: #141414 !important;
 }
 
-/* Guarantee crisp #ffffff text and icons inside intentional #141414 primary buttons, active pills, dark badges, and dark table headers */
+/* Guarantee crisp #ffffff text and icons inside intentional #141414 primary buttons, active pills, dark badges, and dark table headers while preserving explicit colored icons */
 .content-body .button-primary-pill,
-.content-body .button-primary-pill *,
-.content-body button[class*="bg-[#141414]"],
-.content-body button[class*="bg-[#141414]"] *,
-.content-body [class*="bg-[#141414]"].text-white,
-.content-body [class*="bg-[#141414]"].text-\[\#ffffff\],
-.content-body [class*="bg-[#141414]"] > .text-white,
-.content-body [class*="bg-[#141414]"] > .text-\[\#ffffff\],
-.content-body thead[class*="bg-[#141414]"],
-.content-body thead[class*="bg-[#141414]"] th,
-.content-body thead[class*="bg-[#141414]"] tr {
+.content-body .button-primary-pill *:not([data-colored-icon="true"]):not([data-colored-icon="true"] *),
+.content-body button[class~="bg-[#141414]"],
+.content-body button[class~="bg-[#141414]"] *:not([data-colored-icon="true"]):not([data-colored-icon="true"] *),
+.content-body [class~="bg-[#141414]"].text-white,
+.content-body [class~="bg-[#141414]"].text-\[\#ffffff\],
+.content-body [class~="bg-[#141414]"] > .text-white,
+.content-body [class~="bg-[#141414]"] > .text-\[\#ffffff\],
+.content-body thead[class~="bg-[#141414]"],
+.content-body thead[class~="bg-[#141414]"] th,
+.content-body thead[class~="bg-[#141414]"] tr {
   color: #ffffff !important;
 }
 
@@ -1581,10 +1580,9 @@ button[data-dyn-state="completed"] {
   width: 100%;
 }
 
-.content-body div.fixed.inset-0:not([class*="z-[22"]):not([class*="z-[23"]):not([class*="z-[99"]),
+.content-body div.fixed.inset-0,
 div.fixed.inset-0.z-40,
 div.fixed.inset-0.z-50,
-div.fixed.inset-0[class*="z-[1"],
 div.fixed.inset-0[class*="z-[500]"] {
   z-index: 2100 !important;
 }
@@ -1680,10 +1678,10 @@ div.fixed.inset-0 div.text-white:not([class*="bg-"]) {
   color: #141414 !important;
 }
 
-div.fixed.inset-0 button[class*="bg-[#141414]"],
-div.fixed.inset-0 button[class*="bg-[#141414]"] *,
+div.fixed.inset-0 button[class~="bg-[#141414]"],
+div.fixed.inset-0 button[class~="bg-[#141414]"] *:not([data-colored-icon="true"]):not([data-colored-icon="true"] *),
 div.fixed.inset-0 .button-primary-pill,
-div.fixed.inset-0 .button-primary-pill * {
+div.fixed.inset-0 .button-primary-pill *:not([data-colored-icon="true"]):not([data-colored-icon="true"] *) {
   color: #ffffff !important;
 }
 
@@ -1693,4 +1691,311 @@ div.fixed.inset-0 .text-zinc-400 {
 
 div.fixed.inset-0 [class*="border-white/"] {
   border-color: #e5e5e5 !important;
+}
+
+/* ============================================================================
+   SEMANTIC SMALL ICON COLOR PALETTE (All 61 ERP Pages & Shared Components)
+   Converts flat monochrome (#141414 / #707070 / slate / zinc) small UI icons
+   into distinct, accessible semantic jewel colors while preserving dark-button
+   white icons and any explicitly colored icon (data-colored-icon="true").
+   ============================================================================ */
+
+/* Global rule: hovering a light button that transitions to #141414 turns non-custom icons white */
+button[class*="hover:bg-[#141414]"]:hover,
+button[class*="hover:bg-[#141414]"]:hover *:not([data-colored-icon="true"]):not([data-colored-icon="true"] *) {
+  color: #ffffff !important;
+}
+
+/* Semantic small Lucide & FontAwesome icon defaults (zero-specificity base + neutral-only matcher) */
+:where(
+  svg.lucide:is([class*="w-3"], [class*="w-4"], [class*="w-5"], [class*="h-3"], [class*="h-4"], [class*="h-5"]),
+  i[class*="fa-"]
+):not([data-colored-icon="true"]):not([data-colored-icon="true"] *):not([class~="bg-[#141414]"] *):not([class~="bg-[#262626]"] *):not([class~="bg-black"] *):not(.button-primary-pill *):not(thead *):not([class~="text-[#ffffff]"] *):not([class~="text-white"] *):not([class*="text-[#0"]):not([class*="text-[#16"]):not([class*="text-[#25"]):not([class*="text-[#3"]):not([class*="text-[#4f"]):not([class*="text-[#6"]):not([class*="text-[#7c"]):not([class*="text-[#9"]):not([class*="text-[#a8"]):not([class*="text-[#d9"]):not([class*="text-[#e1"]):not([class*="text-[#f"]):not([class*="text-white"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-sky"]):not([class*="text-indigo"]):not([class*="text-violet"]):not([class*="text-purple"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-teal"]):not([class*="text-cyan"]):not([class*="text-pink"]) {
+  transition: color 0.15s ease;
+}
+
+/* Emerald (#059669 / #16a34a): Biometrics, Verification, Add, WhatsApp, Excel */
+:where(
+  svg.lucide-fingerprint,
+  svg.lucide-shield-check,
+  svg.lucide-check-circle-2,
+  svg.lucide-check-circle,
+  svg.lucide-check-check,
+  svg.lucide-user-check,
+  svg.lucide-lock,
+  svg.lucide-plus,
+  svg.lucide-plus-circle,
+  svg.lucide-user-plus,
+  svg.lucide-file-spreadsheet,
+  svg.lucide-message-circle,
+  svg.lucide-phone,
+  svg.lucide-phone-call,
+  i.fa-fingerprint,
+  i.fa-shield-halved,
+  i.fa-check,
+  i.fa-check-circle,
+  i.fa-plus,
+  i.fa-file-excel,
+  i.fa-file-import,
+  i.fa-whatsapp
+):is([class*="w-3"], [class*="w-4"], [class*="w-5"], [class*="h-3"], [class*="h-4"], [class*="h-5"], i[class*="fa-"]):not([data-colored-icon="true"]):not([data-colored-icon="true"] *):not([class~="bg-[#141414]"] *):not([class~="bg-[#262626]"] *):not([class~="bg-black"] *):not(.button-primary-pill *):not(thead *):not([class~="text-[#ffffff]"] *):not([class~="text-white"] *):not([class*="text-[#0"]):not([class*="text-[#16"]):not([class*="text-[#25"]):not([class*="text-[#3"]):not([class*="text-[#4f"]):not([class*="text-[#6"]):not([class*="text-[#7c"]):not([class*="text-[#9"]):not([class*="text-[#a8"]):not([class*="text-[#d9"]):not([class*="text-[#e1"]):not([class*="text-[#f"]):not([class*="text-white"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-sky"]):not([class*="text-indigo"]):not([class*="text-violet"]):not([class*="text-purple"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-teal"]):not([class*="text-cyan"]):not([class*="text-pink"]) {
+  color: #059669;
+}
+
+/* Sky / Azure (#0284c7 / #2563eb): Search, Mail, Globe, Eye, Refresh, Upload/Download, Calendar, Charts */
+:where(
+  svg.lucide-search,
+  svg.lucide-mail,
+  svg.lucide-send,
+  svg.lucide-globe,
+  svg.lucide-eye,
+  svg.lucide-refresh-cw,
+  svg.lucide-database,
+  svg.lucide-download,
+  svg.lucide-upload,
+  svg.lucide-upload-cloud,
+  svg.lucide-camera,
+  svg.lucide-calendar,
+  svg.lucide-calendar-days,
+  svg.lucide-file-text,
+  svg.lucide-layout-dashboard,
+  svg.lucide-layout-grid,
+  svg.lucide-grid,
+  svg.lucide-bar-chart-3,
+  svg.lucide-pie-chart,
+  svg.lucide-calculator,
+  svg.lucide-scale,
+  i.fa-magnifying-glass,
+  i.fa-envelope,
+  i.fa-globe,
+  i.fa-eye,
+  i.fa-download,
+  i.fa-file-arrow-up,
+  i.fa-calendar,
+  i.fa-chart-bar
+):is([class*="w-3"], [class*="w-4"], [class*="w-5"], [class*="h-3"], [class*="h-4"], [class*="h-5"], i[class*="fa-"]):not([data-colored-icon="true"]):not([data-colored-icon="true"] *):not([class~="bg-[#141414]"] *):not([class~="bg-[#262626]"] *):not([class~="bg-black"] *):not(.button-primary-pill *):not(thead *):not([class~="text-[#ffffff]"] *):not([class~="text-white"] *):not([class*="text-[#0"]):not([class*="text-[#16"]):not([class*="text-[#25"]):not([class*="text-[#3"]):not([class*="text-[#4f"]):not([class*="text-[#6"]):not([class*="text-[#7c"]):not([class*="text-[#9"]):not([class*="text-[#a8"]):not([class*="text-[#d9"]):not([class*="text-[#e1"]):not([class*="text-[#f"]):not([class*="text-white"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-sky"]):not([class*="text-indigo"]):not([class*="text-violet"]):not([class*="text-purple"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-teal"]):not([class*="text-cyan"]):not([class*="text-pink"]) {
+  color: #0284c7;
+}
+
+/* Indigo / Violet (#4f46e5 / #7c3aed): Print, AI Sparkles, Filter, QR/Scan, Organization */
+:where(
+  svg.lucide-printer,
+  svg.lucide-sparkles,
+  svg.lucide-sliders-horizontal,
+  svg.lucide-filter,
+  svg.lucide-qr-code,
+  svg.lucide-scan-line,
+  svg.lucide-users,
+  svg.lucide-building-2,
+  svg.lucide-briefcase,
+  svg.lucide-layers,
+  svg.lucide-shield,
+  svg.lucide-menu,
+  i.fa-print,
+  i.fa-filter,
+  i.fa-wand-magic-sparkles,
+  i.fa-qrcode,
+  i.fa-users,
+  i.fa-building
+):is([class*="w-3"], [class*="w-4"], [class*="w-5"], [class*="h-3"], [class*="h-4"], [class*="h-5"], i[class*="fa-"]):not([data-colored-icon="true"]):not([data-colored-icon="true"] *):not([class~="bg-[#141414]"] *):not([class~="bg-[#262626]"] *):not([class~="bg-black"] *):not(.button-primary-pill *):not(thead *):not([class~="text-[#ffffff]"] *):not([class~="text-white"] *):not([class*="text-[#0"]):not([class*="text-[#16"]):not([class*="text-[#25"]):not([class*="text-[#3"]):not([class*="text-[#4f"]):not([class*="text-[#6"]):not([class*="text-[#7c"]):not([class*="text-[#9"]):not([class*="text-[#a8"]):not([class*="text-[#d9"]):not([class*="text-[#e1"]):not([class*="text-[#f"]):not([class*="text-white"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-sky"]):not([class*="text-indigo"]):not([class*="text-violet"]):not([class*="text-purple"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-teal"]):not([class*="text-cyan"]):not([class*="text-pink"]) {
+  color: #6d28d9;
+}
+
+/* Teal (#0d9488): Finance, Copy, Accounting, Treasury */
+:where(
+  svg.lucide-copy,
+  svg.lucide-clipboard-check,
+  svg.lucide-banknote,
+  svg.lucide-coins,
+  svg.lucide-wallet,
+  svg.lucide-receipt,
+  svg.lucide-piggy-bank,
+  svg.lucide-trending-up,
+  svg.lucide-landmark,
+  i.fa-copy,
+  i.fa-coins,
+  i.fa-wallet,
+  i.fa-money-bill-wave
+):is([class*="w-3"], [class*="w-4"], [class*="w-5"], [class*="h-3"], [class*="h-4"], [class*="h-5"], i[class*="fa-"]):not([data-colored-icon="true"]):not([data-colored-icon="true"] *):not([class~="bg-[#141414]"] *):not([class~="bg-[#262626]"] *):not([class~="bg-black"] *):not(.button-primary-pill *):not(thead *):not([class~="text-[#ffffff]"] *):not([class~="text-white"] *):not([class*="text-[#0"]):not([class*="text-[#16"]):not([class*="text-[#25"]):not([class*="text-[#3"]):not([class*="text-[#4f"]):not([class*="text-[#6"]):not([class*="text-[#7c"]):not([class*="text-[#9"]):not([class*="text-[#a8"]):not([class*="text-[#d9"]):not([class*="text-[#e1"]):not([class*="text-[#f"]):not([class*="text-white"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-sky"]):not([class*="text-indigo"]):not([class*="text-violet"]):not([class*="text-purple"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-teal"]):not([class*="text-cyan"]):not([class*="text-pink"]) {
+  color: #0d9488;
+}
+
+/* Amber (#d97706): Edit, Notifications, Warnings, Clock, Restore */
+:where(
+  svg.lucide-pencil,
+  svg.lucide-edit,
+  svg.lucide-edit-3,
+  svg.lucide-rotate-ccw,
+  svg.lucide-bell,
+  svg.lucide-bell-ring,
+  svg.lucide-clock,
+  svg.lucide-alert-triangle,
+  svg.lucide-zap,
+  i.fa-pen,
+  i.fa-pen-to-square,
+  i.fa-bell,
+  i.fa-clock,
+  i.fa-exclamation-triangle
+):is([class*="w-3"], [class*="w-4"], [class*="w-5"], [class*="h-3"], [class*="h-4"], [class*="h-5"], i[class*="fa-"]):not([data-colored-icon="true"]):not([data-colored-icon="true"] *):not([class~="bg-[#141414]"] *):not([class~="bg-[#262626]"] *):not([class~="bg-black"] *):not(.button-primary-pill *):not(thead *):not([class~="text-[#ffffff]"] *):not([class~="text-white"] *):not([class*="text-[#0"]):not([class*="text-[#16"]):not([class*="text-[#25"]):not([class*="text-[#3"]):not([class*="text-[#4f"]):not([class*="text-[#6"]):not([class*="text-[#7c"]):not([class*="text-[#9"]):not([class*="text-[#a8"]):not([class*="text-[#d9"]):not([class*="text-[#e1"]):not([class*="text-[#f"]):not([class*="text-white"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-sky"]):not([class*="text-indigo"]):not([class*="text-violet"]):not([class*="text-purple"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-teal"]):not([class*="text-cyan"]):not([class*="text-pink"]) {
+  color: #d97706;
+}
+
+/* Rose (#e11d48): Delete, Alert Circle, Clear/Close, Logout, Location */
+:where(
+  svg.lucide-trash-2,
+  svg.lucide-trash2,
+  svg.lucide-trash,
+  svg.lucide-alert-circle,
+  svg.lucide-x-circle,
+  svg.lucide-log-out,
+  svg.lucide-map-pin,
+  i.fa-trash,
+  i.fa-trash-can,
+  i.fa-xmark,
+  i.fa-right-from-bracket
+):is([class*="w-3"], [class*="w-4"], [class*="w-5"], [class*="h-3"], [class*="h-4"], [class*="h-5"], i[class*="fa-"]):not([data-colored-icon="true"]):not([data-colored-icon="true"] *):not([class~="bg-[#141414]"] *):not([class~="bg-[#262626]"] *):not([class~="bg-black"] *):not(.button-primary-pill *):not(thead *):not([class~="text-[#ffffff]"] *):not([class~="text-white"] *):not([class*="text-[#0"]):not([class*="text-[#16"]):not([class*="text-[#25"]):not([class*="text-[#3"]):not([class*="text-[#4f"]):not([class*="text-[#6"]):not([class*="text-[#7c"]):not([class*="text-[#9"]):not([class*="text-[#a8"]):not([class*="text-[#d9"]):not([class*="text-[#e1"]):not([class*="text-[#f"]):not([class*="text-white"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-sky"]):not([class*="text-indigo"]):not([class*="text-violet"]):not([class*="text-purple"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-teal"]):not([class*="text-cyan"]):not([class*="text-pink"]) {
+  color: #e11d48;
+}
+
+/* Override explicit monochrome utility classes (text-[#141414], text-[#707070], slate/zinc/gray) on small Lucide & FA icons */
+:is(
+  svg.lucide-fingerprint,
+  svg.lucide-shield-check,
+  svg.lucide-check-circle-2,
+  svg.lucide-check-circle2,
+  svg.lucide-check-check,
+  svg.lucide-check-square,
+  svg.lucide-square-check,
+  svg.lucide-badge-check,
+  svg.lucide-check,
+  svg.lucide-user-check,
+  svg.lucide-lock,
+  svg.lucide-plus,
+  svg.lucide-plus-circle,
+  svg.lucide-user-plus,
+  svg.lucide-file-spreadsheet,
+  svg.lucide-message-circle,
+  svg.lucide-phone,
+  svg.lucide-phone-call,
+  svg.lucide-volume-2,
+  svg.lucide-volume2,
+  svg.lucide-log-in,
+  i.fa-file-import,
+  i.fa-plus
+):is([class~="text-[#141414]"], [class~="text-[#707070]"], [class~="text-[#525252]"], [class*="text-slate-"], [class*="text-zinc-"], [class*="text-gray-"], [class*="text-neutral-"]):not([data-colored-icon="true"]):not([class~="bg-[#141414]"] *):not(.button-primary-pill *):not(thead *) {
+  color: #059669;
+}
+
+:is(
+  svg.lucide-search,
+  svg.lucide-mail,
+  svg.lucide-send,
+  svg.lucide-globe,
+  svg.lucide-eye,
+  svg.lucide-refresh-cw,
+  svg.lucide-database,
+  svg.lucide-download,
+  svg.lucide-upload,
+  svg.lucide-upload-cloud,
+  svg.lucide-camera,
+  svg.lucide-switch-camera,
+  svg.lucide-calendar,
+  svg.lucide-calendar-days,
+  svg.lucide-file-text,
+  svg.lucide-file-check-2,
+  svg.lucide-file-check2,
+  svg.lucide-layout-dashboard,
+  svg.lucide-layout-grid,
+  svg.lucide-grid,
+  svg.lucide-bar-chart-3,
+  svg.lucide-bar-chart3,
+  svg.lucide-pie-chart,
+  svg.lucide-list-tree,
+  svg.lucide-info,
+  svg.lucide-zoom-in,
+  svg.lucide-zoom-out,
+  svg.lucide-external-link,
+  svg.lucide-arrow-left,
+  i.fa-magnifying-glass,
+  i.fa-file-arrow-up,
+  i.fa-download
+):is([class~="text-[#141414]"], [class~="text-[#707070]"], [class~="text-[#525252]"], [class*="text-slate-"], [class*="text-zinc-"], [class*="text-gray-"], [class*="text-neutral-"]):not([data-colored-icon="true"]):not([class~="bg-[#141414]"] *):not(.button-primary-pill *):not(thead *) {
+  color: #0284c7;
+}
+
+:is(
+  svg.lucide-printer,
+  svg.lucide-sparkles,
+  svg.lucide-sliders-horizontal,
+  svg.lucide-sliders,
+  svg.lucide-filter,
+  svg.lucide-qr-code,
+  svg.lucide-scan-line,
+  svg.lucide-table-2,
+  svg.lucide-table2,
+  svg.lucide-users,
+  svg.lucide-building-2,
+  svg.lucide-building2,
+  svg.lucide-briefcase,
+  svg.lucide-layers,
+  svg.lucide-menu,
+  svg.lucide-maximize-2,
+  svg.lucide-maximize2,
+  svg.lucide-minimize-2,
+  svg.lucide-minimize2,
+  svg.lucide-chevrons-up-down,
+  svg.lucide-chevrons-down-up,
+  svg.lucide-folder-open,
+  svg.lucide-clipboard-list,
+  svg.lucide-key,
+  i.fa-filter,
+  i.fa-wand-magic-sparkles,
+  i.fa-print
+):is([class~="text-[#141414]"], [class~="text-[#707070]"], [class~="text-[#525252]"], [class*="text-slate-"], [class*="text-zinc-"], [class*="text-gray-"], [class*="text-neutral-"]):not([data-colored-icon="true"]):not([class~="bg-[#141414]"] *):not(.button-primary-pill *):not(thead *) {
+  color: #6d28d9;
+}
+
+:is(
+  svg.lucide-copy,
+  svg.lucide-clipboard-check,
+  svg.lucide-banknote,
+  svg.lucide-coins,
+  svg.lucide-wallet,
+  svg.lucide-receipt,
+  svg.lucide-piggy-bank,
+  svg.lucide-trending-up,
+  svg.lucide-landmark,
+  svg.lucide-columns,
+  svg.lucide-columns-2,
+  svg.lucide-tag
+):is([class~="text-[#141414]"], [class~="text-[#707070]"], [class~="text-[#525252]"], [class*="text-slate-"], [class*="text-zinc-"], [class*="text-gray-"], [class*="text-neutral-"]):not([data-colored-icon="true"]):not([class~="bg-[#141414]"] *):not(.button-primary-pill *):not(thead *) {
+  color: #0d9488;
+}
+
+:is(
+  svg.lucide-pencil,
+  svg.lucide-edit,
+  svg.lucide-rotate-ccw,
+  svg.lucide-bell,
+  svg.lucide-clock,
+  svg.lucide-alert-triangle,
+  svg.lucide-zap
+):is([class~="text-[#141414]"], [class~="text-[#707070]"], [class~="text-[#525252]"], [class*="text-slate-"], [class*="text-zinc-"], [class*="text-gray-"], [class*="text-neutral-"]):not([data-colored-icon="true"]):not([class~="bg-[#141414]"] *):not(.button-primary-pill *):not(thead *) {
+  color: #d97706;
+}
+
+:is(
+  svg.lucide-trash-2,
+  svg.lucide-trash2,
+  svg.lucide-trash,
+  svg.lucide-alert-circle,
+  svg.lucide-log-out,
+  svg.lucide-map-pin,
+  svg.lucide-volume-x,
+  svg.lucide-bell-off,
+  svg.lucide-x,
+  i.fa-xmark,
+  i.fa-trash
+):is([class~="text-[#141414]"], [class~="text-[#707070]"], [class~="text-[#525252]"], [class*="text-slate-"], [class*="text-zinc-"], [class*="text-gray-"], [class*="text-neutral-"]):not([data-colored-icon="true"]):not([class~="bg-[#141414]"] *):not(.button-primary-pill *):not(thead *) {
+  color: #e11d48;
 }

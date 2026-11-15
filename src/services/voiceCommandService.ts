@@ -268,6 +268,17 @@ export async function dispatchVoiceCommand(
     }
   }
 
+  if (norm.includes('تنبيهات الموارد') || norm.includes('رادار جسر') || norm.includes('فتره التجربه') || norm.includes('فحص نطاقات') || norm.includes('التنبيهات الذكيه')) {
+    if (callbacks.onExecuteTool) {
+      await callbacks.onExecuteTool('scan_hr_smart_alerts', {});
+      return {
+        isCommand: true,
+        commandType: 'direct_tool',
+        displayText: 'تم تشغيل رادار جسر للتنبيهات الاستباقية وفحص فترة التجربة ونطاقات التوطين.',
+      };
+    }
+  }
+
   if (norm.includes('اشغال الايواء') || norm.includes('اشغال السكن') || norm.includes('سعه السكن') || norm.includes('سعه الاسره') || norm.includes('كم سرير شاغر')) {
     if (callbacks.onExecuteTool) {
       await callbacks.onExecuteTool('get_shelter_occupancy', {});
@@ -307,6 +318,26 @@ export async function dispatchVoiceCommand(
         commandType: 'navigate',
         spokenResponse: resp,
         displayText: 'تم الانتقال إلى [مراكز الإيواء والتسكين].',
+      };
+    }
+
+    if (norm.includes('خدمه ذاتيه') || norm.includes('بوابه الموظف') || norm.includes('راتبي المرن')) {
+      callbacks.onNavigate?.('profile', 'بوابة جسر للخدمة الذاتية للموظف والمدير');
+      return {
+        isCommand: true,
+        commandType: 'navigate',
+        spokenResponse: 'تم فتح بوابة جسر للخدمة الذاتية للموظف والمدير.',
+        displayText: 'تم الانتقال إلى [بوابة جسر للخدمة الذاتية ESS].',
+      };
+    }
+
+    if (norm.includes('تنبيهات جسر') || norm.includes('نطاقات') || norm.includes('جزاءات')) {
+      callbacks.onNavigate?.('jisr-alerts-compliance', 'مركز التنبيهات الذكي والجزاءات ونطاقات');
+      return {
+        isCommand: true,
+        commandType: 'navigate',
+        spokenResponse: 'تم فتح مركز التنبيهات الاستباقية ولائحة الجزاءات ومحاكي نطاقات.',
+        displayText: 'تم الانتقال إلى [مركز التنبيهات الذكي والجزاءات ونطاقات].',
       };
     }
 

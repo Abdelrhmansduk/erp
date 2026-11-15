@@ -394,8 +394,15 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-[#141414]/60 backdrop-blur-md z-[9999] flex items-center justify-center p-3 md:p-6 overflow-y-auto">
-      <div className="w-full max-w-4xl bg-[#ffffff] rounded-[24px] shadow-2xl border border-[#e0e0e0] overflow-hidden font-sans flex flex-col max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="ميثاق التبرئة القانونية وسياسة استخدام المنظومة"
+      data-no-esc-close="true"
+      dir="rtl"
+      className="fixed inset-0 bg-[#141414]/60 backdrop-blur-md z-[9999] flex items-center justify-center p-3 md:p-6 overflow-y-auto"
+    >
+      <div className="w-full max-w-4xl bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
         {/* Header — Mobbin Pure Light Mode */}
         <div className="bg-[#ffffff] text-[#141414] p-5 sm:p-6 flex items-center justify-between border-b border-[#e5e5e5]">
           <div className="flex items-center gap-3.5">
@@ -573,10 +580,10 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setUseBiometricSign(!useBiometricSign)}
-                  className={`text-xs px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 ${
+                  className={`text-xs px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 cursor-pointer ${
                     useBiometricSign
-                      ? 'bg-[#141414] text-white border-[#e0e0e0] font-bold'
-                      : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-100'
+                      ? 'bg-[#141414] text-[#ffffff] border-[#141414] font-bold'
+                      : 'bg-[#ffffff] text-[#141414] border-[#e0e0e0] hover:bg-[#f3f3f3]'
                   }`}
                 >
                   <Fingerprint className="w-3.5 h-3.5" />
@@ -646,6 +653,7 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
 
           <div className="flex items-center gap-3">
             <button
+              type="button"
               onClick={onLogout}
               className="button-outline-on-light text-xs py-2 px-4"
             >
@@ -653,17 +661,18 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
             </button>
 
             <button
+              type="button"
               onClick={handleSubmitSignature}
               disabled={!allAgreed || isSubmitting}
               className={`button-primary-pill text-xs py-2.5 px-6 flex items-center gap-2 ${
-                !allAgreed ? 'opacity-40 cursor-not-allowed' : 'shadow-lg hover:scale-105 transition-all'
+                !allAgreed ? 'opacity-40 cursor-not-allowed' : 'transition-all'
               }`}
             >
               {isSubmitting ? (
                 <span>جاري توثيق التوقيع...</span>
               ) : (
                 <>
-                  <CheckCircle2 className="w-4 h-4 text-[#141414]" />
+                  <CheckCircle2 className="w-4 h-4 text-[#ffffff]" />
                   <span>اعتماد التوقيع والدخول للمنظومة</span>
                 </>
               )}

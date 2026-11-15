@@ -372,8 +372,8 @@ export const AgentImportsPage: React.FC = () => {
 
       {/* Add New Batch Modal */}
       {showAddBatchModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="card-pricing bg-white rounded-3xl p-6 max-w-md w-full border border-zinc-200 shadow-2xl space-y-4">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddBatchModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white rounded-[24px] p-6 max-w-md w-full border border-zinc-200 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
               <div className="flex items-center gap-2">
                 <UploadCloud className="w-5 h-5 text-[#141414]" />
@@ -476,8 +476,8 @@ export const AgentImportsPage: React.FC = () => {
 
       {/* Batch Details Inspection Modal */}
       {selectedBatch && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="card-pricing bg-white rounded-3xl p-6 max-w-2xl w-full border border-zinc-200 shadow-2xl space-y-4">
+        <div role="dialog" aria-modal="true" onClick={() => setSelectedBatch(null)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white rounded-[24px] p-6 max-w-2xl w-full border border-zinc-200 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#141414]" />

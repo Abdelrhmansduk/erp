@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
 import {
   Users, FileText, Handshake, Hotel, IdCard,
@@ -10,7 +10,7 @@ import {
   SlidersHorizontal, GitPullRequest, Radio, FolderSync,
   Cloud, UploadCloud, Clock, UserCog, Settings,
   MessageSquare, Send, Globe, PackageCheck, LucideIcon, Scale, Briefcase,
-  LogOut, Lock
+  LogOut, Lock, Fingerprint
 } from 'lucide-react';
 import {
   authService,
@@ -18,6 +18,10 @@ import {
   CORPORATE_DEPARTMENTS,
   DepartmentId,
 } from '../services/authService';
+import {
+  getSessionCheckInStamp,
+  type SessionAttendanceStamp,
+} from '../services/biometricAttendanceGateService';
 import { useCompany } from '../contexts/CompanyContext';
 import { useModuleVisibility } from '../hooks/useModuleVisibility';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
@@ -669,6 +673,20 @@ const ALL_SYSTEM_APPS: AppTile[] = [
     metricBadge: 'Azure & M365'
   },
   {
+    id: 'gov-integrations',
+    titleKey: 'gov-integrations',
+    defaultTitle: '٧. مركز التكامل والربط الحكومي الموحد',
+    subKey: 'govIntegrationsSub',
+    defaultSubtitle: 'جاهزية الربط مع مساند وZATCA وقوى ومدد والتأمينات وأبشر وإنجاز، فاحص التوافق وسجل المزامنة.',
+    icon: ShieldCheck,
+    emoji: '',
+    href: 'gov-integrations',
+    category: 'governance',
+    categoryLabel: 'الحوكمة • الربط الحكومي',
+    smaccCode: 'GOV-05',
+    metricBadge: 'تكامل حكومي موحد'
+  },
+  {
     id: 'data-import',
     titleKey: 'data-import',
     defaultTitle: '٧. معالج استيراد البيانات (Excel / CSV)',
@@ -738,6 +756,86 @@ interface CategoryMeta {
  * Primary Ink (#141414), Warm Cream Canvas (#f3f3f3), Pure White Cards (#FFFFFF),
  * Champagne Gold Accents (#141414 / #FAEBD7), Hairline Borders (#E4E4E7).
  */
+interface AppIconPalette {
+  squircle: string;
+  action: string;
+  tag: string;
+}
+
+function getAppIconPalette(categoryLabel: string): AppIconPalette {
+  const label = categoryLabel || '';
+  if (label.includes('العهد') || label.includes('سلف') || label.includes('أصول')) {
+    return {
+      squircle:
+        'bg-[#ecfdf5] group-hover:bg-[#059669] text-[#059669] group-hover:text-[#ffffff] border-[#a7f3d0] group-hover:border-[#059669]',
+      action: 'text-[#059669]',
+      tag: 'bg-[#ecfdf5] text-[#047857] border border-[#bbf7d0]',
+    };
+  }
+  if (label.includes('الدوام') || label.includes('حضور') || label.includes('مشتريات')) {
+    return {
+      squircle:
+        'bg-[#f0fdfa] group-hover:bg-[#0d9488] text-[#0d9488] group-hover:text-[#ffffff] border-[#99f6e4] group-hover:border-[#0d9488]',
+      action: 'text-[#0d9488]',
+      tag: 'bg-[#f0fdfa] text-[#0f766e] border border-[#99f6e4]',
+    };
+  }
+  if (label.includes('الذاتية') || label.includes('خدمة') || label.includes('التقارير')) {
+    return {
+      squircle:
+        'bg-[#f0f9ff] group-hover:bg-[#0284c7] text-[#0284c7] group-hover:text-[#ffffff] border-[#bae6fd] group-hover:border-[#0284c7]',
+      action: 'text-[#0284c7]',
+      tag: 'bg-[#f0f9ff] text-[#0369a1] border border-[#bae6fd]',
+    };
+  }
+  if (label.includes('الربط') || label.includes('التكامل') || label.includes('تقن')) {
+    return {
+      squircle:
+        'bg-[#eef2ff] group-hover:bg-[#4f46e5] text-[#4f46e5] group-hover:text-[#ffffff] border-[#c7d2fe] group-hover:border-[#4f46e5]',
+      action: 'text-[#4f46e5]',
+      tag: 'bg-[#eef2ff] text-[#4338ca] border border-[#c7d2fe]',
+    };
+  }
+  if (label.includes('الحوكمة') || label.includes('الامتثال') || label.includes('الأمان')) {
+    return {
+      squircle:
+        'bg-[#f5f3ff] group-hover:bg-[#7c3aed] text-[#7c3aed] group-hover:text-[#ffffff] border-[#ddd6fe] group-hover:border-[#7c3aed]',
+      action: 'text-[#7c3aed]',
+      tag: 'bg-[#f5f3ff] text-[#6d28d9] border border-[#ddd6fe]',
+    };
+  }
+  if (label.includes('المال') || label.includes('المحاسب') || label.includes('خزينة')) {
+    return {
+      squircle:
+        'bg-[#ecfdf5] group-hover:bg-[#16a34a] text-[#16a34a] group-hover:text-[#ffffff] border-[#bbf7d0] group-hover:border-[#16a34a]',
+      action: 'text-[#16a34a]',
+      tag: 'bg-[#ecfdf5] text-[#15803d] border border-[#bbf7d0]',
+    };
+  }
+  if (label.includes('مبيعات') || label.includes('عملاء') || label.includes('إيواء')) {
+    return {
+      squircle:
+        'bg-[#fffbeb] group-hover:bg-[#d97706] text-[#d97706] group-hover:text-[#ffffff] border-[#fde68a] group-hover:border-[#d97706]',
+      action: 'text-[#d97706]',
+      tag: 'bg-[#fffbeb] text-[#b45309] border border-[#fde68a]',
+    };
+  }
+  if (label.includes('الموارد') || label.includes('الرواتب') || label.includes('موظف')) {
+    return {
+      squircle:
+        'bg-[#eff6ff] group-hover:bg-[#2563eb] text-[#2563eb] group-hover:text-[#ffffff] border-[#bfdbfe] group-hover:border-[#2563eb]',
+      action: 'text-[#2563eb]',
+      tag: 'bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe]',
+    };
+  }
+  return {
+    squircle:
+      'bg-[#fff1f2] group-hover:bg-[#e11d48] text-[#e11d48] group-hover:text-[#ffffff] border-[#fecdd3] group-hover:border-[#e11d48]',
+    action: 'text-[#e11d48]',
+    tag: 'bg-[#fff1f2] text-[#be123c] border border-[#fecdd3]',
+  };
+}
+
 const CATEGORY_STYLES: Record<string, CategoryMeta> = {
   finance: {
     id: 'finance',
@@ -873,6 +971,22 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
 
   const currentUser = authService.getCurrentUser();
   const isGroupAdmin = authService.isAdmin(currentUser);
+  const [sessionStamp, setSessionStamp] = useState<SessionAttendanceStamp | null>(() =>
+    getSessionCheckInStamp(currentUser)
+  );
+
+  useEffect(() => {
+    const refreshStamp = () => {
+      setSessionStamp(getSessionCheckInStamp(authService.getCurrentUser()));
+    };
+    refreshStamp();
+    window.addEventListener('erp-attendance-session-updated', refreshStamp);
+    window.addEventListener('erp-data-updated', refreshStamp);
+    return () => {
+      window.removeEventListener('erp-attendance-session-updated', refreshStamp);
+      window.removeEventListener('erp-data-updated', refreshStamp);
+    };
+  }, []);
   const resolvedScope = useMemo(
     () =>
       resolveDepartmentAndCompany(
@@ -972,7 +1086,7 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
         {/* Search Bar & Primary Actions */}
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           <div className="relative flex items-center">
-            <Search className="w-4 h-4 text-[#707070] absolute right-3 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#0284c7] absolute right-3 pointer-events-none" data-colored-icon="true" />
             <input
               type="text"
               aria-label="ابحث في بطاقات صلاحياتك"
@@ -985,6 +1099,27 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
 
           <button
             type="button"
+            data-slot="launcher-biometric-badge-btn"
+            onClick={() =>
+              window.dispatchEvent(
+                new CustomEvent('alsulaim-open-attendance-gate', {
+                  detail: { mode: sessionStamp ? 'BADGE_VIEW' : 'CHECK_IN' },
+                })
+              )
+            }
+            className="bg-[#ecfdf5] hover:bg-[#d1fae5] text-[#047857] border border-[#a7f3d0] flex items-center gap-1.5 text-xs px-3 py-2 rounded-full font-bold min-h-[36px] transition-all cursor-pointer"
+            title="عرض بطاقة الباركود الوظيفي وحالة البصمة للجلسة"
+          >
+            <Fingerprint className="w-3.5 h-3.5 shrink-0 text-[#059669]" data-colored-icon="true" />
+            <span className="hidden lg:inline">
+              {sessionStamp
+                ? `بصمة الدخول: ${sessionStamp.checkInTime} • الباركود`
+                : 'بصمة الحضور والباركود'}
+            </span>
+          </button>
+
+          <button
+            type="button"
             className="bg-[#141414] hover:bg-[#262626] text-[#ffffff] border border-[#141414] flex items-center gap-1.5 text-xs px-4 py-2 rounded-full font-bold min-h-[36px] transition-all cursor-pointer"
             onClick={() =>
               onSelectApp(
@@ -993,18 +1128,19 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
               )
             }
           >
-            <LayoutDashboard className="w-3.5 h-3.5" />
+            <LayoutDashboard className="w-3.5 h-3.5 text-[#38bdf8]" data-colored-icon="true" />
             <span className="hidden md:inline">فتح شاشة القسم الرئيسية</span>
             <span className="md:hidden">شاشة القسم</span>
           </button>
 
           <button
             type="button"
+            data-slot="launcher-logout-btn"
             onClick={() => onSelectApp('logout', 'تسجيل الخروج')}
-            className="bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] flex items-center gap-1.5 text-xs px-3.5 py-2 rounded-full font-bold min-h-[36px] transition-all cursor-pointer"
-            title="تسجيل الخروج والعودة لبوابة الدخول الموحدة"
+            className="bg-[#fff1f2] hover:bg-[#ffe4e6] text-[#be123c] border border-[#fecdd3] flex items-center gap-1.5 text-xs px-3.5 py-2 rounded-full font-bold min-h-[36px] transition-all cursor-pointer"
+            title="تسجيل الخروج وتوثيق بصمة الانصراف بالكاميرا أو الباركود"
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut className="w-3.5 h-3.5 text-[#e11d48]" data-colored-icon="true" />
             <span className="hidden sm:inline">تسجيل الخروج</span>
           </button>
         </div>
@@ -1095,8 +1231,11 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
                 <div className="space-y-3.5">
                   {/* Top Badges & Crisp Module Squircle Icon Row */}
                   <div className="flex items-center justify-between gap-2">
-                    <div className="w-11 h-11 rounded-[14px] bg-[#f3f3f3] group-hover:bg-[#262626] text-[#141414] group-hover:text-[#ffffff] border border-[#e0e0e0] group-hover:border-[#141414] flex items-center justify-center transition-colors shrink-0">
-                      <Icon className="w-5 h-5" strokeWidth={1.85} />
+                    <div
+                      data-colored-icon="true"
+                      className={`w-11 h-11 rounded-[14px] border flex items-center justify-center transition-colors shrink-0 ${getAppIconPalette(app.categoryLabel).squircle}`}
+                    >
+                      <Icon className="w-5 h-5" strokeWidth={1.85} data-colored-icon="true" />
                     </div>
 
                     <div className="flex items-center gap-1.5 flex-wrap justify-end">
@@ -1117,7 +1256,7 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
                   <div>
                     <div className="flex items-center gap-2 mb-1.5">
                       <span
-                        className={`text-[9.5px] px-2 py-0.5 rounded-md font-bold tracking-wider ${style.categoryTagBg} ${style.categoryTagColor}`}
+                        className={`text-[9.5px] px-2 py-0.5 rounded-md font-bold tracking-wider ${getAppIconPalette(app.categoryLabel).tag}`}
                       >
                         {app.categoryLabel}
                       </span>
@@ -1137,10 +1276,10 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
                 <div
                   className={`pt-3 mt-3 border-t flex items-center justify-between text-xs font-bold ${style.footerBorder}`}
                 >
-                  <span className={`inline-flex items-center gap-1.5 transition-colors ${style.actionColor}`}>
-                    <Icon className="w-3.5 h-3.5" />
+                  <span className={`inline-flex items-center gap-1.5 transition-colors ${getAppIconPalette(app.categoryLabel).action}`}>
+                    <Icon className="w-3.5 h-3.5" data-colored-icon="true" />
                     <span>فتح الوحدة النظامية</span>
-                    <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1" />
+                    <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1" data-colored-icon="true" />
                   </span>
                   <span className={`text-[10px] font-mono font-medium opacity-70 ${style.titleColor}`}>
                     معتمد
@@ -1165,7 +1304,7 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
       {/* Institutional Footer */}
       <footer className="bg-white border-t border-[#f0f0f0] py-4 px-4 sm:px-8 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#707070] mt-auto">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-[#141414]" />
+          <ShieldCheck className="w-4 h-4 text-[#059669]" data-colored-icon="true" />
           <span className="font-semibold text-[#141414]">
             {isKasTradeStandalone
               ? 'شركة كاس للتجارة والمنافسات (KAS) • المنظومة التجارية السحابية المستقلة (منفصلة كلياً عن الاستقدام)'

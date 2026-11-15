@@ -591,9 +591,9 @@ export const CreateCVPage: React.FC = () => {
 
       {/* Printable Worker CV Card Modal */}
       {showPrintPreview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
-          <div className="w-full max-w-2xl bg-white border border-zinc-200 rounded-3xl shadow-2xl overflow-hidden p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4 border-b border-zinc-100 pb-3">
+        <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setShowPrintPreview(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-white border border-zinc-200 rounded-[24px] p-6 max-h-[90vh] overflow-y-auto">
+            <div className="no-print print:hidden flex justify-between items-center mb-4 border-b border-zinc-100 pb-3">
               <div className="flex items-center gap-2">
                 <Printer className="w-5 h-5 text-[#141414]" />
                 <h3 className="font-bold text-[#141414] text-base">بطاقة السيرة الذاتية الرسمية للعمالة (CV Profile)</h3>
@@ -607,7 +607,7 @@ export const CreateCVPage: React.FC = () => {
             </div>
 
             {/* Printable Document Body */}
-            <div className="p-6 bg-white border-2 border-zinc-900 rounded-2xl space-y-4 font-sans text-xs">
+            <div className="erp-printable-sheet p-6 bg-white border-2 border-zinc-900 rounded-2xl space-y-4 font-sans text-xs">
               {/* Header */}
               <div className="flex items-center justify-between border-b-2 border-zinc-900 pb-4">
                 <div>
@@ -671,7 +671,7 @@ export const CreateCVPage: React.FC = () => {
             </div>
 
             {/* Actions */}
-            <div className="flex justify-between items-center gap-2 pt-4 border-t border-zinc-100 mt-4">
+            <div className="no-print print:hidden flex justify-between items-center gap-2 pt-4 border-t border-zinc-100 mt-4">
               <button
                 type="button"
                 onClick={() => window.print()}

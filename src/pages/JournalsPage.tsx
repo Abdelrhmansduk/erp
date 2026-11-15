@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useModalEscape } from '../hooks/useModalEscape';
 import { Badge } from '../components/ui/Badge';
 import { exportData } from '../services/exportService';
 import { ExportDropdown } from '../components/common/ExportDropdown';
@@ -123,6 +124,7 @@ const KAS_DEFAULT_MOCK_JOURNALS: JournalRecord[] = [
 ];
 
 export const JournalsPage: React.FC = () => {
+  useModalEscape();
   const { activeCompanyId, activeCompany } = useCompany();
   const isKasTrade = isKasTradeCompany(activeCompanyId);
   const { setActiveTab, addNotification } = useAppStore();
@@ -700,8 +702,8 @@ export const JournalsPage: React.FC = () => {
 
       {/* Add Balanced Journal Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
+          <div className="w-full max-w-3xl bg-white rounded-[24px] border border-zinc-200 overflow-hidden font-sans max-h-[90vh] flex flex-col">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between shrink-0">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-[#141414]" />
@@ -889,8 +891,8 @@ export const JournalsPage: React.FC = () => {
 
       {/* View & Print Selected Journal Modal */}
       {selectedJournal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden text-[#141414] font-sans">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" data-printable-modal="true" onClick={(e) => { if (e.target === e.currentTarget) setSelectedJournal(null); }}>
+          <div className="w-full max-w-3xl bg-white rounded-[24px] border border-zinc-200 overflow-y-auto text-[#141414] font-sans max-h-[90vh]">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between print:hidden">
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-[#141414]" />
@@ -916,7 +918,7 @@ export const JournalsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-8 space-y-6 bg-white border border-zinc-300 m-4 rounded-2xl">
+            <div className="erp-printable-sheet p-8 space-y-6 bg-white border border-zinc-300 m-4 rounded-2xl">
               {/* Header */}
               <div className="flex items-center justify-between border-b-2 border-[#141414] pb-4">
                 <div>
@@ -952,20 +954,33 @@ export const JournalsPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-200 font-mono">
-                    <tr>
-                      <td className="p-3 font-bold text-[#141414]">11010</td>
-                      <td className="p-3 font-sans font-semibold text-[#141414]">الصندوق الرئيسي - الخزينة</td>
-                      <td className="p-3 font-sans text-[#707070]">{selectedJournal.cost_center_code || 'CC-OPS-01'}</td>
-                      <td className="p-3 font-bold text-[#141414]">{selectedJournal.total_debit.toLocaleString()} ⃁</td>
-                      <td className="p-3 text-[#707070]">0.00 ⃁</td>
-                    </tr>
-                    <tr>
-                      <td className="p-3 font-bold text-[#141414]">41100</td>
-                      <td className="p-3 font-sans font-semibold text-[#141414]">إيرادات وساطة عقود الاستقدام</td>
-                      <td className="p-3 font-sans text-[#707070]">{selectedJournal.cost_center_code || 'CC-OPS-01'}</td>
-                      <td className="p-3 text-[#707070]">0.00 ⃁</td>
-                      <td className="p-3 font-bold text-[#141414]">{selectedJournal.total_credit.toLocaleString()} ⃁</td>
-                    </tr>
+                    {(() => {
+                      const engineEntry = journalEngine
+                        .getJournalsByCompany((selectedJournal.company_id || activeCompanyId) as any)
+                        .find((je) => je.entryNumber === selectedJournal.entry_number);
+                      const previewLines =
+                        engineEntry && engineEntry.lines.length > 0
+                          ? engineEntry.lines.map((l) => ({
+                              code: l.accountCode,
+                              name: l.accountName,
+                              cc: l.costCenterCode || selectedJournal.cost_center_code || '-',
+                              debit: Number(l.debit) || 0,
+                              credit: Number(l.credit) || 0,
+                            }))
+                          : [
+                              { code: '11010', name: 'الصندوق الرئيسي - الخزينة', cc: selectedJournal.cost_center_code || '-', debit: selectedJournal.total_debit, credit: 0 },
+                              { code: '41100', name: 'إيرادات وساطة عقود الاستقدام', cc: selectedJournal.cost_center_code || '-', debit: 0, credit: selectedJournal.total_credit },
+                            ];
+                      return previewLines.map((pl, plIdx) => (
+                        <tr key={`pl_${plIdx}`}>
+                          <td className="p-3 font-bold text-[#141414]">{pl.code}</td>
+                          <td className="p-3 font-sans font-semibold text-[#141414]">{pl.name}</td>
+                          <td className="p-3 font-sans text-[#707070]">{pl.cc}</td>
+                          <td className="p-3 font-bold text-[#141414]">{pl.debit.toLocaleString()} ⃁</td>
+                          <td className="p-3 font-bold text-[#141414]">{pl.credit.toLocaleString()} ⃁</td>
+                        </tr>
+                      ));
+                    })()}
                     <tr className="bg-zinc-50 font-bold border-t-2 border-[#141414] text-xs font-sans">
                       <td colSpan={3} className="p-3 text-left pl-4">الإجمالي المتوازن:</td>
                       <td className="p-3 text-[#141414] font-mono font-bold">{selectedJournal.total_debit.toLocaleString()} ⃁</td>

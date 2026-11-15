@@ -366,8 +366,8 @@ export const GroupDispatchPage: React.FC = () => {
 
       {/* Dispatch Modal */}
       {showDispatchModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div role="dialog" aria-modal="true" onClick={() => setShowDispatchModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Send className="w-4 h-4 text-[#141414]" />
@@ -483,8 +483,8 @@ export const GroupDispatchPage: React.FC = () => {
 
       {/* View Memo Details Modal */}
       {selectedMemo && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div role="dialog" aria-modal="true" onClick={() => setSelectedMemo(null)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <FileText className="w-4 h-4 text-[#141414]" />

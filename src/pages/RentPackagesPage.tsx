@@ -513,7 +513,7 @@ export const RentPackagesPage: React.FC = () => {
                         'الإجمالي النهائي': calcGrandTotal,
                         'تاريخ العرض': new Date().toISOString().split('T')[0]
                       }];
-                      exportData(quoteRecord, 'عرض_سعر_ايجار_عمالة', 'csv');
+                      exportData('rent_packages', quoteRecord, 'csv', 'عرض سعر إيجار عمالة');
                       addNotification({
                         title: 'تصدير عرض السعر',
                         message: `تم تصدير عرض السعر الرسمي بقيمة ${calcGrandTotal.toLocaleString()} ⃁ بنجاح.`,
@@ -569,8 +569,8 @@ export const RentPackagesPage: React.FC = () => {
 
       {/* ADD PACKAGE MODAL */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
-          <div className="w-full max-w-lg bg-white border border-zinc-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white border border-zinc-200 rounded-[24px] overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h2 className="text-base font-bold text-[#141414] flex items-center gap-2">
                 <Plus className="w-4 h-4 ml-1" />
@@ -678,8 +678,8 @@ export const RentPackagesPage: React.FC = () => {
 
       {/* Add Clause Modal */}
       {showAddClauseModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-fade-in border border-zinc-200">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddClauseModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] w-full max-w-lg animate-fade-in border border-zinc-200 max-h-[90vh] overflow-y-auto">
             <div className="p-5 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
               <h3 className="text-sm font-bold text-[#141414] m-0">إضافة بند شرطي جديد في عقد التأجير</h3>
               <button onClick={() => setShowAddClauseModal(false)} className="text-[#707070] hover:text-[#141414]">
@@ -757,8 +757,8 @@ export const RentPackagesPage: React.FC = () => {
 
       {/* SAUDI E-COMMERCE LAW ART. 18 & IMPLEMENTING REGULATION ART. 7 PRE-PAYMENT CHECKOUT MODAL */}
       {checkoutDisclosure && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl border border-zinc-200 text-right">
+        <div role="dialog" aria-modal="true" onClick={() => setCheckoutDisclosure(null)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] w-full max-w-xl border border-zinc-200 text-right max-h-[90vh] overflow-y-auto">
             <div className="p-5 border-b border-zinc-200 flex items-center justify-between bg-[#141414] text-white">
               <div>
                 <h3 className="text-sm font-black m-0">

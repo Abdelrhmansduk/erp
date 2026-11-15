@@ -887,8 +887,8 @@ export const ComplaintsPage: React.FC = () => {
 
       {/* Add Inter-Company Dispute Modal */}
       {showAddDisputeModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddDisputeModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-[#141414]" />
@@ -994,8 +994,8 @@ export const ComplaintsPage: React.FC = () => {
 
       {/* Add Client Complaint Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Headphones className="w-4 h-4 text-[#141414]" />
@@ -1105,8 +1105,8 @@ export const ComplaintsPage: React.FC = () => {
 
       {/* Ticket Action Modal */}
       {selectedTicket && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden font-sans">
+        <div role="dialog" aria-modal="true" onClick={() => setSelectedTicket(null)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Headphones className="w-4 h-4 text-[#141414]" />

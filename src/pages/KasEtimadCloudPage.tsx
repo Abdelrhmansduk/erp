@@ -3913,8 +3913,8 @@ export const KasEtimadCloudPage: React.FC = () => {
       {/* MODAL: DETAIL / OFFICIAL ZATCA PRINT PREVIEW */}
       {/* ========================================================================= */}
       {showDetailModal && selectedDetail && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white text-slate-900 rounded-2xl max-w-2xl w-full p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+        <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setShowDetailModal(false)} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="erp-printable-sheet bg-white text-slate-900 rounded-[24px] max-w-2xl w-full p-8 space-y-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b pb-4">
               <div>
                 <div className="text-xs text-slate-500 font-bold tracking-wider">مؤسسة خالد عبدالعزيز السليم للتجارة والمقاولات (كاس)</div>
@@ -3985,7 +3985,7 @@ export const KasEtimadCloudPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-between items-center pt-3 border-t">
+            <div className="no-print print:hidden flex justify-between items-center pt-3 border-t">
               <button
                 onClick={() => setShowDetailModal(false)}
                 className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold"
@@ -4008,8 +4008,8 @@ export const KasEtimadCloudPage: React.FC = () => {
       {/* MODAL: ADD INVOICE */}
       {/* ========================================================================= */}
       {showAddInvoiceModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddInvoiceModal(false)} className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-card border border-border rounded-[24px] max-w-3xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <DollarSign className="w-5 h-5 text-[#141414]" />
@@ -4181,8 +4181,8 @@ export const KasEtimadCloudPage: React.FC = () => {
       {/* MODAL: ADD ESTIMATE */}
       {/* ========================================================================= */}
       {showAddEstimateModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddEstimateModal(false)} className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-card border border-border rounded-[24px] max-w-3xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="text-base font-bold text-foreground">إصدار عرض سعر وعطاء تقديري جديد</h3>
               <button onClick={() => setShowAddEstimateModal(false)} className="p-1 text-muted-foreground"><X className="w-5 h-5" /></button>
@@ -4221,8 +4221,8 @@ export const KasEtimadCloudPage: React.FC = () => {
       {/* MODAL: ADD PAYMENT */}
       {/* ========================================================================= */}
       {showAddPaymentModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddPaymentModal(false)} className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-card border border-border rounded-[24px] max-w-md w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b pb-3">
               <h3 className="text-base font-bold text-foreground">تسجيل سند قبض بنكي جديد</h3>
               <button onClick={() => setShowAddPaymentModal(false)} className="p-1 text-muted-foreground"><X className="w-5 h-5" /></button>
@@ -4274,8 +4274,8 @@ export const KasEtimadCloudPage: React.FC = () => {
       {/* MODAL: ADD ITEM */}
       {/* ========================================================================= */}
       {showAddItemModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddItemModal(false)} className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-card border border-border rounded-[24px] max-w-md w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b pb-3">
               <h3 className="text-base font-bold text-foreground">إضافة صنف جديد لجدول الكميات</h3>
               <button onClick={() => setShowAddItemModal(false)} className="p-1 text-muted-foreground"><X className="w-5 h-5" /></button>
@@ -4327,8 +4327,8 @@ export const KasEtimadCloudPage: React.FC = () => {
       {/* MODAL: ADD CLIENT */}
       {/* ========================================================================= */}
       {showAddClientModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddClientModal(false)} className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-card border border-border rounded-[24px] max-w-md w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b pb-3">
               <h3 className="text-base font-bold text-foreground">إضافة عميل / جهة حكومية جديدة</h3>
               <button onClick={() => setShowAddClientModal(false)} className="p-1 text-muted-foreground"><X className="w-5 h-5" /></button>
@@ -4377,8 +4377,11 @@ export const KasEtimadCloudPage: React.FC = () => {
       {/* MODAL: ADD / EDIT CATEGORY */}
       {/* ========================================================================= */}
       {showAddCategoryModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="card-pricing max-w-lg w-full p-6 shadow-2xl space-y-5">
+        <div role="dialog" aria-modal="true" onClick={() => {
+                  setShowAddCategoryModal(false);
+                  setEditingCategory(null);
+                }} className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="card-pricing max-w-lg w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-border/60 pb-3.5">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-[#f3f3f3] text-[#141414] flex items-center justify-center">
@@ -4459,8 +4462,11 @@ export const KasEtimadCloudPage: React.FC = () => {
       {/* MODAL: ADD / EDIT STAFF */}
       {/* ========================================================================= */}
       {showAddStaffModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="card-pricing max-w-lg w-full p-6 shadow-2xl space-y-5">
+        <div role="dialog" aria-modal="true" onClick={() => {
+                  setShowAddStaffModal(false);
+                  setEditingStaff(null);
+                }} className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="card-pricing max-w-lg w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-border/60 pb-3.5">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-[#f3f3f3] text-[#141414] flex items-center justify-center">
@@ -4556,8 +4562,8 @@ export const KasEtimadCloudPage: React.FC = () => {
       {/* MODAL: CLIENT 360 PROFILE (ملف العميل المتكامل) */}
       {/* ========================================================================= */}
       {selectedClientProfile && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-3xl max-w-4xl w-full p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+        <div role="dialog" aria-modal="true" onClick={() => setSelectedClientProfile(null)} className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-card border border-border rounded-[24px] max-w-4xl w-full p-6 space-y-6 max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-border pb-4">
               <div className="flex items-center gap-4">
@@ -4750,8 +4756,8 @@ export const KasEtimadCloudPage: React.FC = () => {
       {/* MODAL: QUICK PAYMENT RECORDING */}
       {/* ========================================================================= */}
       {showQuickPayModal && quickPayInvoice && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div role="dialog" aria-modal="true" onClick={() => setShowQuickPayModal(false)} className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-card border border-border rounded-[24px] max-w-md w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b pb-3">
               <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-[#141414]" />
@@ -4857,8 +4863,8 @@ export const KasEtimadCloudPage: React.FC = () => {
       {/* MODAL: ADD PROPOSAL (إنشاء عرض تجاري) */}
       {/* ========================================================================= */}
       {showAddProposalModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddProposalModal(false)} className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-card border border-border rounded-[24px] max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <Send className="w-5 h-5 text-[#141414]" />
@@ -4955,8 +4961,8 @@ export const KasEtimadCloudPage: React.FC = () => {
       {/* MODAL: ADD CREDIT NOTE (إشعار ائتمان) */}
       {/* ========================================================================= */}
       {showAddCreditNoteModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddCreditNoteModal(false)} className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-card border border-border rounded-[24px] max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <ArrowDownRight className="w-5 h-5 text-[#141414]" />
@@ -5021,8 +5027,8 @@ export const KasEtimadCloudPage: React.FC = () => {
       {/* MODAL: ADD SUBSCRIPTION (إنشاء اشتراك دوري) */}
       {/* ========================================================================= */}
       {showAddSubscriptionModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddSubscriptionModal(false)} className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-card border border-border rounded-[24px] max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <RefreshCw className="w-5 h-5 text-[#141414]" />
@@ -5113,8 +5119,8 @@ export const KasEtimadCloudPage: React.FC = () => {
       {/* MODAL: ADD ESTIMATE REQUEST (طلب عرض سعر) */}
       {/* ========================================================================= */}
       {showAddEstimateRequestModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddEstimateRequestModal(false)} className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-card border border-border rounded-[24px] max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <FilePlus className="w-5 h-5 text-[#141414]" />
@@ -5169,8 +5175,8 @@ export const KasEtimadCloudPage: React.FC = () => {
       {/* MODAL: ADD EMAIL TEMPLATE (قالب بريد) */}
       {/* ========================================================================= */}
       {showAddTemplateModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddTemplateModal(false)} className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-card border border-border rounded-[24px] max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <Mail className="w-5 h-5 text-[#141414]" />

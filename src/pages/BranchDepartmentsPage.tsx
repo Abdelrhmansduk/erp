@@ -787,8 +787,8 @@ export const BranchDepartmentsPage: React.FC = () => {
 
       {/* Add Sub-Department Modal */}
       {showAddDeptModal && selectedEntity && (
-        <div className="fixed inset-0 z-50 bg-[#141414]/60 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="card-pricing bg-white border border-[#e0e0e0] rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-5 text-[#141414] relative">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddDeptModal(false)} className="fixed inset-0 z-50 bg-[#141414]/60 backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white border border-[#e0e0e0] rounded-[24px] max-w-md w-full p-6 sm:p-8 space-y-5 text-[#141414] relative max-h-[90vh] overflow-y-auto">
             <div className="absolute top-0 right-0 left-0 h-1.5 bg-[#141414] rounded-t-3xl" />
 
             <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
@@ -876,8 +876,8 @@ export const BranchDepartmentsPage: React.FC = () => {
 
       {/* Add New Entity / Branch Modal */}
       {showAddEntityModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="card-pricing bg-white rounded-3xl p-6 max-w-lg w-full border border-[#e0e0e0] shadow-2xl space-y-4 text-right dir-rtl">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddEntityModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white rounded-[24px] p-6 max-w-lg w-full border border-[#e0e0e0] space-y-4 text-right dir-rtl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#e0e0e0]">
               <div className="flex items-center gap-2">
                 <Building2 className="w-5 h-5 text-[#141414]" />

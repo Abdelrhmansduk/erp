@@ -26,6 +26,7 @@ export const SIDEBAR_MENU: NavItem[] = [
       { id: 'master-constants', title: 'ثوابت النظام (الدول والمهن والجنسيات)', icon: 'Sliders', href: 'master-constants' },
       { id: 'data-import', title: 'معالج استيراد البيانات المؤسسية (Excel / AI)', icon: 'UploadCloud', href: 'data-import' },
       { id: 'microsoft-center', title: 'مركز تكامل Microsoft 365 & Teams', icon: 'Layers', href: 'microsoft-center' },
+      { id: 'gov-integrations', title: 'مركز التكامل والربط الحكومي الموحد', icon: 'ShieldCheck', href: 'gov-integrations', badge: '11 جهة', badgeType: 'primary' },
       { id: 'activity-log', title: 'سجل الرقابة والتدقيق الأمني للحركات', icon: 'History', href: 'activity-log' },
       { id: 'settings', title: 'إعدادات المنظومة والنسخ الاحتياطي', icon: 'Settings2', href: 'settings' },
       { id: 'module-visibility', title: 'إظهار وإخفاء الأقسام والفروع', icon: 'Sliders', href: 'module-visibility' },
@@ -62,6 +63,7 @@ export const SIDEBAR_MENU: NavItem[] = [
       { id: 'odoo-accounting', title: 'أتمتة السداد والأوضاع الضريبية (Odoo)', icon: 'ShieldCheck', href: 'odoo-accounting' },
       { id: 'smacc-inventory', title: 'سجل الأصول الثابتة والمخزون', icon: 'Package', href: 'smacc-inventory' },
       { id: 'financial-reports', title: 'التقارير والكشوفات المالية الختامية', icon: 'BarChart3', href: 'financial-reports' },
+      { id: 'gov-integrations-finance', title: 'الربط الحكومي (فاتورة ZATCA ومدد)', icon: 'ShieldCheck', href: 'gov-integrations' },
     ],
   },
   {
@@ -135,6 +137,15 @@ export const SIDEBAR_MENU: NavItem[] = [
     href: 'employees',
     children: [
       { id: 'employees', title: 'سجل الموظفين والملفات الوظيفية', icon: 'UserCheck', href: 'employees' },
+      { id: 'jisr-welcome-signage', title: 'الترحيب بالموظف الجديد وشاشات العرض الذكية', icon: 'Sparkles', href: 'jisr-welcome-signage', badge: 'TV Live', badgeType: 'primary' },
+      { id: 'reem-hr-emails', title: 'مراسلات وقوالب بريد الموارد البشرية (HR@kas.sa)', icon: 'MailCheck', href: 'reem-hr-emails' },
+      { id: 'profile', title: 'بوابة الخدمة الذاتية للموظف والمدير (ESS)', icon: 'UserCheck', href: 'profile' },
+      { id: 'jisr-alerts-compliance', title: 'رادار التنبيهات والجزاءات والراتب المرن ونطاقات', icon: 'Bell', href: 'jisr-alerts-compliance' },
+      { id: 'jisr-accruals', title: 'المخصصات الشهرية ومراكز التكلفة (IAS 19)', icon: 'Calculator', href: 'jisr-accruals' },
+      { id: 'jisr-expenses', title: 'النفقات وفواتير ZATCA والانتدابات', icon: 'Receipt', href: 'jisr-expenses' },
+      { id: 'jisr-org-muqeem', title: 'الهيكل التنظيمي ومكتب مقيم والخطابات', icon: 'Building2', href: 'jisr-org-muqeem' },
+      { id: 'jisr-talent-360', title: 'التوظيف الداخلي وتقييم 360° وإخلاء الطرف', icon: 'Award', href: 'jisr-talent-360' },
+      { id: 'jisr-shifts-overtime', title: 'المناوبات والعمل الإضافي (م107) والتعاميم', icon: 'Clock', href: 'jisr-shifts-overtime' },
       { id: 'add-employee', title: 'تسجيل موظف جديد ومباشرة عمل', icon: 'UserPlus', href: 'add-employee' },
       { id: 'payrolls', title: 'مسير الرواتب الشهرية والاستحقاقات', icon: 'CreditCard', href: 'payrolls' },
       { id: 'wps-generator', title: 'ملفات نظام حماية الأجور (WPS)', icon: 'FileSpreadsheet', href: 'wps-generator' },
@@ -147,6 +158,7 @@ export const SIDEBAR_MENU: NavItem[] = [
       { id: 'end-of-service', title: 'تصفية ومستحقات نهاية الخدمة (EOSB)', icon: 'Receipt', href: 'end-of-service' },
       { id: 'gosi-insurance', title: 'التأمينات الاجتماعية (GOSI)', icon: 'ShieldCheck', href: 'gosi-insurance' },
       { id: 'legal-compliance-hr', title: 'التراخيص والالتزام الحكومي (قوى/مدد)', icon: 'Scale', href: 'legal-compliance' },
+      { id: 'gov-integrations-hr', title: 'الربط الحكومي (قوى • مدد • التأمينات • مقيم)', icon: 'ShieldCheck', href: 'gov-integrations' },
     ],
   },
   {
@@ -195,6 +207,7 @@ export const SIDEBAR_MENU: NavItem[] = [
       { id: 'kas-commercial-sub', title: 'منظومة المعرض التجاري وقطاع الأميال (كاس)', icon: 'Package', href: 'kas-commercial', exclusiveToCompany: 'KAS' },
       { id: 'tenders-boq', title: 'منافسات اعتماد وجداول الكميات (BOQ)', icon: 'Scale', href: 'tenders-boq', exclusiveToCompany: 'KAS' },
       { id: 'kas-etmad', title: 'إدارة الضمانات البنكية والعطاءات (اعتماد)', icon: 'ShieldCheck', href: 'kas-etmad', exclusiveToCompany: 'KAS' },
+      { id: 'gov-integrations-kas', title: 'الربط الحكومي (اعتماد • ZATCA)', icon: 'ShieldCheck', href: 'gov-integrations', exclusiveToCompany: 'KAS' },
     ],
   },
 ];

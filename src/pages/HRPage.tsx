@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useModalEscape } from '../hooks/useModalEscape';
 import { Badge } from '../components/ui/Badge';
 import { exportData } from '../services/exportService';
 import { ExportDropdown } from '../components/common/ExportDropdown';
@@ -13,8 +14,38 @@ import {
   CalendarMinus, DollarSign, AlertCircle, Clock, Award, ShieldCheck, 
   X, Trash2, TrendingUp, Shield, Key, Sparkles, Check, ChevronRight,
   Briefcase, Building2, Star, CheckCircle2, UserCog, Edit3,
-  FileSignature, Scale, Printer, Fingerprint, Eye, Download, Lock, Calculator
+  FileSignature, Scale, Printer, Fingerprint, Eye, Download, Lock, Calculator, BellRing,
+  RotateCcw, Settings, Scissors, CalendarCheck, CheckSquare, Square, MailCheck, Mail, Tv
 } from 'lucide-react';
+import {
+  ALL_ENTITY_OPTIONS,
+  CanonicalEntityCode,
+  resolveDocumentBranding,
+} from '../services/entityBrandingService';
+import {
+  RecordQuickActions,
+  RecycleBinModal,
+} from '../components/common/RecordQuickActions';
+import {
+  archiveRecordBeforeSoftDelete,
+  RecycleBinEntry,
+  shareHrOfficialEmailEml,
+} from '../services/quickShareService';
+import {
+  saveUnifiedEmployeeProfile,
+  softDeleteUnifiedEmployeeProfile,
+  restoreUnifiedEmployeeFromBin,
+} from '../services/employeeProfileSync';
+import {
+  HrLeavePolicyConfig,
+  getHrLeavePolicy,
+  saveHrLeavePolicy,
+  calculateNetLeaveDays,
+  confirmReturnFromLeave,
+  cutLeaveEarlyAndRefundBalance,
+  extendApprovedLeave,
+  cancelApprovedLeaveAndRefund,
+} from '../services/hrLeaveLifecycleService';
 import { WpsPayrollEngine, EmployeePayrollRecord, WpsSifHeader, DocumentExpiryAlert } from '../services/wpsPayrollEngine';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import { EmployeePhotoAvatar } from '../components/auth/EmployeePhotoAvatar';
@@ -30,6 +61,37 @@ import {
   HrComplianceRadarPanel,
 } from '../components/hr/HrEnterpriseModals';
 import { HrProOdooBambooSuite } from '../components/hr/HrProOdooBambooSuite';
+import { HrLettersStudioModal } from '../components/hr/HrLettersStudioModal';
+import { InteractiveOrgChartPanel } from '../components/hr/InteractiveOrgChartPanel';
+import { JisrAccountingAccrualsHub } from '../components/hr/JisrAccountingAccrualsHub';
+import { HrExpensesAndTravelHub } from '../components/hr/HrExpensesAndTravelHub';
+import { JisrTalent360OffboardingHub } from '../components/hr/JisrTalent360OffboardingHub';
+import { JisrShiftRosterAndOvertimeHub } from '../components/hr/JisrShiftRosterAndOvertimeHub';
+import { NewEmployeeWelcomeAndSignageHub } from '../components/hr/NewEmployeeWelcomeAndSignageHub';
+import { triggerNewEmployeeOnboardingConsequences } from '../services/employeeWelcomeBroadcastService';
+import {
+  JisrSmartAlertsAndComplianceHub,
+  type EwaWithdrawalRecordStored,
+  type DisciplinaryRecordStored,
+} from '../components/hr/JisrSmartAlertsAndComplianceHub';
+import { JisrPayrollArrearsB2BHub } from '../components/hr/JisrPayrollArrearsB2BHub';
+import { JisrCorporateCardsAndLeaveRolloverHub } from '../components/hr/JisrCorporateCardsAndLeaveRolloverHub';
+import { JisrCustomBuilderEsignPulseHub } from '../components/hr/JisrCustomBuilderEsignPulseHub';
+import {
+  computeUpfrontLeavePayrollDeduction,
+  type RetroactiveArrearRecord,
+} from '../services/jisrPayrollArrearsAndB2BEngine';
+import { ReemHrEmailStudioHub } from '../components/hr/ReemHrEmailStudioHub';
+import type { ReemHrTemplateId } from '../services/reemHrEmailTemplatesEngine';
+import {
+  calculateNetLeaveDaysExcludingHolidays,
+  DEFAULT_SAUDI_PUBLIC_HOLIDAYS,
+  type SaudiPublicHoliday,
+} from '../services/jisrAdvancedComplianceEngine';
+import {
+  runAndDispatchHrSmartAlerts,
+  scanHrComplianceRadars,
+} from '../services/hrSmartAlertsEngine';
 import { journalEngine } from '../services/accounting/journalEngine';
 import { maskNationalId, maskIban } from '../utils/pdplMasking';
 import { KAS_ALLOWED_EMPLOYEES, CORPORATE_DEPARTMENTS } from '../services/authService';
@@ -40,6 +102,8 @@ export interface EmployeeRecord {
   employee_code: string;
   name: string;
   national_id: string;
+  phone?: string;
+  email?: string;
   job_title: string;
   department: string;
   branch: string;
@@ -54,14 +118,27 @@ export interface EmployeeRecord {
   bank_name?: string;
   leave_balance?: number;
   is_new_gosi_subscriber?: boolean;
+  iqama_expiry?: string;
   iqama_expiry_date?: string;
+  passport_expiry?: string;
   passport_expiry_date?: string;
+  qiwa_contract_expiry?: string;
   contract_end_date?: string;
   medical_insurance_expiry?: string;
   system_role?: string;
+  manager_id?: string;
+  default_shift_id?: string;
+  marital_status?: string;
+  gender?: string;
+  qualification?: string;
+  birth_date?: string;
+  pay_group?: string;
+  cost_center_allocations?: Array<{ code: string; name: string; percent: number }>;
+  annual_ticket_allowance?: number;
+  medical_insurance_annual_cost?: number;
   signature_status?: 'موقّع ومعتمد' | 'بانتظار التوقيع';
   compliance_hash?: string;
-  status: 'نشط' | 'إجازة' | 'نهاية خدمة' | 'معلق';
+  status: 'نشط' | 'إجازة' | 'نهاية خدمة' | 'معلق' | string;
 }
 
 export interface PromotionRecord {
@@ -100,8 +177,13 @@ interface VacationRequest {
   days_count: number;
   pay_rate_percent?: number;
   deducted_from_annual?: boolean;
+  actual_return_date?: string;
+  return_status?: string;
+  refunded_days?: number;
+  overstay_unpaid_days?: number;
+  return_notes?: string;
   notes: string;
-  status: 'معتمد' | 'بانتظار الموافقة' | 'مرفوض';
+  status: 'معتمد' | 'بانتظار الموافقة' | 'مرفوض' | 'ملغى' | string;
 }
 
 interface AdvanceRequest {
@@ -116,6 +198,7 @@ interface AdvanceRequest {
   monthly_installment?: number;
   date: string;
   installments_count: number;
+  deferred_months?: string[];
   reason?: string;
   gl_journal_ref?: string;
   status: 'معتمد' | 'بانتظار الصرف' | 'مسدد' | 'مرفوض';
@@ -197,10 +280,12 @@ const DEFAULT_MOCK_EMPLOYEES: EmployeeRecord[] = KAS_ALLOWED_EMPLOYEES.map((emp,
       : 6800;
   return {
     id: emp.id,
-    company_id: emp.company_id === 'all' ? 'SAF' : emp.company_id,
+    company_id: emp.company_id === 'all' ? 'HQ' : emp.company_id,
     employee_code: emp.id,
     name: `${emp.nameAr} (${emp.email})`,
     national_id: `10${String(80000000 + idx * 13579).slice(0, 8)}`,
+    phone: `055${String(1000000 + idx * 7919).slice(0, 7)}`,
+    email: emp.email,
     job_title: emp.titleAr,
     department: deptName,
     branch: emp.branch,
@@ -373,17 +458,117 @@ export type HrSubTab =
   | 'permissions'
   | 'rewards'
   | 'payroll'
+  | 'jisr-accruals'
+  | 'jisr-expenses'
+  | 'jisr-org-muqeem'
+  | 'jisr-talent-360'
+  | 'jisr-shifts-overtime'
+  | 'jisr-welcome-signage'
+  | 'jisr-alerts-compliance'
+  | 'jisr-arrears-b2b'
+  | 'jisr-cards-rollover'
+  | 'jisr-workflows-pulse'
+  | 'reem-hr-emails'
   | 'end-of-service'
   | 'gosi'
   | 'compliance-radar'
   | 'hr-pro-hub'
   | 'maids-hr';
 
+export type HRTabType = HrSubTab;
+
+export const mapGlobalTabToHrTab = (tabKey: string): HRTabType => {
+  switch (tabKey) {
+    case 'reem-hr-emails':
+    case 'hr-official-emails':
+      return 'reem-hr-emails';
+    case 'promotions':
+    case 'employee-promotions':
+      return 'promotions';
+    case 'signatures':
+    case 'legal-agreements':
+    case 'employee-signatures':
+      return 'signatures';
+    case 'employee-permissions':
+    case 'permissions':
+      return 'permissions';
+    case 'leave-requests':
+    case 'vacations':
+      return 'vacations';
+    case 'employee-advances':
+    case 'advances':
+      return 'advances';
+    case 'sanctions':
+      return 'sanctions';
+    case 'jisr-alerts-compliance':
+    case 'hr-smart-alerts':
+    case 'nitaqat':
+    case 'compliance-radar':
+    case 'employee-sanctions':
+      return 'jisr-alerts-compliance';
+    case 'legacy-compliance-radar':
+      return 'compliance-radar';
+    case 'employee-rewards':
+    case 'rewards':
+      return 'rewards';
+    case 'payrolls':
+    case 'payroll':
+    case 'wps':
+    case 'wps-generator':
+    case 'salary':
+    case 'salaries':
+      return 'payroll';
+    case 'end-of-service':
+    case 'eos':
+      return 'end-of-service';
+    case 'gosi-insurance':
+    case 'gosi':
+      return 'gosi';
+    case 'hr-pro':
+    case 'odoo-payroll':
+    case 'bamboohr':
+    case 'hr-pro-hub':
+      return 'hr-pro-hub';
+    case 'jisr-accruals':
+    case 'hr-accruals':
+      return 'jisr-accruals';
+    case 'jisr-expenses':
+    case 'hr-expenses':
+      return 'jisr-expenses';
+    case 'jisr-org-muqeem':
+    case 'org-chart':
+      return 'jisr-org-muqeem';
+    case 'jisr-talent-360':
+    case 'hr-ats':
+      return 'jisr-talent-360';
+    case 'jisr-shifts-overtime':
+    case 'shift-rosters':
+    case 'overtime':
+      return 'jisr-shifts-overtime';
+    case 'jisr-welcome-signage':
+    case 'welcome-screens':
+      return 'jisr-welcome-signage';
+    case 'jisr-arrears-b2b':
+      return 'jisr-arrears-b2b';
+    case 'jisr-cards-rollover':
+      return 'jisr-cards-rollover';
+    case 'jisr-workflows-pulse':
+      return 'jisr-workflows-pulse';
+    case 'maids-hr':
+    case 'domestic-fleet':
+      return 'maids-hr';
+    default:
+      return 'employees';
+  }
+};
+
 export const HRPage: React.FC = () => {
+  useModalEscape();
   const { activeCompanyId, activeCompany } = useCompany();
+  const effectiveCompanyCode = activeCompanyId && activeCompanyId !== 'all' ? activeCompanyId : 'SAF';
   const { data: rawEmployees = [] } = useEmployees();
   const { createItem, updateItem, deleteItem } = useTableMutation('employees');
-  const { addNotification } = useAppStore();
+  const { addNotification, setActiveTab: setStoreActiveTab } = useAppStore();
 
   const [employeesList, setEmployeesList] = useState<EmployeeRecord[]>(DEFAULT_MOCK_EMPLOYEES);
   const [promotions, setPromotions] = useState<PromotionRecord[]>(DEFAULT_MOCK_PROMOTIONS);
@@ -396,90 +581,74 @@ export const HRPage: React.FC = () => {
   const [attendancesList, setAttendancesList] = useState<Array<{ emp_name?: string; status?: string; work_hours?: number }>>([]);
   const [custodiesList, setCustodiesList] = useState<Array<{ employee_name?: string; item_name?: string; status?: string }>>([]);
   const [postedPayrollRuns, setPostedPayrollRuns] = useState<Array<{ id: string; company_id?: string; payroll_month?: string }>>([]);
+  const [syncedAttendanceMap, setSyncedAttendanceMap] = useState<Array<{ employeeId?: string; employeeName?: string; overtimePayAmount?: number; lateAndEarlyDeductionAmount?: number }>>([]);
+  const [ewaWithdrawals, setEwaWithdrawals] = useState<EwaWithdrawalRecordStored[]>([]);
+  const [disciplinaryRecords, setDisciplinaryRecords] = useState<DisciplinaryRecordStored[]>([]);
+  const [publicHolidays, setPublicHolidays] = useState<SaudiPublicHoliday[]>(DEFAULT_SAUDI_PUBLIC_HOLIDAYS);
+  const [studioLetterEmp, setStudioLetterEmp] = useState<EmployeeRecord | null>(null);
+  const [welcomeTargetEmpId, setWelcomeTargetEmpId] = useState<string | undefined>(undefined);
+  const [reemEmailDraft, setReemEmailDraft] = useState<{
+    templateId?: ReemHrTemplateId;
+    recipientEmail?: string;
+    recipientNameAr?: string;
+    detailsAr?: string;
+  }>({});
   const [revealPii, setRevealPii] = useState<boolean>(true);
+  const syncedRadarCompanyRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    const loadHrRecords = () => {
-      if (rawEmployees.length > 0) {
-        setEmployeesList(rawEmployees as EmployeeRecord[]);
-      } else {
-        realErpDataStore.getRecords<EmployeeRecord>('hr_employees', DEFAULT_MOCK_EMPLOYEES).then(d => setEmployeesList(d));
-      }
-      realErpDataStore.getRecords<PromotionRecord>('hr_promotions', DEFAULT_MOCK_PROMOTIONS).then(d => setPromotions(d));
-      realErpDataStore.getRecords<VacationRequest>('hr_leave_requests', DEFAULT_VACATIONS).then(d => setVacations(d));
-      realErpDataStore.getRecords<AdvanceRequest>('hr_advances', DEFAULT_ADVANCES).then(d => setAdvances(d));
-      realErpDataStore.getRecords<SanctionItem>('hr_sanctions', DEFAULT_SANCTIONS).then(d => setSanctions(d));
-      realErpDataStore.getRecords<PermissionRequest>('hr_permissions', DEFAULT_PERMISSIONS).then(d => setPermissions(d));
-      realErpDataStore.getRecords<RewardRequest>('hr_rewards', DEFAULT_REWARDS).then(d => setRewards(d));
-      realErpDataStore.getRecords<MaidHrFleetRecord>('hr_maids_fleet', DEFAULT_MAIDS_FLEET).then(d => setMaidsFleet(d));
-      realErpDataStore.getRecords<any>('attendances', []).then(d => setAttendancesList(Array.isArray(d) ? d : []));
-      realErpDataStore.getRecords<any>('custodies', []).then(d => setCustodiesList(Array.isArray(d) ? d : []));
-      realErpDataStore.getRecords<any>('payroll_runs', []).then(d => setPostedPayrollRuns(Array.isArray(d) ? d : []));
-    };
-    loadHrRecords();
-    window.addEventListener('erp-data-updated', loadHrRecords);
-    return () => window.removeEventListener('erp-data-updated', loadHrRecords);
-  }, [rawEmployees]);
-
-  const storeActiveTab = useAppStore(state => state.activeTab);
-
-  const getMappedTab = (tabKey: string): HrSubTab => {
-    switch (tabKey) {
-      case 'promotions':
-      case 'employee-promotions':
-        return 'promotions';
-      case 'signatures':
-      case 'legal-agreements':
-      case 'employee-signatures':
-        return 'signatures';
-      case 'employee-permissions':
-      case 'permissions':
-        return 'permissions';
-      case 'leave-requests':
-      case 'vacations':
-        return 'vacations';
-      case 'employee-advances':
-      case 'advances':
-        return 'advances';
-      case 'employee-sanctions':
-      case 'sanctions':
-        return 'sanctions';
-      case 'employee-rewards':
-      case 'rewards':
-        return 'rewards';
-      case 'payrolls':
-      case 'payroll':
-      case 'wps':
-      case 'wps-generator':
-      case 'salary':
-      case 'salaries':
-        return 'payroll';
-      case 'end-of-service':
-      case 'eos':
-        return 'end-of-service';
-      case 'gosi-insurance':
-      case 'gosi':
-        return 'gosi';
-      case 'nitaqat':
-      case 'compliance-radar':
-        return 'compliance-radar';
-      case 'hr-pro':
-      case 'odoo-payroll':
-      case 'bamboohr':
-      case 'hr-pro-hub':
-        return 'hr-pro-hub';
-      case 'maids-hr':
-      case 'domestic-fleet':
-        return 'maids-hr';
-      default:
-        return 'employees';
+  const reloadHrData = useCallback(() => {
+    const companyScope = activeCompanyId && activeCompanyId !== 'all' ? activeCompanyId : undefined;
+    if (rawEmployees.length > 0) {
+      setEmployeesList(rawEmployees as EmployeeRecord[]);
+    } else {
+      realErpDataStore.getRecords<EmployeeRecord>('hr_employees', DEFAULT_MOCK_EMPLOYEES, companyScope).then((d) => setEmployeesList(d));
     }
-  };
-
-  const [activeTab, setActiveTab] = useState<HrSubTab>(() => getMappedTab(storeActiveTab));
+    realErpDataStore.getRecords<PromotionRecord>('hr_promotions', DEFAULT_MOCK_PROMOTIONS, companyScope).then((d) => setPromotions(d));
+    realErpDataStore.getRecords<VacationRequest>('hr_leave_requests', DEFAULT_VACATIONS, companyScope).then((d) => setVacations(d));
+    realErpDataStore.getRecords<AdvanceRequest>('hr_advances', DEFAULT_ADVANCES, companyScope).then((d) => setAdvances(d));
+    realErpDataStore.getRecords<SanctionItem>('hr_sanctions', DEFAULT_SANCTIONS, companyScope).then((d) => setSanctions(d));
+    realErpDataStore.getRecords<PermissionRequest>('hr_permissions', DEFAULT_PERMISSIONS, companyScope).then((d) => setPermissions(d));
+    realErpDataStore.getRecords<RewardRequest>('hr_rewards', DEFAULT_REWARDS, companyScope).then((d) => setRewards(d));
+    realErpDataStore.getRecords<MaidHrFleetRecord>('hr_maids_fleet', DEFAULT_MAIDS_FLEET, companyScope).then((d) => setMaidsFleet(d));
+    realErpDataStore.getRecords<any>('attendances', [], companyScope).then((d) => setAttendancesList(Array.isArray(d) ? d : []));
+    realErpDataStore.getRecords<any>('custodies', [], companyScope).then((d) => setCustodiesList(Array.isArray(d) ? d : []));
+    realErpDataStore.getRecords<any>('payroll_runs', [], companyScope).then((d) => setPostedPayrollRuns(Array.isArray(d) ? d : []));
+    realErpDataStore.getRecords<any>('hr_attendance_payroll_sync', [], companyScope).then((d) => setSyncedAttendanceMap(Array.isArray(d) ? d : []));
+    realErpDataStore
+      .getRecords<EwaWithdrawalRecordStored>('hr_ewa_withdrawals', [], effectiveCompanyCode)
+      .then((d) => setEwaWithdrawals(Array.isArray(d) ? d : []));
+    realErpDataStore
+      .getRecords<DisciplinaryRecordStored>('hr_disciplinary_records', [], effectiveCompanyCode)
+      .then((d) => setDisciplinaryRecords(Array.isArray(d) ? d : []));
+    realErpDataStore
+      .getRecords<SaudiPublicHoliday>('hr_public_holidays', DEFAULT_SAUDI_PUBLIC_HOLIDAYS, effectiveCompanyCode)
+      .then((d) => {
+        setPublicHolidays(Array.isArray(d) && d.length > 0 ? d : DEFAULT_SAUDI_PUBLIC_HOLIDAYS);
+      });
+  }, [rawEmployees, activeCompanyId, effectiveCompanyCode]);
 
   useEffect(() => {
-    setActiveTab(getMappedTab(storeActiveTab));
+    reloadHrData();
+    window.addEventListener('erp-data-updated', reloadHrData);
+    return () => window.removeEventListener('erp-data-updated', reloadHrData);
+  }, [reloadHrData]);
+
+  const storeActiveTab = useAppStore((state) => state.activeTab);
+  const getMappedTab = mapGlobalTabToHrTab;
+
+  const setActiveGlobalTab = useCallback(
+    (tab: string) => {
+      setStoreActiveTab(tab, tab);
+      setActiveTab(mapGlobalTabToHrTab(tab));
+      window.dispatchEvent(new CustomEvent('alsulaim_navigate', { detail: { tab, title: tab } }));
+    },
+    [setStoreActiveTab]
+  );
+
+  const [activeTab, setActiveTab] = useState<HRTabType>(() => mapGlobalTabToHrTab(storeActiveTab));
+
+  useEffect(() => {
+    setActiveTab(mapGlobalTabToHrTab(storeActiveTab));
     if (storeActiveTab === 'add-employee') {
       setShowAddEmpModal(true);
     }
@@ -492,9 +661,19 @@ export const HRPage: React.FC = () => {
   const [targetEmpForPromotion, setTargetEmpForPromotion] = useState<EmployeeRecord | null>(null);
   const [selectedEmpForAgreement, setSelectedEmpForAgreement] = useState<EmployeeRecord | null>(null);
 
-  // Form State for Adding Employee
+  // Form State for Adding / Editing Employee
+  const [editingEmpRecord, setEditingEmpRecord] = useState<EmployeeRecord | null>(null);
+  const [empCompanyCode, setEmpCompanyCode] = useState<CanonicalEntityCode>(
+    (activeCompanyId && activeCompanyId !== 'all' ? activeCompanyId : 'SAF') as CanonicalEntityCode
+  );
   const [name, setName] = useState('');
   const [nationalId, setNationalId] = useState('');
+  const [empPhone, setEmpPhone] = useState('0500000000');
+  const [empEmail, setEmpEmail] = useState('');
+  const [empIban, setEmpIban] = useState('');
+  const [empBankName, setEmpBankName] = useState('مصرف الراجحي');
+  const [empIqamaExpiry, setEmpIqamaExpiry] = useState('2027-12-31');
+  const [empLeaveBalance, setEmpLeaveBalance] = useState('21');
   const [jobTitle, setJobTitle] = useState('أخصائي خدمة عملاء');
   const [department, setDepartment] = useState('خدمة العملاء (CRM)');
   const [branch, setBranch] = useState('الفرع الرئيسي - الرياض');
@@ -502,12 +681,63 @@ export const HRPage: React.FC = () => {
   const [salary, setSalary] = useState('8000');
   const [createSystemUser, setCreateSystemUser] = useState(true);
   const [assignedRole, setAssignedRole] = useState('Sales Agent');
+  const [showRecycleBinModal, setShowRecycleBinModal] = useState(false);
+  const [agreementHideHoldingGroup, setAgreementHideHoldingGroup] = useState(false);
+
+  // Leave Policy Settings & Leave Return / Cut / Extend / Cancel Lifecycle State
+  const [showLeavePolicyModal, setShowLeavePolicyModal] = useState(false);
+  const [leavePolicyDraft, setLeavePolicyDraft] = useState<HrLeavePolicyConfig>(() => getHrLeavePolicy());
+  const [activeLeaveLifecycleTarget, setActiveLeaveLifecycleTarget] = useState<{
+    vac: VacationRequest;
+    mode: 'RETURN' | 'CUT' | 'EXTEND' | 'CANCEL';
+    targetDate: string;
+    notes: string;
+  } | null>(null);
+
+  const handleOpenAddOrEditEmployee = (emp?: EmployeeRecord) => {
+    if (emp) {
+      setEditingEmpRecord(emp);
+      setEmpCompanyCode((emp.company_id && emp.company_id !== 'all' ? emp.company_id : 'SAF') as CanonicalEntityCode);
+      setName(emp.name);
+      setNationalId(emp.national_id);
+      setEmpPhone(emp.phone || '0500000000');
+      setEmpEmail(emp.email || '');
+      setEmpIban(emp.iban || '');
+      setEmpBankName(emp.bank_name || 'مصرف الراجحي');
+      setEmpIqamaExpiry(emp.iqama_expiry || emp.iqama_expiry_date || '2027-12-31');
+      setEmpLeaveBalance(String(emp.leave_balance ?? 21));
+      setJobTitle(emp.job_title);
+      setDepartment(emp.department);
+      setBranch(emp.branch);
+      setGrade(emp.grade || 'الدرجة الثالثة (أخصائي أول)');
+      setSalary(String(emp.salary ?? 8000));
+      setCreateSystemUser(false);
+    } else {
+      setEditingEmpRecord(null);
+      setEmpCompanyCode((activeCompanyId && activeCompanyId !== 'all' ? activeCompanyId : 'SAF') as CanonicalEntityCode);
+      setName('');
+      setNationalId('');
+      setEmpPhone('0500000000');
+      setEmpEmail('');
+      setEmpIban('');
+      setEmpBankName('مصرف الراجحي');
+      setEmpIqamaExpiry('2027-12-31');
+      setEmpLeaveBalance(String(getHrLeavePolicy().annualStandardDays));
+      setJobTitle('أخصائي خدمة عملاء');
+      setDepartment('خدمة العملاء (CRM)');
+      setBranch('الفرع الرئيسي - الرياض');
+      setGrade('الدرجة الثانية (أخصائي)');
+      setSalary('8000');
+      setCreateSystemUser(true);
+    }
+    setShowAddEmpModal(true);
+  };
 
   // End of Service Calculator State
   const [eosSalary, setEosSalary] = useState<number>(8000);
   const [eosYears, setEosYears] = useState<number>(4);
   const [eosMonths, setEosMonths] = useState<number>(6);
-  const [eosReason, setEosReason] = useState<'termination' | 'resignation' | 'force_majeure'>('termination');
+  const [eosReason, setEosReason] = useState<'termination' | 'resignation' | 'force_majeure' | 'marriage_maternity_art87' | 'disciplinary_art80'>('termination');
 
   // GOSI Calculator State
   const [gosiEmpType, setGosiEmpType] = useState<'saudi' | 'non_saudi'>('saudi');
@@ -564,40 +794,63 @@ export const HRPage: React.FC = () => {
     e.preventDefault();
     if (!name || !nationalId || !salary) return;
 
-    const companyCode = activeCompanyId !== 'all' ? activeCompanyId : 'SAF';
-    const employeeCode = `EMP-2026-${String(employeesList.length + 1).padStart(3, '0')}`;
     const sal = parseFloat(salary) || 8000;
+    const isEditingExisting = Boolean(editingEmpRecord);
+    const employeeCode = editingEmpRecord
+      ? editingEmpRecord.employee_code
+      : `EMP-${empCompanyCode}-${String(employeesList.length + 1).padStart(3, '0')}`;
 
-    const newRecord: EmployeeRecord = {
-      id: employeeCode,
-      company_id: companyCode,
-      employee_code: employeeCode,
-      name,
-      national_id: nationalId,
-      job_title: jobTitle,
-      department,
-      branch,
-      grade,
-      hire_date: new Date().toISOString().slice(0, 10),
-      basic_salary: sal * 0.7,
-      housing_allowance: sal * 0.2,
-      transport_allowance: sal * 0.1,
-      salary: sal,
-      leave_balance: 30,
-      system_role: createSystemUser ? assignedRole : undefined,
-      signature_status: 'موقّع ومعتمد',
-      compliance_hash: `SA-COMPLIANCE-${employeeCode}`,
-      status: 'نشط' as const,
-    };
+    const savedProfile = await saveUnifiedEmployeeProfile(
+      {
+        id: editingEmpRecord ? editingEmpRecord.id : employeeCode,
+        employee_code: employeeCode,
+        company_id: empCompanyCode,
+        name,
+        national_id: nationalId,
+        phone: empPhone,
+        email: empEmail,
+        iban: empIban || `SA03800000000${nationalId}12`,
+        bank_name: empBankName,
+        iqama_expiry: empIqamaExpiry,
+        iqama_expiry_date: empIqamaExpiry,
+        job_title: jobTitle,
+        department,
+        branch,
+        grade,
+        hire_date: editingEmpRecord?.hire_date || new Date().toISOString().slice(0, 10),
+        basic_salary: Math.round(sal * 0.7),
+        housing_allowance: Math.round(sal * 0.2),
+        transport_allowance: Math.round(sal * 0.1),
+        salary: sal,
+        leave_balance: Number(empLeaveBalance) || 21,
+        system_role: createSystemUser ? assignedRole : editingEmpRecord?.system_role,
+        signature_status: 'موقّع ومعتمد',
+        compliance_hash: editingEmpRecord?.compliance_hash || `SA-COMPLIANCE-${employeeCode}`,
+        status: editingEmpRecord?.status || 'نشط',
+      },
+      editingEmpRecord || null,
+      'إدارة الموارد البشرية'
+    );
 
-    // Save to employees
-    await createItem.mutateAsync(newRecord);
-    const updatedEmps = [newRecord, ...employeesList];
-    setEmployeesList(updatedEmps);
-    await realErpDataStore.addRecord('hr_employees', newRecord);
+    const newRecord = savedProfile as unknown as EmployeeRecord;
 
-    // If create system user is checked, add to system_users
-    if (createSystemUser) {
+    if (isEditingExisting) {
+      try {
+        await updateItem.mutateAsync({ id: newRecord.id, data: newRecord as any });
+      } catch {
+        // synced via realErpDataStore
+      }
+      setEmployeesList((prev) => prev.map((x) => (x.id === newRecord.id ? newRecord : x)));
+    } else {
+      try {
+        await createItem.mutateAsync(newRecord);
+      } catch {
+        // synced via realErpDataStore
+      }
+      setEmployeesList((prev) => [newRecord, ...prev.filter((x) => x.id !== newRecord.id)]);
+    }
+
+    if (!isEditingExisting && createSystemUser) {
       const username = name.split(' ')[0].toLowerCase() + '_' + Math.floor(100 + Math.random() * 900);
       await realErpDataStore.addRecord('system_users', {
         id: `usr-${Date.now()}`,
@@ -606,8 +859,8 @@ export const HRPage: React.FC = () => {
         role: assignedRole,
         user_type: department,
         branch,
-        phone: '0500000000',
-        email: `${username}@alsulaim.sa`,
+        phone: empPhone || '0500000000',
+        email: empEmail || `${username}@alsulaim.sa`,
         status: 'نشط',
         two_factor_enabled: enable2FA,
         two_factor_method: enable2FA ? 'Google Authenticator' : undefined,
@@ -616,13 +869,37 @@ export const HRPage: React.FC = () => {
       });
     }
 
+    if (!isEditingExisting) {
+      void triggerNewEmployeeOnboardingConsequences({
+        companyId: empCompanyCode,
+        companyNameAr: activeCompany.name,
+        employeeId: newRecord.id,
+        employeeCode,
+        employeeName: name,
+        nationalId,
+        jobTitle,
+        department,
+        branch,
+        hireDate: newRecord.hire_date,
+        salary: sal,
+        phone: empPhone,
+        email: empEmail,
+        systemRole: createSystemUser ? assignedRole : undefined,
+        autoBroadcastToScreens: true,
+      });
+      setWelcomeTargetEmpId(newRecord.id);
+    }
+
     addNotification({
-      title: 'إدراج موظف وتعيين الصلاحيات',
-      message: `تم إدراج الموظف (${name}) بكود #${employeeCode} بنجاح ${createSystemUser ? `وتعيين الدور (${assignedRole})` : ''}.`,
+      title: isEditingExisting ? 'تم تحديث بيانات الموظف' : 'إدراج موظف وتفعيل تبعيات المباشرة وبث الترحيب',
+      message: isEditingExisting
+        ? `تم حفظ التعديلات على ملف (${name}) وتوثيقها في سجل التدقيق.`
+        : `تم إدراج الموظف (${name}) بكود #${employeeCode} وتفعيل إجراءات المباشرة الـ 7 وبث الترحيب على شاشات الشركة.`,
       type: 'success',
     });
 
     setShowAddEmpModal(false);
+    setEditingEmpRecord(null);
     setName('');
     setNationalId('');
   };
@@ -694,26 +971,154 @@ export const HRPage: React.FC = () => {
       created_at: new Date().toISOString().slice(0, 16).replace('T', ' ')
     });
 
+    shareHrOfficialEmailEml({
+      title: `قرار ترقية وظيفية وزيادة راتب معتمد — ${targetEmpForPromotion.name}`,
+      customSubjectEn: `Official Promotion & Salary Increment Decision - ${targetEmpForPromotion.name}`,
+      referenceNumber: promoRecord.id,
+      recipientName: targetEmpForPromotion.name,
+      recipientEmail: targetEmpForPromotion.email,
+      entityCode: targetEmpForPromotion.company_id || effectiveCompanyCode,
+      moduleName: 'hr_promotions',
+      department: 'hr',
+      templateId: 'EMPLOYMENT_TRANSACTION_DECISION',
+      summaryLines: [
+        { label: 'الموظف', value: `${targetEmpForPromotion.name} (#${targetEmpForPromotion.employee_code})` },
+        { label: 'المسمى السابق', value: `${promoRecord.previous_job_title} (${promoRecord.previous_grade})` },
+        { label: 'المسمى الجديد', value: `${promoRecord.new_job_title} (${promoRecord.new_grade})` },
+        { label: 'الراتب الجديد', value: `${newSal.toLocaleString()} ⃁ (+${increment.toLocaleString()} ⃁ / ${percent})` },
+        { label: 'تاريخ السريان', value: promoEffectiveDate },
+      ],
+    });
+
     addNotification({
       title: 'اعتماد ترقية الموظف بنجاح',
-      message: `تمت ترقية الموظف (${targetEmpForPromotion.name}) إلى (${promoNewTitle}) بزيادة (+${increment.toLocaleString()} ⃁ / ${percent}).`,
+      message: `تمت ترقية الموظف (${targetEmpForPromotion.name}) إلى (${promoNewTitle}) بزيادة (+${increment.toLocaleString()} ⃁ / ${percent}) وإرسال خطاب الترقية ببريد HR@kas.sa المباشر.`,
       type: 'success',
     });
 
     setShowPromotionModal(false);
   };
 
-  const handleDeleteEmployee = async (emp: EmployeeRecord) => {
-    if (window.confirm(`هل أنت متأكد من حذف ملف الموظف (${emp.name})؟`)) {
+  const handleDeleteEmployee = async (emp: EmployeeRecord, reason?: string) => {
+    await softDeleteUnifiedEmployeeProfile(emp as any, reason);
+    try {
       await deleteItem.mutateAsync(emp.id);
-      setEmployeesList(employeesList.filter(e => e.id !== emp.id));
-      await realErpDataStore.deleteRecord('hr_employees', emp.id);
+    } catch {
+      // handled by realErpDataStore
+    }
+    setEmployeesList((prev) => prev.filter((e) => e.id !== emp.id));
+    addNotification({
+      title: 'نقل ملف الموظف إلى سلة الاستعادة',
+      message: `تم أرشفة ملف الموظف (${emp.name}) في سلة المحذوفات المؤقتة (قابل للاستعادة لمدة 30 يوماً).`,
+      type: 'info',
+    });
+  };
+
+  const handleSoftDeleteHrSubRecord = async (
+    tableName: 'hr_leave_requests' | 'hr_advances' | 'hr_sanctions' | 'hr_permissions' | 'hr_rewards' | 'hr_promotions',
+    record: Record<string, any>,
+    recordTitle: string,
+    reason?: string
+  ) => {
+    archiveRecordBeforeSoftDelete({
+      tableName,
+      record,
+      recordTitle,
+      reason,
+      companyId: record.company_id || effectiveCompanyCode,
+    });
+    await realErpDataStore.deleteRecord(tableName, record.id);
+    reloadHrData();
+    addNotification({
+      title: 'نقل السجل إلى سلة المحذوفات',
+      message: `تم نقل (${recordTitle}) إلى أرشيف الاستعادة المؤقت.`,
+      type: 'info',
+    });
+  };
+
+  const handleRestoreFromRecycleBin = async (entry: RecycleBinEntry) => {
+    if (entry.tableName === 'hr_employees' || entry.tableName === 'employees') {
+      await restoreUnifiedEmployeeFromBin(entry);
+    } else if (entry.payload) {
+      await realErpDataStore.addRecord(entry.tableName, entry.payload as any);
+    }
+    reloadHrData();
+    addNotification({
+      title: 'تمت استعادة السجل بنجاح',
+      message: `تمت إعادة (${entry.recordTitle}) إلى جدول البيانات النشط.`,
+      type: 'success',
+    });
+  };
+
+  const handleSaveLeavePolicySettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    const saved = saveHrLeavePolicy(leavePolicyDraft);
+    setLeavePolicyDraft(saved);
+    setShowLeavePolicyModal(false);
+    addNotification({
+      title: 'تم تحديث سياسات الإجازات النظامية',
+      message: `تم اعتماد إعدادات الاستحقاق السنوي (${saved.annualStandardDays}/${saved.annualSeniorDays} يوم) وضوابط الاستثناء والمباشرة.`,
+      type: 'success',
+    });
+  };
+
+  const handleExecuteLeaveLifecycleAction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeLeaveLifecycleTarget) return;
+    const { vac, mode, targetDate, notes } = activeLeaveLifecycleTarget;
+
+    if (mode === 'RETURN') {
+      const res = await confirmReturnFromLeave({
+        leaveId: vac.id,
+        actualReturnDate: targetDate,
+        notes,
+      });
       addNotification({
-        title: 'حذف ملف موظف',
-        message: `تم حذف ملف الموظف (${emp.name}) بنجاح.`,
-        type: 'error',
+        title: 'تم اعتماد إشعار المباشرة بعد الإجازة',
+        message:
+          res.refundedDays > 0
+            ? `باشر ${vac.employee_name} مبكراً وتم استرداد (+${res.refundedDays} يوم) إلى رصيده السنوي.`
+            : res.overstayUnpaidDays > 0
+            ? `تم تسجيل مباشرة ${vac.employee_name} مع رصد (${res.overstayUnpaidDays} يوم) تجاوز غير مدفوع.`
+            : `تم توثيق مباشرة ${vac.employee_name} في الموعد المحدد.`,
+        type: 'success',
+      });
+    } else if (mode === 'CUT') {
+      const res = await cutLeaveEarlyAndRefundBalance({
+        leaveId: vac.id,
+        newEndDate: targetDate,
+        reason: notes || 'قطع الإجازة ومباشرة العمل مبكراً',
+      });
+      addNotification({
+        title: 'تم قطع الإجازة وإعادة الرصيد',
+        message: `تم تقليص إجازة ${vac.employee_name} وإعادة (+${res.refundedDays} يوم) إلى رصيد الإجازات فوراً.`,
+        type: 'success',
+      });
+    } else if (mode === 'EXTEND') {
+      const res = await extendApprovedLeave({
+        leaveId: vac.id,
+        newEndDate: targetDate,
+        reason: notes || 'تمديد الإجازة المعتمدة',
+      });
+      addNotification({
+        title: 'تم تمديد الإجازة وتحديث الرصيد',
+        message: `تم تمديد إجازة ${vac.employee_name} إلى ${targetDate} وخصم (${res.extraDays} يوم) إضافي.`,
+        type: 'info',
+      });
+    } else if (mode === 'CANCEL') {
+      const res = await cancelApprovedLeaveAndRefund({
+        leaveId: vac.id,
+        reason: notes || 'إلغاء الإجازة واسترداد كامل الرصيد',
+      });
+      addNotification({
+        title: 'تم إلغاء الإجازة واسترداد الرصيد',
+        message: `أُلغيت إجازة ${vac.employee_name} وتمت إعادة كامل الأيام المخصومة (+${res.refundedDays} يوم) لرصيده.`,
+        type: 'success',
       });
     }
+
+    setActiveLeaveLifecycleTarget(null);
+    reloadHrData();
   };
 
   // Interactive Modals & Lifecycle States
@@ -754,6 +1159,23 @@ export const HRPage: React.FC = () => {
   // Payroll Lifecycle & Payslip / Official Letter States
   const [payrollMonth, setPayrollMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const [payrollRunStatus, setPayrollRunStatus] = useState<PayrollLifecycleStage>('APPROVED');
+  const [retroArrearsState, setRetroArrearsState] = useState<RetroactiveArrearRecord[]>([]);
+  const [companyJournalsForPayroll, setCompanyJournalsForPayroll] = useState<any[]>([]);
+
+  useEffect(() => {
+    const syncPayrollAdditions = () => {
+      void Promise.all([
+        realErpDataStore.getRecords<RetroactiveArrearRecord>('hr_payroll_retro_arrears', []),
+        realErpDataStore.getRecords<any>('company_journal_entries', []),
+      ]).then(([retros, jvs]) => {
+        setRetroArrearsState(Array.isArray(retros) ? retros : []);
+        setCompanyJournalsForPayroll(Array.isArray(jvs) ? jvs : []);
+      });
+    };
+    syncPayrollAdditions();
+    window.addEventListener('erp-data-updated', syncPayrollAdditions);
+    return () => window.removeEventListener('erp-data-updated', syncPayrollAdditions);
+  }, [effectiveCompanyCode, payrollMonth]);
   const [selectedPayslipRecord, setSelectedPayslipRecord] = useState<{
     record: EmployeePayrollRecord;
     department: string;
@@ -781,12 +1203,116 @@ export const HRPage: React.FC = () => {
   const [gosiYear, setGosiYear] = useState<number>(() => new Date().getFullYear());
 
   // Multi-Tenancy (company_id) Filter Helper with graceful fallback
-  const companyScopedEmployees = React.useMemo(() => {
+  const companyScopedEmployees = useMemo(() => {
     if (!activeCompanyId || activeCompanyId === 'all') return employeesList;
     const hasSpecific = employeesList.some((e) => e.company_id === activeCompanyId);
     if (!hasSpecific) return employeesList;
     return employeesList.filter((e) => !e.company_id || e.company_id === activeCompanyId);
   }, [employeesList, activeCompanyId]);
+
+  const jisrHubEmployees = useMemo(
+    () =>
+      companyScopedEmployees.map((emp) => ({
+        id: emp.id,
+        name: emp.name,
+        nationality: emp.national_id && !emp.national_id.startsWith('1') ? 'مقيم' : 'سعودي',
+        department: emp.department,
+        basicSalary: emp.basic_salary || emp.salary * 0.7,
+        housingAllowance: emp.housing_allowance || emp.salary * 0.2,
+        transportAllowance: emp.transport_allowance || emp.salary * 0.1,
+        hireDate: emp.hire_date,
+        iqamaExpiry: emp.iqama_expiry_date,
+        passportExpiry: emp.passport_expiry_date,
+        medicalInsuranceExpiry: emp.medical_insurance_expiry,
+        qiwaContractExpiry: emp.contract_end_date,
+        iban: emp.iban,
+        status: emp.status,
+      })),
+    [companyScopedEmployees]
+  );
+
+  // Background HR Smart Alerts & Compliance Radar Sync once per company mount (no noisy popups)
+  useEffect(() => {
+    if (jisrHubEmployees.length === 0) return;
+    if (syncedRadarCompanyRef.current === effectiveCompanyCode) return;
+    syncedRadarCompanyRef.current = effectiveCompanyCode;
+
+    let cancelled = false;
+    const syncCompanyRadars = async () => {
+      const [approvalRequests, pendingShiftSwaps, pendingOffboardings] = await Promise.all([
+        realErpDataStore.getRecords<any>('hr_approval_requests', [], effectiveCompanyCode),
+        realErpDataStore.getRecords<any>('hr_shift_swap_requests', [], effectiveCompanyCode),
+        realErpDataStore.getRecords<any>('hr_offboarding_clearances', [], effectiveCompanyCode),
+      ]);
+      const scanInput = {
+        companyId: effectiveCompanyCode,
+        employees: jisrHubEmployees,
+        approvalRequests: Array.isArray(approvalRequests) ? approvalRequests : [],
+        pendingShiftSwaps: Array.isArray(pendingShiftSwaps) ? pendingShiftSwaps : [],
+        pendingOffboardings: Array.isArray(pendingOffboardings) ? pendingOffboardings : [],
+      };
+      try {
+        const res = await runAndDispatchHrSmartAlerts(scanInput, { showPopups: false });
+        if (!cancelled && res.newlyTriggeredCount > 0) {
+          const topAlert = res.alerts.find((a) => !a.acknowledged) || res.alerts[0];
+          addNotification({
+            title: topAlert ? topAlert.titleAr : 'تحديث رادار التنبيهات الذكية للموارد البشرية',
+            message: res.spokenSummary,
+            type: res.alerts.some((a) => a.severity === 'critical' && !a.acknowledged) ? 'warning' : 'info',
+            category: 'hr',
+            companyId: effectiveCompanyCode,
+            link: 'jisr-alerts-compliance',
+          });
+        }
+      } catch {
+        const fallbackAlerts = scanHrComplianceRadars(scanInput);
+        const allExisting = await realErpDataStore.getRecords<any>('hr_smart_alerts', []);
+        const otherCompanies = (Array.isArray(allExisting) ? allExisting : []).filter(
+          (r: any) => r.company_id && r.company_id !== effectiveCompanyCode
+        );
+        const existingMap = new Map(
+          (Array.isArray(allExisting) ? allExisting : [])
+            .filter((r: any) => !r.company_id || r.company_id === effectiveCompanyCode)
+            .map((r: any) => [r.alertKey, r])
+        );
+        let newCount = 0;
+        const mergedForCompany = fallbackAlerts.map((alert) => {
+          const prev: any = existingMap.get(alert.alertKey);
+          if (prev) {
+            return {
+              ...alert,
+              id: prev.id,
+              acknowledged: Boolean(prev.acknowledged),
+              acknowledgedAt: prev.acknowledgedAt,
+            };
+          }
+          newCount += 1;
+          return alert;
+        });
+        await realErpDataStore.saveRecords('hr_smart_alerts', [...mergedForCompany, ...otherCompanies]);
+        if (!cancelled && newCount > 0 && mergedForCompany.length > 0) {
+          addNotification({
+            title: mergedForCompany[0].titleAr,
+            message: `رصد رادار جسر (${mergedForCompany.length}) تنبيهات امتثال حية (الإقامة، التجربة م53، عقود قوى، SLA).`,
+            type: mergedForCompany.some((a) => a.severity === 'critical') ? 'warning' : 'info',
+            category: 'hr',
+            companyId: effectiveCompanyCode,
+            link: 'jisr-alerts-compliance',
+          });
+        }
+      }
+    };
+
+    void syncCompanyRadars();
+    return () => {
+      cancelled = true;
+    };
+  }, [effectiveCompanyCode, jisrHubEmployees, addNotification]);
+
+  const vacHolidayCalc = useMemo(
+    () => calculateNetLeaveDaysExcludingHolidays(vacFrom, vacTo, { holidays: publicHolidays }),
+    [vacFrom, vacTo, publicHolidays]
+  );
 
   const handleSelectEosEmployee = (empId: string) => {
     setSelectedEosEmpId(empId);
@@ -823,18 +1349,37 @@ export const HRPage: React.FC = () => {
     const emp = employeesList.find((x) => x.id === vacEmpId) || employeesList[0];
     if (!emp) return;
     const companyCode = activeCompanyId !== 'all' ? activeCompanyId : emp.company_id || 'SAF';
-    const d1 = new Date(vacFrom);
-    const d2 = new Date(vacTo);
-    const days = Math.max(1, Math.ceil((d2.getTime() - d1.getTime()) / 86400000) + 1);
+    const holidayExclusion = calculateNetLeaveDaysExcludingHolidays(vacFrom, vacTo, {
+      holidays: publicHolidays,
+    });
+    const calendarDays = Math.max(1, holidayExclusion.calendarDays);
     const entitlement = WpsPayrollEngine.calculateAnnualLeaveEntitlement(emp.hire_date || '2023-01-01');
     const currentBal = emp.leave_balance ?? entitlement.annualEntitlementDays;
 
+    const priorSickDaysYtd = WpsPayrollEngine.calculateEmployeeYtdSickDays(
+      emp.name,
+      vacFrom.slice(0, 4),
+      vacations
+    );
+    const prelimClassification = WpsPayrollEngine.classifyLeaveDeductionRule(
+      vacType,
+      calendarDays,
+      emp.salary / 30,
+      priorSickDaysYtd
+    );
+    const effectiveDaysCount = prelimClassification.deductFromAnnualBalance
+      ? Math.max(0, holidayExclusion.netDeductibleLeaveDays)
+      : calendarDays;
     const classification = WpsPayrollEngine.classifyLeaveDeductionRule(
       vacType,
-      days,
+      Math.max(1, effectiveDaysCount),
       emp.salary / 30,
-      0
+      priorSickDaysYtd
     );
+    const holidayNoteSuffix =
+      prelimClassification.deductFromAnnualBalance && holidayExclusion.excludedHolidayDays > 0
+        ? ` | استثناء (${holidayExclusion.excludedHolidayDays}) أيام عطل رسمية سعودية: ${holidayExclusion.matchedHolidays.join('، ')}`
+        : '';
 
     const newVac: VacationRequest = {
       id: `VAC-${String(vacations.length + 1).padStart(2, '0')}`,
@@ -845,10 +1390,12 @@ export const HRPage: React.FC = () => {
       balance: currentBal,
       from_date: vacFrom,
       to_date: vacTo,
-      days_count: days,
+      days_count: effectiveDaysCount,
       pay_rate_percent: classification.payRatePercent,
-      deducted_from_annual: classification.deductFromAnnualBalance,
-      notes: vacNotes || `${classification.legalReference} (نسبة الأجر: ${classification.payRatePercent}%)`,
+      deducted_from_annual: prelimClassification.deductFromAnnualBalance,
+      notes:
+        (vacNotes || `${classification.legalReference} (نسبة الأجر: ${classification.payRatePercent}%)`) +
+        holidayNoteSuffix,
       status: 'بانتظار الموافقة',
     };
     const updated = await realErpDataStore.addRecord('hr_leave_requests', newVac, DEFAULT_VACATIONS);
@@ -857,25 +1404,57 @@ export const HRPage: React.FC = () => {
     setVacNotes('');
     addNotification({
       title: 'تسجيل طلب إجازة جديد',
-      message: `تم تسجيل طلب (${vacType}) للموظف ${emp.name} لمدة ${days} أيام بانتظار الاعتماد.`,
+      message:
+        prelimClassification.deductFromAnnualBalance && holidayExclusion.excludedHolidayDays > 0
+          ? `تم تسجيل طلب (${vacType}) للموظف ${emp.name}: صافي (${effectiveDaysCount} أيام) بعد استثناء (${holidayExclusion.excludedHolidayDays}) أيام عطل رسمية سعودية.`
+          : `تم تسجيل طلب (${vacType}) للموظف ${emp.name} لمدة ${effectiveDaysCount} أيام بانتظار الاعتماد.`,
       type: 'info',
+      category: 'hr',
     });
   };
 
   const handleUpdateVacationStatus = async (vac: VacationRequest, status: 'معتمد' | 'مرفوض') => {
-    const updated = await realErpDataStore.updateRecord('hr_leave_requests', vac.id, { status }, DEFAULT_VACATIONS);
-    setVacations(updated);
-
     const emp = employeesList.find((e) => e.id === vac.employee_id || e.name === vac.employee_name);
+    const holidayExclusion = calculateNetLeaveDaysExcludingHolidays(vac.from_date, vac.to_date, {
+      holidays: publicHolidays,
+    });
+    const priorSickYtd = WpsPayrollEngine.calculateEmployeeYtdSickDays(
+      vac.employee_name,
+      vac.from_date.slice(0, 4),
+      vacations.filter((v) => v.id !== vac.id)
+    );
+    const prelimRule = WpsPayrollEngine.classifyLeaveDeductionRule(
+      vac.vacation_type,
+      Math.max(1, vac.days_count),
+      (emp?.salary || 8000) / 30,
+      priorSickYtd
+    );
+    const netDeductibleAnnualDays = prelimRule.deductFromAnnualBalance
+      ? holidayExclusion.calendarDays > 0
+        ? holidayExclusion.netDeductibleLeaveDays
+        : vac.days_count
+      : vac.days_count;
     const rule = WpsPayrollEngine.classifyLeaveDeductionRule(
       vac.vacation_type,
-      vac.days_count,
+      Math.max(1, netDeductibleAnnualDays),
       (emp?.salary || 8000) / 30,
-      0
+      priorSickYtd
     );
 
-    if (status === 'معتمد' && emp && rule.deductFromAnnualBalance) {
-      const newBalance = Math.max(0, (emp.leave_balance ?? vac.balance) - rule.annualDaysToDeduct);
+    const updated = await realErpDataStore.updateRecord(
+      'hr_leave_requests',
+      vac.id,
+      {
+        status,
+        days_count: prelimRule.deductFromAnnualBalance ? netDeductibleAnnualDays : vac.days_count,
+      },
+      DEFAULT_VACATIONS
+    );
+    setVacations(updated);
+
+    if (status === 'معتمد' && emp && prelimRule.deductFromAnnualBalance) {
+      const daysToSubtract = Math.max(0, netDeductibleAnnualDays);
+      const newBalance = Math.max(0, (emp.leave_balance ?? vac.balance) - daysToSubtract);
       const patchedEmp = { ...emp, leave_balance: newBalance };
       await realErpDataStore.updateRecord<EmployeeRecord>('hr_employees', emp.id, { leave_balance: newBalance });
       setEmployeesList((prev) => prev.map((x) => (x.id === emp.id ? patchedEmp : x)));
@@ -885,11 +1464,12 @@ export const HRPage: React.FC = () => {
       title: status === 'معتمد' ? 'اعتماد الإجازة النظامية' : 'رفض طلب الإجازة',
       message:
         status === 'معتمد'
-          ? rule.deductFromAnnualBalance
-            ? `تم اعتماد إجازة ${vac.employee_name} وخصم (${vac.days_count} أيام) من رصيده السنوي (المادة 109).`
+          ? prelimRule.deductFromAnnualBalance
+            ? `تم اعتماد إجازة ${vac.employee_name} وخصم صافي (${netDeductibleAnnualDays} أيام) من رصيده السنوي بعد استثناء (${holidayExclusion.excludedHolidayDays}) أيام عطل رسمية (المادة 109).`
             : `تم اعتماد (${vac.vacation_type}) للموظف ${vac.employee_name} دون المساس برصيد الإجازة السنوية (${rule.legalReference}).`
           : `تم رفض طلب الإجازة للموظف ${vac.employee_name}.`,
       type: status === 'معتمد' ? 'success' : 'warning',
+      category: 'hr',
     });
   };
 
@@ -993,6 +1573,31 @@ export const HRPage: React.FC = () => {
     addNotification({
       title: 'اعتماد وصرف السلفة وترحيل القيد المحاسبي',
       message: `تم اعتماد صرف السلفة (${adv.id}) للموظف ${adv.employee_name} وإنشاء قيد الصرف (${jvRef}) بقيمة ⃁ ${adv.amount.toLocaleString()}.`,
+      type: 'success',
+    });
+  };
+
+  const handleSkipAdvanceInstallment = async (adv: AdvanceRequest) => {
+    const existingDeferred = Array.isArray(adv.deferred_months) ? adv.deferred_months : [];
+    if (existingDeferred.includes(payrollMonth)) {
+      addNotification({
+        title: 'القسط مؤجل مسبقاً لهذا الشهر',
+        message: `تم تأجيل قسط السلفة (${adv.id}) لشهر ${payrollMonth} مسبقاً ولن يُستقطع في المسير.`,
+        type: 'info',
+      });
+      return;
+    }
+    const nextDeferred = [...existingDeferred, payrollMonth];
+    const updated = await realErpDataStore.updateRecord(
+      'hr_advances',
+      adv.id,
+      { deferred_months: nextDeferred },
+      DEFAULT_ADVANCES
+    );
+    setAdvances(updated);
+    addNotification({
+      title: 'تأجيل قسط السلفة الشهري (Skip Installment)',
+      message: `تم تأجيل قسط شهر (${payrollMonth}) للسلفة (${adv.id}) للموظف ${adv.employee_name} وترحيل الاستحقاق تلقائياً.`,
       type: 'success',
     });
   };
@@ -1118,7 +1723,41 @@ export const HRPage: React.FC = () => {
     });
   };
 
-  // Computed Comprehensive Payroll Items (incorporating Advances, Sanctions, Rewards, Attendance & Art. 92 50% cap)
+  // Real Monthly EWA & HRSD Disciplinary Deduction Map per Employee for Selected Payroll Month
+  const payrollExtraDeductionsMap = useMemo(() => {
+    const map = new Map<string, { ewaAmount: number; disciplinaryAmount: number; ewaIds: string[] }>();
+    companyScopedEmployees.forEach((emp) => {
+      const matchingEwa = ewaWithdrawals.filter(
+        (w) =>
+          (w.employeeId === emp.id ||
+            w.employeeName === emp.name ||
+            Boolean(w.employeeName && (emp.name.includes(w.employeeName) || w.employeeName.includes(emp.name)))) &&
+          w.payrollMonth === payrollMonth &&
+          w.status !== 'مرفوض' &&
+          !w.deductedInPayroll
+      );
+      const ewaAmount = matchingEwa.reduce((sum, w) => sum + (Number(w.requestedAmount) || 0), 0);
+
+      const matchingDisc = disciplinaryRecords.filter(
+        (d) =>
+          (d.employeeId === emp.id ||
+            d.employeeName === emp.name ||
+            Boolean(d.employeeName && (emp.name.includes(d.employeeName) || d.employeeName.includes(emp.name)))) &&
+          d.payrollMonth === payrollMonth &&
+          d.status === 'معتمد ونافذ'
+      );
+      const disciplinaryAmount = matchingDisc.reduce((sum, d) => sum + (Number(d.deductionAmount) || 0), 0);
+
+      map.set(emp.id, {
+        ewaAmount: Number(ewaAmount.toFixed(2)),
+        disciplinaryAmount: Number(disciplinaryAmount.toFixed(2)),
+        ewaIds: matchingEwa.map((w) => w.id),
+      });
+    });
+    return map;
+  }, [companyScopedEmployees, ewaWithdrawals, disciplinaryRecords, payrollMonth]);
+
+  // Computed Comprehensive Payroll Items (incorporating Advances, EWA, HRSD Disciplinary, Sanctions, Rewards, Attendance & Art. 92 50% cap)
   const computedPayrollRecords: EmployeePayrollRecord[] = companyScopedEmployees.map((emp, idx) => {
     const basic = emp.basic_salary || emp.salary * 0.7;
     const housing = emp.housing_allowance || emp.salary * 0.2;
@@ -1140,12 +1779,34 @@ export const HRPage: React.FC = () => {
       .reduce(
         (sum, a) =>
           sum +
-          Math.min(
-            a.remaining_amount ?? a.amount,
-            a.monthly_installment ?? Math.round(a.amount / Math.max(1, a.installments_count))
-          ),
+          WpsPayrollEngine.getEffectiveAdvanceInstallmentForMonth(a, payrollMonth)
+            .effectiveInstallment,
         0
       );
+
+    const extraDed = payrollExtraDeductionsMap.get(emp.id);
+    const empEwaDeduction = extraDed?.ewaAmount || 0;
+    const empDisciplinaryDeduction = extraDed?.disciplinaryAmount || 0;
+    const empRetroAmount = retroArrearsState
+      .filter(
+        (r) =>
+          (r.employee_id === emp.id || r.employee_name === emp.name) &&
+          r.period_month === payrollMonth &&
+          r.status !== 'PAID_OFFCYCLE'
+      )
+      .reduce((sum, r) => sum + Number(r.retro_amount_sar || 0), 0);
+    const upfrontLeaveDed = computeUpfrontLeavePayrollDeduction({
+      employeeId: emp.id,
+      employeeName: emp.name,
+      periodMonth: payrollMonth,
+      journalEntries: companyJournalsForPayroll,
+    }).totalUpfrontPaidSar;
+
+    const syncedAtt = syncedAttendanceMap.find(
+      (s) => s.employeeId === emp.id || s.employeeName === emp.name
+    );
+    const syncedOvertime = syncedAtt?.overtimePayAmount || 0;
+    const syncedLateDeduction = syncedAtt?.lateAndEarlyDeductionAmount || 0;
 
     const empSanctions = sanctions
       .filter(
@@ -1180,7 +1841,7 @@ export const HRPage: React.FC = () => {
       (att) => att.status === 'غياب' && att.emp_name && (att.emp_name.includes(emp.name) || emp.name.includes(att.emp_name))
     ).length;
 
-    return WpsPayrollEngine.calculateComprehensivePayrollItem({
+    const item = WpsPayrollEngine.calculateComprehensivePayrollItem({
       employeeId: emp.id || `EMP-${idx + 1}`,
       employeeNumber: emp.employee_code || `EMP${String(idx + 1).padStart(4, '0')}`,
       nationalIdOrIqama: emp.national_id || `10${String(idx + 1).padStart(8, '0')}`,
@@ -1193,13 +1854,57 @@ export const HRPage: React.FC = () => {
       housingAllowance: housing,
       transportAllowance: transport,
       otherAllowances: other,
-      rewardsAmount: empRewards,
-      advanceInstallment: empAdvanceInstallment,
-      sanctionAmount: empSanctions,
+      overtimeHours: 0,
+      rewardsAmount: Number((empRewards + syncedOvertime + empRetroAmount).toFixed(2)),
+      advanceInstallment: Number((empAdvanceInstallment + empEwaDeduction + upfrontLeaveDed).toFixed(2)),
+      sanctionAmount: Number((empSanctions + empDisciplinaryDeduction + syncedLateDeduction).toFixed(2)),
       unpaidAbsenceDays: Number((unpaidVacationDays + attendanceAbsenceDays).toFixed(2)),
       workingDays: 30,
     });
+    return {
+      ...item,
+      payGroup: emp.pay_group,
+      costCenterAllocations: emp.cost_center_allocations,
+    };
   });
+
+  const finalizePayrollEwaSettlements = async (targetMonth: string): Promise<number> => {
+    const pendingEwaForMonth = ewaWithdrawals.filter(
+      (w) => w.payrollMonth === targetMonth && w.status !== 'مرفوض' && !w.deductedInPayroll
+    );
+    if (pendingEwaForMonth.length === 0) return 0;
+
+    const settledIds = new Set(pendingEwaForMonth.map((w) => w.id));
+    for (const w of pendingEwaForMonth) {
+      await realErpDataStore.updateRecord<EwaWithdrawalRecordStored>('hr_ewa_withdrawals', w.id, {
+        deductedInPayroll: true,
+        status: 'مسدد عبر مسير الرواتب',
+      });
+    }
+    setEwaWithdrawals((prev) =>
+      prev.map((w) =>
+        settledIds.has(w.id)
+          ? { ...w, deductedInPayroll: true, status: 'مسدد عبر مسير الرواتب' }
+          : w
+      )
+    );
+    window.dispatchEvent(new Event('erp-data-updated'));
+    return pendingEwaForMonth.length;
+  };
+
+  const handleFinalizeAndApprovePayroll = async () => {
+    const settledEwaCount = await finalizePayrollEwaSettlements(payrollMonth);
+    setPayrollRunStatus('APPROVED');
+    addNotification({
+      title: 'اعتماد مسير الرواتب وتسوية مستحقات الراتب المرن',
+      message:
+        settledEwaCount > 0
+          ? `تم اعتماد مسير شهر (${payrollMonth}) وتسوية (${settledEwaCount}) عمليات سحب راتب مرن (EWA) وربط الجزاءات المعتمدة نهائياً.`
+          : `تم اعتماد مسير رواتب شهر (${payrollMonth}) بعد التحقق من السلف والجزاءات ومزامنة الحضور.`,
+      type: 'success',
+      category: 'hr',
+    });
+  };
 
   const handlePostPayrollToGL = async () => {
     const companyCode = activeCompanyId !== 'all' ? activeCompanyId : 'SAF';
@@ -1216,11 +1921,20 @@ export const HRPage: React.FC = () => {
       return;
     }
 
-    const glPayload = WpsPayrollEngine.buildPayrollGlJournalEntry(
-      payrollMonth,
-      companyCode,
-      computedPayrollRecords
+    const hasMultiCc = computedPayrollRecords.some(
+      (r) => r.costCenterAllocations && r.costCenterAllocations.length > 0
     );
+    const glPayload = hasMultiCc
+      ? WpsPayrollEngine.buildCostAllocatedPayrollGlJournal(
+          payrollMonth,
+          companyCode,
+          computedPayrollRecords
+        )
+      : WpsPayrollEngine.buildPayrollGlJournalEntry(
+          payrollMonth,
+          companyCode,
+          computedPayrollRecords
+        );
 
     try {
       journalEngine.createJournalEntry(companyCode as any, {
@@ -1291,8 +2005,12 @@ export const HRPage: React.FC = () => {
       const empRec = computedPayrollRecords.find(
         (r) => r.employeeId === adv.employee_id || r.employeeName === adv.employee_name
       );
-      if (empRec && (empRec.advanceDeduction || 0) > 0) {
-        const recovered = Math.min(rem, empRec.deductions, empRec.advanceDeduction || 0);
+      const scheduledAdvInst = WpsPayrollEngine.getEffectiveAdvanceInstallmentForMonth(
+        adv,
+        payrollMonth
+      ).effectiveInstallment;
+      if (empRec && scheduledAdvInst > 0 && (empRec.advanceDeduction || 0) > 0) {
+        const recovered = Math.min(rem, scheduledAdvInst, empRec.deductions, empRec.advanceDeduction || 0);
         if (recovered > 0) {
           const nextRem = Number(Math.max(0, rem - recovered).toFixed(2));
           const nextPaid = Number(((adv.paid_amount || 0) + recovered).toFixed(2));
@@ -1317,11 +2035,15 @@ export const HRPage: React.FC = () => {
       setAdvances(updatedAdvances);
     }
 
+    // Mark active EWA withdrawals for this payroll month as deductedInPayroll: true
+    const settledEwaCount = await finalizePayrollEwaSettlements(payrollMonth);
+
     setPayrollRunStatus('POSTED_TO_GL');
     addNotification({
       title: 'ترحيل قيد الرواتب المزدوج للمالية وتحديث السلف',
-      message: `تم ترحيل قيد استحقاق وصرف الرواتب رقم (${jvRecord.ref_no}) بمبلغ متوازن (⃁ ${glPayload.totalDebit.toLocaleString()}) وخصم أقساط السلف آلياً.`,
+      message: `تم ترحيل قيد استحقاق وصرف الرواتب رقم (${jvRecord.ref_no}) بمبلغ متوازن (⃁ ${glPayload.totalDebit.toLocaleString()}) وخصم أقساط السلف${settledEwaCount > 0 ? ` وتسوية (${settledEwaCount}) سحوبات راتب مرن EWA` : ''} آلياً.`,
       type: 'success',
+      category: 'hr',
     });
   };
 
@@ -1430,6 +2152,9 @@ export const HRPage: React.FC = () => {
       defaultTab: 'employees',
       tabs: [
         { id: 'employees', label: `سجل الموظفين (${employeesList.length})`, icon: Users },
+        { id: 'jisr-welcome-signage', label: 'الترحيب بالموظف الجديد وشاشات العرض الذكية (TV)', icon: Tv },
+        { id: 'reem-hr-emails', label: 'مراسلات وقوالب بريد الموارد البشرية — HR@kas.sa', icon: MailCheck },
+        { id: 'jisr-org-muqeem', label: 'الهيكل التنظيمي ومقيم والخطابات', icon: Building2 },
         { id: 'promotions', label: `الترقيات والدرجات (${promotions.length})`, icon: TrendingUp },
         { id: 'signatures', label: `حافظة التواقيع (${employeesList.length})`, icon: FileSignature },
         { id: 'maids-hr', label: 'أسطول العمالة والتشغيل', icon: Users },
@@ -1442,6 +2167,10 @@ export const HRPage: React.FC = () => {
       defaultTab: 'payroll',
       tabs: [
         { id: 'payroll', label: 'مسير الرواتب (WPS)', icon: ShieldCheck },
+        { id: 'jisr-arrears-b2b', label: 'الأثر الرجعي و Off-Cycle ومدد والبنوك B2B', icon: Calculator },
+        { id: 'jisr-cards-rollover', label: 'بطاقات الشركة وترحيل وتسييل الإجازات', icon: ShieldCheck },
+        { id: 'jisr-accruals', label: 'المخصصات ومراكز التكلفة (IAS 19)', icon: Calculator },
+        { id: 'jisr-expenses', label: 'النفقات والعهد والانتدابات', icon: DollarSign },
         { id: 'gosi', label: 'التأمينات الاجتماعية (GOSI)', icon: ShieldCheck },
         { id: 'end-of-service', label: 'حاسبة نهاية الخدمة والمخالصة', icon: Calculator },
       ],
@@ -1453,6 +2182,7 @@ export const HRPage: React.FC = () => {
       defaultTab: 'vacations',
       tabs: [
         { id: 'vacations', label: `طلبات الإجازات (${vacations.length})`, icon: CalendarMinus },
+        { id: 'jisr-shifts-overtime', label: 'المناوبات والعمل الإضافي (م107) والتعاميم', icon: Clock },
         { id: 'advances', label: `طلبات السلف (${advances.length})`, icon: DollarSign },
         { id: 'rewards', label: `طلبات المكافآت (${rewards.length})`, icon: Award },
         { id: 'permissions', label: `طلبات الأذونات (${permissions.length})`, icon: Clock },
@@ -1461,19 +2191,26 @@ export const HRPage: React.FC = () => {
     },
     {
       id: 'track-performance',
-      label: '4. هيكلة الأجور والأداء (Odoo & HR-Pro)',
+      label: '4. المواهب وتقييم 360° وإخلاء الطرف',
       icon: Sparkles,
-      defaultTab: 'hr-pro-hub',
+      defaultTab: 'jisr-talent-360',
       tabs: [
-        { id: 'hr-pro-hub', label: 'هيكلة الأجور والأداء (Odoo & HR-Pro)', icon: Sparkles },
+        { id: 'jisr-talent-360', label: 'التوظيف (ATS) وتقييم 360° وإخلاء الطرف', icon: Sparkles },
+        { id: 'jisr-workflows-pulse', label: 'منشئ الحقول والتوقيع OTP والرواتب السوقية eNPS', icon: Sparkles },
+        { id: 'hr-pro-hub', label: 'هيكلة الأجور والأداء (Odoo & HR-Pro)', icon: Award },
       ],
     },
     {
       id: 'track-compliance',
-      label: '5. الامتثال ورادار الوثائق',
-      icon: Scale,
-      defaultTab: 'compliance-radar',
+      label: '5. الامتثال والتنبيهات ونطاقات',
+      icon: BellRing,
+      defaultTab: 'jisr-alerts-compliance',
       tabs: [
+        {
+          id: 'jisr-alerts-compliance',
+          label: 'رادار التنبيهات والجزاءات والراتب المرن ونطاقات',
+          icon: BellRing,
+        },
         { id: 'compliance-radar', label: 'نطاقات ورادار الوثائق', icon: Scale },
       ],
     },
@@ -1512,11 +2249,35 @@ export const HRPage: React.FC = () => {
         <div className="flex items-center gap-2 flex-wrap" data-no-dyn-enhancer="true">
           <button
             type="button"
-            onClick={() => setShowAddEmpModal(true)}
+            onClick={() => handleOpenAddOrEditEmployee()}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>+ إدراج موظف جديد</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('jisr-welcome-signage')}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-bold transition-colors cursor-pointer ${
+              activeTab === 'jisr-welcome-signage'
+                ? 'bg-[#141414] border-[#141414] text-[#ffffff]'
+                : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] border-[#e0e0e0] text-[#141414]'
+            }`}
+            title="منظومة الترحيب بالموظف الجديد وتبعياته وبث شاشات العرض الذكية"
+          >
+            <Tv className="w-3.5 h-3.5" />
+            <span>الترحيب وشاشات العرض (TV)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowRecycleBinModal(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-xs font-bold transition-colors cursor-pointer"
+            title="عرض واستعادة السجلات المحذوفة خلال آخر 30 يوماً"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>سلة الاستعادة</span>
           </button>
 
           <button
@@ -1526,6 +2287,29 @@ export const HRPage: React.FC = () => {
           >
             <TrendingUp className="w-3.5 h-3.5" />
             <span>ترقية وتعديل درجة</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setStudioLetterEmp(employeesList[0] || null)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-xs font-bold transition-colors cursor-pointer"
+          >
+            <FileSignature className="w-3.5 h-3.5" />
+            <span>استوديو الخطابات (12 نموذجاً QR)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveGlobalTab('reem-hr-emails')}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-bold transition-colors cursor-pointer ${
+              activeTab === 'reem-hr-emails'
+                ? 'bg-[#141414] border-[#141414] text-[#ffffff]'
+                : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] border-[#e0e0e0] text-[#141414]'
+            }`}
+            title="مراسلات وقوالب بريد الموارد البشرية الرسمي — أ. ريم بن حسين (HR@kas.sa • نسخة Khalid@kas.sa)"
+          >
+            <MailCheck className="w-3.5 h-3.5" />
+            <span>بريد الموارد البشرية (HR@kas.sa)</span>
           </button>
 
           <button
@@ -1549,6 +2333,7 @@ export const HRPage: React.FC = () => {
 
           <ExportDropdown
             sectionKey={
+              activeTab === 'reem-hr-emails' ? 'hr_official_emails' :
               activeTab === 'payroll' ? 'payroll' :
               activeTab === 'promotions' ? 'hr_promotions' :
               activeTab === 'vacations' ? 'hr_vacations' :
@@ -1560,7 +2345,7 @@ export const HRPage: React.FC = () => {
               activeTab === 'end-of-service' ? 'hr_eos' :
               activeTab === 'gosi' ? 'hr_gosi' :
               activeTab === 'maids-hr' ? 'hr_maids_fleet' :
-              activeTab === 'compliance-radar' ? 'hr_compliance' :
+              activeTab === 'compliance-radar' || activeTab === 'jisr-alerts-compliance' ? 'hr_compliance' :
               'employees'
             }
             data={
@@ -1809,7 +2594,12 @@ export const HRPage: React.FC = () => {
                           status={emp.status === 'نشط' ? 'online' : 'none'}
                         />
                         <div>
-                          <div className="font-bold text-[#141414] group-hover:underline">{emp.name}</div>
+                          <div className="font-bold text-[#141414] group-hover:underline flex items-center gap-1.5 flex-wrap">
+                            <span>{emp.name}</span>
+                            <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[10px] font-mono text-[#141414]">
+                              {emp.company_id || 'SAF'}
+                            </span>
+                          </div>
                           <div className="text-[11px] text-[#707070] font-mono">تاريخ التعيين: {emp.hire_date}</div>
                         </div>
                       </button>
@@ -1852,6 +2642,18 @@ export const HRPage: React.FC = () => {
                         </button>
                         <button
                           type="button"
+                          onClick={() => {
+                            setWelcomeTargetEmpId(emp.id);
+                            setActiveTab('jisr-welcome-signage');
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-[11px] font-semibold cursor-pointer transition-colors"
+                          title="ترحيب بالموظف وإطلاق تبعيات المباشرة وبث شاشات الشركة"
+                        >
+                          <Tv className="w-3 h-3" />
+                          <span>ترحيب وبث TV</span>
+                        </button>
+                        <button
+                          type="button"
                           onClick={() =>
                             setSelectedLetterModal({
                               employee: emp,
@@ -1866,12 +2668,12 @@ export const HRPage: React.FC = () => {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setSelectedEmpForAgreement(emp)}
+                          onClick={() => setStudioLetterEmp(emp)}
                           className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-[11px] font-semibold cursor-pointer transition-colors"
-                          title="عرض وطباعة التوقيع والاتفاقية القانونية"
+                          title="استوديو الخطابات الرسمية باسم شركة الموظف"
                         >
                           <FileSignature className="w-3 h-3" />
-                          <span>الاتفاقية</span>
+                          <span>خطاب رسمي</span>
                         </button>
                         <button
                           type="button"
@@ -1882,14 +2684,28 @@ export const HRPage: React.FC = () => {
                           <TrendingUp className="w-3 h-3" />
                           <span>ترقية</span>
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteEmployee(emp)}
-                          className="p-1.5 rounded-full hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] transition-colors cursor-pointer"
-                          title="حذف ملف الموظف"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        <RecordQuickActions
+                          sharePayload={{
+                            title: `بيان الموظف الرسمي — ${emp.name}`,
+                            recipientName: emp.name,
+                            recipientPhone: emp.phone,
+                            recipientEmail: emp.email,
+                            referenceNumber: emp.employee_code,
+                            entityOrRecord: emp,
+                            entityCode: emp.company_id || effectiveCompanyCode,
+                            moduleName: 'hr_employees',
+                            department: 'hr',
+                            summaryLines: [
+                              { label: 'المسمى الوظيفي', value: emp.job_title },
+                              { label: 'الإدارة', value: emp.department },
+                              { label: 'الفرع', value: emp.branch },
+                              { label: 'رصيد الإجازات', value: `${emp.leave_balance ?? 21} يوم` },
+                            ],
+                          }}
+                          onEdit={() => handleOpenAddOrEditEmployee(emp)}
+                          onDelete={(reason) => void handleDeleteEmployee(emp, reason)}
+                          deleteConfirmTitle={`نقل ملف الموظف (${emp.name}) إلى سلة المحذوفات المؤقتة`}
+                        />
                       </div>
                     </td>
                   </tr>
@@ -2112,6 +2928,7 @@ export const HRPage: React.FC = () => {
                     <th className="p-3.5">تقييم الأداء</th>
                     <th className="p-3.5">تاريخ السريان</th>
                     <th className="p-3.5 text-center">الحالة</th>
+                    <th className="p-3.5 text-center">مراسلة HR</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#e0e0e0]">
@@ -2153,6 +2970,37 @@ export const HRPage: React.FC = () => {
                       </td>
                       <td className="p-3.5 font-mono text-[11px] text-[#707070]">{promo.effective_date}</td>
                       <td className="p-3.5 text-center"><Badge text={promo.status} type="success" /></td>
+                      <td className="p-3.5 text-center">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const matchedEmp = employeesList.find(
+                              (e) => e.id === promo.employee_id || e.employee_code === promo.employee_code
+                            );
+                            shareHrOfficialEmailEml({
+                              title: `قرار ترقية وظيفية وزيادة راتب معتمد — ${promo.employee_name}`,
+                              customSubjectEn: `Official Promotion Decision - ${promo.employee_name}`,
+                              referenceNumber: promo.id,
+                              recipientName: promo.employee_name,
+                              recipientEmail: matchedEmp?.email,
+                              entityCode: matchedEmp?.company_id || effectiveCompanyCode,
+                              moduleName: 'hr_promotions',
+                              department: 'hr',
+                              templateId: 'EMPLOYMENT_TRANSACTION_DECISION',
+                              summaryLines: [
+                                { label: 'الموظف', value: `${promo.employee_name} (#${promo.employee_code})` },
+                                { label: 'المسمى الجديد', value: `${promo.new_job_title} (${promo.new_grade})` },
+                                { label: 'الراتب الجديد', value: `${promo.new_salary.toLocaleString()} ⃁ (+${promo.increment_amount.toLocaleString()} ⃁)` },
+                                { label: 'تاريخ السريان', value: promo.effective_date },
+                              ],
+                            });
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#ffffff] border border-[#141414] text-[#141414] hover:bg-[#141414] hover:text-[#ffffff] text-[10.5px] font-bold transition-colors cursor-pointer"
+                        >
+                          <Mail className="w-3 h-3" />
+                          <span>HR@kas.sa</span>
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -2171,6 +3019,17 @@ export const HRPage: React.FC = () => {
               <p className="text-xs text-[#707070] mt-0.5">احتساب استحقاق 21/30 يوماً سنوياً، وشرائح الإجازة المرضية والاضطرارية مع خصم الرصيد آلياً عند الاعتماد</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  setLeavePolicyDraft(getHrLeavePolicy());
+                  setShowLeavePolicyModal(true);
+                }}
+                className="px-3.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Settings className="w-3.5 h-3.5" />
+                <span>إعدادات وسياسات الإجازات</span>
+              </button>
               <ExportDropdown
                 sectionKey="hr_vacations"
                 data={vacations}
@@ -2197,52 +3056,175 @@ export const HRPage: React.FC = () => {
                   <th className="p-3.5">من تاريخ</th>
                   <th className="p-3.5">إلى تاريخ</th>
                   <th className="p-3.5">عدد الأيام</th>
-                  <th className="p-3.5">ملاحظات</th>
+                  <th className="p-3.5">المباشرة والملاحظات</th>
                   <th className="p-3.5">الحالة</th>
-                  <th className="p-3.5 text-center">إجراء الاعتماد</th>
+                  <th className="p-3.5 text-center">الاعتماد وإعادات الإجازة</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e0e0e0]">
-                {vacations.map((vac) => (
-                  <tr key={vac.id} className="hover:bg-[#f3f3f3]/50">
-                    <td className="p-3.5 font-mono font-bold text-[#141414]">{vac.id}</td>
-                    <td className="p-3.5 font-bold text-[#141414]">{vac.employee_name}</td>
-                    <td className="p-3.5">{vac.vacation_type}</td>
-                    <td className="p-3.5 font-mono font-bold text-[#141414]">{vac.balance} يوم</td>
-                    <td className="p-3.5 font-mono text-[#707070]">{vac.from_date}</td>
-                    <td className="p-3.5 font-mono text-[#707070]">{vac.to_date}</td>
-                    <td className="p-3.5 font-mono font-bold text-[#141414]">{vac.days_count} أيام</td>
-                    <td className="p-3.5 text-[#707070]">{vac.notes}</td>
-                    <td className="p-3.5">
-                      <Badge
-                        text={vac.status}
-                        type={vac.status === 'معتمد' ? 'success' : vac.status === 'مرفوض' ? 'danger' : 'warning'}
-                      />
-                    </td>
-                    <td className="p-3.5 text-center">
-                      {vac.status === 'بانتظار الموافقة' ? (
-                        <div className="flex items-center justify-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => handleUpdateVacationStatus(vac, 'معتمد')}
-                            className="px-2.5 py-1 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold hover:bg-[#262626] cursor-pointer"
-                          >
-                            اعتماد
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleUpdateVacationStatus(vac, 'مرفوض')}
-                            className="px-2.5 py-1 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] text-[11px] font-bold hover:bg-[#e0e0e0] cursor-pointer"
-                          >
-                            رفض
-                          </button>
+                {vacations.map((vac) => {
+                  const matchedEmp = employeesList.find(
+                    (e) => e.id === vac.employee_id || e.name === vac.employee_name
+                  );
+                  const hasReturned =
+                    Boolean(vac.actual_return_date) ||
+                    vac.return_status === 'RETURNED_ON_TIME' ||
+                    vac.return_status === 'CUT_EARLY';
+                  return (
+                    <tr key={vac.id} className="hover:bg-[#f3f3f3]/50">
+                      <td className="p-3.5 font-mono font-bold text-[#141414]">{vac.id}</td>
+                      <td className="p-3.5 font-bold text-[#141414]">{vac.employee_name}</td>
+                      <td className="p-3.5">{vac.vacation_type}</td>
+                      <td className="p-3.5 font-mono font-bold text-[#141414]">
+                        {matchedEmp?.leave_balance ?? vac.balance} يوم
+                      </td>
+                      <td className="p-3.5 font-mono text-[#707070]">{vac.from_date}</td>
+                      <td className="p-3.5 font-mono text-[#707070]">{vac.to_date}</td>
+                      <td className="p-3.5 font-mono font-bold text-[#141414]">
+                        {vac.days_count} أيام
+                        {vac.refunded_days ? (
+                          <span className="block text-[10px] text-[#707070]">
+                            مسترد للرصيد: +{vac.refunded_days} يوم
+                          </span>
+                        ) : null}
+                      </td>
+                      <td className="p-3.5 text-[#707070]">
+                        <div>{vac.notes}</div>
+                        {vac.actual_return_date && (
+                          <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[10px] font-bold text-[#141414]">
+                            باشر بتاريخ: {vac.actual_return_date}
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3.5">
+                        <Badge
+                          text={vac.status}
+                          type={
+                            vac.status === 'معتمد'
+                              ? 'success'
+                              : vac.status === 'مرفوض' || vac.status === 'ملغى'
+                              ? 'danger'
+                              : 'warning'
+                          }
+                        />
+                      </td>
+                      <td className="p-3.5 text-center">
+                        <div className="flex items-center justify-center gap-1 flex-wrap">
+                          {vac.status === 'بانتظار الموافقة' ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateVacationStatus(vac, 'معتمد')}
+                                className="px-2.5 py-1 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold hover:bg-[#262626] cursor-pointer"
+                              >
+                                اعتماد
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateVacationStatus(vac, 'مرفوض')}
+                                className="px-2.5 py-1 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] text-[11px] font-bold hover:bg-[#e0e0e0] cursor-pointer"
+                              >
+                                رفض
+                              </button>
+                            </>
+                          ) : vac.status === 'معتمد' && !hasReturned ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setActiveLeaveLifecycleTarget({
+                                    vac,
+                                    mode: 'RETURN',
+                                    targetDate: new Date().toISOString().slice(0, 10),
+                                    notes: '',
+                                  })
+                                }
+                                className="px-2.5 py-1 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                                title="تسجيل مباشرة العمل بعد الإجازة مع إعادة الأيام غير المستخدمة تلقائياً"
+                              >
+                                <CalendarCheck className="w-3 h-3" />
+                                <span>مباشرة</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setActiveLeaveLifecycleTarget({
+                                    vac,
+                                    mode: 'CUT',
+                                    targetDate: new Date().toISOString().slice(0, 10),
+                                    notes: '',
+                                  })
+                                }
+                                className="px-2.5 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                                title="قطع الإجازة مبكراً واسترداد الأيام المتبقية للرصيد"
+                              >
+                                <Scissors className="w-3 h-3" />
+                                <span>قطع واسترداد</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setActiveLeaveLifecycleTarget({
+                                    vac,
+                                    mode: 'EXTEND',
+                                    targetDate: vac.to_date,
+                                    notes: '',
+                                  })
+                                }
+                                className="px-2 py-1 rounded-full bg-[#ffffff] hover:bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] text-[10px] font-bold cursor-pointer"
+                              >
+                                تمديد
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setActiveLeaveLifecycleTarget({
+                                    vac,
+                                    mode: 'CANCEL',
+                                    targetDate: vac.from_date,
+                                    notes: '',
+                                  })
+                                }
+                                className="px-2 py-1 rounded-full bg-[#ffffff] hover:bg-[#f3f3f3] text-[#707070] border border-[#e0e0e0] text-[10px] font-bold cursor-pointer"
+                              >
+                                إلغاء واسترداد
+                              </button>
+                            </>
+                          ) : null}
+
+                          <RecordQuickActions
+                            sharePayload={{
+                              title: `إشعار طلب إجازة (${vac.vacation_type})`,
+                              recipientName: vac.employee_name,
+                              recipientPhone: matchedEmp?.phone,
+                              recipientEmail: matchedEmp?.email,
+                              referenceNumber: vac.id,
+                              entityCode: vac.company_id || matchedEmp?.company_id || effectiveCompanyCode,
+                              moduleName: 'hr_leave_requests',
+                              department: 'hr',
+                              templateId: 'EMPLOYMENT_TRANSACTION_DECISION',
+                              summaryLines: [
+                                { label: 'نوع الإجازة', value: vac.vacation_type },
+                                { label: 'من تاريخ', value: vac.from_date },
+                                { label: 'إلى تاريخ', value: vac.to_date },
+                                { label: 'عدد الأيام', value: `${vac.days_count} يوم` },
+                                { label: 'الحالة', value: vac.status },
+                              ],
+                            }}
+                            onDelete={(reason) =>
+                              void handleSoftDeleteHrSubRecord(
+                                'hr_leave_requests',
+                                vac,
+                                `إجازة ${vac.employee_name} (${vac.id})`,
+                                reason
+                              )
+                            }
+                          />
                         </div>
-                      ) : (
-                        <span className="text-[11px] text-[#707070] font-semibold">مكتمل</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -2293,6 +3275,9 @@ export const HRPage: React.FC = () => {
                 {advances.map((adv) => {
                   const monthly = adv.monthly_installment ?? Math.round(adv.amount / Math.max(1, adv.installments_count));
                   const rem = adv.remaining_amount ?? adv.amount;
+                  const matchedEmp = employeesList.find(
+                    (e) => e.id === adv.employee_id || e.name === adv.employee_name
+                  );
                   return (
                     <tr key={adv.id} className="hover:bg-[#f3f3f3]/50">
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{adv.id}</td>
@@ -2305,17 +3290,63 @@ export const HRPage: React.FC = () => {
                       <td className="p-3.5 font-mono">{adv.installments_count} أشهر</td>
                       <td className="p-3.5"><Badge text={adv.status} type={adv.status === 'معتمد' ? 'success' : 'warning'} /></td>
                       <td className="p-3.5 text-center">
-                        {adv.status === 'بانتظار الصرف' ? (
-                          <button
-                            type="button"
-                            onClick={() => handleApproveAdvance(adv)}
-                            className="px-3 py-1 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold hover:bg-[#262626] cursor-pointer"
-                          >
-                            اعتماد وصرف
-                          </button>
-                        ) : (
-                          <span className="text-[11px] text-[#141414] font-semibold">مجدول بالمسير </span>
-                        )}
+                        <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                          {adv.status === 'بانتظار الصرف' ? (
+                            <button
+                              type="button"
+                              onClick={() => handleApproveAdvance(adv)}
+                              className="px-3 py-1 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold hover:bg-[#262626] cursor-pointer"
+                            >
+                              اعتماد وصرف
+                            </button>
+                          ) : adv.status === 'معتمد' && rem > 0 ? (
+                            <>
+                              <span className="text-[11px] text-[#141414] font-semibold">
+                                {(adv.deferred_months || []).includes(payrollMonth)
+                                  ? `مؤجل (${payrollMonth})`
+                                  : 'مجدول بالمسير'}
+                              </span>
+                              {!(adv.deferred_months || []).includes(payrollMonth) && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleSkipAdvanceInstallment(adv)}
+                                  className="px-2.5 py-1 rounded-full bg-[#f3f3f3] border border-[#141414] text-[#141414] text-[10px] font-bold hover:bg-[#e0e0e0] cursor-pointer"
+                                >
+                                  تأجيل قسط الشهر
+                                </button>
+                              )}
+                            </>
+                          ) : (
+                            <span className="text-[11px] text-[#707070] font-semibold">مكتمل السداد</span>
+                          )}
+                          <RecordQuickActions
+                            sharePayload={{
+                              title: `إشعار سلفة مالية وجدولة أقساط (${adv.id})`,
+                              recipientName: adv.employee_name,
+                              recipientPhone: matchedEmp?.phone,
+                              recipientEmail: matchedEmp?.email,
+                              referenceNumber: adv.id,
+                              entityCode: adv.company_id || matchedEmp?.company_id || effectiveCompanyCode,
+                              moduleName: 'hr_advances',
+                              department: 'hr',
+                              templateId: 'PAYROLL_WPS_PAYSLIP_NOTICE',
+                              summaryLines: [
+                                { label: 'مبلغ السلفة', value: `⃁ ${adv.amount.toLocaleString()}` },
+                                { label: 'القسط الشهري', value: `⃁ ${monthly.toLocaleString()}` },
+                                { label: 'الرصيد المتبقي', value: `⃁ ${rem.toLocaleString()}` },
+                                { label: 'الحالة', value: adv.status },
+                              ],
+                            }}
+                            onDelete={(reason) =>
+                              void handleSoftDeleteHrSubRecord(
+                                'hr_advances',
+                                adv,
+                                `سلفة ${adv.employee_name} (${adv.id})`,
+                                reason
+                              )
+                            }
+                          />
+                        </div>
                       </td>
                     </tr>
                   );
@@ -2362,21 +3393,56 @@ export const HRPage: React.FC = () => {
                   <th className="p-3.5">استقطاع من الراتب</th>
                   <th className="p-3.5">السبب والمبررات</th>
                   <th className="p-3.5">الحالة</th>
+                  <th className="p-3.5 text-center">إرسال / حذف</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e0e0e0]">
-                {sanctions.map((sanc) => (
-                  <tr key={sanc.id} className="hover:bg-[#f3f3f3]/50">
-                    <td className="p-3.5 font-mono font-bold text-[#141414]">{sanc.id}</td>
-                    <td className="p-3.5 font-bold text-[#141414]">{sanc.employee_name}</td>
-                    <td className="p-3.5 font-semibold text-[#141414]">{sanc.sanction_type}</td>
-                    <td className="p-3.5 font-mono font-bold text-[#141414]">{sanc.amount.toLocaleString()} ⃁</td>
-                    <td className="p-3.5 font-mono text-[#707070]">{sanc.date}</td>
-                    <td className="p-3.5"><Badge text={sanc.deduct_from_salary ? 'نعم - آلي' : 'إنذار فقط'} type={sanc.deduct_from_salary ? 'danger' : 'shade'} /></td>
-                    <td className="p-3.5 text-[#707070] max-w-xs leading-relaxed">{sanc.reason}</td>
-                    <td className="p-3.5"><Badge text={sanc.status} type="danger" /></td>
-                  </tr>
-                ))}
+                {sanctions.map((sanc) => {
+                  const matchedEmp = employeesList.find(
+                    (e) => e.id === sanc.employee_id || e.name === sanc.employee_name
+                  );
+                  return (
+                    <tr key={sanc.id} className="hover:bg-[#f3f3f3]/50">
+                      <td className="p-3.5 font-mono font-bold text-[#141414]">{sanc.id}</td>
+                      <td className="p-3.5 font-bold text-[#141414]">{sanc.employee_name}</td>
+                      <td className="p-3.5 font-semibold text-[#141414]">{sanc.sanction_type}</td>
+                      <td className="p-3.5 font-mono font-bold text-[#141414]">{sanc.amount.toLocaleString()} ⃁</td>
+                      <td className="p-3.5 font-mono text-[#707070]">{sanc.date}</td>
+                      <td className="p-3.5"><Badge text={sanc.deduct_from_salary ? 'نعم - آلي' : 'إنذار فقط'} type={sanc.deduct_from_salary ? 'danger' : 'shade'} /></td>
+                      <td className="p-3.5 text-[#707070] max-w-xs leading-relaxed">{sanc.reason}</td>
+                      <td className="p-3.5"><Badge text={sanc.status} type="danger" /></td>
+                      <td className="p-3.5 text-center">
+                        <RecordQuickActions
+                          sharePayload={{
+                            title: `إشعار مخالفة وجزاء إداري (${sanc.id})`,
+                            recipientName: sanc.employee_name,
+                            recipientPhone: matchedEmp?.phone,
+                            recipientEmail: matchedEmp?.email,
+                            referenceNumber: sanc.id,
+                            entityCode: sanc.company_id || matchedEmp?.company_id || effectiveCompanyCode,
+                            moduleName: 'hr_sanctions',
+                            department: 'hr',
+                            templateId: 'ADMINISTRATIVE_WARNING_ART71',
+                            summaryLines: [
+                              { label: 'نوع المخالفة', value: sanc.sanction_type },
+                              { label: 'قيمة الخصم', value: `⃁ ${sanc.amount.toLocaleString()}` },
+                              { label: 'التاريخ', value: sanc.date },
+                              { label: 'السبب', value: sanc.reason },
+                            ],
+                          }}
+                          onDelete={(reason) =>
+                            void handleSoftDeleteHrSubRecord(
+                              'hr_sanctions',
+                              sanc,
+                              `جزاء ${sanc.employee_name} (${sanc.id})`,
+                              reason
+                            )
+                          }
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -2418,20 +3484,53 @@ export const HRPage: React.FC = () => {
                   <th className="p-3.5">الفترة الزمنية</th>
                   <th className="p-3.5">السبب</th>
                   <th className="p-3.5">الحالة</th>
+                  <th className="p-3.5 text-center">إرسال / حذف</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e0e0e0]">
-                {permissions.map((perm) => (
-                  <tr key={perm.id} className="hover:bg-[#f3f3f3]/50">
-                    <td className="p-3.5 font-mono font-bold text-[#141414]">{perm.id}</td>
-                    <td className="p-3.5 font-bold text-[#141414]">{perm.employee_name}</td>
-                    <td className="p-3.5 font-semibold text-[#141414]">{perm.permission_type}</td>
-                    <td className="p-3.5 font-mono text-[#707070]">{perm.date}</td>
-                    <td className="p-3.5 font-mono font-bold text-[#141414]">{perm.time}</td>
-                    <td className="p-3.5 text-[#707070]">{perm.reason}</td>
-                    <td className="p-3.5"><Badge text={perm.status} type="success" /></td>
-                  </tr>
-                ))}
+                {permissions.map((perm) => {
+                  const matchedEmp = employeesList.find(
+                    (e) => e.id === perm.employee_id || e.name === perm.employee_name
+                  );
+                  return (
+                    <tr key={perm.id} className="hover:bg-[#f3f3f3]/50">
+                      <td className="p-3.5 font-mono font-bold text-[#141414]">{perm.id}</td>
+                      <td className="p-3.5 font-bold text-[#141414]">{perm.employee_name}</td>
+                      <td className="p-3.5 font-semibold text-[#141414]">{perm.permission_type}</td>
+                      <td className="p-3.5 font-mono text-[#707070]">{perm.date}</td>
+                      <td className="p-3.5 font-mono font-bold text-[#141414]">{perm.time}</td>
+                      <td className="p-3.5 text-[#707070]">{perm.reason}</td>
+                      <td className="p-3.5"><Badge text={perm.status} type="success" /></td>
+                      <td className="p-3.5 text-center">
+                        <RecordQuickActions
+                          sharePayload={{
+                            title: `إذن خروج واستئذان رسمي (${perm.id})`,
+                            recipientName: perm.employee_name,
+                            recipientPhone: matchedEmp?.phone,
+                            recipientEmail: matchedEmp?.email,
+                            referenceNumber: perm.id,
+                            entityCode: perm.company_id || matchedEmp?.company_id || effectiveCompanyCode,
+                            moduleName: 'hr_permissions',
+                            department: 'hr',
+                            summaryLines: [
+                              { label: 'نوع الاستئذان', value: perm.permission_type },
+                              { label: 'التاريخ', value: perm.date },
+                              { label: 'الفترة', value: perm.time },
+                            ],
+                          }}
+                          onDelete={(reason) =>
+                            void handleSoftDeleteHrSubRecord(
+                              'hr_permissions',
+                              perm,
+                              `إذن خروج ${perm.employee_name} (${perm.id})`,
+                              reason
+                            )
+                          }
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -2473,20 +3572,54 @@ export const HRPage: React.FC = () => {
                   <th className="p-3.5">موعد الصرف</th>
                   <th className="p-3.5">تاريخ الاعتماد</th>
                   <th className="p-3.5">الحالة</th>
+                  <th className="p-3.5 text-center">إرسال / حذف</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e0e0e0]">
-                {rewards.map((rew) => (
-                  <tr key={rew.id} className="hover:bg-[#f3f3f3]/50">
-                    <td className="p-3.5 font-mono font-bold text-[#141414]">{rew.id}</td>
-                    <td className="p-3.5 font-bold text-[#141414]">{rew.employee_name}</td>
-                    <td className="p-3.5 font-semibold text-[#141414]">{rew.reward_type}</td>
-                    <td className="p-3.5 font-mono font-bold text-[#141414]">+{rew.net_reward.toLocaleString()} ⃁</td>
-                    <td className="p-3.5 text-[#707070]">{rew.payout_timing}</td>
-                    <td className="p-3.5 font-mono text-[#707070]">{rew.date}</td>
-                    <td className="p-3.5"><Badge text={rew.status} type="success" /></td>
-                  </tr>
-                ))}
+                {rewards.map((rew) => {
+                  const matchedEmp = employeesList.find(
+                    (e) => e.id === rew.employee_id || e.name === rew.employee_name
+                  );
+                  return (
+                    <tr key={rew.id} className="hover:bg-[#f3f3f3]/50">
+                      <td className="p-3.5 font-mono font-bold text-[#141414]">{rew.id}</td>
+                      <td className="p-3.5 font-bold text-[#141414]">{rew.employee_name}</td>
+                      <td className="p-3.5 font-semibold text-[#141414]">{rew.reward_type}</td>
+                      <td className="p-3.5 font-mono font-bold text-[#141414]">+{rew.net_reward.toLocaleString()} ⃁</td>
+                      <td className="p-3.5 text-[#707070]">{rew.payout_timing}</td>
+                      <td className="p-3.5 font-mono text-[#707070]">{rew.date}</td>
+                      <td className="p-3.5"><Badge text={rew.status} type="success" /></td>
+                      <td className="p-3.5 text-center">
+                        <RecordQuickActions
+                          sharePayload={{
+                            title: `إشعار اعتماد مكافأة مالية (${rew.id})`,
+                            recipientName: rew.employee_name,
+                            recipientPhone: matchedEmp?.phone,
+                            recipientEmail: matchedEmp?.email,
+                            referenceNumber: rew.id,
+                            entityCode: rew.company_id || matchedEmp?.company_id || effectiveCompanyCode,
+                            moduleName: 'hr_rewards',
+                            department: 'hr',
+                            templateId: 'PAYROLL_WPS_PAYSLIP_NOTICE',
+                            summaryLines: [
+                              { label: 'نوع المكافأة', value: rew.reward_type },
+                              { label: 'صافي المبلغ', value: `+⃁ ${rew.net_reward.toLocaleString()}` },
+                              { label: 'آلية الصرف', value: rew.payout_timing },
+                            ],
+                          }}
+                          onDelete={(reason) =>
+                            void handleSoftDeleteHrSubRecord(
+                              'hr_rewards',
+                              rew,
+                              `مكافأة ${rew.employee_name} (${rew.id})`,
+                              reason
+                            )
+                          }
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -2527,7 +3660,12 @@ export const HRPage: React.FC = () => {
                       type="button"
                       role="tab"
                       aria-selected={isCurrent}
-                      onClick={() => setPayrollRunStatus(st.id)}
+                      onClick={() => {
+                        if (st.id === 'APPROVED' || st.id === 'LOCKED') {
+                          void finalizePayrollEwaSettlements(payrollMonth);
+                        }
+                        setPayrollRunStatus(st.id);
+                      }}
                       className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                         isCurrent
                           ? 'bg-[#141414] text-white border-[#141414]'
@@ -2539,7 +3677,7 @@ export const HRPage: React.FC = () => {
                   );
                 })}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <input
                   type="month"
                   aria-label="شهر مسير الرواتب"
@@ -2547,6 +3685,14 @@ export const HRPage: React.FC = () => {
                   onChange={(e) => setPayrollMonth(e.target.value)}
                   className="bg-[#e0e0e0] border-2 border-transparent focus:border-[#141414] rounded-full px-3.5 py-1.5 text-xs font-mono font-bold text-[#141414]"
                 />
+                <button
+                  type="button"
+                  onClick={() => void handleFinalizeAndApprovePayroll()}
+                  className="px-3.5 py-1.5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <CheckCircle2 className="size-3.5 text-[#ffffff]" />
+                  <span>اعتماد المسير وتسوية EWA</span>
+                </button>
                 <button
                   type="button"
                   onClick={handlePostPayrollToGL}
@@ -2634,7 +3780,8 @@ export const HRPage: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-[#e0e0e0]">
                     {computedPayrollRecords.map((rec, idx) => {
-                      const empObj = employeesList[idx];
+                      const empObj = companyScopedEmployees[idx] || employeesList[idx];
+                      const extraDed = empObj ? payrollExtraDeductionsMap.get(empObj.id) : undefined;
                       return (
                         <tr key={rec.employeeId} className="hover:bg-[#f3f3f3]/50">
                           <td className="p-3.5">
@@ -2649,26 +3796,67 @@ export const HRPage: React.FC = () => {
                           <td className="p-3.5 font-mono text-[#707070]">-{rec.gosiDeduction.toFixed(2)} ⃁</td>
                           <td className="p-3.5 font-mono text-[#707070]">
                             -{(rec.deductions || 0).toFixed(2)} ⃁
+                            {extraDed && extraDed.ewaAmount > 0 && (
+                              <span className="block text-[10px] text-[#141414] font-sans">
+                                راتب مرن EWA: -{extraDed.ewaAmount.toLocaleString()} ⃁
+                              </span>
+                            )}
+                            {extraDed && extraDed.disciplinaryAmount > 0 && (
+                              <span className="block text-[10px] text-[#141414] font-sans">
+                                جزاءات نافذة: -{extraDed.disciplinaryAmount.toLocaleString()} ⃁
+                              </span>
+                            )}
                             {rec.deductionCapApplied && (
                               <span className="block text-[10px] text-[#141414] font-bold font-sans">سقف 50% (م92)</span>
                             )}
                           </td>
                           <td className="p-3.5 font-mono font-bold text-[#141414]">{rec.netSalary.toFixed(2)} ⃁</td>
                           <td className="p-3.5 text-center">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setSelectedPayslipRecord({
-                                  record: rec,
-                                  department: empObj?.department || 'الإدارة العامة',
-                                  jobTitle: empObj?.job_title || 'موظف',
-                                })
-                              }
-                              className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-[11px] font-bold cursor-pointer"
-                            >
-                              <Printer className="w-3 h-3 text-[#ffffff]" />
-                              <span>قسيمة PDF</span>
-                            </button>
+                            <div className="inline-flex items-center gap-1.5 flex-wrap justify-center">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setSelectedPayslipRecord({
+                                    record: rec,
+                                    department: empObj?.department || 'الإدارة العامة',
+                                    jobTitle: empObj?.job_title || 'موظف',
+                                  })
+                                }
+                                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-[11px] font-bold cursor-pointer"
+                              >
+                                <Printer className="w-3 h-3 text-[#ffffff]" />
+                                <span>قسيمة PDF</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  shareHrOfficialEmailEml({
+                                    title: `قسيمة راتب شهر (${payrollMonth}) — ${rec.employeeName}`,
+                                    customSubjectEn: `Official WPS Payslip (${payrollMonth}) - ${rec.employeeName}`,
+                                    referenceNumber: `WPS-${payrollMonth}-${empObj?.employee_code || rec.employeeId}`,
+                                    recipientName: rec.employeeName,
+                                    recipientEmail: empObj?.email,
+                                    entityCode: empObj?.company_id || effectiveCompanyCode,
+                                    moduleName: 'hr_payroll_wps',
+                                    department: 'hr',
+                                    templateId: 'PAYROLL_WPS_PAYSLIP_NOTICE',
+                                    summaryLines: [
+                                      { label: 'الشهر المالي', value: payrollMonth },
+                                      { label: 'الموظف', value: `${rec.employeeName} (#${empObj?.employee_code || rec.employeeId})` },
+                                      { label: 'الراتب الأساسي', value: `${rec.basicSalary.toFixed(2)} ⃁` },
+                                      { label: 'إجمالي الاستحقاقات', value: `${(rec.grossSalary || 0).toFixed(2)} ⃁` },
+                                      { label: 'حصة التأمينات (GOSI)', value: `-${rec.gosiDeduction.toFixed(2)} ⃁` },
+                                      { label: 'صافي الراتب (WPS Net)', value: `${rec.netSalary.toFixed(2)} ⃁` },
+                                    ],
+                                  })
+                                }
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#ffffff] border border-[#141414] text-[#141414] hover:bg-[#141414] hover:text-[#ffffff] text-[11px] font-bold transition-colors cursor-pointer"
+                                title="إرسال القسيمة مباشرة ببريد HR@kas.sa (بالتوقيع الرسمي)"
+                              >
+                                <Mail className="w-3 h-3" />
+                                <span>HR@kas.sa</span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -2710,6 +3898,12 @@ export const HRPage: React.FC = () => {
         } else if (eosReason === 'force_majeure') {
           payoutPct = 1;
           legalArticle = 'المادة (87) من نظام العمل: انتهاء الخدمة لظروف قاهرة أو ترك العمل لسبب مشروع، يستحق العامل المكافأة كاملة.';
+        } else if (eosReason === 'marriage_maternity_art87') {
+          payoutPct = 1;
+          legalArticle = 'المادة (87) من نظام العمل السعودي: استقالة العاملة خلال (6 أشهر) من تاريخ عقد الزواج أو (3 أشهر) من تاريخ الوضع، تستحق المكافأة كاملة بنسبة 100%.';
+        } else if (eosReason === 'disciplinary_art80') {
+          payoutPct = 0;
+          legalArticle = 'المادة (80) من نظام العمل السعودي: فسخ العقد لسبب تأديبي جسيم موثق نظامياً دون استحقاق مكافأة نهاية الخدمة (مع بقاء تعويض رصيد الإجازات المكتسب).';
         }
 
         const finalAmount = fullAward * payoutPct;
@@ -2878,7 +4072,9 @@ export const HRPage: React.FC = () => {
                     >
                       <option value="termination">إنهاء العقد من صاحب العمل / انتهاء المدة (المادة 84)</option>
                       <option value="resignation">استقالة العامل برغبته (المادة 85)</option>
-                      <option value="force_majeure">ظروف قاهرة أو فسخ مشروع (المادة 87)</option>
+                      <option value="force_majeure">ظروف قاهرة أو فسخ مشروع (المادة 87 — 100%)</option>
+                      <option value="marriage_maternity_art87">استقالة زواج (6 أشهر) أو وضع (3 أشهر) للموظفة (المادة 87 — 100%)</option>
+                      <option value="disciplinary_art80">فسخ تأديبي مشروع دون مكافأة (المادة 80 — 0%)</option>
                     </select>
                   </div>
 
@@ -2948,8 +4144,9 @@ export const HRPage: React.FC = () => {
                       <span className="font-bold text-xs text-[#141414] block">قيد تسوية وصرف مخالصة نهاية الخدمة</span>
                       <span className="text-[11px] text-[#707070]">حساب مدين: مخصص نهاية الخدمة وتعويض الإجازات (51050) | دائن: السلف (11040) والبنك (11020)</span>
                     </div>
-                    <button
-                      onClick={async () => {
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        onClick={async () => {
                         const companyCode = activeCompany.code || activeCompanyId || 'SAF';
                         const totalDebit = Number((finalAmount + leaveEncashment).toFixed(2));
                         const eosDesc = `قيد تسوية مخالصة نهاية الخدمة للموظف ${selectedEosEmp?.name || ''} (صافي ⃁ ${netFinalClearance.toFixed(2)})`;
@@ -3023,8 +4220,37 @@ export const HRPage: React.FC = () => {
                       }}
                       className="button-outline-on-light text-xs font-bold py-1.5 px-3"
                     >
-                      ترحيل القيد للمحاسبة
-                    </button>
+                        ترحيل القيد للمحاسبة
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!selectedEosEmp) return;
+                          shareHrOfficialEmailEml({
+                            title: `كشف تسوية مستحقات نهاية الخدمة والمخالصة النهائية — ${selectedEosEmp.name}`,
+                            customSubjectEn: `Official End-of-Service & Final Clearance Settlement - ${selectedEosEmp.name}`,
+                            referenceNumber: `EOSB-${selectedEosEmp.employee_code}`,
+                            recipientName: selectedEosEmp.name,
+                            recipientEmail: selectedEosEmp.email,
+                            entityCode: selectedEosEmp.company_id || effectiveCompanyCode,
+                            moduleName: 'hr_eosb_clearance',
+                            department: 'hr',
+                            templateId: 'CUSTOM_OFFICIAL_CORRESPONDENCE',
+                            summaryLines: [
+                              { label: 'الموظف', value: `${selectedEosEmp.name} (#${selectedEosEmp.employee_code})` },
+                              { label: 'صافي مكافأة نهاية الخدمة', value: `${finalAmount.toFixed(2)} ⃁` },
+                              { label: 'تعويض رصيد الإجازات (م111)', value: `+${leaveEncashment.toFixed(2)} ⃁` },
+                              { label: 'خصم السلف المتبقية', value: `-${eosRemainingAdvance.toFixed(2)} ⃁` },
+                              { label: 'صافي المخالصة المستحق للصرف (م88)', value: `${netFinalClearance.toFixed(2)} ⃁` },
+                            ],
+                          });
+                        }}
+                        className="px-3.5 py-1.5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <Mail className="w-3.5 h-3.5" />
+                        <span>إرسال المخالصة مباشرة ببريد HR@kas.sa</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3032,6 +4258,184 @@ export const HRPage: React.FC = () => {
           </div>
         );
       })()}
+
+      {/* Tab: Jisr Accounting Hub, IAS 19 Accruals & Multi-Cost-Center Allocations */}
+      {activeTab === 'jisr-accruals' && (
+        <JisrAccountingAccrualsHub
+          employees={companyScopedEmployees}
+          companyCode={activeCompanyId !== 'all' ? activeCompanyId : 'SAF'}
+          companyName={activeCompany.name}
+          payrollMonth={payrollMonth}
+          onUpdateEmployeeAllocation={(empId, pg, allocs) => {
+            setEmployeesList((prev) =>
+              prev.map((e) =>
+                e.id === empId ? { ...e, pay_group: pg, cost_center_allocations: allocs } : e
+              )
+            );
+          }}
+        />
+      )}
+
+      {/* Tab: Jisr Employee Expense Claims, Petty Cash & Business Travel Per Diem */}
+      {activeTab === 'jisr-expenses' && (
+        <HrExpensesAndTravelHub
+          employees={companyScopedEmployees}
+          companyCode={activeCompanyId !== 'all' ? activeCompanyId : 'SAF'}
+          companyName={activeCompany.name}
+        />
+      )}
+
+      {/* Tab: Interactive Org Chart, Muqeem Visa Desk & Official Letters */}
+      {activeTab === 'jisr-org-muqeem' && (
+        <InteractiveOrgChartPanel
+          employees={companyScopedEmployees}
+          companyCode={activeCompanyId !== 'all' ? activeCompanyId : 'SAF'}
+          companyName={activeCompany.name}
+          onUpdateManager={(empId, mgrId) => {
+            setEmployeesList((prev) =>
+              prev.map((e) => (e.id === empId ? { ...e, manager_id: mgrId } : e))
+            );
+          }}
+        />
+      )}
+
+      {/* Tab: Corporate ATS, 360° Performance & L&D, and 5-Gate Offboarding */}
+      {activeTab === 'jisr-talent-360' && (
+        <JisrTalent360OffboardingHub
+          employees={companyScopedEmployees}
+          companyCode={activeCompanyId !== 'all' ? activeCompanyId : 'SAF'}
+          companyName={activeCompany.name}
+          onCandidateHired={(newEmp) => {
+            setEmployeesList((prev) => [newEmp, ...prev]);
+            void triggerNewEmployeeOnboardingConsequences({
+              companyId: activeCompanyId !== 'all' ? activeCompanyId : 'SAF',
+              companyNameAr: activeCompany.name,
+              employeeId: newEmp.id,
+              employeeCode: newEmp.employee_code,
+              employeeName: newEmp.name,
+              nationalId: newEmp.national_id,
+              jobTitle: newEmp.job_title,
+              department: newEmp.department,
+              branch: newEmp.branch,
+              hireDate: newEmp.hire_date,
+              salary: newEmp.salary,
+              phone: newEmp.phone,
+              email: newEmp.email,
+              autoBroadcastToScreens: true,
+            });
+            setWelcomeTargetEmpId(newEmp.id);
+          }}
+        />
+      )}
+
+      {/* Tab: New Employee Welcome, 7-Step Onboarding Consequences & Smart Display Screens */}
+      {activeTab === 'jisr-welcome-signage' && (
+        <NewEmployeeWelcomeAndSignageHub
+          employees={companyScopedEmployees}
+          companyCode={activeCompanyId !== 'all' ? activeCompanyId : 'SAF'}
+          companyName={activeCompany.name}
+          payrollMonth={payrollMonth}
+          initialEmployeeId={welcomeTargetEmpId}
+          onSyncedToPayroll={() => reloadHrData()}
+        />
+      )}
+
+      {/* Tab: Jisr Shift Rosters, Colleague Swaps, Overtime (Art. 107) & Circulars */}
+      {activeTab === 'jisr-shifts-overtime' && (
+        <JisrShiftRosterAndOvertimeHub
+          employees={companyScopedEmployees}
+          companyCode={activeCompanyId !== 'all' ? activeCompanyId : 'SAF'}
+          companyName={activeCompany.name}
+          payrollMonth={payrollMonth}
+          onSyncedToPayroll={() => reloadHrData()}
+          onOpenEmployee360={(empId) => {
+            const found = employeesList.find((x) => x.id === empId);
+            if (found) setSelectedEmpFor360(found);
+          }}
+        />
+      )}
+
+      {/* Tab: Reem Bin Hussein Official Bilingual HR Email Suite (HR@kas.sa) */}
+      {activeTab === 'reem-hr-emails' && (
+        <ReemHrEmailStudioHub
+          companyId={effectiveCompanyCode}
+          initialTemplateId={reemEmailDraft.templateId}
+          initialRecipientEmail={reemEmailDraft.recipientEmail}
+          initialRecipientNameAr={reemEmailDraft.recipientNameAr}
+          initialDetailsAr={reemEmailDraft.detailsAr}
+        />
+      )}
+
+      {/* Tab: Jisr Smart Alerts Radar, HRSD Disciplinary Matrix, EWA & Nitaqat */}
+      {activeTab === 'jisr-alerts-compliance' && (
+        <JisrSmartAlertsAndComplianceHub
+          companyId={effectiveCompanyCode}
+          employees={jisrHubEmployees}
+          onNavigateTab={(tab) => setActiveGlobalTab(tab)}
+          onRecordsChanged={() => void reloadHrData()}
+        />
+      )}
+
+      {/* Tab: Jisr 3.0 Retroactive Payroll, Off-Cycle, Mudad & B2B Bank */}
+      {activeTab === 'jisr-arrears-b2b' && (
+        <JisrPayrollArrearsB2BHub
+          companyId={effectiveCompanyCode}
+          periodMonth={payrollMonth}
+          employees={computedPayrollRecords.map((rec) => {
+            const empMeta = companyScopedEmployees.find((e) => e.id === rec.employeeId);
+            return {
+              id: rec.employeeId,
+              name: rec.employeeName,
+              department: empMeta?.department || 'الإدارة العامة',
+              nationalId: rec.nationalIdOrIqama,
+              iban: rec.iban,
+              basicSalary: rec.basicSalary,
+              housingAllowance: rec.housingAllowance,
+              transportAllowance: rec.transportAllowance,
+              grossSalary:
+                rec.grossSalary ??
+                rec.basicSalary + rec.housingAllowance + rec.transportAllowance,
+              totalDeductions: rec.deductions,
+              netSalary: rec.netSalary,
+              gosiEmployee: rec.gosiDeduction,
+            };
+          })}
+          onDataChanged={() => void reloadHrData()}
+        />
+      )}
+
+      {/* Tab: Jisr 3.0 Corporate Cards & Leave Rollover */}
+      {activeTab === 'jisr-cards-rollover' && (
+        <JisrCorporateCardsAndLeaveRolloverHub
+          companyId={effectiveCompanyCode}
+          employees={companyScopedEmployees.map((emp) => ({
+            id: emp.id,
+            name: emp.name,
+            department: emp.department || 'الإدارة العامة',
+            leaveBalanceDays: Number(emp.leave_balance ?? 21),
+            monthlyWageSar: Number(emp.salary ?? 0),
+          }))}
+          onDataChanged={() => void reloadHrData()}
+        />
+      )}
+
+      {/* Tab: Jisr 3.0 Custom Builder, E-Sign, Career Portal & Pulse */}
+      {activeTab === 'jisr-workflows-pulse' && (
+        <JisrCustomBuilderEsignPulseHub
+          companyId={effectiveCompanyCode}
+          employees={companyScopedEmployees.map((emp) => ({
+            id: emp.id,
+            name: emp.name,
+            role: emp.job_title || 'موظف',
+            department: emp.department || 'الإدارة العامة',
+            grossSalary: Number(emp.salary ?? 0),
+            hireDate: emp.hire_date,
+          }))}
+          onOpenPublicCareersPortal={() => {
+            window.location.search = '?portal=careers';
+          }}
+        />
+      )}
 
       {/* Tab: Saudi Compliance, Nitaqat & Document Expiry Radar */}
       {activeTab === 'compliance-radar' && (
@@ -3370,16 +4774,20 @@ export const HRPage: React.FC = () => {
         </div>
       )}
 
-      {/* Add Employee Modal */}
+      {/* Add / Edit Employee Modal */}
       {showAddEmpModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-[#e0e0e0] overflow-hidden font-sans max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) { setShowAddEmpModal(false); setEditingEmpRecord(null); } }}>
+          <div className="w-full max-w-2xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[92vh] flex flex-col">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Users className="w-4 h-4 text-[#141414]" />
-                <span>إدراج موظف جديد وتعيين الصلاحيات الإدارية</span>
+                <span>
+                  {editingEmpRecord
+                    ? `تعديل الملف الشامل للموظف: ${editingEmpRecord.name}`
+                    : 'إدراج موظف جديد وتحديد المنشأة والصلاحيات'}
+                </span>
               </h3>
-              <button onClick={() => setShowAddEmpModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#e0e0e0] transition-colors">
+              <button type="button" onClick={() => { setShowAddEmpModal(false); setEditingEmpRecord(null); }} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#e0e0e0] transition-colors cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -3387,8 +4795,30 @@ export const HRPage: React.FC = () => {
             <form onSubmit={handleAddEmployee} className="p-6 space-y-4 bg-white text-[#141414] overflow-y-auto flex-1">
               <div className="border-b border-[#e0e0e0] pb-2">
                 <h4 className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-[#141414]" />
+                  <span>1. الكيان القانوني (الشركة الصادر باسمها عقود وخطابات الموظف)</span>
+                </h4>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">الشركة / المنشأة التابع لها الموظف *</label>
+                <select
+                  value={empCompanyCode}
+                  onChange={(e) => setEmpCompanyCode(e.target.value as CanonicalEntityCode)}
+                  className="w-full bg-[#f3f3f3] border border-[#141414] rounded-2xl py-2.5 px-3 text-xs font-bold text-[#141414] focus:outline-none"
+                >
+                  {ALL_ENTITY_OPTIONS.map((opt) => (
+                    <option key={opt.code} value={opt.code}>
+                      {opt.labelAr} — س.ت: {opt.crNumber}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="border-b border-[#e0e0e0] pb-2 pt-1">
+                <h4 className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
                   <Briefcase className="w-3.5 h-3.5 text-[#141414]" />
-                  <span>1. البيانات الشخصية والمهنية</span>
+                  <span>2. البيانات الشخصية والتواصل والهوية</span>
                 </h4>
               </div>
 
@@ -3413,6 +4843,40 @@ export const HRPage: React.FC = () => {
                     placeholder="10XXXXXXXX"
                     value={nationalId}
                     onChange={(e) => setNationalId(e.target.value)}
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رقم الجوال (للواتساب والتنبيهات)</label>
+                  <input
+                    type="tel"
+                    placeholder="05XXXXXXXX"
+                    value={empPhone}
+                    onChange={(e) => setEmpPhone(e.target.value)}
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">البريد الإلكتروني الرسمي</label>
+                  <input
+                    type="email"
+                    placeholder="employee@company.sa"
+                    value={empEmail}
+                    onChange={(e) => setEmpEmail(e.target.value)}
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">تاريخ انتهاء الهوية / الإقامة</label>
+                  <input
+                    type="date"
+                    value={empIqamaExpiry}
+                    onChange={(e) => setEmpIqamaExpiry(e.target.value)}
                     className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
@@ -3462,7 +4926,7 @@ export const HRPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-[#141414] mb-1">الفرع المخصص *</label>
                   <input
@@ -3483,65 +4947,102 @@ export const HRPage: React.FC = () => {
                     className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رصيد الإجازات السنوية (يوم)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="90"
+                    value={empLeaveBalance}
+                    onChange={(e) => setEmpLeaveBalance(e.target.value)}
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رقم الآيبان البنكي لحماية الأجور (WPS IBAN)</label>
+                  <input
+                    type="text"
+                    placeholder="SA0380000000608010167519"
+                    value={empIban}
+                    onChange={(e) => setEmpIban(e.target.value)}
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">البنك المحوّل إليه الراتب</label>
+                  <input
+                    type="text"
+                    value={empBankName}
+                    onChange={(e) => setEmpBankName(e.target.value)}
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
               </div>
 
               {/* System Access & RBAC Role Assignment */}
-              <div className="border-t border-[#e0e0e0] pt-3">
-                <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-3">
-                  <label className="flex items-center gap-2.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={createSystemUser}
-                      onChange={(e) => setCreateSystemUser(e.target.checked)}
-                      className="rounded text-[#141414] focus:ring-0 w-4 h-4"
-                    />
-                    <span className="font-bold text-xs text-[#141414] flex items-center gap-1.5">
-                      <Key className="w-3.5 h-3.5 text-[#141414]" />
-                      <span>إنشاء حساب مستخدم في منظومة الـ ERP وتعيين الصلاحيات فوراً</span>
-                    </span>
-                  </label>
+              {!editingEmpRecord && (
+                <div className="border-t border-[#e0e0e0] pt-3">
+                  <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-3">
+                    <label className="flex items-center gap-2.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={createSystemUser}
+                        onChange={(e) => setCreateSystemUser(e.target.checked)}
+                        className="rounded text-[#141414] focus:ring-0 w-4 h-4"
+                      />
+                      <span className="font-bold text-xs text-[#141414] flex items-center gap-1.5">
+                        <Key className="w-3.5 h-3.5 text-[#141414]" />
+                        <span>إنشاء حساب مستخدم في منظومة الـ ERP وتعيين الصلاحيات فوراً</span>
+                      </span>
+                    </label>
 
-                  {createSystemUser && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                      <div>
-                        <label className="block text-xs font-semibold text-[#141414] mb-1">الدور الوظيفي والصلاحيات (RBAC Role)</label>
-                        <select
-                          value={assignedRole}
-                          onChange={(e) => setAssignedRole(e.target.value)}
-                          className="w-full bg-white border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:outline-none"
-                        >
-                          <option value="Administrator">Administrator (مدير نظام - كامل الصلاحيات)</option>
-                          <option value="Branch Manager">Branch Manager (مدير فرع)</option>
-                          <option value="Financial Manager">Financial Manager (مدير مالي واعتمادات)</option>
-                          <option value="HR Specialist">HR Specialist (أخصائي موارد بشرية)</option>
-                          <option value="Operations Lead">Operations Lead (مشرف تشغيل وعقود)</option>
-                          <option value="Shelter Supervisor">Shelter Supervisor (مشرف إيواء)</option>
-                          <option value="Sales Agent">Sales Agent (مسؤول مبيعات وعملاء)</option>
-                        </select>
-                      </div>
+                    {createSystemUser && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <div>
+                          <label className="block text-xs font-semibold text-[#141414] mb-1">الدور الوظيفي والصلاحيات (RBAC Role)</label>
+                          <select
+                            value={assignedRole}
+                            onChange={(e) => setAssignedRole(e.target.value)}
+                            className="w-full bg-white border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:outline-none"
+                          >
+                            <option value="Administrator">Administrator (مدير نظام - كامل الصلاحيات)</option>
+                            <option value="Branch Manager">Branch Manager (مدير فرع)</option>
+                            <option value="Financial Manager">Financial Manager (مدير مالي واعتمادات)</option>
+                            <option value="HR Specialist">HR Specialist (أخصائي موارد بشرية)</option>
+                            <option value="Operations Lead">Operations Lead (مشرف تشغيل وعقود)</option>
+                            <option value="Shelter Supervisor">Shelter Supervisor (مشرف إيواء)</option>
+                            <option value="Sales Agent">Sales Agent (مسؤول مبيعات وعملاء)</option>
+                          </select>
+                        </div>
 
-                      <div className="flex items-center">
-                        <label className="flex items-center gap-2 cursor-pointer mt-4">
-                          <input
-                            type="checkbox"
-                            checked={enable2FA}
-                            onChange={(e) => setEnable2FA(e.target.checked)}
-                            className="rounded text-[#141414] focus:ring-0 w-4 h-4"
-                          />
-                          <span className="text-xs font-semibold text-[#141414]">
-                            تفعيل المصادقة الثنائية (2FA) والبصمة البيومترية للحساب
-                          </span>
-                        </label>
+                        <div className="flex items-center">
+                          <label className="flex items-center gap-2 cursor-pointer mt-4">
+                            <input
+                              type="checkbox"
+                              checked={enable2FA}
+                              onChange={(e) => setEnable2FA(e.target.checked)}
+                              className="rounded text-[#141414] focus:ring-0 w-4 h-4"
+                            />
+                            <span className="text-xs font-semibold text-[#141414]">
+                              تفعيل المصادقة الثنائية (2FA) والبصمة البيومترية للحساب
+                            </span>
+                          </label>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="flex gap-3 justify-end pt-3 border-t border-[#e0e0e0]">
                 <button
                   type="button"
-                  onClick={() => setShowAddEmpModal(false)}
+                  onClick={() => { setShowAddEmpModal(false); setEditingEmpRecord(null); }}
                   className="button-outline-on-light"
                   style={{ minHeight: '36px', padding: '6px 16px', fontSize: '13px' }}
                 >
@@ -3552,7 +5053,7 @@ export const HRPage: React.FC = () => {
                   className="button-primary-pill"
                   style={{ minHeight: '36px', padding: '6px 20px', fontSize: '13px' }}
                 >
-                  حفظ وتسجيل الموظف
+                  {editingEmpRecord ? 'حفظ التعديلات في ملف الموظف' : 'حفظ وتسجيل الموظف'}
                 </button>
               </div>
             </form>
@@ -3562,8 +5063,8 @@ export const HRPage: React.FC = () => {
 
       {/* Promotion & Grade Upgrade Modal */}
       {showPromotionModal && targetEmpForPromotion && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-[#e0e0e0] overflow-hidden font-sans max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowPromotionModal(false); }}>
+          <div className="w-full max-w-2xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[90vh] flex flex-col">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-[#141414]" />
@@ -3754,114 +5255,265 @@ export const HRPage: React.FC = () => {
       )}
 
       {/* Official Signed Legal Agreement View/Print Modal */}
-      {selectedEmpForAgreement && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[2200] flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-[#e0e0e0] overflow-hidden font-sans max-h-[90vh] flex flex-col">
-            <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between print:hidden">
-              <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
-                <FileSignature className="w-4 h-4 text-[#141414]" />
-                <span>وثيقة التوقيع والاتفاقية القانونية المعتمدة للموظف</span>
-              </h3>
-              <button onClick={() => setSelectedEmpForAgreement(null)} className="p-1 text-[#707070] hover:text-[#141414]">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Certificate Body (Print Optimized) */}
-            <div className="p-8 overflow-y-auto space-y-5 bg-white text-[#141414] border-4 border-double border-[#e0e0e0] m-4 rounded-2xl">
-              {/* Header */}
-              <div className="text-center border-b-2 border-[#141414] pb-4">
-                <div className="text-xs font-bold text-[#707070] uppercase tracking-widest">المملكة العربية السعودية</div>
-                <div className="text-lg font-bold text-[#141414] mt-1">مجموعة خالد السليم التجارية للاستقدام والتشغيل</div>
-                <div className="text-sm font-bold text-[#141414] mt-0.5">شهادة إقرار وتعهد قانوني واستخدام الأنظمة الرقمية (NDA)</div>
-                <div className="text-[11px] font-mono text-[#707070] mt-1">
-                  رقم الاعتماد الرقمي: <span className="font-bold text-[#141414]">{selectedEmpForAgreement.compliance_hash || `SA-COMPLIANCE-${selectedEmpForAgreement.employee_code}`}</span>
+      {selectedEmpForAgreement && (() => {
+        const agreementBranding = resolveDocumentBranding(selectedEmpForAgreement, {
+          hideHoldingGroupBrand: agreementHideHoldingGroup,
+        });
+        return (
+          <div
+            data-printable-modal="true"
+            role="dialog"
+            aria-modal="true"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[11000] flex items-center justify-center p-4"
+            dir="rtl"
+            data-erp-modal-overlay="true"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setSelectedEmpForAgreement(null);
+            }}
+          >
+            <div className="w-full max-w-2xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[92vh] flex flex-col">
+              <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between flex-wrap gap-2 print:hidden">
+                <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
+                  <FileSignature className="w-4 h-4 text-[#141414]" />
+                  <span>وثيقة التوقيع والاتفاقية القانونية ({agreementBranding.entity.shortNameAr})</span>
+                </h3>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setAgreementHideHoldingGroup((prev) => !prev)}
+                    className={`px-3 py-1 rounded-full text-[11px] font-bold inline-flex items-center gap-1.5 border cursor-pointer ${
+                      agreementBranding.hideHoldingGroupBrand
+                        ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                        : 'bg-[#ffffff] text-[#141414] border-[#e0e0e0]'
+                    }`}
+                  >
+                    {agreementBranding.hideHoldingGroupBrand ? (
+                      <CheckSquare className="w-3.5 h-3.5" />
+                    ) : (
+                      <Square className="w-3.5 h-3.5" />
+                    )}
+                    <span>إلغاء جملة مجموعة خالد السليم</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedEmpForAgreement(null)}
+                    className="p-1 text-[#707070] hover:text-[#141414] cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
 
-              {/* Employee Details */}
-              <div className="grid grid-cols-2 gap-3 p-4 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0] text-xs">
-                <div><strong>اسم الموظف:</strong> {selectedEmpForAgreement.name}</div>
-                <div><strong>رقم الهوية / الإقامة:</strong> <span className="font-mono">{selectedEmpForAgreement.national_id}</span></div>
-                <div><strong>القسم الإداري:</strong> {selectedEmpForAgreement.department}</div>
-                <div><strong>المسمى والدرجة:</strong> {selectedEmpForAgreement.job_title} ({selectedEmpForAgreement.grade || 'الدرجة الثالثة'})</div>
-                <div><strong>الفرع المعتمد:</strong> {selectedEmpForAgreement.branch}</div>
-                <div><strong>كود الموظف:</strong> <span className="font-mono">{selectedEmpForAgreement.employee_code}</span></div>
-              </div>
-
-              {/* Legal Declaration */}
-              <div className="text-xs text-[#141414] leading-relaxed space-y-2 text-justify">
-                <p>
-                  <strong>نص الإقرار والتعهد:</strong> أقر أنا الموظف الموضحة بياناتي أعلاه بأنني استلمت حساب الدخول لمنظومة الـ ERP، واطلعت على كافة السياسات واللوائح الخاصة بقسم ({selectedEmpForAgreement.department}) والأنظمة السارية في المملكة العربية السعودية (نظام التعاملات الإلكترونية م/18، نظام مكافحة جرائم المعلوماتية م/17، ونظام حماية البيانات الشخصية PDPL).
-                </p>
-                <p>
-                  وأتعهد بالمحافظة التامة على سرية البيانات وعدم إفشائها أو تداولها خارج النطاق المصرح به، وأبرئ ذمة المنشأة من أي إساءة استخدام فردية، مع تحملي الكامل لكافة التبعات القانونية والمسؤولية الجزائية والمدنية المترتبة على أي مخالفة.
-                </p>
-              </div>
-
-              {/* Signature Stamp Footer */}
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t-2 border-[#e0e0e0] text-xs items-end">
-                <div className="space-y-1">
-                  <div className="text-[#707070] text-[11px]">بيانات التوثيق الرقمي:</div>
-                  <div className="font-mono text-[10px] text-[#141414]">تاريخ التوقيع: {selectedEmpForAgreement.hire_date || '2026-01-15'} 10:30:00</div>
-                  <div className="font-mono text-[10px] text-[#141414]">عنوان الـ IP: 192.168.1.15 (شبكة المنظومة)</div>
-                  <div className="font-mono text-[9px] text-[#141414] font-bold">الحالة: معتمد وموثق نظامياً</div>
-                </div>
-
-                <div className="text-center space-y-2">
-                  <div className="text-[#707070] text-[11px]">التوقيع الإلكتروني والبصمة:</div>
-                  <div className="border border-[#e0e0e0] rounded-lg p-2 bg-[#f3f3f3] inline-block min-w-[140px]">
-                    <Fingerprint className="w-8 h-8 text-[#141414] mx-auto" />
-                    <span className="text-[10px] font-bold text-[#141414] block mt-1">توقيع رقمي موثق ومطابق</span>
+              {/* Certificate Body (Print Optimized) */}
+              <div className="erp-printable-sheet p-8 overflow-y-auto space-y-5 bg-white text-[#141414] border-4 border-double border-[#e0e0e0] m-4 rounded-2xl">
+                {/* Header */}
+                <div className="text-center border-b-2 border-[#141414] pb-4">
+                  <div className="text-xs font-bold text-[#707070] uppercase tracking-widest">
+                    المملكة العربية السعودية
                   </div>
-                  <div className="text-[10px] font-bold text-[#141414]">{selectedEmpForAgreement.name}</div>
+                  <div className="text-lg font-bold text-[#141414] mt-1">
+                    {agreementBranding.displayNameAr}
+                  </div>
+                  {agreementBranding.holdingBadgeAr ? (
+                    <div className="text-xs font-semibold text-[#707070] mt-0.5">
+                      {agreementBranding.holdingBadgeAr}
+                    </div>
+                  ) : null}
+                  <div className="text-[11px] font-mono text-[#707070] mt-0.5">
+                    س.ت: {agreementBranding.crNumber} • الرقم الضريبي: {agreementBranding.taxNumber}
+                  </div>
+                  <div className="text-sm font-bold text-[#141414] mt-1.5">
+                    شهادة إقرار وتعهد قانوني واستخدام الأنظمة الرقمية (NDA)
+                  </div>
+                  <div className="text-[11px] font-mono text-[#707070] mt-1">
+                    رقم الاعتماد الرقمي:{' '}
+                    <span className="font-bold text-[#141414]">
+                      {selectedEmpForAgreement.compliance_hash ||
+                        `${agreementBranding.qrVerifyNamespace}-${selectedEmpForAgreement.employee_code}`}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Employee Details */}
+                <div className="grid grid-cols-2 gap-3 p-4 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0] text-xs">
+                  <div>
+                    <strong>اسم الموظف:</strong> {selectedEmpForAgreement.name}
+                  </div>
+                  <div>
+                    <strong>رقم الهوية / الإقامة:</strong>{' '}
+                    <span className="font-mono">{selectedEmpForAgreement.national_id}</span>
+                  </div>
+                  <div>
+                    <strong>المنشأة التابع لها:</strong> {agreementBranding.displayNameAr}
+                  </div>
+                  <div>
+                    <strong>القسم الإداري:</strong> {selectedEmpForAgreement.department}
+                  </div>
+                  <div>
+                    <strong>المسمى والدرجة:</strong> {selectedEmpForAgreement.job_title} (
+                    {selectedEmpForAgreement.grade || 'الدرجة الثالثة'})
+                  </div>
+                  <div>
+                    <strong>كود الموظف:</strong>{' '}
+                    <span className="font-mono">{selectedEmpForAgreement.employee_code}</span>
+                  </div>
+                </div>
+
+                {/* Legal Declaration */}
+                <div className="text-xs text-[#141414] leading-relaxed space-y-2 text-justify">
+                  <p>
+                    <strong>نص الإقرار والتعهد:</strong> أقر أنا الموظف الموضحة بياناتي أعلاه لدى (
+                    {agreementBranding.displayNameAr}) بأنني استلمت حساب الدخول لمنظومة الـ ERP،
+                    واطلعت على كافة السياسات واللوائح الخاصة بقسم ({selectedEmpForAgreement.department})
+                    والأنظمة السارية في المملكة العربية السعودية (نظام التعاملات الإلكترونية م/18،
+                    نظام مكافحة جرائم المعلوماتية م/17، ونظام حماية البيانات الشخصية PDPL).
+                  </p>
+                  <p>
+                    وأتعهد بالمحافظة التامة على سرية البيانات وعدم إفشائها أو تداولها خارج النطاق
+                    المصرح به، وأبرئ ذمة ({agreementBranding.entity.shortNameAr}) من أي إساءة استخدام فردية،
+                    مع تحملي الكامل لكافة التبعات القانونية والمسؤولية الجزائية والمدنية المترتبة على
+                    أي مخالفة.
+                  </p>
+                </div>
+
+                {/* Signature Stamp Footer */}
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t-2 border-[#e0e0e0] text-xs items-end">
+                  <div className="space-y-1">
+                    <div className="text-[#707070] text-[11px]">بيانات التوثيق الرقمي والاعتماد:</div>
+                    <div className="font-mono text-[10px] text-[#141414]">
+                      تاريخ التوقيع: {selectedEmpForAgreement.hire_date || '2026-01-15'}
+                    </div>
+                    <div className="text-[11px] font-bold text-[#141414]">
+                      اعتماد: {agreementBranding.hrIssuerTitleAr}
+                    </div>
+                    <div className="font-mono text-[10px] text-[#707070]">
+                      {agreementBranding.executiveApprovalBadgeAr}
+                    </div>
+                  </div>
+
+                  <div className="text-center space-y-2">
+                    <div className="text-[#707070] text-[11px]">التوقيع الإلكتروني والبصمة:</div>
+                    <div className="border border-[#e0e0e0] rounded-lg p-2 bg-[#f3f3f3] inline-block min-w-[140px]">
+                      <Fingerprint className="w-8 h-8 text-[#141414] mx-auto" />
+                      <span className="text-[10px] font-bold text-[#141414] block mt-1">
+                        توقيع رقمي موثق ومطابق
+                      </span>
+                    </div>
+                    <div className="text-[10px] font-bold text-[#141414]">
+                      {selectedEmpForAgreement.name}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Actions */}
-            <div className="p-4 bg-[#f3f3f3] border-t border-[#e0e0e0] flex justify-end gap-3 print:hidden">
-              <button
-                onClick={() => setSelectedEmpForAgreement(null)}
-                className="button-outline-on-light text-xs py-2 px-4"
-              >
-                إغلاق
-              </button>
-              <button
-                onClick={() => window.print()}
-                className="button-primary-pill text-xs py-2 px-5 flex items-center gap-1.5"
-              >
-                <Printer className="w-4 h-4" />
-                <span>طباعة الوثيقة الرسمية</span>
-              </button>
+              {/* Actions */}
+              <div className="p-4 bg-[#f3f3f3] border-t border-[#e0e0e0] flex items-center justify-between flex-wrap gap-3 print:hidden">
+                <RecordQuickActions
+                  size="sm"
+                  sharePayload={{
+                    title: `شهادة إقرار وتعهد سري المعلومات (NDA) — ${selectedEmpForAgreement.name}`,
+                    recipientName: selectedEmpForAgreement.name,
+                    recipientPhone: selectedEmpForAgreement.phone,
+                    recipientEmail: selectedEmpForAgreement.email,
+                    referenceNumber:
+                      selectedEmpForAgreement.compliance_hash ||
+                      `${agreementBranding.qrVerifyNamespace}-${selectedEmpForAgreement.employee_code}`,
+                    entityCode: agreementBranding.code,
+                    hideHoldingGroupBrand: agreementBranding.hideHoldingGroupBrand,
+                    moduleName: 'hr_nda_agreements',
+                    department: 'hr',
+                    summaryLines: [
+                      { label: 'المنشأة', value: agreementBranding.displayNameAr },
+                      { label: 'الموظف', value: selectedEmpForAgreement.name },
+                      { label: 'القسم', value: selectedEmpForAgreement.department },
+                      { label: 'الحالة', value: 'موقّع ومعتمد رقمياً' },
+                    ],
+                  }}
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedEmpForAgreement(null)}
+                    className="button-outline-on-light text-xs py-2 px-4 cursor-pointer"
+                  >
+                    إغلاق
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="button-primary-pill text-xs py-2 px-5 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>طباعة الوثيقة الرسمية (A4)</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Employee 360 Digital File Modal */}
       {selectedEmpFor360 && (
-        <Employee360DigitalFileModal employee={selectedEmpFor360 as any} onClose={() => setSelectedEmpFor360(null)} />
+        <Employee360DigitalFileModal
+          employee={selectedEmpFor360 as any}
+          onClose={() => setSelectedEmpFor360(null)}
+          onEmployeeUpdated={(upd) => {
+            setSelectedEmpFor360(upd as EmployeeRecord);
+            reloadHrData();
+          }}
+        />
+      )}
+
+      {/* Jisr 12-Template QR Letters Studio Modal */}
+      {studioLetterEmp && (
+        <HrLettersStudioModal
+          employee={studioLetterEmp}
+          companyCode={studioLetterEmp.company_id || effectiveCompanyCode}
+          companyName={
+            resolveDocumentBranding(studioLetterEmp.company_id || effectiveCompanyCode).displayNameAr
+          }
+          onClose={() => setStudioLetterEmp(null)}
+        />
       )}
 
       {/* Payslip PDF Modal */}
-      {selectedPayslipRecord && (
-        <EmployeePayslipModal
-          record={selectedPayslipRecord.record}
-          department={selectedPayslipRecord.department}
-          jobTitle={selectedPayslipRecord.jobTitle}
-          payrollMonth={payrollMonth}
-          companyName={activeCompany.name}
-          onClose={() => setSelectedPayslipRecord(null)}
-        />
-      )}
+      {selectedPayslipRecord && (() => {
+        const matchedEmp = employeesList.find(
+          (e) =>
+            e.id === selectedPayslipRecord.record.employeeId ||
+            e.name === selectedPayslipRecord.record.employeeName
+        );
+        const empCompany = matchedEmp?.company_id || effectiveCompanyCode;
+        return (
+          <EmployeePayslipModal
+            record={{
+              ...selectedPayslipRecord.record,
+              company_id: empCompany,
+              phone: matchedEmp?.phone,
+              email: matchedEmp?.email,
+            }}
+            department={selectedPayslipRecord.department}
+            jobTitle={selectedPayslipRecord.jobTitle}
+            payrollMonth={payrollMonth}
+            companyCode={empCompany}
+            companyName={resolveDocumentBranding(empCompany).displayNameAr}
+            onClose={() => setSelectedPayslipRecord(null)}
+          />
+        );
+      })()}
 
       {/* Official Salary Certificate / Clearance Letter Modal */}
       {selectedLetterModal && (
         <HrOfficialLetterModal
           employee={selectedLetterModal.employee}
           letterType={selectedLetterModal.letterType}
-          companyName={activeCompany.name}
+          companyCode={selectedLetterModal.employee.company_id || effectiveCompanyCode}
+          companyName={
+            resolveDocumentBranding(
+              selectedLetterModal.employee.company_id || effectiveCompanyCode
+            ).displayNameAr
+          }
           clearanceSummary={selectedLetterModal.clearanceSummary}
           onClose={() => setSelectedLetterModal(null)}
         />
@@ -3869,8 +5521,8 @@ export const HRPage: React.FC = () => {
 
       {/* Modal: Create Leave / Vacation Request */}
       {showVacModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2100] flex items-center justify-center p-4 font-sans">
-          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[#e0e0e0] overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2100] flex items-center justify-center p-4 font-sans" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowVacModal(false); }}>
+          <div className="w-full max-w-lg bg-white rounded-[24px] border border-[#e0e0e0] overflow-y-auto max-h-[90vh]">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414]">تقديم طلب إجازة جديد (المادة 109 / 117)</h3>
               <button onClick={() => setShowVacModal(false)} className="text-[#707070] hover:text-[#141414]">
@@ -3928,6 +5580,25 @@ export const HRPage: React.FC = () => {
                   />
                 </div>
               </div>
+              <div className="rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] p-3 text-xs space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[#707070] font-semibold">إجمالي الأيام التقويمية:</span>
+                  <span className="font-mono font-bold text-[#141414]">{vacHolidayCalc.calendarDays} يوم</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#707070] font-semibold">العطل الرسمية السعودية المستثناة (م112):</span>
+                  <span className="font-mono font-bold text-[#141414]">{vacHolidayCalc.excludedHolidayDays} يوم</span>
+                </div>
+                {vacHolidayCalc.matchedHolidays.length > 0 && (
+                  <div className="text-[11px] text-[#707070]">
+                    المناسبات المستثناة: {vacHolidayCalc.matchedHolidays.join('، ')}
+                  </div>
+                )}
+                <div className="flex items-center justify-between pt-1 border-t border-[#e0e0e0]">
+                  <span className="font-bold text-[#141414]">صافي الأيام المخصومة من الرصيد السنوي:</span>
+                  <span className="font-mono font-bold text-[#141414]">{vacHolidayCalc.netDeductibleLeaveDays} يوم</span>
+                </div>
+              </div>
               <div>
                 <label className="block font-bold text-[#141414] mb-1">ملاحظات / الموظف البديل</label>
                 <input
@@ -3953,8 +5624,8 @@ export const HRPage: React.FC = () => {
 
       {/* Modal: Create Advance Request */}
       {showAdvModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2100] flex items-center justify-center p-4 font-sans">
-          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[#e0e0e0] overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2100] flex items-center justify-center p-4 font-sans" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAdvModal(false); }}>
+          <div className="w-full max-w-lg bg-white rounded-[24px] border border-[#e0e0e0] overflow-y-auto max-h-[90vh]">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414]">تسجيل طلب سلفة وجدولة الأقساط الشهرية</h3>
               <button onClick={() => setShowAdvModal(false)} className="text-[#707070] hover:text-[#141414]">
@@ -4033,8 +5704,8 @@ export const HRPage: React.FC = () => {
 
       {/* Modal: Create Sanction */}
       {showSancModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2100] flex items-center justify-center p-4 font-sans">
-          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[#e0e0e0] overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2100] flex items-center justify-center p-4 font-sans" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowSancModal(false); }}>
+          <div className="w-full max-w-lg bg-white rounded-[24px] border border-[#e0e0e0] overflow-y-auto max-h-[90vh]">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414]">قيد مخالفة وجزاء إداري (لائحة تنظيم العمل)</h3>
               <button onClick={() => setShowSancModal(false)} className="text-[#707070] hover:text-[#141414]">
@@ -4114,8 +5785,8 @@ export const HRPage: React.FC = () => {
 
       {/* Modal: Create Permission */}
       {showPermModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2100] flex items-center justify-center p-4 font-sans">
-          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[#e0e0e0] overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2100] flex items-center justify-center p-4 font-sans" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowPermModal(false); }}>
+          <div className="w-full max-w-lg bg-white rounded-[24px] border border-[#e0e0e0] overflow-y-auto max-h-[90vh]">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414]">تسجيل إذن خروج واستئذان أثناء الدوام</h3>
               <button onClick={() => setShowPermModal(false)} className="text-[#707070] hover:text-[#141414]">
@@ -4195,8 +5866,8 @@ export const HRPage: React.FC = () => {
 
       {/* Modal: Create Reward */}
       {showRewModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2100] flex items-center justify-center p-4 font-sans">
-          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[#e0e0e0] overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2100] flex items-center justify-center p-4 font-sans" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowRewModal(false); }}>
+          <div className="w-full max-w-lg bg-white rounded-[24px] border border-[#e0e0e0] overflow-y-auto max-h-[90vh]">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414]">اعتماد مكافأة مالية أو حافز أداء</h3>
               <button onClick={() => setShowRewModal(false)} className="text-[#707070] hover:text-[#141414]">
@@ -4264,6 +5935,377 @@ export const HRPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal: Soft-Delete Recycle Bin (30-Day Recovery) */}
+      <RecycleBinModal
+        isOpen={showRecycleBinModal}
+        onClose={() => setShowRecycleBinModal(false)}
+        onRestoreEntry={(entry) => void handleRestoreFromRecycleBin(entry)}
+      />
+
+      {/* Modal: Saudi Labor Law Leave Policy Settings */}
+      {showLeavePolicyModal && (
+        <div
+          className="fixed inset-0 bg-[#141414]/60 backdrop-blur-sm z-[2250] flex items-center justify-center p-4 font-sans"
+          dir="rtl"
+          data-erp-modal-overlay="true"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowLeavePolicyModal(false);
+          }}
+        >
+          <div className="w-full max-w-2xl bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="p-4 bg-[#141414] text-[#ffffff] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Settings className="w-4 h-4 text-[#ffffff]" />
+                <h3 className="font-bold text-sm m-0">
+                  إعدادات وسياسات الإجازات النظامية والمباشرة (نظام العمل السعودي م109 - م117)
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLeavePolicyModal(false)}
+                className="w-7 h-7 rounded-full bg-[#262626] hover:bg-[#3f3f46] flex items-center justify-center text-[#ffffff] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={handleSaveLeavePolicySettings}
+              className="p-6 space-y-4 overflow-y-auto text-xs text-[#141414]"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block font-bold mb-1">
+                    الاستحقاق الأساسي (&lt; 5 سنوات — م109)
+                  </label>
+                  <input
+                    type="number"
+                    min={15}
+                    max={45}
+                    value={leavePolicyDraft.annualStandardDays}
+                    onChange={(e) =>
+                      setLeavePolicyDraft((prev) => ({
+                        ...prev,
+                        annualStandardDays: Number(e.target.value) || 21,
+                      }))
+                    }
+                    className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold mb-1">
+                    استحقاق قدامى الموظفين (&ge; 5 سنوات)
+                  </label>
+                  <input
+                    type="number"
+                    min={21}
+                    max={60}
+                    value={leavePolicyDraft.annualSeniorDays}
+                    onChange={(e) =>
+                      setLeavePolicyDraft((prev) => ({
+                        ...prev,
+                        annualSeniorDays: Number(e.target.value) || 30,
+                      }))
+                    }
+                    className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold mb-1">سقف الترحيل للعام التالي (يوم)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={60}
+                    value={leavePolicyDraft.maxCarryOverDays}
+                    onChange={(e) =>
+                      setLeavePolicyDraft((prev) => ({
+                        ...prev,
+                        maxCarryOverDays: Number(e.target.value) || 15,
+                      }))
+                    }
+                    className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-[#e0e0e0]">
+                <div>
+                  <label className="block font-bold mb-1">إجازة الزواج (م113)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={15}
+                    value={leavePolicyDraft.marriageLeaveDays}
+                    onChange={(e) =>
+                      setLeavePolicyDraft((prev) => ({
+                        ...prev,
+                        marriageLeaveDays: Number(e.target.value) || 5,
+                      }))
+                    }
+                    className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold mb-1">إجازة المولود (م113)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={leavePolicyDraft.paternityLeaveDays}
+                    onChange={(e) =>
+                      setLeavePolicyDraft((prev) => ({
+                        ...prev,
+                        paternityLeaveDays: Number(e.target.value) || 3,
+                      }))
+                    }
+                    className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold mb-1">إجازة الوفاة (م113)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={15}
+                    value={leavePolicyDraft.bereavementLeaveDays}
+                    onChange={(e) =>
+                      setLeavePolicyDraft((prev) => ({
+                        ...prev,
+                        bereavementLeaveDays: Number(e.target.value) || 5,
+                      }))
+                    }
+                    className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold mb-1">إجازة الحج (م114)</label>
+                  <input
+                    type="number"
+                    min={5}
+                    max={20}
+                    value={leavePolicyDraft.hajjLeaveDays}
+                    onChange={(e) =>
+                      setLeavePolicyDraft((prev) => ({
+                        ...prev,
+                        hajjLeaveDays: Number(e.target.value) || 10,
+                      }))
+                    }
+                    className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-[18px] bg-[#f3f3f3] border border-[#e0e0e0] p-4 space-y-2.5">
+                <label className="flex items-center gap-2.5 cursor-pointer font-bold">
+                  <input
+                    type="checkbox"
+                    checked={leavePolicyDraft.excludeWeekendsFromAnnual}
+                    onChange={(e) =>
+                      setLeavePolicyDraft((prev) => ({
+                        ...prev,
+                        excludeWeekendsFromAnnual: e.target.checked,
+                      }))
+                    }
+                    className="accent-[#141414] w-4 h-4"
+                  />
+                  <span>استثناء عطلة نهاية الأسبوع (الجمعة والسبت) من خصم الرصيد السنوي</span>
+                </label>
+
+                <label className="flex items-center gap-2.5 cursor-pointer font-bold">
+                  <input
+                    type="checkbox"
+                    checked={leavePolicyDraft.excludeSaudiOfficialHolidays}
+                    onChange={(e) =>
+                      setLeavePolicyDraft((prev) => ({
+                        ...prev,
+                        excludeSaudiOfficialHolidays: e.target.checked,
+                      }))
+                    }
+                    className="accent-[#141414] w-4 h-4"
+                  />
+                  <span>
+                    استثناء الأعياد والمناسبات الوطنية السعودية الرسمية تلقائياً (المادة 112)
+                  </span>
+                </label>
+
+                <label className="flex items-center gap-2.5 cursor-pointer font-bold">
+                  <input
+                    type="checkbox"
+                    checked={leavePolicyDraft.requireReturnConfirmation}
+                    onChange={(e) =>
+                      setLeavePolicyDraft((prev) => ({
+                        ...prev,
+                        requireReturnConfirmation: e.target.checked,
+                      }))
+                    }
+                    className="accent-[#141414] w-4 h-4"
+                  />
+                  <span>
+                    إلزامية توثيق إشعار المباشرة بعد الإجازة وتنبيه الموارد البشرية عند التأخر
+                  </span>
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#e0e0e0]">
+                <button
+                  type="button"
+                  onClick={() => setShowLeavePolicyModal(false)}
+                  className="px-4 py-2 rounded-full bg-[#f3f3f3] text-[#141414] font-bold cursor-pointer"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 rounded-full bg-[#141414] text-[#ffffff] font-bold cursor-pointer"
+                >
+                  حفظ واعتماد السياسات
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Post-Approval Leave Lifecycle (Return / Cut & Refund / Extend / Cancel & Refund) */}
+      {activeLeaveLifecycleTarget && (() => {
+        const { vac, mode, targetDate, notes } = activeLeaveLifecycleTarget;
+        const modeTitleMap: Record<'RETURN' | 'CUT' | 'EXTEND' | 'CANCEL', string> = {
+          RETURN: 'تسجيل إشعار مباشرة العمل بعد الإجازة',
+          CUT: 'قطع الإجازة مبكراً واسترداد الأيام غير المستنفدة للرصيد',
+          EXTEND: 'تمديد الإجازة المعتمدة وخصم الفرق من الرصيد',
+          CANCEL: 'إلغاء الإجازة المعتمدة واسترداد كامل الرصيد المخصوم',
+        };
+        const previewCalc =
+          mode === 'CUT'
+            ? calculateNetLeaveDays(vac.from_date, targetDate, leavePolicyDraft)
+            : mode === 'EXTEND'
+            ? calculateNetLeaveDays(vac.from_date, targetDate, leavePolicyDraft)
+            : null;
+
+        return (
+          <div
+            className="fixed inset-0 bg-[#141414]/60 backdrop-blur-sm z-[2260] flex items-center justify-center p-4 font-sans"
+            dir="rtl"
+            data-erp-modal-overlay="true"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setActiveLeaveLifecycleTarget(null);
+            }}
+          >
+            <div className="w-full max-w-lg bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden">
+              <div className="p-4 bg-[#141414] text-[#ffffff] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CalendarCheck className="w-4 h-4 text-[#ffffff]" />
+                  <h3 className="font-bold text-sm m-0">{modeTitleMap[mode]}</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveLeaveLifecycleTarget(null)}
+                  className="w-7 h-7 rounded-full bg-[#262626] flex items-center justify-center text-[#ffffff] cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form
+                onSubmit={handleExecuteLeaveLifecycleAction}
+                className="p-5 space-y-4 text-xs text-[#141414]"
+              >
+                <div className="p-3.5 rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] space-y-1">
+                  <div className="font-bold text-sm text-[#141414]">{vac.employee_name}</div>
+                  <div className="text-[#707070]">
+                    {vac.vacation_type} • من <span className="font-mono">{vac.from_date}</span> إلى{' '}
+                    <span className="font-mono">{vac.to_date}</span> ({vac.days_count} يوم)
+                  </div>
+                </div>
+
+                {mode !== 'CANCEL' && (
+                  <div>
+                    <label className="block font-bold mb-1">
+                      {mode === 'RETURN'
+                        ? 'تاريخ المباشرة الفعلي للعمل *'
+                        : mode === 'CUT'
+                        ? 'تاريخ آخر يوم فعلي في الإجازة بعد القطع *'
+                        : 'تاريخ نهاية الإجازة الجديد بعد التمديد *'}
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      min={mode === 'EXTEND' ? vac.to_date : vac.from_date}
+                      max={mode === 'CUT' ? vac.to_date : undefined}
+                      value={targetDate}
+                      onChange={(e) =>
+                        setActiveLeaveLifecycleTarget((prev) =>
+                          prev ? { ...prev, targetDate: e.target.value } : null
+                        )
+                      }
+                      className="w-full rounded-[14px] bg-[#f0f0f0] px-3.5 py-2.5 font-mono font-bold"
+                    />
+                  </div>
+                )}
+
+                {previewCalc && mode === 'CUT' && (
+                  <div className="p-3 rounded-[14px] bg-[#f3f3f3] border border-[#141414] text-xs font-bold">
+                    صافي الأيام الفعلية بعد القطع: {previewCalc.netDeductibleDays} يوم — سيتم استرداد{' '}
+                    <span className="font-mono">
+                      +{Math.max(0, vac.days_count - previewCalc.netDeductibleDays)}
+                    </span>{' '}
+                    يوم تلقائياً لرصيد الموظف.
+                  </div>
+                )}
+
+                {previewCalc && mode === 'EXTEND' && (
+                  <div className="p-3 rounded-[14px] bg-[#f3f3f3] border border-[#141414] text-xs font-bold">
+                    إجمالي الأيام بعد التمديد: {previewCalc.netDeductibleDays} يوم — سيتم خصم{' '}
+                    <span className="font-mono">
+                      {Math.max(0, previewCalc.netDeductibleDays - vac.days_count)}
+                    </span>{' '}
+                    يوم إضافي من الرصيد.
+                  </div>
+                )}
+
+                {mode === 'CANCEL' && (
+                  <div className="p-3 rounded-[14px] bg-[#f3f3f3] border border-[#141414] text-xs font-bold">
+                    سيتم إلغاء الإجازة المعتمدة وإعادة (+{vac.days_count} يوم) بالكامل إلى رصيد
+                    الموظف وتوثيق العملية في سجل حركات الإجازات.
+                  </div>
+                )}
+
+                <div>
+                  <label className="block font-bold mb-1">الملاحظات / سبب الإجراء للتوثيق</label>
+                  <input
+                    type="text"
+                    value={notes}
+                    onChange={(e) =>
+                      setActiveLeaveLifecycleTarget((prev) =>
+                        prev ? { ...prev, notes: e.target.value } : null
+                      )
+                    }
+                    placeholder="اكتب ملاحظات المباشرة أو مبررات القطع / التمديد..."
+                    className="w-full rounded-[14px] bg-[#f0f0f0] px-3.5 py-2.5"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-[#e0e0e0]">
+                  <button
+                    type="button"
+                    onClick={() => setActiveLeaveLifecycleTarget(null)}
+                    className="px-4 py-2 rounded-full bg-[#f3f3f3] text-[#141414] font-bold cursor-pointer"
+                  >
+                    إلغاء
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2 rounded-full bg-[#141414] text-[#ffffff] font-bold cursor-pointer"
+                  >
+                    تنفيذ وتحديث الرصيد فوراً
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

@@ -14,6 +14,7 @@ import {
   Building2,
   Plane,
   Home,
+  Users,
   Volume2,
   VolumeX,
 } from 'lucide-react';
@@ -89,6 +90,12 @@ export const UniversalNotificationToaster: React.FC<UniversalNotificationToaster
           icon: <Home className="w-4 h-4 text-[#141414] shrink-0" />,
           label: 'مراكز الإيواء HRSD',
         };
+      case 'hr':
+        return {
+          isCritical: false,
+          icon: <Users className="w-4 h-4 text-[#141414] shrink-0" />,
+          label: 'رادار جسر للموارد البشرية',
+        };
       case 'success':
         return {
           isCritical: false,
@@ -115,7 +122,9 @@ export const UniversalNotificationToaster: React.FC<UniversalNotificationToaster
   return (
     <div
       dir="rtl"
-      className="fixed top-[calc(70px+env(safe-area-inset-top,0px))] inset-x-3 sm:inset-x-auto sm:top-[72px] sm:left-4 z-[99999] flex flex-col gap-2 sm:w-[320px] max-w-[calc(100vw-24px)] mx-auto sm:mx-0 pointer-events-none select-none font-sans"
+      data-notification-toaster="true"
+      data-no-print="true"
+      className="no-print print:hidden fixed top-[calc(70px+env(safe-area-inset-top,0px))] inset-x-3 sm:inset-x-auto sm:top-[72px] sm:left-4 z-[99999] flex flex-col gap-2 sm:w-[320px] max-w-[calc(100vw-24px)] mx-auto sm:mx-0 pointer-events-none select-none font-sans"
     >
       {/* Compact Header Strip only when multiple notifications are visible */}
       {notifications.length > 1 && (

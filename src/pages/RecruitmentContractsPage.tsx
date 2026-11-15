@@ -1735,8 +1735,8 @@ export const RecruitmentContractsPage: React.FC = () => {
 
       {/* Add Contract Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
-          <div className="w-full max-w-xl bg-white border border-zinc-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white border border-zinc-200 rounded-[24px] overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="text-base font-bold text-[#141414] flex items-center gap-2">
                 <Plus className="w-4 h-4 text-[#141414]" />
@@ -1946,8 +1946,8 @@ export const RecruitmentContractsPage: React.FC = () => {
 
       {/* Edit Contract Modal */}
       {editingContract && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
-          <div className="w-full max-w-xl bg-white border border-zinc-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div role="dialog" aria-modal="true" onClick={() => setEditingContract(null)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white border border-zinc-200 rounded-[24px] overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="text-base font-bold text-[#141414] flex items-center gap-2">
                 <Edit className="w-4 h-4 text-[#141414]" />
@@ -2071,6 +2071,7 @@ export const RecruitmentContractsPage: React.FC = () => {
       {/* Contract Print Modal */}
       {selectedContractForPrint && (
         <div
+          data-printable-modal="true"
           onClick={() => setSelectedContractForPrint(null)}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right"
         >
@@ -2078,7 +2079,7 @@ export const RecruitmentContractsPage: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-4xl max-h-[92vh] bg-white border border-zinc-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col"
           >
-            <div className="px-6 py-4 bg-[#f3f3f3] border-b border-zinc-200 flex justify-between items-center shrink-0">
+            <div className="no-print print:hidden px-6 py-4 bg-[#f3f3f3] border-b border-zinc-200 flex justify-between items-center shrink-0">
               <div className="flex items-center gap-2">
                 <Printer className="w-5 h-5 text-[#141414]" />
                 <h3 className="font-bold text-[#141414] text-base">

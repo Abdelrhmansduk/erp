@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Zap, ShieldCheck, Database, RefreshCw, FileText, ArrowRightLeft, 
   DollarSign, FileSpreadsheet, Lock, ExternalLink, Activity, Server, 
   Shield, Cpu, Sparkles, Filter, CheckCircle2, ChevronRight, Check,
-  Search, BookOpen, Layers, GitBranch, Key, AlertTriangle, Printer, Building2
+  Search, BookOpen, Layers, GitBranch, Key, AlertTriangle, Printer, Building2,
+  Download, Landmark, X
 } from 'lucide-react';
 import { Badge } from '../components/ui/Badge';
 import { useAppStore } from '../stores/appStore';
@@ -75,6 +76,46 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
     s.category.includes(searchQuery)
   );
 
+  // Section detail modal: close on Escape, lock background scroll while open
+  useEffect(() => {
+    if (!selectedSectionDetail) return undefined;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedSectionDetail(null);
+    };
+    window.addEventListener('keydown', onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [selectedSectionDetail]);
+
+  const handleExportPlan = (fmt: 'excel' | 'csv' | 'pdf') => {
+    const rows = filteredSections.map((s) => ({
+      number: s.number,
+      title: s.title,
+      category: s.category.trim(),
+      status_ar: 'معتمد في خطة التكامل',
+      security_protocol: 'TLS 1.3 + HMAC-SHA256',
+      companies_scope: 'SAF • YAQ • TOP • DAR',
+    }));
+    exportData('musaned-plan', rows, fmt, 'وثيقة وخطة الربط والتكامل مع مساند');
+    addNotification({
+      title: 'تصدير خطة مساند',
+      message: `تم تجهيز ${rows.length} قسماً بصيغة ${fmt.toUpperCase()}.`,
+      type: 'success',
+      category: 'musaned',
+    });
+  };
+
+  const goToGovHub = () =>
+    window.dispatchEvent(
+      new CustomEvent('alsulaim_navigate', {
+        detail: { tab: 'gov-integrations', title: 'مركز التكامل والربط الحكومي الموحد' },
+      })
+    );
+
   return (
     <div className="space-y-6 text-right dir-rtl animate-fade-in">
       {/* Top Banner */}
@@ -103,7 +144,7 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
                 flexShrink: 0,
               }}
             >
-              <BookOpen className="w-6 h-6 text-[#141414]" />
+              <BookOpen className="w-6 h-6 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -148,6 +189,25 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
               </div>
             </div>
             <button
+              type="button"
+              onClick={() => handleExportPlan('excel')}
+              className="button-white-pill"
+              style={{ fontSize: '12px', padding: '8px 18px', minHeight: '38px' }}
+            >
+              <Download className="w-4 h-4 ml-1.5 text-[#141414]" />
+              <span>تصدير الأقسام (Excel)</span>
+            </button>
+            <button
+              type="button"
+              onClick={goToGovHub}
+              className="button-white-pill"
+              style={{ fontSize: '12px', padding: '8px 18px', minHeight: '38px' }}
+            >
+              <Landmark className="w-4 h-4 ml-1.5 text-[#141414]" />
+              <span>مركز الربط الحكومي الموحد</span>
+            </button>
+            <button
+              type="button"
               onClick={() => window.print()}
               className="button-white-pill"
               style={{ fontSize: '12px', padding: '8px 18px', minHeight: '38px' }}
@@ -162,7 +222,7 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
               className="button-outline-on-dark"
               style={{ fontSize: '12px', padding: '8px 16px', minHeight: '38px' }}
             >
-              <ExternalLink className="w-3.5 h-3.5 ml-1 text-[#141414]" />
+              <ExternalLink className="w-3.5 h-3.5 ml-1" />
               <span>بوابة مساند تكامل</span>
             </a>
           </div>
@@ -322,8 +382,16 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
         {filteredSections.map((sec) => (
           <div
             key={sec.id}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setSelectedSectionDetail(sec);
+              }
+            }}
             onClick={() => setSelectedSectionDetail(sec)}
-            className="card-pricing transition-all hover:border-[#141414] hover:shadow-md cursor-pointer flex flex-col justify-between"
+            className="card-pricing transition-all hover:border-[#141414] cursor-pointer flex flex-col justify-between"
             style={{ padding: '18px', borderRadius: '16px', background: '#ffffff' }}
           >
             <div>
@@ -367,9 +435,19 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
 
       {/* Section Detail Modal */}
       {selectedSectionDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
-          <div className="w-full max-w-xl bg-white border border-zinc-200 rounded-3xl shadow-2xl overflow-hidden p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+        <div
+          className="fixed inset-0 z-[2400] flex items-center justify-center p-3 sm:p-4 bg-[#141414]/60 animate-fade-in dir-rtl text-right"
+          onClick={() => setSelectedSectionDetail(null)}
+          role="presentation"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`تفاصيل القسم ${selectedSectionDetail.number}`}
+            className="w-full max-w-xl max-h-[90vh] overflow-y-auto bg-white border border-[#e0e0e0] rounded-[24px] p-6 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-[#f0f0f0]">
               <div className="flex items-center gap-2.5">
                 <span className="w-8 h-8 rounded-xl bg-[#141414] text-white font-mono font-bold text-xs flex items-center justify-center">
                   #{selectedSectionDetail.number}
@@ -382,9 +460,10 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedSectionDetail(null)}
-                className="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-700 flex items-center justify-center font-bold"
+                aria-label="إغلاق"
+                className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] flex items-center justify-center cursor-pointer"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

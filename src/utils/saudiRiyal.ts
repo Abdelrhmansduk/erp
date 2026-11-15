@@ -167,3 +167,30 @@ export function replaceLegacyRiyalWithSamaSymbol(text: string): string {
     .replace(/(^|[\s(>])-\s*(\d[\d,.]*)\s*ر\.س/g, `$1${LRM}-$2 ${SAUDI_RIYAL_SYMBOL}`)
     .replace(/ر\.س/g, SAUDI_RIYAL_SYMBOL);
 }
+
+/**
+ * Guarantees a display value carries the official SAMA symbol (`\u20C1`):
+ * - numbers / numeric strings → formatted via `formatSaudiRiyal`
+ * - legacy `SAR` / Arabic abbreviation / PUA glyph strings → converted to the compliant symbol
+ * - already-compliant strings are returned untouched; non-numeric text is returned as-is.
+ */
+export function ensureSaudiRiyalSymbol(
+  value: string | number | null | undefined,
+  options: FormatSaudiRiyalOptions = {}
+): string {
+  if (value === null || value === undefined || value === '') return formatSaudiRiyal(0, options);
+  if (typeof value === 'number') return formatSaudiRiyal(value, options);
+
+  const text = String(value).trim();
+  if (text.includes(SAUDI_RIYAL_SYMBOL)) return text;
+  if (text.includes(SAUDI_RIYAL_PUA_SYMBOL)) return text.split(SAUDI_RIYAL_PUA_SYMBOL).join(SAUDI_RIYAL_SYMBOL);
+
+  const legacyStripped = text
+    .replace(/\u0631\.\u0633/g, '')
+    .replace(/\u0631\u064A\u0627\u0644/g, '')
+    .replace(/\bSAR\b/gi, '')
+    .replace(/\u00A0/g, ' ')
+    .trim();
+  if (/^-?[\d,]+(\.\d+)?$/.test(legacyStripped)) return formatSaudiRiyal(legacyStripped, options);
+  return text;
+}

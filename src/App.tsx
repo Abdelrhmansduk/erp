@@ -27,10 +27,16 @@ import { employeeMonitoringService } from './services/employeeMonitoringService'
 import { backgroundExecutionService } from './services/backgroundExecutionService';
 import { realtimeSubscriptionService } from './services/realtimeSubscriptionService';
 import { notificationPopupEngine } from './services/notificationPopupEngine';
+import {
+  hasCompletedSessionCheckIn,
+  clearSessionCheckInStamp,
+} from './services/biometricAttendanceGateService';
+import type { GateModalMode } from './components/auth/BiometricCameraAttendanceGateModal';
 
 import './styles/index.css';
 import './styles/layout.css';
 import './styles/components.css';
+import './styles/print.css';
 
 // Resilient Lazy Import with Auto-Recovery on Deployment Cache Mismatch
 function lazyWithRetry<T extends React.ComponentType<any>>(
@@ -70,6 +76,7 @@ const MicrosoftIntegrationCenterPage = lazyWithRetry(() => import('./pages/Micro
 
 const RecruitmentContractsPage = lazyWithRetry(() => import('./pages/RecruitmentContractsPage').then(m => ({ default: m.RecruitmentContractsPage })));
 const MusanedIntegrationPlanPage = lazyWithRetry(() => import('./pages/MusanedIntegrationPlanPage').then(m => ({ default: m.MusanedIntegrationPlanPage })));
+const GovIntegrationHubPage = lazyWithRetry(() => import('./pages/GovIntegrationHubPage').then(m => ({ default: m.GovIntegrationHubPage })));
 const RentContractsPage = lazyWithRetry(() => import('./pages/RentContractsPage').then(m => ({ default: m.RentContractsPage })));
 const CreateCVPage = lazyWithRetry(() => import('./pages/CreateCVPage').then(m => ({ default: m.CreateCVPage })));
 const CVsBankPage = lazyWithRetry(() => import('./pages/CVsBankPage').then(m => ({ default: m.CVsBankPage })));
@@ -126,6 +133,22 @@ const AICopilotWidget = lazyWithRetry(() => import('./components/common/AICopilo
 const QuickSearchModal = lazyWithRetry(() => import('./components/common/QuickSearchModal').then(m => ({ default: m.QuickSearchModal })));
 const LegalDisclaimerModal = lazyWithRetry(() => import('./components/legal/LegalDisclaimerModal').then(m => ({ default: m.LegalDisclaimerModal })));
 const GoogleAccountBindingModal = lazyWithRetry(() => import('./components/auth/GoogleAccountBindingModal').then(m => ({ default: m.GoogleAccountBindingModal })));
+const BiometricCameraAttendanceGateModal = lazyWithRetry(() =>
+  import('./components/auth/BiometricCameraAttendanceGateModal').then((m) => ({
+    default: m.BiometricCameraAttendanceGateModal,
+  }))
+);
+
+const PublicCareerPortalView = lazyWithRetry(() =>
+  import('./components/hr/PublicCareerPortalView').then((m) => ({
+    default: m.PublicCareerPortalView,
+  }))
+);
+const CorporateDigitalSignagePlayer = lazyWithRetry(() =>
+  import('./components/hr/CorporateDigitalSignagePlayer').then((m) => ({
+    default: m.CorporateDigitalSignagePlayer,
+  }))
+);
 
 const PageFallback: React.FC = () => (
   <div className="flex flex-col items-center justify-center min-h-[400px] w-full p-8">
@@ -154,6 +177,10 @@ const MainContent: React.FC = () => {
   const [legalCheckDone, setLegalCheckDone] = useState(false);
   const [showGoogleBindingModal, setShowGoogleBindingModal] = useState(false);
   const [googleBindingModalForced, setGoogleBindingModalForced] = useState(false);
+  const [attendanceGate, setAttendanceGate] = useState<{
+    open: boolean;
+    mode: GateModalMode;
+  }>({ open: false, mode: 'CHECK_IN' });
 
   useEffect(() => {
     const onPopState = () => {
@@ -248,15 +275,50 @@ const MainContent: React.FC = () => {
     return () => window.removeEventListener('alsulaim-open-google-binding-modal', handleOpenGoogleBind);
   }, []);
 
-  const handleLogout = async () => {
+  // Mandatory Biometric + Live Camera (+ Barcode Fallback) Gate upon opening Launcher or Workspace
+  useEffect(() => {
+    const activeProfile = user || authService.getCurrentUser();
+    if (!isProtectedFlow || !activeProfile) {
+      setAttendanceGate((prev) => (prev.open ? { open: false, mode: 'CHECK_IN' } : prev));
+      return;
+    }
+    if (!legalCheckDone || showLegalModal || showGoogleBindingModal) {
+      return;
+    }
+    if (!hasCompletedSessionCheckIn(activeProfile)) {
+      setAttendanceGate((prev) =>
+        prev.open && prev.mode === 'CHECK_OUT'
+          ? prev
+          : { open: true, mode: 'CHECK_IN' }
+      );
+    }
+  }, [isProtectedFlow, user, legalCheckDone, showLegalModal, showGoogleBindingModal]);
+
+  useEffect(() => {
+    const handleOpenAttendanceGate = (e: Event) => {
+      const detail = (e as CustomEvent<{ mode?: GateModalMode }>).detail;
+      setAttendanceGate({ open: true, mode: detail?.mode || 'BADGE_VIEW' });
+    };
+    window.addEventListener('alsulaim-open-attendance-gate', handleOpenAttendanceGate);
+    return () =>
+      window.removeEventListener('alsulaim-open-attendance-gate', handleOpenAttendanceGate);
+  }, []);
+
+  const executeImmediateLogout = async () => {
+    const activeProfile = user || authService.getCurrentUser();
     const returnPortalCode =
       loginPortalCode ||
       localStorage.getItem('ALSULAIM_TARGET_SYSTEM') ||
-      (user?.company_id && user.company_id !== 'all' ? user.company_id.toLowerCase() : null);
+      (activeProfile?.company_id && activeProfile.company_id !== 'all'
+        ? activeProfile.company_id.toLowerCase()
+        : null);
 
     try {
-      if (user?.email) {
-        sessionStorage.removeItem(`ALSULAIM_GOOGLE_PROMPT_SNOOZED_${user.email.toLowerCase()}`);
+      clearSessionCheckInStamp(activeProfile);
+      if (activeProfile?.email) {
+        sessionStorage.removeItem(
+          `ALSULAIM_GOOGLE_PROMPT_SNOOZED_${activeProfile.email.toLowerCase()}`
+        );
       }
     } catch {
       // ignore
@@ -267,6 +329,7 @@ const MainContent: React.FC = () => {
     } catch (e) {
       console.warn('Sign-out failed:', e);
     }
+    setAttendanceGate({ open: false, mode: 'CHECK_IN' });
     setShowLegalModal(false);
     setShowGoogleBindingModal(false);
     setGoogleBindingModalForced(false);
@@ -275,6 +338,15 @@ const MainContent: React.FC = () => {
     } else {
       setFlowState('login');
     }
+  };
+
+  const handleLogout = async () => {
+    const activeProfile = user || authService.getCurrentUser();
+    if (isProtectedFlow && activeProfile && !showLegalModal) {
+      setAttendanceGate({ open: true, mode: 'CHECK_OUT' });
+      return;
+    }
+    await executeImmediateLogout();
   };
 
   // SECURITY: Enforce per-department and per-company workspace boundaries on every tab navigation
@@ -470,6 +542,11 @@ const MainContent: React.FC = () => {
       case 'musaned-plan':
       case 'musaned-integration-plan':
         return <MusanedIntegrationPlanPage />;
+
+      case 'gov-integrations':
+      case 'government-hub':
+      case 'gov-integration-hub':
+        return <GovIntegrationHubPage />;
 
       case 'rent-contracts':
       case 'create-rent':
@@ -680,6 +757,20 @@ const MainContent: React.FC = () => {
       case 'salaries':
       case 'compliance-radar':
       case 'nitaqat':
+      case 'jisr-alerts-compliance':
+      case 'hr-smart-alerts':
+      case 'jisr-accruals':
+      case 'jisr-expenses':
+      case 'jisr-org-muqeem':
+      case 'jisr-talent-360':
+      case 'jisr-shifts-overtime':
+      case 'jisr-welcome-signage':
+      case 'welcome-screens':
+      case 'jisr-arrears-b2b':
+      case 'jisr-cards-rollover':
+      case 'jisr-workflows-pulse':
+      case 'reem-hr-emails':
+      case 'hr-official-emails':
       case 'hr-pro':
       case 'odoo-payroll':
       case 'bamboohr':
@@ -696,6 +787,7 @@ const MainContent: React.FC = () => {
         return <ReportsPage />;
 
       case 'profile':
+      case 'ess-self-service':
         return <EmployeeSelfServicePage />;
 
       case 'settings':
@@ -830,6 +922,25 @@ const MainContent: React.FC = () => {
     }
   };
 
+  const isPublicCareerPortal =
+    typeof window !== 'undefined' &&
+    (window.location.pathname === '/careers' ||
+      new URLSearchParams(window.location.search).get('portal') === 'careers');
+
+  if (isPublicCareerPortal) {
+    return (
+      <Suspense fallback={<PageFallback />}>
+        <PublicCareerPortalView
+          onExitToErp={() => {
+            if (typeof window !== 'undefined') {
+              window.location.assign(window.location.origin + '/');
+            }
+          }}
+        />
+      </Suspense>
+    );
+  }
+
   return (
     <>
       {flowState === 'landing' && (
@@ -943,11 +1054,71 @@ const MainContent: React.FC = () => {
           />
         </Suspense>
       )}
+      {attendanceGate.open &&
+        isProtectedFlow &&
+        !showLegalModal &&
+        !showGoogleBindingModal &&
+        (user || authService.getCurrentUser()) && (
+          <Suspense fallback={null}>
+            <BiometricCameraAttendanceGateModal
+              isOpen={attendanceGate.open}
+              mode={attendanceGate.mode}
+              user={(user || authService.getCurrentUser())!}
+              onVerified={(res: { timeHHMM: string; badgeCode: string }) => {
+                const completedMode = attendanceGate.mode;
+                setAttendanceGate({ open: false, mode: 'CHECK_IN' });
+                if (completedMode === 'CHECK_OUT') {
+                  notificationPopupEngine.success(
+                    'تم توثيق بصمة الانصراف والخروج',
+                    `تم تسجيل انصرافك الساعة ${res.timeHHMM} وإغلاق الجلسة بأمان.`
+                  );
+                  void executeImmediateLogout();
+                } else if (completedMode === 'CHECK_IN') {
+                  notificationPopupEngine.success(
+                    'تم توثيق بصمة الدخول والحضور',
+                    `تم تسجيل دخولك الساعة ${res.timeHHMM} عبر (${res.badgeCode}) وربطه بسجل الدوام.`
+                  );
+                }
+              }}
+              onCancel={
+                attendanceGate.mode === 'CHECK_OUT' || attendanceGate.mode === 'BADGE_VIEW'
+                  ? () => setAttendanceGate({ open: false, mode: 'CHECK_IN' })
+                  : undefined
+              }
+              onSwitchAccount={
+                attendanceGate.mode === 'CHECK_IN'
+                  ? () => {
+                      void executeImmediateLogout();
+                    }
+                  : undefined
+              }
+            />
+          </Suspense>
+        )}
     </>
   );
 };
 
 export const App: React.FC = () => {
+  const signageParams =
+    typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const signageScreen = signageParams?.get('signage_screen');
+  const signageCompany = signageParams?.get('company') || undefined;
+
+  if (signageScreen) {
+    return (
+      <LanguageProvider>
+        <Suspense fallback={<PageFallback />}>
+          <CorporateDigitalSignagePlayer
+            screenId={signageScreen}
+            companyCode={signageCompany}
+            standaloneMode
+          />
+        </Suspense>
+      </LanguageProvider>
+    );
+  }
+
   return (
     <LanguageProvider>
       <AuthProvider>

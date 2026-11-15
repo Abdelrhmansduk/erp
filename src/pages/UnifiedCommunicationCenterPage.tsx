@@ -459,7 +459,7 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
 
       {/* TAB 3: LETTERHEAD PREVIEW */}
       {activeTab === 'letterhead-preview' && selectedMemo && (
-        <div className="bg-white rounded-3xl border border-zinc-200 p-8 max-w-3xl mx-auto shadow-sm">
+        <div data-printable-modal="true" className="erp-printable-sheet bg-white rounded-3xl border border-zinc-200 p-8 max-w-3xl mx-auto shadow-sm">
           {/* Header of Letter */}
           <div className="flex justify-between items-center border-b-2 border-[#141414] pb-4 mb-6">
             <div>
@@ -512,7 +512,7 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
           </div>
 
           {/* Print/Download Bar */}
-          <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-zinc-100">
+          <div className="no-print print:hidden flex justify-end gap-2 mt-6 pt-4 border-t border-zinc-100">
             <button
               className="button-outline-on-light"
               onClick={() => window.print()}

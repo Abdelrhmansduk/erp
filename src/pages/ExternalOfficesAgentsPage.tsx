@@ -615,8 +615,8 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
 
       {/* MODAL 1: Add Office */}
       {showAddOfficeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-zinc-200 font-sans">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddOfficeModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-3 mb-4 border-b border-zinc-100">
               <h3 className="text-sm font-bold text-[#141414] m-0">تسجيل وكالة / مكتب خارجي معتمد</h3>
               <button onClick={() => setShowAddOfficeModal(false)} className="text-[#707070] hover:text-[#141414]">
@@ -735,8 +735,8 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
 
       {/* MODAL 2: Add User */}
       {showAddUserModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-zinc-200 font-sans">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddUserModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-3 mb-4 border-b border-zinc-100">
               <h3 className="text-sm font-bold text-[#141414] m-0">إضافة مستخدم وكيل خارجي</h3>
               <button onClick={() => setShowAddUserModal(false)} className="text-[#707070] hover:text-[#141414]">
@@ -813,8 +813,8 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
 
       {/* MODAL 3: Add File */}
       {showAddFileModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-zinc-200 font-sans">
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddFileModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-3 mb-4 border-b border-zinc-100">
               <h3 className="text-sm font-bold text-[#141414] m-0">رفع وثيقة أو ترخيص معتمد للمكتب</h3>
               <button onClick={() => setShowAddFileModal(false)} className="text-[#707070] hover:text-[#141414]">

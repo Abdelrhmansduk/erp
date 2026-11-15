@@ -1,5 +1,6 @@
 import i18n from '../i18n/config';
 import React, { useState, useEffect, useMemo } from 'react';
+import { useModalEscape } from '../hooks/useModalEscape';
 import { useAppStore } from '../stores/appStore';
 import { exportData } from '../services/exportService';
 import { realErpDataStore } from '../services/realErpDataStore';
@@ -211,6 +212,7 @@ const INITIAL_SALES_REPS: SmaccSalesRep[] = [
 ];
 
 export const SmaccModulesPage: React.FC = () => {
+  useModalEscape();
   const { activeTab: storeActiveTab, addNotification } = useAppStore();
   const [activeModuleTab, setActiveModuleTab] = useState<'fixed-assets' | 'inventory' | 'sales-collectors' | 'external-links' | 'ecommerce-stores'>(() =>
     storeActiveTab === 'sales-collectors' ? 'sales-collectors' : 'ecommerce-stores'
@@ -643,7 +645,7 @@ export const SmaccModulesPage: React.FC = () => {
               onClick={() => {
                 if (activeModuleTab === 'ecommerce-stores') exportData('smacc_ecommerce_orders', storeOrders, 'excel');
                 else if (activeModuleTab === 'fixed-assets') exportData('smacc_fixed_assets', fixedAssets, 'excel');
-                else if (activeModuleTab === 'inventory') exportData('inventory', inventoryItems, 'excel');
+                else if (activeModuleTab === 'inventory') exportData('inventory_assets', inventoryItems, 'excel');
                 else exportData('smacc_sales_reps', salesReps, 'excel');
               }}
               className="button-white-pill"
@@ -946,7 +948,7 @@ export const SmaccModulesPage: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  exportData('inventory', inventoryItems, 'excel');
+                  exportData('inventory_assets', inventoryItems, 'excel');
                   addNotification({
                     title: 'تصدير الجرد',
                     message: 'تم تصدير تقرير جرد المخزون والأصناف بنجاح إلى ملف Excel.',
@@ -1222,8 +1224,8 @@ export const SmaccModulesPage: React.FC = () => {
 
       {/* MODAL 1: Add Asset */}
       {showAssetModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-zinc-200">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAssetModal(false); }}>
+          <div className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-3 mb-4 border-b border-zinc-100">
               <h3 className="text-sm font-bold text-[#141414] m-0">إضافة أصل ثابت جديد</h3>
               <button onClick={() => setShowAssetModal(false)} className="text-[#707070] hover:text-[#141414]">
@@ -1289,8 +1291,8 @@ export const SmaccModulesPage: React.FC = () => {
 
       {/* MODAL 2: Add Inventory Item */}
       {showItemModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-zinc-200">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowItemModal(false); }}>
+          <div className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-3 mb-4 border-b border-zinc-100">
               <h3 className="text-sm font-bold text-[#141414] m-0">إضافة صنف مخزني جديد</h3>
               <button onClick={() => setShowItemModal(false)} className="text-[#707070] hover:text-[#141414]">
@@ -1376,8 +1378,8 @@ export const SmaccModulesPage: React.FC = () => {
 
       {/* MODAL 3: Add Sales Rep */}
       {showRepModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-zinc-200">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowRepModal(false); }}>
+          <div className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-3 mb-4 border-b border-zinc-100">
               <h3 className="text-sm font-bold text-[#141414] m-0">إضافة ممثل مبيعات / محصل</h3>
               <button onClick={() => setShowRepModal(false)} className="text-[#707070] hover:text-[#141414]">
@@ -1443,8 +1445,8 @@ export const SmaccModulesPage: React.FC = () => {
 
       {/* MODAL 4: Record Collection */}
       {showCollectionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-zinc-200">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowCollectionModal(false); }}>
+          <div className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-3 mb-4 border-b border-zinc-100">
               <h3 className="text-sm font-bold text-[#141414] m-0 flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-[#141414]" />

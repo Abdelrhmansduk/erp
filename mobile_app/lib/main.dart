@@ -3309,7 +3309,7 @@ class _ErpMasterFlowHostState extends State<ErpMasterFlowHost> with WidgetsBindi
                           SwitchListTile(
                             dense: true,
                             contentPadding: EdgeInsets.zero,
-                            title: const Text('محاكاة انقطاع الإنترنت (Offline Queue Mode)', style: TextStyle(fontSize: 11.5, color: Colors.white)),
+                            title: const Text('تفعيل وضع العمل دون اتصال والطابور المحلي (Offline Queue Mode)', style: TextStyle(fontSize: 11.5, color: Colors.white)),
                             value: _simulatedOfflineMode,
                             activeThumbColor: ErpTokens.statusWarning,
                             onChanged: (v) {
