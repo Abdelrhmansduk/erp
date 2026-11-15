@@ -613,34 +613,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
           <div className="lg:col-span-5 flex flex-col items-center lg:items-end w-full">
             <div className="w-full max-w-[420px] erp-hero-reveal-3">
               <div className="bg-white rounded-[28px] border border-[#e0e0e0] p-6 sm:p-8 space-y-5 text-right transition-colors hover:border-[#141414]">
-                {/* Top Mode Switcher Pill */}
-                <div className="grid grid-cols-2 p-1 rounded-full bg-[#f3f3f3] border border-[#f3f3f3]">
-                  <button
-                    type="button"
-                    onClick={() => setPortalMode('staff')}
-                    className={`py-2 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                      portalMode === 'staff'
-                        ? 'bg-white text-[#141414] '
-                        : 'text-[#707070] hover:text-[#141414]'
-                    }`}
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>حساب موظف</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSelect('gateway', 'gateway')}
-                    className={`py-2 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                      portalMode === 'companies'
-                        ? 'bg-white text-[#141414] '
-                        : 'text-[#707070] hover:text-[#141414]'
-                    }`}
-                  >
-                    <Building2 className="w-3.5 h-3.5" />
-                    <span>مركز الشركات</span>
-                  </button>
-                </div>
-
                 {/* Centered Welcome Title + Synced Google / Employee Avatar */}
                 <div
                   key={detectedRouting.account?.email || identifier || 'default'}
@@ -712,38 +684,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                         ? `متصل بحساب Google: ${syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.displayName || ''}`
                         : `جلب ومزامنة حساب Google (${syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.displayName || ''})`}
                     </span>
-                  </button>
-                </div>
-
-                {/* Secondary Sub-tab Pill (تسجيل الدخول / تفعيل حساب) */}
-                <div className="grid grid-cols-2 p-1 rounded-full bg-[#f3f3f3]">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAuthTab('login');
-                      setErrorMsg(null);
-                    }}
-                    className={`py-2 px-3 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                      authTab === 'login'
-                        ? 'bg-white text-[#141414] '
-                        : 'text-[#707070] hover:text-[#141414]'
-                    }`}
-                  >
-                    تسجيل الدخول
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAuthTab('activate');
-                      setErrorMsg(null);
-                    }}
-                    className={`py-2 px-3 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                      authTab === 'activate'
-                        ? 'bg-white text-[#141414] '
-                        : 'text-[#707070] hover:text-[#141414]'
-                    }`}
-                  >
-                    تفعيل حساب
                   </button>
                 </div>
 
@@ -846,286 +786,78 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                   </div>
                 )}
 
-                {/* Email & Password Form OR Account Activation Form */}
-                {authTab === 'login' ? (
-                  <form onSubmit={handleLoginSubmit} className="space-y-3.5">
-                    <div>
-                      <label className="block text-xs font-bold text-[#141414] mb-1.5">
-                        البريد الإلكتروني
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={identifier}
-                          onChange={(e) => setIdentifier(e.target.value)}
-                          placeholder="your@email.com"
-                          dir="ltr"
-                          className="w-full pl-4 pr-10 py-3 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-medium text-[#141414] placeholder:text-[#707070] outline-none transition-all text-left"
-                        />
-                        <Mail className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      </div>
+                {/* Email & Password Form */}
+                <form onSubmit={handleLoginSubmit} className="space-y-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-[#141414] mb-1.5">
+                      البريد الإلكتروني
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
+                        placeholder="your@email.com"
+                        dir="ltr"
+                        className="w-full pl-4 pr-10 py-3 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-medium text-[#141414] placeholder:text-[#707070] outline-none transition-all text-left"
+                      />
+                      <Mail className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
+                  </div>
 
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-xs font-bold text-[#141414]">كلمة المرور</label>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (!DEMO_AUTH_ENABLED) {
-                              setFlowState('login');
-                              return;
-                            }
-                            setIdentifier('a.salif.dev@kas.sa');
-                            setPassword(DEMO_QUICK_LOGIN_SECRET);
-                          }}
-                          className="text-[11px] font-bold text-[#707070] hover:text-[#141414] transition-colors cursor-pointer"
-                        >
-                          نسيت كلمة المرور؟
-                        </button>
-                      </div>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="••••••••"
-                          dir="ltr"
-                          className="w-full pl-10 pr-10 py-3 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-medium text-[#141414] placeholder:text-[#707070] outline-none transition-all text-left"
-                        />
-                        <Lock className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#707070] hover:text-[#141414] cursor-pointer"
-                        >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full py-3.5 px-6 rounded-full bg-[#141414] hover:bg-[#262626] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all  cursor-pointer disabled:opacity-60 mt-1"
-                    >
-                      {loading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>جاري الدخول...</span>
-                        </>
-                      ) : (
-                        <span>تسجيل الدخول</span>
-                      )}
-                    </button>
-                  </form>
-                ) : (
-                  <form onSubmit={handleActivateSubmit} className="space-y-3">
-                    <div className="p-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-between gap-2">
-                      <span className="text-[11px] font-bold text-[#141414]">
-                        مزامنة سريعة من حساب Google:
-                      </span>
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-bold text-[#141414]">كلمة المرور</label>
                       <button
                         type="button"
                         onClick={() => {
-                          const gAcc = VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0];
-                          if (!gAcc) {
-                            setErrorMsg('لا يوجد حساب Google مربوط ضمن قائمة الموظفين المعتمدة (@kas.sa).');
+                          if (!DEMO_AUTH_ENABLED) {
+                            setFlowState('login');
                             return;
                           }
-                          setActFullName(gAcc.fullNameAr);
-                          setActEmail(gAcc.email);
-                          setActPhone(gAcc.phone || '0543389314');
-                          setActCompanyId(gAcc.companyId);
-                          setActDepartmentId(gAcc.departmentId);
-                          setActAvatarUrl(gAcc.photoURL);
-                          setIdentifier(gAcc.email);
-                          setSuccessMsg(`تم جلب بيانات وصورة ${gAcc.displayName} من Google.`);
+                          setIdentifier('a.salif.dev@kas.sa');
+                          setPassword(DEMO_QUICK_LOGIN_SECRET);
                         }}
-                        className="px-2.5 py-1 rounded-full bg-[#141414] text-white text-[10px] font-bold cursor-pointer"
+                        className="text-[11px] font-bold text-[#707070] hover:text-[#141414] transition-colors cursor-pointer"
                       >
-                        جلب بيانات وصورة Google
+                        نسيت كلمة المرور؟
                       </button>
                     </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-[#141414] mb-1">
-                        الاسم الكامل للموظف *
-                      </label>
+                    <div className="relative">
                       <input
-                        type="text"
-                        value={actFullName}
-                        onChange={(e) => setActFullName(e.target.value)}
-                        placeholder="م. عبدالرحمن أبوسليف"
-                        className="w-full px-3.5 py-2.5 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-medium text-[#141414] outline-none"
-                        required
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        dir="ltr"
+                        className="w-full pl-10 pr-10 py-3 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-medium text-[#141414] placeholder:text-[#707070] outline-none transition-all text-left"
                       />
+                      <Lock className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#707070] hover:text-[#141414] cursor-pointer"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
                     </div>
+                  </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      <div>
-                        <label className="block text-xs font-bold text-[#141414] mb-1">
-                          البريد الإلكتروني *
-                        </label>
-                        <input
-                          type="email"
-                          dir="ltr"
-                          value={actEmail}
-                          onChange={(e) => setActEmail(e.target.value)}
-                          placeholder="name.suffix@kas.sa"
-                          className="w-full px-3 py-2.5 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-mono text-[#141414] outline-none text-left"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-[#141414] mb-1">
-                          رقم الجوال
-                        </label>
-                        <input
-                          type="tel"
-                          dir="ltr"
-                          value={actPhone}
-                          onChange={(e) => setActPhone(e.target.value)}
-                          placeholder="0543389314"
-                          className="w-full px-3 py-2.5 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-mono text-[#141414] outline-none text-left"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      <div>
-                        <label className="block text-xs font-bold text-[#141414] mb-1">
-                          الشركة
-                        </label>
-                        <select
-                          value={actCompanyId}
-                          onChange={(e) => setActCompanyId(e.target.value as any)}
-                          className="w-full px-3 py-2.5 rounded-2xl bg-[#f3f3f3] text-xs font-bold text-[#141414] outline-none"
-                        >
-                          <option value="all">الإدارة المركزية للمجموعة (ALL)</option>
-                          <option value="SAF">السفير الماسي للاستقدام (SAF)</option>
-                          <option value="YAQ">الياقوت للتشغيل والتأجير (YAQ)</option>
-                          <option value="TOP">توب تالنت للتوظيف (TOP)</option>
-                          <option value="KAS">كاس للمنافسات (KAS)</option>
-                          <option value="DAR">دار الرواد للإيواء (DAR)</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-[#141414] mb-1">
-                          القسم المختص
-                        </label>
-                        <select
-                          value={actDepartmentId}
-                          onChange={(e) => setActDepartmentId(e.target.value as DepartmentId)}
-                          className="w-full px-3 py-2.5 rounded-2xl bg-[#f3f3f3] text-xs font-bold text-[#141414] outline-none"
-                        >
-                          <option value="executive">الإدارة التنفيذية العليا</option>
-                          <option value="finance">المالية والمحاسبة (ERP)</option>
-                          <option value="recruitment">الاستقدام ومساند</option>
-                          <option value="rental">التأجير والتشغيل</option>
-                          <option value="ats">التوظيف والسير الذاتية</option>
-                          <option value="hr">الموارد البشرية والرواتب</option>
-                          <option value="crm">خدمة العملاء (CRM)</option>
-                          <option value="tenders">المنافسات واعتماد</option>
-                          <option value="shelter">الإيواء والتسكين</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Age / Guardian Consent & Cross-Border Consent (Egypt PDPL Art. 1 & 12 / Oman PDPL Art. 23 & Reg Art. 37) */}
-                    <div className="p-3 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2 text-right">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-[11px] font-bold text-[#141414] mb-1">
-                            دولة الإقامة *
-                          </label>
-                          <select
-                            value={actCountryCode}
-                            onChange={(e) => setActCountryCode(e.target.value)}
-                            className="w-full px-2.5 py-2 rounded-xl bg-white text-[11px] font-bold text-[#141414] outline-none"
-                          >
-                            {SERVED_COUNTRIES_MANIFEST.map((c) => (
-                              <option key={c.code} value={c.code}>
-                                {c.nameAr} ({c.code})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-bold text-[#141414] mb-1">
-                            الأهلية العمرية (Egypt Art. 1 & 12) *
-                          </label>
-                          <select
-                            value={actAgeStatus}
-                            onChange={(e) =>
-                              setActAgeStatus(
-                                e.target.value as 'legal_adult_in_country' | 'minor_with_guardian_consent'
-                              )
-                            }
-                            className="w-full px-2.5 py-2 rounded-xl bg-white text-[11px] font-bold text-[#141414] outline-none"
-                          >
-                            <option value="legal_adult_in_country">بالغ قانونياً في دولة الإقامة</option>
-                            <option value="minor_with_guardian_consent">قاصر (يتطلب موافقة ولي الأمر)</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {actAgeStatus === 'minor_with_guardian_consent' && (
-                        <div className="p-2.5 rounded-xl bg-white border border-[#141414] space-y-2">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <input
-                              type="text"
-                              value={actGuardianName}
-                              onChange={(e) => setActGuardianName(e.target.value)}
-                              placeholder="اسم ولي الأمر القانوني *"
-                              className="w-full px-2.5 py-1.5 rounded-lg bg-[#f3f3f3] text-[11px] text-[#141414]"
-                              required
-                            />
-                            <input
-                              type="text"
-                              dir="ltr"
-                              value={actGuardianContact}
-                              onChange={(e) => setActGuardianContact(e.target.value)}
-                              placeholder="بريد أو جوال ولي الأمر *"
-                              className="w-full px-2.5 py-1.5 rounded-lg bg-[#f3f3f3] text-[11px] font-mono text-[#141414]"
-                              required
-                            />
-                          </div>
-                          <label className="flex items-start gap-1.5 text-[10.5px] font-bold text-[#141414] cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={actGuardianConsentAccepted}
-                              onChange={(e) => setActGuardianConsentAccepted(e.target.checked)}
-                              className="mt-0.5 accent-[#141414]"
-                            />
-                            <span>أقرّ بصفتي ولي الأمر القانوني بالموافقة الصريحة وتوثيقها في السجل.</span>
-                          </label>
-                        </div>
-                      )}
-
-                      <label className="flex items-start gap-1.5 text-[10.5px] text-[#141414] cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={actCrossBorderConsent}
-                          onChange={(e) => setActCrossBorderConsent(e.target.checked)}
-                          className="mt-0.5 accent-[#141414]"
-                        />
-                        <span>
-                          أوافق صراحةً على نقل ومعالجة البيانات عبر الحدود (Oman PDPL Art. 23 & Reg Art. 37 / Egypt Art. 14) في السحابة المعتمدة مع تقنيع كافة المدخلات النصية افتراضياً (Saudi PDPL Art. 11).
-                        </span>
-                      </label>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full py-3.5 px-6 rounded-full bg-[#141414] hover:bg-[#262626] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all  cursor-pointer disabled:opacity-60 mt-1"
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>تفعيل الحساب والدخول الفوري</span>
-                    </button>
-                  </form>
-                )}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3.5 px-6 rounded-full bg-[#141414] hover:bg-[#262626] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all  cursor-pointer disabled:opacity-60 mt-1"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>جاري الدخول...</span>
+                      </>
+                    ) : (
+                      <span>تسجيل الدخول</span>
+                    )}
+                  </button>
+                </form>
               </div>
             </div>
           </div>
