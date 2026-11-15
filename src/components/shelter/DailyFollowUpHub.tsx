@@ -132,7 +132,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
   return (
     <div className="space-y-4 text-[#141414] font-sans" dir="rtl">
       {/* Top Header Card - Dark Executive */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#ffffff] p-5 rounded-2xl border border-[#e0e0e0] shadow-md">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#ffffff] p-5 rounded-2xl border border-[#e0e0e0] ">
         <div>
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] flex items-center justify-center font-bold">
@@ -154,8 +154,8 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
             onClick={() => setFilterAlert('red')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
               filterAlert === 'red'
-                ? 'bg-[#141414] text-[#ffffff] shadow-md  font-bold'
-                : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#eaeaea]'
+                ? 'bg-[#141414] text-[#ffffff]   font-bold'
+                : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#f3f3f3]'
             }`}
           >
             <span className="w-2 h-2 rounded-full bg-[#141414]" />
@@ -167,8 +167,8 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
             onClick={() => setFilterAlert('yellow')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
               filterAlert === 'yellow'
-                ? 'bg-[#141414] text-[#ffffff] shadow-md  font-bold'
-                : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#eaeaea]'
+                ? 'bg-[#141414] text-[#ffffff]   font-bold'
+                : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#f3f3f3]'
             }`}
           >
             <span className="w-2 h-2 rounded-full bg-[#141414]" />
@@ -180,8 +180,8 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
             onClick={() => setFilterAlert('green')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
               filterAlert === 'green'
-                ? 'bg-[#141414] text-[#ffffff] shadow-md font-bold'
-                : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#eaeaea]'
+                ? 'bg-[#141414] text-[#ffffff]  font-bold'
+                : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#f3f3f3]'
             }`}
           >
             <span className="w-2 h-2 rounded-full bg-[#141414]" />
@@ -201,7 +201,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#ffffff] p-3 rounded-2xl border border-[#e0e0e0] shadow-md">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#ffffff] p-3 rounded-2xl border border-[#e0e0e0] ">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -209,7 +209,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="بحث باسم العاملة، العميل، الجوال، كود العملية..."
-            className="w-full pr-10 pl-4 py-2 text-xs rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] outline-none focus:border-[#141414] text-[#141414] placeholder-zinc-500"
+            className="w-full pr-10 pl-4 py-2 text-xs rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] outline-none focus:border-[#141414] text-[#141414] placeholder-[#141414]"
           />
         </div>
 
@@ -231,7 +231,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
       </div>
 
       {/* Table of Active Cases */}
-      <div className="bg-[#ffffff] rounded-2xl border border-[#e0e0e0] shadow-md overflow-hidden">
+      <div className="bg-[#ffffff] rounded-2xl border border-[#e0e0e0]  overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-right border-collapse">
             <thead>
@@ -383,7 +383,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
                               setSelectedTransfer(transfer);
                               setShowContactModal(true);
                             }}
-                            className="w-full px-3 py-1.5 rounded-xl bg-[#f3f3f3] hover:bg-[#eaeaea] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                            className="w-full px-3 py-1.5 rounded-xl bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
                           >
                             <Phone className="w-3.5 h-3.5 text-[#141414]" />
                             <span>تسجيل متابعة</span>
@@ -396,7 +396,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
                               setSelectedTransfer(transfer);
                               setShowApprovalModal(true);
                             }}
-                            className="w-full px-3 py-1.5 rounded-xl bg-[#f3f3f3] hover:bg-[#eaeaea] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                            className="w-full px-3 py-1.5 rounded-xl bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
                           >
                             <CheckCircle2 className="w-3.5 h-3.5 text-[#141414]" />
                             <span>موافقة النقل</span>
@@ -409,7 +409,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
                               setSelectedTransfer(transfer);
                               setShowReturnModal(true);
                             }}
-                            className="w-full px-3 py-1 rounded-xl text-[#707070] hover:text-[#141414] hover:bg-[#eaeaea] text-[10.5px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer"
+                            className="w-full px-3 py-1 rounded-xl text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3] text-[10.5px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer"
                           >
                             <RotateCcw className="w-3 h-3 text-[#141414]" />
                             <span>إرجاع وتسوية</span>
@@ -430,7 +430,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
       {/* ========================================================================= */}
       {showContactModal && selectedTransfer && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#ffffff] text-[#141414] rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#e0e0e0] space-y-4 animate-in fade-in zoom-in-95">
+          <div className="bg-[#ffffff] text-[#141414] rounded-2xl max-w-lg w-full p-6  border border-[#e0e0e0] space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
               <div>
                 <h4 className="text-base font-bold text-[#141414] m-0">
@@ -443,7 +443,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
               <button
                 type="button"
                 onClick={() => setShowContactModal(false)}
-                className="w-8 h-8 rounded-full bg-[#f3f3f3] text-[#707070] hover:text-[#141414] hover:bg-[#e5e5e5] flex items-center justify-center cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] text-[#707070] hover:text-[#141414] hover:bg-[#e0e0e0] flex items-center justify-center cursor-pointer"
                 aria-label="إغلاق"
               >
                 ✕
@@ -473,7 +473,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
                   value={contactFeedback}
                   onChange={e => setContactFeedback(e.target.value)}
                   placeholder="سجل ما ذكره العميل خلال المكالمة بدقة..."
-                  className="w-full p-2.5 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-[#141414] outline-none focus:border-[#141414] placeholder-zinc-500"
+                  className="w-full p-2.5 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-[#141414] outline-none focus:border-[#141414] placeholder-[#141414]"
                   required
                 />
               </div>
@@ -485,7 +485,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
                   value={requiredActionToday}
                   onChange={e => setRequiredActionToday(e.target.value)}
                   placeholder="مثال: متابعة حسم القرار قبل الغد، أو توفير رقم الحساب..."
-                  className="w-full p-2.5 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-[#141414] outline-none focus:border-[#141414] placeholder-zinc-500"
+                  className="w-full p-2.5 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-[#141414] outline-none focus:border-[#141414] placeholder-[#141414]"
                   required
                 />
               </div>
@@ -521,7 +521,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] font-bold shadow-md cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] font-bold  cursor-pointer"
                 >
                   حفظ نتيجة المتابعة
                 </button>
@@ -536,7 +536,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
       {/* ========================================================================= */}
       {showApprovalModal && selectedTransfer && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#ffffff] text-[#141414] rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#e0e0e0] space-y-4 animate-in fade-in zoom-in-95">
+          <div className="bg-[#ffffff] text-[#141414] rounded-2xl max-w-md w-full p-6  border border-[#e0e0e0] space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
               <div>
                 <h4 className="text-base font-bold text-[#141414] m-0">
@@ -549,7 +549,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
               <button
                 type="button"
                 onClick={() => setShowApprovalModal(false)}
-                className="w-8 h-8 rounded-full bg-[#f3f3f3] text-[#707070] hover:text-[#141414] hover:bg-[#e5e5e5] flex items-center justify-center cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] text-[#707070] hover:text-[#141414] hover:bg-[#e0e0e0] flex items-center justify-center cursor-pointer"
                 aria-label="إغلاق"
               >
                 ✕
@@ -597,7 +597,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] font-bold shadow-md flex items-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] font-bold  flex items-center gap-1.5 cursor-pointer"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>تأكيد اعتماد النقل</span>
@@ -613,7 +613,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
       {/* ========================================================================= */}
       {showReturnModal && selectedTransfer && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#ffffff] text-[#141414] rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#e0e0e0] space-y-4 animate-in fade-in zoom-in-95">
+          <div className="bg-[#ffffff] text-[#141414] rounded-2xl max-w-lg w-full p-6  border border-[#e0e0e0] space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
               <div>
                 <h4 className="text-base font-bold text-[#141414] m-0">
@@ -626,7 +626,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
               <button
                 type="button"
                 onClick={() => setShowReturnModal(false)}
-                className="w-8 h-8 rounded-full bg-[#f3f3f3] text-[#707070] hover:text-[#141414] hover:bg-[#e5e5e5] flex items-center justify-center cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] text-[#707070] hover:text-[#141414] hover:bg-[#e0e0e0] flex items-center justify-center cursor-pointer"
                 aria-label="إغلاق"
               >
                 ✕
@@ -718,7 +718,7 @@ export const DailyFollowUpHub: React.FC<DailyFollowUpHubProps> = ({ onRefresh, o
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] font-bold shadow-md flex items-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] font-bold  flex items-center gap-1.5 cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
                   <span>تأكيد الإرجاع للسكن</span>

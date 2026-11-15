@@ -17,10 +17,10 @@ import { maskNationalId } from '../../utils/pdplMasking';
 import { useAppStore } from '../../stores/appStore';
 import { shareHrOfficialEmailEml } from '../../services/quickShareService';
 import {
-  calculateJisrFinalSettlement,
+  calculateHrFinalSettlement,
   mapSeparationReasonLabelToType,
-  type JisrFinalSettlementResult,
-} from '../../services/jisrAdvancedComplianceEngine';
+  type HrFinalSettlementResult,
+} from '../../services/hrAdvancedComplianceEngine';
 import { journalEngine } from '../../services/accounting/journalEngine';
 
 export interface CorporateCandidateRecord {
@@ -89,7 +89,7 @@ interface StoredErpRow {
   [key: string]: any;
 }
 
-interface JisrTalent360OffboardingHubProps {
+interface HrTalent360OffboardingHubProps {
   employees: Array<{
     id: string;
     employee_code: string;
@@ -112,7 +112,7 @@ interface JisrTalent360OffboardingHubProps {
   onCandidateHired?: (newEmp: any) => void;
 }
 
-export const JisrTalent360OffboardingHub: React.FC<JisrTalent360OffboardingHubProps> = ({
+export const HrTalent360OffboardingHub: React.FC<HrTalent360OffboardingHubProps> = ({
   employees,
   companyCode,
   companyName,
@@ -411,7 +411,7 @@ export const JisrTalent360OffboardingHub: React.FC<JisrTalent360OffboardingHubPr
 
   const computeClearanceSettlement = (
     clr: OffboardingClearanceRecord
-  ): JisrFinalSettlementResult => {
+  ): HrFinalSettlementResult => {
     const emp = employees.find(
       (e) => e.id === clr.employee_id || e.name === clr.employee_name
     );
@@ -441,7 +441,7 @@ export const JisrTalent360OffboardingHub: React.FC<JisrTalent360OffboardingHubPr
       )
       .reduce((s, w) => s + Number(w.amount || 0), 0);
 
-    return calculateJisrFinalSettlement({
+    return calculateHrFinalSettlement({
       hireDate: emp?.hire_date || '2023-01-15',
       lastWorkingDay: clr.last_working_day,
       basicSalary: basic,
@@ -459,7 +459,7 @@ export const JisrTalent360OffboardingHub: React.FC<JisrTalent360OffboardingHubPr
 
   const handleApproveAndPostSettlement = async (
     clr: OffboardingClearanceRecord,
-    settlement: JisrFinalSettlementResult
+    settlement: HrFinalSettlementResult
   ) => {
     if (!clr.all_gates_cleared) {
       addNotification({

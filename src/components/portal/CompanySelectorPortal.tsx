@@ -34,7 +34,7 @@ export const CompanySelectorPortal: React.FC<CompanySelectorPortalProps> = ({ on
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
         }}
       >
@@ -92,7 +92,7 @@ export const CompanySelectorPortal: React.FC<CompanySelectorPortalProps> = ({ on
       {kasCompany && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <h2 className="text-sm font-bold text-[#141414] flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#141414] animate-pulse"></span>
               <span>قطاع التجارة والمقاولات والمنافسات الحكومية (Featured Entity):</span>
             </h2>
@@ -107,7 +107,7 @@ export const CompanySelectorPortal: React.FC<CompanySelectorPortalProps> = ({ on
               background: '#141414',
               borderRadius: '16px',
               padding: '28px',
-              color: '#FFFFFF',
+              color: '#ffffff',
               boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
               border: '1px solid rgba(16, 185, 129, 0.3)',
             }}
@@ -143,7 +143,7 @@ export const CompanySelectorPortal: React.FC<CompanySelectorPortalProps> = ({ on
                 {/* Live Stats 4-Grid matching Signature Tokens */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
                   <div className="card-pricing" style={{ padding: '14px 18px', borderRadius: '12px', background: '#ffffff', color: '#141414' }}>
-                    <span style={{ fontSize: '11.5px', color: '#71717a', fontWeight: 550 }}>المنافسات الحكومية</span>
+                    <span style={{ fontSize: '11.5px', color: '#707070', fontWeight: 550 }}>المنافسات الحكومية</span>
                     <span className="display-sm block mt-1" style={{ fontSize: '22px', fontWeight: 330, color: '#141414' }}>2,651 منافسة</span>
                     <span className="pill-tag-shade" style={{ fontSize: '10px', marginTop: '4px' }}>مسجلة بشيت كاس</span>
                   </div>
@@ -153,12 +153,12 @@ export const CompanySelectorPortal: React.FC<CompanySelectorPortalProps> = ({ on
                     <span className="pill-tag-mint" style={{ fontSize: '10px', marginTop: '4px' }}>فواتير ZATCA</span>
                   </div>
                   <div className="card-pricing-featured" style={{ padding: '14px 18px', borderRadius: '12px', background: '#141414', color: '#ffffff', border: '1px solid rgba(255,255,255,0.15)' }}>
-                    <span style={{ fontSize: '11.5px', color: '#a1a1aa', fontWeight: 550 }}>فريق العمل</span>
+                    <span style={{ fontSize: '11.5px', color: '#adadad', fontWeight: 550 }}>فريق العمل</span>
                     <span className="display-sm block mt-1" style={{ fontSize: '22px', fontWeight: 330, color: '#ffffff' }}>4 أعضاء</span>
                     <span className="pill-tag-mint" style={{ fontSize: '10px', marginTop: '4px' }}>طاقم إدارة المنافسات</span>
                   </div>
                   <div className="card-pricing" style={{ padding: '14px 18px', borderRadius: '12px', background: '#ffffff', color: '#141414' }}>
-                    <span style={{ fontSize: '11.5px', color: '#71717a', fontWeight: 550 }}>الرقم الضريبي</span>
+                    <span style={{ fontSize: '11.5px', color: '#707070', fontWeight: 550 }}>الرقم الضريبي</span>
                     <span className="block mt-1 font-mono font-bold text-xs" style={{ color: '#141414' }}>310245879600003</span>
                     <span className="pill-tag-shade" style={{ fontSize: '10px', marginTop: '4px' }}>هيئة الزكاة والضريبة</span>
                   </div>
@@ -199,8 +199,8 @@ export const CompanySelectorPortal: React.FC<CompanySelectorPortalProps> = ({ on
       {/* 3. RECRUITMENT & OPERATING ENTITIES GRID */}
       {/* ========================================================================= */}
       <div className="space-y-4">
-        <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-          <Building2 className="w-4 h-4 text-slate-600" />
+        <h2 className="text-sm font-bold text-[#141414] flex items-center gap-2">
+          <Building2 className="w-4 h-4 text-[#707070]" />
           <span>شركات الاستقدام والكيانات التشغيلية المعتمدة (Recruitment Entities):</span>
         </h2>
 
@@ -220,7 +220,7 @@ export const CompanySelectorPortal: React.FC<CompanySelectorPortalProps> = ({ on
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   gap: '20px',
-                  border: isCurrent ? '2px solid #141414' : '1px solid #e4e4e7',
+                  border: isCurrent ? '2px solid #141414' : '1px solid #e0e0e0',
                   boxShadow: isCurrent ? '0 10px 25px rgba(0,0,0,0.1)' : undefined,
                   transition: 'all 0.2s ease',
                 }}
@@ -229,7 +229,7 @@ export const CompanySelectorPortal: React.FC<CompanySelectorPortalProps> = ({ on
                   {/* Card Header */}
                   <div className="flex items-start justify-between gap-3 mb-4">
                     <div className="flex items-center gap-3">
-                      <div style={{ width: '48px', height: '48px', borderRadius: '9999px', background: '#f4f4f5', border: '1px solid #e4e4e7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '9999px', background: '#f3f3f3', border: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <CompanyLogo companyId={comp.id as CompanyId} size={36} />
                       </div>
                       <span className="pill-tag-shade" style={{ fontSize: '11px', fontWeight: 700, background: '#141414', color: '#ffffff' }}>
@@ -237,7 +237,7 @@ export const CompanySelectorPortal: React.FC<CompanySelectorPortalProps> = ({ on
                       </span>
                     </div>
 
-                    <span className="pill-tag-shade" style={{ fontSize: '10px', background: '#f4f4f5', color: '#71717a' }}>
+                    <span className="pill-tag-shade" style={{ fontSize: '10px', background: '#f3f3f3', color: '#707070' }}>
                       CR: {comp.crNumber}
                     </span>
                   </div>
@@ -251,7 +251,7 @@ export const CompanySelectorPortal: React.FC<CompanySelectorPortalProps> = ({ on
                   </div>
 
                   {/* Metrics Grid */}
-                  <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-zinc-50 border border-zinc-200 mt-4 text-xs">
+                  <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] mt-4 text-xs">
                     <div>
                       <span className="text-[11px] text-[#707070] block font-medium">الفروع النشطة</span>
                       <span className="text-sm font-bold text-[#141414] block mt-0.5">{comp.branchesCount} فروع</span>
@@ -262,11 +262,11 @@ export const CompanySelectorPortal: React.FC<CompanySelectorPortalProps> = ({ on
                     </div>
                     <div>
                       <span className="text-[11px] text-[#707070] block font-medium">الطلبات السارية</span>
-                      <span className="text-sm font-bold text-zinc-900 block mt-0.5">{comp.activeOrdersCount} طلب</span>
+                      <span className="text-sm font-bold text-[#141414] block mt-0.5">{comp.activeOrdersCount} طلب</span>
                     </div>
                     <div>
                       <span className="text-[11px] text-[#707070] block font-medium">الرقم الضريبي</span>
-                      <span className="text-[11px] font-mono font-bold text-zinc-700 block mt-0.5">{comp.taxNumber.slice(0, 8)}...</span>
+                      <span className="text-[11px] font-mono font-bold text-[#141414] block mt-0.5">{comp.taxNumber.slice(0, 8)}...</span>
                     </div>
                   </div>
                 </div>

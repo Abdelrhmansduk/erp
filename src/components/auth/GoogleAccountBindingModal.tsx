@@ -140,19 +140,19 @@ export const GoogleAccountBindingModal: React.FC<GoogleAccountBindingModalProps>
             <div className="w-11 h-11 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center shrink-0">
               <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
                 <path
-                  fill="#4285F4"
+                  fill="#707070"
                   d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
                 />
                 <path
-                  fill="#34A853"
+                  fill="#707070"
                   d="M12 24c3.3 0 6.08-1.09 8.1-2.96l-3.88-3.05c-1.08.72-2.45 1.16-4.22 1.16-3.24 0-5.98-2.18-6.96-5.13H1.04v3.14C3.05 21.15 7.21 24 12 24z"
                 />
                 <path
-                  fill="#FBBC05"
+                  fill="#adadad"
                   d="M5.04 14.02c-.25-.72-.39-1.5-.39-2.32s.14-1.6.39-2.32V6.24H1.04C.38 7.56 0 9.05 0 11.7s.38 4.14 1.04 5.46l4-3.14z"
                 />
                 <path
-                  fill="#EA4335"
+                  fill="#707070"
                   d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.21 0 3.05 2.85 1.04 6.24l4 3.14c.98-2.95 3.72-4.63 6.96-4.63z"
                 />
               </svg>
@@ -174,7 +174,7 @@ export const GoogleAccountBindingModal: React.FC<GoogleAccountBindingModalProps>
             type="button"
             onClick={onRemindLater}
             aria-label="تذكيري لاحقاً"
-            className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] flex items-center justify-center text-[#141414] cursor-pointer shrink-0"
+            className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] flex items-center justify-center text-[#141414] cursor-pointer shrink-0"
           >
             <X className="w-4 h-4" />
           </button>
@@ -187,7 +187,7 @@ export const GoogleAccountBindingModal: React.FC<GoogleAccountBindingModalProps>
               <ShieldCheck className="w-4 h-4 text-[#141414] shrink-0" />
               <span className="truncate">{user.full_name}</span>
             </div>
-            <div className="text-[11px] text-[#525252] mt-0.5 truncate">
+            <div className="text-[11px] text-[#262626] mt-0.5 truncate">
               {user.role} • {companyNameAr}
             </div>
           </div>
@@ -205,7 +205,7 @@ export const GoogleAccountBindingModal: React.FC<GoogleAccountBindingModalProps>
             <div className="text-sm font-bold text-[#141414]">
               تم اعتماد وربط حساب Google الخاص بك بنجاح
             </div>
-            <p className="text-xs text-[#525252] m-0 leading-relaxed">
+            <p className="text-xs text-[#262626] m-0 leading-relaxed">
               الحساب المعتمد:{' '}
               <span dir="ltr" className="font-mono font-bold text-[#141414]">
                 {approvedBinding.googleEmail}
@@ -231,7 +231,7 @@ export const GoogleAccountBindingModal: React.FC<GoogleAccountBindingModalProps>
                 type="button"
                 disabled={loading}
                 onClick={() => void handleLiveGoogleOAuthBind()}
-                className="w-full h-11 px-4 rounded-2xl bg-[#f3f3f3] hover:bg-[#e8e8e8] border border-[#d4d4d4] text-[#141414] text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                className="w-full h-11 px-4 rounded-2xl bg-[#f3f3f3] hover:bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
                 {loading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -258,10 +258,10 @@ export const GoogleAccountBindingModal: React.FC<GoogleAccountBindingModalProps>
                     value={googleEmail}
                     onChange={(e) => setGoogleEmail(e.target.value)}
                     placeholder="your.name@gmail.com"
-                    className="w-full h-11 pl-4 pr-10 rounded-2xl bg-[#f3f3f3] focus:bg-[#ffffff] border border-[#e0e0e0] focus:border-[#141414] text-[#141414] placeholder:text-[#737373] text-sm font-mono text-left focus:outline-none"
+                    className="w-full h-11 pl-4 pr-10 rounded-2xl bg-[#f3f3f3] focus:bg-[#ffffff] border border-[#e0e0e0] focus:border-[#141414] text-[#141414] placeholder:text-[#707070] text-sm font-mono text-left focus:outline-none"
                     required
                   />
-                  <Mail className="w-4 h-4 text-[#525252] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Mail className="w-4 h-4 text-[#262626] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
               </div>
 
@@ -280,7 +280,7 @@ export const GoogleAccountBindingModal: React.FC<GoogleAccountBindingModalProps>
                     value={googleEmailConfirm}
                     onChange={(e) => setGoogleEmailConfirm(e.target.value)}
                     placeholder="your.name@gmail.com"
-                    className="w-full h-11 px-3.5 rounded-2xl bg-[#f3f3f3] focus:bg-[#ffffff] border border-[#e0e0e0] focus:border-[#141414] text-[#141414] placeholder:text-[#737373] text-xs font-mono text-left focus:outline-none"
+                    className="w-full h-11 px-3.5 rounded-2xl bg-[#f3f3f3] focus:bg-[#ffffff] border border-[#e0e0e0] focus:border-[#141414] text-[#141414] placeholder:text-[#707070] text-xs font-mono text-left focus:outline-none"
                     required
                   />
                 </div>
@@ -303,7 +303,7 @@ export const GoogleAccountBindingModal: React.FC<GoogleAccountBindingModalProps>
                 </div>
               </div>
 
-              <label className="flex items-start gap-2.5 p-3 rounded-2xl bg-[#f8f8f7] border border-[#e5e5e5] text-xs text-[#141414] cursor-pointer">
+              <label className="flex items-start gap-2.5 p-3 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-xs text-[#141414] cursor-pointer">
                 <input
                   id="bind-google-consent-checkbox"
                   type="checkbox"
@@ -335,7 +335,7 @@ export const GoogleAccountBindingModal: React.FC<GoogleAccountBindingModalProps>
                   id="bind-google-later-btn"
                   type="button"
                   onClick={onRemindLater}
-                  className="h-11 px-5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] text-xs font-bold transition-colors cursor-pointer"
+                  className="h-11 px-5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] text-xs font-bold transition-colors cursor-pointer"
                 >
                   تذكيري لاحقاً
                 </button>

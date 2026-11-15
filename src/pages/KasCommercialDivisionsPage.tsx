@@ -192,15 +192,15 @@ export const KasCommercialDivisionsPage: React.FC = () => {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div>
             <div className="flex items-center gap-2 flex-wrap mb-2">
-              <span className="px-3 py-0.5 rounded-full text-[11px] font-bold bg-[#262626] text-[#ffffff] border border-[#3f3f46]">
+              <span className="px-3 py-0.5 rounded-full text-[11px] font-bold bg-[#262626] text-[#ffffff] border border-[#262626]">
                 القطاعات التجارية المستقلة عن المنافسات الحكومية
               </span>
-              <span className="text-xs text-[#a1a1aa]">قطاع الأميال • المعرض الرئيسي</span>
+              <span className="text-xs text-[#adadad]">قطاع الأميال • المعرض الرئيسي</span>
             </div>
             <h1 className="text-2xl font-bold text-[#ffffff] m-0">
               بوابة مبيعات وعقود قطاعي الأميال والمعرض التجاري.
             </h1>
-            <p className="text-xs sm:text-sm text-[#a1a1aa] mt-1.5 mb-0">
+            <p className="text-xs sm:text-sm text-[#adadad] mt-1.5 mb-0">
               إدارة العقود التشغيلية للأميال ومبيعات المعرض المباشرة وفواتير الضريبة المضافة بمعزل تام عن منظومة منافسات اعتماد.
             </p>
           </div>
@@ -274,7 +274,7 @@ export const KasCommercialDivisionsPage: React.FC = () => {
                   type="button"
                   onClick={() => setDivisionFilter(div)}
                   className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors cursor-pointer ${
-                    active ? 'bg-[#141414] text-[#ffffff]' : 'bg-transparent text-[#141414] hover:bg-[#e5e5e5]'
+                    active ? 'bg-[#141414] text-[#ffffff]' : 'bg-transparent text-[#141414] hover:bg-[#e0e0e0]'
                   }`}
                 >
                   {div === 'all' ? 'كافة القطاعات التجارية' : `قطاع ${div}`}
@@ -310,7 +310,7 @@ export const KasCommercialDivisionsPage: React.FC = () => {
             </thead>
             <tbody>
               {filteredDeals.map((deal) => (
-                <tr key={deal.id} className="border-b border-[#f0f0f0] hover:bg-[#fafafa]">
+                <tr key={deal.id} className="border-b border-[#f0f0f0] hover:bg-[#ffffff]">
                   <td className="py-3.5 px-3 font-mono font-bold text-[#141414]">{deal.reference_no}</td>
                   <td className="py-3.5 px-3">
                     <span className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] font-bold">

@@ -40,8 +40,8 @@ export const ACTION_LABELS: Record<ModuleAction, { ar: string; desc: string; col
   print: { ar: 'طباعة', desc: 'طباعة النماذج والمستندات', color: 'bg-[#f3f3f3] text-[#141414]' },
   import: { ar: 'استيراد', desc: 'رفع واستيراد البيانات', color: 'bg-[#f3f3f3] text-[#141414]' },
   assign: { ar: 'إسناد', desc: 'توجيه وتعيين المهام للموظفين', color: 'bg-[#f3f3f3] text-[#141414]' },
-  archive: { ar: 'أرشفة', desc: 'نقل السجلات إلى الأرشيف', color: 'bg-slate-50 text-slate-700' },
-  restore: { ar: 'استعادة', desc: 'استرجاع السجلات المؤرشفة', color: 'bg-zinc-50 text-zinc-700' },
+  archive: { ar: 'أرشفة', desc: 'نقل السجلات إلى الأرشيف', color: 'bg-[#f3f3f3] text-[#141414]' },
+  restore: { ar: 'استعادة', desc: 'استرجاع السجلات المؤرشفة', color: 'bg-[#f3f3f3] text-[#141414]' },
 };
 
 export const INITIAL_MODULE_ROWS: ModulePermissionRow[] = [
@@ -263,11 +263,11 @@ export const RolesPermissionsMatrixWidget: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-zinc-200 shadow-sm p-6 space-y-6 font-sans">
+    <div className="bg-white rounded-3xl border border-[#e0e0e0]  p-6 space-y-6 font-sans">
       {/* Header & Presets Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-zinc-100">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#e0e0e0]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#141414] text-white flex items-center justify-center shadow-xs">
+          <div className="w-10 h-10 rounded-2xl bg-[#141414] text-white flex items-center justify-center ">
             <ShieldCheck className="w-5 h-5 text-[#ffffff]" />
           </div>
           <div>
@@ -305,7 +305,7 @@ export const RolesPermissionsMatrixWidget: React.FC = () => {
 
       {/* Role Preset Selector Cards */}
       <div className="space-y-2">
-        <label className="text-xs font-bold text-zinc-700 block">
+        <label className="text-xs font-bold text-[#141414] block">
           اختر قالب الدور الوظيفي للتعديل أو التطبيق المباشر (Role Templates):
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
@@ -315,8 +315,8 @@ export const RolesPermissionsMatrixWidget: React.FC = () => {
               onClick={() => handleApplyPreset(preset.id)}
               className={`p-3 rounded-2xl border-2 cursor-pointer transition-all ${
                 selectedPreset === preset.id
-                  ? 'border-[#141414] bg-zinc-50 shadow-xs'
-                  : 'border-zinc-200 bg-white hover:border-zinc-300'
+                  ? 'border-[#141414] bg-[#f3f3f3] '
+                  : 'border-[#e0e0e0] bg-white hover:border-[#e0e0e0]'
               }`}
             >
               <div className="flex items-center justify-between mb-1">
@@ -334,7 +334,7 @@ export const RolesPermissionsMatrixWidget: React.FC = () => {
       </div>
 
       {/* 12-Action Permissions Matrix Table */}
-      <div className="border border-zinc-200 rounded-2xl overflow-hidden shadow-xs">
+      <div className="border border-[#e0e0e0] rounded-2xl overflow-hidden ">
         <div className="overflow-x-auto">
           <table className="w-full text-right border-collapse text-xs">
             <thead>
@@ -349,10 +349,10 @@ export const RolesPermissionsMatrixWidget: React.FC = () => {
                 <th className="py-3 px-3 text-center w-24">التحكم</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-200 font-medium">
+            <tbody className="divide-y divide-[#e0e0e0] font-medium">
               {rows.map((row, idx) => (
-                <tr key={row.moduleId} className={`hover:bg-zinc-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-zinc-50/50'}`}>
-                  <td className="py-3 px-4 font-bold text-[#141414] sticky right-0 bg-inherit z-10 border-l border-zinc-200">
+                <tr key={row.moduleId} className={`hover:bg-[#f3f3f3] transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f3f3f3]'}`}>
+                  <td className="py-3 px-4 font-bold text-[#141414] sticky right-0 bg-inherit z-10 border-l border-[#e0e0e0]">
                     <div className="text-xs">{row.moduleName}</div>
                     <div className="text-[10px] text-[#707070] font-mono font-normal">module: {row.moduleId}</div>
                   </td>
@@ -366,8 +366,8 @@ export const RolesPermissionsMatrixWidget: React.FC = () => {
                           onClick={() => handleToggleAction(row.moduleId, action)}
                           className={`w-6 h-6 rounded-lg inline-flex items-center justify-center transition-all ${
                             enabled
-                              ? 'bg-[#141414] text-white shadow-xs hover:bg-zinc-800'
-                              : 'bg-zinc-100 text-[#141414] hover:bg-zinc-200 hover:text-zinc-600'
+                              ? 'bg-[#141414] text-white  hover:bg-[#262626]'
+                              : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#e0e0e0] hover:text-[#707070]'
                           }`}
                           title={`${row.moduleName} - ${ACTION_LABELS[action].ar}: ${enabled ? 'مفعل' : 'محظور'}`}
                         >
@@ -377,12 +377,12 @@ export const RolesPermissionsMatrixWidget: React.FC = () => {
                     );
                   })}
 
-                  <td className="py-2.5 px-3 text-center border-r border-zinc-200">
+                  <td className="py-2.5 px-3 text-center border-r border-[#e0e0e0]">
                     <div className="flex items-center justify-center gap-1">
                       <button
                         type="button"
                         onClick={() => handleToggleRowAll(row.moduleId, true)}
-                        className="px-1.5 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 text-[10px] font-bold text-zinc-700"
+                        className="px-1.5 py-0.5 rounded bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[10px] font-bold text-[#141414]"
                         title="تفعيل الكل"
                       >
                         الكل
@@ -390,7 +390,7 @@ export const RolesPermissionsMatrixWidget: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleToggleRowAll(row.moduleId, false)}
-                        className="px-1.5 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 text-[10px] font-bold text-zinc-700"
+                        className="px-1.5 py-0.5 rounded bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[10px] font-bold text-[#141414]"
                         title="إلغاء الكل"
                       >
                         تصفير
@@ -405,10 +405,10 @@ export const RolesPermissionsMatrixWidget: React.FC = () => {
       </div>
 
       {/* Security Decision Hierarchy Footer Notes */}
-      <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-200 flex items-center justify-between flex-wrap gap-4 text-xs">
+      <div className="p-4 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] flex items-center justify-between flex-wrap gap-4 text-xs">
         <div className="flex items-center gap-2">
           <Lock className="w-4 h-4 text-[#141414]" />
-          <span className="text-zinc-700 font-bold">
+          <span className="text-[#141414] font-bold">
             تسلسل قرار الوصول (Deny By Default Flow):
           </span>
           <span className="text-[#707070] font-mono text-[11px]">

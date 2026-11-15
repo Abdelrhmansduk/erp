@@ -355,7 +355,7 @@ export const AppShell: React.FC<AppShellProps> = ({
             setIsDraggingFile(false);
           }}
         >
-          <div className="max-w-lg w-full rounded-[24px] border-2 border-dashed border-[#141414] bg-[#ffffff] p-8 text-center space-y-3 shadow-2xl">
+          <div className="max-w-lg w-full rounded-[24px] border-2 border-dashed border-[#141414] bg-[#ffffff] p-8 text-center space-y-3 ">
             <div className="w-16 h-16 rounded-[18px] bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center mx-auto">
               <UploadCloud className="w-8 h-8" />
             </div>
@@ -377,10 +377,10 @@ export const AppShell: React.FC<AppShellProps> = ({
           dir="rtl"
         >
           <div
-            className="w-full max-w-lg bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] shadow-2xl overflow-hidden"
+            className="w-full max-w-lg bg-[#ffffff] rounded-[24px] border border-[#e0e0e0]  overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-4 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5] flex items-center justify-between">
+            <div className="p-4 bg-[#ffffff] text-[#141414] border-b border-[#e0e0e0] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <span className="w-9 h-9 rounded-[12px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center">
                   <Keyboard className="w-4 h-4 text-[#141414]" />
@@ -393,7 +393,7 @@ export const AppShell: React.FC<AppShellProps> = ({
               <button
                 type="button"
                 onClick={() => setShowShortcutsModal(false)}
-                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] flex items-center justify-center cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -421,7 +421,7 @@ export const AppShell: React.FC<AppShellProps> = ({
               ))}
             </div>
 
-            <div className="px-4 py-2.5 bg-[#f3f3f3] border-t border-[#e5e5e5] flex items-center justify-between text-[11px] text-[#707070]">
+            <div className="px-4 py-2.5 bg-[#f3f3f3] border-t border-[#e0e0e0] flex items-center justify-between text-[11px] text-[#707070]">
               <span className="inline-flex items-center gap-1 font-semibold text-[#141414]">
                 <Zap className="w-3.5 h-3.5 text-[#141414]" />
                 <span>أزرار الدفع والاعتماد والترحيل تدعم الحالة التفاعلية الحية تلقائياً</span>

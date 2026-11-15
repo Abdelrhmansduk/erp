@@ -391,7 +391,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
         }}
       >
@@ -463,7 +463,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
       <div className="stat-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         {/* Card 1: White Card */}
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>إجمالي المنافسات المسجلة</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>إجمالي المنافسات المسجلة</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {kpis.totalTenders.toLocaleString()} سجل
           </div>
@@ -481,7 +481,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
 
         {/* Card 3: Pitch Black Featured Card */}
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>إجمالي قيمة العروض المقدمة</span>
+          <span style={{ fontSize: '13px', color: '#adadad', fontWeight: 550 }}>إجمالي قيمة العروض المقدمة</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {kpis.totalBidValue > 1000000 ? `${(kpis.totalBidValue / 1000000).toFixed(2)}M` : `${(kpis.totalBidValue / 1000).toFixed(0)}k`} ⃁
           </div>
@@ -490,11 +490,11 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
 
         {/* Card 4: White Card */}
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>نسبة الترسية والجاهزية</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>نسبة الترسية والجاهزية</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {kpis.winRate}%
           </div>
-          <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden mt-2">
+          <div className="w-full h-1.5 bg-[#f3f3f3] rounded-full overflow-hidden mt-2">
             <div className="h-full bg-[#141414] rounded-full transition-all" style={{ width: `${Math.min(100, Math.max(15, Number(kpis.winRate) || 0))}%` }} />
           </div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>{kpis.pendingCount} عروض قيد الفحص</span>
@@ -524,9 +524,9 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                   fontSize: '11.5px',
                   fontWeight: isActive ? 550 : 420,
                   border: '1px solid',
-                  borderColor: isActive ? '#141414' : '#e4e4e7',
+                  borderColor: isActive ? '#141414' : '#e0e0e0',
                   backgroundColor: isActive ? '#141414' : '#ffffff',
-                  color: isActive ? '#ffffff' : '#27272a',
+                  color: isActive ? '#ffffff' : '#141414',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                   display: 'inline-flex',
@@ -541,7 +541,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
           })}
         </div>
 
-        <div className="text-xs text-[#707070] flex items-center gap-2 font-mono px-3 py-1 bg-zinc-50 rounded-full border border-zinc-200 shrink-0">
+        <div className="text-xs text-[#707070] flex items-center gap-2 font-mono px-3 py-1 bg-[#f3f3f3] rounded-full border border-[#e0e0e0] shrink-0">
           <span className="font-bold">السجلات:</span>
           <span className="font-bold text-[#141414] font-mono">{filteredTenders.length.toLocaleString()}</span>
         </div>
@@ -567,9 +567,9 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                   fontSize: '11.5px',
                   fontWeight: isSelected ? 550 : 420,
                   border: '1px solid',
-                  borderColor: isSelected ? '#141414' : '#e4e4e7',
+                  borderColor: isSelected ? '#141414' : '#e0e0e0',
                   backgroundColor: isSelected ? '#141414' : '#ffffff',
-                  color: isSelected ? '#ffffff' : '#27272a',
+                  color: isSelected ? '#ffffff' : '#141414',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                   display: 'inline-flex',
@@ -586,8 +586,8 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                     borderRadius: '9999px',
                     fontFamily: 'monospace',
                     fontWeight: 700,
-                    backgroundColor: isSelected ? 'rgba(255,255,255,0.2)' : '#f4f4f5',
-                    color: isSelected ? '#ffffff' : '#52525b',
+                    backgroundColor: isSelected ? 'rgba(255,255,255,0.2)' : '#f3f3f3',
+                    color: isSelected ? '#ffffff' : '#262626',
                   }}
                 >
                   {count}
@@ -599,24 +599,24 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
       )}
 
       {/* Filter, Search & View Switcher Toolbar */}
-      <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-3">
+      <div className="p-4 rounded-3xl bg-white border border-[#e0e0e0]  space-y-3">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* Universal Search Input */}
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-[#adadad]" />
             <input
               type="text"
               aria-label="ابحث برقم المنافسة، الرقم المرجعي، اسم المنافسة، الجهة الحكومية، المسؤول، المدينة"
               placeholder="ابحث برقم المنافسة، الرقم المرجعي، اسم المنافسة، الجهة الحكومية، المسؤول، المدينة..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-4 pr-10 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#141414]/20 font-semibold"
+              className="w-full pl-4 pr-10 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-xs sm:text-sm text-[#141414] focus:outline-none focus:ring-2 focus:ring-[#141414]/20 font-semibold"
             />
             {searchQuery && (
               <button
                 aria-label="مسح البحث"
                 onClick={() => setSearchQuery('')}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#adadad] hover:text-[#141414]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -629,7 +629,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
               aria-label="تصفية حسب حالة المنافسة"
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="px-3.5 py-2 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#141414]/20"
+              className="px-3.5 py-2 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-bold text-[#141414] focus:outline-none focus:ring-2 focus:ring-[#141414]/20"
             >
               <option value="all">كل الحالات (الملاحظات)</option>
               {filterOptions.statuses.map(st => (
@@ -641,7 +641,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
               aria-label="تصفية حسب أسباب الترسية أو الاستبعاد"
               value={reasonFilter}
               onChange={e => setReasonFilter(e.target.value)}
-              className="px-3.5 py-2 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#141414]/20"
+              className="px-3.5 py-2 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-bold text-[#141414] focus:outline-none focus:ring-2 focus:ring-[#141414]/20"
             >
               <option value="all">كل أسباب الترسية/الاستبعاد</option>
               {filterOptions.reasons.map(r => (
@@ -654,7 +654,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                 aria-label="تصفية حسب المدينة"
                 value={cityFilter}
                 onChange={e => setCityFilter(e.target.value)}
-                className="px-3.5 py-2 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#141414]/20"
+                className="px-3.5 py-2 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-bold text-[#141414] focus:outline-none focus:ring-2 focus:ring-[#141414]/20"
               >
                 <option value="all">كل المدن</option>
                 {filterOptions.cities.map(c => (
@@ -678,13 +678,13 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
             )}
 
             {/* View Mode Toggle Switcher */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200">
+            <div className="flex items-center bg-[#f3f3f3] p-1 rounded-2xl border border-[#e0e0e0]">
               <button
                 onClick={() => setViewMode('table')}
                 className={`p-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
                   viewMode === 'table'
-                    ? 'bg-white  text-[#141414] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900 '
+                    ? 'bg-white  text-[#141414] '
+                    : 'text-[#707070] hover:text-[#141414] '
                 }`}
                 title="عرض الجدول"
               >
@@ -695,8 +695,8 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                 onClick={() => setViewMode('cards')}
                 className={`p-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
                   viewMode === 'cards'
-                    ? 'bg-white  text-[#141414] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900 '
+                    ? 'bg-white  text-[#141414] '
+                    : 'text-[#707070] hover:text-[#141414] '
                 }`}
                 title="عرض البطاقات"
               >
@@ -707,7 +707,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
 
             <button
               onClick={() => setShowColSettings(!showColSettings)}
-              className="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs flex items-center gap-1 border border-slate-200 cursor-pointer"
+              className="p-2 rounded-2xl bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070] text-xs flex items-center gap-1 border border-[#e0e0e0] cursor-pointer"
               title="تخصيص الأعمدة"
             >
               <Layers className="w-4 h-4" />
@@ -717,10 +717,10 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
 
         {/* Column Settings Toggle Dropdown */}
         {showColSettings && (
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-wrap gap-3 text-xs">
-            <span className="font-bold text-slate-700 w-full mb-1">إظهار / إخفاء الأعمدة:</span>
+          <div className="p-4 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] flex flex-wrap gap-3 text-xs">
+            <span className="font-bold text-[#141414] w-full mb-1">إظهار / إخفاء الأعمدة:</span>
             {Object.keys(visibleColumns).map(colKey => (
-              <label key={colKey} className="flex items-center gap-2 cursor-pointer font-medium text-slate-800">
+              <label key={colKey} className="flex items-center gap-2 cursor-pointer font-medium text-[#141414]">
                 <input
                   type="checkbox"
                   checked={visibleColumns[colKey]}
@@ -738,10 +738,10 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
       {viewMode === 'cards' ? (
         <div>
           {paginatedTenders.length === 0 ? (
-            <div className="p-16 text-center bg-white rounded-3xl border border-slate-200 shadow-sm text-slate-400">
-              <AlertCircle className="w-10 h-10 mx-auto mb-3 text-slate-300" />
-              <p className="font-bold text-base text-slate-800">لا توجد منافسات مطابقة للبحث أو الفلتر المحدد</p>
-              <p className="text-xs mt-1 text-slate-500">جرّب تغيير كلمات البحث أو اختيار شيت آخر</p>
+            <div className="p-16 text-center bg-white rounded-3xl border border-[#e0e0e0]  text-[#adadad]">
+              <AlertCircle className="w-10 h-10 mx-auto mb-3 text-[#adadad]" />
+              <p className="font-bold text-base text-[#141414]">لا توجد منافسات مطابقة للبحث أو الفلتر المحدد</p>
+              <p className="text-xs mt-1 text-[#707070]">جرّب تغيير كلمات البحث أو اختيار شيت آخر</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -777,11 +777,11 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
           )}
         </div>
       ) : (
-        <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+        <div className="rounded-3xl bg-white border border-[#e0e0e0]  overflow-hidden">
           <div className="overflow-x-auto max-h-[680px]">
             <table className="min-w-[1720px] w-full text-xs text-right border-collapse select-text table-fixed">
-              <thead className="sticky top-0 z-20 bg-slate-100 text-slate-800 font-bold border-b border-slate-200 shadow-xs">
-                <tr className="divide-x divide-x-reverse divide-slate-200">
+              <thead className="sticky top-0 z-20 bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0] ">
+                <tr className="divide-x divide-x-reverse divide-[#e0e0e0]">
                   {visibleColumns.seq && <th className="p-3.5 w-14 text-center font-mono">#</th>}
                   {visibleColumns.company && <th className="p-3.5 w-44">المؤسسة</th>}
                   {visibleColumns.tenderCode && <th className="p-3.5 w-28 font-mono">كود المنافسة</th>}
@@ -799,20 +799,20 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                   {visibleColumns.city && <th className="p-3.5 w-24">المدينة</th>}
                   {visibleColumns.platform && <th className="p-3.5 w-28">المنصة</th>}
                   {visibleColumns.actions && (
-                    <th className="p-3.5 w-28 text-center sticky left-0 bg-slate-100 border-r border-slate-200 z-30 shadow-md">
+                    <th className="p-3.5 w-28 text-center sticky left-0 bg-[#f3f3f3] border-r border-[#e0e0e0] z-30 ">
                       الإجراءات
                     </th>
                   )}
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-slate-100 text-slate-900">
+              <tbody className="divide-y divide-[#e0e0e0] text-[#141414]">
                 {paginatedTenders.length === 0 ? (
                   <tr>
-                    <td colSpan={17} className="p-12 text-center text-slate-400">
-                      <AlertCircle className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                      <p className="font-bold text-sm text-slate-700">لا توجد منافسات مطابقة للبحث أو الفلتر المحدد</p>
-                      <p className="text-xs mt-1 text-slate-500">جرّب تغيير كلمات البحث أو اختيار شيت آخر</p>
+                    <td colSpan={17} className="p-12 text-center text-[#adadad]">
+                      <AlertCircle className="w-8 h-8 mx-auto mb-2 text-[#adadad]" />
+                      <p className="font-bold text-sm text-[#141414]">لا توجد منافسات مطابقة للبحث أو الفلتر المحدد</p>
+                      <p className="text-xs mt-1 text-[#707070]">جرّب تغيير كلمات البحث أو اختيار شيت آخر</p>
                     </td>
                   </tr>
                 ) : (
@@ -825,20 +825,20 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                     return (
                       <tr 
                         key={item.id || idx}
-                        className="hover:bg-[#eaeaea] transition-colors group cursor-pointer"
+                        className="hover:bg-[#f3f3f3] transition-colors group cursor-pointer"
                         onClick={() => {
                           setSelectedItem(item);
                           setIsDetailModalOpen(true);
                         }}
                       >
                         {visibleColumns.seq && (
-                          <td className="p-3 text-center text-slate-400 font-mono">
+                          <td className="p-3 text-center text-[#adadad] font-mono">
                             {item.seq || (idx + 1 + (currentPage - 1) * pageSize)}
                           </td>
                         )}
 
                         {visibleColumns.company && (
-                          <td className="p-3 font-semibold text-slate-900 truncate" title={item.company}>
+                          <td className="p-3 font-semibold text-[#141414] truncate" title={item.company}>
                             {item.company || 'كاس للتجارة'}
                           </td>
                         )}
@@ -850,7 +850,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                         )}
 
                         {visibleColumns.title && (
-                          <td className="p-3 font-semibold text-slate-900">
+                          <td className="p-3 font-semibold text-[#141414]">
                             <div className="line-clamp-2 leading-relaxed" title={item.title}>
                               {item.title}
                             </div>
@@ -858,38 +858,38 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                         )}
 
                         {visibleColumns.referenceNumber && (
-                          <td className="p-3 font-mono text-slate-500">
+                          <td className="p-3 font-mono text-[#707070]">
                             {item.referenceNumber || item.tenderNumber || '-'}
                           </td>
                         )}
 
                         {visibleColumns.entity && (
-                          <td className="p-3 text-slate-800 truncate" title={item.entity}>
+                          <td className="p-3 text-[#141414] truncate" title={item.entity}>
                             {item.entity || '-'}
                           </td>
                         )}
 
                         {visibleColumns.manager && (
-                          <td className="p-3 text-slate-500 text-[11px] whitespace-nowrap">
-                            <div className="font-semibold text-slate-900 truncate">{item.managerName || '-'}</div>
-                            {item.managerPhone && <div className="text-[10px] font-mono text-slate-400">{item.managerPhone}</div>}
+                          <td className="p-3 text-[#707070] text-[11px] whitespace-nowrap">
+                            <div className="font-semibold text-[#141414] truncate">{item.managerName || '-'}</div>
+                            {item.managerPhone && <div className="text-[10px] font-mono text-[#adadad]">{item.managerPhone}</div>}
                           </td>
                         )}
 
                         {visibleColumns.deadlineDate && (
-                          <td className="p-3 font-mono text-slate-500 text-[11px] whitespace-nowrap">
+                          <td className="p-3 font-mono text-[#707070] text-[11px] whitespace-nowrap">
                             {item.deadlineDate || '-'}
                           </td>
                         )}
 
                         {visibleColumns.duration && (
-                          <td className="p-3 text-slate-500 text-[11px] whitespace-nowrap">
+                          <td className="p-3 text-[#707070] text-[11px] whitespace-nowrap">
                             {item.executionDuration || (item.durationDays ? `${item.durationDays} يوم` : '-')}
                           </td>
                         )}
 
                         {visibleColumns.bidValue && (
-                          <td className="p-3 text-left font-mono font-bold text-slate-900 whitespace-nowrap">
+                          <td className="p-3 text-left font-mono font-bold text-[#141414] whitespace-nowrap">
                             {bid > 0 ? `${bid.toLocaleString()} ⃁` : '-'}
                           </td>
                         )}
@@ -916,7 +916,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                         )}
 
                         {visibleColumns.rejectionReason && (
-                          <td className="p-3 text-slate-500 text-[11px] truncate" title={item.rejectionReason}>
+                          <td className="p-3 text-[#707070] text-[11px] truncate" title={item.rejectionReason}>
                             {item.rejectionReason || '-'}
                           </td>
                         )}
@@ -928,26 +928,26 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                                 تم
                               </span>
                             ) : (
-                              <span className="text-slate-400 text-[10px]">-</span>
+                              <span className="text-[#adadad] text-[10px]">-</span>
                             )}
                           </td>
                         )}
 
                         {visibleColumns.city && (
-                          <td className="p-3 text-slate-500 text-[11px] whitespace-nowrap">
+                          <td className="p-3 text-[#707070] text-[11px] whitespace-nowrap">
                             {item.city || '-'}
                           </td>
                         )}
 
                         {visibleColumns.platform && (
-                          <td className="p-3 text-slate-500 text-[11px] whitespace-nowrap">
+                          <td className="p-3 text-[#707070] text-[11px] whitespace-nowrap">
                             {item.platformType || '-'}
                           </td>
                         )}
 
                         {visibleColumns.actions && (
                           <td 
-                            className="p-3 text-center sticky left-0 bg-white group-hover:bg-slate-50 z-10 border-r border-slate-200 shadow-md"
+                            className="p-3 text-center sticky left-0 bg-white group-hover:bg-[#f3f3f3] z-10 border-r border-[#e0e0e0] "
                             onClick={e => e.stopPropagation()}
                           >
                             <div className="flex items-center justify-center gap-1.5">
@@ -956,7 +956,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                                   setSelectedItem(item);
                                   setIsDetailModalOpen(true);
                                 }}
-                                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-slate-900 cursor-pointer transition"
+                                className="p-1.5 rounded-xl hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] cursor-pointer transition"
                                 title="معاينة التفاصيل"
                               >
                                 <Eye className="w-4 h-4" />
@@ -964,7 +964,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
 
                               <button
                                 onClick={() => handleOpenEdit(item)}
-                                className="p-1.5 rounded-xl hover:bg-[#eaeaea] text-slate-500 hover:text-[#141414] cursor-pointer transition"
+                                className="p-1.5 rounded-xl hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] cursor-pointer transition"
                                 title="تعديل"
                               >
                                 <Edit3 className="w-4 h-4" />
@@ -973,7 +973,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                               {onConvertToBOQ && (
                                 <button
                                   onClick={() => onConvertToBOQ(item)}
-                                  className="p-1.5 rounded-xl hover:bg-[#eaeaea] text-[#141414] cursor-pointer transition"
+                                  className="p-1.5 rounded-xl hover:bg-[#f3f3f3] text-[#141414] cursor-pointer transition"
                                   title="تحويل لكراسة BOQ والتفقيط"
                                 >
                                   <Calculator className="w-4 h-4" />
@@ -982,7 +982,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
 
                               <button
                                 onClick={() => handleDelete(item)}
-                                className="p-1.5 rounded-xl hover:bg-[#eaeaea] text-slate-500 hover:text-[#141414] cursor-pointer transition"
+                                className="p-1.5 rounded-xl hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] cursor-pointer transition"
                                 title="حذف"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -1001,8 +1001,8 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
       )}
 
       {/* Pagination Bar */}
-      <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 text-slate-500">
+      <div className="p-4 rounded-3xl bg-white border border-[#e0e0e0]  flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 text-[#707070]">
           <span>عرض</span>
           <select
             aria-label="عدد السجلات لكل صفحة"
@@ -1011,7 +1011,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
               setPageSize(Number(e.target.value));
               setCurrentPage(1);
             }}
-            className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none"
+            className="px-3 py-1.5 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-bold text-[#141414] focus:outline-none"
           >
             <option value={25}>25</option>
             <option value={50}>50</option>
@@ -1021,7 +1021,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
           </select>
           <span>سجل لكل صفحة</span>
           <span className="mx-2">•</span>
-          <span>الصفحة <strong className="text-slate-900 font-mono">{currentPage}</strong> من <strong className="text-slate-900 font-mono">{totalPages}</strong></span>
+          <span>الصفحة <strong className="text-[#141414] font-mono">{currentPage}</strong> من <strong className="text-[#141414] font-mono">{totalPages}</strong></span>
         </div>
 
         <div className="flex items-center gap-1.5">
@@ -1029,7 +1029,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
             aria-label="الصفحة الأولى"
             onClick={() => setCurrentPage(1)}
             disabled={currentPage === 1}
-            className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 disabled:opacity-40 hover:bg-slate-100 font-mono font-bold"
+            className="px-3 py-1.5 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] disabled:opacity-40 hover:bg-[#f3f3f3] font-mono font-bold"
           >
             «
           </button>
@@ -1037,7 +1037,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
             aria-label="الصفحة السابقة"
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
-            className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 disabled:opacity-40 hover:bg-slate-100 font-mono flex items-center"
+            className="px-3 py-1.5 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] disabled:opacity-40 hover:bg-[#f3f3f3] font-mono flex items-center"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -1050,7 +1050,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
             aria-label="الصفحة التالية"
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
             disabled={currentPage === totalPages}
-            className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 disabled:opacity-40 hover:bg-slate-100 font-mono flex items-center"
+            className="px-3 py-1.5 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] disabled:opacity-40 hover:bg-[#f3f3f3] font-mono flex items-center"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -1058,7 +1058,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
             aria-label="الصفحة الأخيرة"
             onClick={() => setCurrentPage(totalPages)}
             disabled={currentPage === totalPages}
-            className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 disabled:opacity-40 hover:bg-slate-100 font-mono font-bold"
+            className="px-3 py-1.5 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] disabled:opacity-40 hover:bg-[#f3f3f3] font-mono font-bold"
           >
             »
           </button>
@@ -1067,77 +1067,77 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
 
       {/* Modal: View Tender Detail Card */}
       {isDetailModalOpen && selectedItem && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto text-slate-900 relative">
+        <div className="fixed inset-0 z-50 bg-[#141414] backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white border border-[#e0e0e0] rounded-3xl max-w-2xl w-full p-6 sm:p-8  space-y-6 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto text-[#141414] relative">
             {/* Top Accent Strip */}
             <div className="absolute top-0 right-0 left-0 h-1.5 bg-[#141414] rounded-t-3xl" />
 
-            <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+            <div className="flex items-start justify-between border-b border-[#e0e0e0] pb-4">
               <div>
                 <span className="px-3 py-1 rounded-xl bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] text-xs font-bold">
                   {selectedItem.company || 'مؤسسة خالد السليم للتجارة (كاس)'}
                 </span>
-                <h3 className="text-xl font-bold text-slate-900 mt-2 leading-relaxed">
+                <h3 className="text-xl font-bold text-[#141414] mt-2 leading-relaxed">
                   {selectedItem.title}
                 </h3>
-                <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 font-mono">
-                  <span className="bg-slate-100 px-2 py-0.5 rounded-lg">كود: <strong className="text-slate-800">{selectedItem.tenderCode || '-'}</strong></span>
+                <div className="flex items-center gap-3 text-xs text-[#707070] mt-1 font-mono">
+                  <span className="bg-[#f3f3f3] px-2 py-0.5 rounded-lg">كود: <strong className="text-[#141414]">{selectedItem.tenderCode || '-'}</strong></span>
                   <span>•</span>
-                  <span className="bg-slate-100 px-2 py-0.5 rounded-lg">مرجع اعتماد: <strong className="text-slate-800">{selectedItem.referenceNumber || '-'}</strong></span>
+                  <span className="bg-[#f3f3f3] px-2 py-0.5 rounded-lg">مرجع اعتماد: <strong className="text-[#141414]">{selectedItem.referenceNumber || '-'}</strong></span>
                 </div>
               </div>
               <button
                 onClick={() => setIsDetailModalOpen(false)}
-                className="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition"
+                className="p-2 rounded-2xl bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070] hover:text-[#141414] transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">
-                <span className="text-slate-500 font-bold block mb-1">الجهة الحكومية:</span>
-                <span className="font-bold text-slate-900 block truncate">{selectedItem.entity || '-'}</span>
+              <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0]">
+                <span className="text-[#707070] font-bold block mb-1">الجهة الحكومية:</span>
+                <span className="font-bold text-[#141414] block truncate">{selectedItem.entity || '-'}</span>
               </div>
-              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">
-                <span className="text-slate-500 font-bold block mb-1">المسؤول:</span>
-                <span className="font-bold text-slate-900 block truncate">{selectedItem.managerName || '-'}</span>
+              <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0]">
+                <span className="text-[#707070] font-bold block mb-1">المسؤول:</span>
+                <span className="font-bold text-[#141414] block truncate">{selectedItem.managerName || '-'}</span>
                 {selectedItem.managerPhone && <span className="font-mono text-[#141414] font-bold text-[11px] block mt-0.5">{selectedItem.managerPhone}</span>}
               </div>
-              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">
-                <span className="text-slate-500 font-bold block mb-1">المدينة:</span>
-                <span className="font-bold text-slate-900 block truncate">{selectedItem.city || '-'}</span>
+              <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0]">
+                <span className="text-[#707070] font-bold block mb-1">المدينة:</span>
+                <span className="font-bold text-[#141414] block truncate">{selectedItem.city || '-'}</span>
               </div>
-              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">
-                <span className="text-slate-500 font-bold block mb-1">تاريخ البدء:</span>
-                <span className="font-mono font-bold text-slate-900 block">{selectedItem.startDate || '-'}</span>
+              <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0]">
+                <span className="text-[#707070] font-bold block mb-1">تاريخ البدء:</span>
+                <span className="font-mono font-bold text-[#141414] block">{selectedItem.startDate || '-'}</span>
               </div>
-              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">
-                <span className="text-slate-500 font-bold block mb-1">تاريخ انتهاء التقديم:</span>
-                <span className="font-mono font-bold text-slate-900 block">{selectedItem.deadlineDate || '-'}</span>
+              <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0]">
+                <span className="text-[#707070] font-bold block mb-1">تاريخ انتهاء التقديم:</span>
+                <span className="font-mono font-bold text-[#141414] block">{selectedItem.deadlineDate || '-'}</span>
               </div>
-              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">
-                <span className="text-slate-500 font-bold block mb-1">مدة التنفيذ:</span>
-                <span className="font-bold text-slate-900 block truncate">{selectedItem.executionDuration || '-'}</span>
+              <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0]">
+                <span className="text-[#707070] font-bold block mb-1">مدة التنفيذ:</span>
+                <span className="font-bold text-[#141414] block truncate">{selectedItem.executionDuration || '-'}</span>
               </div>
             </div>
 
             {/* Financial Summary */}
-            <div className="p-5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs shadow-inner">
+            <div className="p-5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs ">
               <div>
-                <span className="text-slate-500 font-bold block mb-1">قيمة العرض المقدم (كاس):</span>
-                <span className="text-lg font-bold font-mono text-slate-900 block">
+                <span className="text-[#707070] font-bold block mb-1">قيمة العرض المقدم (كاس):</span>
+                <span className="text-lg font-bold font-mono text-[#141414] block">
                   {selectedItem.bidValue ? `${selectedItem.bidValue.toLocaleString()} ⃁` : 'غير محدد'}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 font-bold block mb-1">المبلغ الحاصل على المنافسة:</span>
+                <span className="text-[#707070] font-bold block mb-1">المبلغ الحاصل على المنافسة:</span>
                 <span className="text-lg font-bold font-mono text-[#141414] block">
                   {selectedItem.winningBidValue ? `${selectedItem.winningBidValue.toLocaleString()} ⃁` : 'غير محدد'}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 font-bold block mb-1">الحالة والترسية:</span>
+                <span className="text-[#707070] font-bold block mb-1">الحالة والترسية:</span>
                 <div className="mt-1">
                   {getStatusBadge(selectedItem.notes, selectedItem.rejectionReason)}
                 </div>
@@ -1145,20 +1145,20 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
             </div>
 
             {selectedItem.notes && (
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 text-xs">
-                <span className="font-bold text-slate-700 block mb-1">الملاحظات والتفاصيل:</span>
-                <p className="text-slate-600 leading-relaxed whitespace-pre-wrap font-medium">{selectedItem.notes}</p>
+              <div className="p-4 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] text-xs">
+                <span className="font-bold text-[#141414] block mb-1">الملاحظات والتفاصيل:</span>
+                <p className="text-[#707070] leading-relaxed whitespace-pre-wrap font-medium">{selectedItem.notes}</p>
               </div>
             )}
 
-            <div className="flex items-center justify-between border-t border-slate-100 pt-4 flex-wrap gap-2">
+            <div className="flex items-center justify-between border-t border-[#e0e0e0] pt-4 flex-wrap gap-2">
               <div className="flex items-center gap-2 flex-wrap">
                 <button
                   onClick={() => {
                     setIsDetailModalOpen(false);
                     handleOpenEdit(selectedItem);
                   }}
-                  className="px-4 py-2.5 rounded-2xl bg-[#f3f3f3] hover:bg-[#eaeaea] text-[#141414] border border-[#e0e0e0] font-bold text-xs flex items-center gap-1.5 transition shadow-sm"
+                  className="px-4 py-2.5 rounded-2xl bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] font-bold text-xs flex items-center gap-1.5 transition "
                 >
                   <Edit3 className="w-4 h-4" />
                   <span>تعديل السجل</span>
@@ -1170,7 +1170,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                       setIsDetailModalOpen(false);
                       onConvertToBOQ(selectedItem);
                     }}
-                    className="px-5 py-2.5 rounded-2xl bg-[#141414] hover:bg-[#262626] text-white font-bold text-xs flex items-center gap-2 shadow-lg transition"
+                    className="px-5 py-2.5 rounded-2xl bg-[#141414] hover:bg-[#262626] text-white font-bold text-xs flex items-center gap-2  transition"
                   >
                     <Calculator className="w-4 h-4" />
                     <span>تحويل لمحرر جداول الكميات (BOQ)</span>
@@ -1180,7 +1180,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
 
               <button
                 onClick={() => setIsDetailModalOpen(false)}
-                className="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition"
+                className="px-5 py-2.5 rounded-2xl bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] font-bold text-xs transition"
               >
                 إغلاق
               </button>
@@ -1191,12 +1191,12 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
 
       {/* Modal: Add / Edit Tender */}
       {(isAddModalOpen || isEditModalOpen) && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto text-slate-900 relative">
+        <div className="fixed inset-0 z-50 bg-[#141414] backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white border border-[#e0e0e0] rounded-3xl max-w-3xl w-full p-6 sm:p-8  space-y-6 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto text-[#141414] relative">
             <div className="absolute top-0 right-0 left-0 h-1.5 bg-[#141414] rounded-t-3xl" />
 
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-4">
+              <h3 className="text-xl font-bold text-[#141414] flex items-center gap-2">
                 <FileSpreadsheet className="w-5 h-5 text-[#141414]" />
                 <span>{isAddModalOpen ? 'إضافة منافسة جديدة إلى السجل' : 'تعديل بيانات المنافسة'}</span>
               </h3>
@@ -1205,7 +1205,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                   setIsAddModalOpen(false);
                   setIsEditModalOpen(false);
                 }}
-                className="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition"
+                className="p-2 rounded-2xl bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070] hover:text-[#141414] transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1213,23 +1213,23 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
               <div className="col-span-full">
-                <label className="block font-bold text-slate-700 mb-1.5">اسم المنافسة والمشروع *</label>
+                <label className="block font-bold text-[#141414] mb-1.5">اسم المنافسة والمشروع *</label>
                 <input
                   type="text"
                   value={formData.title || ''}
                   onChange={e => setFormData(p => ({ ...p, title: e.target.value }))}
                   placeholder="مثال: تأمين مستلزمات اليوم الوطني لميناء جدة..."
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 text-sm font-semibold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 text-sm font-semibold text-[#141414]"
                   required
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">المؤسسة / الشركة</label>
+                <label className="block font-bold text-[#141414] mb-1.5">المؤسسة / الشركة</label>
                 <select
                   value={formData.company || ''}
                   onChange={e => setFormData(p => ({ ...p, company: e.target.value }))}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 text-xs font-semibold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 text-xs font-semibold text-[#141414]"
                 >
                   <option value="مؤسسة خالد السليم للتجارة">مؤسسة خالد السليم للتجارة (كاس)</option>
                   <option value="مؤسسة كاس لتنظيم المعارض والمؤتمرات">مؤسسة كاس لتنظيم المعارض والمؤتمرات</option>
@@ -1242,98 +1242,98 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">كود المنافسة</label>
+                <label className="block font-bold text-[#141414] mb-1.5">كود المنافسة</label>
                 <input
                   type="text"
                   value={formData.tenderCode || ''}
                   onChange={e => setFormData(p => ({ ...p, tenderCode: e.target.value }))}
                   placeholder="مثال: A1246, F0258..."
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 text-xs font-mono font-bold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 text-xs font-mono font-bold text-[#141414]"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">الرقم المرجعي (اعتماد)</label>
+                <label className="block font-bold text-[#141414] mb-1.5">الرقم المرجعي (اعتماد)</label>
                 <input
                   type="text"
                   value={formData.referenceNumber || ''}
                   onChange={e => setFormData(p => ({ ...p, referenceNumber: e.target.value }))}
                   placeholder="مثال: 240739001563"
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 text-xs font-mono font-bold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 text-xs font-mono font-bold text-[#141414]"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">الجهة الحكومية</label>
+                <label className="block font-bold text-[#141414] mb-1.5">الجهة الحكومية</label>
                 <input
                   type="text"
                   value={formData.entity || ''}
                   onChange={e => setFormData(p => ({ ...p, entity: e.target.value }))}
                   placeholder="مثال: وزارة الحرس الوطني..."
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 text-xs font-semibold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 text-xs font-semibold text-[#141414]"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">اسم المسؤول</label>
+                <label className="block font-bold text-[#141414] mb-1.5">اسم المسؤول</label>
                 <input
                   type="text"
                   value={formData.managerName || ''}
                   onChange={e => setFormData(p => ({ ...p, managerName: e.target.value }))}
                   placeholder="اسم مسؤول المنافسة..."
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 text-xs font-semibold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 text-xs font-semibold text-[#141414]"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">هاتف المسؤول</label>
+                <label className="block font-bold text-[#141414] mb-1.5">هاتف المسؤول</label>
                 <input
                   type="text"
                   value={formData.managerPhone || ''}
                   onChange={e => setFormData(p => ({ ...p, managerPhone: e.target.value }))}
                   placeholder="05XXXXXXXX"
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 text-xs font-mono font-bold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 text-xs font-mono font-bold text-[#141414]"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">قيمة عرض كاس (⃁)</label>
+                <label className="block font-bold text-[#141414] mb-1.5">قيمة عرض كاس (⃁)</label>
                 <input
                   type="number"
                   value={formData.bidValue || ''}
                   onChange={e => setFormData(p => ({ ...p, bidValue: parseFloat(e.target.value) || 0 }))}
                   placeholder="0.00"
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 text-xs font-mono font-bold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 text-xs font-mono font-bold text-[#141414]"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">المبلغ الفائز (⃁)</label>
+                <label className="block font-bold text-[#141414] mb-1.5">المبلغ الفائز (⃁)</label>
                 <input
                   type="number"
                   value={formData.winningBidValue || ''}
                   onChange={e => setFormData(p => ({ ...p, winningBidValue: parseFloat(e.target.value) || 0 }))}
                   placeholder="0.00"
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 text-xs font-mono font-bold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 text-xs font-mono font-bold text-[#141414]"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">تاريخ انتهاء التقديم</label>
+                <label className="block font-bold text-[#141414] mb-1.5">تاريخ انتهاء التقديم</label>
                 <input
                   type="date"
                   value={formData.deadlineDate || ''}
                   onChange={e => setFormData(p => ({ ...p, deadlineDate: e.target.value }))}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 text-xs font-mono font-bold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 text-xs font-mono font-bold text-[#141414]"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">الحالة (الملاحظات)</label>
+                <label className="block font-bold text-[#141414] mb-1.5">الحالة (الملاحظات)</label>
                 <select
                   value={formData.notes || ''}
                   onChange={e => setFormData(p => ({ ...p, notes: e.target.value }))}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 text-xs font-semibold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 text-xs font-semibold text-[#141414]"
                 >
                   <option value="مرحلة فحص العروض">مرحلة فحص العروض</option>
                   <option value="تم اعتماد الترسية">تم اعتماد الترسية</option>
@@ -1344,11 +1344,11 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">سبب الترسية / الاستبعاد</label>
+                <label className="block font-bold text-[#141414] mb-1.5">سبب الترسية / الاستبعاد</label>
                 <select
                   value={formData.rejectionReason || ''}
                   onChange={e => setFormData(p => ({ ...p, rejectionReason: e.target.value }))}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 text-xs font-semibold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 text-xs font-semibold text-[#141414]"
                 >
                   <option value="معلقة">معلقة</option>
                   <option value="تم الترسية">تم الترسية</option>
@@ -1360,32 +1360,32 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">المدينة</label>
+                <label className="block font-bold text-[#141414] mb-1.5">المدينة</label>
                 <input
                   type="text"
                   value={formData.city || ''}
                   onChange={e => setFormData(p => ({ ...p, city: e.target.value }))}
                   placeholder="الرياض، جدة، الدمام..."
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 text-xs font-semibold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 text-xs font-semibold text-[#141414]"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+            <div className="flex items-center justify-end gap-3 border-t border-[#e0e0e0] pt-4">
               <button
                 type="button"
                 onClick={() => {
                   setIsAddModalOpen(false);
                   setIsEditModalOpen(false);
                 }}
-                className="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition"
+                className="px-5 py-2.5 rounded-2xl bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] font-bold text-xs transition"
               >
                 إلغاء
               </button>
               <button
                 type="button"
                 onClick={isAddModalOpen ? handleSaveAdd : handleSaveEdit}
-                className="px-6 py-2.5 rounded-2xl bg-[#141414] hover:bg-[#262626] text-white font-bold text-xs flex items-center gap-2 shadow-lg transition"
+                className="px-6 py-2.5 rounded-2xl bg-[#141414] hover:bg-[#262626] text-white font-bold text-xs flex items-center gap-2  transition"
               >
                 <Check className="w-4 h-4" />
                 <span>{isAddModalOpen ? 'حفظ وإضافة المنافسة' : 'حفظ التعديلات'}</span>
@@ -1397,31 +1397,31 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
 
       {/* Modal: Import Excel File */}
       {isImportModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150 text-slate-900 relative">
+        <div className="fixed inset-0 z-50 bg-[#141414] backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white border border-[#e0e0e0] rounded-3xl max-w-md w-full p-6 sm:p-8  space-y-5 animate-in fade-in zoom-in-95 duration-150 text-[#141414] relative">
             <div className="absolute top-0 right-0 left-0 h-1.5 bg-[#141414] rounded-t-3xl" />
 
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
+              <h3 className="text-lg font-bold text-[#141414] flex items-center gap-2">
                 <FileUp className="w-5 h-5 text-[#141414]" />
                 <span>استيراد ملف إكسل المنافسات</span>
               </h3>
               <button
                 onClick={() => setIsImportModalOpen(false)}
-                className="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition"
+                className="p-2 rounded-2xl bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070] hover:text-[#141414] transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-xs text-[#707070] leading-relaxed">
               يمكنك رفع أي ملف إكسل (.xlsx / .xls) مطابق لتنسيق Google Sheet الخاص بمنافسات كاس لتحديث البيانات وإضافة المنافسات تلقائياً.
             </p>
 
-            <div className="p-8 border-2 border-dashed border-slate-200 rounded-3xl text-center bg-slate-50 hover:bg-slate-100/60 transition-colors">
+            <div className="p-8 border-2 border-dashed border-[#e0e0e0] rounded-3xl text-center bg-[#f3f3f3] hover:bg-[#f3f3f3] transition-colors">
               <Upload className="w-10 h-10 mx-auto text-[#141414] mb-3" />
-              <label className="block text-xs font-bold text-slate-700 cursor-pointer">
-                <span className="bg-[#141414] hover:bg-[#262626] text-[#ffffff] px-5 py-2.5 rounded-2xl inline-block shadow-lg font-bold">
+              <label className="block text-xs font-bold text-[#141414] cursor-pointer">
+                <span className="bg-[#141414] hover:bg-[#262626] text-[#ffffff] px-5 py-2.5 rounded-2xl inline-block  font-bold">
                   اختر ملف Excel من جهازك
                 </span>
                 <input
@@ -1431,13 +1431,13 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                   className="hidden"
                 />
               </label>
-              <span className="text-[11px] text-slate-400 block mt-2">يدعم صيغ .xlsx أو .xls</span>
+              <span className="text-[11px] text-[#adadad] block mt-2">يدعم صيغ .xlsx أو .xls</span>
             </div>
 
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setIsImportModalOpen(false)}
-                className="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition"
+                className="px-5 py-2.5 rounded-2xl bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] font-bold text-xs transition"
               >
                 إغلاق
               </button>
@@ -1448,30 +1448,30 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
 
       {/* Modal: Printable Official Tenders Report */}
       {isPrintModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white text-slate-900 rounded-3xl max-w-4xl w-full p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-4 print:border-none">
+        <div className="fixed inset-0 z-50 bg-[#141414] backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white text-[#141414] rounded-3xl max-w-4xl w-full p-8  space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-4 print:border-none">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-[#141414] text-[#ffffff] flex items-center justify-center font-bold text-xl shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-[#141414] text-[#ffffff] flex items-center justify-center font-bold text-xl ">
                   KAS
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-slate-900">مؤسسة خالد عبدالعزيز السليم للتجارة والمقاولات</h2>
-                  <p className="text-xs text-slate-500">كشف وسجل المنافسات الحكومية المعتمد - شيت {selectedSheetName}</p>
+                  <h2 className="text-lg font-bold text-[#141414]">مؤسسة خالد عبدالعزيز السليم للتجارة والمقاولات</h2>
+                  <p className="text-xs text-[#707070]">كشف وسجل المنافسات الحكومية المعتمد - شيت {selectedSheetName}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 print:hidden">
                 <button
                   onClick={() => window.print()}
-                  className="px-5 py-2.5 rounded-2xl bg-[#141414] hover:bg-[#262626] text-white text-xs font-bold flex items-center gap-2 shadow-md"
+                  className="px-5 py-2.5 rounded-2xl bg-[#141414] hover:bg-[#262626] text-white text-xs font-bold flex items-center gap-2 "
                 >
                   <Printer className="w-4 h-4" />
                   <span>طباعة الآن</span>
                 </button>
                 <button
                   onClick={() => setIsPrintModalOpen(false)}
-                  className="p-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs"
+                  className="p-2.5 rounded-2xl bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070] text-xs"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1479,60 +1479,60 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
             </div>
 
             {/* Print Header KPIs */}
-            <div className="grid grid-cols-4 gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs">
+            <div className="grid grid-cols-4 gap-3 p-4 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] text-xs">
               <div>
-                <span className="text-slate-500 block">إجمالي المنافسات:</span>
-                <span className="font-bold text-slate-900 font-mono text-sm">{filteredTenders.length}</span>
+                <span className="text-[#707070] block">إجمالي المنافسات:</span>
+                <span className="font-bold text-[#141414] font-mono text-sm">{filteredTenders.length}</span>
               </div>
               <div>
-                <span className="text-slate-500 block">قيمة العروض:</span>
-                <span className="font-bold text-slate-900 font-mono text-sm">{kpis.totalBidValue.toLocaleString()} ⃁</span>
+                <span className="text-[#707070] block">قيمة العروض:</span>
+                <span className="font-bold text-[#141414] font-mono text-sm">{kpis.totalBidValue.toLocaleString()} ⃁</span>
               </div>
               <div>
-                <span className="text-slate-500 block">الترسيات المعتمدة:</span>
+                <span className="text-[#707070] block">الترسيات المعتمدة:</span>
                 <span className="font-bold text-[#141414] font-mono text-sm">{kpis.wonCount} ترسية</span>
               </div>
               <div>
-                <span className="text-slate-500 block">تاريخ التقرير:</span>
-                <span className="font-bold text-slate-900 font-mono text-sm">{new Date().toISOString().split('T')[0]}</span>
+                <span className="text-[#707070] block">تاريخ التقرير:</span>
+                <span className="font-bold text-[#141414] font-mono text-sm">{new Date().toISOString().split('T')[0]}</span>
               </div>
             </div>
 
             {/* Print Table */}
-            <table className="w-full text-xs text-right border-collapse border border-slate-200">
+            <table className="w-full text-xs text-right border-collapse border border-[#e0e0e0]">
               <thead>
-                <tr className="bg-slate-100 text-slate-800 border-b border-slate-200 font-bold">
-                  <th className="p-2 border border-slate-200 text-center">#</th>
-                  <th className="p-2 border border-slate-200">كود / مرجع</th>
-                  <th className="p-2 border border-slate-200">اسم المنافسة</th>
-                  <th className="p-2 border border-slate-200">الجهة الحكومية</th>
-                  <th className="p-2 border border-slate-200 text-left">قيمة العرض</th>
-                  <th className="p-2 border border-slate-200 text-left">المبلغ الفائز</th>
-                  <th className="p-2 border border-slate-200">الحالة</th>
+                <tr className="bg-[#f3f3f3] text-[#141414] border-b border-[#e0e0e0] font-bold">
+                  <th className="p-2 border border-[#e0e0e0] text-center">#</th>
+                  <th className="p-2 border border-[#e0e0e0]">كود / مرجع</th>
+                  <th className="p-2 border border-[#e0e0e0]">اسم المنافسة</th>
+                  <th className="p-2 border border-[#e0e0e0]">الجهة الحكومية</th>
+                  <th className="p-2 border border-[#e0e0e0] text-left">قيمة العرض</th>
+                  <th className="p-2 border border-[#e0e0e0] text-left">المبلغ الفائز</th>
+                  <th className="p-2 border border-[#e0e0e0]">الحالة</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredTenders.slice(0, 100).map((t, i) => (
-                  <tr key={t.id || i} className="border-b border-slate-100 hover:bg-slate-50">
-                    <td className="p-2 border border-slate-200 text-center font-mono text-slate-500">{i + 1}</td>
-                    <td className="p-2 border border-slate-200 font-mono text-slate-700">{t.tenderCode || t.referenceNumber || '-'}</td>
-                    <td className="p-2 border border-slate-200 font-medium text-slate-900">{t.title}</td>
-                    <td className="p-2 border border-slate-200 text-slate-700">{t.entity || '-'}</td>
-                    <td className="p-2 border border-slate-200 text-left font-mono">{t.bidValue ? `${t.bidValue.toLocaleString()} ⃁` : '-'}</td>
-                    <td className="p-2 border border-slate-200 text-left font-mono text-[#141414] font-semibold">{t.winningBidValue ? `${t.winningBidValue.toLocaleString()} ⃁` : '-'}</td>
-                    <td className="p-2 border border-slate-200 text-slate-700 text-[11px]">{t.notes || t.rejectionReason || '-'}</td>
+                  <tr key={t.id || i} className="border-b border-[#e0e0e0] hover:bg-[#f3f3f3]">
+                    <td className="p-2 border border-[#e0e0e0] text-center font-mono text-[#707070]">{i + 1}</td>
+                    <td className="p-2 border border-[#e0e0e0] font-mono text-[#141414]">{t.tenderCode || t.referenceNumber || '-'}</td>
+                    <td className="p-2 border border-[#e0e0e0] font-medium text-[#141414]">{t.title}</td>
+                    <td className="p-2 border border-[#e0e0e0] text-[#141414]">{t.entity || '-'}</td>
+                    <td className="p-2 border border-[#e0e0e0] text-left font-mono">{t.bidValue ? `${t.bidValue.toLocaleString()} ⃁` : '-'}</td>
+                    <td className="p-2 border border-[#e0e0e0] text-left font-mono text-[#141414] font-semibold">{t.winningBidValue ? `${t.winningBidValue.toLocaleString()} ⃁` : '-'}</td>
+                    <td className="p-2 border border-[#e0e0e0] text-[#141414] text-[11px]">{t.notes || t.rejectionReason || '-'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
 
             {filteredTenders.length > 100 && (
-              <p className="text-[11px] text-slate-400 text-center">
+              <p className="text-[11px] text-[#adadad] text-center">
                 * تم عرض أول 100 منافسة في هذا الكشف. لتصدير كامل السجلات ({filteredTenders.length}) يرجى استخدام تصدير Excel.
               </p>
             )}
 
-            <div className="flex justify-between items-center text-[10px] text-slate-400 border-t border-slate-200 pt-4">
+            <div className="flex justify-between items-center text-[10px] text-[#adadad] border-t border-[#e0e0e0] pt-4">
               <span>نظام ERP مجموعة خالد السليم - إدارة المنافسات والعقود</span>
               <span>صفحة 1 من 1</span>
             </div>

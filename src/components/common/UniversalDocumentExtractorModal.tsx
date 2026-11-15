@@ -226,7 +226,7 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
         onClick={(e) => e.stopPropagation()}
       >
         {/* Clean Mobbin Light Header */}
-        <div className="bg-[#ffffff] text-[#141414] px-6 py-4 border-b border-[#e5e5e5] flex flex-wrap items-center justify-between gap-4">
+        <div className="bg-[#ffffff] text-[#141414] px-6 py-4 border-b border-[#e0e0e0] flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="hidden sm:block">
               <BusinessIllustration type="ocr-extractor" size="sm" showBackground={false} />
@@ -248,7 +248,7 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
 
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
+            className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
             title="إغلاق"
           >
             <X className="w-4 h-4" />
@@ -435,7 +435,7 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
             {/* Upload Dropzone */}
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="lg:col-span-6 border-2 border-dashed border-[#d4d4d4] hover:border-[#141414] bg-[#f3f3f3]/60 hover:bg-[#f3f3f3] transition-colors rounded-[20px] p-5 flex flex-col items-center justify-center text-center cursor-pointer"
+              className="lg:col-span-6 border-2 border-dashed border-[#e0e0e0] hover:border-[#141414] bg-[#f3f3f3]/60 hover:bg-[#f3f3f3] transition-colors rounded-[20px] p-5 flex flex-col items-center justify-center text-center cursor-pointer"
             >
               <input
                 ref={fileInputRef}
@@ -601,7 +601,7 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
                   <button
                     type="button"
                     onClick={() => setStagedRecords([])}
-                    className="px-3.5 py-1.5 rounded-full bg-[#ffffff] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] text-xs font-semibold flex items-center gap-1 cursor-pointer"
+                    className="px-3.5 py-1.5 rounded-full bg-[#ffffff] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-xs font-semibold flex items-center gap-1 cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     مسح القائمة
@@ -690,7 +690,7 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
                             <button
                               type="button"
                               onClick={() => setPreviewRecord(rec)}
-                              className="px-2.5 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] text-[10px] font-semibold inline-flex items-center gap-1 cursor-pointer"
+                              className="px-2.5 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-[10px] font-semibold inline-flex items-center gap-1 cursor-pointer"
                             >
                               <Eye className="w-3 h-3 text-[#141414]" />
                               عرض الصورة
@@ -714,7 +714,7 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
         </div>
 
         {/* Footer */}
-        <div className="bg-[#ffffff] px-6 py-3.5 border-t border-[#e5e5e5] flex flex-wrap items-center justify-between gap-3">
+        <div className="bg-[#ffffff] px-6 py-3.5 border-t border-[#e0e0e0] flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs text-[#707070] font-semibold">
             <ShieldCheck className="w-4 h-4 text-[#141414]" />
             <span>
@@ -729,7 +729,7 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-full border border-[#e0e0e0] bg-[#f3f3f3] hover:bg-[#e5e5e5] text-xs font-semibold text-[#141414] cursor-pointer"
+              className="px-4 py-2 rounded-full border border-[#e0e0e0] bg-[#f3f3f3] hover:bg-[#e0e0e0] text-xs font-semibold text-[#141414] cursor-pointer"
             >
               إغلاق
             </button>
@@ -756,10 +756,10 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
           onClick={() => setPreviewRecord(null)}
         >
           <div
-            className="bg-[#ffffff] rounded-[24px] max-w-2xl w-full overflow-hidden shadow-2xl border border-[#e0e0e0]"
+            className="bg-[#ffffff] rounded-[24px] max-w-2xl w-full overflow-hidden  border border-[#e0e0e0]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-[#ffffff] text-[#141414] px-5 py-3.5 border-b border-[#e5e5e5] flex items-center justify-between">
+            <div className="bg-[#ffffff] text-[#141414] px-5 py-3.5 border-b border-[#e0e0e0] flex items-center justify-between">
               <div>
                 <h4 className="text-sm font-bold text-[#141414]">
                   معاينة المستند / صورة الفاتورة المرفقة: {previewRecord.primaryRef}
@@ -770,7 +770,7 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
               </div>
               <button
                 onClick={() => setPreviewRecord(null)}
-                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] flex items-center justify-center text-[#141414] cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] flex items-center justify-center text-[#141414] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -822,7 +822,7 @@ export const UniversalDocumentExtractorModal: React.FC<UniversalDocumentExtracto
           onClick={() => setReportingTarget(null)}
         >
           <div
-            className="bg-[#ffffff] rounded-[24px] max-w-md w-full p-5 space-y-3.5 shadow-2xl border border-[#e0e0e0] text-right"
+            className="bg-[#ffffff] rounded-[24px] max-w-md w-full p-5 space-y-3.5  border border-[#e0e0e0] text-right"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-2.5">

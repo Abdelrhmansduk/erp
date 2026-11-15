@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
-import { calculateFamilyAirTicketEntitlement as calculateAnnualAirTicketEntitlement } from '../services/jisrAdvancedComplianceEngine';
+import { calculateFamilyAirTicketEntitlement as calculateAnnualAirTicketEntitlement } from '../services/hrAdvancedComplianceEngine';
 import { WpsPayrollEngine } from '../services/wpsPayrollEngine';
 import { journalEngine } from '../services/accounting/journalEngine';
 
@@ -926,7 +926,7 @@ export const TravelPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
           display: 'flex',
           flexDirection: 'row',
@@ -971,7 +971,7 @@ export const TravelPage: React.FC = () => {
             >
               إدارة اللوجستيات، رحلات العمالة، وانتدابات وتذاكر سفر الموظفين
             </h1>
-            <p style={{ fontSize: '13px', color: '#a1a1aa', margin: '4px 0 0 0', fontWeight: 420 }}>
+            <p style={{ fontSize: '13px', color: '#adadad', margin: '4px 0 0 0', fontWeight: 420 }}>
               متابعة رحلات الوصول والترحيل، إصدار تذاكر السفر السنوية والانتدابات، وتتبع تأشيرات الخروج والعودة لـ {activeCompany.name}
             </p>
           </div>
@@ -1047,7 +1047,7 @@ export const TravelPage: React.FC = () => {
       {mainView === 'worker_flights' && (
         <>
           {/* Sub Tabs Navigation */}
-          <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
+          <div className="flex flex-wrap gap-2 border-b border-[#e0e0e0] pb-3">
             {[
               { id: 'all', label: `جميع الرحلات (${flights.length})` },
               { id: 'arrivals', label: 'رحلات الوصول (Arrivals)' },
@@ -1065,9 +1065,9 @@ export const TravelPage: React.FC = () => {
                     padding: '6px 16px',
                     borderRadius: '9999px',
                     border: '1px solid',
-                    borderColor: isActive ? '#141414' : '#e4e4e7',
+                    borderColor: isActive ? '#141414' : '#e0e0e0',
                     backgroundColor: isActive ? '#141414' : '#ffffff',
-                    color: isActive ? '#ffffff' : '#27272a',
+                    color: isActive ? '#ffffff' : '#262626',
                     fontWeight: isActive ? 550 : 420,
                     fontSize: '12.5px',
                     cursor: 'pointer',
@@ -1086,7 +1086,7 @@ export const TravelPage: React.FC = () => {
               className="card-pricing"
               style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}
             >
-              <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between">
+              <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between">
                 <div>
                   <h2
                     className="display-sm"
@@ -1104,8 +1104,8 @@ export const TravelPage: React.FC = () => {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-right text-xs text-zinc-700">
-                  <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+                <table className="w-full text-right text-xs text-[#141414]">
+                  <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                     <tr>
                       <th className="p-3.5">رقم المهمة</th>
                       <th className="p-3.5">العاملة والجنسية</th>
@@ -1117,9 +1117,9 @@ export const TravelPage: React.FC = () => {
                       <th className="p-3.5 text-center">إجراء الاستقبال</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-100">
+                  <tbody className="divide-y divide-[#e0e0e0]">
                     {airportReceptions.map((r) => (
-                      <tr key={r.id} className="hover:bg-zinc-50">
+                      <tr key={r.id} className="hover:bg-[#f3f3f3]">
                         <td className="p-3.5 font-mono font-bold text-[#141414]">{r.id}</td>
                         <td className="p-3.5 font-bold text-[#141414]">
                           <div className="flex items-center gap-2">
@@ -1136,7 +1136,7 @@ export const TravelPage: React.FC = () => {
                         </td>
                         <td className="p-3.5 font-semibold text-[#141414]">{r.airport}</td>
                         <td className="p-3.5 font-mono text-[#141414]">{r.time}</td>
-                        <td className="p-3.5 text-zinc-700">
+                        <td className="p-3.5 text-[#141414]">
                           <div className="flex items-center gap-2">
                             <CorporateAvatar name={r.driver} profession="سائق خاص" size="sm" />
                             <span>{r.driver}</span>
@@ -1192,7 +1192,7 @@ export const TravelPage: React.FC = () => {
               className="card-pricing"
               style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}
             >
-              <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-white flex-wrap gap-3">
+              <div className="flex items-center justify-between p-4 border-b border-[#e0e0e0] bg-white flex-wrap gap-3">
                 <div className="relative w-full md:w-80">
                   <Search className="w-4 h-4 absolute right-3 top-3 text-[#707070]" />
                   <input
@@ -1218,8 +1218,8 @@ export const TravelPage: React.FC = () => {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-right text-xs text-zinc-700">
-                  <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+                <table className="w-full text-right text-xs text-[#141414]">
+                  <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                     <tr>
                       <th className="p-3.5">#</th>
                       <th className="p-3.5">نوع الرحلة</th>
@@ -1233,9 +1233,9 @@ export const TravelPage: React.FC = () => {
                       <th className="p-3.5 text-center">الإجراءات</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-100">
+                  <tbody className="divide-y divide-[#e0e0e0]">
                     {currentDisplayList.map((f) => (
-                      <tr key={f.id} className="hover:bg-zinc-50">
+                      <tr key={f.id} className="hover:bg-[#f3f3f3]">
                         <td className="p-3.5 font-mono font-bold text-[#141414]">{f.id}</td>
                         <td className="p-3.5">
                           <Badge
@@ -1266,7 +1266,7 @@ export const TravelPage: React.FC = () => {
                             {f.flight_number}
                           </div>
                         </td>
-                        <td className="p-3.5 text-zinc-600">{f.arrival_airport}</td>
+                        <td className="p-3.5 text-[#141414]">{f.arrival_airport}</td>
                         <td className="p-3.5 font-mono">
                           <div className="font-bold text-[#141414]">{f.flight_date}</div>
                           <div className="text-[#707070]">{f.flight_time}</div>
@@ -1329,7 +1329,7 @@ export const TravelPage: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => setFlightPendingDelete(f)}
-                                className="p-1 rounded-full hover:bg-[#eaeaea] text-[#707070] hover:text-[#141414] transition-colors cursor-pointer"
+                                className="p-1 rounded-full hover:bg-[#e0e0e0] text-[#707070] hover:text-[#141414] transition-colors cursor-pointer"
                                 title="حذف الرحلة"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -2206,7 +2206,7 @@ export const TravelPage: React.FC = () => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-xl bg-white border border-zinc-200 rounded-[24px] overflow-hidden flex flex-col max-h-[90vh]"
+            className="w-full max-w-xl bg-white border border-[#e0e0e0] rounded-[24px] overflow-hidden flex flex-col max-h-[90vh]"
           >
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="text-base font-bold text-[#141414] flex items-center gap-2">
@@ -2215,7 +2215,7 @@ export const TravelPage: React.FC = () => {
               </h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors"
+                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#141414] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2227,20 +2227,20 @@ export const TravelPage: React.FC = () => {
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">
                     نوع الرحلة *
                   </label>
                   <select
                     value={travelType}
                     onChange={(e) => setTravelType(e.target.value as any)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="وصول">رحلة وصول إلى المملكة</option>
                     <option value="ترحيل">رحلة ترحيل ومغادرة</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">
                     اسم العاملة *
                   </label>
                   <input
@@ -2249,20 +2249,20 @@ export const TravelPage: React.FC = () => {
                     value={maidName}
                     onChange={(e) => setMaidName(e.target.value)}
                     placeholder="اسم العاملة بالجواز"
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">
                     شركة الطيران *
                   </label>
                   <select
                     value={airline}
                     onChange={(e) => setAirline(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option>الخطوط السعودية (SAUDIA)</option>
                     <option>الخطوط الإثيوبية (Ethiopian)</option>
@@ -2272,7 +2272,7 @@ export const TravelPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">
                     رقم الرحلة *
                   </label>
                   <input
@@ -2281,14 +2281,14 @@ export const TravelPage: React.FC = () => {
                     value={flightNumber}
                     onChange={(e) => setFlightNumber(e.target.value)}
                     placeholder="SV-861"
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">
                     تاريخ الرحلة *
                   </label>
                   <input
@@ -2296,11 +2296,11 @@ export const TravelPage: React.FC = () => {
                     required
                     value={flightDate}
                     onChange={(e) => setFlightDate(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">
                     توقيت الوصول *
                   </label>
                   <input
@@ -2308,19 +2308,19 @@ export const TravelPage: React.FC = () => {
                     required
                     value={flightTime}
                     onChange={(e) => setFlightTime(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">
                   مطار الوصول بالمملكة *
                 </label>
                 <select
                   value={arrivalAirport}
                   onChange={(e) => setArrivalAirport(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option>مطار الملك خالد الدولي - الرياض (RUH)</option>
                   <option>مطار الملك عبدالعزيز الدولي - جدة (JED)</option>
@@ -2330,7 +2330,7 @@ export const TravelPage: React.FC = () => {
                 </select>
               </div>
 
-              <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end gap-3 -mx-6 -mb-6 mt-4">
+              <div className="p-4 bg-[#f3f3f3] border-t border-[#e0e0e0] flex items-center justify-end gap-3 -mx-6 -mb-6 mt-4">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
@@ -2363,9 +2363,9 @@ export const TravelPage: React.FC = () => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-2xl bg-white border border-zinc-200 rounded-[24px] p-6 max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-2xl bg-white border border-[#e0e0e0] rounded-[24px] p-6 max-h-[90vh] overflow-y-auto"
           >
-            <div className="no-print print:hidden flex justify-between items-center mb-4 border-b border-zinc-100 pb-3">
+            <div className="no-print print:hidden flex justify-between items-center mb-4 border-b border-[#e0e0e0] pb-3">
               <div className="flex items-center gap-2">
                 <Car className="w-5 h-5 text-[#141414]" />
                 <h3 className="font-bold text-[#141414] text-base">
@@ -2381,9 +2381,9 @@ export const TravelPage: React.FC = () => {
             </div>
 
             {/* Printable Order Body */}
-            <div className="erp-printable-sheet p-6 bg-white border-2 border-zinc-900 rounded-2xl space-y-4 font-sans text-xs">
+            <div className="erp-printable-sheet p-6 bg-white border-2 border-[#e0e0e0] rounded-2xl space-y-4 font-sans text-xs">
               {/* Header */}
-              <div className="flex items-center justify-between border-b-2 border-zinc-900 pb-4">
+              <div className="flex items-center justify-between border-b-2 border-[#e0e0e0] pb-4">
                 <div>
                   <h2 className="text-base font-bold text-[#141414]">
                     مجموعة السليم للاستقدام - إدارة الحركة والترحيل
@@ -2402,7 +2402,7 @@ export const TravelPage: React.FC = () => {
 
               {/* Grid: Driver & Flight Info */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 space-y-1">
+                <div className="p-3 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0] space-y-1">
                   <span className="text-[10px] text-[#707070] font-bold block">
                     السائق والمركبة المخصصة
                   </span>
@@ -2428,8 +2428,8 @@ export const TravelPage: React.FC = () => {
               </div>
 
               {/* Worker & Flight Specification */}
-              <div className="p-3.5 bg-zinc-50 rounded-2xl border border-zinc-200 space-y-2">
-                <h4 className="font-bold text-xs text-[#141414] border-b border-zinc-200 pb-1">
+              <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] space-y-2">
+                <h4 className="font-bold text-xs text-[#141414] border-b border-[#e0e0e0] pb-1">
                   تفاصيل الرحلة والعمالة القادمة
                 </h4>
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
@@ -2495,24 +2495,24 @@ export const TravelPage: React.FC = () => {
               </div>
 
               {/* Signatures */}
-              <div className="grid grid-cols-2 gap-6 pt-3 border-t-2 border-zinc-300">
+              <div className="grid grid-cols-2 gap-6 pt-3 border-t-2 border-[#e0e0e0]">
                 <div className="text-center space-y-4">
                   <div className="font-bold text-[#141414] text-xs">
                     توقيع مسؤول الحركة والعمليات
                   </div>
-                  <div className="w-full h-8 border-b border-zinc-400"></div>
+                  <div className="w-full h-8 border-b border-[#e0e0e0]"></div>
                 </div>
                 <div className="text-center space-y-4">
                   <div className="font-bold text-[#141414] text-xs">
                     توقيع واستلام كابتن الاستقبال
                   </div>
-                  <div className="w-full h-8 border-b border-zinc-400"></div>
+                  <div className="w-full h-8 border-b border-[#e0e0e0]"></div>
                 </div>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="no-print print:hidden flex justify-between items-center gap-2 pt-4 border-t border-zinc-100 mt-4">
+            <div className="no-print print:hidden flex justify-between items-center gap-2 pt-4 border-t border-[#e0e0e0] mt-4">
               <button
                 type="button"
                 onClick={() => window.print()}

@@ -139,20 +139,20 @@ describe('moduleVisibility & authService — HR Isolation & Abdulrahman Per-Empl
       expect(access.visibleMenu.some((item) => item.id === 'dept-2-finance')).toBe(false);
       expect(access.blockedHrefs.has('gov-integrations')).toBe(true);
       expect(access.blockedHrefs.has('smacc-accounting')).toBe(true);
-      expect(access.blockedHrefs.has('jisr-accruals')).toBe(true);
-      expect(access.blockedHrefs.has('jisr-expenses')).toBe(true);
+      expect(access.blockedHrefs.has('hr-accruals')).toBe(true);
+      expect(access.blockedHrefs.has('hr-expenses')).toBe(true);
 
       expect(authService.isTabAuthorizedForUser(hrUser, 'gov-integrations')).toBe(false);
       expect(authService.isTabAuthorizedForUser(hrUser, 'government-hub')).toBe(false);
       expect(authService.isTabAuthorizedForUser(hrUser, 'smacc-accounting')).toBe(false);
       expect(authService.isTabAuthorizedForUser(hrUser, 'finance-home')).toBe(false);
       expect(authService.isTabAuthorizedForUser(hrUser, 'zatca')).toBe(false);
-      expect(authService.isTabAuthorizedForUser(hrUser, 'jisr-accruals')).toBe(false);
-      expect(authService.isTabAuthorizedForUser(hrUser, 'jisr-expenses')).toBe(false);
+      expect(authService.isTabAuthorizedForUser(hrUser, 'hr-accruals')).toBe(false);
+      expect(authService.isTabAuthorizedForUser(hrUser, 'hr-expenses')).toBe(false);
 
       // Core HR modules remain accessible
       expect(authService.isTabAuthorizedForUser(hrUser, 'employees')).toBe(true);
-      expect(authService.isTabAuthorizedForUser(hrUser, 'jisr-welcome-signage')).toBe(true);
+      expect(authService.isTabAuthorizedForUser(hrUser, 'hr-welcome-signage')).toBe(true);
       expect(authService.isTabAuthorizedForUser(hrUser, 'payroll')).toBe(true);
     }
   });

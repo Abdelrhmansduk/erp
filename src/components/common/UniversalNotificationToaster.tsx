@@ -128,7 +128,7 @@ export const UniversalNotificationToaster: React.FC<UniversalNotificationToaster
     >
       {/* Compact Header Strip only when multiple notifications are visible */}
       {notifications.length > 1 && (
-        <div className="flex items-center justify-between px-3 py-1 rounded-full bg-[#ffffff] text-[10.5px] text-[#141414] pointer-events-auto shadow-sm border border-[#e0e0e0]">
+        <div className="flex items-center justify-between px-3 py-1 rounded-full bg-[#ffffff] text-[10.5px] text-[#141414] pointer-events-auto  border border-[#e0e0e0]">
           <span className="font-bold text-[#141414]">تنبيهات نشطة ({notifications.length})</span>
           <div className="flex items-center gap-1.5">
             <button
@@ -173,8 +173,8 @@ export const UniversalNotificationToaster: React.FC<UniversalNotificationToaster
             }}
             className={`pointer-events-auto relative overflow-hidden rounded-[20px] p-3.5 border transition-all duration-300 animate-in slide-in-from-top-2 fade-in ${
               isCritical
-                ? 'bg-[#141414] text-[#ffffff] border-[#141414] shadow-2xl'
-                : 'bg-[#ffffff] text-[#141414] border-[#e0e0e0] shadow-xl'
+                ? 'bg-[#141414] text-[#ffffff] border-[#141414] '
+                : 'bg-[#ffffff] text-[#141414] border-[#e0e0e0] '
             }`}
           >
             {/* Top Bar: Icon + Category Pill + Time + Close Button */}
@@ -184,7 +184,7 @@ export const UniversalNotificationToaster: React.FC<UniversalNotificationToaster
                 <span
                   className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
                     isCritical
-                      ? 'bg-[#262626] text-[#ffffff] border-[#3d3d3d]'
+                      ? 'bg-[#262626] text-[#ffffff] border-[#262626]'
                       : 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0]'
                   }`}
                 >
@@ -194,7 +194,7 @@ export const UniversalNotificationToaster: React.FC<UniversalNotificationToaster
               <div className="flex items-center gap-1">
                 <span
                   className={`text-[10px] font-mono ${
-                    isCritical ? 'text-[#a3a3a3]' : 'text-[#707070]'
+                    isCritical ? 'text-[#adadad]' : 'text-[#707070]'
                   }`}
                 >
                   {notif.timestamp}
@@ -204,7 +204,7 @@ export const UniversalNotificationToaster: React.FC<UniversalNotificationToaster
                   onClick={() => notificationPopupEngine.dismiss(notif.id)}
                   className={`p-1 rounded-full transition-colors cursor-pointer ${
                     isCritical
-                      ? 'text-[#a3a3a3] hover:text-[#ffffff] hover:bg-[#262626]'
+                      ? 'text-[#adadad] hover:text-[#ffffff] hover:bg-[#262626]'
                       : 'text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3]'
                   }`}
                   title="إغلاق الإشعار"
@@ -225,7 +225,7 @@ export const UniversalNotificationToaster: React.FC<UniversalNotificationToaster
             {notif.message && (
               <p
                 className={`text-[11px] mt-1 mb-0 leading-relaxed line-clamp-2 ${
-                  isCritical ? 'text-[#d4d4d4]' : 'text-[#707070]'
+                  isCritical ? 'text-[#e0e0e0]' : 'text-[#707070]'
                 }`}
               >
                 {notif.message}

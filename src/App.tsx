@@ -152,8 +152,8 @@ const CorporateDigitalSignagePlayer = lazyWithRetry(() =>
 
 const PageFallback: React.FC = () => (
   <div className="flex flex-col items-center justify-center min-h-[400px] w-full p-8">
-    <Loader2 className="w-10 h-10 animate-spin text-[#8C6239] mb-3" />
-    <span className="text-sm font-medium text-zinc-600 animate-pulse">جاري تحميل النظام المؤسسي...</span>
+    <Loader2 className="w-10 h-10 animate-spin text-[#707070] mb-3" />
+    <span className="text-sm font-medium text-[#707070] animate-pulse">جاري تحميل النظام المؤسسي...</span>
   </div>
 );
 
@@ -773,19 +773,19 @@ const MainContent: React.FC = () => {
       case 'salaries':
       case 'compliance-radar':
       case 'nitaqat':
-      case 'jisr-alerts-compliance':
+      case 'hr-alerts-compliance':
       case 'hr-smart-alerts':
-      case 'jisr-accruals':
-      case 'jisr-expenses':
-      case 'jisr-org-muqeem':
-      case 'jisr-talent-360':
-      case 'jisr-shifts-overtime':
-      case 'jisr-welcome-signage':
+      case 'hr-accruals':
+      case 'hr-expenses':
+      case 'hr-org-muqeem':
+      case 'hr-talent-360':
+      case 'hr-shifts-overtime':
+      case 'hr-welcome-signage':
       case 'welcome-screens':
       case 'signage-screens':
-      case 'jisr-arrears-b2b':
-      case 'jisr-cards-rollover':
-      case 'jisr-workflows-pulse':
+      case 'hr-arrears-b2b':
+      case 'hr-cards-rollover':
+      case 'hr-workflows-pulse':
       case 'reem-hr-emails':
       case 'hr-official-emails':
       case 'hr-pro':

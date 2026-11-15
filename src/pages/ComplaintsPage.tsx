@@ -334,7 +334,7 @@ export const ComplaintsPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
           display: 'flex',
           flexDirection: 'row',
@@ -353,7 +353,7 @@ export const ComplaintsPage: React.FC = () => {
             <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, letterSpacing: '-0.02em', color: '#ffffff', margin: 0, fontFamily: 'var(--font-family-display)' }}>
               مركز الشكاوى والدعم الفني والنزاعات بين الشركات
             </h1>
-            <p style={{ fontSize: '13px', color: '#a1a1aa', margin: '4px 0 0 0', fontWeight: 420 }}>
+            <p style={{ fontSize: '13px', color: '#adadad', margin: '4px 0 0 0', fontWeight: 420 }}>
               إدارة الشكاوى، الـ SLA، تصعيد البلاغات بين الشركات والمكاتب الخارجية لمكتب الإدارة العليا
             </p>
           </div>
@@ -389,13 +389,13 @@ export const ComplaintsPage: React.FC = () => {
       {/* Metric Cards Bar */}
       <div className="stat-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>إجمالي التذاكر والشكاوى</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>إجمالي التذاكر والشكاوى</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>{complaints.length} تذكرة</div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>معالجة 88% هذا الشهر</span>
         </div>
 
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>نزاعات الشركات المصعدة للإدارة</span>
+          <span style={{ fontSize: '13px', color: '#adadad', fontWeight: 550 }}>نزاعات الشركات المصعدة للإدارة</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>{interDisputes.length} نزاعات</div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>مرفوعة لمكتب خالد السليم</span>
         </div>
@@ -407,14 +407,14 @@ export const ComplaintsPage: React.FC = () => {
         </div>
 
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>معدل رضا العملاء (CSAT)</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>معدل رضا العملاء (CSAT)</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>4.8 / 5.0</div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>بناءً على 142 تقييم</span>
         </div>
       </div>
 
       {/* Tabs Row */}
-      <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-[#e0e0e0] pb-3">
         {[
           { id: 'tickets', label: 'تذاكر العملاء والدعم' },
           { id: 'claims', label: 'مطالبات التعويض المالي للعملاء (3)' },
@@ -431,9 +431,9 @@ export const ComplaintsPage: React.FC = () => {
               padding: '6px 16px',
               borderRadius: '9999px',
               border: '1px solid',
-              borderColor: activeTab === tab.id ? '#141414' : '#e4e4e7',
+              borderColor: activeTab === tab.id ? '#141414' : '#e0e0e0',
               backgroundColor: activeTab === tab.id ? '#141414' : '#ffffff',
-              color: activeTab === tab.id ? '#ffffff' : '#27272a',
+              color: activeTab === tab.id ? '#ffffff' : '#141414',
               fontWeight: activeTab === tab.id ? 550 : 420,
               fontSize: '12.5px',
               cursor: 'pointer',
@@ -449,7 +449,7 @@ export const ComplaintsPage: React.FC = () => {
       {/* 1. Compensation Claims View */}
       {activeTab === 'claims' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between">
+          <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-[#141414]">
                 مطالبات التعويض المالي واسترجاع المبالغ للعملاء
@@ -462,8 +462,8 @@ export const ComplaintsPage: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">رقم المطالبة</th>
                   <th className="p-3.5">اسم العميل</th>
@@ -475,9 +475,9 @@ export const ComplaintsPage: React.FC = () => {
                   <th className="p-3.5 text-center">إجراء مالي</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {refundClaims.map((c) => (
-                  <tr key={c.id} className="hover:bg-zinc-50">
+                  <tr key={c.id} className="hover:bg-[#f3f3f3]">
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{c.id}</td>
                     <td className="p-3.5 font-bold text-[#141414]">
                       <div className="flex items-center gap-2">
@@ -485,10 +485,10 @@ export const ComplaintsPage: React.FC = () => {
                         <span>{c.client}</span>
                       </div>
                     </td>
-                    <td className="p-3.5 font-mono text-zinc-600">{c.ref}</td>
-                    <td className="p-3.5 text-zinc-700">{c.reason}</td>
+                    <td className="p-3.5 font-mono text-[#707070]">{c.ref}</td>
+                    <td className="p-3.5 text-[#141414]">{c.reason}</td>
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{c.amount.toLocaleString()} ⃁</td>
-                    <td className="p-3.5 font-mono text-[11px] text-zinc-600">
+                    <td className="p-3.5 font-mono text-[11px] text-[#707070]">
                       {c.iban && c.iban.length >= 10
                         ? `${c.iban.slice(0, 4)}••••••••••••${c.iban.slice(-4)}`
                         : c.iban}
@@ -537,7 +537,7 @@ export const ComplaintsPage: React.FC = () => {
       {/* 2. Complaint SLA Types View */}
       {activeTab === 'types' && (
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '24px', background: '#ffffff' }}>
-          <div className="border-b border-zinc-100 pb-4 mb-4">
+          <div className="border-b border-[#e0e0e0] pb-4 mb-4">
             <h3 className="text-base font-bold text-[#141414]">
               تصنيفات الشكاوى ومصفوفة اتفاقية مستوى الخدمة (SLA Matrix)
             </h3>
@@ -555,15 +555,15 @@ export const ComplaintsPage: React.FC = () => {
               { type: 'شكاوى السلوك والجودة', sla: '8 ساعات (8h)', prio: 'مهم', dept: 'مشرف التوجيه والتأهيل', action: 'جلسة تدريب وتوجيه للعاملة في مقر العميل' },
               { type: 'شكاوى سكن وإعاشة الإيواء', sla: '4 ساعات (4h)', prio: 'عاجل', dept: 'إدارة مراكز الإيواء', action: 'فحص فوري للغرف والتغذية ومعالجة الملاحظة' },
             ].map((item, i) => (
-              <div key={i} className="p-4 rounded-2xl border border-zinc-200 bg-zinc-50 flex flex-col justify-between">
+              <div key={i} className="p-4 rounded-2xl border border-[#e0e0e0] bg-[#f3f3f3] flex flex-col justify-between">
                 <div>
                   <div className="flex justify-between items-start mb-2">
                     <span className="font-bold text-[#141414] text-sm">{item.type}</span>
                     <Badge text={item.prio} type={item.prio.includes('طارئ') ? 'danger' : 'primary'} />
                   </div>
                   <div className="text-xs font-mono font-bold text-[#141414] mb-2">المهلة الزمنية (SLA): {item.sla}</div>
-                  <div className="text-xs text-zinc-600 mb-1"><strong className="text-zinc-800">القسم المسؤول:</strong> {item.dept}</div>
-                  <div className="text-xs text-zinc-600"><strong className="text-zinc-800">الإجراء:</strong> {item.action}</div>
+                  <div className="text-xs text-[#707070] mb-1"><strong className="text-[#141414]">القسم المسؤول:</strong> {item.dept}</div>
+                  <div className="text-xs text-[#707070]"><strong className="text-[#141414]">الإجراء:</strong> {item.action}</div>
                 </div>
               </div>
             ))}
@@ -574,7 +574,7 @@ export const ComplaintsPage: React.FC = () => {
       {/* Tab: Inter-Company Disputes */}
       {activeTab === 'inter-company' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-white flex-wrap gap-3">
+          <div className="flex items-center justify-between p-4 border-b border-[#e0e0e0] bg-white flex-wrap gap-3">
             <div>
               <h3 className="text-sm font-bold text-[#141414]">
                 شكاوى ونزاعات الشركات والمكاتب المرفوعة للإدارة العليا
@@ -593,8 +593,8 @@ export const ComplaintsPage: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">رقم البلاغ</th>
                   <th className="p-3.5">الشركة المشتكية</th>
@@ -605,12 +605,12 @@ export const ComplaintsPage: React.FC = () => {
                   <th className="p-3.5">حالة البت بالإدارة العليا</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {interDisputes.map(disp => (
-                  <tr key={disp.id} className="hover:bg-zinc-50">
+                  <tr key={disp.id} className="hover:bg-[#f3f3f3]">
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{disp.dispute_no}</td>
                     <td className="p-3.5 font-bold text-[#141414]">{disp.sender_entity}</td>
-                    <td className="p-3.5 font-bold text-zinc-800">{disp.target_entity}</td>
+                    <td className="p-3.5 font-bold text-[#141414]">{disp.target_entity}</td>
                     <td className="p-3.5">
                       <div className="font-bold text-[#141414]">{disp.subject}</div>
                       <div className="text-[11px] text-[#707070]">{disp.details}</div>
@@ -636,7 +636,7 @@ export const ComplaintsPage: React.FC = () => {
       {/* Main Tickets List View */}
       {(activeTab === 'tickets' || activeTab === 'escalated') && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-white flex-wrap gap-3">
+          <div className="flex items-center justify-between p-4 border-b border-[#e0e0e0] bg-white flex-wrap gap-3">
             <div className="relative w-full md:w-80">
               <Search className="w-4 h-4 absolute right-3 top-3 text-[#707070]" />
               <input
@@ -655,7 +655,7 @@ export const ComplaintsPage: React.FC = () => {
                 aria-label="تصفية حسب حالة التذكرة"
                 value={statusFilter}
                 onChange={e => setStatusFilter(e.target.value)}
-                className="bg-zinc-50 border border-zinc-200 rounded-2xl py-1.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                className="bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-1.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
               >
                 <option value="all">جميع الحالات</option>
                 <option value="جديدة">جديدة</option>
@@ -668,7 +668,7 @@ export const ComplaintsPage: React.FC = () => {
                 aria-label="تصفية حسب الأولوية"
                 value={priorityFilter}
                 onChange={e => setPriorityFilter(e.target.value)}
-                className="bg-zinc-50 border border-zinc-200 rounded-2xl py-1.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                className="bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-1.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
               >
                 <option value="all">جميع الأولويات</option>
                 <option value="عاجل طارئ">عاجل طارئ</option>
@@ -679,8 +679,8 @@ export const ComplaintsPage: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">رقم التذكرة</th>
                   <th className="p-3.5">اسم العميل والجوال</th>
@@ -692,7 +692,7 @@ export const ComplaintsPage: React.FC = () => {
                   <th className="p-3.5 text-center">الإجراءات</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {filteredTickets.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="p-8 text-center text-[#707070]">
@@ -704,7 +704,7 @@ export const ComplaintsPage: React.FC = () => {
                   </tr>
                 ) : (
                   filteredTickets.map(ticket => (
-                    <tr key={ticket.id} className="hover:bg-zinc-50 transition-colors">
+                    <tr key={ticket.id} className="hover:bg-[#f3f3f3] transition-colors">
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{ticket.ticket_no}</td>
                       <td className="p-3.5">
                         <div className="flex items-center gap-2.5">
@@ -739,7 +739,7 @@ export const ComplaintsPage: React.FC = () => {
                           <span className="text-[#707070]">مكتملة</span>
                         )}
                       </td>
-                      <td className="p-3.5 text-zinc-600">
+                      <td className="p-3.5 text-[#707070]">
                         <div className="flex items-center gap-2">
                           <CorporateAvatar name={ticket.assigned_agent} departmentId="hr" size="xs" />
                           <span>{ticket.assigned_agent}</span>
@@ -762,7 +762,7 @@ export const ComplaintsPage: React.FC = () => {
                           </button>
                           <button
                             onClick={() => handleDeleteTicket(ticket)}
-                            className="p-1 rounded-full hover:bg-[#eaeaea] text-[#707070] hover:text-[#141414] transition-colors"
+                            className="p-1 rounded-full hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] transition-colors"
                             title="حذف الشكوى"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -782,10 +782,10 @@ export const ComplaintsPage: React.FC = () => {
       {activeTab === 'whatsapp' && (
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '24px', background: '#ffffff' }}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[400px]">
-            <div className="bg-zinc-50 rounded-2xl p-3 border border-zinc-200">
+            <div className="bg-[#f3f3f3] rounded-2xl p-3 border border-[#e0e0e0]">
               <h4 className="text-xs font-bold text-[#141414] mb-3">محادثات الدعم النشطة</h4>
               {complaints.map(c => (
-                <div key={c.id} className="p-2.5 rounded-xl bg-white border border-zinc-200 mb-2 cursor-pointer hover:border-[#141414] transition-colors flex items-center gap-2.5">
+                <div key={c.id} className="p-2.5 rounded-xl bg-white border border-[#e0e0e0] mb-2 cursor-pointer hover:border-[#141414] transition-colors flex items-center gap-2.5">
                   <CorporateAvatar name={c.client_name} departmentId="crm" size="sm" />
                   <div className="min-w-0 flex-1">
                     <div className="font-bold text-xs text-[#141414] truncate">{c.client_name}</div>
@@ -795,9 +795,9 @@ export const ComplaintsPage: React.FC = () => {
               ))}
             </div>
 
-            <div className="md:col-span-2 bg-white rounded-2xl p-4 border border-zinc-200 flex flex-col justify-between">
+            <div className="md:col-span-2 bg-white rounded-2xl p-4 border border-[#e0e0e0] flex flex-col justify-between">
               <div>
-                <div className="border-b border-zinc-100 pb-3 mb-3 flex justify-between items-center">
+                <div className="border-b border-[#e0e0e0] pb-3 mb-3 flex justify-between items-center">
                   <div className="flex items-center gap-2.5">
                     <CorporateAvatar name="بندر صالح الهويريني" departmentId="crm" size="sm" status="online" />
                     <div>
@@ -809,7 +809,7 @@ export const ComplaintsPage: React.FC = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <div className="bg-zinc-50 border border-zinc-200 p-3 rounded-2xl max-w-[80%] text-xs text-[#141414]">
+                  <div className="bg-[#f3f3f3] border border-[#e0e0e0] p-3 rounded-2xl max-w-[80%] text-xs text-[#141414]">
                     السلام عليكم، العاملة ترغب بالامتناع عن العمل وتطالب بالتحويل للإيواء أو الترحيل. نأمل المعالجة عاجلاً.
                   </div>
                   <div className="bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] p-3 rounded-2xl max-w-[80%] mr-auto text-xs">
@@ -818,13 +818,13 @@ export const ComplaintsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex gap-2 mt-4 pt-3 border-t border-zinc-100">
+              <div className="flex gap-2 mt-4 pt-3 border-t border-[#e0e0e0]">
                 <input
                   type="text"
                   value={replyMessage}
                   onChange={(e) => setReplyMessage(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendReply()}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   placeholder="اكتب ردك المباشر للعميل عبر الواتساب..."
                 />
                 <button
@@ -850,7 +850,7 @@ export const ComplaintsPage: React.FC = () => {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h4 className="text-xs font-bold text-zinc-700">توزيع مسببات الشكاوى</h4>
+              <h4 className="text-xs font-bold text-[#141414]">توزيع مسببات الشكاوى</h4>
               {[
                 { label: 'رفض عمل أو عدم رغبة العاملة', percent: 45, color: 'bg-[#141414]' },
                 { label: 'تأخير الوصول من المكتب الخارجي', percent: 25, color: 'bg-[#141414]' },
@@ -860,24 +860,24 @@ export const ComplaintsPage: React.FC = () => {
                 <div key={idx} className="space-y-1">
                   <div className="flex justify-between text-xs font-bold">
                     <span className="text-[#141414]">{item.label}</span>
-                    <span className="font-mono text-zinc-600">{item.percent}%</span>
+                    <span className="font-mono text-[#707070]">{item.percent}%</span>
                   </div>
-                  <div className="w-full bg-zinc-100 h-2 rounded-full overflow-hidden">
+                  <div className="w-full bg-[#f3f3f3] h-2 rounded-full overflow-hidden">
                     <div className={`h-full ${item.color} rounded-full`} style={{ width: `${item.percent}%` }} />
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="bg-zinc-50 p-5 rounded-2xl border border-zinc-200 space-y-3">
+            <div className="bg-[#f3f3f3] p-5 rounded-2xl border border-[#e0e0e0] space-y-3">
               <h4 className="text-xs font-bold text-[#141414]">إحصائيات الفروع والمكاتب الأكثر بلاغاً</h4>
-              <p className="text-xs text-zinc-600">
+              <p className="text-xs text-[#707070]">
                 • <strong>فرع الرياض</strong>: 52% من إجمالي التذاكر (متابعة الإيواء وتأجير العقود).
               </p>
-              <p className="text-xs text-zinc-600">
+              <p className="text-xs text-[#707070]">
                 • <strong>مكتب بلاتينيوم الفلبيني</strong>: 28% من بلاغات تأخير إصدار التأشيرات.
               </p>
-              <p className="text-xs text-zinc-600">
+              <p className="text-xs text-[#707070]">
                 • <strong>متوسط زمن حل الشكوى</strong>: 6.4 ساعات فقط.
               </p>
             </div>
@@ -888,24 +888,24 @@ export const ComplaintsPage: React.FC = () => {
       {/* Add Inter-Company Dispute Modal */}
       {showAddDisputeModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowAddDisputeModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-[#141414]" />
                 <span>رفع بلاغ / شكوى بين الشركات للإدارة العليا</span>
               </h3>
-              <button onClick={() => setShowAddDisputeModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors">
+              <button onClick={() => setShowAddDisputeModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#262626] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleAddInterDispute} className="p-6 space-y-4 bg-white text-[#141414]">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">الشركة / الفرع المشتكي *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">الشركة / الفرع المشتكي *</label>
                 <select
                   value={disputeForm.sender_entity}
                   onChange={e => setDisputeForm({ ...disputeForm, sender_entity: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option>شركة توباز (Topaz Group)</option>
                   <option>دار الرواد (Dar Al-Ruwad)</option>
@@ -916,11 +916,11 @@ export const ComplaintsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">الجهة المشتكى عليها (الطرف الآخر) *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">الجهة المشتكى عليها (الطرف الآخر) *</label>
                 <select
                   value={disputeForm.target_entity}
                   onChange={e => setDisputeForm({ ...disputeForm, target_entity: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option>🇵🇭 مكتب بلاتينيوم الفلبيني (PLATINUM)</option>
                   <option>🇪🇹 مكتب داماس الإثيوبي (DAMAS)</option>
@@ -931,34 +931,34 @@ export const ComplaintsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">موضوع الشكوى والنزاع *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">موضوع الشكوى والنزاع *</label>
                 <input
                   type="text"
                   placeholder="عنوان مختصر للنزاع..."
                   value={disputeForm.subject}
                   onChange={e => setDisputeForm({ ...disputeForm, subject: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">المبلغ المطالب به</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">المبلغ المطالب به</label>
                   <input
                     type="number"
                     placeholder="0.00 ⃁"
                     value={disputeForm.amount_claimed}
                     onChange={e => setDisputeForm({ ...disputeForm, amount_claimed: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs font-mono text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs font-mono text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">الأولوية والتصعيد *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">الأولوية والتصعيد *</label>
                   <select
                     value={disputeForm.priority}
                     onChange={e => setDisputeForm({ ...disputeForm, priority: e.target.value as any })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="عالي جداً VIP">عالي جداً VIP (خالد السليم)</option>
                     <option value="عاجل">عاجل</option>
@@ -968,18 +968,18 @@ export const ComplaintsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">التفاصيل والأسباب الموجبة للتصعيد *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">التفاصيل والأسباب الموجبة للتصعيد *</label>
                 <textarea
                   rows={3}
                   placeholder="شرح أسباب البلاغ والطلب المطلوب من الإدارة العليا..."
                   value={disputeForm.details}
                   onChange={e => setDisputeForm({ ...disputeForm, details: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   required
                 />
               </div>
 
-              <div className="flex gap-3 justify-end pt-3 border-t border-zinc-100">
+              <div className="flex gap-3 justify-end pt-3 border-t border-[#e0e0e0]">
                 <button type="button" className="button-outline-on-light" onClick={() => setShowAddDisputeModal(false)} style={{ minHeight: '36px', padding: '6px 16px', fontSize: '13px' }}>
                   إلغاء
                 </button>
@@ -995,13 +995,13 @@ export const ComplaintsPage: React.FC = () => {
       {/* Add Client Complaint Modal */}
       {showAddModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowAddModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Headphones className="w-4 h-4 text-[#141414]" />
                 <span>تسجيل وتوجيه شكوى / تذكرة جديدة</span>
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors">
+              <button onClick={() => setShowAddModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#262626] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1009,24 +1009,24 @@ export const ComplaintsPage: React.FC = () => {
             <form onSubmit={handleAddTicket} className="p-6 space-y-4 bg-white text-[#141414]">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم العميل بالكامل *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">اسم العميل بالكامل *</label>
                   <input
                     type="text"
                     placeholder="اسم العميل..."
                     value={addForm.client_name}
                     onChange={e => setAddForm({ ...addForm, client_name: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">رقم الجوال *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رقم الجوال *</label>
                   <input
                     type="text"
                     placeholder="+9665..."
                     value={addForm.client_phone}
                     onChange={e => setAddForm({ ...addForm, client_phone: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs font-mono text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs font-mono text-[#141414] focus:border-[#141414] focus:outline-none"
                     required
                   />
                 </div>
@@ -1034,11 +1034,11 @@ export const ComplaintsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">تصنيف الشكوى *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">تصنيف الشكوى *</label>
                   <select
                     value={addForm.category}
                     onChange={e => setAddForm({ ...addForm, category: e.target.value as any })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="رفض عمل">رفض عمل</option>
                     <option value="تأخير وصول">تأخير وصول</option>
@@ -1048,11 +1048,11 @@ export const ComplaintsPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">مستوى الأولوية *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">مستوى الأولوية *</label>
                   <select
                     value={addForm.priority}
                     onChange={e => setAddForm({ ...addForm, priority: e.target.value as any })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="عادي">عادي (SLA 24 ساعة)</option>
                     <option value="مهم">مهم (SLA 12 ساعة)</option>
@@ -1062,11 +1062,11 @@ export const ComplaintsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">الفرع المكلَف *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">الفرع المكلَف *</label>
                 <select
                   value={addForm.branch}
                   onChange={e => setAddForm({ ...addForm, branch: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option>فرع الرياض الرئيسي</option>
                   <option>فرع جدة</option>
@@ -1078,18 +1078,18 @@ export const ComplaintsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">شرح وتفاصيل الشكوى *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">شرح وتفاصيل الشكوى *</label>
                 <textarea
                   rows={3}
                   placeholder="اكتب التفاصيل هنا..."
                   value={addForm.description}
                   onChange={e => setAddForm({ ...addForm, description: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   required
                 />
               </div>
 
-              <div className="flex gap-3 justify-end pt-3 border-t border-zinc-100">
+              <div className="flex gap-3 justify-end pt-3 border-t border-[#e0e0e0]">
                 <button type="button" className="button-outline-on-light" onClick={() => setShowAddModal(false)} style={{ minHeight: '36px', padding: '6px 16px', fontSize: '13px' }}>
                   إلغاء
                 </button>
@@ -1106,30 +1106,30 @@ export const ComplaintsPage: React.FC = () => {
       {/* Ticket Action Modal */}
       {selectedTicket && (
         <div role="dialog" aria-modal="true" onClick={() => setSelectedTicket(null)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Headphones className="w-4 h-4 text-[#141414]" />
                 <span>معالجة التذكرة رقم ({selectedTicket.ticket_no})</span>
               </h3>
-              <button onClick={() => setSelectedTicket(null)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors">
+              <button onClick={() => setSelectedTicket(null)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#262626] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-6 space-y-4 bg-white text-[#141414]">
-              <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100 space-y-2 text-xs">
+              <div className="bg-[#f3f3f3] p-4 rounded-2xl border border-[#e0e0e0] space-y-2 text-xs">
                 <div><strong className="text-[#707070]">العميل:</strong> <span className="font-bold text-[#141414]">{selectedTicket.client_name} ({selectedTicket.client_phone})</span></div>
-                <div><strong className="text-[#707070]">الشرح:</strong> <span className="text-zinc-700">{selectedTicket.description}</span></div>
+                <div><strong className="text-[#707070]">الشرح:</strong> <span className="text-[#141414]">{selectedTicket.description}</span></div>
                 <div><strong className="text-[#707070]">المسؤول الحالي:</strong> <span className="font-bold text-[#141414]">{selectedTicket.assigned_agent}</span></div>
               </div>
 
-              <div className="flex gap-2 justify-end pt-3 border-t border-zinc-100 flex-wrap">
+              <div className="flex gap-2 justify-end pt-3 border-t border-[#e0e0e0] flex-wrap">
                 <button className="button-outline-on-light" onClick={() => setSelectedTicket(null)} style={{ minHeight: '36px', padding: '6px 14px', fontSize: '12.5px' }}>
                   إلغاء
                 </button>
                 <button 
-                  className="button-outline-on-light text-[#141414] border-[#e0e0e0] hover:bg-[#eaeaea] flex items-center gap-1"
+                  className="button-outline-on-light text-[#141414] border-[#e0e0e0] hover:bg-[#f3f3f3] flex items-center gap-1"
                   onClick={() => handleGeneratePaymentVoucher(selectedTicket)} 
                   style={{ minHeight: '36px', padding: '6px 12px', fontSize: '12px' }}
                   title="توليد سند صرف مالي مباشر في دفتر الأستاذ العام"
@@ -1137,7 +1137,7 @@ export const ComplaintsPage: React.FC = () => {
                   <Receipt className="w-3.5 h-3.5" />
                   <span>توليد سند صرف تسوية</span>
                 </button>
-                <button className="button-outline-on-light text-[#141414] border-[#e0e0e0] hover:bg-[#eaeaea]" onClick={() => handleResolveTicket('مرفوعة للمشرف')} style={{ minHeight: '36px', padding: '6px 14px', fontSize: '12.5px' }}>
+                <button className="button-outline-on-light text-[#141414] border-[#e0e0e0] hover:bg-[#f3f3f3]" onClick={() => handleResolveTicket('مرفوعة للمشرف')} style={{ minHeight: '36px', padding: '6px 14px', fontSize: '12.5px' }}>
                   تصعيد للمشرف
                 </button>
                 <button className="button-primary-pill" onClick={() => handleResolveTicket('تم الحل وإغلاق الشكوى')} style={{ minHeight: '36px', padding: '6px 18px', fontSize: '12.5px' }}>

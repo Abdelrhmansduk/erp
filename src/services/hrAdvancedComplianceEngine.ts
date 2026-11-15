@@ -1228,13 +1228,13 @@ export function calculateSaudiOvertimePay(
 // 8. COMPREHENSIVE FINAL SETTLEMENT & CLEARANCE ENGINE (Art. 64, 80, 84, 85, 87, 111)
 // ============================================================================
 
-export type JisrSeparationType =
+export type HrSeparationType =
   | 'CONTRACT_EXPIRY_OR_EMPLOYER_ART84'
   | 'RESIGNATION_ART85'
   | 'FORCE_MAJEURE_OR_MATERNITY_ART87'
   | 'DISCIPLINARY_ART80';
 
-export interface JisrFinalSettlementInput {
+export interface HrFinalSettlementInput {
   hireDate: string;
   lastWorkingDay: string;
   basicSalary: number;
@@ -1242,7 +1242,7 @@ export interface JisrFinalSettlementInput {
   transportAllowance: number;
   otherAllowances?: number;
   isSaudi: boolean;
-  separationType: JisrSeparationType;
+  separationType: HrSeparationType;
   unusedLeaveDays: number;
   earnedCurrentMonthDays?: number; // defaults to day-of-month of lastWorkingDay (capped at 30)
   pendingOvertimeAndRewards?: number;
@@ -1252,7 +1252,7 @@ export interface JisrFinalSettlementInput {
   pendingSanctionsOrCustodyDeductions?: number;
 }
 
-export interface JisrFinalSettlementResult {
+export interface HrFinalSettlementResult {
   serviceYears: number;
   serviceYearsWhole: number;
   serviceMonthsRemainder: number;
@@ -1275,7 +1275,7 @@ export interface JisrFinalSettlementResult {
   requiresEmployeeReimbursement: boolean;
 }
 
-export function mapSeparationReasonLabelToType(reasonAr: string): JisrSeparationType {
+export function mapSeparationReasonLabelToType(reasonAr: string): HrSeparationType {
   const txt = (reasonAr || '').trim();
   if (txt.includes('80') || txt.includes('فسخ')) {
     return 'DISCIPLINARY_ART80';
@@ -1289,9 +1289,9 @@ export function mapSeparationReasonLabelToType(reasonAr: string): JisrSeparation
   return 'CONTRACT_EXPIRY_OR_EMPLOYER_ART84';
 }
 
-export function calculateJisrFinalSettlement(
-  input: JisrFinalSettlementInput
-): JisrFinalSettlementResult {
+export function calculateHrFinalSettlement(
+  input: HrFinalSettlementInput
+): HrFinalSettlementResult {
   const basic = Math.max(0, input.basicSalary);
   const housing = Math.max(0, input.housingAllowance);
   const transport = Math.max(0, input.transportAllowance);

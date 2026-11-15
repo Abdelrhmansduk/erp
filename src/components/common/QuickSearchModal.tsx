@@ -147,61 +147,61 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
       },
       {
         id: 'screen-hr-alerts-compliance',
-        href: 'jisr-alerts-compliance',
+        href: 'hr-alerts-compliance',
         title: 'رادار التنبيهات والجزاءات والراتب المرن ونطاقات',
         subtitle: 'تنبيهات الإقامة والتجربة (م53)، لائحة الجزاءات (م66-72)، الراتب المرن، ورقابة نطاقات قوى',
       },
       {
         id: 'screen-hr-accruals',
-        href: 'jisr-accruals',
+        href: 'hr-accruals',
         title: 'المخصصات الشهرية ومراكز التكلفة (IAS 19)',
         subtitle: 'احتساب وترحيل مخصصات نهاية الخدمة والإجازات وتذاكر السفر وتوزيع مراكز التكلفة',
       },
       {
         id: 'screen-hr-expenses',
-        href: 'jisr-expenses',
+        href: 'hr-expenses',
         title: 'النفقات وفواتير ZATCA والانتدابات',
         subtitle: 'مطالبات مصروفات الموظفين، قارئ فواتير ZATCA QR المانع للتكرار، وبدلات الانتداب',
       },
       {
         id: 'screen-hr-org-muqeem',
-        href: 'jisr-org-muqeem',
+        href: 'hr-org-muqeem',
         title: 'الهيكل التنظيمي ومكتب مقيم والخطابات',
         subtitle: 'الهيكل التنظيمي التفاعلي، طلبات تجديد الإقامة والتأشيرات في مقيم، والخطابات الرسمية',
       },
       {
         id: 'screen-hr-talent-360',
-        href: 'jisr-talent-360',
+        href: 'hr-talent-360',
         title: 'التوظيف الداخلي وتقييم 360° وإخلاء الطرف',
         subtitle: 'شواغر التوظيف الداخلي، تقييم الأداء 360 درجة، وإجراءات إخلاء الطرف والمخالصة النهائية',
       },
       {
         id: 'screen-hr-shifts-overtime',
-        href: 'jisr-shifts-overtime',
+        href: 'hr-shifts-overtime',
         title: 'المناوبات والعمل الإضافي (م107) والتعاميم',
         subtitle: 'جدولة الورديات، احتساب ساعات العمل الإضافي وفق المادة 107، وإصدار التعاميم الإدارية',
       },
       {
         id: 'screen-hr-welcome-signage',
-        href: 'jisr-welcome-signage',
+        href: 'hr-welcome-signage',
         title: 'الترحيب بالموظف الجديد وشاشات العرض الذكية',
         subtitle: 'لوحة الترحيب بالمنضمين الجدد وأعياد الميلاد وإدارة شاشات العرض التلفزيونية للفروع',
       },
       {
         id: 'screen-hr-arrears-b2b',
-        href: 'jisr-arrears-b2b',
+        href: 'hr-arrears-b2b',
         title: 'الأثر الرجعي والمسيرات الإضافية ودفعات البنوك B2B',
         subtitle: 'تقويم قطع الرواتب، احتساب الفروقات بأثر رجعي، المسيرات المستقلة، وملفات الصرف البنكي المباشر',
       },
       {
         id: 'screen-hr-cards-rollover',
-        href: 'jisr-cards-rollover',
+        href: 'hr-cards-rollover',
         title: 'البطاقات المؤسسية وترحيل وتسييل الإجازات',
         subtitle: 'إدارة بطاقات النفقات المؤسسية وأسقف الفئات، ومحرك الترحيل السنوي وتسييل الإجازات (م111)',
       },
       {
         id: 'screen-hr-workflows-pulse',
-        href: 'jisr-workflows-pulse',
+        href: 'hr-workflows-pulse',
         title: 'منشئ الطلبات والتوقيع OTP وبوابة التوظيف وeNPS',
         subtitle: 'بناء مسارات الاعتماد المخصصة، التوقيع الإلكتروني الموثق OTP، بوابة الوظائف الخارجية، واستبيان eNPS',
       },
@@ -275,8 +275,8 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
         id: 'act-hr-smart-alerts',
         title: 'فتح رادار التنبيهات الذكية والراتب المرن ورقابة نطاقات',
         subtitle: 'مراجعة تنبيهات الإقامة والتجربة (م53) وصرف الراتب المرن وأهلية تأشيرات قوى ومقيم',
-        href: 'jisr-alerts-compliance',
-        requiredHref: 'jisr-alerts-compliance',
+        href: 'hr-alerts-compliance',
+        requiredHref: 'hr-alerts-compliance',
         kind: 'action',
         badge: 'HR Radar',
       },
@@ -284,8 +284,8 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
         id: 'act-hr-arrears-b2b',
         title: 'فتح الأثر الرجعي والمسيرات الإضافية ودفعات البنوك B2B',
         subtitle: 'احتساب فروقات الرواتب والمكافآت وتوليد ملفات الصرف البنكي المباشر WPS / ISO 20022',
-        href: 'jisr-arrears-b2b',
-        requiredHref: 'jisr-arrears-b2b',
+        href: 'hr-arrears-b2b',
+        requiredHref: 'hr-arrears-b2b',
         kind: 'action',
         badge: 'B2B Payroll',
       },
@@ -293,8 +293,8 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
         id: 'act-hr-cards-rollover',
         title: 'فتح البطاقات المؤسسية وترحيل وتسييل الإجازات',
         subtitle: 'إدارة بطاقات مصروفات الموظفين وترحيل أو تسييل أرصدة الإجازات السنوية (م111)',
-        href: 'jisr-cards-rollover',
-        requiredHref: 'jisr-cards-rollover',
+        href: 'hr-cards-rollover',
+        requiredHref: 'hr-cards-rollover',
         kind: 'action',
         badge: 'Cards & Leave',
       },
@@ -302,8 +302,8 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
         id: 'act-hr-workflows-pulse',
         title: 'فتح منشئ الطلبات والتوقيع OTP وبوابة التوظيف وeNPS',
         subtitle: 'تصميم مسارات الاعتماد المخصصة، التوقيع الإلكتروني OTP، واستبيان الرضا الوظيفي',
-        href: 'jisr-workflows-pulse',
-        requiredHref: 'jisr-workflows-pulse',
+        href: 'hr-workflows-pulse',
+        requiredHref: 'hr-workflows-pulse',
         kind: 'action',
         badge: 'OTP & eNPS',
       },
@@ -685,7 +685,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Command Input Bar — Mobbin Light Mode */}
-        <div className="p-3.5 sm:p-4 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5] flex items-center gap-3 shrink-0">
+        <div className="p-3.5 sm:p-4 bg-[#ffffff] text-[#141414] border-b border-[#e0e0e0] flex items-center gap-3 shrink-0">
           <div className="w-9 h-9 rounded-[12px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center shrink-0">
             <Search className="w-4 h-4 text-[#141414]" />
           </div>
@@ -709,7 +709,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
             <button
               type="button"
               onClick={() => setSearchTerm('')}
-              className="px-2.5 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-xs text-[#141414] font-semibold cursor-pointer"
+              className="px-2.5 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-xs text-[#141414] font-semibold cursor-pointer"
             >
               مسح
             </button>
@@ -722,7 +722,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
             onClick={() => setQuickSearchOpen(false)}
             aria-label="إغلاق البحث السريع"
             title="إغلاق (Esc)"
-            className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center shrink-0 transition-colors cursor-pointer"
+            className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] flex items-center justify-center shrink-0 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -752,7 +752,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
                   className={`px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
                     active
                       ? 'bg-[#141414] text-[#ffffff]'
-                      : 'bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0]'
+                      : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0]'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -775,7 +775,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
             return null;
           }
           return (
-            <div className="px-4 py-2.5 bg-[#f3f3f3] border-b border-[#e5e5e5] space-y-2">
+            <div className="px-4 py-2.5 bg-[#f3f3f3] border-b border-[#e0e0e0] space-y-2">
               {authPinned.length > 0 && (
                 <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#141414] shrink-0 pl-2">
@@ -812,7 +812,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
                         onNavigate(rec.href, rec.title);
                         setQuickSearchOpen(false);
                       }}
-                      className="px-2.5 py-0.5 rounded-full bg-[#ffffff] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold transition-all shrink-0 cursor-pointer"
+                      className="px-2.5 py-0.5 rounded-full bg-[#ffffff] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold transition-all shrink-0 cursor-pointer"
                     >
                       {rec.title}
                     </button>
@@ -863,7 +863,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
                   className={`p-2.5 sm:p-3 rounded-[16px] flex items-center justify-between gap-3 cursor-pointer transition-all border ${
                     isSelected
                       ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
-                      : 'bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border-[#e0e0e0]'
+                      : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border-[#e0e0e0]'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
@@ -966,7 +966,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
         </div>
 
         {/* Command Palette Footer */}
-        <div className="px-4 py-2.5 bg-[#f3f3f3] text-[#707070] border-t border-[#e5e5e5] flex flex-wrap items-center justify-between gap-2 text-[11px]">
+        <div className="px-4 py-2.5 bg-[#f3f3f3] text-[#707070] border-t border-[#e0e0e0] flex flex-wrap items-center justify-between gap-2 text-[11px]">
           <div className="flex items-center gap-3 font-semibold">
             <span>↑↓ للتنقل</span>
             <span>↵ للتنفيذ والانتقال</span>

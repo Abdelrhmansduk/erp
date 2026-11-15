@@ -404,7 +404,7 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
     >
       <div className="w-full max-w-4xl bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
         {/* Header — Mobbin Pure Light Mode */}
-        <div className="bg-[#ffffff] text-[#141414] p-5 sm:p-6 flex items-center justify-between border-b border-[#e5e5e5]">
+        <div className="bg-[#ffffff] text-[#141414] p-5 sm:p-6 flex items-center justify-between border-b border-[#e0e0e0]">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center text-[#141414]">
               <Scale className="w-6 h-6" />
@@ -429,7 +429,7 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
 
           <button
             onClick={onLogout}
-            className="text-xs text-[#707070] hover:text-[#141414] transition-colors px-3 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] flex items-center gap-1 cursor-pointer"
+            className="text-xs text-[#707070] hover:text-[#141414] transition-colors px-3 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] flex items-center gap-1 cursor-pointer"
             title="تسجيل الخروج والرجوع"
           >
             <span>تسجيل الخروج</span>
@@ -438,7 +438,7 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
         </div>
 
         {/* User Identity Stripe */}
-        <div className="bg-zinc-50 border-b border-zinc-200 px-6 py-3 flex flex-wrap items-center justify-between gap-3 text-xs text-zinc-700">
+        <div className="bg-[#f3f3f3] border-b border-[#e0e0e0] px-6 py-3 flex flex-wrap items-center justify-between gap-3 text-xs text-[#141414]">
           <div className="flex items-center gap-4 flex-wrap">
             <div>
               <span className="text-[#707070] block text-[10px]">الموظف المصرح له:</span>
@@ -446,11 +446,11 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
             </div>
             <div>
               <span className="text-[#707070] block text-[10px]">المسمى الوظيفي:</span>
-              <span className="font-semibold text-zinc-800">{user.job_title || user.role || 'أخصائي معتمد'}</span>
+              <span className="font-semibold text-[#141414]">{user.job_title || user.role || 'أخصائي معتمد'}</span>
             </div>
             <div>
               <span className="text-[#707070] block text-[10px]">الفرع:</span>
-              <span className="font-semibold text-zinc-800">{user.branch || 'الفرع الرئيسي'}</span>
+              <span className="font-semibold text-[#141414]">{user.branch || 'الفرع الرئيسي'}</span>
             </div>
             <div>
               <span className="text-[#707070] block text-[10px]">عنوان الـ IP الموثق:</span>
@@ -463,7 +463,7 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
         </div>
 
         {/* Scrollable Policy Body */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1 text-zinc-800 text-xs leading-relaxed">
+        <div className="p-6 overflow-y-auto space-y-6 flex-1 text-[#141414] text-xs leading-relaxed">
           {/* Saudi Legal Reference Box */}
           <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0]">
             <h4 className="font-bold text-sm text-[#141414] flex items-center gap-2 mb-2">
@@ -488,7 +488,7 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
             </h4>
 
             {policy.clauses.map((clause, idx) => (
-              <div key={clause.id} className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-1.5 hover:border-zinc-300 transition-colors">
+              <div key={clause.id} className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-1.5 hover:border-[#e0e0e0] transition-colors">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <span className="font-bold text-xs text-[#141414] flex items-center gap-2">
                     <span className="w-5 h-5 rounded-full bg-[#141414] text-white text-[10px] flex items-center justify-center font-mono">
@@ -496,11 +496,11 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
                     </span>
                     <span>{clause.title}</span>
                   </span>
-                  <span className="text-[10px] bg-zinc-200/80 text-zinc-800 px-2.5 py-0.5 rounded-full font-mono font-medium">
+                  <span className="text-[10px] bg-[#e0e0e0] text-[#141414] px-2.5 py-0.5 rounded-full font-mono font-medium">
                     {clause.lawReference}
                   </span>
                 </div>
-                <p className="text-zinc-600 text-xs pr-7 leading-relaxed">
+                <p className="text-[#707070] text-xs pr-7 leading-relaxed">
                   {clause.description}
                 </p>
               </div>
@@ -521,7 +521,7 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
                 onChange={e => setAgreedGeneral(e.target.checked)}
                 className="mt-1 rounded text-[#141414] focus:ring-0 w-4 h-4 accent-black"
               />
-              <span className="text-xs text-zinc-800">
+              <span className="text-xs text-[#141414]">
                 <strong>إقرار الاطلاع والالتزام:</strong> أقر بأنني اطلعت وفهمت كافة السياسات واللوائح والتعليمات المحددة أعلاه، وأتعهد بالامتثال التام لها طيلة فترة عملي واستخدامي للمنظومة.
               </span>
             </label>
@@ -533,7 +533,7 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
                 onChange={e => setAgreedDepartment(e.target.checked)}
                 className="mt-1 rounded text-[#141414] focus:ring-0 w-4 h-4 accent-black"
               />
-              <span className="text-xs text-zinc-800">
+              <span className="text-xs text-[#141414]">
                 <strong>المسؤولية القانونية والإدارية:</strong> أقر بتحمل المسؤولية الكاملة عن كافة العمليات والسجلات المنجزة تحت اسم المستخدم الخاص بي، وأبرئ ذمة المنشأة من أي تصرف أو تسريب فردي خارج النطاق المصرح به.
               </span>
             </label>
@@ -545,7 +545,7 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
                 onChange={e => setAgreedCyberLaw(e.target.checked)}
                 className="mt-1 rounded text-[#141414] focus:ring-0 w-4 h-4 accent-black"
               />
-              <span className="text-xs text-zinc-800">
+              <span className="text-xs text-[#141414]">
                 <strong>الامتثال لنظام مكافحة جرائم المعلوماتية:</strong> أقر بعلمي بأن الدخول غير المشروع أو إفشاء البيانات أو مسح السجلات يُعد جريمة يعاقب عليها القانون بالسجن والغرامات المالية وفق الأنظمة السعودية.
               </span>
             </label>
@@ -557,14 +557,14 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
                 onChange={e => setAgreedPDPL(e.target.checked)}
                 className="mt-1 rounded text-[#141414] focus:ring-0 w-4 h-4 accent-black"
               />
-              <span className="text-xs text-zinc-800">
+              <span className="text-xs text-[#141414]">
                 <strong>حماية البيانات الشخصية (PDPL):</strong> أتعهد بالمحافظة على سرية بيانات العملاء والعمالة المنزلية وعدم مشاركتها مع أطراف خارجية تحت طائلة المساءلة القانونية.
               </span>
             </label>
           </div>
 
           {/* Electronic Signature Canvas Section */}
-          <div className="p-5 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-3">
+          <div className="p-5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
                 <h4 className="font-bold text-xs text-[#141414] flex items-center gap-1.5">
@@ -594,7 +594,7 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
                   <button
                     type="button"
                     onClick={clearSignature}
-                    className="text-xs text-[#707070] hover:text-[#141414] px-3 py-1 rounded-full border border-zinc-200 bg-white flex items-center gap-1"
+                    className="text-xs text-[#707070] hover:text-[#141414] px-3 py-1 rounded-full border border-[#e0e0e0] bg-white flex items-center gap-1"
                   >
                     <RefreshCw className="w-3 h-3" />
                     <span>مسح التوقيع</span>
@@ -604,7 +604,7 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
             </div>
 
             {!useBiometricSign ? (
-              <div className="border-2 border-dashed border-zinc-300 rounded-2xl bg-white p-2 relative overflow-hidden">
+              <div className="border-2 border-dashed border-[#e0e0e0] rounded-2xl bg-white p-2 relative overflow-hidden">
                 <canvas
                   ref={canvasRef}
                   width={600}
@@ -645,7 +645,7 @@ export const LegalDisclaimerModal: React.FC<LegalDisclaimerModalProps> = ({
             <span>{submitError}</span>
           </div>
         )}
-        <div className="p-5 bg-zinc-50 border-t border-zinc-200 flex flex-wrap items-center justify-between gap-3">
+        <div className="p-5 bg-[#f3f3f3] border-t border-[#e0e0e0] flex flex-wrap items-center justify-between gap-3">
           <div className="text-[11px] text-[#707070] flex items-center gap-1.5">
             <Lock className="w-3.5 h-3.5 text-[#141414]" />
             <span>توثيق رقمي مشفر • التزام بنظام التعاملات الإلكترونية السعودي</span>

@@ -55,8 +55,8 @@ import {
   type HrManagerDelegation,
   type ConditionalWorkflowRule,
 } from '../services/hrWorkflowEngine';
-import { JisrCorporateCardsAndLeaveRolloverHub } from '../components/hr/JisrCorporateCardsAndLeaveRolloverHub';
-import { JisrCustomBuilderEsignPulseHub } from '../components/hr/JisrCustomBuilderEsignPulseHub';
+import { HrCorporateCardsAndLeaveRolloverHub } from '../components/hr/HrCorporateCardsAndLeaveRolloverHub';
+import { HrCustomBuilderEsignPulseHub } from '../components/hr/HrCustomBuilderEsignPulseHub';
 import { WpsPayrollEngine, type EmployeePayrollRecord } from '../services/wpsPayrollEngine';
 import {
   calculateEarnedWageAccess,
@@ -68,12 +68,12 @@ import {
   validateShiftSwapRequest,
   type SaudiPublicHoliday,
   type ShiftSwapRequestRecord,
-} from '../services/jisrAdvancedComplianceEngine';
+} from '../services/hrAdvancedComplianceEngine';
 import {
   scanHrComplianceRadars,
   type HrSmartAlertRecord,
 } from '../services/hrSmartAlertsEngine';
-import type { EwaWithdrawalRecordStored } from '../components/hr/JisrSmartAlertsAndComplianceHub';
+import type { EwaWithdrawalRecordStored } from '../components/hr/HrSmartAlertsAndComplianceHub';
 import { EmployeePayslipModal } from '../components/hr/HrEnterpriseModals';
 import { HrLettersStudioModal } from '../components/hr/HrLettersStudioModal';
 import { Employee360DigitalFileModal } from '../components/hr/Employee360DigitalFileModal';
@@ -1857,7 +1857,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
       id: `DEL-${Date.now().toString().slice(-5)}`,
       company_id: safeCompanyCode,
       from_manager_id: 'mgr-ops',
-      from_manager_name: user?.full_name || 'فهد العتيبي (مدير التشغيل)',
+      from_manager_name: user?.full_name || 'هاني عبدالله السليم (المدير المباشر)',
       to_delegate_id: `del-${Date.now().toString().slice(-3)}`,
       to_delegate_name: delToName.trim(),
       start_date: delStart,
@@ -1934,17 +1934,17 @@ export const EmployeeSelfServicePage: React.FC = () => {
             />
             <div>
               <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                <span className="px-3 py-0.5 rounded-full text-[11px] font-semibold bg-[#262626] text-[#ffffff] border border-[#3f3f46]">
+                <span className="px-3 py-0.5 rounded-full text-[11px] font-semibold bg-[#262626] text-[#ffffff] border border-[#262626]">
                   بوابة الخدمة الذاتية للموظف والمدير (ESS & MSS)
                 </span>
-                <span className="px-3 py-0.5 rounded-full text-[11px] font-mono bg-[#262626] text-[#d4d4d8]">
+                <span className="px-3 py-0.5 rounded-full text-[11px] font-mono bg-[#262626] text-[#e0e0e0]">
                   {currentEmployeeProfile.employee_code}
                 </span>
               </div>
               <h1 className="text-xl sm:text-2xl font-bold text-[#ffffff] m-0">
                 {currentEmployeeProfile.name}
               </h1>
-              <p className="text-xs sm:text-sm text-[#a1a1aa] mt-1 mb-0">
+              <p className="text-xs sm:text-sm text-[#adadad] mt-1 mb-0">
                 {currentEmployeeProfile.job_title} • {companyName}
               </p>
             </div>
@@ -1963,7 +1963,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowLettersModal(true)}
-              className="px-5 py-2.5 rounded-full text-xs font-bold bg-[#262626] text-[#ffffff] hover:bg-[#3f3f46] border border-[#3f3f46] transition-colors inline-flex items-center gap-2 cursor-pointer"
+              className="px-5 py-2.5 rounded-full text-xs font-bold bg-[#262626] text-[#ffffff] hover:bg-[#262626] border border-[#262626] transition-colors inline-flex items-center gap-2 cursor-pointer"
             >
               <FileSignature className="w-4 h-4 text-[#ffffff]" />
               <span>إصدار شهادة / خطاب باسم ({entityBranding.displayNameAr})</span>
@@ -1972,7 +1972,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
             <button
               type="button"
               onClick={() => setShow360Modal(true)}
-              className="px-4 py-2.5 rounded-full text-xs font-bold bg-[#262626] text-[#ffffff] hover:bg-[#3f3f46] border border-[#3f3f46] transition-colors inline-flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 rounded-full text-xs font-bold bg-[#262626] text-[#ffffff] hover:bg-[#262626] border border-[#262626] transition-colors inline-flex items-center gap-2 cursor-pointer"
             >
               <User className="w-4 h-4 text-[#ffffff]" />
               <span>ملفي الشامل 360°</span>
@@ -1988,7 +1988,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
                     })
                   )
                 }
-                className="px-4 py-2.5 rounded-full text-xs font-bold bg-[#262626] text-[#ffffff] hover:bg-[#3f3f46] border border-[#3f3f46] transition-colors inline-flex items-center gap-2 cursor-pointer"
+                className="px-4 py-2.5 rounded-full text-xs font-bold bg-[#262626] text-[#ffffff] hover:bg-[#262626] border border-[#262626] transition-colors inline-flex items-center gap-2 cursor-pointer"
               >
                 <Sliders className="w-4 h-4 text-[#ffffff]" />
                 <span>الإعدادات</span>
@@ -2008,7 +2008,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
               <select
                 value={selectedBranchGeoId}
                 onChange={(e) => setSelectedBranchGeoId(e.target.value)}
-                className="px-3 py-1.5 rounded-full bg-[#262626] border border-[#3f3f46] text-xs font-bold text-[#ffffff]"
+                className="px-3 py-1.5 rounded-full bg-[#262626] border border-[#262626] text-xs font-bold text-[#ffffff]"
               >
                 {geofences.map((g) => (
                   <option key={g.id} value={g.id}>
@@ -2037,7 +2037,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
                 type="button"
                 disabled={gpsPending}
                 onClick={() => void handleGeofencePunch('OUT')}
-                className="px-4 py-2 rounded-full bg-[#262626] text-[#ffffff] border border-[#3f3f46] hover:bg-[#3f3f46] disabled:opacity-50 text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 rounded-full bg-[#262626] text-[#ffffff] border border-[#262626] hover:bg-[#262626] disabled:opacity-50 text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
               >
                 {gpsPending && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                 <span>تسجيل انصراف (Check-Out)</span>
@@ -2046,7 +2046,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
           </div>
 
           {gpsStatusBanner && (
-            <div className="px-4 py-2.5 rounded-[16px] bg-[#262626] border border-[#3f3f46] text-xs text-[#ffffff] flex items-center justify-between gap-2">
+            <div className="px-4 py-2.5 rounded-[16px] bg-[#262626] border border-[#262626] text-xs text-[#ffffff] flex items-center justify-between gap-2">
               <span>{gpsStatusBanner}</span>
               <button
                 type="button"
@@ -2937,7 +2937,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
 
       {activeTab === 'CARDS_PULSE' && (
         <div className="space-y-6">
-          <JisrCorporateCardsAndLeaveRolloverHub
+          <HrCorporateCardsAndLeaveRolloverHub
             companyId={
               currentEmployeeProfile.company_id && currentEmployeeProfile.company_id !== 'HQ'
                 ? currentEmployeeProfile.company_id
@@ -2954,7 +2954,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
             ]}
             onDataChanged={() => void loadEssData()}
           />
-          <JisrCustomBuilderEsignPulseHub
+          <HrCustomBuilderEsignPulseHub
             companyId={
               currentEmployeeProfile.company_id && currentEmployeeProfile.company_id !== 'HQ'
                 ? currentEmployeeProfile.company_id

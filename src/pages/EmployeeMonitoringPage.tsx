@@ -35,7 +35,7 @@ import {
   DEFAULT_ENPS_SURVEYS,
   calculateEnpsSummary,
   classifyEnpsScore,
-} from '../services/jisrGovernanceTalentPulseEngine';
+} from '../services/hrGovernanceTalentPulseEngine';
 import { ExportDropdown } from '../components/common/ExportDropdown';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
@@ -484,7 +484,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
       {/* 2. Top Executive KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Mood Index */}
-        <div className="p-5 rounded-2xl bg-white border border-[#e0e0e0] shadow-sm relative overflow-hidden">
+        <div className="p-5 rounded-2xl bg-white border border-[#e0e0e0]  relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-[#707070]">مؤشر عافية ورضا الفريق</span>
             <div className="w-8 h-8 rounded-lg bg-[#f3f3f3] text-[#141414] flex items-center justify-center">
@@ -507,7 +507,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
         </div>
 
         {/* Metric 2: Active vs Idle Ratio */}
-        <div className="p-5 rounded-2xl bg-white border border-[#e0e0e0] shadow-sm relative overflow-hidden">
+        <div className="p-5 rounded-2xl bg-white border border-[#e0e0e0]  relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-[#707070]">
               معدل النشاط الفعّال (Active Rate)
@@ -534,7 +534,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
         </div>
 
         {/* Metric 3: Rage Clicks */}
-        <div className="p-5 rounded-2xl bg-white border border-[#e0e0e0] shadow-sm relative overflow-hidden">
+        <div className="p-5 rounded-2xl bg-white border border-[#e0e0e0]  relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-[#707070]">
               رادار النقرات العصبية (Rage Clicks)
@@ -557,7 +557,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
         </div>
 
         {/* Metric 4: Security & DLP Alerts */}
-        <div className="p-5 rounded-2xl bg-white border border-[#e0e0e0] shadow-sm relative overflow-hidden">
+        <div className="p-5 rounded-2xl bg-white border border-[#e0e0e0]  relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-[#707070]">
               تنبيهات أمن البيانات (DLP Alerts)
@@ -581,7 +581,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
       </div>
 
       {/* Dedicated Live Panel: تكامل نبض الولاء الوظيفي (eNPS) والانضباط الفعلي بالدوام */}
-      <div className="p-6 rounded-[24px] bg-white border border-[#e0e0e0] shadow-sm space-y-4">
+      <div className="p-6 rounded-[24px] bg-white border border-[#e0e0e0]  space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-3 border-b border-[#e0e0e0] pb-4">
           <div>
             <div className="flex items-center gap-2">
@@ -602,14 +602,14 @@ export const EmployeeMonitoringPage: React.FC = () => {
             <button
               type="button"
               onClick={() => handleRecordLiveEnpsPulse(10, 'الموارد البشرية والتشغيل')}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#141414] text-white hover:bg-[#262626] transition-colors"
+              className="px-3 py-1.5 rounded-full text-xs font-bold bg-[#141414] text-white hover:bg-[#262626] transition-colors"
             >
               + توثيق تقييم مروج (10/10)
             </button>
             <button
               type="button"
               onClick={() => handleRecordLiveEnpsPulse(8, 'الإدارة المالية والعمليات')}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#e0e0e0] transition-colors"
+              className="px-3 py-1.5 rounded-full text-xs font-bold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#e0e0e0] transition-colors"
             >
               + توثيق تقييم محايد (8/10)
             </button>
@@ -730,7 +730,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
             onClick={() => setActiveTab('matrix')}
             className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
               activeTab === 'matrix'
-                ? 'bg-white text-[#141414] shadow-sm'
+                ? 'bg-white text-[#141414] '
                 : 'text-[#707070] hover:text-[#141414]'
             }`}
           >
@@ -741,7 +741,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
             onClick={() => setActiveTab('mood_stream')}
             className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
               activeTab === 'mood_stream'
-                ? 'bg-white text-[#141414] shadow-sm'
+                ? 'bg-white text-[#141414] '
                 : 'text-[#707070] hover:text-[#141414]'
             }`}
           >
@@ -752,7 +752,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
             onClick={() => setActiveTab('telemetry')}
             className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
               activeTab === 'telemetry'
-                ? 'bg-white text-[#141414] shadow-sm'
+                ? 'bg-white text-[#141414] '
                 : 'text-[#707070] hover:text-[#141414]'
             }`}
           >
@@ -763,7 +763,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
             onClick={() => setActiveTab('rules')}
             className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
               activeTab === 'rules'
-                ? 'bg-white text-[#141414] shadow-sm'
+                ? 'bg-white text-[#141414] '
                 : 'text-[#707070] hover:text-[#141414]'
             }`}
           >
@@ -782,7 +782,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="بحث بالموظف، الدور، أو الفرع..."
-              className="pl-3 pr-8 py-1.5 text-xs rounded-xl bg-white border border-[#e0e0e0] text-[#141414] placeholder-[#707070] focus:outline-none focus:border-[#141414] w-48 sm:w-56"
+              className="pl-3 pr-8 py-1.5 text-xs rounded-full bg-white border border-[#e0e0e0] text-[#141414] placeholder-[#707070] focus:outline-none focus:border-[#141414] w-48 sm:w-56"
             />
           </div>
 
@@ -817,7 +817,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
 
       {/* TAB 1: Team Monitoring Matrix */}
       {activeTab === 'matrix' && (
-        <div className="rounded-2xl border border-[#e0e0e0] bg-white overflow-hidden shadow-sm">
+        <div className="rounded-2xl border border-[#e0e0e0] bg-white overflow-hidden ">
           <div className="p-4 border-b border-[#e0e0e0] flex items-center justify-between">
             <div>
               <h2 className="text-sm font-bold text-[#141414]">
@@ -1028,7 +1028,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
               return (
                 <div
                   key={log.id}
-                  className="p-5 rounded-2xl bg-white border border-[#e0e0e0] shadow-sm relative overflow-hidden transition-all hover:border-[#e0e0e0]"
+                  className="p-5 rounded-2xl bg-white border border-[#e0e0e0]  relative overflow-hidden transition-all hover:border-[#e0e0e0]"
                 >
                   <div className="absolute top-0 inset-x-0 h-1 bg-[#141414]" />
 
@@ -1065,7 +1065,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
                     </div>
 
                     {log.note ? (
-                      <p className="text-xs text-[#707070] bg-[#f3f3f3] p-2.5 rounded-xl border border-[#e0e0e0] leading-relaxed font-sans">
+                      <p className="text-xs text-[#707070] bg-[#f3f3f3] p-2.5 rounded-full border border-[#e0e0e0] leading-relaxed font-sans">
                         "{log.note}"
                       </p>
                     ) : (
@@ -1083,7 +1083,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
 
       {/* TAB 3: Telemetry Stream */}
       {activeTab === 'telemetry' && (
-        <div className="rounded-2xl border border-[#e0e0e0] bg-white overflow-hidden shadow-sm">
+        <div className="rounded-2xl border border-[#e0e0e0] bg-white overflow-hidden ">
           <div className="p-4 border-b border-[#e0e0e0] flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-[#141414]">
@@ -1177,7 +1177,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
       {activeTab === 'rules' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <div className="p-6 rounded-2xl bg-white border border-[#e0e0e0] shadow-sm">
+            <div className="p-6 rounded-2xl bg-white border border-[#e0e0e0] ">
               <h3 className="text-sm font-bold text-[#141414] mb-1">
                 إعدادات عتبات التنبيه الرقابي التلقائي
               </h3>
@@ -1187,7 +1187,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
 
               <div className="space-y-4">
                 {/* Rule 1: Rage Click Threshold */}
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0]">
+                <div className="flex items-center justify-between p-3.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0]">
                   <div>
                     <h4 className="text-xs font-bold text-[#141414]">
                       عتبة رصد النقرات العصبية (Rage Click Threshold)
@@ -1322,7 +1322,7 @@ export const EmployeeMonitoringPage: React.FC = () => {
                       type: 'success',
                     });
                   }}
-                  className="px-5 py-2 text-xs font-bold text-white bg-[#141414] hover:bg-[#262626] rounded-xl shadow transition-colors"
+                  className="px-5 py-2 text-xs font-bold text-white bg-[#141414] hover:bg-[#262626] rounded-full shadow transition-colors"
                 >
                   حفظ وتفعيل القواعد
                 </button>

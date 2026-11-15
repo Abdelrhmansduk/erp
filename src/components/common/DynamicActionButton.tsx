@@ -207,21 +207,21 @@ export const DynamicActionButton: React.FC<DynamicActionButtonProps> = ({
 
   const getPhaseVariantClasses = () => {
     if (phase === 'success') {
-      return 'bg-[#141414] text-[#ffffff] text-white border border-[#e0e0e0] shadow-md ';
+      return 'bg-[#141414] text-[#ffffff] text-white border border-[#e0e0e0]  ';
     }
     if (phase === 'error') {
       return 'bg-[#141414] text-white border border-[#e0e0e0]';
     }
     if (phase === 'verifying' || phase === 'executing') {
-      return 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] shadow-md';
+      return 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] ';
     }
     switch (variant) {
       case 'gold':
-        return 'bg-[#141414] text-[#ffffff] hover:bg-[#262626] border border-[#141414] shadow-xs';
+        return 'bg-[#141414] text-[#ffffff] hover:bg-[#262626] border border-[#141414] ';
       case 'charcoal':
-        return 'bg-[#141414] text-[#ffffff] hover:bg-[#262626] border border-[#141414] shadow-xs';
+        return 'bg-[#141414] text-[#ffffff] hover:bg-[#262626] border border-[#141414] ';
       case 'emerald':
-        return 'bg-[#141414] text-[#ffffff] hover:bg-[#262626] text-white border border-[#e0e0e0] shadow-xs';
+        return 'bg-[#141414] text-[#ffffff] hover:bg-[#262626] text-white border border-[#e0e0e0] ';
       case 'outline':
       default:
         return 'bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[#141414] hover:text-[#141414] border border-[#e0e0e0]';

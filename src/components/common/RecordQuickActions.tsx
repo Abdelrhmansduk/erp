@@ -74,7 +74,7 @@ export const RecordQuickActions: React.FC<RecordQuickActionsProps> = ({
               type="button"
               onClick={() => shareViaWhatsApp(sharePayload)}
               title="إرسال عبر واتساب الرسمي (ملف PDF معتمد + نص)"
-              className={`${btnPadding} rounded-full bg-[#ecfdf5] hover:bg-[#16a34a] text-[#16a34a] hover:text-[#ffffff] border border-[#bbf7d0] hover:border-[#16a34a] inline-flex items-center justify-center gap-1.5 font-bold transition-colors cursor-pointer`}
+              className={`${btnPadding} rounded-full bg-[#f3f3f3] hover:bg-[#707070] text-[#707070] hover:text-[#ffffff] border border-[#e0e0e0] hover:border-[#707070] inline-flex items-center justify-center gap-1.5 font-bold transition-colors cursor-pointer`}
             >
               <MessageCircle className={iconSize} />
               {showLabels && <span>واتساب (PDF + نص)</span>}
@@ -84,7 +84,7 @@ export const RecordQuickActions: React.FC<RecordQuickActionsProps> = ({
               type="button"
               onClick={() => shareViaEmail(sharePayload)}
               title="إرسال عبر البريد الإلكتروني"
-              className={`${btnPadding} rounded-full bg-[#f0f9ff] hover:bg-[#0284c7] text-[#0284c7] hover:text-[#ffffff] border border-[#bae6fd] hover:border-[#0284c7] inline-flex items-center justify-center gap-1.5 font-bold transition-colors cursor-pointer`}
+              className={`${btnPadding} rounded-full bg-[#f3f3f3] hover:bg-[#707070] text-[#707070] hover:text-[#ffffff] border border-[#e0e0e0] hover:border-[#707070] inline-flex items-center justify-center gap-1.5 font-bold transition-colors cursor-pointer`}
             >
               <Mail className={iconSize} />
               {showLabels && <span>بريد</span>}
@@ -94,7 +94,7 @@ export const RecordQuickActions: React.FC<RecordQuickActionsProps> = ({
               type="button"
               onClick={() => void copyOrWebShareSummary(sharePayload)}
               title="نسخ أو مشاركة ملخص السجل"
-              className={`${btnPadding} rounded-full bg-[#f0fdfa] hover:bg-[#0d9488] text-[#0d9488] hover:text-[#ffffff] border border-[#99f6e4] hover:border-[#0d9488] inline-flex items-center justify-center gap-1.5 font-bold transition-colors cursor-pointer`}
+              className={`${btnPadding} rounded-full bg-[#ffffff] hover:bg-[#707070] text-[#707070] hover:text-[#ffffff] border border-[#e0e0e0] hover:border-[#707070] inline-flex items-center justify-center gap-1.5 font-bold transition-colors cursor-pointer`}
             >
               <Copy className={iconSize} />
               {showLabels && <span>نسخ</span>}
@@ -107,7 +107,7 @@ export const RecordQuickActions: React.FC<RecordQuickActionsProps> = ({
             type="button"
             onClick={onPrint}
             title="طباعة / استخراج PDF"
-            className={`${btnPadding} rounded-full bg-[#f5f3ff] hover:bg-[#7c3aed] text-[#7c3aed] hover:text-[#ffffff] border border-[#ddd6fe] hover:border-[#7c3aed] inline-flex items-center justify-center gap-1.5 font-bold transition-colors cursor-pointer`}
+            className={`${btnPadding} rounded-full bg-[#f3f3f3] hover:bg-[#707070] text-[#707070] hover:text-[#ffffff] border border-[#e0e0e0] hover:border-[#707070] inline-flex items-center justify-center gap-1.5 font-bold transition-colors cursor-pointer`}
           >
             <Printer className={iconSize} />
             {showLabels && <span>طباعة</span>}
@@ -119,7 +119,7 @@ export const RecordQuickActions: React.FC<RecordQuickActionsProps> = ({
             type="button"
             onClick={onEdit}
             title="تعديل بيانات السجل"
-            className={`${btnPadding} rounded-full bg-[#fffbeb] hover:bg-[#d97706] text-[#d97706] hover:text-[#ffffff] border border-[#fde68a] hover:border-[#d97706] inline-flex items-center justify-center gap-1.5 font-bold transition-colors cursor-pointer`}
+            className={`${btnPadding} rounded-full bg-[#ffffff] hover:bg-[#707070] text-[#707070] hover:text-[#ffffff] border border-[#e0e0e0] hover:border-[#707070] inline-flex items-center justify-center gap-1.5 font-bold transition-colors cursor-pointer`}
           >
             <Pencil className={iconSize} />
             {showLabels && <span>تعديل</span>}
@@ -131,7 +131,7 @@ export const RecordQuickActions: React.FC<RecordQuickActionsProps> = ({
             type="button"
             onClick={() => setConfirmOpen(true)}
             title="حذف آمن (ينقل لسلة الاستعادة لمدة 30 يوماً)"
-            className={`${btnPadding} rounded-full bg-[#fff1f2] hover:bg-[#e11d48] text-[#e11d48] hover:text-[#ffffff] border border-[#fecdd3] hover:border-[#e11d48] inline-flex items-center justify-center gap-1.5 font-bold transition-colors cursor-pointer`}
+            className={`${btnPadding} rounded-full bg-[#f3f3f3] hover:bg-[#262626] text-[#262626] hover:text-[#ffffff] border border-[#e0e0e0] hover:border-[#262626] inline-flex items-center justify-center gap-1.5 font-bold transition-colors cursor-pointer`}
           >
             <Trash2 className={iconSize} />
             {showLabels && <span>حذف</span>}
@@ -155,8 +155,8 @@ export const RecordQuickActions: React.FC<RecordQuickActionsProps> = ({
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full bg-[#fffbeb] border border-[#fde68a] flex items-center justify-center text-[#d97706] shrink-0">
-                    <AlertTriangle className="w-4 h-4 text-[#d97706]" data-colored-icon="true" />
+                  <div className="w-9 h-9 rounded-full bg-[#ffffff] border border-[#e0e0e0] flex items-center justify-center text-[#707070] shrink-0">
+                    <AlertTriangle className="w-4 h-4 text-[#707070]" data-colored-icon="true" />
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-[#141414] m-0">
@@ -266,7 +266,7 @@ export const RecycleBinModal: React.FC<RecycleBinModalProps> = ({
       >
         <div className="px-5 py-4 bg-[#141414] text-[#ffffff] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <RotateCcw className="w-4 h-4 text-[#34d399]" data-colored-icon="true" />
+            <RotateCcw className="w-4 h-4 text-[#707070]" data-colored-icon="true" />
             <h3 className="text-sm font-bold m-0">
               أرشيف المحذوفات القابلة للاستعادة (حفظ لمدة 30 يوماً)
             </h3>
@@ -274,9 +274,9 @@ export const RecycleBinModal: React.FC<RecycleBinModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#262626] hover:bg-[#3f3f46] flex items-center justify-center text-[#ffffff] cursor-pointer"
+            className="w-8 h-8 rounded-full bg-[#262626] hover:bg-[#262626] flex items-center justify-center text-[#ffffff] cursor-pointer"
           >
-            <X className="w-4 h-4 text-[#fb7185]" data-colored-icon="true" />
+            <X className="w-4 h-4 text-[#707070]" data-colored-icon="true" />
           </button>
         </div>
 
@@ -304,13 +304,13 @@ export const RecycleBinModal: React.FC<RecycleBinModalProps> = ({
                     onClick={() => handleRestore(item.binId)}
                     className="px-3.5 py-1.5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
                   >
-                    <RotateCcw className="w-3.5 h-3.5 text-[#34d399]" data-colored-icon="true" />
+                    <RotateCcw className="w-3.5 h-3.5 text-[#707070]" data-colored-icon="true" />
                     <span>استعادة فورية</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handlePermanentDelete(item.binId)}
-                    className="px-3 py-1.5 rounded-full bg-[#fff1f2] hover:bg-[#ffe4e6] text-[#be123c] border border-[#fecdd3] text-[11px] font-bold cursor-pointer"
+                    className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[#262626] border border-[#e0e0e0] text-[11px] font-bold cursor-pointer"
                   >
                     إتلاف نهائي
                   </button>

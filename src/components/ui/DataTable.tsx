@@ -167,7 +167,7 @@ export function DataTable<T extends { id: string | number }>({
         padding: 0,
         overflow: 'hidden',
         borderRadius: '16px',
-        border: '1px solid #e4e4e7',
+        border: '1px solid #e0e0e0',
         background: '#ffffff',
         position: 'relative',
       }}
@@ -179,7 +179,7 @@ export function DataTable<T extends { id: string | number }>({
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '14px 20px',
-          borderBottom: '1px solid #e4e4e7',
+          borderBottom: '1px solid #e0e0e0',
           flexWrap: 'wrap',
           gap: '12px',
         }}
@@ -188,7 +188,7 @@ export function DataTable<T extends { id: string | number }>({
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <i
               className="fa-solid fa-magnifying-glass"
-              style={{ position: 'absolute', right: '14px', color: '#71717a', fontSize: '13px' }}
+              style={{ position: 'absolute', right: '14px', color: '#707070', fontSize: '13px' }}
             ></i>
             <input
               type="text"
@@ -212,7 +212,7 @@ export function DataTable<T extends { id: string | number }>({
                 style={{
                   position: 'absolute',
                   left: '12px',
-                  color: '#71717a',
+                  color: '#707070',
                   cursor: 'pointer',
                   fontSize: '13px',
                 }}
@@ -239,7 +239,7 @@ export function DataTable<T extends { id: string | number }>({
 
           {/* Row Density Switcher */}
           <div
-            className="hidden md:inline-flex items-center rounded-full bg-zinc-100 p-0.5 border border-zinc-200"
+            className="hidden md:inline-flex items-center rounded-full bg-[#f3f3f3] p-0.5 border border-[#e0e0e0]"
             title="التحكم في كثافة صفوف الجدول"
           >
             {(
@@ -256,7 +256,7 @@ export function DataTable<T extends { id: string | number }>({
                 className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
                   density === opt.id
                     ? 'bg-[#f3f3f3] text-[#141414] shadow-2xs'
-                    : 'text-zinc-600 hover:text-[#141414]'
+                    : 'text-[#707070] hover:text-[#141414]'
                 }`}
               >
                 {opt.label}
@@ -293,7 +293,7 @@ export function DataTable<T extends { id: string | number }>({
               <button
                 type="button"
                 onClick={() => handleExport('wps')}
-                className="px-2 py-0.5 rounded-full bg-[#f3f3f3] hover:bg-[#eaeaea] text-[11px] text-[#141414] cursor-pointer"
+                className="px-2 py-0.5 rounded-full bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[11px] text-[#141414] cursor-pointer"
               >
                 WPS
               </button>
@@ -342,7 +342,7 @@ export function DataTable<T extends { id: string | number }>({
                   top: '110%',
                   left: 0,
                   background: '#ffffff',
-                  border: '1px solid #e4e4e7',
+                  border: '1px solid #e0e0e0',
                   borderRadius: '12px',
                   boxShadow: '0 8px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)',
                   zIndex: 50,
@@ -372,7 +372,7 @@ export function DataTable<T extends { id: string | number }>({
                     gap: '8px',
                     color: '#141414',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = '#f4f4f5')}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = '#f3f3f3')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >
                   <i className="fa-solid fa-wand-magic-sparkles" style={{ fontSize: '14px', color: '#141414' }}></i>
@@ -403,7 +403,7 @@ export function DataTable<T extends { id: string | number }>({
                     gap: '8px',
                     color: '#141414',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = '#f4f4f5')}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = '#f3f3f3')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >
                   <i className="fa-solid fa-file-arrow-up" style={{ fontSize: '14px' }}></i>
@@ -431,7 +431,7 @@ export function DataTable<T extends { id: string | number }>({
                       gap: '8px',
                       color: '#141414',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = '#f4f4f5')}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = '#f3f3f3')}
                     onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   >
                     <i className="fa-solid fa-download"></i>
@@ -469,8 +469,8 @@ export function DataTable<T extends { id: string | number }>({
         <div
           style={{
             padding: '16px 20px',
-            background: '#fafafa',
-            borderBottom: '1px solid #e4e4e7',
+            background: '#ffffff',
+            borderBottom: '1px solid #e0e0e0',
           }}
         >
           {filterContent}
@@ -488,7 +488,7 @@ export function DataTable<T extends { id: string | number }>({
           }}
         >
           <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
-            <tr style={{ background: '#fafafa', borderBottom: '1px solid #e4e4e7' }}>
+            <tr style={{ background: '#ffffff', borderBottom: '1px solid #e0e0e0' }}>
               <th style={{ width: '44px', textAlign: 'center', padding: cellPadding }}>
                 <input
                   type="checkbox"
@@ -505,10 +505,10 @@ export function DataTable<T extends { id: string | number }>({
                     padding: cellPadding,
                     fontSize: '12px',
                     fontWeight: 700,
-                    color: '#52525b',
+                    color: '#262626',
                     textTransform: 'uppercase',
                     letterSpacing: '0.2px',
-                    background: '#fafafa',
+                    background: '#ffffff',
                   }}
                 >
                   {col.header}
@@ -521,9 +521,9 @@ export function DataTable<T extends { id: string | number }>({
                     padding: cellPadding,
                     fontSize: '12px',
                     fontWeight: 700,
-                    color: '#52525b',
+                    color: '#262626',
                     textAlign: 'center',
-                    background: '#fafafa',
+                    background: '#ffffff',
                   }}
                 >
                   الإجراءات والتواصل
@@ -536,7 +536,7 @@ export function DataTable<T extends { id: string | number }>({
               <tr>
                 <td
                   colSpan={columns.length + 1 + (hasQuickActionsColumn ? 1 : 0)}
-                  style={{ textAlign: 'center', padding: '40px 16px', color: '#71717a' }}
+                  style={{ textAlign: 'center', padding: '40px 16px', color: '#707070' }}
                 >
                   <div className="flex flex-col items-center justify-center gap-3">
                     <BusinessIllustration type="empty-search" size="md" />
@@ -572,7 +572,7 @@ export function DataTable<T extends { id: string | number }>({
                         onClick={() =>
                           window.dispatchEvent(new CustomEvent('open-universal-extractor'))
                         }
-                        className="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-[#141414] border border-zinc-300 hover:bg-zinc-50 transition-colors cursor-pointer"
+                        className="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-[#141414] border border-[#e0e0e0] hover:bg-[#f3f3f3] transition-colors cursor-pointer"
                       >
                         استخلاص من ملف (OCR)
                       </button>
@@ -585,12 +585,12 @@ export function DataTable<T extends { id: string | number }>({
                 <tr
                   key={row.id}
                   style={{
-                    borderBottom: '1px solid #e4e4e7',
+                    borderBottom: '1px solid #e0e0e0',
                     backgroundColor: selectedIds.has(row.id) ? '#f3f3f3' : '#ffffff',
                     transition: 'background-color 0.15s ease',
                   }}
                   onMouseEnter={(e) => {
-                    if (!selectedIds.has(row.id)) e.currentTarget.style.backgroundColor = '#f4f4f5';
+                    if (!selectedIds.has(row.id)) e.currentTarget.style.backgroundColor = '#f3f3f3';
                   }}
                   onMouseLeave={(e) => {
                     if (!selectedIds.has(row.id)) e.currentTarget.style.backgroundColor = '#ffffff';
@@ -696,10 +696,10 @@ export function DataTable<T extends { id: string | number }>({
           justifyContent: 'space-between',
           alignItems: 'center',
           padding: '12px 20px',
-          background: '#fafafa',
-          borderTop: '1px solid #e4e4e7',
+          background: '#ffffff',
+          borderTop: '1px solid #e0e0e0',
           fontSize: '12.5px',
-          color: '#71717a',
+          color: '#707070',
           flexWrap: 'wrap',
           gap: '8px',
         }}

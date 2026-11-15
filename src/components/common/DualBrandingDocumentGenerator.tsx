@@ -354,7 +354,7 @@ export const DualBrandingDocumentGenerator: React.FC<DualBrandingDocumentGenerat
       {/* Official Footer */}
       <div
         style={{
-          borderTop: '1px solid #e5e5e5',
+          borderTop: '1px solid #e0e0e0',
           paddingTop: '14px',
           display: 'flex',
           justifyContent: 'space-between',

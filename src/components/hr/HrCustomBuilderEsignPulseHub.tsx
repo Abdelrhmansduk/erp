@@ -41,9 +41,9 @@ import {
   type EsignDocumentType,
   type EsignOtpChallenge,
   type VerifiedEsignatureRecord,
-} from '../../services/jisrGovernanceTalentPulseEngine';
+} from '../../services/hrGovernanceTalentPulseEngine';
 
-interface JisrCustomBuilderEsignPulseHubProps {
+interface HrCustomBuilderEsignPulseHubProps {
   companyId: string;
   employees: Array<{
     id: string;
@@ -56,7 +56,7 @@ interface JisrCustomBuilderEsignPulseHubProps {
   onOpenPublicCareersPortal?: () => void;
 }
 
-export const JisrCustomBuilderEsignPulseHub: React.FC<JisrCustomBuilderEsignPulseHubProps> = ({
+export const HrCustomBuilderEsignPulseHub: React.FC<HrCustomBuilderEsignPulseHubProps> = ({
   companyId,
   employees,
   onOpenPublicCareersPortal,

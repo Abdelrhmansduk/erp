@@ -220,7 +220,7 @@ export const AgentImportsPage: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'space-between',
           background: '#141414',
-          color: '#FFF',
+          color: '#ffffff',
           padding: '28px',
           borderRadius: '16px',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
@@ -238,12 +238,12 @@ export const AgentImportsPage: React.FC = () => {
               <span className="pill-tag-mint" style={{ fontSize: '11px' }}>
                 {i18n.t("ats.agentBatchImports", "استيراد دفعات الوكلاء")}
               </span>
-              <span style={{ color: '#a1a1aa', fontSize: '12px' }}>استيراد السير الذاتية والمكاتب الدولية</span>
+              <span style={{ color: '#adadad', fontSize: '12px' }}>استيراد السير الذاتية والمكاتب الدولية</span>
             </div>
             <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, margin: '6px 0 0 0', letterSpacing: '-0.02em', color: '#ffffff', fontFamily: 'var(--font-family-display)' }}>
               ملفات السير المرفوعة من الوكلاء بالخارج
             </h1>
-            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#a1a1aa', fontWeight: 420 }}>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#adadad', fontWeight: 420 }}>
               مراجعة واعتماد السير الذاتية المرفوعة بالجملة من مكاتب الاستقدام الخارجية أو استيراد ملفات Excel/CSV جديدة
             </p>
           </div>
@@ -279,7 +279,7 @@ export const AgentImportsPage: React.FC = () => {
 
       {/* Batches Table Card */}
       <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-        <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-white flex-wrap gap-3">
+        <div className="flex items-center justify-between p-4 border-b border-[#e0e0e0] bg-white flex-wrap gap-3">
           <div className="relative w-full md:w-80">
             <Search className="w-4 h-4 absolute right-3 top-3 text-[#707070]" />
             <input
@@ -298,8 +298,8 @@ export const AgentImportsPage: React.FC = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-right text-xs text-zinc-700">
-            <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+          <table className="w-full text-right text-xs text-[#141414]">
+            <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
               <tr>
                 <th className="p-3.5">كود الدفعة</th>
                 <th className="p-3.5">المكتب الخارجي والدولة</th>
@@ -309,9 +309,9 @@ export const AgentImportsPage: React.FC = () => {
                 <th className="p-3.5 text-center">الإجراءات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-[#e0e0e0]">
               {filteredBatches.map((row) => (
-                <tr key={row.id} className="hover:bg-zinc-50 transition-colors">
+                <tr key={row.id} className="hover:bg-[#f3f3f3] transition-colors">
                   <td className="p-3.5 font-mono font-bold text-[#141414]">{row.batch_code}</td>
                   <td className="p-3.5">
                     <div className="flex items-center gap-2.5">
@@ -338,7 +338,7 @@ export const AgentImportsPage: React.FC = () => {
                     <div className="flex items-center justify-center gap-1.5">
                       <button
                         onClick={() => setSelectedBatch(row)}
-                        className="px-2.5 py-1 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-bold text-[11px] inline-flex items-center gap-1 transition-all"
+                        className="px-2.5 py-1 rounded-lg bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] font-bold text-[11px] inline-flex items-center gap-1 transition-all"
                         title="معاينة وفحص السير الذاتية في هذه الدفعة"
                       >
                         <Eye className="w-3.5 h-3.5 text-[#141414]" />
@@ -356,7 +356,7 @@ export const AgentImportsPage: React.FC = () => {
                       )}
                       <button
                         onClick={() => handleDeleteBatch(row.id)}
-                        className="p-1.5 rounded-lg hover:bg-[#eaeaea] text-[#707070] hover:text-[#141414] transition-colors"
+                        className="p-1.5 rounded-lg hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] transition-colors"
                         title="حذف الدفعة"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -373,18 +373,18 @@ export const AgentImportsPage: React.FC = () => {
       {/* Add New Batch Modal */}
       {showAddBatchModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowAddBatchModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white rounded-[24px] p-6 max-w-md w-full border border-zinc-200 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white rounded-[24px] p-6 max-w-md w-full border border-[#e0e0e0] space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#e0e0e0]">
               <div className="flex items-center gap-2">
                 <UploadCloud className="w-5 h-5 text-[#141414]" />
-                <h3 className="font-bold text-slate-900 text-base">
+                <h3 className="font-bold text-[#141414] text-base">
                   تسجيل دفعة استيراد سير جديدة
                 </h3>
               </div>
               <button 
                 type="button"
                 onClick={() => setShowAddBatchModal(false)}
-                className="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-600 flex items-center justify-center cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070] flex items-center justify-center cursor-pointer"
                 aria-label="إغلاق"
               >
                 ✕
@@ -393,11 +393,11 @@ export const AgentImportsPage: React.FC = () => {
 
             <form onSubmit={handleCreateBatch} className="space-y-3">
               <div>
-                <label className="block text-[11px] font-bold text-zinc-600 mb-1">المكتب الخارجي / الوكالة</label>
+                <label className="block text-[11px] font-bold text-[#707070] mb-1">المكتب الخارجي / الوكالة</label>
                 <select
                   value={batchForm.office_name}
                   onChange={(e) => setBatchForm({ ...batchForm, office_name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-zinc-200 bg-zinc-50 text-xs text-slate-900"
+                  className="w-full px-3 py-2 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-xs text-[#141414]"
                 >
                   <option value="DAMAS FOREIGN AGENCY">DAMAS FOREIGN AGENCY (إثيوبيا)</option>
                   <option value="PLATINUM BROTHERS INT'L">PLATINUM BROTHERS INT'L (الفلبين)</option>
@@ -409,50 +409,50 @@ export const AgentImportsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-zinc-600 mb-1">الدولة</label>
+                  <label className="block text-[11px] font-bold text-[#707070] mb-1">الدولة</label>
                   <input
                     type="text"
                     required
                     value={batchForm.country}
                     onChange={(e) => setBatchForm({ ...batchForm, country: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-zinc-200 bg-zinc-50 text-xs text-slate-900"
+                    className="w-full px-3 py-2 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-xs text-[#141414]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-zinc-600 mb-1">عدد السير المرفوعة</label>
+                  <label className="block text-[11px] font-bold text-[#707070] mb-1">عدد السير المرفوعة</label>
                   <input
                     type="number"
                     required
                     value={batchForm.cvs_count}
                     onChange={(e) => setBatchForm({ ...batchForm, cvs_count: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-zinc-200 bg-zinc-50 text-xs text-slate-900 font-mono"
+                    className="w-full px-3 py-2 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-xs text-[#141414] font-mono"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-zinc-600 mb-1">كود الدفعة</label>
+                <label className="block text-[11px] font-bold text-[#707070] mb-1">كود الدفعة</label>
                 <input
                   type="text"
                   required
                   value={batchForm.batch_code}
                   onChange={(e) => setBatchForm({ ...batchForm, batch_code: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-zinc-200 bg-zinc-50 text-xs text-slate-900 font-mono"
+                  className="w-full px-3 py-2 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-xs text-[#141414] font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-zinc-600 mb-1">ملاحظات واعتمادات السفارة</label>
+                <label className="block text-[11px] font-bold text-[#707070] mb-1">ملاحظات واعتمادات السفارة</label>
                 <textarea
                   rows={2}
                   placeholder="ملاحظات حول الفحوصات الطبية أو التخصصات..."
                   value={batchForm.notes}
                   onChange={(e) => setBatchForm({ ...batchForm, notes: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-zinc-200 bg-zinc-50 text-xs text-slate-900 resize-none"
+                  className="w-full px-3 py-2 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-xs text-[#141414] resize-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-zinc-100">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddBatchModal(false)}
@@ -477,12 +477,12 @@ export const AgentImportsPage: React.FC = () => {
       {/* Batch Details Inspection Modal */}
       {selectedBatch && (
         <div role="dialog" aria-modal="true" onClick={() => setSelectedBatch(null)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white rounded-[24px] p-6 max-w-2xl w-full border border-zinc-200 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white rounded-[24px] p-6 max-w-2xl w-full border border-[#e0e0e0] space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#e0e0e0]">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#141414]" />
                 <div>
-                  <h3 className="font-bold text-slate-900 text-base">
+                  <h3 className="font-bold text-[#141414] text-base">
                     فحص السير الذاتية - الدفعة ({selectedBatch.batch_code})
                   </h3>
                   <p className="text-[11px] text-[#707070]">{selectedBatch.office_name} • {selectedBatch.country}</p>
@@ -491,16 +491,16 @@ export const AgentImportsPage: React.FC = () => {
               <button 
                 type="button"
                 onClick={() => setSelectedBatch(null)}
-                className="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-600 flex items-center justify-center cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070] flex items-center justify-center cursor-pointer"
                 aria-label="إغلاق"
               >
                 ✕
               </button>
             </div>
 
-            <div className="overflow-x-auto max-h-72 border border-zinc-100 rounded-2xl">
+            <div className="overflow-x-auto max-h-72 border border-[#e0e0e0] rounded-2xl">
               <table className="w-full text-right text-xs">
-                <thead className="bg-zinc-50 font-bold border-b border-zinc-200 text-zinc-700">
+                <thead className="bg-[#f3f3f3] font-bold border-b border-[#e0e0e0] text-[#141414]">
                   <tr>
                     <th className="p-3">اسم المرشحة</th>
                     <th className="p-3">رقم الجواز</th>
@@ -510,18 +510,18 @@ export const AgentImportsPage: React.FC = () => {
                     <th className="p-3">الحالة</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-[#e0e0e0]">
                   {(selectedBatch.candidates || []).map((c) => (
-                    <tr key={c.id} className="hover:bg-zinc-50">
-                      <td className="p-3 font-bold text-slate-900">
+                    <tr key={c.id} className="hover:bg-[#f3f3f3]">
+                      <td className="p-3 font-bold text-[#141414]">
                         <div className="flex items-center gap-2">
                           <CorporateAvatar name={c.name} profession={c.profession} isCandidate size="sm" />
                           <span>{c.name}</span>
                         </div>
                       </td>
-                      <td className="p-3 font-mono text-zinc-700">{c.passport}</td>
-                      <td className="p-3 text-zinc-600">{c.profession} ({c.age} سنة)</td>
-                      <td className="p-3 text-zinc-600">{c.experience}</td>
+                      <td className="p-3 font-mono text-[#141414]">{c.passport}</td>
+                      <td className="p-3 text-[#707070]">{c.profession} ({c.age} سنة)</td>
+                      <td className="p-3 text-[#707070]">{c.experience}</td>
                       <td className="p-3">
                         <span className="pill-tag-mint text-[11px]">{c.medical}</span>
                       </td>
@@ -536,7 +536,7 @@ export const AgentImportsPage: React.FC = () => {
               </table>
             </div>
 
-            <div className="flex justify-between items-center pt-2 border-t border-zinc-100 flex-wrap gap-2">
+            <div className="flex justify-between items-center pt-2 border-t border-[#e0e0e0] flex-wrap gap-2">
               <span className="text-xs text-[#707070] font-mono">
                 إجمالي السير المسجلة بالدفعة: {selectedBatch.cvs_count}
               </span>
@@ -556,7 +556,7 @@ export const AgentImportsPage: React.FC = () => {
                 )}
                 <button
                   onClick={() => setSelectedBatch(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-bold text-xs"
+                  className="px-4 py-2 rounded-xl bg-[#141414] text-white hover:bg-[#262626] font-bold text-xs"
                 >
                   إغلاق
                 </button>

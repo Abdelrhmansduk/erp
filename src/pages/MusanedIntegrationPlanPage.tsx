@@ -125,7 +125,7 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
         }}
       >
@@ -242,7 +242,7 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
         </div>
 
         <div className="card-pricing-featured" style={{ padding: '20px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
-          <span style={{ fontSize: '12.5px', fontWeight: 550, color: '#a1a1aa' }}>الشركات المعتمدة للربط</span>
+          <span style={{ fontSize: '12.5px', fontWeight: 550, color: '#adadad' }}>الشركات المعتمدة للربط</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#ffffff', marginTop: '4px' }}>
             4 شركات
           </div>
@@ -252,7 +252,7 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
         </div>
 
         <div className="card-pricing" style={{ padding: '20px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '12.5px', fontWeight: 550, color: '#71717a' }}>جداول قاعدة البيانات مع RLS</span>
+          <span style={{ fontSize: '12.5px', fontWeight: 550, color: '#707070' }}>جداول قاعدة البيانات مع RLS</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '4px' }}>
             17 جدولاً
           </div>
@@ -262,7 +262,7 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
         </div>
 
         <div className="card-pricing" style={{ padding: '20px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '12.5px', fontWeight: 550, color: '#71717a' }}>موجات الإطلاق المتدرجة</span>
+          <span style={{ fontSize: '12.5px', fontWeight: 550, color: '#707070' }}>موجات الإطلاق المتدرجة</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '4px' }}>
             7 موجات
           </div>
@@ -290,7 +290,7 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
           {/* Company 1 */}
-          <div className="p-4 rounded-2xl bg-zinc-50 border-2 border-[#e0e0e0] space-y-2">
+          <div className="p-4 rounded-2xl bg-[#f3f3f3] border-2 border-[#e0e0e0] space-y-2">
             <div className="flex items-center justify-between">
               <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] font-bold font-mono text-[10px]">RC01: SAF</span>
               <span className="w-2 h-2 rounded-full bg-[#141414] inline-block" />
@@ -306,7 +306,7 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
           </div>
 
           {/* Company 2 */}
-          <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-2 hover:border-[#141414] transition-colors">
+          <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2 hover:border-[#141414] transition-colors">
             <div className="flex items-center justify-between">
               <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] font-bold font-mono text-[10px]">RC02: YAQ</span>
               <span className="w-2 h-2 rounded-full bg-[#141414] inline-block" />
@@ -322,7 +322,7 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
           </div>
 
           {/* Company 3 */}
-          <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-2 hover:border-[#141414] transition-colors">
+          <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2 hover:border-[#141414] transition-colors">
             <div className="flex items-center justify-between">
               <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] font-bold font-mono text-[10px]">RC03: TOP</span>
               <span className="w-2 h-2 rounded-full bg-[#141414] inline-block" />
@@ -338,7 +338,7 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
           </div>
 
           {/* Company 4 */}
-          <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-2 hover:border-[#141414] transition-colors">
+          <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2 hover:border-[#141414] transition-colors">
             <div className="flex items-center justify-between">
               <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] font-bold font-mono text-[10px]">RC04: DAR</span>
               <span className="w-2 h-2 rounded-full bg-[#141414] inline-block" />
@@ -422,7 +422,7 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
               </h3>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-zinc-100 flex items-center justify-between text-xs">
+            <div className="mt-4 pt-3 border-t border-[#e0e0e0] flex items-center justify-between text-xs">
               <span className="text-[#707070] font-sans text-[11px]">معتمد في خطة التكامل</span>
               <span className="text-[#141414] font-bold flex items-center gap-1 text-[11px]">
                 <span>تفاصيل القسم</span>
@@ -467,8 +467,8 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="space-y-3 text-xs text-zinc-700 leading-relaxed">
-              <div className="p-3.5 bg-zinc-50 rounded-2xl border border-zinc-200 space-y-1.5">
+            <div className="space-y-3 text-xs text-[#141414] leading-relaxed">
+              <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] space-y-1.5">
                 <div className="font-bold text-[#141414]">المواصفات المعمارية والتنفيذية للقسم #{selectedSectionDetail.number}:</div>
                 <p className="m-0">
                   يحدد هذا القسم الضوابط الفنية والتشغيلية المعتمدة للربط اللحظي بين منظومة مجموعة خالد السليم ومنصة مساند لـ ({selectedSectionDetail.title})، مع ضمان عزل بيانات الشركات الأربع (Row-Level Tenant Isolation) وتطبيق معايير PDPL.
@@ -476,18 +476,18 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+                <div className="p-3 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0]">
                   <span className="text-[#707070] block text-[10.5px]">حالة التفعيل بالـ ERP:</span>
                   <strong className="text-[#141414]">مفعّل ومربوط بـ musanedLifecycleEngine</strong>
                 </div>
-                <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+                <div className="p-3 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0]">
                   <span className="text-[#707070] block text-[10.5px]">بروتوكول الأمان والتدقيق:</span>
                   <strong className="text-[#141414] font-mono">TLS 1.3 + HMAC-SHA256</strong>
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-zinc-100">
+            <div className="flex justify-end gap-2 pt-3 border-t border-[#e0e0e0]">
               <button
                 type="button"
                 onClick={() => setSelectedSectionDetail(null)}
@@ -508,42 +508,42 @@ export const MusanedIntegrationPlanPage: React.FC = () => {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200">
+          <div className="p-4 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0]">
             <h3 className="font-bold text-[#141414] mb-1.5 flex items-center gap-1.5">
               <Lock className="w-4 h-4 text-[#141414]" />
               <span>الأمن السيبراني ونظام حماية البيانات (PDPL)</span>
             </h3>
-            <p className="text-zinc-600 leading-relaxed m-0">
+            <p className="text-[#707070] leading-relaxed m-0">
               تشفير البيانات الحساسة عبر TLS 1.3 أثناء النقل و AES-256 أثناء التخزين، حفظ الأسرار في Secrets Vault، وإخفاء أرقام الهويات وجوازات السفر (Masking) في الواجهات التشغيلية.
             </p>
           </div>
 
-          <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200">
+          <div className="p-4 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0]">
             <h3 className="font-bold text-[#141414] mb-1.5 flex items-center gap-1.5">
               <DollarSign className="w-4 h-4 text-[#141414]" />
               <span>محرك التسويات والمطابقة المالية (Reconciliation Engine)</span>
             </h3>
-            <p className="text-zinc-600 leading-relaxed m-0">
+            <p className="text-[#707070] leading-relaxed m-0">
               إنشاء قيود المقاصة الوسيطة (Clearing Accounts) فور سداد العقد بمساند، ومطابقة الدفعات اليومية مع الحسابات البنكية مع كشف تلقائي لأي فروقات مالية (Zero Mismatch Policy).
             </p>
           </div>
 
-          <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200">
+          <div className="p-4 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0]">
             <h3 className="font-bold text-[#141414] mb-1.5 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-[#141414]" />
               <span>التأمين الإلزامي 24 شهراً ومطالبات التعويض</span>
             </h3>
-            <p className="text-zinc-600 leading-relaxed m-0">
+            <p className="text-[#707070] leading-relaxed m-0">
               ربط وثائق التأمين الإلزامية الصادرة من شركات التأمين المعتمدة (تكافل الراجحي، التعاونية، سلامة) مع عقود العمالة المنزلية لتغطية حالات الهروب، رفض العمل، وإعادة الاستقدام.
             </p>
           </div>
 
-          <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200">
+          <div className="p-4 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0]">
             <h3 className="font-bold text-[#141414] mb-1.5 flex items-center gap-1.5">
               <Activity className="w-4 h-4 text-[#141414]" />
               <span>محرك الأحداث والـ Webhooks ورسائل DLQ</span>
             </h3>
-            <p className="text-zinc-600 leading-relaxed m-0">
+            <p className="text-[#707070] leading-relaxed m-0">
               استقبال فوري للأحداث مع التوقيع المشفر HMAC، ومنع تكرار الرسائل (Replay Protection)، وإيداع الإخفاقات غير المعالجة في طابور الرسائل المعزولة (Dead Letter Queue).
             </p>
           </div>

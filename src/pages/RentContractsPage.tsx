@@ -585,7 +585,7 @@ export const RentContractsPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
           display: 'flex',
           flexDirection: 'row',
@@ -609,7 +609,7 @@ export const RentContractsPage: React.FC = () => {
             <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, letterSpacing: '-0.02em', color: '#ffffff', margin: 0, fontFamily: 'var(--font-family-display)' }}>
               عقود التأجير وباقات التشغيل
             </h1>
-            <p style={{ fontSize: '13px', color: '#a1a1aa', margin: '4px 0 0 0', fontWeight: 420 }}>
+            <p style={{ fontSize: '13px', color: '#adadad', margin: '4px 0 0 0', fontWeight: 420 }}>
               إدارة عقود التأجير الشهري واليومي، باقات الأسعار، وتوثيق السندات لـ {activeCompany.name}
             </p>
           </div>
@@ -646,7 +646,7 @@ export const RentContractsPage: React.FC = () => {
       <div className="stat-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         {/* Card 1: White Card */}
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>إجمالي عقود التأجير</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>إجمالي عقود التأجير</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {rentContracts.length || 13} عقد
           </div>
@@ -664,7 +664,7 @@ export const RentContractsPage: React.FC = () => {
 
         {/* Card 3: Pitch Black Featured Card */}
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>إجمالي المبيعات الشهرية المحققة</span>
+          <span style={{ fontSize: '13px', color: '#adadad', fontWeight: 550 }}>إجمالي المبيعات الشهرية المحققة</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {((rentContracts.reduce((sum, c) => sum + (c.total_amount || 0), 0) || 128500) / 1000).toFixed(1)}k ⃁
           </div>
@@ -673,11 +673,11 @@ export const RentContractsPage: React.FC = () => {
 
         {/* Card 4: White Card */}
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>نسبة الجاهزية والتسليم</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>نسبة الجاهزية والتسليم</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>
             100%
           </div>
-          <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden mt-2">
+          <div className="w-full h-1.5 bg-[#f3f3f3] rounded-full overflow-hidden mt-2">
             <div className="w-full h-full bg-[#141414] rounded-full" />
           </div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>تغطية تأمينية وبدائل فورية</span>
@@ -685,7 +685,7 @@ export const RentContractsPage: React.FC = () => {
       </div>
 
       {/* Sub Tabs Navigation */}
-      <div className="flex flex-wrap items-center gap-1.5 border-b border-zinc-200 pb-3">
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-[#e0e0e0] pb-3">
         {[
           { id: 'all', label: `جميع عقود التأجير (${rentContracts.length || 13})` },
           { id: 'active', label: 'عقود نشطة (2)' },
@@ -710,9 +710,9 @@ export const RentContractsPage: React.FC = () => {
                 padding: '6px 16px',
                 borderRadius: '9999px',
                 border: '1px solid',
-                borderColor: isActive ? '#141414' : '#e4e4e7',
+                borderColor: isActive ? '#141414' : '#e0e0e0',
                 backgroundColor: isActive ? '#141414' : '#ffffff',
-                color: isActive ? '#ffffff' : '#27272a',
+                color: isActive ? '#ffffff' : '#141414',
                 fontWeight: isActive ? 550 : 420,
                 fontSize: '12.5px',
                 cursor: 'pointer',
@@ -728,7 +728,7 @@ export const RentContractsPage: React.FC = () => {
       {/* 1. Rental Orders View */}
       {activeTab === 'orders' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between">
+          <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between">
             <h2 className="display-sm" style={{ fontSize: '18px', fontWeight: 330, color: '#141414', margin: 0 }}>
               طلبات وحجوزات عقود الإيجار الواردة
             </h2>
@@ -736,8 +736,8 @@ export const RentContractsPage: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">رقم الحجز</th>
                   <th className="p-3.5">اسم العميل</th>
@@ -750,9 +750,9 @@ export const RentContractsPage: React.FC = () => {
                   <th className="p-3.5 text-center">إجراء</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {rentalOrders.map((ord) => (
-                  <tr key={ord.id} className="hover:bg-zinc-50">
+                  <tr key={ord.id} className="hover:bg-[#f3f3f3]">
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{ord.id}</td>
                     <td className="p-3.5 font-bold text-[#141414]">{ord.client}</td>
                     <td className="p-3.5">{ord.job}</td>
@@ -817,7 +817,7 @@ export const RentContractsPage: React.FC = () => {
       {/* 2. Rental Drivers View */}
       {activeTab === 'drivers' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-3">
+          <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between flex-wrap gap-3">
             <div>
               <h2 className="display-sm" style={{ fontSize: '18px', fontWeight: 330, color: '#141414', margin: 0 }}>
                 سائقين خاصين بنظام التأجير والتشغيل المرن
@@ -832,7 +832,7 @@ export const RentContractsPage: React.FC = () => {
               </span>
               <button
                 onClick={() => setShowAddDriverModal(true)}
-                className="button-primary-pill text-xs font-bold flex items-center gap-1.5 shadow-md"
+                className="button-primary-pill text-xs font-bold flex items-center gap-1.5 "
                 style={{ minHeight: '34px', padding: '6px 16px' }}
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -842,8 +842,8 @@ export const RentContractsPage: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">كود السائق</th>
                   <th className="p-3.5">اسم السائق</th>
@@ -857,16 +857,16 @@ export const RentContractsPage: React.FC = () => {
                   <th className="p-3.5 text-center">الإجراءات</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {rentalDrivers.map((d) => (
-                  <tr key={d.id} className="hover:bg-zinc-50">
+                  <tr key={d.id} className="hover:bg-[#f3f3f3]">
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{d.id}</td>
                     <td className="p-3.5 font-bold text-[#141414]">{d.name}</td>
                     <td className="p-3.5">{d.nat}</td>
-                    <td className="p-3.5 font-mono text-zinc-600">{d.lic}</td>
+                    <td className="p-3.5 font-mono text-[#707070]">{d.lic}</td>
                     <td className="p-3.5"><Badge text={d.lic_status} type="success" /></td>
                     <td className="p-3.5 font-semibold text-[#141414]">{d.car}</td>
-                    <td className="p-3.5 text-zinc-600">{d.client}</td>
+                    <td className="p-3.5 text-[#707070]">{d.client}</td>
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{d.salary} ⃁</td>
                     <td className="p-3.5">
                       <Badge 
@@ -878,7 +878,7 @@ export const RentContractsPage: React.FC = () => {
                       <div className="flex items-center justify-center gap-1.5">
                         <button
                           onClick={() => handleToggleDriverStatus(d)}
-                          className="button-outline-on-light text-[11px] font-bold text-zinc-700 hover:bg-zinc-100"
+                          className="button-outline-on-light text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3]"
                           style={{ minHeight: '26px', padding: '2px 8px' }}
                           title="تغيير حالة توفر السائق"
                         >
@@ -905,7 +905,7 @@ export const RentContractsPage: React.FC = () => {
       {/* 3. Rental Domestic Maids View */}
       {activeTab === 'domestic' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-3">
+          <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between flex-wrap gap-3">
             <div>
               <h2 className="display-sm" style={{ fontSize: '18px', fontWeight: 330, color: '#141414', margin: 0 }}>
                 عاملات منزليات بنظام التأجير الشهري والسنوي
@@ -920,7 +920,7 @@ export const RentContractsPage: React.FC = () => {
               </span>
               <button
                 onClick={() => setShowAddMaidModal(true)}
-                className="button-primary-pill text-xs font-bold flex items-center gap-1.5 shadow-md"
+                className="button-primary-pill text-xs font-bold flex items-center gap-1.5 "
                 style={{ minHeight: '34px', padding: '6px 16px' }}
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -930,8 +930,8 @@ export const RentContractsPage: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">الكود</th>
                   <th className="p-3.5">اسم العاملة</th>
@@ -945,14 +945,14 @@ export const RentContractsPage: React.FC = () => {
                   <th className="p-3.5 text-center">الإجراءات</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {rentalMaids.map((m) => (
-                  <tr key={m.id} className="hover:bg-zinc-50">
+                  <tr key={m.id} className="hover:bg-[#f3f3f3]">
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{m.id}</td>
                     <td className="p-3.5 font-bold text-[#141414]">{m.name}</td>
                     <td className="p-3.5">{m.nat}</td>
-                    <td className="p-3.5 font-mono text-zinc-600">{m.pass}</td>
-                    <td className="p-3.5 text-zinc-700">{m.skill}</td>
+                    <td className="p-3.5 font-mono text-[#707070]">{m.pass}</td>
+                    <td className="p-3.5 text-[#141414]">{m.skill}</td>
                     <td className="p-3.5 font-bold text-[#141414]">{m.client}</td>
                     <td className="p-3.5 font-mono text-[#707070]">{m.end}</td>
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{m.price} ⃁</td>
@@ -966,7 +966,7 @@ export const RentContractsPage: React.FC = () => {
                       <div className="flex items-center justify-center gap-1.5">
                         <button
                           onClick={() => handleFastCreateContractFromMaid(m)}
-                          className="button-primary-pill text-[11px] font-bold flex items-center gap-1 shadow-sm"
+                          className="button-primary-pill text-[11px] font-bold flex items-center gap-1 "
                           style={{ minHeight: '26px', padding: '2px 8px', backgroundColor: '#141414' }}
                           title="إنشاء عقد تأجير مباشر لهذه العاملة"
                         >
@@ -994,7 +994,7 @@ export const RentContractsPage: React.FC = () => {
       {activeTab === 'packages' && (
         <div className="space-y-6">
           <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-            <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-3">
+            <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h2 className="display-sm" style={{ fontSize: '18px', fontWeight: 330, color: '#141414', margin: 0 }}>
                   باقات تأجير العمالة المنزلية والتشغيل المرن
@@ -1009,7 +1009,7 @@ export const RentContractsPage: React.FC = () => {
                 </span>
                 <button
                   onClick={() => setShowAddPackageModal(true)}
-                  className="button-primary-pill text-xs font-bold flex items-center gap-1.5 shadow-md"
+                  className="button-primary-pill text-xs font-bold flex items-center gap-1.5 "
                   style={{ minHeight: '34px', padding: '6px 16px' }}
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -1023,7 +1023,7 @@ export const RentContractsPage: React.FC = () => {
                 {rentPackages.map((pkg) => (
                   <div 
                     key={pkg.id} 
-                    className="p-5 rounded-3xl border border-zinc-200 hover:border-black/30 transition shadow-sm bg-gradient-to-b from-white to-zinc-50 flex flex-col justify-between"
+                    className="p-5 rounded-3xl border border-[#e0e0e0] hover:border-black/30 transition  bg-[#f3f3f3] from-white  flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-3">
@@ -1041,23 +1041,23 @@ export const RentContractsPage: React.FC = () => {
                         <span>نوع الباقة: {pkg.rent_type} ({pkg.duration} - {pkg.days_count} يوم)</span>
                       </div>
 
-                      <div className="p-3 bg-zinc-100 rounded-2xl mb-4 space-y-1.5 text-xs">
+                      <div className="p-3 bg-[#f3f3f3] rounded-2xl mb-4 space-y-1.5 text-xs">
                         <div className="flex justify-between">
                           <span className="text-[#707070]">السعر قبل الضريبة:</span>
                           <strong className="font-mono text-[#141414]">{(pkg.price_before_tax ?? 0).toLocaleString()} ⃁</strong>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-[#707070]">ضريبة القيمة المضافة (15%):</span>
-                          <span className="font-mono text-zinc-600">{(pkg.tax ?? ((pkg.price_before_tax || 0) * 0.15)).toLocaleString()} ⃁</span>
+                          <span className="font-mono text-[#707070]">{(pkg.tax ?? ((pkg.price_before_tax || 0) * 0.15)).toLocaleString()} ⃁</span>
                         </div>
-                        <div className="flex justify-between pt-1 border-t border-zinc-200">
+                        <div className="flex justify-between pt-1 border-t border-[#e0e0e0]">
                           <span className="font-bold text-[#141414]">الإجمالي شامل الضريبة:</span>
                           <strong className="font-mono font-bold text-[#141414] text-sm">{(pkg.total_price ?? ((pkg.price_before_tax || 0) * 1.15)).toLocaleString()} ⃁</strong>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-200">
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#e0e0e0]">
                       <button
                         onClick={() => handleTogglePackageVisibility(pkg)}
                         className="button-outline-on-light text-[11px] font-medium flex items-center gap-1 flex-1 justify-center"
@@ -1097,7 +1097,7 @@ export const RentContractsPage: React.FC = () => {
       {/* 4. Contract Terms View */}
       {activeTab === 'terms' && (
         <div className="card-pricing" style={{ padding: '28px', borderRadius: '24px', background: '#ffffff' }}>
-          <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-6">
+          <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-4 mb-6">
             <div>
               <h2 className="display-sm" style={{ fontSize: '20px', fontWeight: 330, color: '#141414', margin: 0 }}>
                 بنود وضوابط وشروط عقد التأجير الموحد
@@ -1126,7 +1126,7 @@ export const RentContractsPage: React.FC = () => {
 
           <div className="space-y-4 text-xs">
             {rentTerms.map((term: { title: string; body: string }, idx: number) => (
-              <div key={idx} className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-2">
+              <div key={idx} className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2">
                 <h3 className="font-bold text-[#141414] text-sm">{term.title}</h3>
                 <textarea
                   rows={2}
@@ -1136,7 +1136,7 @@ export const RentContractsPage: React.FC = () => {
                     next[idx] = { ...next[idx], body: e.target.value };
                     setRentTerms(next);
                   }}
-                  className="w-full p-2.5 rounded-xl bg-white border border-zinc-200 text-zinc-700 leading-relaxed focus:outline-none focus:border-[#141414]"
+                  className="w-full p-2.5 rounded-xl bg-white border border-[#e0e0e0] text-[#141414] leading-relaxed focus:outline-none focus:border-[#141414]"
                 />
               </div>
             ))}
@@ -1147,7 +1147,7 @@ export const RentContractsPage: React.FC = () => {
       {/* Contracts Table */}
       {['all', 'active', 'sent', 'locked', 'delivered', 'completed'].includes(activeTab) && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-white flex-wrap gap-3">
+          <div className="flex items-center justify-between p-4 border-b border-[#e0e0e0] bg-white flex-wrap gap-3">
             <div className="relative w-full md:w-80">
               <Search className="w-4 h-4 absolute right-3 top-3 text-[#707070]" />
               <input
@@ -1166,8 +1166,8 @@ export const RentContractsPage: React.FC = () => {
           </div>
 
           <div style={{ overflowX: 'auto', width: '100%' }}>
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">رقم العقد</th>
                   <th className="p-3.5">اسم العميل</th>
@@ -1180,9 +1180,9 @@ export const RentContractsPage: React.FC = () => {
                   <th className="p-3.5 text-center">الإجراء</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {currentDisplayList.map((c) => (
-                  <tr key={c.id} className="hover:bg-zinc-50">
+                  <tr key={c.id} className="hover:bg-[#f3f3f3]">
                     <td className="p-3.5 font-mono text-[#141414] font-bold">{c.contract_number}</td>
                     <td className="p-3.5">
                       <div className="flex items-center gap-2">
@@ -1233,8 +1233,8 @@ export const RentContractsPage: React.FC = () => {
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '24px', background: '#ffffff' }}>
           <h3 className="text-base font-bold text-[#141414] mb-4">باقات التأجير المعتمدة</h3>
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3">#</th>
                   <th className="p-3">عنوان الباقة</th>
@@ -1248,12 +1248,12 @@ export const RentContractsPage: React.FC = () => {
                   <th className="p-3">الظهور</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {MOCK_PACKAGES.map((pkg, idx) => (
-                  <tr key={pkg.id} className="hover:bg-zinc-50">
+                  <tr key={pkg.id} className="hover:bg-[#f3f3f3]">
                     <td className="p-3 font-mono font-bold text-[#141414]">{idx + 1}</td>
                     <td className="p-3 font-bold text-[#141414]">{pkg.title}</td>
-                    <td className="p-3 text-zinc-600">{pkg.nationality}</td>
+                    <td className="p-3 text-[#707070]">{pkg.nationality}</td>
                     <td className="p-3">
                       <span className="pill-tag-shade" style={{ fontSize: '10.5px' }}>{pkg.rent_type}</span>
                     </td>
@@ -1276,7 +1276,7 @@ export const RentContractsPage: React.FC = () => {
       {/* Add Rent Contract Modal */}
       {showAddModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowAddModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white border border-zinc-200 rounded-[24px] overflow-hidden flex flex-col max-h-[90vh]">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white border border-[#e0e0e0] rounded-[24px] overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold text-[#141414]">إضافة عقد تأجير جديد</h3>
@@ -1285,7 +1285,7 @@ export const RentContractsPage: React.FC = () => {
               <button
                 onClick={() => setShowAddModal(false)}
                 type="button"
-                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors"
+                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#262626] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1295,46 +1295,46 @@ export const RentContractsPage: React.FC = () => {
               <div className="p-6 overflow-y-auto space-y-4 custom-scrollbar flex-1 bg-white text-[#141414]">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs text-zinc-700 block mb-1 font-semibold">اسم العميل *</label>
+                    <label className="text-xs text-[#141414] block mb-1 font-semibold">اسم العميل *</label>
                     <input
                       type="text"
                       required
                       value={clientName}
                       onChange={(e) => setClientName(e.target.value)}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                      className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-zinc-700 block mb-1 font-semibold">رقم الجوال *</label>
+                    <label className="text-xs text-[#141414] block mb-1 font-semibold">رقم الجوال *</label>
                     <input
                       type="text"
                       required
                       value={clientPhone}
                       onChange={(e) => setClientPhone(e.target.value)}
                       placeholder="+9665..."
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                      className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs text-zinc-700 block mb-1 font-semibold">العاملة المطلوبة للتأجير *</label>
+                    <label className="text-xs text-[#141414] block mb-1 font-semibold">العاملة المطلوبة للتأجير *</label>
                     <input
                       type="text"
                       required
                       value={maidName}
                       onChange={(e) => setMaidName(e.target.value)}
                       placeholder="سيتي نورعيني (سير تأجير نشطة)"
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                      className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-zinc-700 block mb-1 font-semibold">الجنسية *</label>
+                    <label className="text-xs text-[#141414] block mb-1 font-semibold">الجنسية *</label>
                     <select
                       value={nationality}
                       onChange={(e) => setNationality(e.target.value)}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                      className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                     >
                       <option>إندونيسيا</option>
                       <option>إثيوبيا</option>
@@ -1347,35 +1347,35 @@ export const RentContractsPage: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="text-xs text-zinc-700 block mb-1 font-semibold">المدة (بالشهور) *</label>
+                    <label className="text-xs text-[#141414] block mb-1 font-semibold">المدة (بالشهور) *</label>
                     <input
                       type="number"
                       required
                       value={durationMonths}
                       onChange={(e) => setDurationMonths(e.target.value)}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                      className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-zinc-700 block mb-1 font-semibold">السعر الشهري قبل الضريبة *</label>
+                    <label className="text-xs text-[#141414] block mb-1 font-semibold">السعر الشهري قبل الضريبة *</label>
                     <input
                       type="number"
                       required
                       value={monthlyCost}
                       onChange={(e) => setMonthlyCost(e.target.value)}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
+                      className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-zinc-700 block mb-1 font-semibold">الإجمالي بعد الضريبة</label>
-                    <div className="py-2 px-3 bg-zinc-100 rounded-2xl font-bold font-mono text-[#141414] text-xs">
+                    <label className="text-xs text-[#141414] block mb-1 font-semibold">الإجمالي بعد الضريبة</label>
+                    <div className="py-2 px-3 bg-[#f3f3f3] rounded-2xl font-bold font-mono text-[#141414] text-xs">
                       {totalAmount.toLocaleString()} ⃁
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end gap-3">
+              <div className="p-4 bg-[#f3f3f3] border-t border-[#e0e0e0] flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
@@ -1405,13 +1405,13 @@ export const RentContractsPage: React.FC = () => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-4xl max-h-[92vh] bg-white border border-zinc-200 rounded-3xl shadow-2xl overflow-y-auto p-6 custom-scrollbar"
+            className="w-full max-w-4xl max-h-[92vh] bg-white border border-[#e0e0e0] rounded-3xl  overflow-y-auto p-6 custom-scrollbar"
           >
-            <div className="flex justify-between items-center mb-4 border-b border-zinc-100 pb-3 sticky top-0 bg-white z-10">
+            <div className="flex justify-between items-center mb-4 border-b border-[#e0e0e0] pb-3 sticky top-0 bg-white z-10">
               <h3 className="font-bold text-[#141414] text-base">طباعة عقد التأجير المعتمد</h3>
               <button
                 onClick={() => setSelectedContractForPrint(null)}
-                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-100"
+                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1421,9 +1421,9 @@ export const RentContractsPage: React.FC = () => {
               documentNumber={selectedContractForPrint.contract_number}
               date={new Date().toISOString().slice(0, 10)}
             >
-              <div className="flex flex-col gap-4 text-xs font-sans text-zinc-800">
+              <div className="flex flex-col gap-4 text-xs font-sans text-[#141414]">
                 {/* Contract Status Banner */}
-                <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 flex items-center justify-between">
+                <div className="p-3 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0] flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-[#141414]">نوع الباقة التأجيرية:</span>
                     <span className="font-bold text-[#141414] bg-[#f3f3f3] px-2.5 py-0.5 rounded-lg border border-[#e0e0e0]">
@@ -1441,8 +1441,8 @@ export const RentContractsPage: React.FC = () => {
                 {/* Parties Details Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {/* First Party (Lessor Company) */}
-                  <div className="p-3.5 bg-zinc-50 rounded-2xl border border-zinc-200 space-y-1.5">
-                    <h4 className="font-bold text-xs text-[#141414] border-b border-zinc-200 pb-1">
+                  <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] space-y-1.5">
+                    <h4 className="font-bold text-xs text-[#141414] border-b border-[#e0e0e0] pb-1">
                       الطرف الأول (الشركة المؤجرة والمشغلة)
                     </h4>
                     <div className="flex justify-between"><span className="text-[#707070]">الاسم التجاري:</span><strong className="text-[#141414]">مجموعة السليم للتشغيل والتأجير</strong></div>
@@ -1452,8 +1452,8 @@ export const RentContractsPage: React.FC = () => {
                   </div>
 
                   {/* Second Party (Lessee Client) */}
-                  <div className="p-3.5 bg-zinc-50 rounded-2xl border border-zinc-200 space-y-1.5">
-                    <h4 className="font-bold text-xs text-[#141414] border-b border-zinc-200 pb-1">
+                  <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] space-y-1.5">
+                    <h4 className="font-bold text-xs text-[#141414] border-b border-[#e0e0e0] pb-1">
                       الطرف الثاني (العميل المستأجر)
                     </h4>
                     <div className="flex justify-between"><span className="text-[#707070]">اسم المستأجر:</span><strong className="text-[#141414]">{selectedContractForPrint.client_name}</strong></div>
@@ -1464,8 +1464,8 @@ export const RentContractsPage: React.FC = () => {
                 </div>
 
                 {/* Worker & Rental Duration Details */}
-                <div className="p-3.5 bg-zinc-50 rounded-2xl border border-zinc-200 space-y-2">
-                  <h4 className="font-bold text-xs text-[#141414] border-b border-zinc-200 pb-1">
+                <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] space-y-2">
+                  <h4 className="font-bold text-xs text-[#141414] border-b border-[#e0e0e0] pb-1">
                     بيانات العاملة وفترة التأجير المعتمدة
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px]">
@@ -1481,7 +1481,7 @@ export const RentContractsPage: React.FC = () => {
                 </div>
 
                 {/* Terms of Rental */}
-                <div className="p-3.5 bg-zinc-50/80 rounded-2xl border border-zinc-200 space-y-1 text-[11px] text-zinc-700 leading-relaxed">
+                <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] space-y-1 text-[11px] text-[#141414] leading-relaxed">
                   <h4 className="font-bold text-xs text-[#141414] mb-1">شروط والتزامات عقد التأجير:</h4>
                   <p>1. تظل العاملة على كفالة وإشراف الطرف الأول القانوني والمالي طوال فترة سريان العقد.</p>
                   <p>2. يلتزم الطرف الثاني بتوفير بيئة عمل ملائمة وسكن آمن وساعات راحة كافية وفق الأنظمة المرعية في المملكة.</p>
@@ -1490,9 +1490,9 @@ export const RentContractsPage: React.FC = () => {
                 </div>
 
                 {/* Financial Table */}
-                <div className="overflow-hidden rounded-xl border border-zinc-200">
+                <div className="overflow-hidden rounded-xl border border-[#e0e0e0]">
                   <table className="w-full text-right text-xs">
-                    <thead className="bg-zinc-100 text-zinc-700 font-bold">
+                    <thead className="bg-[#f3f3f3] text-[#141414] font-bold">
                       <tr>
                         <th className="p-2.5">الباقة / البيان</th>
                         <th className="p-2.5 text-center">التكلفة الشهرية</th>
@@ -1500,7 +1500,7 @@ export const RentContractsPage: React.FC = () => {
                         <th className="p-2.5 text-left">الإجمالي المستحق</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-zinc-100 font-mono">
+                    <tbody className="bg-white divide-y divide-[#e0e0e0] font-mono">
                       <tr>
                         <td className="p-2.5 font-sans font-medium text-[#141414]">{selectedContractForPrint.package_name || 'باقة التأجير الشهري'} ({selectedContractForPrint.duration_months} شهر)</td>
                         <td className="p-2.5 text-center">{(selectedContractForPrint.monthly_cost ?? 2500).toLocaleString()} ⃁ / شهر</td>
@@ -1512,7 +1512,7 @@ export const RentContractsPage: React.FC = () => {
                 </div>
 
                 {/* Signatures & Seal Block */}
-                <div className="grid grid-cols-2 gap-6 pt-3 border-t-2 border-zinc-300">
+                <div className="grid grid-cols-2 gap-6 pt-3 border-t-2 border-[#e0e0e0]">
                   <div className="text-center space-y-6">
                     <div className="font-bold text-[#141414] text-xs">ختم وتوقيع الطرف الأول (الشركة المؤجرة)</div>
                     <div className="w-24 h-24 mx-auto border-2 border-dashed border-[#e0e0e0] rounded-full flex items-center justify-center bg-[#f3f3f3]">
@@ -1521,7 +1521,7 @@ export const RentContractsPage: React.FC = () => {
                   </div>
                   <div className="text-center space-y-6">
                     <div className="font-bold text-[#141414] text-xs">توقيع الطرف الثاني (المستأجر)</div>
-                    <div className="w-full h-16 border-b-2 border-zinc-400 mt-8 flex items-end justify-center">
+                    <div className="w-full h-16 border-b-2 border-[#adadad] mt-8 flex items-end justify-center">
                       <span className="text-[11px] text-[#707070]">التوقيع الإلكتروني وتأكيد الاستلام</span>
                     </div>
                   </div>
@@ -1536,15 +1536,15 @@ export const RentContractsPage: React.FC = () => {
       {/* 1. Add Driver Modal */}
       {showAddDriverModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowAddDriverModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-[#e0e0e0] animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 border-b border-[#e0e0e0]">
               <div className="flex items-center gap-2">
                 <Car className="w-5 h-5 text-[#141414]" />
                 <h3 className="font-bold text-[#141414] text-base">تسجيل سائق جديد في أسطول التأجير</h3>
               </div>
               <button 
                 onClick={() => setShowAddDriverModal(false)}
-                className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-100"
+                className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1553,7 +1553,7 @@ export const RentContractsPage: React.FC = () => {
             <form onSubmit={handleAddDriver} className="space-y-4 pt-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">اسم السائق الكامل *</label>
+                  <label className="block text-[#707070] font-bold mb-1">اسم السائق الكامل *</label>
                   <input
                     type="text"
                     required
@@ -1564,7 +1564,7 @@ export const RentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">الجنسية</label>
+                  <label className="block text-[#707070] font-bold mb-1">الجنسية</label>
                   <select
                     value={driverForm.nat}
                     onChange={(e) => setDriverForm({ ...driverForm, nat: e.target.value })}
@@ -1582,7 +1582,7 @@ export const RentContractsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">رقم رخصة القيادة</label>
+                  <label className="block text-[#707070] font-bold mb-1">رقم رخصة القيادة</label>
                   <input
                     type="text"
                     placeholder="DL-992810"
@@ -1592,7 +1592,7 @@ export const RentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">حالة الرخصة</label>
+                  <label className="block text-[#707070] font-bold mb-1">حالة الرخصة</label>
                   <select
                     value={driverForm.lic_status}
                     onChange={(e) => setDriverForm({ ...driverForm, lic_status: e.target.value })}
@@ -1606,7 +1606,7 @@ export const RentContractsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">المركبة المسندة</label>
+                  <label className="block text-[#707070] font-bold mb-1">المركبة المسندة</label>
                   <input
                     type="text"
                     placeholder="تويوتا كامري 2024"
@@ -1616,7 +1616,7 @@ export const RentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">الراتب الشهري (⃁)</label>
+                  <label className="block text-[#707070] font-bold mb-1">الراتب الشهري (⃁)</label>
                   <input
                     type="number"
                     value={driverForm.salary}
@@ -1626,7 +1626,7 @@ export const RentContractsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-zinc-100">
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddDriverModal(false)}
@@ -1636,7 +1636,7 @@ export const RentContractsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="button-primary-pill text-xs font-bold shadow-md"
+                  className="button-primary-pill text-xs font-bold "
                 >
                   حفظ وتسجيل السائق
                 </button>
@@ -1649,15 +1649,15 @@ export const RentContractsPage: React.FC = () => {
       {/* 2. Add Maid Modal */}
       {showAddMaidModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowAddMaidModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-[#e0e0e0] animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 border-b border-[#e0e0e0]">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-[#141414]" />
                 <h3 className="font-bold text-[#141414] text-base">إضافة عاملة جديدة في قائمة التأجير</h3>
               </div>
               <button 
                 onClick={() => setShowAddMaidModal(false)}
-                className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-100"
+                className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1666,7 +1666,7 @@ export const RentContractsPage: React.FC = () => {
             <form onSubmit={handleAddMaid} className="space-y-4 pt-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">اسم العاملة *</label>
+                  <label className="block text-[#707070] font-bold mb-1">اسم العاملة *</label>
                   <input
                     type="text"
                     required
@@ -1677,7 +1677,7 @@ export const RentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">الجنسية</label>
+                  <label className="block text-[#707070] font-bold mb-1">الجنسية</label>
                   <select
                     value={maidForm.nat}
                     onChange={(e) => setMaidForm({ ...maidForm, nat: e.target.value })}
@@ -1695,7 +1695,7 @@ export const RentContractsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">رقم الإقامة أو الجواز</label>
+                  <label className="block text-[#707070] font-bold mb-1">رقم الإقامة أو الجواز</label>
                   <input
                     type="text"
                     placeholder="IQ-22910481"
@@ -1705,7 +1705,7 @@ export const RentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">سعر التأجير الشهري (⃁)</label>
+                  <label className="block text-[#707070] font-bold mb-1">سعر التأجير الشهري (⃁)</label>
                   <input
                     type="number"
                     value={maidForm.price}
@@ -1716,7 +1716,7 @@ export const RentContractsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-zinc-600 font-bold mb-1">المهنة والمهارات</label>
+                <label className="block text-[#707070] font-bold mb-1">المهنة والمهارات</label>
                 <input
                   type="text"
                   placeholder="عاملة منزلية شاملة + طبخ سعودي + غسيل"
@@ -1726,7 +1726,7 @@ export const RentContractsPage: React.FC = () => {
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-zinc-100">
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddMaidModal(false)}
@@ -1736,7 +1736,7 @@ export const RentContractsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="button-primary-pill text-xs font-bold shadow-md"
+                  className="button-primary-pill text-xs font-bold "
                 >
                   حفظ وإضافة العاملة
                 </button>
@@ -1749,15 +1749,15 @@ export const RentContractsPage: React.FC = () => {
       {/* 3. Add Package Modal */}
       {showAddPackageModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowAddPackageModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-[#e0e0e0] animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 border-b border-[#e0e0e0]">
               <div className="flex items-center gap-2">
                 <Layers className="w-5 h-5 text-[#141414]" />
                 <h3 className="font-bold text-[#141414] text-base">إضافة باقة تأجير جديدة</h3>
               </div>
               <button 
                 onClick={() => setShowAddPackageModal(false)}
-                className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-100"
+                className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1765,7 +1765,7 @@ export const RentContractsPage: React.FC = () => {
 
             <form onSubmit={handleAddPackage} className="space-y-4 pt-4 text-xs">
               <div>
-                <label className="block text-zinc-600 font-bold mb-1">عنوان الباقة *</label>
+                <label className="block text-[#707070] font-bold mb-1">عنوان الباقة *</label>
                 <input
                   type="text"
                   required
@@ -1778,7 +1778,7 @@ export const RentContractsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">الجنسية المخصصة</label>
+                  <label className="block text-[#707070] font-bold mb-1">الجنسية المخصصة</label>
                   <select
                     value={packageForm.nationality}
                     onChange={(e) => setPackageForm({ ...packageForm, nationality: e.target.value })}
@@ -1792,7 +1792,7 @@ export const RentContractsPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">نوع التأجير</label>
+                  <label className="block text-[#707070] font-bold mb-1">نوع التأجير</label>
                   <select
                     value={packageForm.rent_type}
                     onChange={(e) => setPackageForm({ ...packageForm, rent_type: e.target.value })}
@@ -1808,7 +1808,7 @@ export const RentContractsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">السعر الأساسي قبل الضريبة (⃁)</label>
+                  <label className="block text-[#707070] font-bold mb-1">السعر الأساسي قبل الضريبة (⃁)</label>
                   <input
                     type="number"
                     required
@@ -1818,7 +1818,7 @@ export const RentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">عدد الأيام</label>
+                  <label className="block text-[#707070] font-bold mb-1">عدد الأيام</label>
                   <input
                     type="number"
                     value={packageForm.days_count}
@@ -1828,7 +1828,7 @@ export const RentContractsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-3 bg-zinc-50 rounded-2xl border border-zinc-200 text-[11px] space-y-1">
+              <div className="p-3 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] text-[11px] space-y-1">
                 <div className="flex justify-between">
                   <span className="text-[#707070]">ضريبة القيمة المضافة المحسوبة (15%):</span>
                   <span className="font-mono font-bold text-[#141414]">{((parseFloat(packageForm.price_before_tax) || 0) * 0.15).toLocaleString()} ⃁</span>
@@ -1839,7 +1839,7 @@ export const RentContractsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-zinc-100">
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddPackageModal(false)}
@@ -1849,7 +1849,7 @@ export const RentContractsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="button-primary-pill text-xs font-bold shadow-md"
+                  className="button-primary-pill text-xs font-bold "
                 >
                   إضافة الباقة
                 </button>

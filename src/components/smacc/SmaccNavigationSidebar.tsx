@@ -70,9 +70,9 @@ export const SMACC_MENU_STRUCTURE: SmaccMenuItem[] = [
       { id: 'income-statement', title: '8. قائمة الدخل والأرباح والخسائر', route: 'smacc-accounting' },
       { id: 'balance-sheet', title: '9. قائمة المركز المالي (الميزانية)', route: 'smacc-accounting' },
       { id: 'fiscal-closing', title: '10. إقفال السنـة والربط المالي', route: 'smacc-accounting' },
-      { id: 'jisr-accruals', title: '11. المخصصات الشهرية ومراكز التكلفة (IAS 19)', route: 'jisr-accruals' },
-      { id: 'jisr-cards-rollover', title: '12. البطاقات المؤسسية وترحيل وتسييل الإجازات', route: 'jisr-cards-rollover' },
-      { id: 'jisr-arrears-b2b', title: '13. الأثر الرجعي والمسيرات الإضافية ودفعات البنوك B2B', route: 'jisr-arrears-b2b' },
+      { id: 'hr-accruals', title: '11. المخصصات الشهرية ومراكز التكلفة (IAS 19)', route: 'hr-accruals' },
+      { id: 'hr-cards-rollover', title: '12. البطاقات المؤسسية وترحيل وتسييل الإجازات', route: 'hr-cards-rollover' },
+      { id: 'hr-arrears-b2b', title: '13. الأثر الرجعي والمسيرات الإضافية ودفعات البنوك B2B', route: 'hr-arrears-b2b' },
     ]
   },
   {
@@ -106,9 +106,9 @@ export const SMACC_MENU_STRUCTURE: SmaccMenuItem[] = [
       { id: 'attendance-leaves', title: 'الحضور والانصراف والإجازات', route: 'attendances' },
       { id: 'advances-custodies', title: 'السلفيات والعهد المالية', route: 'custodies' },
       { id: 'eosb-calc', title: 'مكافأة نهاية الخدمة والتسويات', route: 'smacc-hr-settings' },
-      { id: 'hr-accruals-link', title: 'المخصصات الشهرية ومراكز التكلفة (IAS 19)', route: 'jisr-accruals' },
-      { id: 'hr-cards-rollover-link', title: 'البطاقات المؤسسية وترحيل وتسييل الإجازات', route: 'jisr-cards-rollover' },
-      { id: 'hr-arrears-b2b-link', title: 'الأثر الرجعي والمسيرات الإضافية ودفعات البنوك B2B', route: 'jisr-arrears-b2b' },
+      { id: 'hr-accruals-link', title: 'المخصصات الشهرية ومراكز التكلفة (IAS 19)', route: 'hr-accruals' },
+      { id: 'hr-cards-rollover-link', title: 'البطاقات المؤسسية وترحيل وتسييل الإجازات', route: 'hr-cards-rollover' },
+      { id: 'hr-arrears-b2b-link', title: 'الأثر الرجعي والمسيرات الإضافية ودفعات البنوك B2B', route: 'hr-arrears-b2b' },
     ]
   },
   {
@@ -154,15 +154,15 @@ export const SmaccNavigationSidebar: React.FC<SmaccNavigationSidebarProps> = ({
   });
 
   return (
-    <aside className="w-64 bg-white text-zinc-900 border-l border-zinc-200 flex flex-col h-full select-none shadow-sm">
+    <aside className="w-64 bg-white text-[#141414] border-l border-[#e0e0e0] flex flex-col h-full select-none ">
       {/* Brand Header */}
-      <div className="p-4 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between">
+      <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-[#141414] flex items-center justify-center font-bold text-white shadow-sm text-sm tracking-wider">
+          <div className="w-9 h-9 rounded-full bg-[#141414] flex items-center justify-center font-bold text-white  text-sm tracking-wider">
             {i18n.t("finance.finCode", "FIN")}
           </div>
           <div>
-            <h2 className="font-bold text-xs text-zinc-900 leading-tight">نظام المحاسبة الشامل</h2>
+            <h2 className="font-bold text-xs text-[#141414] leading-tight">نظام المحاسبة الشامل</h2>
             <p className="text-[10.5px] text-[#707070]">الإصدار المؤسسي الحديث</p>
           </div>
         </div>
@@ -170,7 +170,7 @@ export const SmaccNavigationSidebar: React.FC<SmaccNavigationSidebarProps> = ({
       </div>
 
       {/* Menu Quick Search Input */}
-      <div className="p-3 border-b border-zinc-200 bg-white">
+      <div className="p-3 border-b border-[#e0e0e0] bg-white">
         <div className="relative">
           <Search className="w-3.5 h-3.5 absolute right-3 top-2.5 text-[#707070]" />
           <input
@@ -178,7 +178,7 @@ export const SmaccNavigationSidebar: React.FC<SmaccNavigationSidebarProps> = ({
             placeholder="البحث في القائمة المالية..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#f3f3f3] border border-zinc-200 rounded-full py-1 pr-8 pl-3 text-xs text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-[#141414] transition-all"
+            className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-full py-1 pr-8 pl-3 text-xs text-[#141414] placeholder-[#707070] focus:outline-none focus:border-[#141414] transition-all"
           />
         </div>
       </div>
@@ -203,8 +203,8 @@ export const SmaccNavigationSidebar: React.FC<SmaccNavigationSidebarProps> = ({
                 }}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-full text-xs font-medium transition-all duration-150 ${
                   isActive
-                    ? 'bg-[#141414] text-white shadow-sm font-semibold'
-                    : 'text-zinc-700 hover:bg-zinc-100 hover:text-[#141414]'
+                    ? 'bg-[#141414] text-white  font-semibold'
+                    : 'text-[#141414] hover:bg-[#f3f3f3] hover:text-[#141414]'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -212,7 +212,7 @@ export const SmaccNavigationSidebar: React.FC<SmaccNavigationSidebarProps> = ({
                   <span>{item.title}</span>
                 </div>
                 {hasChildren && (
-                  <span className="text-[#707070] hover:text-zinc-600">
+                  <span className="text-[#707070] hover:text-[#141414]">
                     {isOpen ? (
                       <ChevronDown className="w-3 h-3" />
                     ) : (
@@ -224,7 +224,7 @@ export const SmaccNavigationSidebar: React.FC<SmaccNavigationSidebarProps> = ({
 
               {/* Child Menu Tree */}
               {hasChildren && isOpen && (
-                <div className="mr-3 mt-1 mb-1 pl-2 border-r border-zinc-200 space-y-1">
+                <div className="mr-3 mt-1 mb-1 pl-2 border-r border-[#e0e0e0] space-y-1">
                   {item.children?.map((child) => {
                     const isChildActive = activeTab === child.id || activeTab === child.route;
                     return (
@@ -234,7 +234,7 @@ export const SmaccNavigationSidebar: React.FC<SmaccNavigationSidebarProps> = ({
                         className={`w-full text-right px-3 py-1.5 rounded-full text-[11.5px] transition-all flex items-center justify-between ${
                           isChildActive
                             ? 'bg-[#141414] text-white font-semibold'
-                            : 'text-zinc-600 hover:text-[#141414] hover:bg-zinc-100'
+                            : 'text-[#141414] hover:text-[#141414] hover:bg-[#f3f3f3]'
                         }`}
                       >
                         <span>{child.title}</span>
@@ -254,8 +254,8 @@ export const SmaccNavigationSidebar: React.FC<SmaccNavigationSidebarProps> = ({
       </div>
 
       {/* Footer Info */}
-      <div className="p-3 bg-zinc-50 border-t border-zinc-200 text-[11px] text-[#707070] flex flex-col gap-1">
-        <div className="flex items-center justify-between text-zinc-700">
+      <div className="p-3 bg-[#f3f3f3] border-t border-[#e0e0e0] text-[11px] text-[#707070] flex flex-col gap-1">
+        <div className="flex items-center justify-between text-[#141414]">
           <span>حالة النظام:</span>
           <span className="font-semibold text-[#141414]">جاهز ومطابق 100%</span>
         </div>

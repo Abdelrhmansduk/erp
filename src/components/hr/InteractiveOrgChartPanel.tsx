@@ -324,7 +324,7 @@ export const InteractiveOrgChartPanel: React.FC<InteractiveOrgChartPanelProps> =
             className={`px-4 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer ${
               subView === 'ORG_TREE'
                 ? 'bg-[#ffffff] text-[#141414]'
-                : 'bg-[#262626] text-[#ffffff] hover:bg-[#3f3f46]'
+                : 'bg-[#262626] text-[#ffffff] hover:bg-[#262626]'
             }`}
           >
             الهيكل التنظيمي (Org Chart)
@@ -335,7 +335,7 @@ export const InteractiveOrgChartPanel: React.FC<InteractiveOrgChartPanelProps> =
             className={`px-4 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer ${
               subView === 'MUQEEM_DESK'
                 ? 'bg-[#ffffff] text-[#141414]'
-                : 'bg-[#262626] text-[#ffffff] hover:bg-[#3f3f46]'
+                : 'bg-[#262626] text-[#ffffff] hover:bg-[#262626]'
             }`}
           >
             عمليات مقيم والتأشيرات ({muqeemRequests.length})

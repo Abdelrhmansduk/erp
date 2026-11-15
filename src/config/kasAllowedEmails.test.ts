@@ -185,7 +185,7 @@ describe('KAS Official Email Whitelist & 9-Department / Standalone KAS Trade RBA
     expect(authService.isTabAuthorizedForUser(hrDirector, 'employees')).toBe(true);
     expect(authService.isTabAuthorizedForUser(hrDirector, 'welcome-screens')).toBe(true);
     expect(authService.isTabAuthorizedForUser(hrDirector, 'signage-screens')).toBe(true);
-    expect(authService.isTabAuthorizedForUser(hrDirector, 'jisr-welcome-signage')).toBe(true);
+    expect(authService.isTabAuthorizedForUser(hrDirector, 'hr-welcome-signage')).toBe(true);
     expect(authService.isTabAuthorizedForUser(hrDirector, 'legal-compliance')).toBe(true);
     expect(authService.isTabAuthorizedForUser(hrDirector, 'settings')).toBe(false);
 

@@ -82,7 +82,7 @@ export const WhatsAppInboxPage: React.FC = () => {
         ]
       : [
           { sender: 'client', text: 'السلام عليكم، هل وصلت التأشيرة من مساند؟', time: '10:45 ص' },
-          { sender: 'system', text: 'أهلاً بك أختي سارة! تم تفييز العقد رقم #594 ونحن بانتظار صدور التذكرة اليوم.', time: '10:47 ص' },
+          { sender: 'system', text: 'أهلاً بك أختي سارة! تم تفييز العقد رقم #707070 ونحن بانتظار صدور التذكرة اليوم.', time: '10:47 ص' },
         ]
   );
 
@@ -214,7 +214,7 @@ export const WhatsAppInboxPage: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'space-between',
           background: '#141414',
-          color: '#FFF',
+          color: '#ffffff',
           padding: '28px',
           borderRadius: '16px',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
@@ -236,7 +236,7 @@ export const WhatsAppInboxPage: React.FC = () => {
             <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, margin: '0', letterSpacing: '-0.02em', color: '#ffffff', fontFamily: 'var(--font-family-display)' }}>
               منظومة رسائل الواتساب الموحدة
             </h1>
-            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#a1a1aa', fontWeight: 420 }}>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#adadad', fontWeight: 420 }}>
               الرد الآلي والفوري، قوالب الإشعارات المعتمدة، وإرسال تنبيهات العقود والفواتير للعملاء
             </p>
           </div>
@@ -245,7 +245,7 @@ export const WhatsAppInboxPage: React.FC = () => {
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setShowNewChatModal(true)}
-            className="button-white-pill flex items-center gap-1.5 shadow-sm"
+            className="button-white-pill flex items-center gap-1.5 "
             style={{ fontSize: '12px', padding: '6px 16px', minHeight: '38px', color: '#141414', backgroundColor: '#ffffff', fontWeight: 'bold' }}
           >
             <Plus className="w-4 h-4 text-[#141414]" />
@@ -274,7 +274,7 @@ export const WhatsAppInboxPage: React.FC = () => {
       <div className="stat-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         {/* Card 1: White Card */}
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>إجمالي المحادثات المسجلة</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>إجمالي المحادثات المسجلة</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {chats.length} محادثات
           </div>
@@ -292,7 +292,7 @@ export const WhatsAppInboxPage: React.FC = () => {
 
         {/* Card 3: Pitch Black Featured Card */}
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>رسائل الإشعارات المرسلة</span>
+          <span style={{ fontSize: '13px', color: '#adadad', fontWeight: 550 }}>رسائل الإشعارات المرسلة</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>
             1,420 رسالة
           </div>
@@ -303,11 +303,11 @@ export const WhatsAppInboxPage: React.FC = () => {
 
         {/* Card 4: White Card */}
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>معدل الرضا وسرعة الإغلاق</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>معدل الرضا وسرعة الإغلاق</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>
             99.2%
           </div>
-          <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden mt-2">
+          <div className="w-full h-1.5 bg-[#f3f3f3] rounded-full overflow-hidden mt-2">
             <div className="w-[99.2%] h-full bg-[#141414] rounded-full" />
           </div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>تقييم ممتاز من العملاء</span>
@@ -333,10 +333,10 @@ export const WhatsAppInboxPage: React.FC = () => {
       </div>
 
       {/* Main Chat Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[620px] bg-white rounded-3xl border border-zinc-200 shadow-sm overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[620px] bg-white rounded-3xl border border-[#e0e0e0]  overflow-hidden">
         {/* Left Side: Conversations List */}
-        <div className="md:col-span-1 border-l border-zinc-200 flex flex-col h-full bg-zinc-50/50">
-          <div className="p-3.5 border-b border-zinc-200 bg-white">
+        <div className="md:col-span-1 border-l border-[#e0e0e0] flex flex-col h-full bg-[#f3f3f3]">
+          <div className="p-3.5 border-b border-[#e0e0e0] bg-white">
             <div className="relative">
               <Search className="w-3.5 h-3.5 absolute right-3 top-2.5 text-[#707070]" />
               <input
@@ -345,12 +345,12 @@ export const WhatsAppInboxPage: React.FC = () => {
                 placeholder="ابحث بالاسم أو الرقم..."
                 value={searchFilter}
                 onChange={e => setSearchFilter(e.target.value)}
-                className="w-full pl-3 pr-8 py-1.5 bg-zinc-50 border border-zinc-200 rounded-full text-xs font-sans text-[#141414] focus:outline-none focus:border-[#141414]"
+                className="w-full pl-3 pr-8 py-1.5 bg-[#f3f3f3] border border-[#e0e0e0] rounded-full text-xs font-sans text-[#141414] focus:outline-none focus:border-[#141414]"
               />
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto divide-y divide-zinc-100">
+          <div className="flex-1 overflow-y-auto divide-y divide-[#e0e0e0]">
             {filteredChats.length === 0 ? (
               <div className="p-6 text-center text-[#707070] text-xs flex flex-col items-center justify-center gap-2">
                 <BusinessIllustration type="empty-search" size="sm" />
@@ -363,8 +363,8 @@ export const WhatsAppInboxPage: React.FC = () => {
                   onClick={() => setActiveChat(chat)}
                   className={`p-3.5 transition-all cursor-pointer flex items-start gap-2.5 ${
                     activeChat.id === chat.id
-                      ? 'bg-zinc-100 border-r-4 border-[#141414]'
-                      : 'hover:bg-zinc-100/50'
+                      ? 'bg-[#f3f3f3] border-r-4 border-[#141414]'
+                      : 'hover:bg-[#f3f3f3]'
                   }`}
                 >
                   <CorporateAvatar
@@ -397,7 +397,7 @@ export const WhatsAppInboxPage: React.FC = () => {
         {/* Right Side: Active Chat Box */}
         <div className="md:col-span-2 flex flex-col h-full bg-white">
           {/* Chat Header */}
-          <div className="p-3.5 border-b border-zinc-200 flex items-center justify-between bg-zinc-50">
+          <div className="p-3.5 border-b border-[#e0e0e0] flex items-center justify-between bg-[#f3f3f3]">
             <div className="flex items-center gap-3">
               <CorporateAvatar
                 name={activeChat.client_name}
@@ -426,7 +426,7 @@ export const WhatsAppInboxPage: React.FC = () => {
           </div>
 
           {/* Messages Body */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-zinc-50/40">
+          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#f3f3f3]">
             {messages.map((msg, idx) => (
               <div
                 key={idx}
@@ -435,8 +435,8 @@ export const WhatsAppInboxPage: React.FC = () => {
                 <div
                   className={`max-w-[80%] p-3.5 rounded-2xl text-xs leading-relaxed ${
                     msg.sender === 'system'
-                      ? 'bg-[#141414] text-white rounded-br-sm shadow-sm'
-                      : 'bg-white text-[#141414] rounded-bl-sm border border-zinc-200'
+                      ? 'bg-[#141414] text-white rounded-br-sm '
+                      : 'bg-white text-[#141414] rounded-bl-sm border border-[#e0e0e0]'
                   }`}
                 >
                   {msg.text}
@@ -447,7 +447,7 @@ export const WhatsAppInboxPage: React.FC = () => {
           </div>
 
           {/* Reply Form */}
-          <form onSubmit={handleSendMessage} className="p-3 border-t border-zinc-200 bg-white space-y-2">
+          <form onSubmit={handleSendMessage} className="p-3 border-t border-[#e0e0e0] bg-white space-y-2">
             {attachedFile && (
               <div className="flex items-center justify-between px-3 py-1.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[11px]">
                 <span className="font-bold text-[#141414] truncate">
@@ -489,7 +489,7 @@ export const WhatsAppInboxPage: React.FC = () => {
                 placeholder="اكتب ردك للعميل أو اختر قالباً جاهزاً من الأعلى..."
                 value={replyText}
                 onChange={e => setReplyText(e.target.value)}
-                className="flex-1 min-w-[180px] px-4 py-2 bg-zinc-50 border border-zinc-200 rounded-full text-xs text-[#141414] focus:outline-none focus:border-[#141414]"
+                className="flex-1 min-w-[180px] px-4 py-2 bg-[#f3f3f3] border border-[#e0e0e0] rounded-full text-xs text-[#141414] focus:outline-none focus:border-[#141414]"
               />
               <button
                 type="button"
@@ -517,7 +517,7 @@ export const WhatsAppInboxPage: React.FC = () => {
       {/* New Chat Modal */}
       {showNewChatModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowNewChatModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <PhoneCall className="w-4 h-4 text-[#141414]" />
@@ -525,7 +525,7 @@ export const WhatsAppInboxPage: React.FC = () => {
               </h3>
               <button
                 onClick={() => setShowNewChatModal(false)}
-                className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors"
+                className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#262626] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -535,7 +535,7 @@ export const WhatsAppInboxPage: React.FC = () => {
               {/* Quick Select From CRM Clients */}
               {clientOptions.length > 0 && (
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">
                     اختر عميلاً مسجلاً في المنظومة (اختياري)
                   </label>
                   <select
@@ -546,7 +546,7 @@ export const WhatsAppInboxPage: React.FC = () => {
                         setNewChatPhone(selected.phone);
                       }
                     }}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                     defaultValue=""
                   >
                     <option value="" disabled>-- اختر من قائمة العملاء --</option>
@@ -560,30 +560,30 @@ export const WhatsAppInboxPage: React.FC = () => {
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم العميل *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">اسم العميل *</label>
                 <input
                   type="text"
                   placeholder="مثال: خالد بن فهد العتيبي"
                   value={newChatName}
                   onChange={e => setNewChatName(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">رقم الجوال (واتساب) *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">رقم الجوال (واتساب) *</label>
                 <input
                   type="text"
                   placeholder="05XXXXXXXX أو +9665XXXXXXXX"
                   value={newChatPhone}
                   onChange={e => setNewChatPhone(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   required
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-zinc-100">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowNewChatModal(false)}

@@ -342,7 +342,7 @@ export async function dispatchVoiceCommand(
     }
 
     if (norm.includes('تنبيهات الامتثال') || norm.includes('تنبيهات الموارد') || norm.includes('نطاقات') || norm.includes('جزاءات')) {
-      callbacks.onNavigate?.('jisr-alerts-compliance', 'مركز التنبيهات الذكي والجزاءات ونطاقات');
+      callbacks.onNavigate?.('hr-alerts-compliance', 'مركز التنبيهات الذكي والجزاءات ونطاقات');
       return {
         isCommand: true,
         commandType: 'navigate',
@@ -352,7 +352,7 @@ export async function dispatchVoiceCommand(
     }
 
     if (norm.includes('مخصصات') || norm.includes('نهايه الخدمه') || norm.includes('سحب الراتب')) {
-      callbacks.onNavigate?.('jisr-accruals', 'المخصصات الشهرية والقيود المحاسبية والرواتب عند الطلب');
+      callbacks.onNavigate?.('hr-accruals', 'المخصصات الشهرية والقيود المحاسبية والرواتب عند الطلب');
       return {
         isCommand: true,
         commandType: 'navigate',
@@ -362,7 +362,7 @@ export async function dispatchVoiceCommand(
     }
 
     if (norm.includes('عهد') || norm.includes('تذاكر السفر') || norm.includes('تامين طبي')) {
-      callbacks.onNavigate?.('jisr-expenses', 'العُهد والمصروفات وتذاكر السفر والتأمين الطبي');
+      callbacks.onNavigate?.('hr-expenses', 'العُهد والمصروفات وتذاكر السفر والتأمين الطبي');
       return {
         isCommand: true,
         commandType: 'navigate',
@@ -372,7 +372,7 @@ export async function dispatchVoiceCommand(
     }
 
     if (norm.includes('مقيم') || norm.includes('قوى') || norm.includes('هيكل تنظيمي')) {
-      callbacks.onNavigate?.('jisr-org-muqeem', 'الهيكل التنظيمي والتوظيف وربط مقيم وقوى');
+      callbacks.onNavigate?.('hr-org-muqeem', 'الهيكل التنظيمي والتوظيف وربط مقيم وقوى');
       return {
         isCommand: true,
         commandType: 'navigate',
@@ -382,7 +382,7 @@ export async function dispatchVoiceCommand(
     }
 
     if (norm.includes('تقييم الاداء') || norm.includes('اهداف') || norm.includes('اخلاء طرف')) {
-      callbacks.onNavigate?.('jisr-talent-360', 'تقييم الأداء 360 والأهداف والتدريب ومقابلات الإخلاء');
+      callbacks.onNavigate?.('hr-talent-360', 'تقييم الأداء 360 والأهداف والتدريب ومقابلات الإخلاء');
       return {
         isCommand: true,
         commandType: 'navigate',
@@ -392,7 +392,7 @@ export async function dispatchVoiceCommand(
     }
 
     if (norm.includes('ورديات') || norm.includes('عمل اضافي')) {
-      callbacks.onNavigate?.('jisr-shifts-overtime', 'جدولة الورديات والعمل الإضافي وتصدير مدد WPS');
+      callbacks.onNavigate?.('hr-shifts-overtime', 'جدولة الورديات والعمل الإضافي وتصدير مدد WPS');
       return {
         isCommand: true,
         commandType: 'navigate',
@@ -402,7 +402,7 @@ export async function dispatchVoiceCommand(
     }
 
     if (norm.includes('شاشه الترحيب') || norm.includes('اعياد') || norm.includes('مناسبات وطنيه')) {
-      callbacks.onNavigate?.('jisr-welcome-signage', 'شاشة الترحيب التفاعلية والأعياد والمناسبات الوطنية');
+      callbacks.onNavigate?.('hr-welcome-signage', 'شاشة الترحيب التفاعلية والأعياد والمناسبات الوطنية');
       return {
         isCommand: true,
         commandType: 'navigate',
@@ -412,7 +412,7 @@ export async function dispatchVoiceCommand(
     }
 
     if (norm.includes('فروقات الرواتب') || norm.includes('اثر رجعي') || norm.includes('عمولات')) {
-      callbacks.onNavigate?.('jisr-arrears-b2b', 'فروقات الرواتب بأثر رجعي والعمولات والمدفوعات البنكية B2B');
+      callbacks.onNavigate?.('hr-arrears-b2b', 'فروقات الرواتب بأثر رجعي والعمولات والمدفوعات البنكية B2B');
       return {
         isCommand: true,
         commandType: 'navigate',
@@ -422,7 +422,7 @@ export async function dispatchVoiceCommand(
     }
 
     if (norm.includes('بطاقات المصروفات') || norm.includes('ترحيل الاجازات')) {
-      callbacks.onNavigate?.('jisr-cards-rollover', 'بطاقات المصروفات المؤسسية وترحيل الإجازات وإغلاق البصمة');
+      callbacks.onNavigate?.('hr-cards-rollover', 'بطاقات المصروفات المؤسسية وترحيل الإجازات وإغلاق البصمة');
       return {
         isCommand: true,
         commandType: 'navigate',
@@ -432,7 +432,7 @@ export async function dispatchVoiceCommand(
     }
 
     if (norm.includes('سلاسل الاعتماد') || norm.includes('توقيع الكتروني') || norm.includes('نبض الرضا')) {
-      callbacks.onNavigate?.('jisr-workflows-pulse', 'سلاسل الاعتماد المخصصة والتوقيع الإلكتروني ونبض الرضا eNPS');
+      callbacks.onNavigate?.('hr-workflows-pulse', 'سلاسل الاعتماد المخصصة والتوقيع الإلكتروني ونبض الرضا eNPS');
       return {
         isCommand: true,
         commandType: 'navigate',

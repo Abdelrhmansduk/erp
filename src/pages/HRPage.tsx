@@ -64,10 +64,10 @@ import {
 import { HrProOdooBambooSuite } from '../components/hr/HrProOdooBambooSuite';
 import { HrLettersStudioModal } from '../components/hr/HrLettersStudioModal';
 import { InteractiveOrgChartPanel } from '../components/hr/InteractiveOrgChartPanel';
-import { JisrAccountingAccrualsHub } from '../components/hr/JisrAccountingAccrualsHub';
+import { HrAccountingAccrualsHub } from '../components/hr/HrAccountingAccrualsHub';
 import { HrExpensesAndTravelHub } from '../components/hr/HrExpensesAndTravelHub';
-import { JisrTalent360OffboardingHub } from '../components/hr/JisrTalent360OffboardingHub';
-import { JisrShiftRosterAndOvertimeHub } from '../components/hr/JisrShiftRosterAndOvertimeHub';
+import { HrTalent360OffboardingHub } from '../components/hr/HrTalent360OffboardingHub';
+import { HrShiftRosterAndOvertimeHub } from '../components/hr/HrShiftRosterAndOvertimeHub';
 import { NewEmployeeWelcomeAndSignageHub } from '../components/hr/NewEmployeeWelcomeAndSignageHub';
 import {
   DEFAULT_COMPANY_DISPLAY_SCREENS,
@@ -77,24 +77,24 @@ import {
   type SignageNetworkScanReport,
 } from '../services/employeeWelcomeBroadcastService';
 import {
-  JisrSmartAlertsAndComplianceHub,
+  HrSmartAlertsAndComplianceHub,
   type EwaWithdrawalRecordStored,
   type DisciplinaryRecordStored,
-} from '../components/hr/JisrSmartAlertsAndComplianceHub';
-import { JisrPayrollArrearsB2BHub } from '../components/hr/JisrPayrollArrearsB2BHub';
-import { JisrCorporateCardsAndLeaveRolloverHub } from '../components/hr/JisrCorporateCardsAndLeaveRolloverHub';
-import { JisrCustomBuilderEsignPulseHub } from '../components/hr/JisrCustomBuilderEsignPulseHub';
+} from '../components/hr/HrSmartAlertsAndComplianceHub';
+import { HrPayrollArrearsB2BHub } from '../components/hr/HrPayrollArrearsB2BHub';
+import { HrCorporateCardsAndLeaveRolloverHub } from '../components/hr/HrCorporateCardsAndLeaveRolloverHub';
+import { HrCustomBuilderEsignPulseHub } from '../components/hr/HrCustomBuilderEsignPulseHub';
 import {
   computeUpfrontLeavePayrollDeduction,
   type RetroactiveArrearRecord,
-} from '../services/jisrPayrollArrearsAndB2BEngine';
+} from '../services/hrPayrollArrearsAndB2BEngine';
 import { ReemHrEmailStudioHub } from '../components/hr/ReemHrEmailStudioHub';
 import type { ReemHrTemplateId } from '../services/reemHrEmailTemplatesEngine';
 import {
   calculateNetLeaveDaysExcludingHolidays,
   DEFAULT_SAUDI_PUBLIC_HOLIDAYS,
   type SaudiPublicHoliday,
-} from '../services/jisrAdvancedComplianceEngine';
+} from '../services/hrAdvancedComplianceEngine';
 import {
   runAndDispatchHrSmartAlerts,
   scanHrComplianceRadars,
@@ -286,6 +286,20 @@ const DEFAULT_MOCK_EMPLOYEES: EmployeeRecord[] = KAS_ALLOWED_EMPLOYEES.map((emp,
       : emp.department_id === 'finance'
       ? 9200
       : 6800;
+  const managerId =
+    emp.id === 'KAS-EMP-001'
+      ? undefined
+      : emp.department_id === 'executive'
+      ? 'KAS-EMP-001'
+      : emp.department_id === 'hr'
+      ? emp.id === 'KAS-EMP-004'
+        ? 'KAS-EMP-001'
+        : 'KAS-EMP-004'
+      : emp.department_id === 'finance'
+      ? emp.id === 'KAS-EMP-039'
+        ? 'KAS-EMP-001'
+        : 'KAS-EMP-039'
+      : 'KAS-EMP-002';
   return {
     id: emp.id,
     company_id: emp.company_id === 'all' ? 'HQ' : emp.company_id,
@@ -307,6 +321,7 @@ const DEFAULT_MOCK_EMPLOYEES: EmployeeRecord[] = KAS_ALLOWED_EMPLOYEES.map((emp,
     contract_end_date: '2027-12-31',
     medical_insurance_expiry: '2027-06-30',
     system_role: emp.titleAr,
+    manager_id: managerId,
     signature_status: 'موقّع ومعتمد',
     compliance_hash: `KAS-HR-${emp.id}`,
     status: 'نشط',
@@ -316,13 +331,13 @@ const DEFAULT_MOCK_EMPLOYEES: EmployeeRecord[] = KAS_ALLOWED_EMPLOYEES.map((emp,
 const DEFAULT_MOCK_PROMOTIONS: PromotionRecord[] = [
   {
     id: 'PROM-2026-001',
-    employee_id: 'emp-101',
-    employee_name: 'عبدالفتح (مسؤول الوكلاء)',
-    employee_code: 'EMP-2026-001',
-    previous_job_title: 'مشرف علاقات المكاتب',
-    new_job_title: 'مدير شؤون المكاتب الخارجية والتعاقدات الدولية',
-    previous_department: 'التشغيل والاستقدام',
-    new_department: 'التشغيل والاستقدام',
+    employee_id: 'KAS-EMP-034',
+    employee_name: 'عبدالرحمن أبو سالف (a.salif.dev@kas.sa)',
+    employee_code: 'KAS-EMP-034',
+    previous_job_title: 'مطور نظم برمجية',
+    new_job_title: 'مهندس برمجيات وتكامل الأنظمة الرقمية',
+    previous_department: 'تقنية المعلومات والتحول الرقمي',
+    new_department: 'تقنية المعلومات والتحول الرقمي',
     previous_grade: 'الدرجة الرابعة (قائد فريق)',
     new_grade: 'الدرجة الخامسة (مدير إدارة)',
     previous_salary: 10000,
@@ -331,20 +346,20 @@ const DEFAULT_MOCK_PROMOTIONS: PromotionRecord[] = [
     increment_percentage: '25.0%',
     effective_date: '2026-01-01',
     performance_rating: 'استثنائي (5/5)',
-    promotion_reason: 'تحقيق مستهدفات استقدام قياسية وتوسيع شبكة الوكالات المعتمدة في الفلبين وإثيوبيا.',
-    system_role_updated: 'Operations Lead (مشرف تشغيل وعقود)',
+    promotion_reason: 'أتمتة العمليات الرقمية وربط الأنظمة الحكومية والمالية عبر شركات المجموعة.',
+    system_role_updated: 'IT & Digital Lead (مهندس تكامل الأنظمة)',
     approved_by: 'الرئيس التنفيذي / الإدارة العليا',
     status: 'معتمد رسمياً',
   },
   {
     id: 'PROM-2026-002',
-    employee_id: 'emp-102',
-    employee_name: 'فهد العتيبي',
-    employee_code: 'EMP-2026-002',
-    previous_job_title: 'مساعد مشرف إيواء',
-    new_job_title: 'مشرف عام مراكز الإيواء والتسكين',
-    previous_department: 'إدارة الإيواء',
-    new_department: 'إدارة الإيواء',
+    employee_id: 'KAS-EMP-010',
+    employee_name: 'الجوري العنزي (a.alanazi@kas.sa)',
+    employee_code: 'KAS-EMP-010',
+    previous_job_title: 'أخصائي علاقات عملاء',
+    new_job_title: 'مشرف علاقات العملاء وعمليات الإيواء',
+    previous_department: 'خدمة العملاء والعلاقات التعاقدية',
+    new_department: 'خدمة العملاء والعلاقات التعاقدية',
     previous_grade: 'الدرجة الثالثة (أخصائي أول)',
     new_grade: 'الدرجة الرابعة (قائد فريق)',
     previous_salary: 8200,
@@ -353,9 +368,9 @@ const DEFAULT_MOCK_PROMOTIONS: PromotionRecord[] = [
     increment_percentage: '19.5%',
     effective_date: '2026-04-01',
     performance_rating: 'ممتاز (5/5)',
-    promotion_reason: 'الالتزام الصارم بمعايير السلامة والإعاشة وتصفير نسبة الشكاوى في مراكز الإيواء.',
-    system_role_updated: 'Shelter Supervisor (مشرف إيواء)',
-    approved_by: 'مدير الموارد البشرية',
+    promotion_reason: 'الالتزام الصارم بمعايير الجودة وتصفير نسبة الشكاوى في خدمات العملاء.',
+    system_role_updated: 'CRM Supervisor (مشرف علاقات عملاء)',
+    approved_by: 'إدارة الموارد البشرية (ريم احمد بن حسين)',
     status: 'معتمد رسمياً',
   }
 ];
@@ -363,8 +378,8 @@ const DEFAULT_MOCK_PROMOTIONS: PromotionRecord[] = [
 const DEFAULT_VACATIONS: VacationRequest[] = [
   {
     id: 'VAC-01',
-    employee_id: 'emp-102',
-    employee_name: 'فهد العتيبي',
+    employee_id: 'KAS-EMP-010',
+    employee_name: 'الجوري العنزي (a.alanazi@kas.sa)',
     vacation_type: 'إجازة اعتيادية سنوية',
     balance: 24,
     from_date: '2026-08-20',
@@ -376,8 +391,8 @@ const DEFAULT_VACATIONS: VacationRequest[] = [
   },
   {
     id: 'VAC-02',
-    employee_id: 'emp-104',
-    employee_name: 'سارة خالد',
+    employee_id: 'KAS-EMP-040',
+    employee_name: 'احمد حلمى عبدالمقصود عيسى (a.eissa.acc@kas.sa)',
     vacation_type: 'إجازة اضطرارية',
     balance: 18,
     from_date: '2026-08-18',
@@ -392,8 +407,8 @@ const DEFAULT_VACATIONS: VacationRequest[] = [
 const DEFAULT_ADVANCES: AdvanceRequest[] = [
   {
     id: 'ADV-01',
-    employee_id: 'emp-103',
-    employee_name: 'إبراهيم الشمري',
+    employee_id: 'KAS-EMP-039',
+    employee_name: 'اكرم محمد الكناني (a.alkinani.acc@kas.sa)',
     payment_method: 'تحويل بنكي راتب',
     amount: 3000,
     paid_amount: 1000,
@@ -409,8 +424,8 @@ const DEFAULT_ADVANCES: AdvanceRequest[] = [
 const DEFAULT_SANCTIONS: SanctionItem[] = [
   {
     id: 'SANC-01',
-    employee_id: 'emp-102',
-    employee_name: 'فهد العتيبي',
+    employee_id: 'KAS-EMP-041',
+    employee_name: 'محمد شعبان الجرم (m.aljarm.acc@kas.sa)',
     sanction_type: 'تأخير غير مبرر عن الدوام',
     amount: 250,
     date: '2026-08-12',
@@ -423,8 +438,8 @@ const DEFAULT_SANCTIONS: SanctionItem[] = [
 const DEFAULT_PERMISSIONS: PermissionRequest[] = [
   {
     id: 'PERM-01',
-    employee_id: 'emp-104',
-    employee_name: 'سارة خالد',
+    employee_id: 'KAS-EMP-010',
+    employee_name: 'الجوري العنزي (a.alanazi@kas.sa)',
     permission_type: 'استئذان شخصي (ساعتان)',
     date: '2026-08-17',
     time: '12:00 - 14:00',
@@ -437,8 +452,8 @@ const DEFAULT_REWARDS: RewardRequest[] = [
   {
     id: 'REW-01',
     company_id: 'SAF',
-    employee_id: 'emp-101',
-    employee_name: 'عبدالفتح (مسؤول الوكلاء)',
+    employee_id: 'KAS-EMP-034',
+    employee_name: 'عبدالرحمن أبو سالف (a.salif.dev@kas.sa)',
     reward_type: 'مكافأة تميز وتحقيق مستهدف العقود',
     salary: 12500,
     net_reward: 2500,
@@ -466,17 +481,17 @@ export type HrSubTab =
   | 'permissions'
   | 'rewards'
   | 'payroll'
-  | 'jisr-accruals'
-  | 'jisr-expenses'
-  | 'jisr-org-muqeem'
-  | 'jisr-talent-360'
-  | 'jisr-shifts-overtime'
-  | 'jisr-welcome-signage'
+  | 'hr-accruals'
+  | 'hr-expenses'
+  | 'hr-org-muqeem'
+  | 'hr-talent-360'
+  | 'hr-shifts-overtime'
+  | 'hr-welcome-signage'
   | 'welcome-screens'
-  | 'jisr-alerts-compliance'
-  | 'jisr-arrears-b2b'
-  | 'jisr-cards-rollover'
-  | 'jisr-workflows-pulse'
+  | 'hr-alerts-compliance'
+  | 'hr-arrears-b2b'
+  | 'hr-cards-rollover'
+  | 'hr-workflows-pulse'
   | 'reem-hr-emails'
   | 'end-of-service'
   | 'gosi'
@@ -509,13 +524,12 @@ export const mapGlobalTabToHrTab = (tabKey: string): HRTabType => {
       return 'advances';
     case 'sanctions':
       return 'sanctions';
-    case 'jisr-alerts-compliance':
     case 'hr-alerts-compliance':
     case 'hr-smart-alerts':
     case 'nitaqat':
     case 'compliance-radar':
     case 'employee-sanctions':
-      return 'jisr-alerts-compliance';
+      return 'hr-alerts-compliance';
     case 'legacy-compliance-radar':
       return 'compliance-radar';
     case 'employee-rewards':
@@ -539,40 +553,31 @@ export const mapGlobalTabToHrTab = (tabKey: string): HRTabType => {
     case 'bamboohr':
     case 'hr-pro-hub':
       return 'hr-pro-hub';
-    case 'jisr-accruals':
     case 'hr-accruals':
-      return 'jisr-accruals';
-    case 'jisr-expenses':
+      return 'hr-accruals';
     case 'hr-expenses':
-      return 'jisr-expenses';
-    case 'jisr-org-muqeem':
+      return 'hr-expenses';
     case 'hr-org-muqeem':
     case 'org-chart':
-      return 'jisr-org-muqeem';
-    case 'jisr-talent-360':
+      return 'hr-org-muqeem';
     case 'hr-talent-360':
     case 'hr-ats':
-      return 'jisr-talent-360';
-    case 'jisr-shifts-overtime':
+      return 'hr-talent-360';
     case 'hr-shifts-overtime':
     case 'shift-rosters':
     case 'overtime':
-      return 'jisr-shifts-overtime';
-    case 'jisr-welcome-signage':
+      return 'hr-shifts-overtime';
     case 'hr-welcome-signage':
-      return 'jisr-welcome-signage';
+      return 'hr-welcome-signage';
     case 'welcome-screens':
     case 'signage-screens':
       return 'welcome-screens';
-    case 'jisr-arrears-b2b':
     case 'hr-arrears-b2b':
-      return 'jisr-arrears-b2b';
-    case 'jisr-cards-rollover':
+      return 'hr-arrears-b2b';
     case 'hr-cards-rollover':
-      return 'jisr-cards-rollover';
-    case 'jisr-workflows-pulse':
+      return 'hr-cards-rollover';
     case 'hr-workflows-pulse':
-      return 'jisr-workflows-pulse';
+      return 'hr-workflows-pulse';
     case 'maids-hr':
     case 'domestic-fleet':
       return 'maids-hr';
@@ -661,11 +666,25 @@ export const HRPage: React.FC = () => {
 
   const reloadHrData = useCallback(() => {
     const companyScope = activeCompanyId && activeCompanyId !== 'all' ? activeCompanyId : undefined;
-    if (rawEmployees.length > 0) {
-      setEmployeesList(rawEmployees as EmployeeRecord[]);
-    } else {
-      realErpDataStore.getRecords<EmployeeRecord>('hr_employees', DEFAULT_MOCK_EMPLOYEES, companyScope).then((d) => setEmployeesList(d));
-    }
+    void realErpDataStore
+      .getRecords<EmployeeRecord>('hr_employees', DEFAULT_MOCK_EMPLOYEES, companyScope)
+      .then((hrRows) => {
+        const mergedMap = new Map<string, EmployeeRecord>();
+        for (const emp of DEFAULT_MOCK_EMPLOYEES) {
+          mergedMap.set(emp.id, emp);
+        }
+        for (const emp of rawEmployees as EmployeeRecord[]) {
+          if (emp && emp.id) {
+            mergedMap.set(emp.id, { ...(mergedMap.get(emp.id) || ({} as EmployeeRecord)), ...emp });
+          }
+        }
+        for (const emp of Array.isArray(hrRows) ? hrRows : []) {
+          if (emp && emp.id) {
+            mergedMap.set(emp.id, { ...(mergedMap.get(emp.id) || ({} as EmployeeRecord)), ...emp });
+          }
+        }
+        setEmployeesList(Array.from(mergedMap.values()));
+      });
     realErpDataStore.getRecords<PromotionRecord>('hr_promotions', DEFAULT_MOCK_PROMOTIONS, companyScope).then((d) => setPromotions(d));
     realErpDataStore.getRecords<VacationRequest>('hr_leave_requests', DEFAULT_VACATIONS, companyScope).then((d) => setVacations(d));
     realErpDataStore.getRecords<AdvanceRequest>('hr_advances', DEFAULT_ADVANCES, companyScope).then((d) => setAdvances(d));
@@ -1187,35 +1206,35 @@ export const HRPage: React.FC = () => {
 
   // Interactive Modals & Lifecycle States
   const [showVacModal, setShowVacModal] = useState(false);
-  const [vacEmpId, setVacEmpId] = useState('emp-102');
+  const [vacEmpId, setVacEmpId] = useState('KAS-EMP-010');
   const [vacType, setVacType] = useState('إجازة اعتيادية سنوية');
   const [vacFrom, setVacFrom] = useState(new Date().toISOString().slice(0, 10));
   const [vacTo, setVacTo] = useState(new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10));
   const [vacNotes, setVacNotes] = useState('');
 
   const [showAdvModal, setShowAdvModal] = useState(false);
-  const [advEmpId, setAdvEmpId] = useState('emp-103');
+  const [advEmpId, setAdvEmpId] = useState('KAS-EMP-039');
   const [advAmount, setAdvAmount] = useState('3000');
   const [advInstallments, setAdvInstallments] = useState('3');
   const [advMethod, setAdvMethod] = useState('تحويل بنكي راتب');
   const [advReason, setAdvReason] = useState('');
 
   const [showSancModal, setShowSancModal] = useState(false);
-  const [sancEmpId, setSancEmpId] = useState('emp-102');
+  const [sancEmpId, setSancEmpId] = useState('KAS-EMP-041');
   const [sancType, setSancType] = useState('تأخير غير مبرر عن الدوام');
   const [sancAmount, setSancAmount] = useState('250');
   const [sancDeduct, setSancDeduct] = useState(true);
   const [sancReason, setSancReason] = useState('');
 
   const [showPermModal, setShowPermModal] = useState(false);
-  const [permEmpId, setPermEmpId] = useState('emp-104');
+  const [permEmpId, setPermEmpId] = useState('KAS-EMP-010');
   const [permType, setPermType] = useState('استئذان شخصي (ساعتان)');
   const [permDate, setPermDate] = useState(new Date().toISOString().slice(0, 10));
   const [permTime, setPermTime] = useState('12:00 - 14:00');
   const [permReason, setPermReason] = useState('');
 
   const [showRewModal, setShowRewModal] = useState(false);
-  const [rewEmpId, setRewEmpId] = useState('emp-101');
+  const [rewEmpId, setRewEmpId] = useState('KAS-EMP-034');
   const [rewType, setRewType] = useState('مكافأة تميز وتحقيق مستهدف العقود');
   const [rewAmount, setRewAmount] = useState('1500');
   const [rewTiming, setRewTiming] = useState('مع راتب الشهر الحالي');
@@ -1259,7 +1278,7 @@ export const HRPage: React.FC = () => {
   } | null>(null);
 
   // End of Service Extended Clearance State
-  const [selectedEosEmpId, setSelectedEosEmpId] = useState<string>('emp-101');
+  const [selectedEosEmpId, setSelectedEosEmpId] = useState<string>('KAS-EMP-034');
   const [eosUnusedLeaveDays, setEosUnusedLeaveDays] = useState<number>(15);
   const [eosRemainingAdvance, setEosRemainingAdvance] = useState<number>(0);
   const [eosCustodyCleared, setEosCustodyCleared] = useState<boolean>(true);
@@ -1274,7 +1293,7 @@ export const HRPage: React.FC = () => {
     return employeesList.filter((e) => !e.company_id || e.company_id === activeCompanyId);
   }, [employeesList, activeCompanyId]);
 
-  const jisrHubEmployees = useMemo(
+  const hrComplianceEmployees = useMemo(
     () =>
       companyScopedEmployees.map((emp) => ({
         id: emp.id,
@@ -1297,7 +1316,7 @@ export const HRPage: React.FC = () => {
 
   // Background HR Smart Alerts & Compliance Radar Sync once per company mount (no noisy popups)
   useEffect(() => {
-    if (jisrHubEmployees.length === 0) return;
+    if (hrComplianceEmployees.length === 0) return;
     if (syncedRadarCompanyRef.current === effectiveCompanyCode) return;
     syncedRadarCompanyRef.current = effectiveCompanyCode;
 
@@ -1310,7 +1329,7 @@ export const HRPage: React.FC = () => {
       ]);
       const scanInput = {
         companyId: effectiveCompanyCode,
-        employees: jisrHubEmployees,
+        employees: hrComplianceEmployees,
         approvalRequests: Array.isArray(approvalRequests) ? approvalRequests : [],
         pendingShiftSwaps: Array.isArray(pendingShiftSwaps) ? pendingShiftSwaps : [],
         pendingOffboardings: Array.isArray(pendingOffboardings) ? pendingOffboardings : [],
@@ -1325,7 +1344,7 @@ export const HRPage: React.FC = () => {
             type: res.alerts.some((a) => a.severity === 'critical' && !a.acknowledged) ? 'warning' : 'info',
             category: 'hr',
             companyId: effectiveCompanyCode,
-            link: 'jisr-alerts-compliance',
+            link: 'hr-alerts-compliance',
           });
         }
       } catch {
@@ -1361,7 +1380,7 @@ export const HRPage: React.FC = () => {
             type: mergedForCompany.some((a) => a.severity === 'critical') ? 'warning' : 'info',
             category: 'hr',
             companyId: effectiveCompanyCode,
-            link: 'jisr-alerts-compliance',
+            link: 'hr-alerts-compliance',
           });
         }
       }
@@ -1371,7 +1390,7 @@ export const HRPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [effectiveCompanyCode, jisrHubEmployees, addNotification]);
+  }, [effectiveCompanyCode, hrComplianceEmployees, addNotification]);
 
   const vacHolidayCalc = useMemo(
     () => calculateNetLeaveDaysExcludingHolidays(vacFrom, vacTo, { holidays: publicHolidays }),
@@ -2189,6 +2208,8 @@ export const HRPage: React.FC = () => {
 
   const [deptFilter, setDeptFilter] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [selectedEmployeeFilterId, setSelectedEmployeeFilterId] = useState<string>('ALL');
+  const [showQuickToolsMenu, setShowQuickToolsMenu] = useState<boolean>(false);
 
   const uniqueDepartments = React.useMemo(
     () => Array.from(new Set(companyScopedEmployees.map((e) => e.department).filter(Boolean))),
@@ -2196,16 +2217,72 @@ export const HRPage: React.FC = () => {
   );
 
   const filteredEmployees = companyScopedEmployees.filter((e) => {
+    const q = searchQuery.trim().toLowerCase();
     const matchesSearch =
-      e.name.includes(searchQuery) ||
-      e.employee_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      e.national_id.includes(searchQuery) ||
-      e.job_title.includes(searchQuery) ||
-      (e.system_role && e.system_role.toLowerCase().includes(searchQuery.toLowerCase()));
+      !q ||
+      e.name.toLowerCase().includes(q) ||
+      e.employee_code.toLowerCase().includes(q) ||
+      e.national_id.includes(q) ||
+      e.job_title.toLowerCase().includes(q) ||
+      (e.system_role && e.system_role.toLowerCase().includes(q));
     const matchesDept = deptFilter === 'ALL' || e.department === deptFilter;
     const matchesStatus = statusFilter === 'ALL' || e.status === statusFilter;
-    return matchesSearch && matchesDept && matchesStatus;
+    const matchesEmp = selectedEmployeeFilterId === 'ALL' || e.id === selectedEmployeeFilterId;
+    return matchesSearch && matchesDept && matchesStatus && matchesEmp;
   });
+
+  const matchesGlobalHrSubRecord = (rec: {
+    id?: string;
+    employee_id?: string;
+    employee_code?: string;
+    employee_name?: string;
+    status?: string;
+  }) => {
+    const matchedEmp = companyScopedEmployees.find(
+      (e) =>
+        e.id === rec.employee_id ||
+        (rec.employee_code && e.employee_code === rec.employee_code) ||
+        e.name === rec.employee_name
+    );
+    if (selectedEmployeeFilterId !== 'ALL') {
+      const targetEmp = companyScopedEmployees.find((e) => e.id === selectedEmployeeFilterId);
+      const isMatch =
+        rec.employee_id === selectedEmployeeFilterId ||
+        (targetEmp &&
+          (rec.employee_name === targetEmp.name ||
+            rec.employee_code === targetEmp.employee_code));
+      if (!isMatch) return false;
+    }
+    if (deptFilter !== 'ALL' && matchedEmp && matchedEmp.department !== deptFilter) {
+      return false;
+    }
+    if (statusFilter !== 'ALL' && rec.status && rec.status !== statusFilter) {
+      if (statusFilter !== 'نشط' && statusFilter !== 'إجازة') {
+        return false;
+      } else if (matchedEmp && matchedEmp.status !== statusFilter) {
+        return false;
+      }
+    }
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      const hay = `${rec.id || ''} ${rec.employee_name || ''} ${rec.employee_code || ''} ${matchedEmp?.department || ''} ${matchedEmp?.national_id || ''}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  };
+
+  const filteredPromotions = promotions.filter((p) => matchesGlobalHrSubRecord(p));
+  const filteredVacations = vacations.filter((v) => matchesGlobalHrSubRecord(v));
+  const filteredAdvances = advances.filter((a) => matchesGlobalHrSubRecord(a));
+  const filteredSanctions = sanctions.filter((s) => matchesGlobalHrSubRecord(s));
+  const filteredPermissions = permissions.filter((p) => matchesGlobalHrSubRecord(p));
+  const filteredRewards = rewards.filter((r) => matchesGlobalHrSubRecord(r));
+
+  const hasActiveGlobalFilter =
+    Boolean(searchQuery.trim()) ||
+    deptFilter !== 'ALL' ||
+    statusFilter !== 'ALL' ||
+    selectedEmployeeFilterId !== 'ALL';
 
   // 5 Organized HR Tracks (Information Architecture)
   const hrTracks = [
@@ -2215,13 +2292,13 @@ export const HRPage: React.FC = () => {
       icon: Users,
       defaultTab: 'employees',
       tabs: [
-        { id: 'employees', label: `سجل الموظفين (${employeesList.length})`, icon: Users },
+        { id: 'employees', label: `سجل الموظفين (${filteredEmployees.length})`, icon: Users },
         { id: 'welcome-screens', label: 'شاشات العرض الموصولة بالشبكة (Live LAN)', icon: Radio },
-        { id: 'jisr-welcome-signage', label: 'الترحيب بالموظف الجديد وشاشات العرض الذكية (TV)', icon: Tv },
+        { id: 'hr-welcome-signage', label: 'الترحيب بالموظف الجديد وشاشات العرض الذكية (TV)', icon: Tv },
         { id: 'reem-hr-emails', label: 'مراسلات وقوالب بريد الموارد البشرية — HR@kas.sa', icon: MailCheck },
-        { id: 'jisr-org-muqeem', label: 'الهيكل التنظيمي ومقيم والخطابات', icon: Building2 },
-        { id: 'promotions', label: `الترقيات والدرجات (${promotions.length})`, icon: TrendingUp },
-        { id: 'signatures', label: `حافظة التواقيع (${employeesList.length})`, icon: FileSignature },
+        { id: 'hr-org-muqeem', label: 'الهيكل التنظيمي ومقيم والخطابات', icon: Building2 },
+        { id: 'promotions', label: `الترقيات والدرجات (${filteredPromotions.length})`, icon: TrendingUp },
+        { id: 'signatures', label: `حافظة التواقيع (${filteredEmployees.length})`, icon: FileSignature },
         { id: 'maids-hr', label: 'أسطول العمالة والتشغيل', icon: Users },
       ],
     },
@@ -2232,13 +2309,13 @@ export const HRPage: React.FC = () => {
       defaultTab: 'payroll',
       tabs: [
         { id: 'payroll', label: 'مسير الرواتب (WPS)', icon: ShieldCheck },
-        { id: 'jisr-arrears-b2b', label: 'الأثر الرجعي و Off-Cycle ومدد والبنوك B2B', icon: Calculator },
-        { id: 'jisr-cards-rollover', label: 'بطاقات الشركة وترحيل وتسييل الإجازات', icon: ShieldCheck },
-        ...(authService.isTabAuthorizedForUser(currentHrUser, 'jisr-accruals') && !isHrefBlocked('jisr-accruals')
-          ? [{ id: 'jisr-accruals', label: 'المخصصات ومراكز التكلفة (IAS 19)', icon: Calculator }]
+        { id: 'hr-arrears-b2b', label: 'الأثر الرجعي و Off-Cycle ومدد والبنوك B2B', icon: Calculator },
+        { id: 'hr-cards-rollover', label: 'بطاقات الشركة وترحيل وتسييل الإجازات', icon: ShieldCheck },
+        ...(authService.isTabAuthorizedForUser(currentHrUser, 'hr-accruals') && !isHrefBlocked('hr-accruals')
+          ? [{ id: 'hr-accruals', label: 'المخصصات ومراكز التكلفة (IAS 19)', icon: Calculator }]
           : []),
-        ...(authService.isTabAuthorizedForUser(currentHrUser, 'jisr-expenses') && !isHrefBlocked('jisr-expenses')
-          ? [{ id: 'jisr-expenses', label: 'النفقات والعهد والانتدابات', icon: DollarSign }]
+        ...(authService.isTabAuthorizedForUser(currentHrUser, 'hr-expenses') && !isHrefBlocked('hr-expenses')
+          ? [{ id: 'hr-expenses', label: 'النفقات والعهد والانتدابات', icon: DollarSign }]
           : []),
         { id: 'gosi', label: 'التأمينات الاجتماعية (GOSI)', icon: ShieldCheck },
         { id: 'end-of-service', label: 'حاسبة نهاية الخدمة والمخالصة', icon: Calculator },
@@ -2250,22 +2327,22 @@ export const HRPage: React.FC = () => {
       icon: CalendarMinus,
       defaultTab: 'vacations',
       tabs: [
-        { id: 'vacations', label: `طلبات الإجازات (${vacations.length})`, icon: CalendarMinus },
-        { id: 'jisr-shifts-overtime', label: 'المناوبات والعمل الإضافي (م107) والتعاميم', icon: Clock },
-        { id: 'advances', label: `طلبات السلف (${advances.length})`, icon: DollarSign },
-        { id: 'rewards', label: `طلبات المكافآت (${rewards.length})`, icon: Award },
-        { id: 'permissions', label: `طلبات الأذونات (${permissions.length})`, icon: Clock },
-        { id: 'sanctions', label: `جزاءات الموظف (${sanctions.length})`, icon: AlertCircle },
+        { id: 'vacations', label: `طلبات الإجازات (${filteredVacations.length})`, icon: CalendarMinus },
+        { id: 'hr-shifts-overtime', label: 'المناوبات والعمل الإضافي (م107) والتعاميم', icon: Clock },
+        { id: 'advances', label: `طلبات السلف (${filteredAdvances.length})`, icon: DollarSign },
+        { id: 'rewards', label: `طلبات المكافآت (${filteredRewards.length})`, icon: Award },
+        { id: 'permissions', label: `طلبات الأذونات (${filteredPermissions.length})`, icon: Clock },
+        { id: 'sanctions', label: `جزاءات الموظف (${filteredSanctions.length})`, icon: AlertCircle },
       ],
     },
     {
       id: 'track-performance',
       label: '4. المواهب وتقييم 360° وإخلاء الطرف',
       icon: Sparkles,
-      defaultTab: 'jisr-talent-360',
+      defaultTab: 'hr-talent-360',
       tabs: [
-        { id: 'jisr-talent-360', label: 'التوظيف (ATS) وتقييم 360° وإخلاء الطرف', icon: Sparkles },
-        { id: 'jisr-workflows-pulse', label: 'منشئ الحقول والتوقيع OTP والرواتب السوقية eNPS', icon: Sparkles },
+        { id: 'hr-talent-360', label: 'التوظيف (ATS) وتقييم 360° وإخلاء الطرف', icon: Sparkles },
+        { id: 'hr-workflows-pulse', label: 'منشئ الحقول والتوقيع OTP والرواتب السوقية eNPS', icon: Sparkles },
         { id: 'hr-pro-hub', label: 'هيكلة الأجور والأداء (Odoo & HR-Pro)', icon: Award },
       ],
     },
@@ -2273,14 +2350,14 @@ export const HRPage: React.FC = () => {
       id: 'track-compliance',
       label: '5. الامتثال والتنبيهات ونطاقات',
       icon: BellRing,
-      defaultTab: 'jisr-alerts-compliance',
+      defaultTab: 'hr-alerts-compliance',
       tabs: [
         {
-          id: 'jisr-alerts-compliance',
+          id: 'hr-alerts-compliance',
           label: 'رادار التنبيهات والجزاءات والراتب المرن ونطاقات',
           icon: BellRing,
         },
-        { id: 'compliance-radar', label: 'نطاقات ورادار الوثائق', icon: Scale },
+        { id: 'compliance-radar', label: 'نطاقات ورادار الوثائق التفصيلي', icon: Scale },
       ],
     },
   ];
@@ -2294,162 +2371,190 @@ export const HRPage: React.FC = () => {
 
   return (
     <div className="space-y-4 pb-16">
-      {/* 1. Compact Monochrome Header Bar + Quick Actions */}
-      <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-4 sm:px-5 sm:py-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-[280px]">
-          <div className="hidden sm:flex w-10 h-10 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center shrink-0">
-            <Users className="w-5 h-5 text-[#141414]" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-base sm:text-lg font-bold text-[#141414] m-0 tracking-tight whitespace-nowrap">
-                إدارة الموارد البشرية ومسيرات الرواتب (WPS)
-              </h1>
-              <span className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] text-[10px] font-bold whitespace-nowrap">
-                {activeCompany.name}
-              </span>
+      {/* 1. Compact Monochrome Header Bar + Focused Primary Actions & Collapsible Quick Tools */}
+      <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-4 sm:px-5 sm:py-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-[280px]">
+            <div className="hidden sm:flex w-10 h-10 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center shrink-0">
+              <Users className="w-5 h-5 text-[#141414]" />
             </div>
-            <p className="text-xs text-[#707070] m-0 mt-0.5">
-              شؤون الموظفين، حافظة التواقيع، مسير الرواتب وحماية الأجور، وتقييم الأداء
-            </p>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-base sm:text-lg font-bold text-[#141414] m-0 tracking-tight whitespace-nowrap">
+                  إدارة الموارد البشرية ومسيرات الرواتب (WPS)
+                </h1>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] text-[10px] font-bold whitespace-nowrap">
+                  {activeCompany.name}
+                </span>
+              </div>
+              <p className="text-xs text-[#707070] m-0 mt-0.5">
+                شؤون الموظفين، حافظة التواقيع، مسير الرواتب وحماية الأجور، وتقييم الأداء
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap" data-no-dyn-enhancer="true">
+            <button
+              type="button"
+              onClick={() => handleOpenAddOrEditEmployee()}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold transition-colors cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ إدراج موظف جديد</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveGlobalTab('reem-hr-emails')}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-bold transition-colors cursor-pointer ${
+                activeTab === 'reem-hr-emails'
+                  ? 'bg-[#141414] border-[#141414] text-[#ffffff]'
+                  : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] border-[#e0e0e0] text-[#141414]'
+              }`}
+              title="مراسلات وقوالب بريد الموارد البشرية الرسمي — أ. ريم بن حسين (HR@kas.sa • نسخة Khalid@kas.sa)"
+            >
+              <MailCheck className="w-3.5 h-3.5" />
+              <span>بريد الموارد البشرية (HR@kas.sa)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleExportWPS('SIF')}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-xs font-bold transition-colors cursor-pointer"
+              title="توليد ملف حماية الأجور القياسي المعتمد للبنوك السعودية"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>ملف حماية الأجور (.SIF)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowQuickToolsMenu((prev) => !prev)}
+              aria-expanded={showQuickToolsMenu}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-bold transition-colors cursor-pointer ${
+                showQuickToolsMenu
+                  ? 'bg-[#141414] border-[#141414] text-[#ffffff]'
+                  : 'bg-[#ffffff] hover:bg-[#f3f3f3] border-[#e0e0e0] text-[#141414]'
+              }`}
+            >
+              <Settings className="w-3.5 h-3.5" />
+              <span>أدوات الموارد البشرية السريعة (6) {showQuickToolsMenu ? '▴' : '▾'}</span>
+            </button>
+
+            <ExportDropdown
+              sectionKey={
+                activeTab === 'reem-hr-emails' ? 'hr_official_emails' :
+                activeTab === 'payroll' || activeTab === 'hr-arrears-b2b' ? 'payroll' :
+                activeTab === 'promotions' ? 'hr_promotions' :
+                activeTab === 'vacations' ? 'hr_vacations' :
+                activeTab === 'advances' ? 'hr_advances' :
+                activeTab === 'sanctions' ? 'hr_sanctions' :
+                activeTab === 'permissions' ? 'hr_permissions' :
+                activeTab === 'rewards' ? 'hr_rewards' :
+                activeTab === 'signatures' || activeTab === 'hr-workflows-pulse' ? 'hr_signatures' :
+                activeTab === 'end-of-service' ? 'hr_eos' :
+                activeTab === 'gosi' ? 'hr_gosi' :
+                activeTab === 'maids-hr' ? 'hr_maids_fleet' :
+                activeTab === 'hr-accruals' ? 'hr_accruals' :
+                activeTab === 'hr-expenses' || activeTab === 'hr-cards-rollover' ? 'hr_expenses' :
+                activeTab === 'hr-shifts-overtime' ? 'hr_overtime' :
+                activeTab === 'hr-talent-360' ? 'hr_clearances' :
+                activeTab === 'compliance-radar' || activeTab === 'hr-alerts-compliance' ? 'hr_compliance' :
+                'employees'
+              }
+              data={
+                activeTab === 'payroll' || activeTab === 'hr-arrears-b2b' ? filteredEmployees :
+                activeTab === 'promotions' ? filteredPromotions :
+                activeTab === 'vacations' ? filteredVacations :
+                activeTab === 'advances' ? filteredAdvances :
+                activeTab === 'sanctions' ? filteredSanctions :
+                activeTab === 'permissions' ? filteredPermissions :
+                activeTab === 'rewards' ? filteredRewards :
+                activeTab === 'signatures' ? filteredEmployees :
+                activeTab === 'end-of-service' ? employeesList :
+                activeTab === 'gosi' ? employeesList :
+                activeTab === 'maids-hr' ? maidsFleet :
+                filteredEmployees
+              }
+              customTitle={`كشف الموارد البشرية والرواتب (${
+                activeTrack.tabs.find((t) => t.id === activeTab)?.label || 'سجل الموظفين'
+              }) - ${activeCompany.name}`}
+              variant="outline-light"
+              buttonLabel="تصدير الكشوفات (12 صيغة)"
+            />
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap" data-no-dyn-enhancer="true">
-          <button
-            type="button"
-            onClick={() => handleOpenAddOrEditEmployee()}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold transition-colors cursor-pointer"
+        {/* Collapsible Secondary HR Utilities Strip */}
+        {showQuickToolsMenu && (
+          <div
+            className="pt-3 border-t border-[#e0e0e0] flex flex-wrap items-center gap-2"
+            data-no-dyn-enhancer="true"
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span>+ إدراج موظف جديد</span>
-          </button>
+            <span className="text-[11px] font-bold text-[#707070] px-1">أدوات تنفيذية مساندة:</span>
+            <button
+              type="button"
+              onClick={() => setActiveGlobalTab('welcome-screens')}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border text-xs font-bold transition-colors cursor-pointer ${
+                activeTab === 'welcome-screens'
+                  ? 'bg-[#141414] border-[#141414] text-[#ffffff]'
+                  : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] border-[#e0e0e0] text-[#141414]'
+              }`}
+            >
+              <Radio className="w-3.5 h-3.5" />
+              <span>شاشات العرض بالشبكة (LAN)</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveGlobalTab('welcome-screens')}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-bold transition-colors cursor-pointer ${
-              activeTab === 'welcome-screens'
-                ? 'bg-[#141414] border-[#141414] text-[#ffffff]'
-                : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] border-[#e0e0e0] text-[#141414]'
-            }`}
-            title="رادار وفحص شاشات العرض الموصولة بشبكة الشركة المحلية"
-          >
-            <Radio className="w-3.5 h-3.5" />
-            <span>شاشات العرض بالشبكة (LAN)</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveGlobalTab('hr-welcome-signage')}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border text-xs font-bold transition-colors cursor-pointer ${
+                activeTab === 'hr-welcome-signage'
+                  ? 'bg-[#141414] border-[#141414] text-[#ffffff]'
+                  : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] border-[#e0e0e0] text-[#141414]'
+              }`}
+            >
+              <Tv className="w-3.5 h-3.5" />
+              <span>الترحيب وشاشات العرض (TV)</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveGlobalTab('jisr-welcome-signage')}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-bold transition-colors cursor-pointer ${
-              activeTab === 'jisr-welcome-signage'
-                ? 'bg-[#141414] border-[#141414] text-[#ffffff]'
-                : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] border-[#e0e0e0] text-[#141414]'
-            }`}
-            title="منظومة الترحيب بالموظف الجديد وتبعياته وبث شاشات العرض الذكية"
-          >
-            <Tv className="w-3.5 h-3.5" />
-            <span>الترحيب وشاشات العرض (TV)</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => handleOpenPromotionModal()}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-xs font-bold transition-colors cursor-pointer"
+            >
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span>ترقية وتعديل درجة</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setShowRecycleBinModal(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-xs font-bold transition-colors cursor-pointer"
-            title="عرض واستعادة السجلات المحذوفة خلال آخر 30 يوماً"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>سلة الاستعادة</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setStudioLetterEmp(employeesList[0] || null)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-xs font-bold transition-colors cursor-pointer"
+            >
+              <FileSignature className="w-3.5 h-3.5" />
+              <span>استوديو الخطابات (12 نموذجاً QR)</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => handleOpenPromotionModal()}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-xs font-bold transition-colors cursor-pointer"
-          >
-            <TrendingUp className="w-3.5 h-3.5" />
-            <span>ترقية وتعديل درجة</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setShowRecycleBinModal(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-xs font-bold transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>سلة الاستعادة</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setStudioLetterEmp(employeesList[0] || null)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-xs font-bold transition-colors cursor-pointer"
-          >
-            <FileSignature className="w-3.5 h-3.5" />
-            <span>استوديو الخطابات (12 نموذجاً QR)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveGlobalTab('reem-hr-emails')}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-bold transition-colors cursor-pointer ${
-              activeTab === 'reem-hr-emails'
-                ? 'bg-[#141414] border-[#141414] text-[#ffffff]'
-                : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] border-[#e0e0e0] text-[#141414]'
-            }`}
-            title="مراسلات وقوالب بريد الموارد البشرية الرسمي — أ. ريم بن حسين (HR@kas.sa • نسخة Khalid@kas.sa)"
-          >
-            <MailCheck className="w-3.5 h-3.5" />
-            <span>بريد الموارد البشرية (HR@kas.sa)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleExportWPS('SIF')}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-xs font-bold transition-colors cursor-pointer"
-            title="توليد ملف حماية الأجور القياسي المعتمد للبنوك السعودية"
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>ملف حماية الأجور (.SIF)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => window.dispatchEvent(new CustomEvent('open-document-extractor'))}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-xs font-bold transition-colors cursor-pointer"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5" />
-            <span>استخلاص ملفات</span>
-          </button>
-
-          <ExportDropdown
-            sectionKey={
-              activeTab === 'reem-hr-emails' ? 'hr_official_emails' :
-              activeTab === 'payroll' ? 'payroll' :
-              activeTab === 'promotions' ? 'hr_promotions' :
-              activeTab === 'vacations' ? 'hr_vacations' :
-              activeTab === 'advances' ? 'hr_advances' :
-              activeTab === 'sanctions' ? 'hr_sanctions' :
-              activeTab === 'permissions' ? 'hr_permissions' :
-              activeTab === 'rewards' ? 'hr_rewards' :
-              activeTab === 'signatures' ? 'hr_signatures' :
-              activeTab === 'end-of-service' ? 'hr_eos' :
-              activeTab === 'gosi' ? 'hr_gosi' :
-              activeTab === 'maids-hr' ? 'hr_maids_fleet' :
-              activeTab === 'compliance-radar' || activeTab === 'jisr-alerts-compliance' ? 'hr_compliance' :
-              'employees'
-            }
-            data={
-              activeTab === 'payroll' ? filteredEmployees :
-              activeTab === 'promotions' ? promotions :
-              activeTab === 'vacations' ? vacations :
-              activeTab === 'advances' ? advances :
-              activeTab === 'sanctions' ? sanctions :
-              activeTab === 'permissions' ? permissions :
-              activeTab === 'rewards' ? rewards :
-              activeTab === 'signatures' ? employeesList :
-              activeTab === 'end-of-service' ? employeesList :
-              activeTab === 'gosi' ? employeesList :
-              activeTab === 'maids-hr' ? maidsFleet :
-              filteredEmployees
-            }
-            customTitle={`كشف الموارد البشرية والرواتب (${activeTab}) - ${activeCompany.name}`}
-            variant="outline-light"
-            buttonLabel="تصدير الكشوفات (12 صيغة)"
-          />
-        </div>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('open-document-extractor'))}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-xs font-bold transition-colors cursor-pointer"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <span>استخلاص ملفات ذكي</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 2. Unified 4-Card Monochrome KPI Strip */}
@@ -2515,13 +2620,13 @@ export const HRPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Grouped 5-Track Navigation + Contextual Sub-Tabs Bar */}
+      {/* 3. Grouped 5-Track Navigation + Contextual Sub-Tabs Bar + Global Sticky Contextual Filter Pill Bar */}
       <div
         data-slot="filter-bar"
         data-no-dyn-enhancer="true"
         role="tablist"
         aria-label="تبويبات قسم الموارد البشرية والرواتب"
-        className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-2.5 space-y-2"
+        className="sticky top-0 z-20 bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-2.5 space-y-2"
       >
         {/* Primary 5 Tracks */}
         <div className="flex flex-wrap items-center gap-1.5">
@@ -2548,7 +2653,7 @@ export const HRPage: React.FC = () => {
           })}
         </div>
 
-        {/* Contextual Sub-Tabs for the Active Track (plus compact access to all tabs) */}
+        {/* Contextual Sub-Tabs for the Active Track */}
         {activeTrack.tabs.length > 1 && (
           <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-[#e0e0e0]">
             <span className="text-[11px] font-bold text-[#707070] px-2">الأقسام الفرعية:</span>
@@ -2575,6 +2680,84 @@ export const HRPage: React.FC = () => {
             })}
           </div>
         )}
+
+        {/* Global Contextual HR Filter Bar across all tabs */}
+        <div className="pt-2 border-t border-[#e0e0e0] flex flex-wrap items-center justify-between gap-2 px-1">
+          <div className="flex flex-wrap items-center gap-2 flex-1 min-w-[260px]">
+            <div className="relative w-full sm:w-64">
+              <Search className="w-3.5 h-3.5 absolute right-3 top-2.5 text-[#707070]" />
+              <input
+                type="text"
+                aria-label="بحث موحد في الموارد البشرية"
+                placeholder="بحث موحد بالاسم، الكود، الهوية، أو الطلب..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-8 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] pr-8 pl-3 text-xs text-[#141414] placeholder-[#707070] focus:outline-none focus:border-[#141414]"
+              />
+            </div>
+
+            <select
+              value={selectedEmployeeFilterId}
+              onChange={(e) => setSelectedEmployeeFilterId(e.target.value)}
+              aria-label="تصفية حسب الموظف"
+              className="h-8 px-3 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-semibold text-[#141414] focus:outline-none"
+            >
+              <option value="ALL">جميع الموظفين ({companyScopedEmployees.length})</option>
+              {companyScopedEmployees.map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.name} ({emp.employee_code})
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={deptFilter}
+              onChange={(e) => setDeptFilter(e.target.value)}
+              aria-label="تصفية حسب الإدارة"
+              className="h-8 px-3 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-semibold text-[#141414] focus:outline-none"
+            >
+              <option value="ALL">جميع الإدارات ({uniqueDepartments.length})</option>
+              {uniqueDepartments.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              aria-label="تصفية حسب الحالة"
+              className="h-8 px-3 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-semibold text-[#141414] focus:outline-none"
+            >
+              <option value="ALL">جميع الحالات</option>
+              <option value="نشط">على رأس العمل (نشط)</option>
+              <option value="إجازة">في إجازة</option>
+              <option value="معتمد">معتمد</option>
+              <option value="بانتظار الموافقة">بانتظار الموافقة</option>
+            </select>
+
+            {hasActiveGlobalFilter && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setDeptFilter('ALL');
+                  setStatusFilter('ALL');
+                  setSelectedEmployeeFilterId('ALL');
+                }}
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold cursor-pointer"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>إعادة ضبط الفلاتر</span>
+              </button>
+            )}
+          </div>
+
+          <span className="px-3 py-1 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] text-[11px] font-bold font-mono tabular-nums">
+            المطابقون: {filteredEmployees.length} موظف
+          </span>
+        </div>
       </div>
 
       {/* Above-the-Fold HR Live Network Display Screens Summary */}
@@ -2753,22 +2936,22 @@ export const HRPage: React.FC = () => {
             <table className="w-full text-right text-xs text-[#141414]">
               <thead className="bg-[#f3f3f3] text-[#707070] font-bold border-b border-[#e0e0e0]">
                 <tr>
-                  <th className="p-3.5">كود الموظف</th>
-                  <th className="p-3.5">اسم الموظف</th>
+                  <th className="p-3.5 sticky right-0 z-10 bg-[#f3f3f3]">كود واسم الموظف</th>
                   <th className="p-3.5">رقم الهوية</th>
                   <th className="p-3.5">المسمى والدرجة</th>
                   <th className="p-3.5">القسم والفرع</th>
                   <th className="p-3.5">الراتب الإجمالي</th>
                   <th className="p-3.5">التوقيع القانوني</th>
                   <th className="p-3.5">الحالة</th>
-                  <th className="p-3.5 text-center">الإجراءات والملف الشامل</th>
+                  <th className="p-3.5 text-center sticky left-0 z-10 bg-[#f3f3f3] border-r border-[#e0e0e0]">
+                    الإجراءات والملف الشامل
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e0e0e0]">
                 {filteredEmployees.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-[#f3f3f3] transition-colors">
-                    <td className="p-3.5 font-mono font-bold text-[#141414]">{emp.employee_code}</td>
-                    <td className="p-3.5">
+                  <tr key={emp.id} className="group hover:bg-[#f3f3f3] transition-colors">
+                    <td className="p-3.5 sticky right-0 z-10 bg-[#ffffff] group-hover:bg-[#f3f3f3] border-l border-[#e0e0e0]">
                       <button
                         type="button"
                         onClick={() => setSelectedEmpFor360(emp)}
@@ -2786,6 +2969,9 @@ export const HRPage: React.FC = () => {
                           <div className="font-bold text-[#141414] group-hover:underline flex items-center gap-1.5 flex-wrap">
                             <span>{emp.name}</span>
                             <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[10px] font-mono text-[#141414]">
+                              {emp.employee_code}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[10px] font-mono text-[#707070]">
                               {emp.company_id || 'SAF'}
                             </span>
                           </div>
@@ -2818,7 +3004,7 @@ export const HRPage: React.FC = () => {
                         {emp.status}
                       </span>
                     </td>
-                    <td className="p-3.5 text-center">
+                    <td className="p-3.5 text-center sticky left-0 z-10 bg-[#ffffff] group-hover:bg-[#f3f3f3] border-r border-[#e0e0e0]">
                       <div className="flex items-center justify-center gap-1.5 flex-wrap" data-no-dyn-enhancer="true">
                         <button
                           type="button"
@@ -2833,7 +3019,7 @@ export const HRPage: React.FC = () => {
                           type="button"
                           onClick={() => {
                             setWelcomeTargetEmpId(emp.id);
-                            setActiveTab('jisr-welcome-signage');
+                            setActiveTab('hr-welcome-signage');
                           }}
                           className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-[11px] font-semibold cursor-pointer transition-colors"
                           title="ترحيب بالموظف وإطلاق تبعيات المباشرة وبث شاشات الشركة"
@@ -2936,7 +3122,7 @@ export const HRPage: React.FC = () => {
           </div>
 
           {/* Signatures Vault Table */}
-          <div className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden shadow-xs">
+          <div className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden ">
             <div className="flex items-center justify-between p-4 border-b border-[#e0e0e0] bg-[#ffffff] flex-wrap gap-3">
               <div>
                 <h3 className="text-sm font-bold text-[#141414] m-0 flex items-center gap-2">
@@ -2978,7 +3164,7 @@ export const HRPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#e0e0e0]">
-                  {employeesList.map((emp) => (
+                  {filteredEmployees.map((emp) => (
                     <tr key={emp.id} className="hover:bg-[#f3f3f3]/50 transition-colors">
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{emp.employee_code}</td>
                       <td className="p-3.5">
@@ -3081,7 +3267,7 @@ export const HRPage: React.FC = () => {
           </div>
 
           {/* Promotions Table */}
-          <div className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden shadow-xs">
+          <div className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden ">
             <div className="flex items-center justify-between p-4 border-b border-[#e0e0e0] bg-[#ffffff] flex-wrap gap-3">
               <div>
                 <h2 className="text-sm font-bold text-[#141414] m-0">سجل الترقيات وتعديل الدرجات والصلاحيات الإدارية</h2>
@@ -3121,7 +3307,7 @@ export const HRPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#e0e0e0]">
-                  {promotions.map((promo) => (
+                  {filteredPromotions.map((promo) => (
                     <tr key={promo.id} className="hover:bg-[#f3f3f3]/50 transition-colors">
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{promo.id}</td>
                       <td className="p-3.5">
@@ -3201,7 +3387,7 @@ export const HRPage: React.FC = () => {
 
       {/* Tab: Vacations Requests */}
       {activeTab === 'vacations' && (
-        <div className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden shadow-xs font-sans">
+        <div className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden  font-sans">
           <div className="p-4 border-b border-[#e0e0e0] bg-[#ffffff] flex items-center justify-between flex-wrap gap-3">
             <div>
               <h2 className="text-sm font-bold text-[#141414]">طلبات الإجازات والأرصدة السنوية (المادة 109 و117)</h2>
@@ -3251,7 +3437,7 @@ export const HRPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e0e0e0]">
-                {vacations.map((vac) => {
+                {filteredVacations.map((vac) => {
                   const matchedEmp = employeesList.find(
                     (e) => e.id === vac.employee_id || e.name === vac.employee_name
                   );
@@ -3422,7 +3608,7 @@ export const HRPage: React.FC = () => {
 
       {/* Tab: Advances */}
       {activeTab === 'advances' && (
-        <div className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden shadow-xs font-sans">
+        <div className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden  font-sans">
           <div className="p-4 border-b border-[#e0e0e0] bg-[#ffffff] flex items-center justify-between flex-wrap gap-3">
             <div>
               <h2 className="text-sm font-bold text-[#141414]">طلبات السلف وجدولة الأقساط الشهرية (المادة 92)</h2>
@@ -3461,7 +3647,7 @@ export const HRPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e0e0e0]">
-                {advances.map((adv) => {
+                {filteredAdvances.map((adv) => {
                   const monthly = adv.monthly_installment ?? Math.round(adv.amount / Math.max(1, adv.installments_count));
                   const rem = adv.remaining_amount ?? adv.amount;
                   const matchedEmp = employeesList.find(
@@ -3548,7 +3734,7 @@ export const HRPage: React.FC = () => {
 
       {/* Tab: Sanctions */}
       {activeTab === 'sanctions' && (
-        <div className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden shadow-xs font-sans">
+        <div className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden  font-sans">
           <div className="p-4 border-b border-[#e0e0e0] bg-[#ffffff] flex items-center justify-between flex-wrap gap-3">
             <div>
               <h2 className="text-sm font-bold text-[#141414]">سجل الجزاءات والخصومات الإدارية (لائحة تنظيم العمل)</h2>
@@ -3586,7 +3772,7 @@ export const HRPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e0e0e0]">
-                {sanctions.map((sanc) => {
+                {filteredSanctions.map((sanc) => {
                   const matchedEmp = employeesList.find(
                     (e) => e.id === sanc.employee_id || e.name === sanc.employee_name
                   );
@@ -3640,7 +3826,7 @@ export const HRPage: React.FC = () => {
 
       {/* Tab: Permissions */}
       {activeTab === 'permissions' && (
-        <div className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden shadow-xs font-sans">
+        <div className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden  font-sans">
           <div className="p-4 border-b border-[#e0e0e0] bg-[#ffffff] flex items-center justify-between flex-wrap gap-3">
             <div>
               <h2 className="text-sm font-bold text-[#141414]">طلبات الاستئذان والخروج أثناء الدوام</h2>
@@ -3677,7 +3863,7 @@ export const HRPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e0e0e0]">
-                {permissions.map((perm) => {
+                {filteredPermissions.map((perm) => {
                   const matchedEmp = employeesList.find(
                     (e) => e.id === perm.employee_id || e.name === perm.employee_name
                   );
@@ -3728,7 +3914,7 @@ export const HRPage: React.FC = () => {
 
       {/* Tab: Rewards */}
       {activeTab === 'rewards' && (
-        <div className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden shadow-xs font-sans">
+        <div className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden  font-sans">
           <div className="p-4 border-b border-[#e0e0e0] bg-[#ffffff] flex items-center justify-between flex-wrap gap-3">
             <div>
               <h2 className="text-sm font-bold text-[#141414]">سجل المكافآت والحوافز والعمولات الاستثنائية</h2>
@@ -3765,7 +3951,7 @@ export const HRPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e0e0e0]">
-                {rewards.map((rew) => {
+                {filteredRewards.map((rew) => {
                   const matchedEmp = employeesList.find(
                     (e) => e.id === rew.employee_id || e.name === rew.employee_name
                   );
@@ -3913,7 +4099,7 @@ export const HRPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden shadow-xs">
+            <div className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] overflow-hidden ">
               <div className="flex items-center justify-between p-4 border-b border-[#e0e0e0] bg-[#ffffff] flex-wrap gap-3">
                 <div>
                   <h2 className="text-sm font-bold text-[#141414]">
@@ -3957,23 +4143,32 @@ export const HRPage: React.FC = () => {
                 <table className="w-full text-right text-xs text-[#141414]">
                   <thead className="bg-[#f3f3f3] text-[#707070] font-bold border-b border-[#e0e0e0]">
                     <tr>
-                      <th className="p-3.5">الموظف</th>
+                      <th className="p-3.5 sticky right-0 z-10 bg-[#f3f3f3]">الموظف</th>
                       <th className="p-3.5">الراتب الأساسي (70%)</th>
                       <th className="p-3.5">بدل السكن والنقل (30%)</th>
                       <th className="p-3.5">المكافآت والإضافي</th>
                       <th className="p-3.5">التأمينات GOSI (9.75%)</th>
                       <th className="p-3.5">السلف والجزاءات</th>
                       <th className="p-3.5">صافي المحول للبنك</th>
-                      <th className="p-3.5 text-center">قسيمة الراتب</th>
+                      <th className="p-3.5 text-center sticky left-0 z-10 bg-[#f3f3f3] border-r border-[#e0e0e0]">قسيمة الراتب</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#e0e0e0]">
-                    {computedPayrollRecords.map((rec, idx) => {
-                      const empObj = companyScopedEmployees[idx] || employeesList[idx];
+                    {computedPayrollRecords
+                      .filter((rec) =>
+                        filteredEmployees.some(
+                          (fe) => fe.id === rec.employeeId || fe.name === rec.employeeName
+                        )
+                      )
+                      .map((rec, idx) => {
+                      const empObj =
+                        companyScopedEmployees.find((e) => e.id === rec.employeeId) ||
+                        companyScopedEmployees[idx] ||
+                        employeesList[idx];
                       const extraDed = empObj ? payrollExtraDeductionsMap.get(empObj.id) : undefined;
                       return (
-                        <tr key={rec.employeeId} className="hover:bg-[#f3f3f3]/50">
-                          <td className="p-3.5">
+                        <tr key={rec.employeeId} className="group hover:bg-[#f3f3f3]/50">
+                          <td className="p-3.5 sticky right-0 z-10 bg-[#ffffff] group-hover:bg-[#f3f3f3] border-l border-[#e0e0e0]">
                             <div className="font-bold text-[#141414]">{rec.employeeName}</div>
                             <div className="text-[11px] text-[#707070] font-mono">{rec.iban}</div>
                           </td>
@@ -4000,7 +4195,7 @@ export const HRPage: React.FC = () => {
                             )}
                           </td>
                           <td className="p-3.5 font-mono font-bold text-[#141414]">{rec.netSalary.toFixed(2)} ⃁</td>
-                          <td className="p-3.5 text-center">
+                          <td className="p-3.5 text-center sticky left-0 z-10 bg-[#ffffff] group-hover:bg-[#f3f3f3] border-r border-[#e0e0e0]">
                             <div className="inline-flex items-center gap-1.5 flex-wrap justify-center">
                               <button
                                 type="button"
@@ -4102,7 +4297,7 @@ export const HRPage: React.FC = () => {
 
         return (
           <div className="space-y-6 font-sans">
-            <div className="card-pricing p-6 rounded-3xl bg-white border border-[#e0e0e0] shadow-sm">
+            <div className="card-pricing p-6 rounded-3xl bg-white border border-[#e0e0e0] ">
               <div className="flex items-center justify-between pb-4 mb-6 border-b border-[#e0e0e0] flex-wrap gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center">
@@ -4117,7 +4312,16 @@ export const HRPage: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('hr-talent-360')}
+                    className="px-3.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
+                    title="الانتقال إلى بوابة إخلاء الطرف الخماسية (5 إدارات) واعتماد التسوية النهائية"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>بوابة إخلاء الطرف الخماسية (5 إدارات)</span>
+                  </button>
                   <ExportDropdown
                     sectionKey="hr_eos"
                     data={
@@ -4449,8 +4653,8 @@ export const HRPage: React.FC = () => {
       })()}
 
       {/* Tab: HR Accounting Hub, IAS 19 Accruals & Multi-Cost-Center Allocations */}
-      {activeTab === 'jisr-accruals' && (
-        <JisrAccountingAccrualsHub
+      {activeTab === 'hr-accruals' && (
+        <HrAccountingAccrualsHub
           employees={companyScopedEmployees}
           companyCode={activeCompanyId !== 'all' ? activeCompanyId : 'SAF'}
           companyName={activeCompany.name}
@@ -4466,7 +4670,7 @@ export const HRPage: React.FC = () => {
       )}
 
       {/* Tab: Employee Expense Claims, Petty Cash & Business Travel Per Diem */}
-      {activeTab === 'jisr-expenses' && (
+      {activeTab === 'hr-expenses' && (
         <HrExpensesAndTravelHub
           employees={companyScopedEmployees}
           companyCode={activeCompanyId !== 'all' ? activeCompanyId : 'SAF'}
@@ -4475,7 +4679,7 @@ export const HRPage: React.FC = () => {
       )}
 
       {/* Tab: Interactive Org Chart, Muqeem Visa Desk & Official Letters */}
-      {activeTab === 'jisr-org-muqeem' && (
+      {activeTab === 'hr-org-muqeem' && (
         <InteractiveOrgChartPanel
           employees={companyScopedEmployees}
           companyCode={activeCompanyId !== 'all' ? activeCompanyId : 'SAF'}
@@ -4489,8 +4693,8 @@ export const HRPage: React.FC = () => {
       )}
 
       {/* Tab: Corporate ATS, 360° Performance & L&D, and 5-Gate Offboarding */}
-      {activeTab === 'jisr-talent-360' && (
-        <JisrTalent360OffboardingHub
+      {activeTab === 'hr-talent-360' && (
+        <HrTalent360OffboardingHub
           employees={companyScopedEmployees}
           companyCode={activeCompanyId !== 'all' ? activeCompanyId : 'SAF'}
           companyName={activeCompany.name}
@@ -4518,7 +4722,7 @@ export const HRPage: React.FC = () => {
       )}
 
       {/* Tab: New Employee Welcome, 7-Step Onboarding Consequences & Smart Display Screens */}
-      {(activeTab === 'jisr-welcome-signage' || activeTab === 'welcome-screens') && (
+      {(activeTab === 'hr-welcome-signage' || activeTab === 'welcome-screens') && (
         <NewEmployeeWelcomeAndSignageHub
           employees={companyScopedEmployees}
           companyCode={activeCompanyId !== 'all' ? activeCompanyId : 'SAF'}
@@ -4531,8 +4735,8 @@ export const HRPage: React.FC = () => {
       )}
 
       {/* Tab: Shift Rosters, Colleague Swaps, Overtime (Art. 107) & Circulars */}
-      {activeTab === 'jisr-shifts-overtime' && (
-        <JisrShiftRosterAndOvertimeHub
+      {activeTab === 'hr-shifts-overtime' && (
+        <HrShiftRosterAndOvertimeHub
           employees={companyScopedEmployees}
           companyCode={activeCompanyId !== 'all' ? activeCompanyId : 'SAF'}
           companyName={activeCompany.name}
@@ -4556,19 +4760,62 @@ export const HRPage: React.FC = () => {
         />
       )}
 
-      {/* Tab: HR Smart Alerts Radar, HRSD Disciplinary Matrix, EWA & Nitaqat */}
-      {activeTab === 'jisr-alerts-compliance' && (
-        <JisrSmartAlertsAndComplianceHub
-          companyId={effectiveCompanyCode}
-          employees={jisrHubEmployees}
-          onNavigateTab={(tab) => setActiveGlobalTab(tab)}
-          onRecordsChanged={() => void reloadHrData()}
-        />
+      {/* Tab: Unified HR Smart Alerts Radar, HRSD Disciplinary Matrix, EWA, Nitaqat & Document Expiry */}
+      {(activeTab === 'hr-alerts-compliance' || activeTab === 'compliance-radar') && (
+        <div className="space-y-4">
+          <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[20px] p-3 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <BellRing className="w-4 h-4 text-[#141414]" />
+              <span className="text-xs font-bold text-[#141414]">
+                مركز الامتثال الموحد: التنبيهات الاستباقية، لائحة الجزاءات (م66-74)، الراتب المرن (EWA)، ونطاقات والوثائق
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5" data-no-dyn-enhancer="true">
+              <button
+                type="button"
+                onClick={() => setActiveTab('hr-alerts-compliance')}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors cursor-pointer border ${
+                  activeTab === 'hr-alerts-compliance'
+                    ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                    : 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0] hover:bg-[#e0e0e0]'
+                }`}
+              >
+                رادار التنبيهات والجزاءات وEWA ونطاقات
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('compliance-radar')}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors cursor-pointer border ${
+                  activeTab === 'compliance-radar'
+                    ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                    : 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0] hover:bg-[#e0e0e0]'
+                }`}
+              >
+                رادار صلاحية الوثائق وتوطين نطاقات التفصيلي
+              </button>
+            </div>
+          </div>
+
+          {activeTab === 'hr-alerts-compliance' ? (
+            <HrSmartAlertsAndComplianceHub
+              companyId={effectiveCompanyCode}
+              employees={hrComplianceEmployees}
+              onNavigateTab={(tab) => setActiveGlobalTab(tab)}
+              onRecordsChanged={() => void reloadHrData()}
+            />
+          ) : (
+            <HrComplianceRadarPanel
+              nitaqat={WpsPayrollEngine.calculateNitaqatStatus(employeesList)}
+              alerts={WpsPayrollEngine.scanDocumentExpiries(employeesList)}
+              onRenewDocument={handleRenewEmployeeDocument}
+            />
+          )}
+        </div>
       )}
 
       {/* Tab: Retroactive Payroll, Off-Cycle, Mudad & B2B Bank */}
-      {activeTab === 'jisr-arrears-b2b' && (
-        <JisrPayrollArrearsB2BHub
+      {activeTab === 'hr-arrears-b2b' && (
+        <HrPayrollArrearsB2BHub
           companyId={effectiveCompanyCode}
           periodMonth={payrollMonth}
           employees={computedPayrollRecords.map((rec) => {
@@ -4595,8 +4842,8 @@ export const HRPage: React.FC = () => {
       )}
 
       {/* Tab: Corporate Cards & Leave Rollover */}
-      {activeTab === 'jisr-cards-rollover' && (
-        <JisrCorporateCardsAndLeaveRolloverHub
+      {activeTab === 'hr-cards-rollover' && (
+        <HrCorporateCardsAndLeaveRolloverHub
           companyId={effectiveCompanyCode}
           employees={companyScopedEmployees.map((emp) => ({
             id: emp.id,
@@ -4610,8 +4857,8 @@ export const HRPage: React.FC = () => {
       )}
 
       {/* Tab: Custom Builder, E-Sign, Career Portal & Pulse */}
-      {activeTab === 'jisr-workflows-pulse' && (
-        <JisrCustomBuilderEsignPulseHub
+      {activeTab === 'hr-workflows-pulse' && (
+        <HrCustomBuilderEsignPulseHub
           companyId={effectiveCompanyCode}
           employees={companyScopedEmployees.map((emp) => ({
             id: emp.id,
@@ -4624,15 +4871,6 @@ export const HRPage: React.FC = () => {
           onOpenPublicCareersPortal={() => {
             window.location.search = '?portal=careers';
           }}
-        />
-      )}
-
-      {/* Tab: Saudi Compliance, Nitaqat & Document Expiry Radar */}
-      {activeTab === 'compliance-radar' && (
-        <HrComplianceRadarPanel
-          nitaqat={WpsPayrollEngine.calculateNitaqatStatus(employeesList)}
-          alerts={WpsPayrollEngine.scanDocumentExpiries(employeesList)}
-          onRenewDocument={handleRenewEmployeeDocument}
         />
       )}
 
@@ -4688,7 +4926,7 @@ export const HRPage: React.FC = () => {
 
         return (
           <div className="space-y-6 font-sans">
-            <div className="card-pricing p-6 rounded-3xl bg-white border border-[#e0e0e0] shadow-sm">
+            <div className="card-pricing p-6 rounded-3xl bg-white border border-[#e0e0e0] ">
               <div className="flex items-center justify-between pb-4 mb-6 border-b border-[#e0e0e0] flex-wrap gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center">
@@ -6154,7 +6392,7 @@ export const HRPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowLeavePolicyModal(false)}
-                className="w-7 h-7 rounded-full bg-[#262626] hover:bg-[#3f3f46] flex items-center justify-center text-[#ffffff] cursor-pointer"
+                className="w-7 h-7 rounded-full bg-[#262626] hover:bg-[#262626] flex items-center justify-center text-[#ffffff] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>

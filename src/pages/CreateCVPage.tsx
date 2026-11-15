@@ -138,7 +138,7 @@ export const CreateCVPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
           display: 'flex',
           flexDirection: 'row',
@@ -160,7 +160,7 @@ export const CreateCVPage: React.FC = () => {
             <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, letterSpacing: '-0.02em', color: '#ffffff', margin: 0, fontFamily: 'var(--font-family-display)' }}>
               إضافة وتدقيق سيرة ذاتية جديدة
             </h1>
-            <p style={{ fontSize: '13px', color: '#a1a1aa', margin: '4px 0 0 0', fontWeight: 420 }}>
+            <p style={{ fontSize: '13px', color: '#adadad', margin: '4px 0 0 0', fontWeight: 420 }}>
               إدخال البيانات الشخصية، الجواز، المهارات، الفحوصات الطبية، والوسائط بدقة متناهية
             </p>
           </div>
@@ -170,7 +170,7 @@ export const CreateCVPage: React.FC = () => {
           <button
             type="button"
             onClick={() => window.dispatchEvent(new CustomEvent('open-document-extractor'))}
-            className="button-white-pill flex items-center gap-1.5 shadow-sm"
+            className="button-white-pill flex items-center gap-1.5 "
             style={{ fontSize: '12.5px', padding: '6px 16px', minHeight: '38px', backgroundColor: '#141414', color: '#ffffff', fontWeight: 'bold' }}
           >
             <Upload className="w-4 h-4 text-[#141414]" />
@@ -179,7 +179,7 @@ export const CreateCVPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setShowPrintPreview(true)}
-            className="button-white-pill flex items-center gap-1.5 shadow-sm"
+            className="button-white-pill flex items-center gap-1.5 "
             style={{ fontSize: '12.5px', padding: '6px 16px', minHeight: '38px', backgroundColor: '#ffffff', color: '#141414', fontWeight: 'bold' }}
           >
             <Printer className="w-4 h-4 text-[#141414]" />
@@ -206,7 +206,7 @@ export const CreateCVPage: React.FC = () => {
       </div>
 
       {/* Live Candidate Avatar Preview Banner */}
-      <div className="bg-white border border-zinc-200 rounded-2xl p-4 flex items-center justify-between flex-wrap gap-4 shadow-xs">
+      <div className="bg-white border border-[#e0e0e0] rounded-2xl p-4 flex items-center justify-between flex-wrap gap-4 ">
         <div className="flex items-center gap-3.5">
           <CorporateAvatar
             name={formData.full_name_ar || formData.full_name_en || 'مرشح جديد'}
@@ -252,9 +252,9 @@ export const CreateCVPage: React.FC = () => {
                 padding: '10px 16px',
                 borderRadius: '9999px',
                 border: '1px solid',
-                borderColor: isActive ? '#141414' : '#e4e4e7',
+                borderColor: isActive ? '#141414' : '#e0e0e0',
                 backgroundColor: isActive ? '#141414' : '#ffffff',
-                color: isActive ? '#ffffff' : '#71717a',
+                color: isActive ? '#ffffff' : '#707070',
                 fontWeight: isActive ? 550 : 420,
                 fontSize: '12.5px',
                 cursor: 'pointer',
@@ -277,12 +277,12 @@ export const CreateCVPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">نوع السيرة الذاتية *</label>
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">نوع السيرة الذاتية *</label>
                 <select
                   aria-label="نوع السيرة الذاتية"
                   value={formData.type_id}
                   onChange={(e) => setFormData({ ...formData, type_id: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option value="توسط">استقدام (توسط أفراد)</option>
                   <option value="إيجار">تأجير وتشغيل</option>
@@ -291,12 +291,12 @@ export const CreateCVPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">الجنسية *</label>
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">الجنسية *</label>
                 <select
                   aria-label="الجنسية"
                   value={formData.nationality_id}
                   onChange={(e) => setFormData({ ...formData, nationality_id: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option value="الفلبين">الفلبين (PHL)</option>
                   <option value="إثيوبيا">إثيوبيا (ETH)</option>
@@ -311,29 +311,29 @@ export const CreateCVPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">المكتب / الوكالة المصدرة *</label>
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">المكتب / الوكالة المصدرة *</label>
                 <input
                   type="text"
                   aria-label="المكتب / الوكالة المصدرة"
                   value={formData.office_id}
                   onChange={(e) => setFormData({ ...formData, office_id: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">المهنة المصرحة *</label>
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">المهنة المصرحة *</label>
                 <input
                   type="text"
                   aria-label="المهنة المصرحة"
                   value={formData.job_title}
                   onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end pt-4 border-t border-zinc-100">
+            <div className="flex justify-end pt-4 border-t border-[#e0e0e0]">
               <button
                 type="button"
                 onClick={() => setActiveStep(2)}
@@ -354,58 +354,58 @@ export const CreateCVPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">الاسم بالإنجليزية (حسب الجواز) *</label>
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">الاسم بالإنجليزية (حسب الجواز) *</label>
                 <input
                   type="text"
                   required
                   value={formData.full_name_en}
                   onChange={(e) => setFormData({ ...formData, full_name_en: e.target.value })}
                   placeholder="MARIA CLARA SANTOS"
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2.5 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2.5 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">الاسم بالعربية</label>
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">الاسم بالعربية</label>
                 <input
                   type="text"
                   value={formData.full_name_ar}
                   onChange={(e) => setFormData({ ...formData, full_name_ar: e.target.value })}
                   placeholder="ماريا كلارا سانتوس"
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">رقم جواز السفر *</label>
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">رقم جواز السفر *</label>
                 <input
                   type="text"
                   required
                   value={formData.passport_number}
                   onChange={(e) => setFormData({ ...formData, passport_number: e.target.value })}
                   placeholder="P1234567A"
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2.5 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2.5 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">العمر</label>
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">العمر</label>
                 <input
                   type="number"
                   value={formData.age}
                   onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2.5 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2.5 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">الديانة</label>
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">الديانة</label>
                 <select
                   value={formData.religion}
                   onChange={(e) => setFormData({ ...formData, religion: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option>مسلمة</option>
                   <option>مسيحية</option>
@@ -414,7 +414,7 @@ export const CreateCVPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-between pt-4 border-t border-zinc-100">
+            <div className="flex justify-between pt-4 border-t border-[#e0e0e0]">
               <button
                 type="button"
                 onClick={() => setActiveStep(1)}
@@ -450,25 +450,25 @@ export const CreateCVPage: React.FC = () => {
                 { key: 'washing_ironing', label: 'الغسيل وكي الملابس' },
                 { key: 'driving', label: 'قيادة السيارات' },
               ].map((skill) => (
-                <label key={skill.key} className="flex items-center gap-2.5 p-3 bg-zinc-50 border border-zinc-100 rounded-2xl cursor-pointer hover:bg-zinc-100/60 transition-colors">
+                <label key={skill.key} className="flex items-center gap-2.5 p-3 bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl cursor-pointer hover:bg-[#f3f3f3] transition-colors">
                   <input
                     type="checkbox"
                     checked={(formData as any)[skill.key]}
                     onChange={(e) => setFormData({ ...formData, [skill.key]: e.target.checked })}
-                    className="rounded border-zinc-300 text-[#141414] focus:ring-black h-4 w-4"
+                    className="rounded border-[#e0e0e0] text-[#141414] focus:ring-black h-4 w-4"
                   />
-                  <span className="text-xs text-zinc-800 font-semibold">{skill.label}</span>
+                  <span className="text-xs text-[#141414] font-semibold">{skill.label}</span>
                 </label>
               ))}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">مستوى التحدث بالعربية</label>
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">مستوى التحدث بالعربية</label>
                 <select
                   value={formData.arabic_level}
                   onChange={(e) => setFormData({ ...formData, arabic_level: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option>ممتاز / طليق</option>
                   <option>متوسط / مفهوم</option>
@@ -478,11 +478,11 @@ export const CreateCVPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">مستوى التحدث بالإنجليزية</label>
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">مستوى التحدث بالإنجليزية</label>
                 <select
                   value={formData.english_level}
                   onChange={(e) => setFormData({ ...formData, english_level: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option>ممتاز / Fluent</option>
                   <option>جيد / Good</option>
@@ -492,7 +492,7 @@ export const CreateCVPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-between pt-4 border-t border-zinc-100">
+            <div className="flex justify-between pt-4 border-t border-[#e0e0e0]">
               <button
                 type="button"
                 onClick={() => setActiveStep(2)}
@@ -521,45 +521,45 @@ export const CreateCVPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">الراتب الشهري (⃁) *</label>
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">الراتب الشهري (⃁) *</label>
                 <input
                   type="number"
                   required
                   value={formData.monthly_salary}
                   onChange={(e) => setFormData({ ...formData, monthly_salary: parseFloat(e.target.value) || 1500 })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2.5 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2.5 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">التكلفة للمكتب الخارجي ($)</label>
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">التكلفة للمكتب الخارجي ($)</label>
                 <input
                   type="number"
                   value={formData.cost_usd}
                   onChange={(e) => setFormData({ ...formData, cost_usd: parseFloat(e.target.value) || 1200 })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2.5 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2.5 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">رابط الفيديو التعريفي (YouTube / Drive)</label>
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">رابط الفيديو التعريفي (YouTube / Drive)</label>
                 <input
                   type="text"
                   value={formData.video_url}
                   onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
                   placeholder="https://..."
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">حالة الفحص الطبي</label>
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">حالة الفحص الطبي</label>
                 <select
                   value={formData.medical_report_status}
                   onChange={(e) => setFormData({ ...formData, medical_report_status: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option>سليم ولائق طبياً (مرفق)</option>
                   <option>قيد الفحص المخبري</option>
@@ -567,7 +567,7 @@ export const CreateCVPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-between pt-4 border-t border-zinc-100">
+            <div className="flex justify-between pt-4 border-t border-[#e0e0e0]">
               <button
                 type="button"
                 onClick={() => setActiveStep(3)}
@@ -592,8 +592,8 @@ export const CreateCVPage: React.FC = () => {
       {/* Printable Worker CV Card Modal */}
       {showPrintPreview && (
         <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setShowPrintPreview(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-white border border-zinc-200 rounded-[24px] p-6 max-h-[90vh] overflow-y-auto">
-            <div className="no-print print:hidden flex justify-between items-center mb-4 border-b border-zinc-100 pb-3">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-white border border-[#e0e0e0] rounded-[24px] p-6 max-h-[90vh] overflow-y-auto">
+            <div className="no-print print:hidden flex justify-between items-center mb-4 border-b border-[#e0e0e0] pb-3">
               <div className="flex items-center gap-2">
                 <Printer className="w-5 h-5 text-[#141414]" />
                 <h3 className="font-bold text-[#141414] text-base">بطاقة السيرة الذاتية الرسمية للعمالة (CV Profile)</h3>
@@ -607,9 +607,9 @@ export const CreateCVPage: React.FC = () => {
             </div>
 
             {/* Printable Document Body */}
-            <div className="erp-printable-sheet p-6 bg-white border-2 border-zinc-900 rounded-2xl space-y-4 font-sans text-xs">
+            <div className="erp-printable-sheet p-6 bg-white border-2 border-[#141414] rounded-2xl space-y-4 font-sans text-xs">
               {/* Header */}
-              <div className="flex items-center justify-between border-b-2 border-zinc-900 pb-4">
+              <div className="flex items-center justify-between border-b-2 border-[#141414] pb-4">
                 <div>
                   <h2 className="text-base font-bold text-[#141414]">مجموعة السليم للاستقدام</h2>
                   <div className="text-[11px] text-[#707070]">Al-Saleem Recruitment Group | ترخيص استقدام: 390102</div>
@@ -623,7 +623,7 @@ export const CreateCVPage: React.FC = () => {
               {/* Main Worker Profile Info */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Photo Placeholder */}
-                <div className="col-span-1 bg-zinc-100 rounded-2xl border border-zinc-200 p-3 flex flex-col items-center justify-center min-h-[160px] text-center">
+                <div className="col-span-1 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] p-3 flex flex-col items-center justify-center min-h-[160px] text-center">
                   <User className="w-16 h-16 text-[#707070] mb-2" />
                   <span className="text-[11px] font-bold text-[#141414]">{formData.full_name_ar || formData.full_name_en || 'اسم العاملة'}</span>
                   <span className="text-[10px] text-[#707070] font-mono">{formData.full_name_en || 'CANDIDATE FULL NAME'}</span>
@@ -632,18 +632,18 @@ export const CreateCVPage: React.FC = () => {
 
                 {/* Details Table */}
                 <div className="col-span-2 space-y-1.5">
-                  <div className="flex justify-between py-1 border-b border-zinc-100"><span className="text-[#707070]">الجنسية:</span><strong className="text-[#141414]">{formData.nationality_id}</strong></div>
-                  <div className="flex justify-between py-1 border-b border-zinc-100"><span className="text-[#707070]">المهنة:</span><strong className="text-[#141414]">{formData.job_title}</strong></div>
-                  <div className="flex justify-between py-1 border-b border-zinc-100"><span className="text-[#707070]">الديانة:</span><strong className="text-[#141414]">{formData.religion}</strong></div>
-                  <div className="flex justify-between py-1 border-b border-zinc-100"><span className="text-[#707070]">العمر:</span><strong className="text-[#141414] font-mono">{formData.age} سنة</strong></div>
-                  <div className="flex justify-between py-1 border-b border-zinc-100"><span className="text-[#707070]">الحالة الاجتماعية:</span><strong className="text-[#141414]">{formData.marital_status} ({formData.children_count} أطفال)</strong></div>
-                  <div className="flex justify-between py-1 border-b border-zinc-100"><span className="text-[#707070]">رقم الجواز:</span><strong className="text-[#141414] font-mono">{formData.passport_number || 'EP9920145'}</strong></div>
-                  <div className="flex justify-between py-1 border-b border-zinc-100"><span className="text-[#707070]">الراتب الشهري:</span><strong className="text-[#141414] font-mono font-bold">{formData.monthly_salary} ⃁</strong></div>
+                  <div className="flex justify-between py-1 border-b border-[#e0e0e0]"><span className="text-[#707070]">الجنسية:</span><strong className="text-[#141414]">{formData.nationality_id}</strong></div>
+                  <div className="flex justify-between py-1 border-b border-[#e0e0e0]"><span className="text-[#707070]">المهنة:</span><strong className="text-[#141414]">{formData.job_title}</strong></div>
+                  <div className="flex justify-between py-1 border-b border-[#e0e0e0]"><span className="text-[#707070]">الديانة:</span><strong className="text-[#141414]">{formData.religion}</strong></div>
+                  <div className="flex justify-between py-1 border-b border-[#e0e0e0]"><span className="text-[#707070]">العمر:</span><strong className="text-[#141414] font-mono">{formData.age} سنة</strong></div>
+                  <div className="flex justify-between py-1 border-b border-[#e0e0e0]"><span className="text-[#707070]">الحالة الاجتماعية:</span><strong className="text-[#141414]">{formData.marital_status} ({formData.children_count} أطفال)</strong></div>
+                  <div className="flex justify-between py-1 border-b border-[#e0e0e0]"><span className="text-[#707070]">رقم الجواز:</span><strong className="text-[#141414] font-mono">{formData.passport_number || 'EP9920145'}</strong></div>
+                  <div className="flex justify-between py-1 border-b border-[#e0e0e0]"><span className="text-[#707070]">الراتب الشهري:</span><strong className="text-[#141414] font-mono font-bold">{formData.monthly_salary} ⃁</strong></div>
                 </div>
               </div>
 
               {/* Skills Matrix */}
-              <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+              <div className="p-3 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0]">
                 <h4 className="font-bold text-xs text-[#141414] mb-2">مصفوفة المهارات واللغات:</h4>
                 <div className="grid grid-cols-3 gap-2 text-[11px]">
                   <div className="flex items-center gap-1.5"><span className="font-bold">{formData.baby_care ? '✓' : '✗'}</span> رعاية الأطفال</div>
@@ -659,19 +659,19 @@ export const CreateCVPage: React.FC = () => {
               </div>
 
               {/* Guarantee & Agency Seal */}
-              <div className="flex items-center justify-between pt-3 border-t border-zinc-200">
+              <div className="flex items-center justify-between pt-3 border-t border-[#e0e0e0]">
                 <div>
                   <div className="text-[11px] font-bold text-[#141414]">المكتب الخارجي المعتمد: {formData.office_id}</div>
                   <div className="text-[10px] text-[#707070]">الضمان النظامي: 90 يوماً من تاريخ الوصول شامل الهروب ورفض العمل</div>
                 </div>
-                <div className="w-20 h-20 border border-dashed border-zinc-400 rounded-full flex items-center justify-center text-[9px] font-bold text-[#707070] text-center">
+                <div className="w-20 h-20 border border-dashed border-[#adadad] rounded-full flex items-center justify-center text-[9px] font-bold text-[#707070] text-center">
                   ختم السيرة<br />المعتمد
                 </div>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="no-print print:hidden flex justify-between items-center gap-2 pt-4 border-t border-zinc-100 mt-4">
+            <div className="no-print print:hidden flex justify-between items-center gap-2 pt-4 border-t border-[#e0e0e0] mt-4">
               <button
                 type="button"
                 onClick={() => window.print()}

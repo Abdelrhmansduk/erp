@@ -160,11 +160,11 @@ const TransferBookingModalContent: React.FC<
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#141414]/60 backdrop-blur-sm p-4 overflow-y-auto">
       <div 
-        className="bg-[#ffffff] rounded-[24px] max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-[#e0e0e0] text-[#141414] animate-in fade-in zoom-in-95 duration-200"
+        className="bg-[#ffffff] rounded-[24px] max-w-3xl w-full max-h-[90vh] overflow-y-auto  border border-[#e0e0e0] text-[#141414] animate-in fade-in zoom-in-95 duration-200"
         dir="rtl"
       >
         {/* Modal Header — Mobbin Pure Light Mode */}
-        <div className="p-5 sm:p-6 border-b border-[#e5e5e5] flex items-center justify-between sticky top-0 bg-[#ffffff] z-10">
+        <div className="p-5 sm:p-6 border-b border-[#e0e0e0] flex items-center justify-between sticky top-0 bg-[#ffffff] z-10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center font-bold">
               <Sparkles className="w-5 h-5" />
@@ -181,14 +181,14 @@ const TransferBookingModalContent: React.FC<
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Worker Overview Card */}
-        <div className="p-5 sm:p-6 bg-[#f3f3f3] border-b border-[#e5e5e5]">
+        <div className="p-5 sm:p-6 bg-[#f3f3f3] border-b border-[#e0e0e0]">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-3">
               <div>
@@ -266,7 +266,7 @@ const TransferBookingModalContent: React.FC<
                     value={newClientName}
                     onChange={(e) => setNewClientName(e.target.value)}
                     placeholder="مثال: فهد بن عبد العزيز السبيعي"
-                    className="w-full pr-9 pl-3 py-2 rounded-xl text-xs bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] placeholder-zinc-500 focus:outline-none focus:border-[#141414]"
+                    className="w-full pr-9 pl-3 py-2 rounded-xl text-xs bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] placeholder-[#141414] focus:outline-none focus:border-[#141414]"
                   />
                 </div>
               </div>
@@ -282,7 +282,7 @@ const TransferBookingModalContent: React.FC<
                     value={newClientNationalId}
                     onChange={(e) => setNewClientNationalId(e.target.value.replace(/\D/g, ''))}
                     placeholder="10XXXXXXXX"
-                    className="w-full pr-9 pl-3 py-2 rounded-xl text-xs bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] placeholder-zinc-500 focus:outline-none focus:border-[#141414] font-mono"
+                    className="w-full pr-9 pl-3 py-2 rounded-xl text-xs bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] placeholder-[#141414] focus:outline-none focus:border-[#141414] font-mono"
                   />
                 </div>
               </div>
@@ -297,7 +297,7 @@ const TransferBookingModalContent: React.FC<
                     value={newClientPhone}
                     onChange={(e) => setNewClientPhone(e.target.value)}
                     placeholder="05XXXXXXXX"
-                    className="w-full pr-9 pl-3 py-2 rounded-xl text-xs bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] placeholder-zinc-500 focus:outline-none focus:border-[#141414] font-mono text-left"
+                    className="w-full pr-9 pl-3 py-2 rounded-xl text-xs bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] placeholder-[#141414] focus:outline-none focus:border-[#141414] font-mono text-left"
                   />
                 </div>
               </div>
@@ -312,7 +312,7 @@ const TransferBookingModalContent: React.FC<
                     value={newClientCity}
                     onChange={(e) => setNewClientCity(e.target.value)}
                     placeholder="الرياض - حي النرجس"
-                    className="w-full pr-9 pl-3 py-2 rounded-xl text-xs bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] placeholder-zinc-500 focus:outline-none focus:border-[#141414]"
+                    className="w-full pr-9 pl-3 py-2 rounded-xl text-xs bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] placeholder-[#141414] focus:outline-none focus:border-[#141414]"
                   />
                 </div>
               </div>
@@ -430,7 +430,7 @@ const TransferBookingModalContent: React.FC<
                 value={responsibleEmployee}
                 onChange={(e) => setResponsibleEmployee(e.target.value)}
                 placeholder="اسم الموظف أو المشرف"
-                className="w-full px-3 py-2 rounded-xl text-xs bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] placeholder-zinc-500 focus:outline-none focus:border-[#141414]"
+                className="w-full px-3 py-2 rounded-xl text-xs bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] placeholder-[#141414] focus:outline-none focus:border-[#141414]"
               />
             </div>
 
@@ -441,7 +441,7 @@ const TransferBookingModalContent: React.FC<
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="أي اشتراطات خاصة بالعميل أو التجربة، تفاصيل السداد، إلخ..."
-                className="w-full px-3 py-2 rounded-xl text-xs bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] placeholder-zinc-500 focus:outline-none focus:border-[#141414]"
+                className="w-full px-3 py-2 rounded-xl text-xs bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] placeholder-[#141414] focus:outline-none focus:border-[#141414]"
               />
             </div>
           </div>
@@ -455,12 +455,12 @@ const TransferBookingModalContent: React.FC<
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e5e5e5]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e0e0e0]">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-5 py-2.5 rounded-full text-xs font-bold text-[#141414] bg-[#f3f3f3] hover:bg-[#e5e5e5] transition-colors cursor-pointer"
+              className="px-5 py-2.5 rounded-full text-xs font-bold text-[#141414] bg-[#f3f3f3] hover:bg-[#e0e0e0] transition-colors cursor-pointer"
             >
               إلغاء
             </button>

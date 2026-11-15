@@ -598,7 +598,7 @@ export const SmaccModulesPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
         }}
       >
@@ -659,7 +659,7 @@ export const SmaccModulesPage: React.FC = () => {
       </div>
 
       {/* Main Tabs Navigation */}
-      <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-[#e0e0e0] pb-3">
         {[
           { id: 'ecommerce-stores', label: `المتاجر والقنوات الإلكترونية (${stores.length})`, icon: Store },
           { id: 'fixed-assets', label: `الأصول الثابتة (${fixedAssets.length})`, icon: Building2 },
@@ -677,9 +677,9 @@ export const SmaccModulesPage: React.FC = () => {
                 padding: '6px 16px',
                 borderRadius: '9999px',
                 border: '1px solid',
-                borderColor: isActive ? '#141414' : '#e4e4e7',
+                borderColor: isActive ? '#141414' : '#e0e0e0',
                 backgroundColor: isActive ? '#141414' : '#ffffff',
-                color: isActive ? '#ffffff' : '#27272a',
+                color: isActive ? '#ffffff' : '#141414',
                 fontWeight: isActive ? 550 : 420,
                 fontSize: '12.5px',
                 cursor: 'pointer',
@@ -700,7 +700,7 @@ export const SmaccModulesPage: React.FC = () => {
       {activeModuleTab === 'ecommerce-stores' && (
         <div className="space-y-6">
           <div className="card-pricing" style={{ padding: '20px 24px', borderRadius: '24px', background: '#ffffff' }}>
-            <div className="flex items-center justify-between flex-wrap gap-4 border-b border-zinc-100 pb-4 mb-4">
+            <div className="flex items-center justify-between flex-wrap gap-4 border-b border-[#e0e0e0] pb-4 mb-4">
               <div>
                 <h3 className="text-sm font-bold text-[#141414] flex items-center gap-2 m-0">
                   <ShoppingBag className="w-4 h-4 text-[#141414]" />
@@ -722,7 +722,7 @@ export const SmaccModulesPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {stores.map(store => (
-                <div key={store.id} className="p-4 rounded-2xl border border-zinc-200 bg-zinc-50 flex flex-col justify-between hover:border-[#141414] transition-colors">
+                <div key={store.id} className="p-4 rounded-2xl border border-[#e0e0e0] bg-[#f3f3f3] flex flex-col justify-between hover:border-[#141414] transition-colors">
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-bold text-[#141414] text-xs">{store.name}</span>
@@ -732,7 +732,7 @@ export const SmaccModulesPage: React.FC = () => {
                       <Globe className="w-3.5 h-3.5 text-[#707070]" />
                       <span className="font-mono text-[11px] truncate">{store.storeUrl}</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 my-3 p-2 bg-white rounded-xl border border-zinc-200 text-center">
+                    <div className="grid grid-cols-2 gap-2 my-3 p-2 bg-white rounded-xl border border-[#e0e0e0] text-center">
                       <div>
                         <span className="text-[10px] text-[#707070] block">الطلبات المسحوبة</span>
                         <span className="font-mono font-bold text-xs text-[#141414]">{store.syncedOrdersCount}</span>
@@ -744,7 +744,7 @@ export const SmaccModulesPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-zinc-200 text-[11px]">
+                  <div className="flex items-center justify-between pt-2 border-t border-[#e0e0e0] text-[11px]">
                     <span className="text-[#707070]">آخر فحص: {store.lastSyncTime}</span>
                     <button
                       type="button"
@@ -764,14 +764,14 @@ export const SmaccModulesPage: React.FC = () => {
 
           {/* Synced Orders Table */}
           <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-            <div className="p-4 border-b border-zinc-100 flex items-center justify-between">
+            <div className="p-4 border-b border-[#e0e0e0] flex items-center justify-between">
               <h4 className="text-xs font-bold text-[#141414] m-0">الطلبات الرقمية الواردة عبر المتاجر</h4>
               <span className="pill-tag-mint text-[11px]">{storeOrders.length} طلب إلكتروني</span>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs text-zinc-700">
-                <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+              <table className="w-full text-right text-xs text-[#141414]">
+                <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                   <tr>
                     <th className="p-3.5">رقم الطلب الخارجي</th>
                     <th className="p-3.5">المنصة</th>
@@ -785,9 +785,9 @@ export const SmaccModulesPage: React.FC = () => {
                     <th className="p-3.5 text-center">الإجراء</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-[#e0e0e0]">
                   {storeOrders.map(order => (
-                    <tr key={order.id} className="hover:bg-zinc-50 transition-colors">
+                    <tr key={order.id} className="hover:bg-[#f3f3f3] transition-colors">
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{order.externalOrderNo}</td>
                       <td className="p-3.5 font-bold text-[#141414]">{order.platform}</td>
                       <td className="p-3.5 font-bold text-[#141414]">
@@ -796,14 +796,14 @@ export const SmaccModulesPage: React.FC = () => {
                           <span>{order.customerName}</span>
                         </div>
                       </td>
-                      <td className="p-3.5 font-mono text-zinc-600">{order.customerPhone}</td>
-                      <td className="p-3.5 text-zinc-700">{order.serviceType}</td>
+                      <td className="p-3.5 font-mono text-[#707070]">{order.customerPhone}</td>
+                      <td className="p-3.5 text-[#141414]">{order.serviceType}</td>
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{order.totalAmount.toLocaleString()} ⃁</td>
                       <td className="p-3.5">
                         <span className="pill-tag-mint" style={{ fontSize: '10px' }}>{order.paymentStatus}</span>
                       </td>
                       <td className="p-3.5">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${order.orderStatus.includes('توثيق') || order.orderStatus === 'مكتمل' ? 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]' : 'bg-zinc-100 text-zinc-700'}`}>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${order.orderStatus.includes('توثيق') || order.orderStatus === 'مكتمل' ? 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]' : 'bg-[#f3f3f3] text-[#141414]'}`}>
                           {order.orderStatus}
                         </span>
                       </td>
@@ -863,7 +863,7 @@ export const SmaccModulesPage: React.FC = () => {
                 placeholder="البحث في الأصول الثابتة..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full bg-zinc-50 border border-zinc-200 rounded-full py-1.5 pr-9 pl-3 text-xs text-[#141414] placeholder-zinc-400 focus:outline-none focus:border-[#141414]"
+                className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-full py-1.5 pr-9 pl-3 text-xs text-[#141414] placeholder-[#707070] focus:outline-none focus:border-[#141414]"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -888,8 +888,8 @@ export const SmaccModulesPage: React.FC = () => {
 
           <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs text-zinc-700">
-                <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+              <table className="w-full text-right text-xs text-[#141414]">
+                <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                   <tr>
                     <th className="p-3.5">رمز الأصل</th>
                     <th className="p-3.5">اسم الأصل الثابت</th>
@@ -901,15 +901,15 @@ export const SmaccModulesPage: React.FC = () => {
                     <th className="p-3.5">الحالة</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-[#e0e0e0]">
                   {filteredAssets.map(asset => (
-                    <tr key={asset.id} className="hover:bg-zinc-50 transition-colors">
+                    <tr key={asset.id} className="hover:bg-[#f3f3f3] transition-colors">
                       <td className="p-3.5 font-mono text-[#141414] font-bold">{asset.id}</td>
                       <td className="p-3.5 font-bold text-[#141414]">{asset.name}</td>
-                      <td className="p-3.5 text-zinc-600">{asset.category}</td>
+                      <td className="p-3.5 text-[#707070]">{asset.category}</td>
                       <td className="p-3.5 text-[#707070] font-mono">{asset.purchaseDate}</td>
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{asset.cost.toLocaleString()} ⃁</td>
-                      <td className="p-3.5 font-mono text-zinc-600">{asset.accumulatedDep.toLocaleString()} ⃁</td>
+                      <td className="p-3.5 font-mono text-[#707070]">{asset.accumulatedDep.toLocaleString()} ⃁</td>
                       <td className="p-3.5 font-bold font-mono text-[#141414]">{asset.netBookValue.toLocaleString()} ⃁</td>
                       <td className="p-3.5">
                         <span className="pill-tag-mint" style={{ fontSize: '10.5px' }}>{asset.status}</span>
@@ -934,7 +934,7 @@ export const SmaccModulesPage: React.FC = () => {
                 placeholder="البحث في المخزون والأصناف..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full bg-zinc-50 border border-zinc-200 rounded-full py-1.5 pr-9 pl-3 text-xs text-[#141414] placeholder-zinc-400 focus:outline-none focus:border-[#141414]"
+                className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-full py-1.5 pr-9 pl-3 text-xs text-[#141414] placeholder-[#707070] focus:outline-none focus:border-[#141414]"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -966,8 +966,8 @@ export const SmaccModulesPage: React.FC = () => {
 
           <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs text-zinc-700">
-                <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+              <table className="w-full text-right text-xs text-[#141414]">
+                <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                   <tr>
                     <th className="p-3.5">رمز الصنف (SKU)</th>
                     <th className="p-3.5">اسم الصنف / الخدمة</th>
@@ -978,12 +978,12 @@ export const SmaccModulesPage: React.FC = () => {
                     <th className="p-3.5">الحالة</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-[#e0e0e0]">
                   {filteredInventory.map(item => (
-                    <tr key={item.code} className="hover:bg-zinc-50 transition-colors">
+                    <tr key={item.code} className="hover:bg-[#f3f3f3] transition-colors">
                       <td className="p-3.5 font-mono text-[#141414] font-bold">{item.code}</td>
                       <td className="p-3.5 font-bold text-[#141414]">{item.name}</td>
-                      <td className="p-3.5 text-zinc-600">{item.category}</td>
+                      <td className="p-3.5 text-[#707070]">{item.category}</td>
                       <td className="p-3.5 font-bold font-mono text-[#141414]">{item.qty}</td>
                       <td className="p-3.5 font-bold font-mono text-[#141414]">{item.unitPrice.toLocaleString()} ⃁</td>
                       <td className="p-3.5 text-[#707070] font-mono">{item.reorderLevel}</td>
@@ -1052,8 +1052,8 @@ export const SmaccModulesPage: React.FC = () => {
 
           <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs text-zinc-700">
-                <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+              <table className="w-full text-right text-xs text-[#141414]">
+                <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                   <tr>
                     <th className="p-3.5">الرقم المرجعي</th>
                     <th className="p-3.5">الاسم الكامل</th>
@@ -1066,9 +1066,9 @@ export const SmaccModulesPage: React.FC = () => {
                     <th className="p-3.5 text-center">الإجراءات</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-[#e0e0e0]">
                   {salesReps.map(rep => (
-                    <tr key={rep.id} className="hover:bg-zinc-50 transition-colors">
+                    <tr key={rep.id} className="hover:bg-[#f3f3f3] transition-colors">
                       <td className="p-3.5 font-mono text-[#141414] font-bold">{rep.id}</td>
                       <td className="p-3.5 font-bold text-[#141414]">
                         <div className="flex items-center gap-2">
@@ -1076,7 +1076,7 @@ export const SmaccModulesPage: React.FC = () => {
                           <span>{rep.name}</span>
                         </div>
                       </td>
-                      <td className="p-3.5 text-zinc-600">{rep.role}</td>
+                      <td className="p-3.5 text-[#707070]">{rep.role}</td>
                       <td className="p-3.5 text-[#707070] font-mono">{rep.phone}</td>
                       <td className="p-3.5 font-bold font-mono text-[#141414]">{rep.totalSales.toLocaleString()} ⃁</td>
                       <td className="p-3.5 text-[#141414] font-mono font-bold">{rep.collected.toLocaleString()} ⃁</td>
@@ -1111,7 +1111,7 @@ export const SmaccModulesPage: React.FC = () => {
             <div className="card-pricing" style={{ padding: '24px', borderRadius: '24px', background: '#ffffff' }}>
               <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
                 <div className="flex items-center gap-3">
-                  <div style={{ width: '44px', height: '44px', borderRadius: '9999px', background: '#f4f4f5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#141414' }}>
+                  <div style={{ width: '44px', height: '44px', borderRadius: '9999px', background: '#f3f3f3', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#141414' }}>
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                   <div>
@@ -1130,18 +1130,18 @@ export const SmaccModulesPage: React.FC = () => {
                   <span>{isCheckingZatca ? 'جاري الفحص...' : 'فحص ZATCA الفوري'}</span>
                 </button>
               </div>
-              <div className="p-3.5 bg-zinc-50 rounded-2xl text-xs space-y-2 mt-4 border border-zinc-100">
+              <div className="p-3.5 bg-[#f3f3f3] rounded-2xl text-xs space-y-2 mt-4 border border-[#e0e0e0]">
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-600">حالة الاتصال بالهيئة:</span>
+                  <span className="text-[#707070]">حالة الاتصال بالهيئة:</span>
                   <span className="pill-tag-mint" style={{ fontSize: '11px' }}>متصل ببيئة الإنتاج (Production)</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-600">معرف الجهاز (CSID):</span>
+                  <span className="text-[#707070]">معرف الجهاز (CSID):</span>
                   <span className="font-mono text-[#141414] font-bold">ZATCA-PROD-998231</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-600">التشفير المعتمد:</span>
-                  <span className="font-mono text-zinc-600">ECDSA secp256k1 (معتمد)</span>
+                  <span className="text-[#707070]">التشفير المعتمد:</span>
+                  <span className="font-mono text-[#707070]">ECDSA secp256k1 (معتمد)</span>
                 </div>
               </div>
             </div>
@@ -1149,7 +1149,7 @@ export const SmaccModulesPage: React.FC = () => {
             <div className="card-pricing" style={{ padding: '24px', borderRadius: '24px', background: '#ffffff' }}>
               <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
                 <div className="flex items-center gap-3">
-                  <div style={{ width: '44px', height: '44px', borderRadius: '9999px', background: '#f4f4f5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#141414' }}>
+                  <div style={{ width: '44px', height: '44px', borderRadius: '9999px', background: '#f3f3f3', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#141414' }}>
                     <Globe className="w-5 h-5" />
                   </div>
                   <div>
@@ -1168,18 +1168,18 @@ export const SmaccModulesPage: React.FC = () => {
                   <span>{isSyncingMusaned ? 'جاري المزامنة...' : 'مزامنة مساند الآن'}</span>
                 </button>
               </div>
-              <div className="p-3.5 bg-zinc-50 rounded-2xl text-xs space-y-2 mt-4 border border-zinc-100">
+              <div className="p-3.5 bg-[#f3f3f3] rounded-2xl text-xs space-y-2 mt-4 border border-[#e0e0e0]">
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-600">الوكلاء المتصلون:</span>
+                  <span className="text-[#707070]">الوكلاء المتصلون:</span>
                   <span className="text-[#141414] font-bold">12 مكتب خارجي (الفلبين، اندونيسيا، كينيا)</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-600">مزامنة عقود مساند:</span>
+                  <span className="text-[#707070]">مزامنة عقود مساند:</span>
                   <span className="pill-tag-mint" style={{ fontSize: '11px' }}>تلقائية ومحدثة الآن</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-600">بروتوكول الربط:</span>
-                  <span className="font-mono text-zinc-600">REST API v2.4 + Webhook</span>
+                  <span className="text-[#707070]">بروتوكول الربط:</span>
+                  <span className="font-mono text-[#707070]">REST API v2.4 + Webhook</span>
                 </div>
               </div>
             </div>
@@ -1187,7 +1187,7 @@ export const SmaccModulesPage: React.FC = () => {
 
           {/* Compliance Audit Trail Table */}
           <div className="card-pricing" style={{ padding: '20px 24px', borderRadius: '24px', background: '#ffffff' }}>
-            <div className="flex items-center justify-between mb-4 border-b border-zinc-100 pb-3">
+            <div className="flex items-center justify-between mb-4 border-b border-[#e0e0e0] pb-3">
               <h3 className="text-sm font-bold text-[#141414] m-0 flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-[#141414]" />
                 <span>سجل عمليات الامتثال والربط الحكومي المباشر (Compliance Audit Trail)</span>
@@ -1195,8 +1195,8 @@ export const SmaccModulesPage: React.FC = () => {
               <span className="pill-tag-shade text-[11px]">{complianceLogs.length} عمليات مسجلة</span>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs text-zinc-700">
-                <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+              <table className="w-full text-right text-xs text-[#141414]">
+                <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                   <tr>
                     <th className="p-3">التوقيت</th>
                     <th className="p-3">المنظومة / المنصة</th>
@@ -1204,12 +1204,12 @@ export const SmaccModulesPage: React.FC = () => {
                     <th className="p-3">حالة الامتثال</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-[#e0e0e0]">
                   {complianceLogs.map(log => (
-                    <tr key={log.id} className="hover:bg-zinc-50">
+                    <tr key={log.id} className="hover:bg-[#f3f3f3]">
                       <td className="p-3 font-mono text-[#707070]">{log.timestamp}</td>
                       <td className="p-3 font-bold text-[#141414]">{log.system}</td>
-                      <td className="p-3 text-zinc-700">{log.event}</td>
+                      <td className="p-3 text-[#141414]">{log.event}</td>
                       <td className="p-3">
                         <span className="pill-tag-mint text-[11px]">{log.status}</span>
                       </td>
@@ -1225,8 +1225,8 @@ export const SmaccModulesPage: React.FC = () => {
       {/* MODAL 1: Add Asset */}
       {showAssetModal && (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAssetModal(false); }}>
-          <div className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-3 mb-4 border-b border-zinc-100">
+          <div className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-[#e0e0e0] max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-3 mb-4 border-b border-[#e0e0e0]">
               <h3 className="text-sm font-bold text-[#141414] m-0">إضافة أصل ثابت جديد</h3>
               <button onClick={() => setShowAssetModal(false)} className="text-[#707070] hover:text-[#141414]">
                 <X className="w-5 h-5" />
@@ -1234,23 +1234,23 @@ export const SmaccModulesPage: React.FC = () => {
             </div>
             <form onSubmit={handleSaveAsset} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">اسم الأصل *</label>
+                <label className="text-xs font-semibold text-[#141414] block mb-1">اسم الأصل *</label>
                 <input
                   type="text"
                   required
                   placeholder="مثال: سيارة نقل كوادر 2026"
                   value={newAsset.name}
                   onChange={e => setNewAsset({ ...newAsset, name: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">الفئة</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">الفئة</label>
                   <select
                     value={newAsset.category}
                     onChange={e => setNewAsset({ ...newAsset, category: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="وسائل النقل">وسائل النقل</option>
                     <option value="معدات وإلكترونيات">معدات وإلكترونيات</option>
@@ -1259,17 +1259,17 @@ export const SmaccModulesPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">تكلفة الشراء (⃁) *</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">تكلفة الشراء (⃁) *</label>
                   <input
                     type="number"
                     required
                     value={newAsset.cost}
                     onChange={e => setNewAsset({ ...newAsset, cost: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">
+              <div className="flex justify-end gap-2 pt-2 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAssetModal(false)}
@@ -1292,8 +1292,8 @@ export const SmaccModulesPage: React.FC = () => {
       {/* MODAL 2: Add Inventory Item */}
       {showItemModal && (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowItemModal(false); }}>
-          <div className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-3 mb-4 border-b border-zinc-100">
+          <div className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-[#e0e0e0] max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-3 mb-4 border-b border-[#e0e0e0]">
               <h3 className="text-sm font-bold text-[#141414] m-0">إضافة صنف مخزني جديد</h3>
               <button onClick={() => setShowItemModal(false)} className="text-[#707070] hover:text-[#141414]">
                 <X className="w-5 h-5" />
@@ -1302,21 +1302,21 @@ export const SmaccModulesPage: React.FC = () => {
             <form onSubmit={handleSaveItem} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">رمز الصنف (SKU)</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">رمز الصنف (SKU)</label>
                   <input
                     type="text"
                     placeholder={`INV-10${inventoryItems.length + 1}`}
                     value={newItem.code}
                     onChange={e => setNewItem({ ...newItem, code: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">الفئة</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">الفئة</label>
                   <select
                     value={newItem.category}
                     onChange={e => setNewItem({ ...newItem, category: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="خدمات استقدام">خدمات استقدام</option>
                     <option value="تأجير تشغيلي">تأجير تشغيلي</option>
@@ -1325,38 +1325,38 @@ export const SmaccModulesPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">اسم الصنف أو الخدمة *</label>
+                <label className="text-xs font-semibold text-[#141414] block mb-1">اسم الصنف أو الخدمة *</label>
                 <input
                   type="text"
                   required
                   placeholder="مثال: عقد استقدام سائق خاص"
                   value={newItem.name}
                   onChange={e => setNewItem({ ...newItem, name: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">الكمية المتاحة</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">الكمية المتاحة</label>
                   <input
                     type="number"
                     value={newItem.qty}
                     onChange={e => setNewItem({ ...newItem, qty: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">سعر الوحدة (⃁) *</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">سعر الوحدة (⃁) *</label>
                   <input
                     type="number"
                     required
                     value={newItem.unitPrice}
                     onChange={e => setNewItem({ ...newItem, unitPrice: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] font-bold text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] font-bold text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">
+              <div className="flex justify-end gap-2 pt-2 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowItemModal(false)}
@@ -1379,8 +1379,8 @@ export const SmaccModulesPage: React.FC = () => {
       {/* MODAL 3: Add Sales Rep */}
       {showRepModal && (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowRepModal(false); }}>
-          <div className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-3 mb-4 border-b border-zinc-100">
+          <div className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-[#e0e0e0] max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-3 mb-4 border-b border-[#e0e0e0]">
               <h3 className="text-sm font-bold text-[#141414] m-0">إضافة ممثل مبيعات / محصل</h3>
               <button onClick={() => setShowRepModal(false)} className="text-[#707070] hover:text-[#141414]">
                 <X className="w-5 h-5" />
@@ -1388,23 +1388,23 @@ export const SmaccModulesPage: React.FC = () => {
             </div>
             <form onSubmit={handleSaveRep} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">الاسم الكامل *</label>
+                <label className="text-xs font-semibold text-[#141414] block mb-1">الاسم الكامل *</label>
                 <input
                   type="text"
                   required
                   placeholder="مثال: خالد محمد العتيبي"
                   value={newRep.name}
                   onChange={e => setNewRep({ ...newRep, name: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">الدور الوظيفي</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">الدور الوظيفي</label>
                   <select
                     value={newRep.role}
                     onChange={e => setNewRep({ ...newRep, role: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="بائع رئيسي">بائع رئيسي</option>
                     <option value="محصل مبيعات">محصل مبيعات</option>
@@ -1412,18 +1412,18 @@ export const SmaccModulesPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">رقم الجوال *</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">رقم الجوال *</label>
                   <input
                     type="text"
                     required
                     placeholder="05xxxxxxxx"
                     value={newRep.phone}
                     onChange={e => setNewRep({ ...newRep, phone: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">
+              <div className="flex justify-end gap-2 pt-2 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowRepModal(false)}
@@ -1446,8 +1446,8 @@ export const SmaccModulesPage: React.FC = () => {
       {/* MODAL 4: Record Collection */}
       {showCollectionModal && (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowCollectionModal(false); }}>
-          <div className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-3 mb-4 border-b border-zinc-100">
+          <div className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-[#e0e0e0] max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-3 mb-4 border-b border-[#e0e0e0]">
               <h3 className="text-sm font-bold text-[#141414] m-0 flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-[#141414]" />
                 <span>تسجيل عملية تحصيل لممثل المبيعات</span>
@@ -1458,12 +1458,12 @@ export const SmaccModulesPage: React.FC = () => {
             </div>
             <form onSubmit={handleSaveCollection} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">اختيار ممثل المبيعات / المحصل *</label>
+                <label className="text-xs font-semibold text-[#141414] block mb-1">اختيار ممثل المبيعات / المحصل *</label>
                 <select
                   required
                   value={collectionForm.repId}
                   onChange={e => setCollectionForm({ ...collectionForm, repId: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option value="">-- اختر المندوب --</option>
                   {salesReps.map(r => (
@@ -1474,17 +1474,17 @@ export const SmaccModulesPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">اسم العميل المسدد</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">اسم العميل المسدد</label>
                   <input
                     type="text"
                     placeholder="مثال: شركة الوفاق أو محمد عبدالله"
                     value={collectionForm.clientName}
                     onChange={e => setCollectionForm({ ...collectionForm, clientName: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">المبلغ المحصل (⃁) *</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">المبلغ المحصل (⃁) *</label>
                   <input
                     type="number"
                     required
@@ -1492,18 +1492,18 @@ export const SmaccModulesPage: React.FC = () => {
                     placeholder="5000"
                     value={collectionForm.amount}
                     onChange={e => setCollectionForm({ ...collectionForm, amount: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] font-bold font-mono focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] font-bold font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">طريقة التحصيل</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">طريقة التحصيل</label>
                   <select
                     value={collectionForm.paymentMethod}
                     onChange={e => setCollectionForm({ ...collectionForm, paymentMethod: e.target.value as any })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="تحويل بنكي">تحويل بنكي</option>
                     <option value="مدى / شبكة">مدى / شبكة (POS)</option>
@@ -1511,22 +1511,22 @@ export const SmaccModulesPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">ملاحظات التحصيل / المرجع</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">ملاحظات التحصيل / المرجع</label>
                   <input
                     type="text"
                     placeholder="رقم الحوالة أو الإيصال"
                     value={collectionForm.receiptNotes}
                     onChange={e => setCollectionForm({ ...collectionForm, receiptNotes: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div className="p-3 bg-zinc-50 rounded-xl text-xs text-[#707070] border border-zinc-200">
+              <div className="p-3 bg-[#f3f3f3] rounded-xl text-xs text-[#707070] border border-[#e0e0e0]">
                 سيقوم النظام آلياً بترحيل قيد وسند قبض محاسبي إلى دفتر اليومية وتحديث رصيد المندوب المحصل.
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">
+              <div className="flex justify-end gap-2 pt-2 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowCollectionModal(false)}

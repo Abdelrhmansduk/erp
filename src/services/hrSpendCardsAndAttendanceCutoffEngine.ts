@@ -11,7 +11,7 @@ import { journalEngine } from './accounting/journalEngine';
 import {
   decodeZatcaQrTlvBase64,
   computeReceiptFingerprint,
-} from './jisrAdvancedComplianceEngine';
+} from './hrAdvancedComplianceEngine';
 import { syncEmployeeLeaveBalanceAcrossTables } from './hrLeaveLifecycleService';
 
 type CompanyCode = Parameters<typeof journalEngine.createJournalEntry>[0];

@@ -231,7 +231,7 @@ export const OdooAccountingConfigWorkspace: React.FC<OdooAccountingConfigWorkspa
                 className={`px-4 py-2 rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all motion-spring-press ${
                   isActive
                     ? 'bg-[#141414] text-white'
-                    : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#e8e8e8]'
+                    : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#f3f3f3]'
                 }`}
               >
                 <IconComp className="w-3.5 h-3.5" />
@@ -247,7 +247,7 @@ export const OdooAccountingConfigWorkspace: React.FC<OdooAccountingConfigWorkspa
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 motion-snap-enter">
           {/* Left: Configured Payment Terms Catalog */}
           <div className="lg:col-span-7 card-pricing p-6 bg-white rounded-3xl border border-[#e0e0e0] space-y-4">
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+            <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
               <div>
                 <h4 className="text-sm font-bold text-[#141414] m-0">
                   دليل شروط السداد وجدولة الأقساط المعتمدة (Odoo Payment Terms)
@@ -269,7 +269,7 @@ export const OdooAccountingConfigWorkspace: React.FC<OdooAccountingConfigWorkspa
                     className={`p-4 rounded-2xl border cursor-pointer transition-all ${
                       isSelected
                         ? 'bg-[#f3f3f3] border-[#141414]'
-                        : 'bg-white border-[#e0e0e0] hover:bg-zinc-50'
+                        : 'bg-white border-[#e0e0e0] hover:bg-[#f3f3f3]'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -299,7 +299,7 @@ export const OdooAccountingConfigWorkspace: React.FC<OdooAccountingConfigWorkspa
 
           {/* Right: Live Installment & Early Discount Calculator + Auto-Post */}
           <div className="lg:col-span-5 card-pricing p-6 bg-white rounded-3xl border border-[#e0e0e0] space-y-4">
-            <div className="border-b border-zinc-100 pb-3">
+            <div className="border-b border-[#e0e0e0] pb-3">
               <h4 className="text-sm font-bold text-[#141414] m-0">
                 محاكي الأقساط وترحيل خصم السداد المبكر (Early Pay Discount)
               </h4>
@@ -404,7 +404,7 @@ export const OdooAccountingConfigWorkspace: React.FC<OdooAccountingConfigWorkspa
       {activeSubTab === 'fiscal-positions' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 motion-snap-enter">
           <div className="lg:col-span-7 card-pricing p-6 bg-white rounded-3xl border border-[#e0e0e0] space-y-4">
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+            <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
               <div>
                 <h4 className="text-sm font-bold text-[#141414] m-0">
                   مصفوفة الأوضاع الضريبية والمالية التلقائية (Odoo Fiscal Positions — ZATCA)
@@ -426,7 +426,7 @@ export const OdooAccountingConfigWorkspace: React.FC<OdooAccountingConfigWorkspa
                     className={`p-4 rounded-2xl border cursor-pointer transition-all ${
                       isSelected
                         ? 'bg-[#f3f3f3] border-[#141414]'
-                        : 'bg-white border-[#e0e0e0] hover:bg-zinc-50'
+                        : 'bg-white border-[#e0e0e0] hover:bg-[#f3f3f3]'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -446,7 +446,7 @@ export const OdooAccountingConfigWorkspace: React.FC<OdooAccountingConfigWorkspa
                       شرط الاكتشاف التلقائي: {fp.autoDetectConditionAr}
                     </p>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-zinc-200/70 text-[11px]">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-[#e0e0e0] text-[11px]">
                       <div className="flex items-center gap-1.5">
                         <ArrowLeftRight className="w-3.5 h-3.5 text-[#141414] shrink-0" />
                         <span className="text-[#707070]">تحويل الضريبة:</span>
@@ -468,7 +468,7 @@ export const OdooAccountingConfigWorkspace: React.FC<OdooAccountingConfigWorkspa
 
           {/* Right: Fiscal Position Simulator & Auto-Posting */}
           <div className="lg:col-span-5 card-pricing p-6 bg-white rounded-3xl border border-[#e0e0e0] space-y-4">
-            <div className="border-b border-zinc-100 pb-3">
+            <div className="border-b border-[#e0e0e0] pb-3">
               <h4 className="text-sm font-bold text-[#141414] m-0">
                 معاينة وترحيل المعاملة وفق الوضع الضريبي المختار
               </h4>
@@ -606,7 +606,7 @@ export const OdooAccountingConfigWorkspace: React.FC<OdooAccountingConfigWorkspa
 
           {/* Bank Statement Feed Lines Waiting for Reconciliation Model Execution */}
           <div className="card-pricing p-6 bg-white rounded-3xl border border-[#e0e0e0] space-y-4">
-            <div className="flex items-center justify-between flex-wrap gap-2 border-b border-zinc-100 pb-3">
+            <div className="flex items-center justify-between flex-wrap gap-2 border-b border-[#e0e0e0] pb-3">
               <div>
                 <h4 className="text-sm font-bold text-[#141414] m-0 flex items-center gap-2">
                   <Receipt className="w-4 h-4 text-[#141414]" />
@@ -619,8 +619,8 @@ export const OdooAccountingConfigWorkspace: React.FC<OdooAccountingConfigWorkspa
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs text-zinc-700">
-                <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+              <table className="w-full text-right text-xs text-[#141414]">
+                <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                   <tr>
                     <th className="p-3">مرجع الكشف</th>
                     <th className="p-3">التاريخ</th>
@@ -630,7 +630,7 @@ export const OdooAccountingConfigWorkspace: React.FC<OdooAccountingConfigWorkspa
                     <th className="p-3 text-center">إجراء التسوية الآلية</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-[#e0e0e0]">
                   {bankFeedLines.map((line) => {
                     const matched =
                       odooAccountingConfigService.matchBankStatementLine(
@@ -638,7 +638,7 @@ export const OdooAccountingConfigWorkspace: React.FC<OdooAccountingConfigWorkspa
                         line.amountSar
                       ) || reconModels[0];
                     return (
-                      <tr key={line.id} className="hover:bg-zinc-50">
+                      <tr key={line.id} className="hover:bg-[#f3f3f3]">
                         <td className="p-3 font-mono font-bold text-[#141414]">{line.ref}</td>
                         <td className="p-3 font-mono text-[#707070]">{line.date}</td>
                         <td className="p-3 font-bold text-[#141414]">{line.label}</td>

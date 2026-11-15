@@ -212,7 +212,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       return {
         icon: <AlertTriangle className="w-4 h-4 text-[#141414] shrink-0" />,
         iconWrap: 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]',
-        pill: 'bg-[#f3f3f3] text-[#141414] border-[#d4d4d4]',
+        pill: 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0]',
         label: 'يتطلب إجراء',
       };
     }
@@ -242,11 +242,11 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       />
 
       <div
-        className="fixed inset-x-2.5 top-[calc(var(--header-height,64px)+8px)] sm:absolute sm:inset-x-auto sm:top-full sm:left-0 sm:mt-2 sm:w-[420px] max-w-[calc(100vw-20px)] bg-[#ffffff] rounded-[24px] shadow-2xl border border-[#e0e0e0] z-[400] overflow-hidden font-sans"
+        className="fixed inset-x-2.5 top-[calc(var(--header-height,64px)+8px)] sm:absolute sm:inset-x-auto sm:top-full sm:left-0 sm:mt-2 sm:w-[420px] max-w-[calc(100vw-20px)] bg-[#ffffff] rounded-[24px]  border border-[#e0e0e0] z-[400] overflow-hidden font-sans"
         dir="rtl"
       >
         {/* Header — Mobbin Monochrome */}
-        <div className="px-4 py-3.5 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5] flex items-center justify-between gap-2">
+        <div className="px-4 py-3.5 bg-[#ffffff] text-[#141414] border-b border-[#e0e0e0] flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-full bg-[#141414] text-[#ffffff] flex items-center justify-center shrink-0">
               <Bell className="w-4 h-4" />
@@ -275,7 +275,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
               type="button"
               disabled={isScanningRadar}
               onClick={() => void handleRefreshRadar()}
-              className="p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] transition-colors cursor-pointer"
+              className="p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] transition-colors cursor-pointer"
               title="فحص رادار الوثائق وإعادات الإجازات وتراخيص الشركات الآن"
             >
               <RefreshCw
@@ -292,7 +292,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
               className={`px-2.5 py-1 rounded-full text-[10.5px] font-bold border flex items-center gap-1 transition-colors cursor-pointer ${
                 isFocusMode
                   ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
-                  : 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0] hover:bg-[#e5e5e5]'
+                  : 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0] hover:bg-[#e0e0e0]'
               }`}
               title="وضع التركيز: منع النوافذ المنبثقة العادية والاكتفاء بالتنبيهات الحرجة"
             >
@@ -306,7 +306,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 const next = notificationPopupEngine.toggleMute();
                 setIsMuted(next);
               }}
-              className="p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] transition-colors cursor-pointer"
+              className="p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] transition-colors cursor-pointer"
               title={isMuted ? 'تفعيل صوت التنبيهات' : 'كتم صوت التنبيهات'}
             >
               {isMuted ? (
@@ -319,7 +319,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] transition-colors cursor-pointer"
+              className="p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] transition-colors cursor-pointer"
               title="إغلاق"
             >
               <X className="w-3.5 h-3.5" />
@@ -328,7 +328,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         </div>
 
         {/* Category Filter Tabs */}
-        <div className="px-3.5 py-2.5 bg-[#f3f3f3] border-b border-[#e5e5e5] flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        <div className="px-3.5 py-2.5 bg-[#f3f3f3] border-b border-[#e0e0e0] flex items-center gap-1.5 overflow-x-auto no-scrollbar">
           {(
             [
               { id: 'all', label: 'الكل', count: counts.all },
@@ -478,7 +478,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                             e.stopPropagation();
                             markAsRead(notif.id);
                           }}
-                          className="px-2.5 py-1 rounded-full bg-[#ffffff] hover:bg-[#e5e5e5] border border-[#e0e0e0] text-[10px] font-bold text-[#141414] cursor-pointer"
+                          className="px-2.5 py-1 rounded-full bg-[#ffffff] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[10px] font-bold text-[#141414] cursor-pointer"
                         >
                           تحديد كمقروء
                         </button>
@@ -496,7 +496,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2.5 bg-[#f3f3f3] border-t border-[#e5e5e5] flex items-center justify-between text-[11px]">
+        <div className="px-4 py-2.5 bg-[#f3f3f3] border-t border-[#e0e0e0] flex items-center justify-between text-[11px]">
           <button
             type="button"
             onClick={clearNotifications}

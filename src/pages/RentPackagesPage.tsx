@@ -254,7 +254,7 @@ export const RentPackagesPage: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'space-between',
           background: '#141414',
-          color: '#FFF',
+          color: '#ffffff',
           padding: '28px',
           borderRadius: '16px',
           flexWrap: 'wrap',
@@ -274,7 +274,7 @@ export const RentPackagesPage: React.FC = () => {
             <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, letterSpacing: '-0.02em', color: '#ffffff', margin: 0, fontFamily: 'var(--font-family-display)' }}>
               باقات التأجير وهوامش الربح
             </h1>
-            <p style={{ fontSize: '13px', color: '#a1a1aa', margin: '4px 0 0 0', fontWeight: 420 }}>
+            <p style={{ fontSize: '13px', color: '#adadad', margin: '4px 0 0 0', fontWeight: 420 }}>
               هيكلة الأسعار، حاسبة عروض الأسعار B2B/B2C، وشروط وثيقة التعاقد
             </p>
           </div>
@@ -293,7 +293,7 @@ export const RentPackagesPage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap items-center gap-1.5 border-b border-zinc-200 pb-3">
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-[#e0e0e0] pb-3">
         {[
           { id: 'packages', label: `الباقات المعتمدة (${packages.length})` },
           { id: 'calculator', label: 'حاسبة عروض الأسعار والهوامش' },
@@ -310,9 +310,9 @@ export const RentPackagesPage: React.FC = () => {
                 padding: '6px 16px',
                 borderRadius: '9999px',
                 border: '1px solid',
-                borderColor: isActive ? '#141414' : '#e4e4e7',
+                borderColor: isActive ? '#141414' : '#e0e0e0',
                 backgroundColor: isActive ? '#141414' : '#ffffff',
-                color: isActive ? '#ffffff' : '#27272a',
+                color: isActive ? '#ffffff' : '#141414',
                 fontWeight: isActive ? 550 : 420,
                 fontSize: '12.5px',
                 cursor: 'pointer',
@@ -350,7 +350,7 @@ export const RentPackagesPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="py-3 px-4 bg-zinc-50 rounded-2xl mb-4 border border-zinc-100 flex justify-between items-baseline">
+                  <div className="py-3 px-4 bg-[#f3f3f3] rounded-2xl mb-4 border border-[#e0e0e0] flex justify-between items-baseline">
                     <div>
                       <span className="text-2xl font-mono font-bold text-[#141414]">{monthlyRate.toLocaleString()}</span>
                       <span className="text-xs text-[#707070] mr-1">⃁ / شهر</span>
@@ -362,7 +362,7 @@ export const RentPackagesPage: React.FC = () => {
 
                   <div className="space-y-2 mb-6">
                     <span className="text-xs text-[#707070] font-bold block mb-1">المزايا والضمانات المشمولة:</span>
-                    <ul className="space-y-1.5 text-xs text-zinc-700">
+                    <ul className="space-y-1.5 text-xs text-[#141414]">
                       {featuresList.map((feat, idx) => (
                         <li key={idx} className="flex items-center gap-2">
                           <Check className="w-3.5 h-3.5 text-[#141414] shrink-0" />
@@ -373,7 +373,7 @@ export const RentPackagesPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-2 border-t border-zinc-100 pt-4">
+                <div className="flex gap-2 border-t border-[#e0e0e0] pt-4">
                   <button
                     type="button"
                     onClick={() => handleEditPackage(pkg)}
@@ -410,14 +410,14 @@ export const RentPackagesPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">مدة العقد الإيجاري:</label>
+                <label className="text-xs font-semibold text-[#141414] block mb-1">مدة العقد الإيجاري:</label>
                 <div className="grid grid-cols-4 gap-2">
                   {[1, 3, 6, 12].map((m) => (
                     <button
                       key={m}
                       type="button"
                       onClick={() => setCalcDuration(m)}
-                      className={`p-2.5 rounded-2xl text-xs font-bold transition-all ${calcDuration === m ? 'bg-[#141414] text-white' : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'}`}
+                      className={`p-2.5 rounded-2xl text-xs font-bold transition-all ${calcDuration === m ? 'bg-[#141414] text-white' : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#e0e0e0]'}`}
                     >
                       {m} {m === 1 ? 'شهر' : m === 3 ? 'أشهر' : m === 6 ? 'أشهر' : 'سنة'}
                     </button>
@@ -426,32 +426,32 @@ export const RentPackagesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">عدد الكوادر المطلوبة:</label>
+                <label className="text-xs font-semibold text-[#141414] block mb-1">عدد الكوادر المطلوبة:</label>
                 <input
                   type="number"
                   min={1}
                   max={50}
                   value={calcWorkersCount}
                   onChange={(e) => setCalcWorkersCount(Math.max(1, Number(e.target.value)))}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">السعر الشهري الأساسي للعاملة (⃁):</label>
+                <label className="text-xs font-semibold text-[#141414] block mb-1">السعر الشهري الأساسي للعاملة (⃁):</label>
                 <input
                   type="number"
                   value={calcBaseRate}
                   onChange={(e) => setCalcBaseRate(Number(e.target.value))}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
                 />
               </div>
             </div>
 
-            <div className="bg-zinc-50 p-6 rounded-3xl border border-zinc-200 flex flex-col justify-between">
+            <div className="bg-[#f3f3f3] p-6 rounded-3xl border border-[#e0e0e0] flex flex-col justify-between">
               <div>
-                <h3 className="text-sm font-bold text-[#141414] border-b border-zinc-200 pb-2 mb-4">تفاصيل عرض السعر المبدئي</h3>
-                <div className="space-y-2 text-xs text-zinc-600">
+                <h3 className="text-sm font-bold text-[#141414] border-b border-[#e0e0e0] pb-2 mb-4">تفاصيل عرض السعر المبدئي</h3>
+                <div className="space-y-2 text-xs text-[#707070]">
                   <div className="flex justify-between">
                     <span>المبلغ الإجمالي الأساسي:</span>
                     <span className="font-mono font-bold text-[#141414]">{calcSubtotal.toLocaleString()} ⃁</span>
@@ -560,7 +560,7 @@ export const RentPackagesPage: React.FC = () => {
                   </div>
                   {term.is_mandatory && <Badge text="بند إلزامي نظاماً" type="purple" />}
                 </div>
-                <p className="text-xs text-zinc-600 leading-relaxed pr-8">{term.text}</p>
+                <p className="text-xs text-[#707070] leading-relaxed pr-8">{term.text}</p>
               </div>
             ))}
           </div>
@@ -570,7 +570,7 @@ export const RentPackagesPage: React.FC = () => {
       {/* ADD PACKAGE MODAL */}
       {showAddModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowAddModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white border border-zinc-200 rounded-[24px] overflow-hidden flex flex-col max-h-[90vh]">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white border border-[#e0e0e0] rounded-[24px] overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h2 className="text-base font-bold text-[#141414] flex items-center gap-2">
                 <Plus className="w-4 h-4 ml-1" />
@@ -578,7 +578,7 @@ export const RentPackagesPage: React.FC = () => {
               </h2>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors"
+                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#262626] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -586,24 +586,24 @@ export const RentPackagesPage: React.FC = () => {
 
             <form onSubmit={handleCreatePackage} className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1 bg-white text-[#141414]">
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">اسم الباقة</label>
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">اسم الباقة</label>
                 <input
                   type="text"
                   required
                   placeholder="مثال: باقة نصف سنوية (6 أشهر)"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">تصنيف الباقة</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">تصنيف الباقة</label>
                   <select
                     value={formData.category}
                     onChange={(e: any) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="أفراد وعائلات">أفراد وعائلات</option>
                     <option value="شركات وقطاع تجاري">شركات وقطاع تجاري</option>
@@ -612,49 +612,49 @@ export const RentPackagesPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">المدة بالأشهر</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">المدة بالأشهر</label>
                   <input
                     type="number"
                     value={formData.duration_months}
                     onChange={(e) => setFormData({ ...formData, duration_months: Number(e.target.value) })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">السعر الشهري (⃁)</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">السعر الشهري (⃁)</label>
                   <input
                     type="number"
                     value={formData.monthly_rate}
                     onChange={(e) => setFormData({ ...formData, monthly_rate: Number(e.target.value) })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">نسبة الخصم (%)</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">نسبة الخصم (%)</label>
                   <input
                     type="number"
                     value={formData.discount_percentage}
                     onChange={(e) => setFormData({ ...formData, discount_percentage: Number(e.target.value) })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">مزايا الباقة (كل ميزة في سطر منفصل)</label>
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">مزايا الباقة (كل ميزة في سطر منفصل)</label>
                 <textarea
                   rows={3}
                   value={formData.featuresText}
                   onChange={(e) => setFormData({ ...formData, featuresText: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
-              <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end gap-3 -mx-6 -mb-6 mt-4">
+              <div className="p-4 bg-[#f3f3f3] border-t border-[#e0e0e0] flex items-center justify-end gap-3 -mx-6 -mb-6 mt-4">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
@@ -679,8 +679,8 @@ export const RentPackagesPage: React.FC = () => {
       {/* Add Clause Modal */}
       {showAddClauseModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowAddClauseModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] w-full max-w-lg animate-fade-in border border-zinc-200 max-h-[90vh] overflow-y-auto">
-            <div className="p-5 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] w-full max-w-lg animate-fade-in border border-[#e0e0e0] max-h-[90vh] overflow-y-auto">
+            <div className="p-5 border-b border-[#e0e0e0] flex items-center justify-between bg-[#f3f3f3]">
               <h3 className="text-sm font-bold text-[#141414] m-0">إضافة بند شرطي جديد في عقد التأجير</h3>
               <button onClick={() => setShowAddClauseModal(false)} className="text-[#707070] hover:text-[#141414]">
                 <X className="w-5 h-5" />
@@ -710,30 +710,30 @@ export const RentPackagesPage: React.FC = () => {
               className="p-6 space-y-4"
             >
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">عنوان البند الشرطي</label>
+                <label className="text-xs font-semibold text-[#141414] block mb-1">عنوان البند الشرطي</label>
                 <input
                   type="text"
                   required
                   value={newClauseForm.title}
                   onChange={(e) => setNewClauseForm({ ...newClauseForm, title: e.target.value })}
                   placeholder="مثال: شرط تسوية المستحقات عند الإنهاء المبكر"
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">نص البند القانوني</label>
+                <label className="text-xs font-semibold text-[#141414] block mb-1">نص البند القانوني</label>
                 <textarea
                   rows={4}
                   required
                   value={newClauseForm.text}
                   onChange={(e) => setNewClauseForm({ ...newClauseForm, text: e.target.value })}
                   placeholder="اكتب الصياغة القانونية والالتزامات المترتبة على الطرفين..."
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-zinc-100">
+              <div className="flex justify-end gap-3 pt-3 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddClauseModal(false)}
@@ -758,20 +758,20 @@ export const RentPackagesPage: React.FC = () => {
       {/* SAUDI E-COMMERCE LAW ART. 18 & IMPLEMENTING REGULATION ART. 7 PRE-PAYMENT CHECKOUT MODAL */}
       {checkoutDisclosure && (
         <div role="dialog" aria-modal="true" onClick={() => setCheckoutDisclosure(null)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] w-full max-w-xl border border-zinc-200 text-right max-h-[90vh] overflow-y-auto">
-            <div className="p-5 border-b border-zinc-200 flex items-center justify-between bg-[#141414] text-white">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] w-full max-w-xl border border-[#e0e0e0] text-right max-h-[90vh] overflow-y-auto">
+            <div className="p-5 border-b border-[#e0e0e0] flex items-center justify-between bg-[#141414] text-white">
               <div>
                 <h3 className="text-sm font-black m-0">
                   إفصاح التعاقد والدفع المتكرر قبل السداد (Saudi E-Commerce Law Art. 18 & Reg Art. 7)
                 </h3>
-                <p className="text-[11px] text-zinc-300 m-0 mt-0.5">
+                <p className="text-[11px] text-[#adadad] m-0 mt-0.5">
                   الباقة المختارة: {checkoutDisclosure.packageName} ({checkoutDisclosure.packageId})
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setCheckoutDisclosure(null)}
-                className="p-1.5 rounded-full bg-zinc-800 text-white hover:bg-zinc-700 cursor-pointer"
+                className="p-1.5 rounded-full bg-[#262626] text-white hover:bg-[#141414] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -857,7 +857,7 @@ export const RentPackagesPage: React.FC = () => {
               </div>
 
               {/* 5. Explicit Obligation Checkbox & Button */}
-              <label className="flex items-start gap-2 text-xs font-bold text-[#141414] cursor-pointer p-3 rounded-2xl bg-zinc-50 border border-[#141414]">
+              <label className="flex items-start gap-2 text-xs font-bold text-[#141414] cursor-pointer p-3 rounded-2xl bg-[#f3f3f3] border border-[#141414]">
                 <input
                   type="checkbox"
                   checked={checkoutAcknowledged}
@@ -869,7 +869,7 @@ export const RentPackagesPage: React.FC = () => {
                 </span>
               </label>
 
-              <div className="flex flex-col sm:flex-row justify-end gap-2.5 pt-2 border-t border-zinc-200">
+              <div className="flex flex-col sm:flex-row justify-end gap-2.5 pt-2 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setCheckoutDisclosure(null)}

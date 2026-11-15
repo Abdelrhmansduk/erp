@@ -177,7 +177,7 @@ export const SaudiAssistantMascot: React.FC<SaudiAssistantMascotProps> = ({
       {/* Speech Bubble / Dynamic Greeting Card */}
       <div 
         key={`${selectedPortal.id}-${persona}`}
-        className="speech-bubble-anim relative z-30 max-w-[340px] mb-2 p-3.5 rounded-2xl bg-white/95 backdrop-blur-md border border-zinc-200 shadow-xl text-right cursor-pointer hover:border-[#141414] transition-colors"
+        className="speech-bubble-anim relative z-30 max-w-[340px] mb-2 p-3.5 rounded-2xl bg-white/95 backdrop-blur-md border border-[#e0e0e0]  text-right cursor-pointer hover:border-[#141414] transition-colors"
         style={{
           boxShadow: '0 16px 32px -8px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04)'
         }}
@@ -185,7 +185,7 @@ export const SaudiAssistantMascot: React.FC<SaudiAssistantMascotProps> = ({
       >
         {/* Pointer Triangle */}
         <div 
-          className="absolute -bottom-2 w-3.5 h-3.5 bg-white border-b border-l border-zinc-200 rotate-[-45deg]"
+          className="absolute -bottom-2 w-3.5 h-3.5 bg-white border-b border-l border-[#e0e0e0] rotate-[-45deg]"
           style={{
             [isRtl ? 'right' : 'left']: '48px',
             boxShadow: '2px 2px 4px rgba(0,0,0,0.03)'
@@ -193,10 +193,10 @@ export const SaudiAssistantMascot: React.FC<SaudiAssistantMascotProps> = ({
         />
 
         {/* Header with Live Status Dot and Persona Switcher */}
-        <div className="flex items-center justify-between gap-2 mb-1.5 pb-1.5 border-b border-zinc-100">
+        <div className="flex items-center justify-between gap-2 mb-1.5 pb-1.5 border-b border-[#e0e0e0]">
           <div className="flex items-center gap-1.5">
             <span className="live-pulse-dot" />
-            <span className="text-[11px] font-bold text-zinc-900 flex items-center gap-1">
+            <span className="text-[11px] font-bold text-[#141414] flex items-center gap-1">
               <span>{persona === 'noura' ? 'نُورة • المرشدة الرقمية' : 'فارس • المرشد الرقمي'}</span>
             </span>
           </div>
@@ -204,7 +204,7 @@ export const SaudiAssistantMascot: React.FC<SaudiAssistantMascotProps> = ({
           <div className="flex items-center gap-1.5 shrink-0">
             {/* Persona Switcher Pill */}
             <div 
-              className="inline-flex items-center bg-zinc-100 rounded-full p-0.5 border border-zinc-200 shrink-0"
+              className="inline-flex items-center bg-[#f3f3f3] rounded-full p-0.5 border border-[#e0e0e0] shrink-0"
               onClick={(e) => e.stopPropagation()}
             >
               <button
@@ -215,8 +215,8 @@ export const SaudiAssistantMascot: React.FC<SaudiAssistantMascotProps> = ({
                 }}
                 className={`px-2 py-0.5 rounded-full text-[9.5px] font-bold transition-all cursor-pointer ${
                   persona === 'faris'
-                    ? 'bg-white text-zinc-950 shadow-xs border border-zinc-200/80'
-                    : 'text-[#707070] hover:text-zinc-800'
+                    ? 'bg-white text-[#141414]  border border-[#e0e0e0]'
+                    : 'text-[#707070] hover:text-[#141414]'
                 }`}
               >
                 <span className="inline-flex items-center gap-1"><img src="/mascot.webp" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/mascot.png'; }} alt="فارس" className="w-3.5 h-3.5 rounded-full object-cover object-top bg-white" /><span>فارس</span></span>
@@ -229,8 +229,8 @@ export const SaudiAssistantMascot: React.FC<SaudiAssistantMascotProps> = ({
                 }}
                 className={`px-2 py-0.5 rounded-full text-[9.5px] font-bold transition-all cursor-pointer ${
                   persona === 'noura'
-                    ? 'bg-white text-[#141414] shadow-xs border border-[#e0e0e0]'
-                    : 'text-[#707070] hover:text-zinc-800'
+                    ? 'bg-white text-[#141414]  border border-[#e0e0e0]'
+                    : 'text-[#707070] hover:text-[#141414]'
                 }`}
               >
                 <span className="inline-flex items-center gap-1"><img src="/noura.webp" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/noura.png'; }} alt="نُورة" className="w-3.5 h-3.5 rounded-full object-cover object-top bg-white" /><span>نُورة</span></span>
@@ -247,17 +247,17 @@ export const SaudiAssistantMascot: React.FC<SaudiAssistantMascotProps> = ({
         </div>
 
         {/* Greeting Title */}
-        <h4 className="text-[13px] font-bold text-zinc-900 mb-1 leading-snug">
+        <h4 className="text-[13px] font-bold text-[#141414] mb-1 leading-snug">
           {greeting.title}
         </h4>
 
         {/* Greeting Description */}
-        <p className="text-[11px] text-zinc-600 leading-relaxed m-0">
+        <p className="text-[11px] text-[#707070] leading-relaxed m-0">
           {greeting.desc}
         </p>
 
         {/* Interactive Chat Prompt Button */}
-        <div className="mt-2.5 pt-2 border-t border-zinc-100 flex items-center justify-between text-[10.5px]">
+        <div className="mt-2.5 pt-2 border-t border-[#e0e0e0] flex items-center justify-between text-[10.5px]">
           <span className="font-bold text-[#141414] flex items-center gap-1 whitespace-nowrap">
             <span>{persona === 'noura' ? 'تحدثي مع نُورة' : 'تحدث مع فارس'}</span>
             <span>←</span>
@@ -275,7 +275,7 @@ export const SaudiAssistantMascot: React.FC<SaudiAssistantMascotProps> = ({
             className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9.5px] font-bold border transition-all cursor-pointer ${
               isAudioPlaying
                 ? 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0] animate-pulse'
-                : 'bg-zinc-100 hover:bg-[#eaeaea] text-zinc-700 hover:text-[#141414] border-zinc-200'
+                : 'bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[#141414] hover:text-[#141414] border-[#e0e0e0]'
             }`}
             title={isAudioPlaying ? 'إيقاف الصوت' : `استمع لصوت ${persona === 'noura' ? 'نُورة' : 'فارس'}`}
           >
@@ -300,11 +300,11 @@ export const SaudiAssistantMascot: React.FC<SaudiAssistantMascotProps> = ({
               e.currentTarget.src = persona === 'noura' ? '/noura.png' : '/mascot.png';
             }}
             alt={persona === 'noura' ? 'نُورة المستشارة الرقمية' : 'فارس المستشار الرقمي'}
-            className="w-full h-full object-contain object-bottom drop-shadow-[0_12px_20px_rgba(0,0,0,0.22)] group-hover/mascot:scale-105 transition-transform duration-300"
+            className="w-full h-full object-contain object-bottom drop- group-hover/mascot:scale-105 transition-transform duration-300"
           />
         </div>
-        <div className="-mt-2 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold shadow-lg transition-all">
-          <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
+        <div className="-mt-2 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold  transition-all">
+          <span className="w-2 h-2 rounded-full bg-[#707070] animate-pulse" />
           <span>{persona === 'noura' ? 'نُورة • المستشارة الرقمية' : 'فارس • المستشار الرقمي'}</span>
         </div>
       </button>

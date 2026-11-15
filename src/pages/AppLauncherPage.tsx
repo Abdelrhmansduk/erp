@@ -526,13 +526,13 @@ const ALL_SYSTEM_APPS: AppTile[] = [
   },
   {
     id: 'hr-accruals-ias19',
-    titleKey: 'jisr-accruals',
+    titleKey: 'hr-accruals',
     defaultTitle: 'المخصصات الشهرية ومراكز التكلفة (IAS 19)',
     subKey: 'hrAccrualsSub',
     defaultSubtitle: 'احتساب وترحيل مخصصات نهاية الخدمة والإجازات السنوية وتذاكر السفر وتوزيع مراكز التكلفة.',
     icon: Scale,
     emoji: '',
-    href: 'jisr-accruals',
+    href: 'hr-accruals',
     category: 'finance',
     categoryLabel: 'المالية والمحاسبة • IAS 19',
     smaccCode: 'FIN-HR1',
@@ -540,13 +540,13 @@ const ALL_SYSTEM_APPS: AppTile[] = [
   },
   {
     id: 'hr-expenses-zatca',
-    titleKey: 'jisr-expenses',
+    titleKey: 'hr-expenses',
     defaultTitle: 'النفقات وفواتير ZATCA والانتدابات',
     subKey: 'hrExpensesSub',
     defaultSubtitle: 'مطالبات مصروفات الموظفين، قارئ فواتير ZATCA QR المانع للتكرار، وبدلات السفر والانتداب.',
     icon: QrCode,
     emoji: '',
-    href: 'jisr-expenses',
+    href: 'hr-expenses',
     category: 'finance',
     categoryLabel: 'المالية والمحاسبة • عهد ونفقات',
     smaccCode: 'FIN-HR2',
@@ -554,13 +554,13 @@ const ALL_SYSTEM_APPS: AppTile[] = [
   },
   {
     id: 'hr-alerts-compliance',
-    titleKey: 'jisr-alerts-compliance',
+    titleKey: 'hr-alerts-compliance',
     defaultTitle: 'رادار التنبيهات والجزاءات والراتب المرن ونطاقات',
     subKey: 'hrAlertsComplianceSub',
     defaultSubtitle: 'تنبيهات الإقامة والتجربة (م53)، لائحة الجزاءات (م66-72)، الراتب المرن المستحق، ورقابة نطاقات.',
     icon: ShieldCheck,
     emoji: '',
-    href: 'jisr-alerts-compliance',
+    href: 'hr-alerts-compliance',
     category: 'hr',
     categoryLabel: 'شؤون الموظفين • الامتثال ونطاقات',
     smaccCode: 'HR-13',
@@ -568,13 +568,13 @@ const ALL_SYSTEM_APPS: AppTile[] = [
   },
   {
     id: 'hr-org-muqeem',
-    titleKey: 'jisr-org-muqeem',
+    titleKey: 'hr-org-muqeem',
     defaultTitle: 'الهيكل التنظيمي ومكتب مقيم والخطابات',
     subKey: 'hrOrgMuqeemSub',
     defaultSubtitle: 'الهيكل التنظيمي التفاعلي، عمليات تجديد الإقامة والتأشيرات في مقيم، واستوديو الخطابات الرسمية.',
     icon: Building2,
     emoji: '',
-    href: 'jisr-org-muqeem',
+    href: 'hr-org-muqeem',
     category: 'hr',
     categoryLabel: 'شؤون الموظفين • مقيم والخطابات',
     smaccCode: 'HR-14',
@@ -582,13 +582,13 @@ const ALL_SYSTEM_APPS: AppTile[] = [
   },
   {
     id: 'hr-talent-360',
-    titleKey: 'jisr-talent-360',
+    titleKey: 'hr-talent-360',
     defaultTitle: 'التوظيف الداخلي وتقييم 360° وإخلاء الطرف',
     subKey: 'hrTalent360Sub',
     defaultSubtitle: 'إدارة شواغر التوظيف، تقييم الأداء 360 درجة، وإجراءات إخلاء الطرف والمخالصة النهائية.',
     icon: TrendingUp,
     emoji: '',
-    href: 'jisr-talent-360',
+    href: 'hr-talent-360',
     category: 'hr',
     categoryLabel: 'شؤون الموظفين • الأداء والمخالصات',
     smaccCode: 'HR-15',
@@ -596,13 +596,13 @@ const ALL_SYSTEM_APPS: AppTile[] = [
   },
   {
     id: 'hr-shifts-overtime',
-    titleKey: 'jisr-shifts-overtime',
+    titleKey: 'hr-shifts-overtime',
     defaultTitle: 'المناوبات والعمل الإضافي (م107) والتعاميم',
     subKey: 'hrShiftsOvertimeSub',
     defaultSubtitle: 'جدولة الورديات، احتساب ساعات العمل الإضافي وفق المادة 107، وإصدار التعاميم الإدارية.',
     icon: Clock,
     emoji: '',
-    href: 'jisr-shifts-overtime',
+    href: 'hr-shifts-overtime',
     category: 'hr',
     categoryLabel: 'شؤون الموظفين • المناوبات و م107',
     smaccCode: 'HR-16',
@@ -610,13 +610,13 @@ const ALL_SYSTEM_APPS: AppTile[] = [
   },
   {
     id: 'hr-welcome-signage',
-    titleKey: 'jisr-welcome-signage',
+    titleKey: 'hr-welcome-signage',
     defaultTitle: 'الترحيب بالموظف الجديد وشاشات العرض الذكية',
     subKey: 'hrWelcomeSignageSub',
     defaultSubtitle: 'لوحة الترحيب بالمنضمين الجدد والمناسبات وإدارة شاشات العرض التلفزيونية في الفروع.',
     icon: Radio,
     emoji: '',
-    href: 'jisr-welcome-signage',
+    href: 'hr-welcome-signage',
     category: 'hr',
     categoryLabel: 'شؤون الموظفين • الشاشات التفاعلية',
     smaccCode: 'HR-17',
@@ -624,13 +624,13 @@ const ALL_SYSTEM_APPS: AppTile[] = [
   },
   {
     id: 'hr-arrears-b2b',
-    titleKey: 'jisr-arrears-b2b',
+    titleKey: 'hr-arrears-b2b',
     defaultTitle: 'الأثر الرجعي والمسيرات الإضافية ودفعات البنوك B2B',
     subKey: 'hrArrearsB2bSub',
     defaultSubtitle: 'تقويم قطع الرواتب، احتساب الفروقات بأثر رجعي، المسيرات المستقلة، وملفات الصرف البنكي المباشر.',
     icon: Wallet,
     emoji: '',
-    href: 'jisr-arrears-b2b',
+    href: 'hr-arrears-b2b',
     category: 'hr',
     categoryLabel: 'الرواتب والمالية • B2B WPS',
     smaccCode: 'HR-18',
@@ -638,13 +638,13 @@ const ALL_SYSTEM_APPS: AppTile[] = [
   },
   {
     id: 'hr-cards-rollover',
-    titleKey: 'jisr-cards-rollover',
+    titleKey: 'hr-cards-rollover',
     defaultTitle: 'البطاقات المؤسسية وترحيل وتسييل الإجازات',
     subKey: 'hrCardsRolloverSub',
     defaultSubtitle: 'إدارة بطاقات النفقات المؤسسية وأسقف الفئات، ومحرك الترحيل السنوي وتسييل الإجازات (م111).',
     icon: CreditCard,
     emoji: '',
-    href: 'jisr-cards-rollover',
+    href: 'hr-cards-rollover',
     category: 'hr',
     categoryLabel: 'الرواتب والمالية • البطاقات والإجازات',
     smaccCode: 'HR-19',
@@ -652,13 +652,13 @@ const ALL_SYSTEM_APPS: AppTile[] = [
   },
   {
     id: 'hr-workflows-pulse',
-    titleKey: 'jisr-workflows-pulse',
+    titleKey: 'hr-workflows-pulse',
     defaultTitle: 'منشئ الطلبات والتوقيع OTP وبوابة التوظيف وeNPS',
     subKey: 'hrWorkflowsPulseSub',
     defaultSubtitle: 'تصميم مسارات الاعتماد المخصصة، التوقيع الإلكتروني الموثق OTP، بوابة التوظيف، واستبيان eNPS.',
     icon: GitPullRequest,
     emoji: '',
-    href: 'jisr-workflows-pulse',
+    href: 'hr-workflows-pulse',
     category: 'hr',
     categoryLabel: 'شؤون الموظفين • الأتمتة و OTP',
     smaccCode: 'HR-20',
@@ -949,8 +949,8 @@ interface CategoryMeta {
 
 /**
  * Strict Adherence to Original Institutional Theme:
- * Primary Ink (#141414), Warm Cream Canvas (#f3f3f3), Pure White Cards (#FFFFFF),
- * Champagne Gold Accents (#141414 / #FAEBD7), Hairline Borders (#E4E4E7).
+ * Primary Ink (#141414), Warm Cream Canvas (#f3f3f3), Pure White Cards (#ffffff),
+ * Champagne Gold Accents (#141414 / #f3f3f3), Hairline Borders (#e0e0e0).
  */
 interface AppIconPalette {
   squircle: string;
@@ -963,72 +963,72 @@ function getAppIconPalette(categoryLabel: string): AppIconPalette {
   if (label.includes('العهد') || label.includes('سلف') || label.includes('أصول')) {
     return {
       squircle:
-        'bg-[#ecfdf5] group-hover:bg-[#059669] text-[#059669] group-hover:text-[#ffffff] border-[#a7f3d0] group-hover:border-[#059669]',
-      action: 'text-[#059669]',
-      tag: 'bg-[#ecfdf5] text-[#047857] border border-[#bbf7d0]',
+        'bg-[#f3f3f3] group-hover:bg-[#707070] text-[#707070] group-hover:text-[#ffffff] border-[#e0e0e0] group-hover:border-[#707070]',
+      action: 'text-[#707070]',
+      tag: 'bg-[#f3f3f3] text-[#262626] border border-[#e0e0e0]',
     };
   }
   if (label.includes('الدوام') || label.includes('حضور') || label.includes('مشتريات')) {
     return {
       squircle:
-        'bg-[#f0fdfa] group-hover:bg-[#0d9488] text-[#0d9488] group-hover:text-[#ffffff] border-[#99f6e4] group-hover:border-[#0d9488]',
-      action: 'text-[#0d9488]',
-      tag: 'bg-[#f0fdfa] text-[#0f766e] border border-[#99f6e4]',
+        'bg-[#ffffff] group-hover:bg-[#707070] text-[#707070] group-hover:text-[#ffffff] border-[#e0e0e0] group-hover:border-[#707070]',
+      action: 'text-[#707070]',
+      tag: 'bg-[#ffffff] text-[#262626] border border-[#e0e0e0]',
     };
   }
   if (label.includes('الذاتية') || label.includes('خدمة') || label.includes('التقارير')) {
     return {
       squircle:
-        'bg-[#f0f9ff] group-hover:bg-[#0284c7] text-[#0284c7] group-hover:text-[#ffffff] border-[#bae6fd] group-hover:border-[#0284c7]',
-      action: 'text-[#0284c7]',
-      tag: 'bg-[#f0f9ff] text-[#0369a1] border border-[#bae6fd]',
+        'bg-[#f3f3f3] group-hover:bg-[#707070] text-[#707070] group-hover:text-[#ffffff] border-[#e0e0e0] group-hover:border-[#707070]',
+      action: 'text-[#707070]',
+      tag: 'bg-[#f3f3f3] text-[#262626] border border-[#e0e0e0]',
     };
   }
   if (label.includes('الربط') || label.includes('التكامل') || label.includes('تقن')) {
     return {
       squircle:
-        'bg-[#eef2ff] group-hover:bg-[#4f46e5] text-[#4f46e5] group-hover:text-[#ffffff] border-[#c7d2fe] group-hover:border-[#4f46e5]',
-      action: 'text-[#4f46e5]',
-      tag: 'bg-[#eef2ff] text-[#4338ca] border border-[#c7d2fe]',
+        'bg-[#f3f3f3] group-hover:bg-[#262626] text-[#262626] group-hover:text-[#ffffff] border-[#e0e0e0] group-hover:border-[#262626]',
+      action: 'text-[#262626]',
+      tag: 'bg-[#f3f3f3] text-[#262626] border border-[#e0e0e0]',
     };
   }
   if (label.includes('الحوكمة') || label.includes('الامتثال') || label.includes('الأمان')) {
     return {
       squircle:
-        'bg-[#f5f3ff] group-hover:bg-[#7c3aed] text-[#7c3aed] group-hover:text-[#ffffff] border-[#ddd6fe] group-hover:border-[#7c3aed]',
-      action: 'text-[#7c3aed]',
-      tag: 'bg-[#f5f3ff] text-[#6d28d9] border border-[#ddd6fe]',
+        'bg-[#f3f3f3] group-hover:bg-[#707070] text-[#707070] group-hover:text-[#ffffff] border-[#e0e0e0] group-hover:border-[#707070]',
+      action: 'text-[#707070]',
+      tag: 'bg-[#f3f3f3] text-[#262626] border border-[#e0e0e0]',
     };
   }
   if (label.includes('المال') || label.includes('المحاسب') || label.includes('خزينة')) {
     return {
       squircle:
-        'bg-[#ecfdf5] group-hover:bg-[#16a34a] text-[#16a34a] group-hover:text-[#ffffff] border-[#bbf7d0] group-hover:border-[#16a34a]',
-      action: 'text-[#16a34a]',
-      tag: 'bg-[#ecfdf5] text-[#15803d] border border-[#bbf7d0]',
+        'bg-[#f3f3f3] group-hover:bg-[#707070] text-[#707070] group-hover:text-[#ffffff] border-[#e0e0e0] group-hover:border-[#707070]',
+      action: 'text-[#707070]',
+      tag: 'bg-[#f3f3f3] text-[#262626] border border-[#e0e0e0]',
     };
   }
   if (label.includes('مبيعات') || label.includes('عملاء') || label.includes('إيواء')) {
     return {
       squircle:
-        'bg-[#fffbeb] group-hover:bg-[#d97706] text-[#d97706] group-hover:text-[#ffffff] border-[#fde68a] group-hover:border-[#d97706]',
-      action: 'text-[#d97706]',
-      tag: 'bg-[#fffbeb] text-[#b45309] border border-[#fde68a]',
+        'bg-[#ffffff] group-hover:bg-[#707070] text-[#707070] group-hover:text-[#ffffff] border-[#e0e0e0] group-hover:border-[#707070]',
+      action: 'text-[#707070]',
+      tag: 'bg-[#ffffff] text-[#707070] border border-[#e0e0e0]',
     };
   }
   if (label.includes('الموارد') || label.includes('الرواتب') || label.includes('موظف')) {
     return {
       squircle:
-        'bg-[#eff6ff] group-hover:bg-[#2563eb] text-[#2563eb] group-hover:text-[#ffffff] border-[#bfdbfe] group-hover:border-[#2563eb]',
-      action: 'text-[#2563eb]',
-      tag: 'bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe]',
+        'bg-[#f3f3f3] group-hover:bg-[#707070] text-[#707070] group-hover:text-[#ffffff] border-[#e0e0e0] group-hover:border-[#707070]',
+      action: 'text-[#707070]',
+      tag: 'bg-[#f3f3f3] text-[#262626] border border-[#e0e0e0]',
     };
   }
   return {
     squircle:
-      'bg-[#fff1f2] group-hover:bg-[#e11d48] text-[#e11d48] group-hover:text-[#ffffff] border-[#fecdd3] group-hover:border-[#e11d48]',
-    action: 'text-[#e11d48]',
-    tag: 'bg-[#fff1f2] text-[#be123c] border border-[#fecdd3]',
+      'bg-[#f3f3f3] group-hover:bg-[#262626] text-[#262626] group-hover:text-[#ffffff] border-[#e0e0e0] group-hover:border-[#262626]',
+    action: 'text-[#262626]',
+    tag: 'bg-[#f3f3f3] text-[#262626] border border-[#e0e0e0]',
   };
 }
 
@@ -1038,7 +1038,7 @@ const CATEGORY_STYLES: Record<string, CategoryMeta> = {
     label: 'الإدارة المالية والمحاسبة',
     emoji: '',
     cellBg: 'bg-[#ffffff]',
-    cellHover: 'hover:bg-[#fafafa]',
+    cellHover: 'hover:bg-[#ffffff]',
     titleColor: 'text-[#141414]',
     subColor: 'text-[#707070]',
     iconBg: 'bg-[#f3f3f3]',
@@ -1057,7 +1057,7 @@ const CATEGORY_STYLES: Record<string, CategoryMeta> = {
     label: 'العمليات والاستقدام والتأجير',
     emoji: '',
     cellBg: 'bg-[#ffffff]',
-    cellHover: 'hover:bg-[#fafafa]',
+    cellHover: 'hover:bg-[#ffffff]',
     titleColor: 'text-[#141414]',
     subColor: 'text-[#707070]',
     iconBg: 'bg-[#f3f3f3]',
@@ -1076,7 +1076,7 @@ const CATEGORY_STYLES: Record<string, CategoryMeta> = {
     label: 'خدمة العملاء والمبيعات',
     emoji: '',
     cellBg: 'bg-[#ffffff]',
-    cellHover: 'hover:bg-[#fafafa]',
+    cellHover: 'hover:bg-[#ffffff]',
     titleColor: 'text-[#141414]',
     subColor: 'text-[#707070]',
     iconBg: 'bg-[#f3f3f3]',
@@ -1095,7 +1095,7 @@ const CATEGORY_STYLES: Record<string, CategoryMeta> = {
     label: 'الموارد البشرية والوكلاء',
     emoji: '',
     cellBg: 'bg-[#ffffff]',
-    cellHover: 'hover:bg-[#fafafa]',
+    cellHover: 'hover:bg-[#ffffff]',
     titleColor: 'text-[#141414]',
     subColor: 'text-[#707070]',
     iconBg: 'bg-[#f3f3f3]',
@@ -1114,7 +1114,7 @@ const CATEGORY_STYLES: Record<string, CategoryMeta> = {
     label: 'القيادة والمنافسات والحوكمة',
     emoji: '',
     cellBg: 'bg-[#ffffff]',
-    cellHover: 'hover:bg-[#fafafa]',
+    cellHover: 'hover:bg-[#ffffff]',
     titleColor: 'text-[#141414]',
     subColor: 'text-[#707070]',
     iconBg: 'bg-[#f3f3f3]',
@@ -1133,7 +1133,7 @@ const CATEGORY_STYLES: Record<string, CategoryMeta> = {
     label: 'الأمان والامتثال والإعدادات',
     emoji: '',
     cellBg: 'bg-[#ffffff]',
-    cellHover: 'hover:bg-[#fafafa]',
+    cellHover: 'hover:bg-[#ffffff]',
     titleColor: 'text-[#141414]',
     subColor: 'text-[#707070]',
     iconBg: 'bg-[#f3f3f3]',
@@ -1282,7 +1282,7 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
         {/* Search Bar & Primary Actions */}
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           <div className="relative flex items-center">
-            <Search className="w-4 h-4 text-[#0284c7] absolute right-3 pointer-events-none" data-colored-icon="true" />
+            <Search className="w-4 h-4 text-[#707070] absolute right-3 pointer-events-none" data-colored-icon="true" />
             <input
               type="text"
               aria-label="ابحث في بطاقات صلاحياتك"
@@ -1303,10 +1303,10 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
                 })
               )
             }
-            className="bg-[#ecfdf5] hover:bg-[#d1fae5] text-[#047857] border border-[#a7f3d0] flex items-center gap-1.5 text-xs px-3 py-2 rounded-full font-bold min-h-[36px] transition-all cursor-pointer"
+            className="bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[#262626] border border-[#e0e0e0] flex items-center gap-1.5 text-xs px-3 py-2 rounded-full font-bold min-h-[36px] transition-all cursor-pointer"
             title="عرض بطاقة الباركود الوظيفي وحالة البصمة للجلسة"
           >
-            <Fingerprint className="w-3.5 h-3.5 shrink-0 text-[#059669]" data-colored-icon="true" />
+            <Fingerprint className="w-3.5 h-3.5 shrink-0 text-[#707070]" data-colored-icon="true" />
             <span className="hidden lg:inline">
               {sessionStamp
                 ? `بصمة الدخول: ${sessionStamp.checkInTime} • الباركود`
@@ -1324,7 +1324,7 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
               )
             }
           >
-            <LayoutDashboard className="w-3.5 h-3.5 text-[#38bdf8]" data-colored-icon="true" />
+            <LayoutDashboard className="w-3.5 h-3.5 text-[#707070]" data-colored-icon="true" />
             <span className="hidden md:inline">فتح شاشة القسم الرئيسية</span>
             <span className="md:hidden">شاشة القسم</span>
           </button>
@@ -1333,10 +1333,10 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
             type="button"
             data-slot="launcher-logout-btn"
             onClick={() => onSelectApp('logout', 'تسجيل الخروج')}
-            className="bg-[#fff1f2] hover:bg-[#ffe4e6] text-[#be123c] border border-[#fecdd3] flex items-center gap-1.5 text-xs px-3.5 py-2 rounded-full font-bold min-h-[36px] transition-all cursor-pointer"
+            className="bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[#262626] border border-[#e0e0e0] flex items-center gap-1.5 text-xs px-3.5 py-2 rounded-full font-bold min-h-[36px] transition-all cursor-pointer"
             title="تسجيل الخروج وتوثيق بصمة الانصراف بالكاميرا أو الباركود"
           >
-            <LogOut className="w-3.5 h-3.5 text-[#e11d48]" data-colored-icon="true" />
+            <LogOut className="w-3.5 h-3.5 text-[#262626]" data-colored-icon="true" />
             <span className="hidden sm:inline">تسجيل الخروج</span>
           </button>
         </div>
@@ -1487,7 +1487,7 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
         </div>
 
         {filteredApps.length === 0 && (
-          <div className="bg-white border border-zinc-200 rounded-3xl p-12 text-center text-[#707070] flex flex-col items-center">
+          <div className="bg-white border border-[#e0e0e0] rounded-3xl p-12 text-center text-[#707070] flex flex-col items-center">
             <BusinessIllustration type="empty-search" size="md" className="mb-3" />
             <p className="font-bold text-[#141414] text-sm">لم يتم العثور على أي وحدة تطابق بحثك في قسمك</p>
             <p className="text-xs text-[#707070] mt-1">
@@ -1500,7 +1500,7 @@ export const AppLauncherPage: React.FC<AppLauncherPageProps> = ({ onSelectApp })
       {/* Institutional Footer */}
       <footer className="bg-white border-t border-[#f0f0f0] py-4 px-4 sm:px-8 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#707070] mt-auto">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-[#059669]" data-colored-icon="true" />
+          <ShieldCheck className="w-4 h-4 text-[#707070]" data-colored-icon="true" />
           <span className="font-semibold text-[#141414]">
             {isKasTradeStandalone
               ? 'شركة كاس للتجارة والمنافسات (KAS) • المنظومة التجارية السحابية المستقلة (منفصلة كلياً عن الاستقدام)'

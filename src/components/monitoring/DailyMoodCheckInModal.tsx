@@ -89,7 +89,7 @@ export const DailyMoodCheckInModal: React.FC<DailyMoodCheckInModalProps> = ({
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#141414]/60 backdrop-blur-sm transition-all duration-300" dir="rtl">
       <div 
-        className="relative w-full max-w-xl overflow-hidden rounded-[24px] bg-[#ffffff] border border-[#e0e0e0] shadow-2xl text-[#141414] animate-in fade-in zoom-in-95 duration-200"
+        className="relative w-full max-w-xl overflow-hidden rounded-[24px] bg-[#ffffff] border border-[#e0e0e0]  text-[#141414] animate-in fade-in zoom-in-95 duration-200"
       >
         {/* Header — Mobbin Pure Light Mode */}
         <div className="flex items-center justify-between p-5 sm:p-6 border-b border-[#e0e0e0] bg-[#ffffff]">

@@ -20,7 +20,7 @@ import {
   decodeZatcaQrTlvBase64,
   computeReceiptFingerprint,
   type DecodedZatcaReceiptQr,
-} from '../../services/jisrAdvancedComplianceEngine';
+} from '../../services/hrAdvancedComplianceEngine';
 import { ExportDropdown } from '../common/ExportDropdown';
 import { Badge } from '../ui/Badge';
 

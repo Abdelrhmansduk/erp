@@ -143,7 +143,7 @@ export const FilterBar: React.FC<IFilterBarProps> = ({
           className={`min-h-[40px] px-4 py-1.5 rounded-full text-xs font-bold transition-colors duration-150 flex items-center gap-1.5 shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#141414] ${
             isActive
               ? 'bg-[#141414] text-[#ffffff] border border-[#141414]'
-              : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#eaeaea]'
+              : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#f3f3f3]'
           }`}
         >
           <span>{opt.label}</span>
@@ -283,7 +283,7 @@ export const AsyncActionButton: React.FC<IAsyncActionButtonProps> = ({
   const baseClass =
     variant === 'primary'
       ? 'bg-[#141414] text-[#ffffff] border border-[#141414] hover:bg-[#262626]'
-      : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#eaeaea]';
+      : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#f3f3f3]';
 
   return (
     <button

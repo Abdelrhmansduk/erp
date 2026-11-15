@@ -1226,16 +1226,16 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
               setIsOpen(true);
               setShowTooltip(false);
             }}
-            className="group flex items-center gap-0 hover:gap-2 p-1 hover:px-3 hover:py-1.5 bg-[#ffffff]/95 backdrop-blur-xs border border-[#e0e0e0] rounded-full hover:bg-[#f3f3f3] hover:border-[#141414] shadow-md transition-all cursor-pointer"
+            className="group flex items-center gap-0 hover:gap-2 p-1 hover:px-3 hover:py-1.5 bg-[#ffffff]/95 backdrop-blur-xs border border-[#e0e0e0] rounded-full hover:bg-[#f3f3f3] hover:border-[#141414]  transition-all cursor-pointer"
             title={`التحدث مع ${persona === 'noura' ? 'نُورة' : 'فارس'} (Alt + A)`}
           >
-            <div className="relative w-9 h-9 flex-shrink-0 rounded-full bg-[#f5f5f5] border border-[#e0e0e0] overflow-hidden flex items-center justify-center">
+            <div className="relative w-9 h-9 flex-shrink-0 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] overflow-hidden flex items-center justify-center">
               <img
                 src={persona === 'noura' ? '/noura.webp' : '/mascot.webp'} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = persona === 'noura' ? '/noura.png' : '/mascot.png'; }}
                 alt={persona === 'noura' ? 'نُورة' : 'فارس'}
                 className="w-full h-full object-cover object-top"
               />
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#10b981] border-2 border-[#ffffff]" />
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#707070] border-2 border-[#ffffff]" />
             </div>
 
             <div className="max-w-0 overflow-hidden group-hover:max-w-[120px] transition-all duration-200 flex items-center gap-1 whitespace-nowrap">
@@ -1263,7 +1263,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
           {/* Floating Greeting Bubble with Persona Switcher & Dismiss/Dock Button */}
           {showTooltip && (
             <div
-              className="speech-bubble-anim relative mb-2 max-w-[280px] bg-[#ffffff] border border-[#e0e0e0] rounded-[20px] p-3 shadow-xl select-none"
+              className="speech-bubble-anim relative mb-2 max-w-[280px] bg-[#ffffff] border border-[#e0e0e0] rounded-[20px] p-3  select-none"
             >
               {/* Top Control Bar: Persona Switcher & Minimize to Dock */}
               <div className="flex items-center justify-between gap-2 pb-1.5 mb-1.5 border-b border-[#f0f0f0] text-[10.5px]">
@@ -1367,11 +1367,11 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
               <img
                 src={persona === 'noura' ? '/noura.webp' : '/mascot.webp'} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = persona === 'noura' ? '/noura.png' : '/mascot.png'; }}
                 alt={persona === 'noura' ? 'نُورة المستشارة المؤسسية' : 'فارس المستشار التنفيذي'}
-                className="w-full h-full object-contain object-bottom drop-shadow-[0_10px_18px_rgba(0,0,0,0.22)] group-hover/mascot:scale-105 transition-transform duration-300"
+                className="w-full h-full object-contain object-bottom drop- group-hover/mascot:scale-105 transition-transform duration-300"
               />
             </div>
-            <div className="-mt-2 px-3.5 py-1.5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] border border-[#2a2a2a] shadow-lg flex items-center gap-2 transition-all">
-              <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
+            <div className="-mt-2 px-3.5 py-1.5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] border border-[#141414]  flex items-center gap-2 transition-all">
+              <span className="w-2 h-2 rounded-full bg-[#707070] animate-pulse" />
               <span className="text-xs font-bold whitespace-nowrap">
                 {persona === 'noura' ? 'نُورة — مستشارة' : 'فارس — مستشار'}
               </span>
@@ -1385,23 +1385,23 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
         <div
           data-ai-copilot="true"
           data-no-print="true"
-          className="no-print print:hidden speech-bubble-anim fixed inset-x-2.5 bottom-[calc(70px+env(safe-area-inset-bottom,0px))] lg:inset-x-auto lg:bottom-6 lg:left-6 lg:w-[410px] max-w-[calc(100vw-20px)] h-[calc(100dvh-96px-env(safe-area-inset-bottom,0px))] lg:h-[580px] lg:max-h-[82vh] z-[9999] flex flex-col overflow-hidden rounded-[22px] bg-[#ffffff] border border-[#e0e0e0] shadow-2xl"
+          className="no-print print:hidden speech-bubble-anim fixed inset-x-2.5 bottom-[calc(70px+env(safe-area-inset-bottom,0px))] lg:inset-x-auto lg:bottom-6 lg:left-6 lg:w-[410px] max-w-[calc(100vw-20px)] h-[calc(100dvh-96px-env(safe-area-inset-bottom,0px))] lg:h-[580px] lg:max-h-[82vh] z-[9999] flex flex-col overflow-hidden rounded-[22px] bg-[#ffffff] border border-[#e0e0e0] "
           style={{
             fontFamily: 'var(--font-family-ui)',
             direction: 'rtl',
           }}
         >
           {/* Single Compact Header Bar with Faris & Noura Avatars */}
-          <div className="px-3.5 py-2.5 bg-[#ffffff] text-[#141414] border-b border-[#ececec] flex items-center justify-between gap-2 shrink-0">
+          <div className="px-3.5 py-2.5 bg-[#ffffff] text-[#141414] border-b border-[#f3f3f3] flex items-center justify-between gap-2 shrink-0">
             {/* Avatar + Persona Switcher Pill (Right) */}
             <div className="flex items-center gap-2 min-w-0">
-              <div className="relative w-9 h-9 rounded-full bg-[#f5f5f5] border border-[#dcdcdc] overflow-hidden shrink-0">
+              <div className="relative w-9 h-9 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] overflow-hidden shrink-0">
                 <img
                   src={persona === 'noura' ? '/noura.webp' : '/mascot.webp'} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = persona === 'noura' ? '/noura.png' : '/mascot.png'; }}
                   alt={persona === 'noura' ? 'نُورة' : 'فارس'}
                   className="w-full h-full object-cover object-top"
                 />
-                <span className="absolute bottom-0 left-0 w-2.5 h-2.5 rounded-full bg-[#10b981] border-2 border-[#ffffff]" />
+                <span className="absolute bottom-0 left-0 w-2.5 h-2.5 rounded-full bg-[#707070] border-2 border-[#ffffff]" />
               </div>
 
               <div className="inline-flex items-center bg-[#f3f3f3] p-0.5 rounded-full border border-[#e0e0e0]">
@@ -1484,7 +1484,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                 type="button"
                 onClick={handleClearChat}
                 title="محادثة جديدة"
-                className="w-7 h-7 rounded-full flex items-center justify-center bg-[#f3f3f3] text-[#707070] hover:text-[#141414] hover:bg-[#e5e5e5] transition-all cursor-pointer"
+                className="w-7 h-7 rounded-full flex items-center justify-center bg-[#f3f3f3] text-[#707070] hover:text-[#141414] hover:bg-[#e0e0e0] transition-all cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
@@ -1493,7 +1493,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                 type="button"
                 onClick={() => setIsOpen(false)}
                 title="إغلاق"
-                className="w-7 h-7 rounded-full flex items-center justify-center bg-[#f3f3f3] text-[#707070] hover:text-[#141414] hover:bg-[#e5e5e5] transition-all cursor-pointer"
+                className="w-7 h-7 rounded-full flex items-center justify-center bg-[#f3f3f3] text-[#707070] hover:text-[#141414] hover:bg-[#e0e0e0] transition-all cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -1502,7 +1502,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
 
           {/* Saudi Neural TTS & VoiceStudio Generator Panel */}
           {showVoiceGuide && (
-            <div className="p-3 bg-[#f8f8f8] border-b border-[#ececec] text-[#141414] shrink-0 text-xs flex flex-col gap-2">
+            <div className="p-3 bg-[#ffffff] border-b border-[#f3f3f3] text-[#141414] shrink-0 text-xs flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 font-bold text-[#141414]">
                   <Radio className="w-3.5 h-3.5 text-[#141414]" />
@@ -1558,7 +1558,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                     }
                   : undefined
               }
-              className="px-3.5 py-1.5 bg-[#f8f8f8] border-b border-[#ececec] text-[#141414] flex items-center justify-between gap-2 cursor-pointer shrink-0"
+              className="px-3.5 py-1.5 bg-[#ffffff] border-b border-[#f3f3f3] text-[#141414] flex items-center justify-between gap-2 cursor-pointer shrink-0"
             >
               <div className="flex items-center gap-1.5">
                 {isSpeaking ? (
@@ -1594,7 +1594,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                   <img
                     src={persona === 'noura' ? '/noura.webp' : '/mascot.webp'} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = persona === 'noura' ? '/noura.png' : '/mascot.png'; }}
                     alt={persona === 'noura' ? 'نُورة' : 'فارس'}
-                    className="w-7 h-7 rounded-full object-cover object-top bg-[#f5f5f5] border border-[#e0e0e0] shrink-0 mt-0.5"
+                    className="w-7 h-7 rounded-full object-cover object-top bg-[#f3f3f3] border border-[#e0e0e0] shrink-0 mt-0.5"
                   />
                 )}
 
@@ -1603,7 +1603,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                     className={`p-3 text-xs sm:text-[12.5px] leading-relaxed ${
                       msg.sender === 'user'
                         ? 'bg-[#141414] text-[#ffffff] rounded-[18px] rounded-tl-xs'
-                        : 'bg-[#f5f5f5] text-[#141414] border border-[#e8e8e8] rounded-[18px] rounded-tr-xs'
+                        : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] rounded-[18px] rounded-tr-xs'
                     }`}
                   >
                     {msg.sender === 'user' ? (
@@ -1644,7 +1644,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
 
                   {/* Inline Tool Approval Card (only when a mutating tool is triggered) */}
                   {msg.toolCall && (
-                    <div className="mt-1 p-3 rounded-[16px] bg-[#ffffff] border border-[#e0e0e0] shadow-xs flex flex-col gap-2">
+                    <div className="mt-1 p-3 rounded-[16px] bg-[#ffffff] border border-[#e0e0e0]  flex flex-col gap-2">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs font-bold text-[#141414] truncate">
                           {msg.toolCall.tool.nameAr}
@@ -1658,7 +1658,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                         </span>
                       </div>
 
-                      <div className="p-2 rounded-[10px] bg-[#f8f8f8] text-[11px] text-[#141414] whitespace-pre-wrap leading-relaxed">
+                      <div className="p-2 rounded-[10px] bg-[#ffffff] text-[11px] text-[#141414] whitespace-pre-wrap leading-relaxed">
                         {msg.toolCall.confirmationSummary}
                       </div>
 
@@ -1677,7 +1677,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                             type="button"
                             onClick={() => handleCancelToolCall(msg.toolCall)}
                             disabled={isExecutingTool}
-                            className="py-1.5 px-3 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] text-xs font-bold cursor-pointer"
+                            className="py-1.5 px-3 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-xs font-bold cursor-pointer"
                           >
                             إلغاء
                           </button>
@@ -1712,7 +1712,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                           switchPersona(msg.suggestedPersonaHandoff.persona);
                         }
                       }}
-                      className="self-start mt-0.5 px-3 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] font-semibold text-[11px] border border-[#e0e0e0] flex items-center gap-1 transition-all cursor-pointer"
+                      className="self-start mt-0.5 px-3 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] font-semibold text-[11px] border border-[#e0e0e0] flex items-center gap-1 transition-all cursor-pointer"
                     >
                       <ArrowRightLeft className="w-3 h-3 text-[#141414]" />
                       <span>التحويل إلى {msg.suggestedPersonaHandoff.persona === 'noura' ? 'نُورة' : 'فارس'}</span>
@@ -1720,7 +1720,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                   )}
 
                   {/* Compact Footer: Time + Copy + Listen */}
-                  <div className="flex items-center justify-between gap-2 px-1 text-[10px] text-[#888888]">
+                  <div className="flex items-center justify-between gap-2 px-1 text-[10px] text-[#707070]">
                     <span>{msg.timestamp}</span>
                     {msg.sender === 'ai' && (
                       <div className="flex items-center gap-2">
@@ -1754,7 +1754,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
             ))}
 
             {isTyping && (
-              <div className="self-end flex items-center gap-2 px-3 py-2 rounded-full bg-[#f5f5f5] border border-[#e8e8e8] text-[#141414] text-[11px]">
+              <div className="self-end flex items-center gap-2 px-3 py-2 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] text-[11px]">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#141414] shrink-0" />
                 <span className="font-semibold">
                   {persona === 'noura' ? 'نُورة تراجع السجلات...' : 'فارس يراجع السجلات...'}
@@ -1765,7 +1765,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
           </div>
 
           {/* Single Slim Quick Suggestions Row Above Input */}
-          <div className="px-3 py-1.5 bg-[#fafafa] border-t border-[#f0f0f0] flex items-center gap-1.5 overflow-x-auto thin-scrollbar shrink-0">
+          <div className="px-3 py-1.5 bg-[#f3f3f3] border-t border-[#f0f0f0] flex items-center gap-1.5 overflow-x-auto thin-scrollbar shrink-0">
             <button
               type="button"
               onClick={handleDailyBriefing}
@@ -1792,7 +1792,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
               e.preventDefault();
               handleSendMessage();
             }}
-            className="p-2.5 bg-[#ffffff] border-t border-[#ececec] flex items-center gap-1.5 shrink-0"
+            className="p-2.5 bg-[#ffffff] border-t border-[#f3f3f3] flex items-center gap-1.5 shrink-0"
           >
             <input
               ref={fileInputRef}
@@ -1807,7 +1807,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
               type="button"
               onClick={() => fileInputRef.current?.click()}
               title="إرفاق ملف أو فاتورة"
-              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 cursor-pointer bg-[#f5f5f5] text-[#141414] hover:bg-[#e8e8e8]"
+              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 cursor-pointer bg-[#f3f3f3] text-[#141414] hover:bg-[#e0e0e0]"
             >
               <Paperclip className="w-4 h-4" />
             </button>
@@ -1819,7 +1819,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
               className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 cursor-pointer ${
                 isListening
                   ? 'bg-[#141414] text-[#ffffff] animate-pulse'
-                  : 'bg-[#f5f5f5] text-[#141414] hover:bg-[#e8e8e8]'
+                  : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#e0e0e0]'
               }`}
             >
               {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
@@ -1837,7 +1837,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                   ? 'اكتبي أمرك لنُورة...'
                   : 'اكتب أمرك لفارس...'
               }
-              className="flex-1 px-3.5 py-2 rounded-full text-xs text-[#141414] placeholder:text-[#888888] outline-none bg-[#f5f5f5] border border-transparent focus:bg-[#ffffff] focus:border-[#141414]"
+              className="flex-1 px-3.5 py-2 rounded-full text-xs text-[#141414] placeholder:text-[#707070] outline-none bg-[#f3f3f3] border border-transparent focus:bg-[#ffffff] focus:border-[#141414]"
             />
 
             <button
@@ -1847,7 +1847,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
               className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 cursor-pointer ${
                 inputQuery.trim()
                   ? 'bg-[#141414] text-[#ffffff] hover:bg-[#262626]'
-                  : 'bg-[#f5f5f5] text-[#bbbbbb] cursor-not-allowed'
+                  : 'bg-[#f3f3f3] text-[#adadad] cursor-not-allowed'
               }`}
             >
               <Send className="w-3.5 h-3.5 rotate-180" />
@@ -1874,7 +1874,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="speech-bubble-anim bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] shadow-2xl overflow-hidden"
+            className="speech-bubble-anim bg-[#ffffff] rounded-[24px] border border-[#e0e0e0]  overflow-hidden"
             style={{
               width: '420px',
               maxWidth: 'calc(100vw - 32px)',
@@ -1882,7 +1882,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
             }}
           >
             {/* Header */}
-            <div className="px-5 py-4 flex items-center gap-3 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5]">
+            <div className="px-5 py-4 flex items-center gap-3 bg-[#ffffff] text-[#141414] border-b border-[#e0e0e0]">
               <div className="w-10 h-10 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center">
                 {pendingToolCall.tool.riskLevel === 'high' || pendingToolCall.tool.riskLevel === 'critical' ? (
                   <ShieldAlert className="w-5 h-5 text-[#141414]" />
@@ -1937,7 +1937,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
                 type="button"
                 onClick={() => handleCancelToolCall()}
                 disabled={isExecutingTool}
-                className="px-4 py-2.5 rounded-full font-semibold text-sm bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#e5e5e5] transition-all cursor-pointer"
+                className="px-4 py-2.5 rounded-full font-semibold text-sm bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#e0e0e0] transition-all cursor-pointer"
               >
                 إلغاء
               </button>

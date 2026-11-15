@@ -213,7 +213,7 @@ export const CorporateDigitalSignagePlayer: React.FC<CorporateDigitalSignagePlay
     return generateRealQrSvg(qrPayload, {
       sizePx: 118,
       darkColor: '#141414',
-      lightColor: '#FFFFFF',
+      lightColor: '#ffffff',
       borderStyle: false,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -225,7 +225,7 @@ export const CorporateDigitalSignagePlayer: React.FC<CorporateDigitalSignagePlay
       widthPx: 188,
       heightPx: 40,
       darkColor: '#141414',
-      lightColor: '#FFFFFF',
+      lightColor: '#ffffff',
       showText: true,
     });
   }, [dailyBadgeIdentity]);
@@ -256,12 +256,12 @@ export const CorporateDigitalSignagePlayer: React.FC<CorporateDigitalSignagePlay
     ? 'bg-[#141414] text-[#ffffff]'
     : 'bg-[#f3f3f3] text-[#141414]';
   const cardBg = darkGalleryMode
-    ? 'bg-[#1f1f1f] border-[#333333] text-[#ffffff]'
+    ? 'bg-[#262626] border-[#262626] text-[#ffffff]'
     : 'bg-[#ffffff] border-[#e0e0e0] text-[#141414]';
   const subtleBg = darkGalleryMode
-    ? 'bg-[#262626] border-[#3a3a3a] text-[#ffffff]'
+    ? 'bg-[#262626] border-[#262626] text-[#ffffff]'
     : 'bg-[#f3f3f3] border-[#e0e0e0] text-[#141414]';
-  const mutedText = darkGalleryMode ? 'text-[#a3a3a3]' : 'text-[#707070]';
+  const mutedText = darkGalleryMode ? 'text-[#adadad]' : 'text-[#707070]';
 
   return (
     <div
@@ -423,7 +423,7 @@ export const CorporateDigitalSignagePlayer: React.FC<CorporateDigitalSignagePlay
                   className={`text-sm sm:text-lg leading-relaxed max-w-3xl border-r-4 pr-4 ${
                     darkGalleryMode
                       ? 'border-[#ffffff] text-[#e0e0e0]'
-                      : 'border-[#141414] text-[#404040]'
+                      : 'border-[#141414] text-[#262626]'
                   }`}
                 >
                   {currentSlide.welcome_quote_ar}

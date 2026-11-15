@@ -96,7 +96,7 @@ const VisibilityToggle: React.FC<ToggleProps> = ({
     onClick={onToggle}
     className={`shrink-0 inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full text-[11px] font-bold border transition-colors ${
       disabled
-        ? 'bg-[#f3f3f3] text-[#9a9a9a] border-[#e0e0e0] cursor-not-allowed'
+        ? 'bg-[#f3f3f3] text-[#707070] border-[#e0e0e0] cursor-not-allowed'
         : visible
           ? 'bg-[#141414] text-[#ffffff] border-[#141414] hover:bg-[#262626] cursor-pointer'
           : 'bg-[#ffffff] text-[#707070] border-[#e0e0e0] hover:bg-[#f3f3f3] hover:text-[#141414] cursor-pointer'
@@ -760,8 +760,8 @@ export const ModuleVisibilityManager: React.FC = () => {
         <div
           className={`flex items-center gap-2 py-2.5 pl-2.5 rounded-[18px] transition-colors ${
             depth === 0
-              ? 'bg-[#f8f8f8] border border-[#e0e0e0] px-3'
-              : 'hover:bg-[#f8f8f8] border border-transparent'
+              ? 'bg-[#ffffff] border border-[#e0e0e0] px-3'
+              : 'hover:bg-[#ffffff] border border-transparent'
           } ${!isVisible ? 'opacity-70' : ''}`}
           style={depth > 0 ? { paddingRight: `${depth * 22 + 10}px` } : undefined}
         >
@@ -986,7 +986,7 @@ export const ModuleVisibilityManager: React.FC = () => {
                   onChange={(e) => setEmployeeSearch(e.target.value)}
                   placeholder="اسم الموظف أو البريد @kas.sa..."
                   aria-label="بحث عن موظف"
-                  className="w-full h-9 pr-8 pl-3 rounded-full border border-[#e0e0e0] bg-[#f8f8f8] text-xs text-[#141414] focus:outline-none focus:border-[#141414]"
+                  className="w-full h-9 pr-8 pl-3 rounded-full border border-[#e0e0e0] bg-[#ffffff] text-xs text-[#141414] focus:outline-none focus:border-[#141414]"
                 />
               </div>
             </div>
@@ -1008,14 +1008,14 @@ export const ModuleVisibilityManager: React.FC = () => {
                   className={`text-right p-3 rounded-[16px] border transition-colors cursor-pointer flex items-start justify-between gap-2 ${
                     isSelected
                       ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
-                      : 'bg-[#f8f8f8] hover:bg-[#f0f0f0] text-[#141414] border-[#e0e0e0]'
+                      : 'bg-[#ffffff] hover:bg-[#f0f0f0] text-[#141414] border-[#e0e0e0]'
                   }`}
                 >
                   <div className="min-w-0 flex-1">
                     <div className="text-xs font-bold truncate">{emp.nameAr}</div>
                     <div
                       className={`text-[10.5px] font-mono truncate mt-0.5 ${
-                        isSelected ? 'text-[#d4d4d4]' : 'text-[#707070]'
+                        isSelected ? 'text-[#e0e0e0]' : 'text-[#707070]'
                       }`}
                     >
                       {emp.email}
@@ -1068,7 +1068,7 @@ export const ModuleVisibilityManager: React.FC = () => {
               <button
                 type="button"
                 onClick={handleResetCurrentDraft}
-                className="h-8 px-3.5 rounded-full border border-[#e0e0e0] bg-[#f8f8f8] hover:bg-[#e0e0e0] text-[#141414] text-[11px] font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="h-8 px-3.5 rounded-full border border-[#e0e0e0] bg-[#ffffff] hover:bg-[#e0e0e0] text-[#141414] text-[11px] font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>إعادة للوضع الافتراضي لقسمه</span>
@@ -1173,7 +1173,7 @@ export const ModuleVisibilityManager: React.FC = () => {
             return (
               <div
                 key={part.id}
-                className={`flex items-center gap-3 py-2.5 px-3 rounded-[16px] border border-[#e0e0e0] bg-[#f8f8f8] ${
+                className={`flex items-center gap-3 py-2.5 px-3 rounded-[16px] border border-[#e0e0e0] bg-[#ffffff] ${
                   hidden ? 'opacity-70' : ''
                 }`}
               >
@@ -1208,7 +1208,7 @@ export const ModuleVisibilityManager: React.FC = () => {
       {status && (
         <div
           role="status"
-          className="p-3.5 rounded-[18px] text-xs font-bold flex items-center gap-2 bg-[#f8f8f8] border border-[#141414] text-[#141414]"
+          className="p-3.5 rounded-[18px] text-xs font-bold flex items-center gap-2 bg-[#ffffff] border border-[#141414] text-[#141414]"
         >
           {status.type === 'success' ? (
             <CheckCircle2 className="w-4 h-4 shrink-0" />

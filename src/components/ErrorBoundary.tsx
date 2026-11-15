@@ -133,8 +133,8 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
           dir="rtl"
           className="min-h-[70vh] flex items-center justify-center p-6 bg-[#f3f3f3] font-sans"
         >
-          <div className="max-w-lg w-full bg-white rounded-3xl p-8 shadow-2xl border-2 border-[#e0e0e0] text-center">
-            <div className="w-16 h-16 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center mx-auto mb-5 shadow-md">
+          <div className="max-w-lg w-full bg-white rounded-3xl p-8  border-2 border-[#e0e0e0] text-center">
+            <div className="w-16 h-16 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center mx-auto mb-5 ">
               <AlertTriangle className="w-8 h-8" />
             </div>
 
@@ -149,13 +149,13 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               تنبيه استعادة جلسة العرض المؤسسية
             </h2>
 
-            <p className="text-sm text-zinc-600 mb-4 leading-relaxed">
+            <p className="text-sm text-[#707070] mb-4 leading-relaxed">
               {this.state.lastIncident?.diagnosisAr ||
                 'حدث تحديث طارئ أثناء عرض هذا القسم. يمكنك استعادة الشاشة فوراً بنقرة واحدة مع الاحتفاظ بكافة بياناتك وسجلاتك المحفوظة.'}
             </p>
 
             {import.meta.env.DEV && this.state.error && (
-              <details className="text-right p-3.5 rounded-xl bg-zinc-100 border border-zinc-200 mb-5 text-xs font-mono text-zinc-700">
+              <details className="text-right p-3.5 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] mb-5 text-xs font-mono text-[#141414]">
                 <summary className="cursor-pointer font-bold mb-2">
                   تفاصيل الخطأ التشخيصية (وضع التطوير)
                 </summary>
@@ -171,7 +171,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               <button
                 type="button"
                 onClick={this.handleReset}
-                className="h-11 px-6 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[#141414] text-sm font-bold inline-flex items-center gap-2 cursor-pointer transition-all shadow-sm"
+                className="h-11 px-6 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[#141414] text-sm font-bold inline-flex items-center gap-2 cursor-pointer transition-all "
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>استعادة الشاشة فوراً</span>
@@ -179,7 +179,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               <button
                 type="button"
                 onClick={this.handleReload}
-                className="h-11 px-6 rounded-xl border border-zinc-300 bg-white hover:bg-zinc-50 text-[#141414] text-sm font-bold inline-flex items-center gap-2 cursor-pointer transition-all"
+                className="h-11 px-6 rounded-xl border border-[#e0e0e0] bg-white hover:bg-[#f3f3f3] text-[#141414] text-sm font-bold inline-flex items-center gap-2 cursor-pointer transition-all"
               >
                 <RefreshCw className="w-4 h-4" />
                 <span>تحديث الصفحة بالكامل</span>

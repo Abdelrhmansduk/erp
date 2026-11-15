@@ -610,7 +610,7 @@ export const CostCentersPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
           display: 'flex',
           flexDirection: 'row',
@@ -634,7 +634,7 @@ export const CostCentersPage: React.FC = () => {
             <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, letterSpacing: '-0.02em', color: '#ffffff', margin: 0, fontFamily: 'var(--font-family-display)' }}>
               مراكز التكلفة والمحاسبة التحليلية
             </h1>
-            <p style={{ fontSize: '13px', color: '#a1a1aa', margin: '4px 0 0 0', fontWeight: 420 }}>
+            <p style={{ fontSize: '13px', color: '#adadad', margin: '4px 0 0 0', fontWeight: 420 }}>
               إدارة الميزانيات المعتمدة والمصروفات الفعلية per Cost Center لـ{' '}
               <strong style={{ color: '#ffffff' }}>{activeCompany.name}</strong>
             </p>
@@ -663,13 +663,13 @@ export const CostCentersPage: React.FC = () => {
       {/* KPI Cards */}
       <div className="stat-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>إجمالي الميزانيات المخصصة</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>إجمالي الميزانيات المخصصة</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>{totalBudget.toLocaleString()} ⃁</div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>{costCenters.length} مراكز نشطة</span>
         </div>
 
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>إجمالي المنصرف الفعلي</span>
+          <span style={{ fontSize: '13px', color: '#adadad', fontWeight: 550 }}>إجمالي المنصرف الفعلي</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>{totalSpent.toLocaleString()} ⃁</div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>
             معدل الصرف: {totalBudget > 0 ? ((totalSpent / totalBudget) * 100).toFixed(1) : 0}%
@@ -683,7 +683,7 @@ export const CostCentersPage: React.FC = () => {
         </div>
 
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>إجمالي التحميل الشهري للكوادر (HR + IAS 19)</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>إجمالي التحميل الشهري للكوادر (HR + IAS 19)</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {Object.values(costCenterMetricsMap)
               .reduce((s, m) => s + m.totalWeightedMonthlyCost, 0)
@@ -698,7 +698,7 @@ export const CostCentersPage: React.FC = () => {
 
       {/* Table Card */}
       <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-        <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-white flex-wrap gap-3">
+        <div className="flex items-center justify-between p-4 border-b border-[#e0e0e0] bg-white flex-wrap gap-3">
           <div className="relative w-full md:w-80">
             <Search className="w-4 h-4 absolute right-3 top-3 text-[#707070]" />
             <input
@@ -717,8 +717,8 @@ export const CostCentersPage: React.FC = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-right text-xs text-zinc-700">
-            <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+          <table className="w-full text-right text-xs text-[#141414]">
+            <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
               <tr>
                 <th className="p-3.5">كود المركز</th>
                 <th className="p-3.5">اسم مركز التكلفة</th>
@@ -732,7 +732,7 @@ export const CostCentersPage: React.FC = () => {
                 <th className="p-3.5 text-center">الإجراءات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-[#e0e0e0]">
               {isLoading ? (
                 <tr>
                   <td colSpan={10} className="py-10 text-center text-[#707070]">
@@ -757,10 +757,10 @@ export const CostCentersPage: React.FC = () => {
                   };
 
                   return (
-                    <tr key={c.id} className="hover:bg-zinc-50 transition-colors">
+                    <tr key={c.id} className="hover:bg-[#f3f3f3] transition-colors">
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{c.code}</td>
                       <td className="p-3.5 font-bold text-[#141414]">{c.name}</td>
-                      <td className="p-3.5 text-zinc-600">
+                      <td className="p-3.5 text-[#141414]">
                         <div className="flex items-center gap-2">
                           <CorporateAvatar
                             name={c.manager_name || 'مشرف القسم'}
@@ -796,13 +796,13 @@ export const CostCentersPage: React.FC = () => {
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{remaining.toLocaleString()} ⃁</td>
                       <td className="p-3.5">
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 bg-zinc-200 h-2 rounded-full overflow-hidden">
+                          <div className="flex-1 bg-[#f3f3f3] h-2 rounded-full overflow-hidden">
                             <div
                               className="h-full rounded-full bg-[#141414]"
                               style={{ width: `${spentPct}%` }}
                             />
                           </div>
-                          <span className="text-[11px] font-mono font-bold text-zinc-700">{spentPct}%</span>
+                          <span className="text-[11px] font-mono font-bold text-[#141414]">{spentPct}%</span>
                         </div>
                       </td>
                       <td className="p-3.5 text-center">
@@ -818,7 +818,7 @@ export const CostCentersPage: React.FC = () => {
                           </button>
                           <button
                             onClick={() => setSelectedCostCenterForExpense(c)}
-                            className="button-outline-on-light text-[#141414] hover:bg-[#eaeaea] flex items-center gap-1 font-bold"
+                            className="button-outline-on-light text-[#141414] hover:bg-[#e0e0e0] flex items-center gap-1 font-bold"
                             style={{ padding: '3px 8px', fontSize: '11px', minHeight: '26px' }}
                             title="تسجيل مصروف وقيد سند صرف"
                           >
@@ -875,7 +875,7 @@ export const CostCentersPage: React.FC = () => {
                 <th className="p-3">مركز التكلفة / القطاع التشغيلي</th>
                 <th className="p-3 font-mono">الإيرادات المحققة (⃁)</th>
                 <th className="p-3 font-mono">المصروفات المباشرة والتشغيلية (⃁)</th>
-                <th className="p-3 font-mono bg-[#fafafa]">صافي المساهمة الربحية (⃁)</th>
+                <th className="p-3 font-mono bg-[#f3f3f3]">صافي المساهمة الربحية (⃁)</th>
                 <th className="p-3 font-mono">هامش الربحية %</th>
                 <th className="p-3 font-mono">الموازنة المعتمدة (⃁)</th>
                 <th className="p-3 text-center">تقييم الكفاءة</th>
@@ -915,7 +915,7 @@ export const CostCentersPage: React.FC = () => {
                       <td className="p-3 font-bold text-[#141414]">{cc.name}</td>
                       <td className="p-3 font-mono font-semibold text-[#141414]">{totalRev.toLocaleString()} ⃁</td>
                       <td className="p-3 font-mono text-[#707070]">{totalExp.toLocaleString()} ⃁</td>
-                      <td className="p-3 font-mono font-bold bg-[#fafafa] text-[#141414]">
+                      <td className="p-3 font-mono font-bold bg-[#f3f3f3] text-[#141414]">
                         {netContribution.toLocaleString()} ⃁
                       </td>
                       <td className="p-3 font-mono font-bold text-[#141414]">{marginPct.toFixed(1)}%</td>
@@ -937,54 +937,54 @@ export const CostCentersPage: React.FC = () => {
       {/* Add Cost Center Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
-          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans max-h-[90vh]">
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] overflow-y-auto font-sans max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <PieChart className="w-4 h-4 text-[#141414]" />
                 <span>إضافة مركز تكلفة تحليلي جديد</span>
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors">
+              <button onClick={() => setShowAddModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#141414] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleAddCostCenter} className="p-6 space-y-4 bg-white text-[#141414]">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم مركز التكلفة *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">اسم مركز التكلفة *</label>
                 <input
                   type="text"
                   placeholder={isKasTrade ? 'مثال: المعرض التجاري، مستودعات كاس، قطاع الأميال...' : 'مثال: مركز تكلفة فرع جدة، إيواء الرياض...'}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم المشرف / المسؤول</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">اسم المشرف / المسؤول</label>
                 <input
                   type="text"
                   placeholder="اسم مدير المركز..."
                   value={managerName}
                   onChange={(e) => setManagerName(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">الميزانية التقديرية المعتمدة (⃁) *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">الميزانية التقديرية المعتمدة (⃁) *</label>
                 <input
                   type="number"
                   placeholder="50000"
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
                   required
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-100">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
@@ -1008,7 +1008,7 @@ export const CostCentersPage: React.FC = () => {
       {/* Record Expense Modal */}
       {selectedCostCenterForExpense && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setSelectedCostCenterForExpense(null); }}>
-          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans animate-in fade-in zoom-in-95 max-h-[90vh]">
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] overflow-y-auto font-sans animate-in fade-in zoom-in-95 max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <DollarSign className="w-5 h-5 text-[#141414]" />
@@ -1018,16 +1018,16 @@ export const CostCentersPage: React.FC = () => {
               </div>
               <button 
                 onClick={() => setSelectedCostCenterForExpense(null)} 
-                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors"
+                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#141414] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-4 bg-zinc-50 border-b border-zinc-200 text-xs">
+            <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-xs">
               <div className="text-[#707070] font-medium">مركز التكلفة المحدد:</div>
               <div className="font-bold text-[#141414] text-sm mt-0.5">{selectedCostCenterForExpense.name} ({selectedCostCenterForExpense.code})</div>
-              <div className="flex justify-between mt-2 pt-2 border-t border-zinc-200 font-mono text-[11px]">
+              <div className="flex justify-between mt-2 pt-2 border-t border-[#e0e0e0] font-mono text-[11px]">
                 <span>الميزانية: {selectedCostCenterForExpense.budget.toLocaleString()} ⃁</span>
                 <span className="text-[#141414]">المنصرف: {selectedCostCenterForExpense.actual_spent.toLocaleString()} ⃁</span>
                 <span className="text-[#141414] font-bold">المتبقي: {(selectedCostCenterForExpense.budget - selectedCostCenterForExpense.actual_spent).toLocaleString()} ⃁</span>
@@ -1036,7 +1036,7 @@ export const CostCentersPage: React.FC = () => {
 
             <form onSubmit={handleRecordExpense} className="p-6 space-y-4 bg-white text-[#141414] text-xs">
               <div>
-                <label className="block font-bold text-zinc-700 mb-1">مبلغ المصروف (⃁) *</label>
+                <label className="block font-bold text-[#141414] mb-1">مبلغ المصروف (⃁) *</label>
                 <input
                   type="number"
                   step="0.01"
@@ -1044,39 +1044,39 @@ export const CostCentersPage: React.FC = () => {
                   placeholder="2500"
                   value={expenseAmount}
                   onChange={(e) => setExpenseAmount(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-zinc-700 mb-1">بيان وشرح المصروف *</label>
+                <label className="block font-bold text-[#141414] mb-1">بيان وشرح المصروف *</label>
                 <input
                   type="text"
                   required
                   placeholder={isKasTrade ? 'سداد فواتير موردين، شحن بضائع، مصاريف معارض...' : 'سداد فواتير، رسوم حكومية، مستلزمات إيواء...'}
                   value={expenseDescription}
                   onChange={(e) => setExpenseDescription(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-zinc-700 mb-1">المستفيد / الجهة</label>
+                  <label className="block font-bold text-[#141414] mb-1">المستفيد / الجهة</label>
                   <input
                     type="text"
                     placeholder="اسم المورد أو المستفيد..."
                     value={expenseBeneficiary}
                     onChange={(e) => setExpenseBeneficiary(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-zinc-700 mb-1">طريقة الصرف</label>
+                  <label className="block font-bold text-[#141414] mb-1">طريقة الصرف</label>
                   <select
                     value={expensePaymentMethod}
                     onChange={(e) => setExpensePaymentMethod(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="تحويل بنكي">تحويل بنكي</option>
                     <option value="نقداً من الخزينة">نقداً من الخزينة</option>
@@ -1086,7 +1086,7 @@ export const CostCentersPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-100">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setSelectedCostCenterForExpense(null)}
@@ -1132,13 +1132,13 @@ export const CostCentersPage: React.FC = () => {
                     <Sliders className="w-4 h-4 text-white" />
                     <span>تفصيل الكوادر والقيود المحملة على مركز التكلفة</span>
                   </h3>
-                  <p className="text-xs text-zinc-300 mt-1">
+                  <p className="text-xs text-[#adadad] mt-1">
                     {selectedCostCenterForDetails.name} ({selectedCostCenterForDetails.code}) — إدارة نسب تحميل رواتب الموظفين ومخصصات IAS 19 والقيود المالية
                   </p>
                 </div>
                 <button
                   onClick={() => setSelectedCostCenterForDetails(null)}
-                  className="p-1.5 rounded-full text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
+                  className="p-1.5 rounded-full text-[#adadad] hover:text-white hover:bg-[#141414] transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>

@@ -15,7 +15,7 @@ import {
   calculateRetroactivePayAdjustment,
   evaluateLeaveQuotaAndReplacement,
   evaluatePayrollCutoffWindow,
-} from './jisrAdvancedComplianceEngine';
+} from './hrAdvancedComplianceEngine';
 import { realErpDataStore } from './realErpDataStore';
 
 describe('New Employee Welcome, 7-Step Onboarding Consequences & Smart Signage Engine', () => {

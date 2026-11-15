@@ -1024,7 +1024,7 @@ export const EnterpriseAccountingModulesHub: React.FC<EnterpriseAccountingModule
                   <th className="p-2.5 font-mono">الخردة</th>
                   <th className="p-2.5 font-mono">نسبة الإهلاك %</th>
                   <th className="p-2.5 font-mono">مجمع سابق</th>
-                  <th className="p-2.5 font-mono bg-[#fafafa]">قسط الفترة (آلي)</th>
+                  <th className="p-2.5 font-mono bg-[#ffffff]">قسط الفترة (آلي)</th>
                   <th className="p-2.5 font-mono">مجمع ختامي</th>
                   <th className="p-2.5 font-mono font-bold">صافي القيمة (NBV)</th>
                   <th className="p-2.5">مركز التكلفة</th>
@@ -1084,7 +1084,7 @@ export const EnterpriseAccountingModulesHub: React.FC<EnterpriseAccountingModule
                         className="w-24 bg-[#f3f3f3] border border-[#e0e0e0] rounded-lg px-2 py-1 font-mono text-xs"
                       />
                     </td>
-                    <td className="p-2 font-mono font-bold text-[#141414] bg-[#fafafa]">{fmt(a.periodDep)}</td>
+                    <td className="p-2 font-mono font-bold text-[#141414] bg-[#ffffff]">{fmt(a.periodDep)}</td>
                     <td className="p-2 font-mono text-[#707070]">{fmt(a.closingAccumDep)}</td>
                     <td className="p-2 font-mono font-bold text-[#141414]">{fmt(a.netBookValue)}</td>
                     <td className="p-2 min-w-[140px]">
@@ -1365,7 +1365,7 @@ export const EnterpriseAccountingModulesHub: React.FC<EnterpriseAccountingModule
                   <th className="p-2.5 font-mono">61 - 90 يوم</th>
                   <th className="p-2.5 font-mono">+90 يوم</th>
                   <th className="p-2.5 font-mono font-bold">إجمالي الرصيد</th>
-                  <th className="p-2.5 font-mono bg-[#fafafa]">مخصص ECL (IFRS 9)</th>
+                  <th className="p-2.5 font-mono bg-[#ffffff]">مخصص ECL (IFRS 9)</th>
                   <th className="p-2.5 font-mono font-bold">الصافي القابل للتحقق</th>
                 </tr>
               </thead>
@@ -1415,7 +1415,7 @@ export const EnterpriseAccountingModulesHub: React.FC<EnterpriseAccountingModule
                       />
                     </td>
                     <td className="p-2 font-mono font-bold">{fmt(rec.total)}</td>
-                    <td className="p-2 font-mono font-bold bg-[#fafafa]">
+                    <td className="p-2 font-mono font-bold bg-[#ffffff]">
                       {rec.ifrsCode === 'A-08' ? fmt(rec.eclProvision) : '-'}
                     </td>
                     <td className="p-2 font-mono font-bold">{fmt(rec.netRealizable)}</td>
@@ -1766,7 +1766,7 @@ export const EnterpriseAccountingModulesHub: React.FC<EnterpriseAccountingModule
                       </div>
                     </div>
                     <table className="w-full text-right text-xs">
-                      <thead className="bg-[#fafafa] text-[#707070] border-b border-[#f0f0f0]">
+                      <thead className="bg-[#ffffff] text-[#707070] border-b border-[#f0f0f0]">
                         <tr>
                           <th className="p-2">رقم الحساب</th>
                           <th className="p-2">اسم الحساب</th>

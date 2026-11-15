@@ -106,7 +106,7 @@ const DEPARTMENT_QUICK_TABS: Record<DepartmentId, Array<{ key: string; label: st
   hr: [
     { key: 'employees', label: 'شؤون الموظفين والرواتب' },
     { key: 'welcome-screens', label: 'شاشات العرض بالشبكة (TV)' },
-    { key: 'jisr-welcome-signage', label: 'الترحيب والمباشرة' },
+    { key: 'hr-welcome-signage', label: 'الترحيب والمباشرة' },
     { key: 'employee-salaries', label: 'مسيرات الرواتب WPS' },
     { key: 'employee-contracts', label: 'عقود قوى والتأمينات' },
     { key: 'employee-leaves', label: 'الإجازات والاستحقاقات' },
@@ -761,7 +761,7 @@ export const DepartmentModuleBanner: React.FC<DepartmentModuleBannerProps> = ({
                   className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all cursor-pointer shrink-0 ${
                     isSelected
                       ? 'bg-[#141414] text-white'
-                      : 'bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#707070] border border-[#e0e0e0]'
+                      : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070] border border-[#e0e0e0]'
                   }`}
                 >
                   {comp.label}
@@ -779,7 +779,7 @@ export const DepartmentModuleBanner: React.FC<DepartmentModuleBannerProps> = ({
             className={`px-3 py-1 rounded-full text-[11px] font-semibold inline-flex items-center gap-1.5 transition-all cursor-pointer border ${
               showStaffOpsDrawer
                 ? 'bg-[#141414] text-white border-[#141414]'
-                : 'bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#262626] border-[#e0e0e0]'
+                : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#262626] border-[#e0e0e0]'
             }`}
             title="فتح مركز إجراء عمليات الموظفين الـ 28 عبر الأقسام والفروع"
           >
@@ -808,7 +808,7 @@ export const DepartmentModuleBanner: React.FC<DepartmentModuleBannerProps> = ({
             className={`px-3 py-1 rounded-full text-[11px] font-semibold inline-flex items-center gap-1 transition-all cursor-pointer border ${
               isPinned
                 ? 'bg-[#141414] text-white border-[#141414]'
-                : 'bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#262626] border-[#e0e0e0]'
+                : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#262626] border-[#e0e0e0]'
             }`}
           >
             <Star
@@ -823,7 +823,7 @@ export const DepartmentModuleBanner: React.FC<DepartmentModuleBannerProps> = ({
             className={`px-3 py-1 rounded-full text-[11px] font-semibold inline-flex items-center gap-1 transition-all cursor-pointer border ${
               showPlaybook
                 ? 'bg-[#141414] text-white border-[#141414]'
-                : 'bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#262626] border-[#e0e0e0]'
+                : 'bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#262626] border-[#e0e0e0]'
             }`}
           >
             <Lightbulb className="w-3 h-3" />
@@ -833,7 +833,7 @@ export const DepartmentModuleBanner: React.FC<DepartmentModuleBannerProps> = ({
           <button
             type="button"
             onClick={() => setQuickSearchOpen(true)}
-            className="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#262626] border border-[#e0e0e0] cursor-pointer"
+            className="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#262626] border border-[#e0e0e0] cursor-pointer"
             title="فتح لوحة الأوامر والبحث الشامل (Ctrl+K)"
           >
             <Search className="w-3 h-3 text-[#707070]" />
@@ -844,7 +844,7 @@ export const DepartmentModuleBanner: React.FC<DepartmentModuleBannerProps> = ({
           <button
             type="button"
             onClick={toggleSlim}
-            className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#262626] border border-[#e0e0e0] inline-flex items-center gap-1 cursor-pointer"
+            className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#262626] border border-[#e0e0e0] inline-flex items-center gap-1 cursor-pointer"
             title={isSlimMode ? 'توسيع بانر القسم (Alt+M)' : 'الوضع المدمج لتوسيع مساحة الجدول (Alt+M)'}
           >
             {isSlimMode ? (
@@ -932,7 +932,7 @@ export const DepartmentModuleBanner: React.FC<DepartmentModuleBannerProps> = ({
               <button
                 type="button"
                 onClick={() => setShowStaffOpsDrawer(false)}
-                className="p-1.5 rounded-full bg-white hover:bg-[#e5e5e5] text-[#262626] border border-[#e0e0e0] cursor-pointer"
+                className="p-1.5 rounded-full bg-white hover:bg-[#e0e0e0] text-[#262626] border border-[#e0e0e0] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1001,7 +1001,7 @@ export const DepartmentModuleBanner: React.FC<DepartmentModuleBannerProps> = ({
                         employeeOperationsEngine.switchToEmployeeSession(staff, onSelectTab);
                         setShowStaffOpsDrawer(false);
                       }}
-                      className="px-2.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#262626] border border-[#e0e0e0] font-semibold text-[10.5px] cursor-pointer transition-all"
+                      className="px-2.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#262626] border border-[#e0e0e0] font-semibold text-[10.5px] cursor-pointer transition-all"
                       title="التبديل لحساب الموظف وفتح قسمه وفرعه"
                     >
                       فتح قسمه
@@ -1034,7 +1034,7 @@ export const DepartmentModuleBanner: React.FC<DepartmentModuleBannerProps> = ({
             <button
               type="button"
               onClick={() => setShowPlaybook(false)}
-              className="p-1.5 rounded-full bg-white hover:bg-[#e5e5e5] text-[#262626] border border-[#e0e0e0] cursor-pointer"
+              className="p-1.5 rounded-full bg-white hover:bg-[#e0e0e0] text-[#262626] border border-[#e0e0e0] cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -1152,7 +1152,7 @@ export const DepartmentModuleBanner: React.FC<DepartmentModuleBannerProps> = ({
               onClick={() => {
                 window.dispatchEvent(new CustomEvent('open-universal-extractor'));
               }}
-              className="px-3.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] font-semibold text-xs inline-flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+              className="px-3.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] font-semibold text-xs inline-flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
               title="استخلاص 100+ فاتورة أو مستند آلياً (Alt+I)"
             >
               <UploadCloud className="w-3.5 h-3.5 text-[#141414]" />

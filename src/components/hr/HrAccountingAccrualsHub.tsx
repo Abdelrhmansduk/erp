@@ -49,7 +49,7 @@ export interface PersistedAccrualRun {
   created_at: string;
 }
 
-interface JisrAccountingAccrualsHubProps {
+interface HrAccountingAccrualsHubProps {
   employees: AccrualEmployeeSummary[];
   companyCode: string;
   companyName: string;
@@ -76,7 +76,7 @@ const PAY_GROUPS: PayGroupType[] = [
   'الكوادر الميدانية',
 ];
 
-export const JisrAccountingAccrualsHub: React.FC<JisrAccountingAccrualsHubProps> = ({
+export const HrAccountingAccrualsHub: React.FC<HrAccountingAccrualsHubProps> = ({
   employees,
   companyCode,
   companyName,
@@ -337,7 +337,7 @@ export const JisrAccountingAccrualsHub: React.FC<JisrAccountingAccrualsHubProps>
               className={`px-4 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer ${
                 activeSubTab === t.id
                   ? 'bg-[#ffffff] text-[#141414]'
-                  : 'bg-[#262626] text-[#ffffff] hover:bg-[#3f3f46]'
+                  : 'bg-[#262626] text-[#ffffff] hover:bg-[#262626]'
               }`}
             >
               {t.label}

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Migration: Jisr 3.0 Complete Enterprise Parity Suite (Phase 3 - 13 Capabilities)
+-- Migration: Hr 3.0 Complete Enterprise Parity Suite (Phase 3 - 13 Capabilities)
 -- Target: Khalid Al-Sulaim Holding Group ERP
 -- Covers: Corporate Cards, Retroactive & Off-Cycle Payroll, Mudad Justifications,
 --         B2B Bank ISO-20022 Batches, Leave Carryover & Encashment,
@@ -411,24 +411,24 @@ BEGIN
     ])
   LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', tbl);
-    EXECUTE format('DROP POLICY IF EXISTS jisr3_auth_all ON public.%I', tbl);
+    EXECUTE format('DROP POLICY IF EXISTS hr3_auth_all ON public.%I', tbl);
     EXECUTE format(
-      'CREATE POLICY jisr3_auth_all ON public.%I FOR ALL TO authenticated USING ((SELECT auth.uid()) IS NOT NULL) WITH CHECK ((SELECT auth.uid()) IS NOT NULL)',
+      'CREATE POLICY hr3_auth_all ON public.%I FOR ALL TO authenticated USING ((SELECT auth.uid()) IS NOT NULL) WITH CHECK ((SELECT auth.uid()) IS NOT NULL)',
       tbl
     );
   END LOOP;
 END $$;
 
 -- Public Career Portal Anonymous Policies (Strictly scoped: read published jobs, submit applications only)
-DROP POLICY IF EXISTS jisr3_career_public_read ON public.hr_career_job_postings;
-CREATE POLICY jisr3_career_public_read
+DROP POLICY IF EXISTS hr3_career_public_read ON public.hr_career_job_postings;
+CREATE POLICY hr3_career_public_read
   ON public.hr_career_job_postings
   FOR SELECT
   TO anon
   USING (is_published = TRUE);
 
-DROP POLICY IF EXISTS jisr3_career_public_apply ON public.hr_career_applications;
-CREATE POLICY jisr3_career_public_apply
+DROP POLICY IF EXISTS hr3_career_public_apply ON public.hr_career_applications;
+CREATE POLICY hr3_career_public_apply
   ON public.hr_career_applications
   FOR INSERT
   TO anon

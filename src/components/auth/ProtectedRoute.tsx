@@ -62,10 +62,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         >
           <Lock style={{ width: '36px', height: '36px', color: '#141414' }} />
         </div>
-        <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1e293b', margin: 0 }}>
+        <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#141414', margin: 0 }}>
           غير مصرح بالوصول
         </h2>
-        <p style={{ fontSize: '14px', color: '#64748b', maxWidth: '400px', lineHeight: '1.6' }}>
+        <p style={{ fontSize: '14px', color: '#707070', maxWidth: '400px', lineHeight: '1.6' }}>
           يجب تسجيل الدخول للوصول إلى هذه الصفحة. يرجى العودة لصفحة تسجيل الدخول والمصادقة بحسابك المعتمد.
         </p>
       </div>
@@ -103,13 +103,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           >
             <ShieldAlert style={{ width: '36px', height: '36px', color: '#141414' }} />
           </div>
-          <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1e293b', margin: 0 }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#141414', margin: 0 }}>
             صلاحيات غير كافية
           </h2>
-          <p style={{ fontSize: '14px', color: '#64748b', maxWidth: '400px', lineHeight: '1.6' }}>
+          <p style={{ fontSize: '14px', color: '#707070', maxWidth: '400px', lineHeight: '1.6' }}>
             حسابك لا يملك الصلاحيات المطلوبة للوصول إلى هذا القسم. يرجى التواصل مع مسؤول النظام.
           </p>
-          <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+          <span style={{ fontSize: '12px', color: '#adadad' }}>
             الدور الحالي: {user.role}
           </span>
         </div>

@@ -391,7 +391,7 @@ export const EwaaOperationsCenterPanel: React.FC<EwaaOperationsCenterPanelProps>
                     className={`p-3 rounded-2xl border text-right transition-all cursor-pointer flex flex-col justify-between ${
                       isActive
                         ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
-                        : 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0] hover:bg-[#eaeaea]'
+                        : 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0] hover:bg-[#f3f3f3]'
                     }`}
                   >
                     <span className={`text-[11px] font-bold leading-snug ${isActive ? 'text-[#ffffff]' : 'text-[#707070]'}`}>
@@ -446,7 +446,7 @@ export const EwaaOperationsCenterPanel: React.FC<EwaaOperationsCenterPanelProps>
                   className={`px-3.5 py-2 rounded-full text-xs font-bold border whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
                     isSelected
                       ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
-                      : 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0] hover:bg-[#e5e5e5]'
+                      : 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0] hover:bg-[#e0e0e0]'
                   }`}
                 >
                   <span>{w.fullNameAr}</span>
@@ -647,7 +647,7 @@ export const EwaaOperationsCenterPanel: React.FC<EwaaOperationsCenterPanelProps>
 
             <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="جدول الإيواء ومتابعة المعاملة">
               <table className="w-full text-right text-xs">
-                <thead className="bg-[#f8f8f8] text-[#707070] font-bold border-b border-[#e0e0e0] whitespace-nowrap">
+                <thead className="bg-[#ffffff] text-[#707070] font-bold border-b border-[#e0e0e0] whitespace-nowrap">
                   <tr>
                     <th className="p-2.5">العاملة</th>
                     <th className="p-2.5">رقم العاملة</th>
@@ -675,7 +675,7 @@ export const EwaaOperationsCenterPanel: React.FC<EwaaOperationsCenterPanelProps>
                         key={row.workerId}
                         onClick={() => setSelectedWorkerId(row.workerId)}
                         className={`cursor-pointer transition-colors ${
-                          isSelected ? 'bg-[#f3f3f3] font-semibold' : 'hover:bg-[#fafafa]'
+                          isSelected ? 'bg-[#f3f3f3] font-semibold' : 'hover:bg-[#ffffff]'
                         }`}
                       >
                         <td className="p-2.5 font-bold text-[#141414] whitespace-nowrap">{row.fullNameAr}</td>

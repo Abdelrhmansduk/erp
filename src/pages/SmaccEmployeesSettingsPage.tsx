@@ -14,7 +14,7 @@ import { SmaccFormModal } from '../components/smacc/SmaccFormModal';
 import { useAppStore } from '../stores/appStore';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { WpsPayrollEngine } from '../services/wpsPayrollEngine';
-import { calculateJisrFinalSettlement, type JisrSeparationType } from '../services/jisrAdvancedComplianceEngine';
+import { calculateHrFinalSettlement, type HrSeparationType } from '../services/hrAdvancedComplianceEngine';
 import { journalEngine } from '../services/accounting/journalEngine';
 import { Employee360DigitalFileModal } from '../components/hr/Employee360DigitalFileModal';
 import { HrLettersStudioModal } from '../components/hr/HrLettersStudioModal';
@@ -171,7 +171,7 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
 
   // Upgraded EOSB & Final Settlement State (Articles 84/85/87/80 + Art. 111 Leave + Loan Deduction)
   const [selectedEosbEmpId, setSelectedEosbEmpId] = useState<string>('EMP-001');
-  const [eosbSeparationReason, setEosbSeparationReason] = useState<JisrSeparationType>('CONTRACT_EXPIRY_OR_EMPLOYER_ART84');
+  const [eosbSeparationReason, setEosbSeparationReason] = useState<HrSeparationType>('CONTRACT_EXPIRY_OR_EMPLOYER_ART84');
   const [eosbHireDate, setEosbHireDate] = useState<string>('2022-01-01');
   const [eosbLastDay, setEosbLastDay] = useState<string>(new Date().toISOString().slice(0, 10));
   const [eosbLeaveDays, setEosbLeaveDays] = useState<string>('21');
@@ -316,7 +316,7 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
         : 'CONTRACT_END';
     const wpsRes = wpsEosbFn.call(WpsPayrollEngine, basic, housing, transport, yrs, mappedWpsReason);
 
-    const settlementRes = calculateJisrFinalSettlement({
+    const settlementRes = calculateHrFinalSettlement({
       hireDate: eosbHireDate,
       lastWorkingDay: eosbLastDay,
       basicSalary: basic,
@@ -685,7 +685,7 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => setSelectedLettersEmployee(emp)}
-                                className="px-2.5 py-1 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] hover:bg-[#e5e5e5] text-[10.5px] font-bold flex items-center gap-1"
+                                className="px-2.5 py-1 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] hover:bg-[#e0e0e0] text-[10.5px] font-bold flex items-center gap-1"
                                 title="استوديو الخطابات الرسمية الموثقة بباركود QR"
                               >
                                 <QrCode className="w-3 h-3" />
@@ -709,7 +709,7 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
                                   setEosbLoanDeduction(String(empAdv));
                                   setIsEosbModalOpen(true);
                                 }}
-                                className="px-2.5 py-1 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] hover:bg-[#e5e5e5] text-[10.5px] font-bold flex items-center gap-1"
+                                className="px-2.5 py-1 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] hover:bg-[#e0e0e0] text-[10.5px] font-bold flex items-center gap-1"
                                 title="احتساب مخالصة نهاية الخدمة للموظف"
                               >
                                 <Calculator className="w-3 h-3" />
@@ -1176,7 +1176,7 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
             Math.max(1, parseFloat(eosbCalc.years) || 3),
             mappedReason
           );
-          const liveSettlement = calculateJisrFinalSettlement({
+          const liveSettlement = calculateHrFinalSettlement({
             hireDate: eosbHireDate,
             lastWorkingDay: eosbLastDay,
             basicSalary: basic,
@@ -1229,7 +1229,7 @@ export const SmaccEmployeesSettingsPage: React.FC = () => {
                   </label>
                   <select
                     value={eosbSeparationReason}
-                    onChange={(e) => setEosbSeparationReason(e.target.value as JisrSeparationType)}
+                    onChange={(e) => setEosbSeparationReason(e.target.value as HrSeparationType)}
                     className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs font-bold text-[#141414]"
                   >
                     <option value="CONTRACT_EXPIRY_OR_EMPLOYER_ART84">إنهاء عقد / انتهاء المدة (المادة 84 — 100%)</option>

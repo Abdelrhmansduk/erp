@@ -216,8 +216,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'Activity':
       case 'TrendingUp':
         return {
-          pill: 'bg-[#eff6ff] text-[#2563eb] border-[#bfdbfe]',
-          icon: 'text-[#2563eb]',
+          pill: 'bg-[#f3f3f3] text-[#707070] border-[#e0e0e0]',
+          icon: 'text-[#707070]',
         };
       case 'Users':
       case 'UserCheck':
@@ -226,8 +226,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'Building2':
       case 'IdCard':
         return {
-          pill: 'bg-[#eef2ff] text-[#4f46e5] border-[#c7d2fe]',
-          icon: 'text-[#4f46e5]',
+          pill: 'bg-[#f3f3f3] text-[#262626] border-[#e0e0e0]',
+          icon: 'text-[#262626]',
         };
       case 'Wallet':
       case 'Banknote':
@@ -238,8 +238,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'Calculator':
       case 'Scale':
         return {
-          pill: 'bg-[#ecfdf5] text-[#059669] border-[#a7f3d0]',
-          icon: 'text-[#059669]',
+          pill: 'bg-[#f3f3f3] text-[#707070] border-[#e0e0e0]',
+          icon: 'text-[#707070]',
         };
       case 'Fingerprint':
       case 'ShieldCheck':
@@ -247,8 +247,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'Lock':
       case 'CheckCircle2':
         return {
-          pill: 'bg-[#f0fdfa] text-[#0d9488] border-[#99f6e4]',
-          icon: 'text-[#0d9488]',
+          pill: 'bg-[#ffffff] text-[#707070] border-[#e0e0e0]',
+          icon: 'text-[#707070]',
         };
       case 'Clock':
       case 'Calendar':
@@ -257,8 +257,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'AlertTriangle':
       case 'Award':
         return {
-          pill: 'bg-[#fffbeb] text-[#d97706] border-[#fde68a]',
-          icon: 'text-[#d97706]',
+          pill: 'bg-[#ffffff] text-[#707070] border-[#e0e0e0]',
+          icon: 'text-[#707070]',
         };
       case 'Sparkles':
       case 'FileText':
@@ -267,8 +267,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'FileCheck2':
       case 'Settings':
         return {
-          pill: 'bg-[#f5f3ff] text-[#7c3aed] border-[#ddd6fe]',
-          icon: 'text-[#7c3aed]',
+          pill: 'bg-[#f3f3f3] text-[#707070] border-[#e0e0e0]',
+          icon: 'text-[#707070]',
         };
       case 'Package':
       case 'Truck':
@@ -279,13 +279,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'Tv':
       case 'Radio':
         return {
-          pill: 'bg-[#f0f9ff] text-[#0284c7] border-[#bae6fd]',
-          icon: 'text-[#0284c7]',
+          pill: 'bg-[#f3f3f3] text-[#707070] border-[#e0e0e0]',
+          icon: 'text-[#707070]',
         };
       default:
         return {
-          pill: 'bg-[#fff1f2] text-[#e11d48] border-[#fecdd3]',
-          icon: 'text-[#e11d48]',
+          pill: 'bg-[#f3f3f3] text-[#262626] border-[#e0e0e0]',
+          icon: 'text-[#262626]',
         };
     }
   };
@@ -395,7 +395,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               isBranchActive
                 ? 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
                 : isExpanded
-                ? 'bg-[#f8f8f8] text-[#141414]'
+                ? 'bg-[#ffffff] text-[#141414]'
                 : 'text-[#141414] hover:bg-[#f3f3f3]'
             }`}
           >
@@ -409,7 +409,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               >
                 {renderIcon(
                   item.icon,
-                  `w-3.5 h-3.5 ${isBranchActive || isExpanded ? 'text-[#38bdf8]' : getSidebarIconPalette(item.icon).icon}`
+                  `w-3.5 h-3.5 ${isBranchActive || isExpanded ? 'text-[#707070]' : getSidebarIconPalette(item.icon).icon}`
                 )}
               </div>
               <span className="truncate text-right">{getItemTitle(item)}</span>
@@ -464,7 +464,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
           <div className="flex items-center gap-2 min-w-0">
             <span
-              className={`shrink-0 ${isDirectActive ? 'text-[#38bdf8]' : getSidebarIconPalette(item.icon).icon}`}
+              className={`shrink-0 ${isDirectActive ? 'text-[#707070]' : getSidebarIconPalette(item.icon).icon}`}
               data-colored-icon="true"
             >
               {renderIcon(item.icon, 'w-3.5 h-3.5')}
@@ -561,7 +561,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="lg:hidden w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#f3f3f3] text-[#141414] hover:bg-[#e5e5e5] flex items-center justify-center cursor-pointer transition-colors"
+                className="lg:hidden w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#f3f3f3] text-[#141414] hover:bg-[#e0e0e0] flex items-center justify-center cursor-pointer transition-colors"
                 aria-label="إغلاق القائمة"
               >
                 <X className="w-4 h-4" />
@@ -574,7 +574,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {effectiveMode !== 'compact' && (
           <div className="px-3 py-1.5 rounded-[14px] bg-[#f3f3f3] flex items-center justify-between text-[11px]">
             <span className="font-semibold text-[#141414] flex items-center gap-1.5 truncate">
-              <Lock className="w-3.5 h-3.5 text-[#059669] shrink-0" data-colored-icon="true" />
+              <Lock className="w-3.5 h-3.5 text-[#707070] shrink-0" data-colored-icon="true" />
               <span className="truncate">{departmentDef.nameAr}</span>
             </span>
             <span className="px-2 py-0.5 rounded-full bg-[#141414] text-[#ffffff] text-[10px] font-bold font-mono shrink-0">
@@ -630,7 +630,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {effectiveMode !== 'compact' && (
           <div className="flex items-center gap-1.5">
             <div className="flex-1 flex items-center gap-2 bg-[#f0f0f0] rounded-[14px] px-3 py-1.5 text-xs">
-              <Search className="w-3.5 h-3.5 text-[#0284c7] shrink-0" data-colored-icon="true" />
+              <Search className="w-3.5 h-3.5 text-[#707070] shrink-0" data-colored-icon="true" />
               <input
                 type="text"
                 aria-label={t('sidebar.searchPlaceholder', 'بحث في الأقسام الـ 9...')}
@@ -700,7 +700,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 >
                   <span
                     data-colored-icon="true"
-                    className={`inline-flex ${isActive ? 'text-[#38bdf8]' : getSidebarIconPalette(item.icon).icon}`}
+                    className={`inline-flex ${isActive ? 'text-[#707070]' : getSidebarIconPalette(item.icon).icon}`}
                   >
                     {renderIcon(item.icon, 'w-4 h-4')}
                   </span>

@@ -984,7 +984,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   return (
     <div
       dir="rtl"
-      className="min-h-screen w-full bg-[#faf9f7] text-[#141414] flex flex-col justify-between select-none relative overflow-x-hidden"
+      className="min-h-screen w-full bg-[#ffffff] text-[#141414] flex flex-col justify-between select-none relative overflow-x-hidden"
     >
       {/* ═══════════════════════════════════════════════════════════════════════
           1. TOP ANNOUNCEMENT / STATUS BAR (Matching Reference Top Strip)
@@ -1018,7 +1018,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             {/* Floating Top Right Accent Icon */}
             <div
               aria-hidden="true"
-              className="hidden sm:flex w-14 h-14 rounded-full bg-[#f1efe9] border border-[#e5e2dc] items-center justify-center text-[#141414] absolute -top-2 right-2 shadow-xs"
+              className="hidden sm:flex w-14 h-14 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] absolute -top-2 right-2 "
             >
               <Sparkles className="w-6 h-6 stroke-[1.75]" />
             </div>
@@ -1027,7 +1027,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               {/* Right Sub-Column: Brand Copy & 3 Checkmarks */}
               <div className="xl:col-span-6 space-y-3">
                 <h1 className="text-3xl sm:text-[42px] font-bold tracking-tight text-[#141414] m-0 leading-tight whitespace-nowrap">
-                  خالد السليم <span className="text-[#c8c8c8] font-light mx-1">|</span>{' '}
+                  خالد السليم <span className="text-[#adadad] font-light mx-1">|</span>{' '}
                   <span className="font-sans">Al-Sulaim</span>
                 </h1>
 
@@ -1047,7 +1047,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     'إدارة موحدة للشركات والأقسام',
                   ].map((featureText, idx) => (
                     <div key={idx} className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#f1efe9] border border-[#e5e2dc] flex items-center justify-center text-[#141414] shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center text-[#141414] shrink-0">
                         <Check className="w-4 h-4 stroke-[2.5]" />
                       </div>
                       <span className="text-sm sm:text-[15px] font-bold text-[#141414]">
@@ -1064,7 +1064,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   departmentId={detectedRouting.departmentId}
                   size="hero"
                   showBackground={false}
-                  className="!w-[340px] !h-[300px] sm:!w-[400px] sm:!h-[350px] xl:!w-[430px] xl:!h-[380px] drop-shadow-xs"
+                  className="!w-[340px] !h-[300px] sm:!w-[400px] sm:!h-[350px] xl:!w-[430px] xl:!h-[380px] drop-"
                 />
               </div>
             </div>
@@ -1085,13 +1085,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             </div>
 
             {/* White Auth Card (Matching Reference Left Card + Large Prominent Avatar) */}
-            <div className="bg-[#ffffff] rounded-[28px] border border-[#ececec] shadow-[0_16px_48px_-12px_rgba(20,20,20,0.06)] p-6 sm:p-7 space-y-4">
+            <div className="bg-[#ffffff] rounded-[28px] border border-[#f3f3f3]  p-6 sm:p-7 space-y-4">
               {/* 1. Top Portal Switcher Pill (حساب موظف | مركز الشركات) */}
-              <div className="bg-[#f6f5f2] p-1 rounded-full grid grid-cols-2 gap-1 border border-[#eceae4]">
+              <div className="bg-[#f3f3f3] p-1 rounded-full grid grid-cols-2 gap-1 border border-[#f3f3f3]">
                 <button
                   type="button"
                   onClick={() => setShowDirectoryModal(false)}
-                  className="h-9 px-3 rounded-full bg-[#ffffff] text-[#141414] shadow-xs text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="h-9 px-3 rounded-full bg-[#ffffff] text-[#141414]  text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-[#141414]" />
                   <span>حساب موظف</span>
@@ -1168,7 +1168,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                         }
                         handleGoogleButtonClick();
                       }}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f8f8f7] hover:bg-[#f0efec] border border-[#e5e5e5] text-[11px] font-bold text-[#141414] transition-all cursor-pointer"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#f3f3f3] border border-[#e0e0e0] text-[11px] font-bold text-[#141414] transition-all cursor-pointer"
                       title="تسجيل الدخول السريع عبر حساب Google المعتمد من المرة الثانية"
                     >
                       {fallbackBinding ? (
@@ -1204,7 +1204,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   }}
                   className={`h-10 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     loginMethodTab === 'password'
-                      ? 'bg-[#ffffff] text-[#141414] shadow-xs'
+                      ? 'bg-[#ffffff] text-[#141414] '
                       : 'text-[#141414] hover:text-[#141414]'
                   }`}
                 >
@@ -1231,23 +1231,23 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   onClick={() => {
                     void handleGoogleButtonClick();
                   }}
-                  className="w-full h-11 rounded-2xl bg-[#ffffff] hover:bg-[#f8f8f8] border border-[#e5e5e5] text-[#141414] text-xs font-bold flex items-center justify-center gap-2.5 transition-colors cursor-pointer shadow-2xs"
+                  className="w-full h-11 rounded-2xl bg-[#ffffff] hover:bg-[#ffffff] border border-[#e0e0e0] text-[#141414] text-xs font-bold flex items-center justify-center gap-2.5 transition-colors cursor-pointer shadow-2xs"
                 >
                   <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                     <path
-                      fill="#4285F4"
+                      fill="#707070"
                       d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
                     />
                     <path
-                      fill="#34A853"
+                      fill="#707070"
                       d="M12 24c3.3 0 6.08-1.09 8.1-2.96l-3.88-3.05c-1.08.72-2.45 1.16-4.22 1.16-3.24 0-5.98-2.18-6.96-5.13H1.04v3.14C3.05 21.15 7.21 24 12 24z"
                     />
                     <path
-                      fill="#FBBC05"
+                      fill="#adadad"
                       d="M5.04 14.02c-.25-.72-.39-1.5-.39-2.32s.14-1.6.39-2.32V6.24H1.04C.38 7.56 0 9.05 0 11.7s.38 4.14 1.04 5.46l4-3.14z"
                     />
                     <path
-                      fill="#EA4335"
+                      fill="#707070"
                       d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.21 0 3.05 2.85 1.04 6.24l4 3.14c.98-2.95 3.72-4.63 6.96-4.63z"
                     />
                   </svg>
@@ -1258,7 +1258,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   type="button"
                   disabled={loading}
                   onClick={handleEmailButtonClick}
-                  className="w-full h-11 rounded-2xl bg-[#ffffff] hover:bg-[#f8f8f8] border border-[#e5e5e5] text-[#141414] text-xs font-bold flex items-center justify-center gap-2.5 transition-colors cursor-pointer shadow-2xs"
+                  className="w-full h-11 rounded-2xl bg-[#ffffff] hover:bg-[#ffffff] border border-[#e0e0e0] text-[#141414] text-xs font-bold flex items-center justify-center gap-2.5 transition-colors cursor-pointer shadow-2xs"
                 >
                   <Mail className="w-4 h-4 text-[#141414] shrink-0" />
                   <span>تسجيل الدخول عبر البريد الإلكتروني</span>
@@ -1269,7 +1269,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     type="button"
                     disabled={loading}
                     onClick={handleBiometricLogin}
-                    className="w-full h-10 rounded-2xl bg-[#ffffff] hover:bg-[#f8f8f8] border border-[#e5e5e5] text-[#141414] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    className="w-full h-10 rounded-2xl bg-[#ffffff] hover:bg-[#ffffff] border border-[#e0e0e0] text-[#141414] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Fingerprint className="w-4 h-4 text-[#0066ff]" />
                     <span>البصمة الرقمية</span>
@@ -1286,7 +1286,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                         setErrorMsg(null);
                       }
                     }}
-                    className="w-full h-10 rounded-2xl bg-[#ffffff] hover:bg-[#f8f8f8] border border-[#e5e5e5] text-[#141414] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    className="w-full h-10 rounded-2xl bg-[#ffffff] hover:bg-[#ffffff] border border-[#e0e0e0] text-[#141414] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-[#141414]" />
                     <span>الرابط السحري</span>
@@ -1296,11 +1296,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
               {/* 5. Horizontal Divider: أو بالبريد الإلكتروني */}
               <div className="relative flex items-center justify-center py-1">
-                <div className="border-t border-[#ececec] w-full" />
+                <div className="border-t border-[#f3f3f3] w-full" />
                 <span className="bg-[#ffffff] px-3 text-[11px] font-semibold text-[#707070] whitespace-nowrap">
                   أو بالبريد الإلكتروني
                 </span>
-                <div className="border-t border-[#ececec] w-full" />
+                <div className="border-t border-[#f3f3f3] w-full" />
               </div>
 
               {/* Alerts */}
@@ -1308,7 +1308,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 <div
                   role="alert"
                   aria-live="assertive"
-                  className="p-3.5 rounded-2xl bg-[#fff1f2] border border-[#fecdd3] text-[#141414] text-xs font-bold flex items-center gap-2"
+                  className="p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] text-xs font-bold flex items-center gap-2"
                 >
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{errorMsg}</span>
@@ -1341,7 +1341,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="كلمة المرور الجديدة (10 أحرف على الأقل)"
                     aria-label="كلمة المرور الجديدة"
-                    className="w-full h-12 px-4 rounded-2xl bg-[#f0efec] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#999999] text-sm font-medium transition-all focus:outline-none"
+                    className="w-full h-12 px-4 rounded-2xl bg-[#f3f3f3] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#707070] text-sm font-medium transition-all focus:outline-none"
                     required
                   />
                   <input
@@ -1353,7 +1353,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     onChange={(e) => setNewPasswordConfirm(e.target.value)}
                     placeholder="تأكيد كلمة المرور الجديدة"
                     aria-label="تأكيد كلمة المرور الجديدة"
-                    className="w-full h-12 px-4 rounded-2xl bg-[#f0efec] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#999999] text-sm font-medium transition-all focus:outline-none"
+                    className="w-full h-12 px-4 rounded-2xl bg-[#f3f3f3] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#707070] text-sm font-medium transition-all focus:outline-none"
                     required
                   />
                   <button
@@ -1382,7 +1382,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                         value={identifier}
                         onChange={(e) => setIdentifier(e.target.value)}
                         placeholder="your@email.com"
-                        className="w-full h-12 pl-4 pr-10 rounded-2xl bg-[#f0efec] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#999999] text-sm font-medium text-left transition-all focus:outline-none"
+                        className="w-full h-12 pl-4 pr-10 rounded-2xl bg-[#f3f3f3] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#707070] text-sm font-medium text-left transition-all focus:outline-none"
                         required
                       />
                       <Mail className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -1423,7 +1423,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                         value={identifier}
                         onChange={(e) => setIdentifier(e.target.value)}
                         placeholder="your@email.com"
-                        className="w-full h-12 pl-4 pr-10 rounded-2xl bg-[#f0efec] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#999999] text-sm font-medium text-left transition-all focus:outline-none"
+                        className="w-full h-12 pl-4 pr-10 rounded-2xl bg-[#f3f3f3] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#707070] text-sm font-medium text-left transition-all focus:outline-none"
                         required
                       />
                       <Mail className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -1458,7 +1458,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••••••"
-                        className="w-full h-12 pl-10 pr-10 rounded-2xl bg-[#f0efec] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#999999] text-sm font-medium text-left transition-all focus:outline-none"
+                        className="w-full h-12 pl-10 pr-10 rounded-2xl bg-[#f3f3f3] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#707070] text-sm font-medium text-left transition-all focus:outline-none"
                       />
                       <Lock className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <button
@@ -1502,7 +1502,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       {/* ═══════════════════════════════════════════════════════════════════════
           3. CLEAN SUBTLE FOOTER
       ═══════════════════════════════════════════════════════════════════════ */}
-      <footer className="w-full border-t border-[#eceae4] bg-[#faf9f7] text-[#707070] px-6 sm:px-12 py-4">
+      <footer className="w-full border-t border-[#f3f3f3] bg-[#ffffff] text-[#707070] px-6 sm:px-12 py-4">
         <div className="max-w-[1260px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-3">
             <span className="font-bold text-[#141414]">
@@ -1634,7 +1634,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                         className={`text-right p-4 rounded-[16px] border transition-colors cursor-pointer flex flex-col justify-between gap-2 ${
                           isSelected
                             ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
-                            : 'bg-[#f3f3f3] hover:bg-[#e8e8e8] border-transparent text-[#141414]'
+                            : 'bg-[#f3f3f3] hover:bg-[#f3f3f3] border-transparent text-[#141414]'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2">
@@ -1686,7 +1686,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 {regStep === 1 && (
                   <form onSubmit={handleSendOtpStep} className="space-y-4">
                     {/* Synced Google Profile & Avatar Header inside Account Activation */}
-                    <div className="p-3.5 rounded-2xl bg-[#f8f8f7] border border-[#e5e5e5] flex flex-wrap items-center justify-between gap-3">
+                    <div className="p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <EmployeePhotoAvatar
                           name={regFullName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.fullNameAr || ''}
@@ -1890,7 +1890,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                       </div>
                     </div>
 
-                    <div className="p-3 rounded-2xl bg-[#f8f8f7] border border-[#e5e5e5] space-y-2">
+                    <div className="p-3 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <label
                           htmlFor="reg-new-strong-password-input"
@@ -2108,26 +2108,26 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           onClick={() => setShowGoogleModal(false)}
         >
           <div
-            className="bg-[#ffffff] border border-[#e0e0e0] rounded-[28px] max-w-md w-full p-6 sm:p-7 space-y-5 text-right shadow-2xl"
+            className="bg-[#ffffff] border border-[#e0e0e0] rounded-[28px] max-w-md w-full p-6 sm:p-7 space-y-5 text-right "
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-4">
               <div className="flex items-center gap-2.5">
                 <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                   <path
-                    fill="#4285F4"
+                    fill="#707070"
                     d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
                   />
                   <path
-                    fill="#34A853"
+                    fill="#707070"
                     d="M12 24c3.3 0 6.08-1.09 8.1-2.96l-3.88-3.05c-1.08.72-2.45 1.16-4.22 1.16-3.24 0-5.98-2.18-6.96-5.13H1.04v3.14C3.05 21.15 7.21 24 12 24z"
                   />
                   <path
-                    fill="#FBBC05"
+                    fill="#adadad"
                     d="M5.04 14.02c-.25-.72-.39-1.5-.39-2.32s.14-1.6.39-2.32V6.24H1.04C.38 7.56 0 9.05 0 11.7s.38 4.14 1.04 5.46l4-3.14z"
                   />
                   <path
-                    fill="#EA4335"
+                    fill="#707070"
                     d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.21 0 3.05 2.85 1.04 6.24l4 3.14c.98-2.95 3.72-4.63 6.96-4.63z"
                   />
                 </svg>
@@ -2143,7 +2143,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               <button
                 type="button"
                 onClick={() => setShowGoogleModal(false)}
-                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] flex items-center justify-center text-[#141414] cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] flex items-center justify-center text-[#141414] cursor-pointer"
                 aria-label="إغلاق"
               >
                 <X className="w-4 h-4" />
@@ -2179,7 +2179,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                       picture: binding.googlePhotoUrl,
                     })
                   }
-                  className="w-full p-3 rounded-2xl bg-[#f8f8f7] hover:bg-[#f0efec] border border-[#e5e5e5] flex items-center justify-between gap-3 text-right transition-colors cursor-pointer"
+                  className="w-full p-3 rounded-2xl bg-[#f3f3f3] hover:bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-between gap-3 text-right transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <EmployeePhotoAvatar
@@ -2218,7 +2218,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                       picture: gAcc.photoURL,
                     })
                   }
-                  className="w-full p-3 rounded-2xl bg-[#f8f8f7] hover:bg-[#f0efec] border border-[#e5e5e5] flex items-center justify-between gap-3 text-right transition-colors cursor-pointer"
+                  className="w-full p-3 rounded-2xl bg-[#f3f3f3] hover:bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-between gap-3 text-right transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <EmployeePhotoAvatar
@@ -2312,7 +2312,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           onClick={() => setShowEmailModal(false)}
         >
           <div
-            className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] max-w-md w-full p-6 space-y-4 text-right shadow-xl"
+            className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] max-w-md w-full p-6 space-y-4 text-right "
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-3.5">
@@ -2332,7 +2332,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               <button
                 type="button"
                 onClick={() => setShowEmailModal(false)}
-                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] flex items-center justify-center text-[#141414] cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] flex items-center justify-center text-[#141414] cursor-pointer"
                 aria-label="إغلاق"
               >
                 <X className="w-4 h-4" />
@@ -2399,7 +2399,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                       name: eAcc.name,
                     })
                   }
-                  className="w-full p-3 rounded-2xl bg-[#f8f8f7] hover:bg-[#f0efec] border border-[#e5e5e5] flex items-center justify-between gap-3 text-right transition-colors cursor-pointer"
+                  className="w-full p-3 rounded-2xl bg-[#f3f3f3] hover:bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-between gap-3 text-right transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <EmployeePhotoAvatar
@@ -2474,7 +2474,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           SAUDI PDPL ART. 11 & OMAN/EGYPT PDPL PRIVACY & TELEMETRY NOTICE BAR
       ═══════════════════════════════════════════════════════════════════════ */}
       {!privacyBannerDismissed && (
-        <div className="fixed bottom-3 inset-x-4 lg:inset-x-auto lg:right-6 lg:max-w-xl z-40 rounded-2xl bg-[#141414] text-[#ffffff] p-4 shadow-2xl border border-[#333333] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="fixed bottom-3 inset-x-4 lg:inset-x-auto lg:right-6 lg:max-w-xl z-40 rounded-2xl bg-[#141414] text-[#ffffff] p-4  border border-[#262626] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="text-[11px] leading-relaxed">
             <span className="font-black">إشعار الخصوصية والحد الأدنى للبيانات (Saudi PDPL Art. 11):</span>{' '}
             يستخدم النظام أدوات تشخيص الأعطال التقنية (Sentry EU & Azure AppInsights) لاستقرار الخدمة فقط. يتم{' '}
@@ -2485,7 +2485,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             <button
               type="button"
               onClick={() => setShowPrivacyModal(true)}
-              className="px-3 py-1.5 rounded-full bg-[#262626] hover:bg-[#383838] text-[#ffffff] text-[11px] font-bold cursor-pointer"
+              className="px-3 py-1.5 rounded-full bg-[#262626] hover:bg-[#262626] text-[#ffffff] text-[11px] font-bold cursor-pointer"
             >
               التفاصيل ومواقع البيانات
             </button>
@@ -2510,7 +2510,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         <div className="fixed inset-0 z-[2000] bg-black/50 backdrop-blur-xs flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowPrivacyModal(false); }}>
           <div
             dir="rtl"
-            className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl bg-[#ffffff] border border-[#e0e0e0] p-6 space-y-4 shadow-2xl"
+            className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl bg-[#ffffff] border border-[#e0e0e0] p-6 space-y-4 "
           >
             <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-3">
               <div>

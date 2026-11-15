@@ -643,9 +643,9 @@ export const ShelterSuitePortalPage: React.FC = () => {
                   <div className="space-y-3">
                     {[
                       { nat: 'الفلبين', count: 18, color: 'bg-[#141414]', pct: '41%' },
-                      { nat: 'إثيوبيا', count: 14, color: 'bg-[#404040]', pct: '32%' },
+                      { nat: 'إثيوبيا', count: 14, color: 'bg-[#262626]', pct: '32%' },
                       { nat: 'أوغندا وكينيا', count: 8, color: 'bg-[#707070]', pct: '18%' },
-                      { nat: 'إندونيسيا', count: 4, color: 'bg-[#a0a0a0]', pct: '9%' },
+                      { nat: 'إندونيسيا', count: 4, color: 'bg-[#adadad]', pct: '9%' },
                     ].map((item) => (
                       <div key={item.nat}>
                         <div className="flex justify-between text-xs mb-1">
@@ -763,7 +763,7 @@ export const ShelterSuitePortalPage: React.FC = () => {
                     </thead>
                     <tbody className="divide-y divide-[#f0f0f0]">
                       {filteredInmates.slice(0, 5).map((item) => (
-                        <tr key={item.id} className="hover:bg-[#fafafa]">
+                        <tr key={item.id} className="hover:bg-[#ffffff]">
                           <td className="p-3 font-mono font-bold text-[#141414]">{item.id}</td>
                           <td className="p-3 font-bold text-[#141414]">
                             <div className="flex items-center gap-2">
@@ -862,7 +862,7 @@ export const ShelterSuitePortalPage: React.FC = () => {
                     </thead>
                     <tbody className="divide-y divide-[#f0f0f0]">
                       {filteredInmates.map((item) => (
-                        <tr key={item.id} className="hover:bg-[#fafafa]">
+                        <tr key={item.id} className="hover:bg-[#ffffff]">
                           <td className="p-3 font-mono font-bold text-[#141414]">{item.id}</td>
                           <td className="p-3 font-bold text-[#141414]">{item.maid_name}</td>
                           <td className="p-3 text-[#141414]">{item.nationality}</td>
@@ -1089,7 +1089,7 @@ export const ShelterSuitePortalPage: React.FC = () => {
                     </thead>
                     <tbody className="divide-y divide-[#f0f0f0]">
                       {cateringMeals.map((row) => (
-                        <tr key={row.id} className="hover:bg-[#fafafa]">
+                        <tr key={row.id} className="hover:bg-[#ffffff]">
                           <td className="p-3 font-mono text-[#707070]">{row.date}</td>
                           <td className="p-3 font-bold text-[#141414]">{row.place}</td>
                           <td className="p-3 font-semibold text-[#141414]">{row.meal}</td>
@@ -1335,7 +1335,7 @@ export const ShelterSuitePortalPage: React.FC = () => {
                         filteredInmates
                           .filter((i) => i.status === 'مرحلة الترحيل' || i.work_willingness === 'لا ترغب بالعمل')
                           .map((item) => (
-                            <tr key={item.id} className="hover:bg-[#fafafa]">
+                            <tr key={item.id} className="hover:bg-[#ffffff]">
                               <td className="p-3 font-mono font-bold text-[#141414]">{item.id}</td>
                               <td className="p-3 font-bold text-[#141414]">{item.maid_name}</td>
                               <td className="p-3 text-[#141414]">{item.nationality}</td>

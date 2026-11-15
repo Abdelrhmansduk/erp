@@ -61,14 +61,14 @@ const WorkerProfileDetailModalContent: React.FC<
   return (
     <div data-printable-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-[#141414]/60 backdrop-blur-sm p-4 overflow-y-auto font-sans" dir="rtl">
       <div 
-        className="erp-printable-sheet bg-[#ffffff] text-[#141414] rounded-[24px] max-w-4xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-[#e0e0e0] animate-in fade-in zoom-in-95 duration-200 flex flex-col"
+        className="erp-printable-sheet bg-[#ffffff] text-[#141414] rounded-[24px] max-w-4xl w-full max-h-[92vh] overflow-y-auto  border border-[#e0e0e0] animate-in fade-in zoom-in-95 duration-200 flex flex-col"
       >
         {/* Header with Photo and Quick Badges — Mobbin Pure Light Mode */}
-        <div className="p-6 border-b border-[#e5e5e5] bg-[#ffffff] text-[#141414] rounded-t-[24px] relative">
+        <div className="p-6 border-b border-[#e0e0e0] bg-[#ffffff] text-[#141414] rounded-t-[24px] relative">
           <button
             type="button"
             onClick={onClose}
-            className="no-print print:hidden absolute left-6 top-6 w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
+            className="no-print print:hidden absolute left-6 top-6 w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -107,7 +107,7 @@ const WorkerProfileDetailModalContent: React.FC<
         </div>
 
         {/* Tab Navigation - Pill Style */}
-        <div className="no-print print:hidden flex items-center gap-2 px-6 py-2.5 border-b border-[#e5e5e5] bg-[#f3f3f3] overflow-x-auto">
+        <div className="no-print print:hidden flex items-center gap-2 px-6 py-2.5 border-b border-[#e0e0e0] bg-[#f3f3f3] overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveTab('info')}
@@ -406,11 +406,11 @@ const WorkerProfileDetailModalContent: React.FC<
         </div>
 
         {/* Footer Actions */}
-        <div className="no-print print:hidden p-4 bg-[#f3f3f3] border-t border-[#e5e5e5] flex items-center justify-between">
+        <div className="no-print print:hidden p-4 bg-[#f3f3f3] border-t border-[#e0e0e0] flex items-center justify-between">
           <button
             type="button"
             onClick={handlePrint}
-            className="px-4 py-2 rounded-full text-xs font-bold text-[#141414] bg-[#ffffff] border border-[#e0e0e0] hover:bg-[#e5e5e5] transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2 rounded-full text-xs font-bold text-[#141414] bg-[#ffffff] border border-[#e0e0e0] hover:bg-[#e0e0e0] transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <Printer className="w-4 h-4 text-[#141414]" />
             <span>طباعة السيرة الذاتية (CV)</span>
@@ -420,7 +420,7 @@ const WorkerProfileDetailModalContent: React.FC<
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-full text-xs font-bold text-[#141414] bg-[#ffffff] border border-[#e0e0e0] hover:bg-[#e5e5e5] transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-full text-xs font-bold text-[#141414] bg-[#ffffff] border border-[#e0e0e0] hover:bg-[#e0e0e0] transition-colors cursor-pointer"
             >
               إغلاق
             </button>

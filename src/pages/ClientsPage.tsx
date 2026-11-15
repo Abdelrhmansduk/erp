@@ -149,7 +149,7 @@ export const ClientsPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
           display: 'flex',
           flexDirection: 'row',
@@ -174,7 +174,7 @@ export const ClientsPage: React.FC = () => {
             <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, letterSpacing: '-0.02em', color: '#ffffff', margin: 0, fontFamily: 'var(--font-family-display)' }}>
               إدارة العملاء والعلاقات (CRM)
             </h1>
-            <p style={{ fontSize: '13px', color: '#a1a1aa', margin: '4px 0 0 0', fontWeight: 420 }}>
+            <p style={{ fontSize: '13px', color: '#adadad', margin: '4px 0 0 0', fontWeight: 420 }}>
               سجل العملاء المعتمد المربوط بالدليل المحاسبي، عقود الاستقدام، والتأجير والواتساب
             </p>
           </div>
@@ -213,7 +213,7 @@ export const ClientsPage: React.FC = () => {
       {/* Stats Cards */}
       <div className="stat-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>إجمالي العملاء الموثقين</span>
+          <span style={{ fontSize: '13px', color: '#adadad', fontWeight: 550 }}>إجمالي العملاء الموثقين</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {clients.length > 0 ? clients.length : 241} عميلاً
           </div>
@@ -227,8 +227,8 @@ export const ClientsPage: React.FC = () => {
         </div>
 
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>القائمة المحظورة</span>
-          <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#e11d48', marginTop: '6px', letterSpacing: '-0.02em' }}>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>القائمة المحظورة</span>
+          <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#262626', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {clients.filter((c: any) => c.status === 'محظور').length} عملاء
           </div>
           <span className="pill-tag-shade text-[#141414]" style={{ fontSize: '11px', marginTop: '10px' }}>ممنوع من التعاقد</span>
@@ -238,12 +238,12 @@ export const ClientsPage: React.FC = () => {
       {/* Main Table Card */}
       <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
         {/* Sub-Filters and Search */}
-        <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-white flex-wrap gap-3">
+        <div className="flex items-center justify-between p-4 border-b border-[#e0e0e0] bg-white flex-wrap gap-3">
           <div className="flex items-center gap-1.5 flex-wrap">
             <button
               onClick={() => setActiveFilter('all')}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                activeFilter === 'all' ? 'bg-[#141414] text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                activeFilter === 'all' ? 'bg-[#141414] text-white' : 'bg-[#f3f3f3] text-[#707070] hover:bg-[#e0e0e0]'
               }`}
             >
               جميع العملاء ({clients.length})
@@ -252,7 +252,7 @@ export const ClientsPage: React.FC = () => {
             <button
               onClick={() => setActiveFilter('active')}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                activeFilter === 'active' ? 'bg-[#141414] text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                activeFilter === 'active' ? 'bg-[#141414] text-white' : 'bg-[#f3f3f3] text-[#707070] hover:bg-[#e0e0e0]'
               }`}
             >
               عملاء نشطون ({clients.filter((c: any) => c.status !== 'محظور').length})
@@ -261,7 +261,7 @@ export const ClientsPage: React.FC = () => {
             <button
               onClick={() => setActiveFilter('blacklist')}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                activeFilter === 'blacklist' ? 'bg-[#141414] text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                activeFilter === 'blacklist' ? 'bg-[#141414] text-white' : 'bg-[#f3f3f3] text-[#707070] hover:bg-[#e0e0e0]'
               }`}
             >
               القائمة المحظورة ({clients.filter((c: any) => c.status === 'محظور').length})
@@ -270,7 +270,7 @@ export const ClientsPage: React.FC = () => {
             <button
               onClick={() => setActiveFilter('person')}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                activeFilter === 'person' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                activeFilter === 'person' ? 'bg-[#141414] text-white' : 'bg-[#f3f3f3] text-[#707070] hover:bg-[#e0e0e0]'
               }`}
             >
               أفراد
@@ -279,7 +279,7 @@ export const ClientsPage: React.FC = () => {
             <button
               onClick={() => setActiveFilter('company')}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                activeFilter === 'company' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                activeFilter === 'company' ? 'bg-[#141414] text-white' : 'bg-[#f3f3f3] text-[#707070] hover:bg-[#e0e0e0]'
               }`}
             >
               شركات ومؤسسات
@@ -294,14 +294,14 @@ export const ClientsPage: React.FC = () => {
               placeholder="ابحث برقم العميل، الاسم، الجوال..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full bg-zinc-50 border border-zinc-200 rounded-full py-1.5 pr-9 pl-3 text-xs text-[#141414] focus:border-[#141414] outline-none"
+              className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-full py-1.5 pr-9 pl-3 text-xs text-[#141414] focus:border-[#141414] outline-none"
             />
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-right text-xs text-zinc-700">
-            <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+          <table className="w-full text-right text-xs text-[#141414]">
+            <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
               <tr>
                 <th className="p-3.5">رقم العميل</th>
                 <th className="p-3.5">الاسم والبيانات</th>
@@ -312,7 +312,7 @@ export const ClientsPage: React.FC = () => {
                 <th className="p-3.5 text-center">إجراءات سريعة</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-[#e0e0e0]">
               {isLoading ? (
                 <tr>
                   <td colSpan={7} className="py-10 text-center text-[#707070]">
@@ -330,7 +330,7 @@ export const ClientsPage: React.FC = () => {
                 </tr>
               ) : (
                 filteredClients.map((c: any) => (
-                  <tr key={c.id} className="hover:bg-zinc-50 transition-colors">
+                  <tr key={c.id} className="hover:bg-[#f3f3f3] transition-colors">
                     <td className="p-3.5 font-mono font-bold text-[#141414]">
                       {c.client_no || c.client_number || `#${String(c.id).slice(0, 8)}`}
                     </td>
@@ -353,10 +353,10 @@ export const ClientsPage: React.FC = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="p-3.5 font-mono text-zinc-600 font-bold">
+                    <td className="p-3.5 font-mono text-[#707070] font-bold">
                       {c.account_code || '110201'}
                     </td>
-                    <td className="p-3.5 font-semibold text-zinc-800">
+                    <td className="p-3.5 font-semibold text-[#141414]">
                       {c.client_activity || 'عميل مسجل'}
                     </td>
                     <td className="p-3.5">
@@ -378,7 +378,7 @@ export const ClientsPage: React.FC = () => {
                           href={`https://wa.me/${c.phone.replace(/[^0-9]/g, '')}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-1.5 rounded-full hover:bg-[#eaeaea] text-[#141414] transition-colors"
+                          className="p-1.5 rounded-full hover:bg-[#f3f3f3] text-[#141414] transition-colors"
                           title="محادثة واتساب"
                         >
                           <MessageSquare className="w-3.5 h-3.5" />
@@ -387,7 +387,7 @@ export const ClientsPage: React.FC = () => {
                         {/* Edit Button */}
                         <button
                           onClick={() => setEditingClient({ ...c })}
-                          className="p-1.5 rounded-full hover:bg-zinc-100 text-zinc-600 transition-colors"
+                          className="p-1.5 rounded-full hover:bg-[#f3f3f3] text-[#707070] transition-colors"
                           title="تعديل بيانات العميل"
                         >
                           <Edit className="w-3.5 h-3.5" />
@@ -398,8 +398,8 @@ export const ClientsPage: React.FC = () => {
                           onClick={() => handleToggleBlacklist(c)}
                           className={`p-1.5 rounded-full transition-colors ${
                             c.status === 'محظور'
-                              ? 'hover:bg-[#eaeaea] text-[#141414]'
-                              : 'hover:bg-[#eaeaea] text-[#141414]'
+                              ? 'hover:bg-[#f3f3f3] text-[#141414]'
+                              : 'hover:bg-[#f3f3f3] text-[#141414]'
                           }`}
                           title={c.status === 'محظور' ? 'إلغاء الحظر' : 'حظر العميل'}
                         >
@@ -409,7 +409,7 @@ export const ClientsPage: React.FC = () => {
                         {/* Delete Button */}
                         <button
                           onClick={() => handleDeleteClient(c)}
-                          className="p-1.5 rounded-full hover:bg-[#eaeaea] text-[#707070] hover:text-[#141414] transition-colors"
+                          className="p-1.5 rounded-full hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] transition-colors"
                           title="حذف العميل"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -427,61 +427,61 @@ export const ClientsPage: React.FC = () => {
       {/* Add Client Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
-          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans max-h-[90vh]">
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] overflow-y-auto font-sans max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <UserCheck className="w-4 h-4 text-[#141414]" />
                 <span>تسجيل عميل جديد بالدليل المحاسبي</span>
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors">
+              <button onClick={() => setShowAddModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#262626] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleAddClient} className="p-6 space-y-4 bg-white text-[#141414]">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم العميل بالكامل *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">اسم العميل بالكامل *</label>
                 <input
                   type="text"
                   placeholder="الاسم الثلاثي أو اسم الشركة..."
                   value={addForm.name}
                   onChange={e => setAddForm({ ...addForm, name: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">رقم الجوال *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رقم الجوال *</label>
                   <input
                     type="text"
                     placeholder="+9665..."
                     value={addForm.phone}
                     onChange={e => setAddForm({ ...addForm, phone: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs font-mono text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs font-mono text-[#141414] focus:border-[#141414] focus:outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">رقم الهوية / السجل *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رقم الهوية / السجل *</label>
                   <input
                     type="text"
                     placeholder="10 أرقام..."
                     value={addForm.national_id}
                     onChange={e => setAddForm({ ...addForm, national_id: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs font-mono text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs font-mono text-[#141414] focus:border-[#141414] focus:outline-none"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">نوع العميل</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">نوع العميل</label>
                 <select
                   value={addForm.type}
                   onChange={e => setAddForm({ ...addForm, type: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option value="شخص">فرد (مواطن / مقيم)</option>
                   <option value="شركة">شركة / منشأة تجارية</option>
@@ -490,11 +490,11 @@ export const ClientsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">الفرع المربوط *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">الفرع المربوط *</label>
                 <select
                   value={addForm.branch}
                   onChange={e => setAddForm({ ...addForm, branch: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option>فرع الرياض الرئيسي</option>
                   <option>فرع جدة</option>
@@ -503,7 +503,7 @@ export const ClientsPage: React.FC = () => {
                 </select>
               </div>
 
-              <div className="flex gap-3 justify-end pt-3 border-t border-zinc-100">
+              <div className="flex gap-3 justify-end pt-3 border-t border-[#e0e0e0]">
                 <button type="button" className="button-outline-on-light" onClick={() => setShowAddModal(false)} style={{ minHeight: '36px', padding: '6px 16px', fontSize: '13px' }}>
                   إلغاء
                 </button>
@@ -520,61 +520,61 @@ export const ClientsPage: React.FC = () => {
       {/* Edit Client Modal */}
       {editingClient && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setEditingClient(null); }}>
-          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans max-h-[90vh]">
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] overflow-y-auto font-sans max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Edit className="w-4 h-4 text-[#141414]" />
                 <span>تعديل بيانات العميل #{editingClient.client_no || editingClient.id}</span>
               </h3>
-              <button onClick={() => setEditingClient(null)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors">
+              <button onClick={() => setEditingClient(null)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#262626] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleUpdateClient} className="p-6 space-y-4 bg-white text-[#141414]">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم العميل *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">اسم العميل *</label>
                 <input
                   type="text"
                   value={editingClient.name}
                   onChange={e => setEditingClient({ ...editingClient, name: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">رقم الجوال</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رقم الجوال</label>
                   <input
                     type="text"
                     value={editingClient.phone}
                     onChange={e => setEditingClient({ ...editingClient, phone: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs font-mono text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs font-mono text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">رقم الهوية</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رقم الهوية</label>
                   <input
                     type="text"
                     value={editingClient.national_id || ''}
                     onChange={e => setEditingClient({ ...editingClient, national_id: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs font-mono text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs font-mono text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">الفرع المربوط</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">الفرع المربوط</label>
                 <input
                   type="text"
                   value={editingClient.branch || ''}
                   onChange={e => setEditingClient({ ...editingClient, branch: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
-              <div className="flex gap-3 justify-end pt-3 border-t border-zinc-100">
+              <div className="flex gap-3 justify-end pt-3 border-t border-[#e0e0e0]">
                 <button type="button" className="button-outline-on-light" onClick={() => setEditingClient(null)} style={{ minHeight: '36px', padding: '6px 16px', fontSize: '13px' }}>
                   إلغاء
                 </button>

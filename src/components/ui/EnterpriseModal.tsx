@@ -81,7 +81,7 @@ export const EnterpriseModal: React.FC<EnterpriseModalProps> = ({
       }}
     >
       <div
-        className={`w-full ${widthClass} max-h-[90vh] flex flex-col bg-[#ffffff] text-[#141414] border border-[#e0e0e0] rounded-2xl shadow-2xl overflow-hidden`}
+        className={`w-full ${widthClass} max-h-[90vh] flex flex-col bg-[#ffffff] text-[#141414] border border-[#e0e0e0] rounded-2xl  overflow-hidden`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -104,7 +104,7 @@ export const EnterpriseModal: React.FC<EnterpriseModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="إغلاق النافذة"
-            className="w-8 h-8 rounded-lg bg-[#ffffff] hover:bg-[#eaeaea] border border-[#e0e0e0] flex items-center justify-center text-[#141414] transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-lg bg-[#ffffff] hover:bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center text-[#141414] transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>

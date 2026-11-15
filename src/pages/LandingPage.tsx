@@ -410,14 +410,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
       style={{
         fontFamily: 'var(--font-family-ui)',
         fontFeatureSettings: '"ss03" 1',
-        background: 'radial-gradient(ellipse at 50% -10%, #f3f3f3 0%, #ffffff 50%, #f4f6f9 100%)'
+        background: 'radial-gradient(ellipse at 50% -10%, #f3f3f3 0%, #ffffff 50%, #f3f3f3 100%)'
       }}
     >
       {/* 1. Top Navigation Bar - Luxury White Frosted Glass */}
-      <header className="sticky top-0 z-[100] backdrop-blur-md bg-white/90 border-b border-zinc-200/80 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-xs transition-all">
+      <header className="sticky top-0 z-[100] backdrop-blur-md bg-white/90 border-b border-[#e0e0e0] px-4 sm:px-8 py-3.5 flex items-center justify-between  transition-all">
         {/* Brand / Logo */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full border border-[#e0e0e0] p-0.5 bg-white shadow-xs flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-full border border-[#e0e0e0] p-0.5 bg-white  flex items-center justify-center shrink-0">
             <img loading="lazy" decoding="async"
               src="/logo.png"
               alt="Logo"
@@ -425,7 +425,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
             />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-sm sm:text-base tracking-tight text-zinc-950 font-display">
+            <span className="font-bold text-sm sm:text-base tracking-tight text-[#141414] font-display">
               مجموعة خالد السليم
             </span>
             <span className="text-[10.5px] text-[#707070] tracking-wider uppercase font-semibold">
@@ -435,7 +435,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
         </div>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center gap-7 text-sm font-semibold text-zinc-700">
+        <nav className="hidden md:flex items-center gap-7 text-sm font-semibold text-[#141414]">
           <a href="#companies" className="hover:text-[#141414] transition-colors">
             الشركات التابعة
           </a>
@@ -457,12 +457,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
             className="button-outline-on-light text-xs px-4 py-2 rounded-full font-bold flex items-center gap-1.5"
             onClick={() => handleSelect('all', 'admin')}
           >
-            <Building2 className="w-3.5 h-3.5 text-zinc-700" />
+            <Building2 className="w-3.5 h-3.5 text-[#141414]" />
             <span>دخول الإدارة المركزية</span>
           </button>
           <button
             type="button"
-            className="button-primary-pill text-xs px-5 py-2 rounded-full font-bold flex items-center gap-1.5 shadow-sm"
+            className="button-primary-pill text-xs px-5 py-2 rounded-full font-bold flex items-center gap-1.5 "
             onClick={() => handleSelect('gateway', 'gateway')}
           >
             <LogIn className="w-3.5 h-3.5" />
@@ -475,7 +475,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-full bg-zinc-100 border border-zinc-200 text-zinc-800 hover:bg-zinc-200 transition-colors"
+            className="p-2 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] hover:bg-[#e0e0e0] transition-colors"
             aria-label="القائمة"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -485,7 +485,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
 
       {/* Mobile Drawer Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 top-[61px] z-50 bg-white/95 backdrop-blur-lg border-b border-zinc-200 p-6 flex flex-col justify-between overflow-y-auto animate-fadeIn md:hidden">
+        <div className="fixed inset-0 top-[61px] z-50 bg-white/95 backdrop-blur-lg border-b border-[#e0e0e0] p-6 flex flex-col justify-between overflow-y-auto animate-fadeIn md:hidden">
           <div className="space-y-6">
             <div className="text-xs font-bold text-[#707070] uppercase tracking-widest">
               التنقل والأقسام الرئيسية
@@ -494,27 +494,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
               <a
                 href="#companies"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block text-lg font-bold text-zinc-900 hover:text-[#141414] transition-colors py-1"
+                className="block text-lg font-bold text-[#141414] hover:text-[#141414] transition-colors py-1"
               >
                 الشركات التابعة للمجموعة
               </a>
               <a
                 href="#capabilities"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block text-lg font-bold text-zinc-900 hover:text-[#141414] transition-colors py-1"
+                className="block text-lg font-bold text-[#141414] hover:text-[#141414] transition-colors py-1"
               >
                 القدرات والأنظمة التشغيلية
               </a>
               <a
                 href="#values"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block text-lg font-bold text-zinc-900 hover:text-[#141414] transition-colors py-1"
+                className="block text-lg font-bold text-[#141414] hover:text-[#141414] transition-colors py-1"
               >
                 القيم المؤسسية والحوكمة
               </a>
             </div>
 
-            <div className="pt-4 border-t border-zinc-200 space-y-3">
+            <div className="pt-4 border-t border-[#e0e0e0] space-y-3">
               <div className="text-xs font-bold text-[#707070] uppercase tracking-widest mb-2">
                 بوابات الدخول المستقلة للشركات
               </div>
@@ -523,7 +523,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                   <button
                     key={c.code}
                     onClick={() => handleSelect(c.id, c.portalCode)}
-                    className="p-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-right text-xs font-semibold hover:border-[#141414] hover:bg-white transition-all text-zinc-900 flex items-center justify-between"
+                    className="p-2.5 bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl text-right text-xs font-semibold hover:border-[#141414] hover:bg-white transition-all text-[#141414] flex items-center justify-between"
                   >
                     <span>{c.nameAr}</span>
                     <ArrowLeft className="w-3.5 h-3.5 text-[#707070]" />
@@ -533,18 +533,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
             </div>
           </div>
 
-          <div className="pt-6 border-t border-zinc-200 space-y-3 mt-6">
+          <div className="pt-6 border-t border-[#e0e0e0] space-y-3 mt-6">
             <button
               type="button"
               className="w-full button-outline-on-light py-3 text-sm rounded-full font-bold flex items-center justify-center gap-2"
               onClick={() => handleSelect('all', 'admin')}
             >
-              <Building2 className="w-4 h-4 text-zinc-700" />
+              <Building2 className="w-4 h-4 text-[#141414]" />
               <span>دخول الإدارة المركزية</span>
             </button>
             <button
               type="button"
-              className="w-full button-primary-pill py-3 text-sm rounded-full font-bold flex items-center justify-center gap-2 shadow-sm"
+              className="w-full button-primary-pill py-3 text-sm rounded-full font-bold flex items-center justify-center gap-2 "
               onClick={() => handleSelect('gateway', 'gateway')}
             >
               <LogIn className="w-4 h-4" />
@@ -562,22 +562,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
              ===================================================================== */}
           <div className="lg:col-span-7 relative py-6 lg:py-12 text-right select-none">
             {/* Floating Decorative Circular Icon Badges */}
-            <div className="hidden sm:flex absolute -top-2 right-6 w-14 h-14 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] shadow-xs">
+            <div className="hidden sm:flex absolute -top-2 right-6 w-14 h-14 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] ">
               <Sparkles className="w-6 h-6" strokeWidth={1.75} />
             </div>
 
-            <div className="hidden sm:flex absolute top-28 left-12 w-12 h-12 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] shadow-xs">
+            <div className="hidden sm:flex absolute top-28 left-12 w-12 h-12 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] ">
               <ShieldCheck className="w-5 h-5" strokeWidth={1.75} />
             </div>
 
-            <div className="hidden sm:flex absolute bottom-8 left-24 w-16 h-16 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] shadow-xs">
+            <div className="hidden sm:flex absolute bottom-8 left-24 w-16 h-16 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] items-center justify-center text-[#141414] ">
               <Building2 className="w-7 h-7" strokeWidth={1.6} />
             </div>
 
             {/* Brand Title & Subtitle — Simple, Executive & Institutional */}
             <div className="space-y-3 sm:mt-8">
               <div className="text-3xl sm:text-4xl font-bold tracking-tight text-[#141414]">
-                خالد السليم <span className="text-[#c8c8c8] font-light mx-1.5">|</span>{' '}
+                خالد السليم <span className="text-[#adadad] font-light mx-1.5">|</span>{' '}
                 <span className="font-bold">Al-Sulaim</span>
               </div>
 
@@ -612,15 +612,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
              ===================================================================== */}
           <div className="lg:col-span-5 flex flex-col items-center lg:items-end w-full">
             <div className="w-full max-w-[420px]">
-              <div className="bg-white rounded-[28px] border border-[#ebebeb] shadow-[0_20px_60px_rgba(0,0,0,0.06)] p-6 sm:p-8 space-y-5 text-right">
+              <div className="bg-white rounded-[28px] border border-[#f3f3f3]  p-6 sm:p-8 space-y-5 text-right">
                 {/* Top Mode Switcher Pill */}
-                <div className="grid grid-cols-2 p-1 rounded-full bg-[#f5f5f5] border border-[#ebebeb]">
+                <div className="grid grid-cols-2 p-1 rounded-full bg-[#f3f3f3] border border-[#f3f3f3]">
                   <button
                     type="button"
                     onClick={() => setPortalMode('staff')}
                     className={`py-2 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       portalMode === 'staff'
-                        ? 'bg-white text-[#141414] shadow-xs'
+                        ? 'bg-white text-[#141414] '
                         : 'text-[#707070] hover:text-[#141414]'
                     }`}
                   >
@@ -632,7 +632,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                     onClick={() => handleSelect('gateway', 'gateway')}
                     className={`py-2 px-3 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       portalMode === 'companies'
-                        ? 'bg-white text-[#141414] shadow-xs'
+                        ? 'bg-white text-[#141414] '
                         : 'text-[#707070] hover:text-[#141414]'
                     }`}
                   >
@@ -697,7 +697,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                         `تم جلب ومزامنة حساب Google (${googlePrimary.displayName} • ${googlePrimary.email}) وصورته الشخصية.`
                       );
                     }}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f8f8f7] hover:bg-[#f0efec] border border-[#e5e5e5] text-[11px] font-bold text-[#141414] transition-all cursor-pointer"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#f3f3f3] border border-[#e0e0e0] text-[11px] font-bold text-[#141414] transition-all cursor-pointer"
                   >
                     <EmployeePhotoAvatar
                       name={syncedGoogleUser?.displayName || VERIFIED_FIREBASE_GOOGLE_ACCOUNTS[0]?.fullNameAr || ''}
@@ -725,7 +725,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                     }}
                     className={`py-2 px-3 rounded-full text-xs font-bold transition-all cursor-pointer ${
                       authTab === 'login'
-                        ? 'bg-white text-[#141414] shadow-xs'
+                        ? 'bg-white text-[#141414] '
                         : 'text-[#707070] hover:text-[#141414]'
                     }`}
                   >
@@ -739,7 +739,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                     }}
                     className={`py-2 px-3 rounded-full text-xs font-bold transition-all cursor-pointer ${
                       authTab === 'activate'
-                        ? 'bg-white text-[#141414] shadow-xs'
+                        ? 'bg-white text-[#141414] '
                         : 'text-[#707070] hover:text-[#141414]'
                     }`}
                   >
@@ -756,23 +756,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                       setShowGoogleModal(true);
                     }}
                     disabled={loading}
-                    className="w-full py-2.5 px-4 rounded-full bg-white hover:bg-[#f9f9f9] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
+                    className="w-full py-2.5 px-4 rounded-full bg-white hover:bg-[#ffffff] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
                   >
                     <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                       <path
-                        fill="#4285F4"
+                        fill="#707070"
                         d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
                       />
                       <path
-                        fill="#34A853"
+                        fill="#707070"
                         d="M12 24c3.3 0 6.08-1.09 8.1-2.96l-3.88-3.05c-1.08.72-2.45 1.16-4.22 1.16-3.24 0-5.98-2.18-6.96-5.13H1.04v3.14C3.05 21.15 7.21 24 12 24z"
                       />
                       <path
-                        fill="#FBBC05"
+                        fill="#adadad"
                         d="M5.04 14.02c-.25-.72-.39-1.5-.39-2.32s.14-1.6.39-2.32V6.24H1.04C.38 7.56 0 9.05 0 11.7s.38 4.14 1.04 5.46l4-3.14z"
                       />
                       <path
-                        fill="#EA4335"
+                        fill="#707070"
                         d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.21 0 3.05 2.85 1.04 6.24l4 3.14c.98-2.95 3.72-4.63 6.96-4.63z"
                       />
                     </svg>
@@ -788,7 +788,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                       )
                     }
                     disabled={loading}
-                    className="w-full py-2.5 px-4 rounded-full bg-white hover:bg-[#f9f9f9] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    className="w-full py-2.5 px-4 rounded-full bg-white hover:bg-[#ffffff] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
                     <Mail className="w-4 h-4 text-[#141414]" />
                     <span>تسجيل الدخول عبر البريد الإلكتروني</span>
@@ -799,7 +799,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                       type="button"
                       onClick={handleBiometricLogin}
                       disabled={loading}
-                      className="w-full py-2.5 px-3 rounded-full bg-white hover:bg-[#f9f9f9] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      className="w-full py-2.5 px-3 rounded-full bg-white hover:bg-[#ffffff] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                     >
                       <Fingerprint className="w-4 h-4 text-[#0066ff]" />
                       <span>البصمة الرقمية</span>
@@ -814,7 +814,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                         )
                       }
                       disabled={loading}
-                      className="w-full py-2.5 px-3 rounded-full bg-white hover:bg-[#f9f9f9] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      className="w-full py-2.5 px-3 rounded-full bg-white hover:bg-[#ffffff] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                     >
                       <Sparkles className="w-4 h-4 text-[#141414]" />
                       <span>الرابط السحري</span>
@@ -824,11 +824,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
 
                 {/* Divider */}
                 <div className="relative flex items-center justify-center py-0.5">
-                  <div className="border-t border-[#ebebeb] w-full" />
+                  <div className="border-t border-[#f3f3f3] w-full" />
                   <span className="bg-white px-3 text-[11px] font-medium text-[#707070] shrink-0">
                     أو بالبريد الإلكتروني
                   </span>
-                  <div className="border-t border-[#ebebeb] w-full" />
+                  <div className="border-t border-[#f3f3f3] w-full" />
                 </div>
 
                 {/* Error / Success Messages */}
@@ -860,7 +860,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                           onChange={(e) => setIdentifier(e.target.value)}
                           placeholder="your@email.com"
                           dir="ltr"
-                          className="w-full pl-4 pr-10 py-3 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-medium text-[#141414] placeholder:text-[#999999] outline-none transition-all text-left"
+                          className="w-full pl-4 pr-10 py-3 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-medium text-[#141414] placeholder:text-[#707070] outline-none transition-all text-left"
                         />
                         <Mail className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       </div>
@@ -891,7 +891,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="••••••••"
                           dir="ltr"
-                          className="w-full pl-10 pr-10 py-3 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-medium text-[#141414] placeholder:text-[#999999] outline-none transition-all text-left"
+                          className="w-full pl-10 pr-10 py-3 rounded-2xl bg-[#f3f3f3] border border-transparent focus:border-[#141414] focus:bg-white text-xs font-medium text-[#141414] placeholder:text-[#707070] outline-none transition-all text-left"
                         />
                         <Lock className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <button
@@ -907,7 +907,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full py-3.5 px-6 rounded-full bg-[#141414] hover:bg-[#262626] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-60 mt-1"
+                      className="w-full py-3.5 px-6 rounded-full bg-[#141414] hover:bg-[#262626] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all  cursor-pointer disabled:opacity-60 mt-1"
                     >
                       {loading ? (
                         <>
@@ -921,7 +921,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                   </form>
                 ) : (
                   <form onSubmit={handleActivateSubmit} className="space-y-3">
-                    <div className="p-2.5 rounded-2xl bg-[#f8f8f7] border border-[#e5e5e5] flex items-center justify-between gap-2">
+                    <div className="p-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-between gap-2">
                       <span className="text-[11px] font-bold text-[#141414]">
                         مزامنة سريعة من حساب Google:
                       </span>
@@ -1119,7 +1119,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full py-3.5 px-6 rounded-full bg-[#141414] hover:bg-[#262626] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-60 mt-1"
+                      className="w-full py-3.5 px-6 rounded-full bg-[#141414] hover:bg-[#262626] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all  cursor-pointer disabled:opacity-60 mt-1"
                     >
                       <CheckCircle2 className="w-4 h-4" />
                       <span>تفعيل الحساب والدخول الفوري</span>
@@ -1138,7 +1138,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
           <div className="flex items-center gap-2 text-[#141414] font-bold tracking-wider">
             <span>KSHG</span>
             <span className="text-[#141414]">•</span>
-            <span className="text-zinc-900">مجموعة خالد السليم القابضة</span>
+            <span className="text-[#141414]">مجموعة خالد السليم القابضة</span>
           </div>
 
           <div className="flex items-center gap-6 sm:gap-8 flex-wrap">
@@ -1175,7 +1175,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
               <span>•</span>
               <span>قطاعات الأعمال المستقلة</span>
             </div>
-            <h2 className="text-2xl sm:text-4xl font-bold text-zinc-950 font-display">
+            <h2 className="text-2xl sm:text-4xl font-bold text-[#141414] font-display">
               الشركات التابعة ومساحات العمل المستقلة
             </h2>
           </div>
@@ -1192,27 +1192,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
               className="luxury-white-card group flex flex-col justify-between overflow-hidden cursor-pointer"
               style={{
                 backgroundColor: '#ffffff',
-                color: '#091725'
+                color: '#141414'
               }}
             >
               <div>
                 {/* Top Image Frame with Overlay & Badges */}
-                <div className="h-44 relative overflow-hidden bg-zinc-100 rounded-t-[1.4rem]">
+                <div className="h-44 relative overflow-hidden bg-[#f3f3f3] rounded-t-[1.4rem]">
                   <img
                     src={comp.image}
                     alt={comp.nameAr}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/15 to-transparent" />
+                  <div className="absolute inset-0 bg-[#f3f3f3] from-white via-white/15 to-transparent" />
                   
                   {/* Top Bar inside Image: Code & Sector Badge */}
                   <div className="absolute top-3 inset-x-3 flex items-center justify-between pointer-events-none">
-                    <span className="text-[10px] bg-white/95 backdrop-blur-xs border border-zinc-200/90 px-2 py-0.5 rounded-md text-zinc-900 font-mono font-bold shadow-xs">
+                    <span className="text-[10px] bg-white/95 backdrop-blur-xs border border-[#e0e0e0] px-2 py-0.5 rounded-md text-[#141414] font-mono font-bold ">
                       {comp.code.split(' ')[0]} {comp.code.split(' ')[1]}
                     </span>
                     <span 
-                      className="text-[9.5px] font-bold px-2 py-0.5 rounded-md text-white shadow-xs"
+                      className="text-[9.5px] font-bold px-2 py-0.5 rounded-md text-white "
                       style={{ backgroundColor: comp.themeColor }}
                     >
                       {comp.badge}
@@ -1225,7 +1225,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                       type={resolveIllustrationForPortal(comp.id)}
                       size="sm"
                       showBackground={false}
-                      className="!w-14 !h-12 shadow-sm"
+                      className="!w-14 !h-12 "
                     />
                   </div>
 
@@ -1240,11 +1240,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                 <div className="p-5 text-right space-y-3.5">
                   {/* Company Logo + Arabic Title */}
                   <div className="flex items-start gap-3">
-                    <div className="shrink-0 p-1 bg-white rounded-xl border border-zinc-200/80 shadow-xs group-hover:border-[#141414] transition-colors">
+                    <div className="shrink-0 p-1 bg-white rounded-xl border border-[#e0e0e0]  group-hover:border-[#141414] transition-colors">
                       <CompanyLogo companyId={comp.id} size={38} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm sm:text-base font-bold text-zinc-950 leading-snug font-display">
+                      <h3 className="text-sm sm:text-base font-bold text-[#141414] leading-snug font-display">
                         {comp.nameAr}
                       </h3>
                       <span className="text-[10px] text-[#707070] font-medium block truncate mt-0.5">
@@ -1254,7 +1254,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                   </div>
 
                   {/* Description */}
-                  <p className="text-xs text-zinc-600 leading-relaxed line-clamp-3 min-h-[48px]">
+                  <p className="text-xs text-[#707070] leading-relaxed line-clamp-3 min-h-[48px]">
                     {comp.desc}
                   </p>
 
@@ -1273,14 +1273,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
 
               {/* Bottom Action Button & License */}
               <div className="p-5 pt-0 text-right space-y-2.5">
-                <div className="w-full py-2.5 px-3.5 rounded-xl bg-zinc-50 group-hover:bg-[#f3f3f3] text-zinc-800 group-hover:text-[#141414] border border-zinc-200/90 group-hover:border-zinc-950 transition-all duration-200 font-bold text-xs flex items-center justify-between shadow-2xs">
+                <div className="w-full py-2.5 px-3.5 rounded-xl bg-[#f3f3f3] group-hover:bg-[#f3f3f3] text-[#141414] group-hover:text-[#141414] border border-[#e0e0e0] group-hover:border-[#141414] transition-all duration-200 font-bold text-xs flex items-center justify-between shadow-2xs">
                   <span className="text-[11.5px]">بوابة الدخول المستقلة</span>
-                  <div className="w-6 h-6 rounded-full bg-white group-hover:bg-zinc-800 text-zinc-700 group-hover:text-[#141414] flex items-center justify-center transition-all shadow-2xs">
+                  <div className="w-6 h-6 rounded-full bg-white group-hover:bg-[#262626] text-[#141414] group-hover:text-[#141414] flex items-center justify-center transition-all shadow-2xs">
                     <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
                   </div>
                 </div>
 
-                <div className="text-[9.5px] text-[#707070] font-mono truncate pt-1 border-t border-zinc-100 flex items-center justify-between">
+                <div className="text-[9.5px] text-[#707070] font-mono truncate pt-1 border-t border-[#e0e0e0] flex items-center justify-between">
                   <span>{comp.license}</span>
                 </div>
               </div>
@@ -1290,11 +1290,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
       </section>
 
       {/* 5. Enterprise Capabilities & Infrastructure Section */}
-      <section id="capabilities" className="border-t border-zinc-200/80 bg-zinc-50/70 py-16 sm:py-24 px-4 sm:px-8">
+      <section id="capabilities" className="border-t border-[#e0e0e0] bg-[#f3f3f3] py-16 sm:py-24 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="max-w-2xl mb-12 sm:mb-16 text-right">
             <span className="eyebrow-cap text-[#707070] text-xs tracking-widest font-bold">CAPABILITIES & INFRASTRUCTURE</span>
-            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold text-zinc-950 mt-2 font-display">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold text-[#141414] mt-2 font-display">
               بنية تحتية موحدة بمقاييس عالمية
             </h2>
             <p className="text-sm text-[#707070] mt-2">
@@ -1312,7 +1312,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
               <div className="absolute top-0 inset-x-0 h-1 bg-[#141414]" />
 
               <div className="flex items-center justify-between mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                <div className="w-14 h-14 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center  group-hover:scale-105 transition-transform">
                   <Network className="w-7 h-7" />
                 </div>
                 <BusinessIllustration type="zatca-einvoice" size="sm" showBackground={false} className="!w-20 !h-16" />
@@ -1322,11 +1322,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                 الربط والامتثال الحكومي الشامل
               </h3>
 
-              <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed mb-6">
+              <p className="text-xs sm:text-sm text-[#707070] leading-relaxed mb-6">
                 تكامل مباشر مع منصة مساند، الفوترة الإلكترونية للمرحلة الثانية من هيئة الزكاة والضريبة والجمارك (ZATCA)، منصة مقيم، التأمينات الاجتماعية، وسحابة اعتماد.
               </p>
 
-              <div className="space-y-2 pt-4 border-t border-zinc-100 text-xs text-zinc-700">
+              <div className="space-y-2 pt-4 border-t border-[#e0e0e0] text-xs text-[#141414]">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0" />
                   <span className="font-semibold">ربط وتوثيق فوري مع مساند (RC01 - RC03)</span>
@@ -1341,7 +1341,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center justify-between text-[11px] text-[#707070]">
+              <div className="mt-6 pt-4 border-t border-[#e0e0e0] flex items-center justify-between text-[11px] text-[#707070]">
                 <span className="font-bold text-[#141414] flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-[#141414]" />
                   <span>ربط نشط وممتثل 100%</span>
@@ -1359,7 +1359,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
               <div className="absolute top-0 inset-x-0 h-1 bg-[#141414]" />
 
               <div className="flex items-center justify-between mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                <div className="w-14 h-14 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center  group-hover:scale-105 transition-transform">
                   <TrendingUp className="w-7 h-7" />
                 </div>
                 <BusinessIllustration type="smacc-finance" size="sm" showBackground={false} className="!w-20 !h-16" />
@@ -1369,11 +1369,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                 المنظومة المالية والمحاسبية الموحدة
               </h3>
 
-              <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed mb-6">
+              <p className="text-xs sm:text-sm text-[#707070] leading-relaxed mb-6">
                 محاسبة مالية متكاملة من 6 أنظمة (الأستاذ العام، المبيعات، المشتريات، المخزون، البنوك والصناديق، ومراكز التكلفة) مع عزل كامل للدفاتر المحاسبية لكل شركة.
               </p>
 
-              <div className="space-y-2 pt-4 border-t border-zinc-100 text-xs text-zinc-700">
+              <div className="space-y-2 pt-4 border-t border-[#e0e0e0] text-xs text-[#141414]">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0" />
                   <span className="font-semibold">6 أنظمة محاسبية متكاملة وعزل دفاتر كل شركة</span>
@@ -1388,7 +1388,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center justify-between text-[11px] text-[#707070]">
+              <div className="mt-6 pt-4 border-t border-[#e0e0e0] flex items-center justify-between text-[11px] text-[#707070]">
                 <span className="font-bold text-[#141414] flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-[#141414]" />
                   <span>عزل مالي ومحاسبي 100%</span>
@@ -1406,7 +1406,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
               <div className="absolute top-0 inset-x-0 h-1 bg-[#141414]" />
 
               <div className="flex items-center justify-between mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                <div className="w-14 h-14 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] flex items-center justify-center  group-hover:scale-105 transition-transform">
                   <Bot className="w-7 h-7 text-[#141414]" />
                 </div>
                 <BusinessIllustration type="ai-copilot" size="sm" showBackground={false} className="!w-20 !h-16" />
@@ -1416,11 +1416,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                 المستشاران المؤسسيان (فارس ونُورة)
               </h3>
 
-              <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed mb-6">
+              <p className="text-xs sm:text-sm text-[#707070] leading-relaxed mb-6">
                 إرشاد صوتي ونصي مباشر للموظفين والإدارة التنفيذية لتحليل السجلات المعزولة، التوجيه السريع للأقسام، واستخلاص الفواتير والعقود بضغطة زر.
               </p>
 
-              <div className="space-y-2 pt-4 border-t border-zinc-100 text-xs text-zinc-700">
+              <div className="space-y-2 pt-4 border-t border-[#e0e0e0] text-xs text-[#141414]">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#141414] shrink-0" />
                   <span className="font-semibold">فارس للمنافسات والمحاسبة • نُورة للإيواء والتشغيل</span>
@@ -1435,7 +1435,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center justify-between text-[11px] text-[#707070]">
+              <div className="mt-6 pt-4 border-t border-[#e0e0e0] flex items-center justify-between text-[11px] text-[#707070]">
                 <span className="font-bold text-[#141414] flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-[#141414]" />
                   <span>توجيه مؤسسي 24/7</span>
@@ -1448,16 +1448,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
       </section>
 
       {/* 6. Executive White Footer */}
-      <footer id="governance" className="border-t border-zinc-200/80 bg-white py-12 sm:py-16 px-4 sm:px-8">
+      <footer id="governance" className="border-t border-[#e0e0e0] bg-white py-12 sm:py-16 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 mb-12 text-right">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full border border-[#e0e0e0] p-0.5 bg-white shrink-0 flex items-center justify-center">
                 <img loading="lazy" decoding="async" src="/logo.png" alt="Logo" className="w-full h-full object-contain rounded-full" />
               </div>
-              <span className="font-bold text-base text-zinc-950 font-display">مجموعة خالد السليم</span>
+              <span className="font-bold text-base text-[#141414] font-display">مجموعة خالد السليم</span>
             </div>
-            <p className="text-xs text-zinc-600 leading-relaxed">
+            <p className="text-xs text-[#707070] leading-relaxed">
               المنظومة الرقمية المركزية الرائدة لإدارة قطاع الاستقدام والتشغيل والمنافسات والتوريدات بالمملكة العربية السعودية.
             </p>
             <div className="flex items-center gap-2 pt-1 text-[11px] text-[#141414] font-bold">
@@ -1466,8 +1466,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
           </div>
 
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-950 mb-4">الشركات والكيانات</h4>
-            <div className="space-y-2.5 text-xs text-zinc-600">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#141414] mb-4">الشركات والكيانات</h4>
+            <div className="space-y-2.5 text-xs text-[#707070]">
               <button type="button" onClick={() => handleSelect('SAF')} className="block hover:text-[#141414] text-right cursor-pointer">شركة السفير الماسي للاستقدام</button>
               <button type="button" onClick={() => handleSelect('YAQ')} className="block hover:text-[#141414] text-right cursor-pointer">شركة الياقوت الشرقية للتشغيل</button>
               <button type="button" onClick={() => handleSelect('TOP')} className="block hover:text-[#141414] text-right cursor-pointer">شركة توب تالنت الدولية للـ ATS</button>
@@ -1477,8 +1477,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
           </div>
 
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-950 mb-4">المنصات والربط الحكومي</h4>
-            <div className="space-y-2.5 text-xs text-zinc-600">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#141414] mb-4">المنصات والربط الحكومي</h4>
+            <div className="space-y-2.5 text-xs text-[#707070]">
               <div>منصة مساند الحكومية (RC01 - RC03)</div>
               <div>هيئة الزكاة والضريبة والجمارك (ZATCA)</div>
               <div>وزارة الموارد البشرية والتنمية الاجتماعية (HRSD)</div>
@@ -1487,8 +1487,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
           </div>
 
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-950 mb-4">الدعم الفني والحوكمة</h4>
-            <div className="space-y-2.5 text-xs text-zinc-600">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#141414] mb-4">الدعم الفني والحوكمة</h4>
+            <div className="space-y-2.5 text-xs text-[#707070]">
               <div>مركز القيادة والتحكم الفائق (Super Admin)</div>
               <div>عزل البيانات متعدد الشركات (Zero Contamination)</div>
               <div>الدعم الفني والتقني المعتمد 24/7</div>
@@ -1572,7 +1572,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                     `تم إلغاء الاشتراك التسويقي فوراً وبأثر فوري لـ (${res.recipient}) في ${res.unsubscribedAt}. لن تصلك أي رسائل تسويقية.`
                   );
                 }}
-                className="py-2.5 px-3 rounded-2xl bg-[#f3f3f3] hover:bg-[#e5e5e5] border border-[#141414] text-[#141414] text-[11px] font-bold cursor-pointer"
+                className="py-2.5 px-3 rounded-2xl bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#141414] text-[#141414] text-[11px] font-bold cursor-pointer"
               >
                 إلغاء الاشتراك فوراً
               </button>
@@ -1598,7 +1598,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
           )}
         </div>
 
-        <div className="max-w-7xl mx-auto pt-8 border-t border-zinc-200/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#707070]">
+        <div className="max-w-7xl mx-auto pt-8 border-t border-[#e0e0e0] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#707070]">
           <span>
             © {new Date().getFullYear()} مجموعة خالد السليم (KSHG) • جميع الحقوق محفوظة ومحمية • رؤية 2030
           </span>
@@ -1623,26 +1623,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
           onClick={() => setShowGoogleModal(false)}
         >
           <div
-            className="bg-[#ffffff] border border-[#e0e0e0] rounded-[28px] max-w-md w-full p-6 sm:p-7 space-y-4 text-right shadow-2xl"
+            className="bg-[#ffffff] border border-[#e0e0e0] rounded-[28px] max-w-md w-full p-6 sm:p-7 space-y-4 text-right "
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-4">
               <div className="flex items-center gap-2.5">
                 <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                   <path
-                    fill="#4285F4"
+                    fill="#707070"
                     d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
                   />
                   <path
-                    fill="#34A853"
+                    fill="#707070"
                     d="M12 24c3.3 0 6.08-1.09 8.1-2.96l-3.88-3.05c-1.08.72-2.45 1.16-4.22 1.16-3.24 0-5.98-2.18-6.96-5.13H1.04v3.14C3.05 21.15 7.21 24 12 24z"
                   />
                   <path
-                    fill="#FBBC05"
+                    fill="#adadad"
                     d="M5.04 14.02c-.25-.72-.39-1.5-.39-2.32s.14-1.6.39-2.32V6.24H1.04C.38 7.56 0 9.05 0 11.7s.38 4.14 1.04 5.46l4-3.14z"
                   />
                   <path
-                    fill="#EA4335"
+                    fill="#707070"
                     d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.21 0 3.05 2.85 1.04 6.24l4 3.14c.98-2.95 3.72-4.63 6.96-4.63z"
                   />
                 </svg>
@@ -1658,7 +1658,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
               <button
                 type="button"
                 onClick={() => setShowGoogleModal(false)}
-                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] flex items-center justify-center text-[#141414] cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] flex items-center justify-center text-[#141414] cursor-pointer"
                 aria-label="إغلاق"
               >
                 <X className="w-4 h-4" />
@@ -1688,7 +1688,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                       picture: gAcc.photoURL,
                     })
                   }
-                  className="w-full p-3 rounded-2xl bg-[#f8f8f7] hover:bg-[#f0efec] border border-[#e5e5e5] flex items-center justify-between gap-3 text-right transition-colors cursor-pointer"
+                  className="w-full p-3 rounded-2xl bg-[#f3f3f3] hover:bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-between gap-3 text-right transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <EmployeePhotoAvatar

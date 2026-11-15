@@ -437,7 +437,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
             className={`px-4 py-2 rounded-full text-xs font-bold inline-flex items-center gap-2 cursor-pointer transition-all ${
               activeView === 'live_monitor'
                 ? 'bg-[#141414] text-[#ffffff]'
-                : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#e5e5e5] border border-[#e0e0e0]'
+                : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#e0e0e0] border border-[#e0e0e0]'
             }`}
           >
             <Activity className="w-4 h-4" />
@@ -450,7 +450,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
             className={`px-4 py-2 rounded-full text-xs font-bold inline-flex items-center gap-2 cursor-pointer transition-all ${
               activeView === 'catalog_3000'
                 ? 'bg-[#141414] text-[#ffffff]'
-                : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#e5e5e5] border border-[#e0e0e0]'
+                : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#e0e0e0] border border-[#e0e0e0]'
             }`}
           >
             <BookOpen className="w-4 h-4" />
@@ -509,7 +509,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
                     className={`p-3 rounded-[16px] border text-right transition-all cursor-pointer flex flex-col justify-between gap-1.5 ${
                       isSelected
                         ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
-                        : 'bg-[#f3f3f3] hover:bg-[#eaeaea] text-[#141414] border-[#e0e0e0]'
+                        : 'bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[#141414] border-[#e0e0e0]'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-1">
@@ -714,7 +714,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
                           <button
                             type="button"
                             onClick={() => setSelectedCatalogItem(item)}
-                            className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer"
+                            className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer"
                           >
                             <Eye className="w-3.5 h-3.5" />
                             <span>تفاصيل</span>
@@ -999,7 +999,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
                       <button
                         type="button"
                         onClick={() => setSelectedIncident(inc)}
-                        className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors"
+                        className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors"
                         title="معاينة التفاصيل والـ Stack Trace"
                       >
                         <Eye className="w-3.5 h-3.5" />
@@ -1008,7 +1008,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
                       <button
                         type="button"
                         onClick={() => handleCopyDiagnostic(inc)}
-                        className="p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] cursor-pointer transition-colors"
+                        className="p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] cursor-pointer transition-colors"
                         title="نسخ التقرير التشخيصي"
                       >
                         {copiedId === inc.id ? (
@@ -1034,11 +1034,11 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
           onClick={() => setSelectedCatalogItem(null)}
         >
           <div
-            className="w-full max-w-2xl bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] shadow-2xl overflow-hidden"
+            className="w-full max-w-2xl bg-[#ffffff] rounded-[24px] border border-[#e0e0e0]  overflow-hidden"
             onClick={(e) => e.stopPropagation()}
             dir="rtl"
           >
-            <div className="p-5 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5] flex items-center justify-between">
+            <div className="p-5 bg-[#ffffff] text-[#141414] border-b border-[#e0e0e0] flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-[12px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center text-[#141414]">
                   <BookOpen className="w-5 h-5" />
@@ -1060,7 +1060,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
               <button
                 type="button"
                 onClick={() => setSelectedCatalogItem(null)}
-                className="p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] cursor-pointer"
+                className="p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1114,7 +1114,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
               </div>
             </div>
 
-            <div className="px-6 py-4 bg-[#ffffff] border-t border-[#e5e5e5] flex items-center justify-between flex-wrap gap-2">
+            <div className="px-6 py-4 bg-[#ffffff] border-t border-[#e0e0e0] flex items-center justify-between flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => {
@@ -1131,7 +1131,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
               <button
                 type="button"
                 onClick={() => setSelectedCatalogItem(null)}
-                className="px-4 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] text-xs font-semibold cursor-pointer"
+                className="px-4 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-xs font-semibold cursor-pointer"
               >
                 إغلاق النافذة
               </button>
@@ -1147,11 +1147,11 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
           onClick={() => setSelectedIncident(null)}
         >
           <div
-            className="w-full max-w-2xl bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] shadow-2xl overflow-hidden"
+            className="w-full max-w-2xl bg-[#ffffff] rounded-[24px] border border-[#e0e0e0]  overflow-hidden"
             onClick={(e) => e.stopPropagation()}
             dir="rtl"
           >
-            <div className="p-5 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5] flex items-center justify-between">
+            <div className="p-5 bg-[#ffffff] text-[#141414] border-b border-[#e0e0e0] flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-[12px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center text-[#141414]">
                   <Terminal className="w-5 h-5" />
@@ -1173,7 +1173,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
               <button
                 type="button"
                 onClick={() => setSelectedIncident(null)}
-                className="p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] cursor-pointer"
+                className="p-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1237,11 +1237,11 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
               </div>
             </div>
 
-            <div className="px-6 py-4 bg-[#ffffff] border-t border-[#e5e5e5] flex items-center justify-between flex-wrap gap-2">
+            <div className="px-6 py-4 bg-[#ffffff] border-t border-[#e0e0e0] flex items-center justify-between flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => handleCopyDiagnostic(selectedIncident)}
-                className="px-4 py-2 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] hover:bg-[#e5e5e5] text-[#141414] text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] hover:bg-[#e0e0e0] text-[#141414] text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
               >
                 <Copy className="w-3.5 h-3.5" />
                 <span>نسخ التقرير التقني الكامل</span>
@@ -1261,7 +1261,7 @@ export const EnterpriseErrorMonitorPanel: React.FC<EnterpriseErrorMonitorPanelPr
                 <button
                   type="button"
                   onClick={() => setSelectedIncident(null)}
-                  className="px-4 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] border border-[#e0e0e0] text-xs font-semibold cursor-pointer"
+                  className="px-4 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-xs font-semibold cursor-pointer"
                 >
                   إغلاق النافذة
                 </button>

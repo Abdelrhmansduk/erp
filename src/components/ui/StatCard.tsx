@@ -49,7 +49,7 @@ export const StatCard: React.FC<StatCardProps> = ({
             width: '36px',
             height: '36px',
             borderRadius: '9999px',
-            backgroundColor: isFeatured ? '#141414' : '#f4f4f5',
+            backgroundColor: isFeatured ? '#141414' : '#f3f3f3',
             color: isFeatured ? '#ffffff' : '#141414',
             display: 'flex',
             alignItems: 'center',
@@ -77,7 +77,7 @@ export const StatCard: React.FC<StatCardProps> = ({
       {(subtext || trend) && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '4px' }}>
           {subtext && (
-            <span className="caption" style={{ color: isFeatured ? '#27272a' : 'var(--color-shade-50)', fontSize: '13px' }}>
+            <span className="caption" style={{ color: isFeatured ? '#141414' : 'var(--color-shade-50)', fontSize: '13px' }}>
               {subtext}
             </span>
           )}

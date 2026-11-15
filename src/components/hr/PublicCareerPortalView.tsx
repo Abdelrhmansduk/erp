@@ -15,7 +15,7 @@ import {
   submitCareerPortalApplication,
   type CareerApplicationRecord,
   type CareerJobPostingRecord,
-} from '../../services/jisrGovernanceTalentPulseEngine';
+} from '../../services/hrGovernanceTalentPulseEngine';
 
 interface PublicCareerPortalViewProps {
   initialCompanyId?: string;

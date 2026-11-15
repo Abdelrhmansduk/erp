@@ -75,13 +75,13 @@ const INITIAL_CUSTODIES: Custody[] = [
   {
     id: 'CUST-01',
     company_id: 'SAF',
-    employee_id: 'emp-101',
-    employee_code: 'EMP-SAF-101',
+    employee_id: 'KAS-EMP-039',
+    employee_code: 'KAS-EMP-039',
     item_name: 'جهاز لاب توب MacBook Pro M2',
-    employee_name: 'محمد مصطفي',
-    emp_name: 'محمد مصطفي',
+    employee_name: 'اكرم محمد الكناني',
+    emp_name: 'اكرم محمد الكناني',
     employee_phone: '0501122334',
-    employee_email: 'm.mustafa@saf-rec.sa',
+    employee_email: 'a.alkinani.acc@kas.sa',
     location: 'مقر الإدارة العليا',
     received_date: '2024-06-01',
     handover_date: '2024-06-01',
@@ -96,12 +96,13 @@ const INITIAL_CUSTODIES: Custody[] = [
   {
     id: 'CUST-02',
     company_id: 'YAQ',
-    employee_id: 'emp-102',
-    employee_code: 'EMP-YAQ-102',
+    employee_id: 'KAS-EMP-040',
+    employee_code: 'KAS-EMP-040',
     item_name: 'سيارة تويوتا كامري 2025 (استقبال مطار)',
-    employee_name: 'سائق الاستقبال - أحمد',
-    emp_name: 'سائق الاستقبال - أحمد',
+    employee_name: 'احمد حلمى عبدالمقصود عيسى',
+    emp_name: 'احمد حلمى عبدالمقصود عيسى',
     employee_phone: '0552233445',
+    employee_email: 'a.eissa.acc@kas.sa',
     location: 'فرع مطار الملك خالد',
     received_date: '2025-01-15',
     handover_date: '2025-01-15',
@@ -115,13 +116,13 @@ const INITIAL_CUSTODIES: Custody[] = [
   {
     id: 'CUST-03',
     company_id: 'KAS',
-    employee_id: 'emp-103',
-    employee_code: 'EMP-KAS-103',
+    employee_id: 'KAS-EMP-010',
+    employee_code: 'KAS-EMP-010',
     item_name: 'جهاز ايفون 15 بروماكس (هاتف خدمة العملاء)',
-    employee_name: 'سارة خالد',
-    emp_name: 'سارة خالد',
+    employee_name: 'الجوري العنزي',
+    emp_name: 'الجوري العنزي',
     employee_phone: '0543344556',
-    employee_email: 's.khalid@kas.sa',
+    employee_email: 'a.alanazi@kas.sa',
     location: 'فرع الرياض الرئيسي',
     received_date: '2025-03-10',
     handover_date: '2025-03-10',
@@ -136,12 +137,13 @@ const INITIAL_CUSTODIES: Custody[] = [
   {
     id: 'CUST-04',
     company_id: 'TOP',
-    employee_id: 'emp-104',
-    employee_code: 'EMP-TOP-104',
+    employee_id: 'KAS-EMP-034',
+    employee_code: 'KAS-EMP-034',
     item_name: 'طابعة ملونة ليزر HP Enterprise',
-    employee_name: 'فهد العتيبي',
-    emp_name: 'فهد العتيبي',
+    employee_name: 'عبدالرحمن أبو سالف',
+    emp_name: 'عبدالرحمن أبو سالف',
     employee_phone: '0564455667',
+    employee_email: 'a.salif.dev@kas.sa',
     location: 'فرع جدة',
     received_date: '2024-11-20',
     handover_date: '2024-11-20',
@@ -958,7 +960,7 @@ export const CustodiesPage: React.FC = () => {
                           <div>{row.employee_name}</div>
                           <div className="text-[10px] text-[#707070] font-normal">
                             {rowEntity.entity.shortNameAr} ({rowEntity.code}) •{' '}
-                            <span className="font-mono">{row.employee_id || 'emp-101'}</span>
+                            <span className="font-mono">{row.employee_id || 'KAS-EMP-039'}</span>
                           </div>
                         </div>
                       </div>

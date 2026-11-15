@@ -33,7 +33,7 @@ import {
   type OffCyclePayrollRunRecord,
   type RetroactiveArrearRecord,
   type SaudiCorporateBankCode,
-} from '../../services/jisrPayrollArrearsAndB2BEngine';
+} from '../../services/hrPayrollArrearsAndB2BEngine';
 
 export interface PayrollB2BEmployeeLite {
   id: string;
@@ -50,7 +50,7 @@ export interface PayrollB2BEmployeeLite {
   gosiEmployee?: number;
 }
 
-interface JisrPayrollArrearsB2BHubProps {
+interface HrPayrollArrearsB2BHubProps {
   companyId: string;
   companyName?: string;
   periodMonth: string;
@@ -64,7 +64,7 @@ function defaultPostingDateForPeriod(periodMonth: string): string {
   return safeMonth < '2026-07' ? '2026-08-25' : `${safeMonth}-25`;
 }
 
-export const JisrPayrollArrearsB2BHub: React.FC<JisrPayrollArrearsB2BHubProps> = ({
+export const HrPayrollArrearsB2BHub: React.FC<HrPayrollArrearsB2BHubProps> = ({
   companyId,
   companyName = 'مجموعة خالد السليم القابضة',
   periodMonth,

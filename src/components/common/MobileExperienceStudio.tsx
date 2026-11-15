@@ -290,7 +290,7 @@ export const MobileExperienceStudio: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="group flex items-center gap-2.5 px-3.5 sm:px-4 py-2.5 min-h-[44px] rounded-full bg-[#ffffff] text-[#141414] border border-[#e0e0e0] shadow-[0_8px_24px_rgba(20,20,20,0.08)] hover:border-[#141414] transition-all duration-200 motion-spring-press cursor-pointer"
+            className="group flex items-center gap-2.5 px-3.5 sm:px-4 py-2.5 min-h-[44px] rounded-full bg-[#ffffff] text-[#141414] border border-[#e0e0e0]  hover:border-[#141414] transition-all duration-200 motion-spring-press cursor-pointer"
             title="فتح نسخة الهاتف التفاعلية وإشعاراتها والعمل في الخلفية"
           >
             <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] group-hover:bg-[#262626] group-hover:text-[#ffffff] transition-colors">
@@ -331,10 +331,10 @@ export const MobileExperienceStudio: React.FC = () => {
             }}
           >
             {/* Right Panel: Controls, Notifications, Background Sync & Real Phone QR */}
-            <div className="w-full lg:w-[440px] bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-5 text-[#141414] flex flex-col justify-between shadow-2xl shrink-0">
+            <div className="w-full lg:w-[440px] bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-5 text-[#141414] flex flex-col justify-between  shrink-0">
               <div className="space-y-4">
                 {/* Header */}
-                <div className="flex items-center justify-between border-b border-[#e5e5e5] pb-3.5">
+                <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3.5">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center text-[#141414]">
                       <Smartphone className="w-5 h-5" />
@@ -354,7 +354,7 @@ export const MobileExperienceStudio: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setIsOpen(false)}
-                    className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
                     title="إغلاق معاينة الهاتف"
                     aria-label="إغلاق معاينة الهاتف"
                   >
@@ -430,7 +430,7 @@ export const MobileExperienceStudio: React.FC = () => {
                       <button
                         type="button"
                         onClick={handleToggleMute}
-                        className="p-1.5 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[#141414] hover:bg-[#e5e5e5] cursor-pointer"
+                        className="p-1.5 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[#141414] hover:bg-[#e0e0e0] cursor-pointer"
                         title={isMuted ? 'تشغيل صوت الإشعارات' : 'كتم صوت الإشعارات'}
                       >
                         {isMuted ? (
@@ -524,7 +524,7 @@ export const MobileExperienceStudio: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleSimulateOfflineEnqueue}
-                      className="px-2 py-2 rounded-full bg-[#ffffff] hover:bg-[#e5e5e5] border border-[#e0e0e0] text-[#141414] text-[10px] font-bold transition-colors cursor-pointer"
+                      className="px-2 py-2 rounded-full bg-[#ffffff] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-[10px] font-bold transition-colors cursor-pointer"
                     >
                       + عملية بالخلفية
                     </button>
@@ -543,7 +543,7 @@ export const MobileExperienceStudio: React.FC = () => {
                       className={`px-2 py-2 rounded-full text-[10px] font-bold flex items-center justify-center gap-1 transition-colors border cursor-pointer ${
                         bgState.wakeLockActive
                           ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
-                          : 'bg-[#ffffff] hover:bg-[#e5e5e5] text-[#141414] border-[#e0e0e0]'
+                          : 'bg-[#ffffff] hover:bg-[#e0e0e0] text-[#141414] border-[#e0e0e0]'
                       }`}
                     >
                       <Sun className="w-3 h-3" />
@@ -554,7 +554,7 @@ export const MobileExperienceStudio: React.FC = () => {
               </div>
 
               {/* 5. Open on Real Physical Phone (QR Code + Copy URL) */}
-              <div className="mt-4 pt-3.5 border-t border-[#e5e5e5] flex items-center gap-3 bg-[#f3f3f3] p-3 rounded-[18px]">
+              <div className="mt-4 pt-3.5 border-t border-[#e0e0e0] flex items-center gap-3 bg-[#f3f3f3] p-3 rounded-[18px]">
                 {qrCodeImageUrl && (
                   <img loading="lazy" decoding="async"
                     src={qrCodeImageUrl}
@@ -574,7 +574,7 @@ export const MobileExperienceStudio: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleCopyMobileUrl}
-                      className="px-3 py-1 rounded-full bg-[#ffffff] hover:bg-[#e5e5e5] border border-[#e0e0e0] text-[10px] font-bold text-[#141414] flex items-center gap-1 cursor-pointer"
+                      className="px-3 py-1 rounded-full bg-[#ffffff] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[10px] font-bold text-[#141414] flex items-center gap-1 cursor-pointer"
                     >
                       {copiedUrl ? (
                         <>
@@ -591,7 +591,7 @@ export const MobileExperienceStudio: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => reloadPhoneFrame()}
-                      className="px-3 py-1 rounded-full bg-[#ffffff] hover:bg-[#e5e5e5] border border-[#e0e0e0] text-[10px] font-bold text-[#141414] flex items-center gap-1 cursor-pointer"
+                      className="px-3 py-1 rounded-full bg-[#ffffff] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[10px] font-bold text-[#141414] flex items-center gap-1 cursor-pointer"
                     >
                       <RotateCcw className="w-3 h-3" />
                       <span>تحديث الشاشة</span>
@@ -604,7 +604,7 @@ export const MobileExperienceStudio: React.FC = () => {
             {/* Left Panel: Real-Time Pixel-Perfect Phone Hardware Frame */}
             <div className="flex flex-col items-center justify-center">
               <div
-                className="relative rounded-[48px] bg-[#141414] p-3 shadow-[0_25px_80px_-15px_rgba(20,20,20,0.65)] border-[4px] border-[#262626] transition-all duration-300"
+                className="relative rounded-[48px] bg-[#141414] p-3  border-[4px] border-[#262626] transition-all duration-300"
                 style={{
                   width: `${selectedDevice.width + 24}px`,
                 }}
@@ -655,7 +655,7 @@ export const MobileExperienceStudio: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-3 px-4 py-1.5 rounded-full bg-[#ffffff] border border-[#e0e0e0] shadow-sm flex items-center gap-3 text-xs text-[#707070]">
+              <div className="mt-3 px-4 py-1.5 rounded-full bg-[#ffffff] border border-[#e0e0e0]  flex items-center gap-3 text-xs text-[#707070]">
                 <span>
                   المقاس الفعلي: <strong className="text-[#141414]">{selectedDevice.width}px × {selectedDevice.height}px</strong>
                 </span>

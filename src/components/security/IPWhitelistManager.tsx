@@ -61,11 +61,11 @@ export const IPWhitelistManager: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header & Controls */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-zinc-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#e0e0e0] ">
         <div>
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-[#141414]" />
-            <h3 className="text-base font-bold text-zinc-900 m-0">إدارة القائمة البيضاء للعناوين والشبكات الموثوقة (IP Whitelist)</h3>
+            <h3 className="text-base font-bold text-[#141414] m-0">إدارة القائمة البيضاء للعناوين والشبكات الموثوقة (IP Whitelist)</h3>
           </div>
           <p className="text-xs text-[#707070] mt-1">
             تقييد الوصول للنظام من شبكات الفروع المعتمدة أو استثناءات الـ VPN المؤقتة لحماية بيانات المجموعة
@@ -99,9 +99,9 @@ export const IPWhitelistManager: React.FC = () => {
           <div className="text-[10px] text-[#141414] mt-1">تنتهي صلاحيتها تلقائياً</div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-zinc-100 border border-zinc-200">
-          <div className="text-xs font-medium text-zinc-700 mb-1">قواعد معطلة مؤقتاً</div>
-          <div className="text-2xl font-bold font-mono text-zinc-800">
+        <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0]">
+          <div className="text-xs font-medium text-[#141414] mb-1">قواعد معطلة مؤقتاً</div>
+          <div className="text-2xl font-bold font-mono text-[#141414]">
             {whitelist.filter(i => !i.isActive).length}
           </div>
           <div className="text-[10px] text-[#707070] mt-1">محظورة من الوصول</div>
@@ -109,8 +109,8 @@ export const IPWhitelistManager: React.FC = () => {
       </div>
 
       {/* Filter and Table */}
-      <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-xs">
-        <div className="p-4 border-b border-zinc-100 flex items-center justify-between gap-3">
+      <div className="bg-white rounded-2xl border border-[#e0e0e0] overflow-hidden ">
+        <div className="p-4 border-b border-[#e0e0e0] flex items-center justify-between gap-3">
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 text-[#707070] absolute right-3 top-1/2 -translate-y-1/2" />
             <input
@@ -118,7 +118,7 @@ export const IPWhitelistManager: React.FC = () => {
               placeholder="البحث بعنوان IP أو اسم الفرع..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-3 pr-9 py-1.5 text-xs bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-hidden focus:border-zinc-400"
+              className="w-full pl-3 pr-9 py-1.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-lg focus:outline-hidden focus:border-[#adadad]"
             />
           </div>
           <div className="text-xs text-[#707070] font-mono">
@@ -129,7 +129,7 @@ export const IPWhitelistManager: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200 text-right">
+              <tr className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0] text-right">
                 <th className="p-3">عنوان IP / النطاق المسموح</th>
                 <th className="p-3">الوصف / الفرع المخصص</th>
                 <th className="p-3 text-center">نوع الاستثناء</th>
@@ -140,14 +140,14 @@ export const IPWhitelistManager: React.FC = () => {
                 <th className="p-3 text-center w-24">إجراءات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-[#e0e0e0]">
               {filtered.map(entry => (
-                <tr key={entry.id} className="hover:bg-zinc-50/80 transition-colors">
-                  <td className="p-3 font-mono font-bold text-zinc-900 flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${entry.isActive ? 'bg-[#141414]' : 'bg-zinc-300'}`} />
+                <tr key={entry.id} className="hover:bg-[#f3f3f3] transition-colors">
+                  <td className="p-3 font-mono font-bold text-[#141414] flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${entry.isActive ? 'bg-[#141414]' : 'bg-[#e0e0e0]'}`} />
                     {entry.ipAddress}
                   </td>
-                  <td className="p-3 text-zinc-800 font-medium">{entry.label}</td>
+                  <td className="p-3 text-[#141414] font-medium">{entry.label}</td>
                   <td className="p-3 text-center">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                       entry.isTemporary 
@@ -157,8 +157,8 @@ export const IPWhitelistManager: React.FC = () => {
                       {entry.isTemporary ? 'مؤقت' : 'دائم (فرع)'}
                     </span>
                   </td>
-                  <td className="p-3 text-center text-zinc-600 text-[11px]">{entry.addedBy}</td>
-                  <td className="p-3 text-center font-mono text-zinc-600">{entry.addedAt}</td>
+                  <td className="p-3 text-center text-[#707070] text-[11px]">{entry.addedBy}</td>
+                  <td className="p-3 text-center font-mono text-[#707070]">{entry.addedAt}</td>
                   <td className="p-3 text-center font-mono text-[11px]">
                     {entry.expiresAt ? (
                       <span className="text-[#141414] font-bold">{entry.expiresAt}</span>
@@ -177,7 +177,7 @@ export const IPWhitelistManager: React.FC = () => {
                           <CheckCircle2 className="w-3 h-3" /> نشط
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[#707070] bg-zinc-100 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1 text-[#707070] bg-[#f3f3f3] px-2 py-0.5 rounded-full text-[10px] font-bold">
                           معطل
                         </span>
                       )}
@@ -186,7 +186,7 @@ export const IPWhitelistManager: React.FC = () => {
                   <td className="p-3 text-center">
                     <button
                       onClick={() => handleDelete(entry.id)}
-                      className="text-[#141414] hover:text-[#141414] p-1 rounded-md hover:bg-[#eaeaea] transition-colors"
+                      className="text-[#141414] hover:text-[#141414] p-1 rounded-md hover:bg-[#f3f3f3] transition-colors"
                       title="حذف من القائمة البيضاء"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -202,55 +202,55 @@ export const IPWhitelistManager: React.FC = () => {
       {/* Add Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-zinc-200">
-            <h4 className="text-base font-bold text-zinc-900 mb-4 flex items-center gap-2">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6  border border-[#e0e0e0]">
+            <h4 className="text-base font-bold text-[#141414] mb-4 flex items-center gap-2">
               <Plus className="w-5 h-5 text-[#141414]" />
               <span>إضافة عنوان IP موثوق للقائمة البيضاء</span>
             </h4>
 
             <form onSubmit={handleAdd} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-zinc-700 mb-1">عنوان IP أو النطاق الفرعي (CIDR)</label>
+                <label className="block text-xs font-bold text-[#141414] mb-1">عنوان IP أو النطاق الفرعي (CIDR)</label>
                 <input
                   type="text"
                   required
                   placeholder="مثال: 197.34.110.42 أو 185.12.90.0/24"
                   value={newIp}
                   onChange={e => setNewIp(e.target.value)}
-                  className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-lg font-mono focus:outline-hidden focus:border-zinc-500"
+                  className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-lg font-mono focus:outline-hidden focus:border-[#adadad]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-zinc-700 mb-1">اسم الموقع / وصف القاعدة</label>
+                <label className="block text-xs font-bold text-[#141414] mb-1">اسم الموقع / وصف القاعدة</label>
                 <input
                   type="text"
                   required
                   placeholder="مثال: فرع الدمام - شبكة الإدارة"
                   value={newLabel}
                   onChange={e => setNewLabel(e.target.value)}
-                  className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-hidden focus:border-zinc-500"
+                  className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-lg focus:outline-hidden focus:border-[#adadad]"
                 />
               </div>
 
-              <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-zinc-800">
+              <div className="p-3 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0]">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#141414]">
                   <input
                     type="checkbox"
                     checked={isTemp}
                     onChange={e => setIsTemp(e.target.checked)}
-                    className="rounded-sm border-zinc-300 text-[#141414] focus:ring-[#141414]/20"
+                    className="rounded-sm border-[#e0e0e0] text-[#141414] focus:ring-[#141414]/20"
                   />
                   <span>استثناء مؤقت (ينتهي تلقائياً)</span>
                 </label>
 
                 {isTemp && (
                   <div className="mt-2.5">
-                    <label className="block text-[11px] text-zinc-600 mb-1">فترة الصلاحية (أيام):</label>
+                    <label className="block text-[11px] text-[#707070] mb-1">فترة الصلاحية (أيام):</label>
                     <select
                       value={expiryDays}
                       onChange={e => setExpiryDays(e.target.value)}
-                      className="w-full p-2 text-xs bg-white border border-zinc-300 rounded-lg"
+                      className="w-full p-2 text-xs bg-white border border-[#e0e0e0] rounded-lg"
                     >
                       <option value="7">أسبوع واحد (7 أيام)</option>
                       <option value="14">أسبوعان (14 يوماً)</option>

@@ -2018,7 +2018,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
     );
 
     return (
-      <tr className="bg-[#fafafa]">
+      <tr className="bg-[#ffffff]">
         <td colSpan={colSpanCount} className="p-3 border-r-4 border-[#141414]">
           <div className="space-y-2.5">
             <div className="flex items-center justify-between flex-wrap gap-2">
@@ -2188,7 +2188,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
   return (
     <div data-slot="ifrs-financial-engine-workspace" className="space-y-6 text-right dir-rtl">
       {/* Top IFRS Executive Command Header — Mobbin Gallery-White Surface */}
-      <div className="bg-white text-[#141414] rounded-3xl p-6 border border-[#e0e0e0] shadow-xs space-y-5">
+      <div className="bg-white text-[#141414] rounded-3xl p-6 border border-[#e0e0e0]  space-y-5">
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
             <div className="flex items-center gap-2 flex-wrap mb-2">
@@ -2335,7 +2335,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                 onClick={() => setActiveSubTab(tab.id as any)}
                 className={`px-3.5 py-2 rounded-full text-xs flex items-center gap-1.5 whitespace-nowrap cursor-pointer transition-all ${
                   active
-                    ? 'bg-[#141414] text-[#ffffff] font-bold shadow-xs'
+                    ? 'bg-[#141414] text-[#ffffff] font-bold '
                     : 'text-[#141414] font-medium hover:bg-[#e0e0e0]'
                 }`}
               >
@@ -2349,7 +2349,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
 
       {/* Quick Journal Entry Posting Modal (تسجيل قيد يومية محاسبي مباشر) */}
       {showJournalModal && (
-        <div className="bg-white rounded-3xl border border-[#141414] p-5 shadow-xs space-y-4">
+        <div className="bg-white rounded-3xl border border-[#141414] p-5  space-y-4">
           <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
             <div>
               <h3 className="text-sm font-bold text-[#141414] m-0">
@@ -2436,7 +2436,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
 
       {/* Universal Accounting View & Hide/Show Control Bar */}
       {(showCustomizationPanel || totalHiddenItemsCount > 0) && (
-        <div className="bg-white rounded-3xl border border-[#e0e0e0] p-4 shadow-xs space-y-3">
+        <div className="bg-white rounded-3xl border border-[#e0e0e0] p-4  space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-bold text-[#141414]">
@@ -2947,7 +2947,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
           )}
 
           {/* Complete 16 Financial Ratios Matrix Table with Action Plan */}
-          <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden shadow-xs">
+          <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden ">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] flex items-center justify-between">
               <h4 className="text-sm font-bold text-[#141414] m-0">
                 مصفوفة النسب المالية الـ 16 وخطة المستهدفات الربعية والسنوية (IFRS Financial Ratios & Action Plan)
@@ -3051,7 +3051,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                   {customRatios
                     .filter((cr) => !hiddenRatioIds.includes(cr.id))
                     .map((cr) => (
-                      <tr key={cr.id} className="bg-[#fafafa] hover:bg-[#f3f3f3]/50">
+                      <tr key={cr.id} className="bg-[#ffffff] hover:bg-[#f3f3f3]/50">
                         <td className="p-3 font-semibold text-[#707070]">{cr.category}</td>
                         <td className="p-3 font-bold text-[#141414]">{cr.name}</td>
                         <td className="p-3 text-[#707070]">{cr.formula}</td>
@@ -3166,7 +3166,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
 
           {/* Custom Dynamic Field Manager Drawer (For Assets & Expandable Sections) */}
           {showCustomFieldManager && (
-            <div className="bg-white p-5 rounded-3xl border-2 border-[#141414] space-y-4 shadow-sm">
+            <div className="bg-white p-5 rounded-3xl border-2 border-[#141414] space-y-4 ">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
                   <h4 className="text-sm font-bold text-[#141414] m-0">
@@ -4293,7 +4293,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                         <th className="p-3 font-mono">سواعد / ياقوت (SAW)</th>
                         <th className="p-3 font-mono">خالد السليم (KAS)</th>
                         <th className="p-3 font-mono">شلة ودار الكرم (SHL)</th>
-                        <th className="p-3 font-mono bg-[#fafafa]">المجموع قبل الاستبعاد</th>
+                        <th className="p-3 font-mono bg-[#ffffff]">المجموع قبل الاستبعاد</th>
                         <th className="p-3 font-mono">استبعادات (IFRS 10)</th>
                         <th className="p-3 font-mono bg-[#141414] text-[#ffffff]">الموحد النهائي للمجموعة</th>
                       </tr>
@@ -4315,7 +4315,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                           <td className="p-2.5 font-mono">{fmt(row.saw)}</td>
                           <td className="p-2.5 font-mono">{fmt(row.kas)}</td>
                           <td className="p-2.5 font-mono">{fmt(row.shl)}</td>
-                          <td className="p-2.5 font-mono bg-[#fafafa] font-semibold">{fmt(row.combinedBeforeElimination)}</td>
+                          <td className="p-2.5 font-mono bg-[#ffffff] font-semibold">{fmt(row.combinedBeforeElimination)}</td>
                           <td className="p-2.5 font-mono text-[#707070]">{row.elimination !== 0 ? fmt(row.elimination) : '-'}</td>
                           <td className="p-2.5 font-mono font-bold bg-[#f3f3f3]">{fmt(row.consolidatedTotal)}</td>
                         </tr>
@@ -4350,7 +4350,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                         <th className="p-3 font-mono">سواعد / ياقوت (SAW)</th>
                         <th className="p-3 font-mono">خالد السليم (KAS)</th>
                         <th className="p-3 font-mono">شلة ودار الكرم (SHL)</th>
-                        <th className="p-3 font-mono bg-[#fafafa]">المجموع قبل الاستبعاد</th>
+                        <th className="p-3 font-mono bg-[#ffffff]">المجموع قبل الاستبعاد</th>
                         <th className="p-3 font-mono">استبعادات الأرصدة</th>
                         <th className="p-3 font-mono bg-[#141414] text-[#ffffff]">الموحد النهائي للمجموعة</th>
                       </tr>
@@ -4372,7 +4372,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                           <td className="p-2.5 font-mono">{fmt(row.saw)}</td>
                           <td className="p-2.5 font-mono">{fmt(row.kas)}</td>
                           <td className="p-2.5 font-mono">{fmt(row.shl)}</td>
-                          <td className="p-2.5 font-mono bg-[#fafafa] font-semibold">{fmt(row.combinedBeforeElimination)}</td>
+                          <td className="p-2.5 font-mono bg-[#ffffff] font-semibold">{fmt(row.combinedBeforeElimination)}</td>
                           <td className="p-2.5 font-mono text-[#707070]">{row.elimination !== 0 ? fmt(row.elimination) : '-'}</td>
                           <td className="p-2.5 font-mono font-bold bg-[#f3f3f3]">{fmt(row.consolidatedTotal)}</td>
                         </tr>
@@ -4695,7 +4695,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden shadow-xs">
+          <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden ">
             <div className="overflow-x-auto max-h-[650px]">
               <table className="w-full text-right text-xs">
                 <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0] sticky top-0 z-10">
@@ -4885,7 +4885,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                           </td>
                         )}
                         {showClosingBalanceCols && (
-                          <td className="p-2 bg-[#fafafa]">
+                          <td className="p-2 bg-[#ffffff]">
                             <input
                               type="number"
                               aria-label={`الرصيد النهائي مدين ${row.seq}`}
@@ -4898,7 +4898,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                           </td>
                         )}
                         {showClosingBalanceCols && (
-                          <td className="p-2 bg-[#fafafa]">
+                          <td className="p-2 bg-[#ffffff]">
                             <input
                               type="number"
                               aria-label={`الرصيد النهائي دائن ${row.seq}`}
@@ -5052,7 +5052,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden shadow-xs">
+          <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden ">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0]">
               <h4 className="text-sm font-bold text-[#141414] m-0">
                 أولاً: جدول الفحوصات المعيارية الـ 34 (سجل الفحوصات الرقابية — IFRS / IAS / SOCPA)
@@ -5115,7 +5115,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
           </div>
 
           {/* Account-Level Error Details (سجل تدقيق الحسابات) */}
-          <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden shadow-xs">
+          <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden ">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] flex items-center justify-between flex-wrap gap-2">
               <div>
                 <h4 className="text-sm font-bold text-[#141414] m-0">
@@ -5338,7 +5338,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                       className={`px-3 py-1 rounded-full text-xs cursor-pointer transition-all ${
                         excelTreeFilter === f.id
                           ? 'bg-[#141414] text-[#ffffff] font-bold'
-                          : 'bg-white text-[#141414] border border-[#e0e0e0] hover:bg-[#e8e8e8] font-medium'
+                          : 'bg-white text-[#141414] border border-[#e0e0e0] hover:bg-[#f3f3f3] font-medium'
                       }`}
                     >
                       {f.label}
@@ -5462,7 +5462,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                               onClick={() =>
                                 setExpandedExcelTreeCodes((prev) => ({ ...prev, [l2.code]: !prev[l2.code] }))
                               }
-                              className="bg-[#f3f3f3] text-[#141414] font-bold cursor-pointer hover:bg-[#e8e8e8]"
+                              className="bg-[#f3f3f3] text-[#141414] font-bold cursor-pointer hover:bg-[#f3f3f3]"
                             >
                               <td className="p-2.5 pr-7 flex items-center gap-1.5">
                                 {l2Expanded ? <ChevronDown className="w-4 h-4 shrink-0" /> : <ChevronRight className="w-4 h-4 shrink-0" />}
@@ -5550,7 +5550,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                                 }
                                 className={`cursor-pointer transition-colors ${
                                   l3LedgerRows.length > 0
-                                    ? 'bg-[#fafafa] hover:bg-[#f0f0f0] font-bold'
+                                    ? 'bg-[#ffffff] hover:bg-[#f0f0f0] font-bold'
                                     : 'bg-white hover:bg-[#f3f3f3]/50'
                                 }`}
                               >
@@ -5691,7 +5691,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                               return;
                             }
                             renderedRows.push(
-                              <tr key={`tree_l4_${accRow.seq}`} className="bg-[#fafafa] hover:bg-[#f3f3f3]/70">
+                              <tr key={`tree_l4_${accRow.seq}`} className="bg-[#ffffff] hover:bg-[#f3f3f3]/70">
                                 <td className="p-2 pr-20 text-[#141414] flex items-center gap-2">
                                   <span className="text-[#707070] font-mono">└── حساب #{accRow.seq}:</span>
                                   <input
@@ -5915,7 +5915,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                         className={`px-3 py-1 rounded-full text-xs cursor-pointer transition-all ${
                           coaTreeCategoryFilter === cat.id
                             ? 'bg-[#141414] text-[#ffffff] font-bold'
-                            : 'bg-white text-[#141414] border border-[#e0e0e0] hover:bg-[#e8e8e8] font-medium'
+                            : 'bg-white text-[#141414] border border-[#e0e0e0] hover:bg-[#f3f3f3] font-medium'
                         }`}
                       >
                         {cat.label}
@@ -5939,7 +5939,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                         className={`px-2.5 py-1 rounded-full text-[11px] cursor-pointer transition-all ${
                           coaTreeLevelFilter === lvl.id
                             ? 'bg-[#141414] text-[#ffffff] font-bold'
-                            : 'bg-white text-[#141414] border border-[#e0e0e0] hover:bg-[#e8e8e8]'
+                            : 'bg-white text-[#141414] border border-[#e0e0e0] hover:bg-[#f3f3f3]'
                         }`}
                       >
                         {lvl.label}
@@ -6015,7 +6015,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                 </div>
               )}
 
-              <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden shadow-xs">
+              <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden ">
                 <div className="overflow-x-auto">
                   <table className="w-full text-right text-xs">
                     <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
@@ -6067,9 +6067,9 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                                     acc.level === 1
                                       ? 'bg-[#f3f3f3] font-bold border-y border-[#141414]'
                                       : acc.level === 2
-                                      ? 'bg-[#f8f8f8] font-bold'
+                                      ? 'bg-[#ffffff] font-bold'
                                       : acc.level === 3
-                                      ? 'bg-[#fcfcfc] font-semibold'
+                                      ? 'bg-[#ffffff] font-semibold'
                                       : 'bg-white'
                                   }`}
                                 >
@@ -6333,7 +6333,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                       className={`px-3 py-1 rounded-full text-xs cursor-pointer transition-all ${
                         linkedCoaSectionFilter === sec.id
                           ? 'bg-[#141414] text-[#ffffff] font-bold'
-                          : 'bg-white text-[#141414] border border-[#e0e0e0] hover:bg-[#e8e8e8]'
+                          : 'bg-white text-[#141414] border border-[#e0e0e0] hover:bg-[#f3f3f3]'
                       }`}
                     >
                       {sec.label}
@@ -6573,7 +6573,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                 </div>
               </div>
 
-              <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden shadow-xs">
+              <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden ">
                 <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0]">
                   <h4 className="text-sm font-bold text-[#141414] m-0">
                     جدول التصنيفات المعياري الرئيسي (ورقة التصنيفات — 34 كوداً A-01..R-10)
@@ -6613,7 +6613,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
 
           {/* 6.2 Extended 314 Sub-Classifications (دليل التوجيه المحاسبي الموسع_الموسع) */}
           {refGuideSubTab === 'extended-314' && (
-            <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden shadow-xs">
+            <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden ">
               <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] flex items-center justify-between flex-wrap gap-3">
                 <div>
                   <h4 className="text-sm font-bold text-[#141414] m-0">
@@ -6681,7 +6681,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
 
           {/* 6.3 Arabic Codes Guide (ورقة دليل_الأكواد_العربي) */}
           {refGuideSubTab === 'arabic-guide-34' && (
-            <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden shadow-xs">
+            <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden ">
               <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0]">
                 <h4 className="text-sm font-bold text-[#141414] m-0">
                   دليل الأكواد العربي المبسط (ورقة دليل_الأكواد_العربي — شرح كل رمز من A-01 إلى R-10 مع الأمثلة العملية)
@@ -6716,7 +6716,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
 
           {/* 6.4 Auto-Classification Keywords (قواعد التوجيه المحاسبي الذكي) */}
           {refGuideSubTab === 'search-keywords-257' && (
-            <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden shadow-xs">
+            <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden ">
               <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] flex items-center justify-between flex-wrap gap-3">
                 <div>
                   <h4 className="text-sm font-bold text-[#141414] m-0">
@@ -6774,7 +6774,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
           {/* 6.5 Movements & Balances Guide + Governance Rules (ورقتا شرح_الحركات_والأرصدة وحوكمة_الحسابات ورسائل_النظام) */}
           {refGuideSubTab === 'movements-governance' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden shadow-xs">
+              <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden ">
                 <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0]">
                   <h4 className="text-sm font-bold text-[#141414] m-0">
                     أولاً: شرح الحركات والأرصدة في ميزان المراجعة (قواعد احتساب الأرصدة والحركات — P/Q, R/S, T/U)
@@ -6793,7 +6793,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                 </div>
               </div>
 
-              <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden shadow-xs">
+              <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden ">
                 <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0]">
                   <h4 className="text-sm font-bold text-[#141414] m-0">
                     ثانياً: ضوابط حوكمة شجرة الحسابات ومعيار IFRS 18 (ضوابط حوكمة الحسابات)
@@ -6821,7 +6821,7 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
                 </div>
               </div>
 
-              <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden shadow-xs">
+              <div className="bg-white rounded-3xl border border-[#e0e0e0] overflow-hidden ">
                 <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0]">
                   <h4 className="text-sm font-bold text-[#141414] m-0">
                     ثالثاً: رسائل النظام التحذيرية والإرشادية (تنبيهات الرقابة المحاسبية)

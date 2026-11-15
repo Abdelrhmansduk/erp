@@ -133,13 +133,13 @@ export const KasNavigationSidebar: React.FC<KasNavigationSidebarProps> = ({
 }) => {
   return (
     <aside 
-      className="w-72 bg-[#ffffff] text-[#141414] border-l border-[#e0e0e0] flex flex-col h-full select-none shrink-0 shadow-2xl overflow-hidden"
+      className="w-72 bg-[#ffffff] text-[#141414] border-l border-[#e0e0e0] flex flex-col h-full select-none shrink-0  overflow-hidden"
       dir="rtl"
     >
       {/* Brand & Entity Header */}
       <div className="p-4 border-b border-[#e0e0e0] bg-[#ffffff]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#141414] text-[#ffffff] flex items-center justify-center font-bold text-base shadow-lg shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-[#141414] text-[#ffffff] flex items-center justify-center font-bold text-base  shrink-0">
             {i18n.t("company.kasCode", "KAS")}
           </div>
           <div className="min-w-0 flex-1">
@@ -207,14 +207,14 @@ export const KasNavigationSidebar: React.FC<KasNavigationSidebarProps> = ({
               onClick={() => onSelectDept(dept.id)}
               className={`w-full text-right p-2.5 rounded-xl transition-all duration-150 flex items-start gap-3 relative group ${
                 isActive
-                  ? 'bg-gradient-to-l from-[#f3f3f3] to-[#f3f3f3] text-[#141414] border border-[#e0e0e0] shadow-md '
+                  ? 'bg-[#f3f3f3]   text-[#141414] border border-[#e0e0e0]  '
                   : 'text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3] border border-transparent'
               }`}
             >
               <div 
                 className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                   isActive 
-                    ? 'bg-[#141414] text-[#ffffff] shadow-md  font-bold' 
+                    ? 'bg-[#141414] text-[#ffffff]   font-bold' 
                     : 'bg-[#f3f3f3] text-[#707070] group-hover:text-[#141414] group-hover:bg-[#f3f3f3]'
                 }`}
               >
@@ -227,7 +227,7 @@ export const KasNavigationSidebar: React.FC<KasNavigationSidebarProps> = ({
                     {dept.title}
                   </span>
                   {dept.badge && (
-                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${dept.badgeColor || 'bg-zinc-800 text-[#141414]'}`}>
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${dept.badgeColor || 'bg-[#262626] text-[#141414]'}`}>
                       {dept.badge}
                     </span>
                   )}

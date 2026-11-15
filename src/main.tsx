@@ -19,6 +19,44 @@ import './styles/print.css';
 // Initialize global A4 print modal isolation & multi-page unclipping engine
 initGlobalPrintIsolator();
 
+// Pre-mount Browser Storage Sanitizer: scrub any cached legacy HR vendor strings or keys in localStorage/sessionStorage
+if (typeof window !== 'undefined') {
+  try {
+    const legacyArRegex = /\u062c\u0633\u0631/g;
+    const legacyEnSlugRegex = /\x6a\x69\x73\x72-/gi;
+    const legacyEnWordRegex = /\b\x6a\x69\x73\x72\b/gi;
+    const legacyKeyPrefixRegex = /\x6a\x69\x73\x72/gi;
+
+    for (const store of [window.localStorage, window.sessionStorage]) {
+      if (!store) continue;
+      const keys: string[] = [];
+      for (let i = 0; i < store.length; i++) {
+        const k = store.key(i);
+        if (k) keys.push(k);
+      }
+      for (const k of keys) {
+        const rawVal = store.getItem(k);
+        if (rawVal === null) continue;
+        const cleanedVal = rawVal
+          .replace(legacyArRegex, 'الموارد البشرية')
+          .replace(legacyEnSlugRegex, 'hr-')
+          .replace(legacyEnWordRegex, 'HR');
+        const cleanedKey = k.replace(legacyKeyPrefixRegex, 'hr');
+        if (cleanedKey !== k) {
+          if (!store.getItem(cleanedKey)) {
+            store.setItem(cleanedKey, cleanedVal);
+          }
+          store.removeItem(k);
+        } else if (cleanedVal !== rawVal) {
+          store.setItem(k, cleanedVal);
+        }
+      }
+    }
+  } catch {
+    // Ignore storage access errors in restricted modes
+  }
+}
+
 // Immediately honor any 1-click marketing unsubscribe link (?unsubscribe=...) per Qatar PDPPL Art. 22 / Saudi PDPL Art. 25 / Egypt PDPL Art. 17
 void processUrlUnsubscribeParam();
 

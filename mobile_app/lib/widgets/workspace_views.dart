@@ -1111,9 +1111,9 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
   int _smaccOperationalSubTab = 0;
 
   // Mobile HR & ESS Interactive State
-  String? _jisrCheckInTime;
-  String? _jisrCheckOutTime;
-  String _selectedJisrRequestType = 'طلب إجازة سنوية';
+  String? _hrCheckInTime;
+  String? _hrCheckOutTime;
+  String _selectedHrRequestType = 'طلب إجازة سنوية';
   String _cloudSyncStatusLabel = 'جاهز للمزامنة السحابية الفورية (Supabase ESS)';
   bool _isCloudSyncing = false;
   bool _corporateCardFrozen = false;
@@ -1121,13 +1121,13 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
   static const double _permissionQuotaMonthlyHours = 4.0;
   String? _esignVerifiedHash;
   int _selectedEnpsScore = 9;
-  final List<({String id, String type, String status})> _jisrMobileRequests = [
+  final List<({String id, String type, String status})> _enterpriseHrMobileRequests = [
     (id: 'WFR-901', type: 'إجازة سنوية صافية (5 أيام)', status: 'خطوة 1/2: المدير المباشر'),
     (id: 'WFR-902', type: 'تسوية فاتورة عهدة ZATCA (\u20C1 575)', status: 'معتمد ومرحل ✓'),
   ];
 
   // Smart Alerts Center State (Iqama, Art. 53 Probation, Qiwa SLA)
-  final List<({String id, String code, String title, String actionLabel, bool acknowledged})> _jisrSmartAlerts = [
+  final List<({String id, String code, String title, String actionLabel, bool acknowledged})> _enterpriseHrSmartAlerts = [
     (
       id: 'ALR-IQM-104',
       code: 'مقيم • إقامة',
@@ -1183,23 +1183,23 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
     'مناوبة نهاية الأسبوع المعتمدة (10:00 - 18:00)',
   ];
 
-  static const Set<String> _jisrHrTabs = {
+  static const Set<String> _enterpriseHrTabs = {
     'employees',
     'payrolls',
     'attendances',
     'employee-monitoring',
     'custodies',
-    'jisr-alerts-compliance',
+    'hr-alerts-compliance',
     'hr-smart-alerts',
-    'jisr-accruals',
-    'jisr-expenses',
-    'jisr-org-muqeem',
-    'jisr-talent-360',
-    'jisr-shifts-overtime',
-    'jisr-welcome-signage',
-    'jisr-arrears-b2b',
-    'jisr-cards-rollover',
-    'jisr-workflows-pulse',
+    'hr-accruals',
+    'hr-expenses',
+    'hr-org-muqeem',
+    'hr-talent-360',
+    'hr-shifts-overtime',
+    'hr-welcome-signage',
+    'hr-arrears-b2b',
+    'hr-cards-rollover',
+    'hr-workflows-pulse',
     'reem-hr-emails',
     'hr-official-emails',
     'ess-self-service',
@@ -1370,7 +1370,7 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
     ),
   ];
 
-  static const List<String> _jisrTenRequestTypes = [
+  static const List<String> _enterpriseHrTenRequestTypes = [
     'طلب إجازة سنوية',
     'طلب سلفة مالية',
     'تأجيل قسط سلفة الشهر',
@@ -1383,7 +1383,7 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
     'طلب استقالة وإخلاء طرف',
   ];
 
-  bool get _isJisrHrModule => _jisrHrTabs.contains(widget.activeTab);
+  bool get _isEnterpriseHrModule => _enterpriseHrTabs.contains(widget.activeTab);
 
   static const Set<String> _smaccFinanceTabs = {
     'smacc-accounting',
@@ -1549,8 +1549,8 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
           const SizedBox(height: 12),
           _buildSmaccAccountingDivisionDetails(),
           const SizedBox(height: 12),
-        ] else if (_isJisrHrModule) ...[
-          _buildJisrMobileHrAndSelfServiceHub(),
+        ] else if (_isEnterpriseHrModule) ...[
+          _buildEnterpriseMobileHrAndSelfServiceHub(),
           const SizedBox(height: 12),
         ] else ...[
           _buildOperationalSmaccSubTabsBar(),
@@ -2245,7 +2245,7 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
     );
   }
 
-  Widget _buildJisrMobileHrAndSelfServiceHub() {
+  Widget _buildEnterpriseMobileHrAndSelfServiceHub() {
     final now = TimeOfDay.now();
     final formattedNow =
         '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
@@ -2255,7 +2255,7 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
     final availableEwaBalance =
         (maxEwaCap - _ewaWithdrawnTotal).clamp(0.0, maxEwaCap);
     final pendingAlertsCount =
-        _jisrSmartAlerts.where((a) => !a.acknowledged).length;
+        _enterpriseHrSmartAlerts.where((a) => !a.acknowledged).length;
     final isReemEmailTabActive = widget.activeTab == 'reem-hr-emails' ||
         widget.activeTab == 'hr-official-emails';
 
@@ -2333,9 +2333,9 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _jisrCheckInTime == null
+                  _hrCheckInTime == null
                       ? 'المقر الرئيسي — الرياض (ضمن السياج الجغرافي 250m • KAS-HQ-CORP)'
-                      : 'بصمة اليوم الموثقة: دخول $_jisrCheckInTime${_jisrCheckOutTime != null ? ' | انصراف $_jisrCheckOutTime' : ''}',
+                      : 'بصمة اليوم الموثقة: دخول $_hrCheckInTime${_hrCheckOutTime != null ? ' | انصراف $_hrCheckOutTime' : ''}',
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -2348,7 +2348,7 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
                     Expanded(
                       child: InkWell(
                         onTap: () {
-                          setState(() => _jisrCheckInTime = formattedNow);
+                          setState(() => _hrCheckInTime = formattedNow);
                           widget.onTriggerInstantNotification();
                         },
                         borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
@@ -2374,7 +2374,7 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
                     Expanded(
                       child: InkWell(
                         onTap: () {
-                          setState(() => _jisrCheckOutTime = formattedNow);
+                          setState(() => _hrCheckOutTime = formattedNow);
                           widget.onTriggerInstantNotification();
                         },
                         borderRadius: BorderRadius.circular(ErpTokens.radiusPill),
@@ -2496,8 +2496,8 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
                   ],
                 ),
                 const SizedBox(height: 8),
-                ...List.generate(_jisrSmartAlerts.length, (index) {
-                  final alert = _jisrSmartAlerts[index];
+                ...List.generate(_enterpriseHrSmartAlerts.length, (index) {
+                  final alert = _enterpriseHrSmartAlerts[index];
                   return Container(
                     margin: const EdgeInsets.only(bottom: 6),
                     padding: const EdgeInsets.all(10),
@@ -2533,14 +2533,14 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
                                   ? null
                                   : () {
                                       setState(() {
-                                        _jisrSmartAlerts[index] = (
+                                        _enterpriseHrSmartAlerts[index] = (
                                           id: alert.id,
                                           code: alert.code,
                                           title: alert.title,
                                           actionLabel: alert.actionLabel,
                                           acknowledged: true,
                                         );
-                                        _jisrMobileRequests.insert(0, (
+                                        _enterpriseHrMobileRequests.insert(0, (
                                           id: alert.id,
                                           type: '${alert.actionLabel} (${alert.code})',
                                           status: 'تم التنفيذ والتوثيق ✓',
@@ -2685,7 +2685,7 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
                               amount: payout,
                               glRef: 'JE-EWA-$stamp (مدين 110701 / دائن 110201)',
                             ));
-                            _jisrMobileRequests.insert(0, (
+                            _enterpriseHrMobileRequests.insert(0, (
                               id: 'EWA-$stamp',
                               type: 'صرف راتب مرن مستحق (\u20C1 ${payout.toStringAsFixed(2)})',
                               status: 'مرحل للأستاذ العام وسند الصرف ✓',
@@ -2837,7 +2837,7 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
                             shiftLabel: _selectedSwapShift,
                             status: 'بانتظار اعتماد المشرف',
                           ));
-                          _jisrMobileRequests.insert(0, (
+                          _enterpriseHrMobileRequests.insert(0, (
                             id: 'SWP-$stamp',
                             type: 'تبديل وردية مع $_selectedSwapColleague',
                             status: 'بانتظار اعتماد المشرف',
@@ -2938,18 +2938,18 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
-                      value: _selectedJisrRequestType,
+                      value: _selectedHrRequestType,
                       isExpanded: true,
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF141414),
                       ),
-                      items: _jisrTenRequestTypes
+                      items: _enterpriseHrTenRequestTypes
                           .map((t) => DropdownMenuItem<String>(value: t, child: Text(t)))
                           .toList(),
                       onChanged: (v) {
-                        if (v != null) setState(() => _selectedJisrRequestType = v);
+                        if (v != null) setState(() => _selectedHrRequestType = v);
                       },
                     ),
                   ),
@@ -2962,9 +2962,9 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
                       .toString()
                       .padLeft(4, '0');
                   setState(() {
-                    _jisrMobileRequests.insert(0, (
+                    _enterpriseHrMobileRequests.insert(0, (
                       id: 'WFR-$stamp',
-                      type: _selectedJisrRequestType,
+                      type: _selectedHrRequestType,
                       status: 'خطوة 1: بانتظار المدير المباشر',
                     ));
                   });
@@ -2990,7 +2990,7 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
             ],
           ),
           const SizedBox(height: 8),
-          ..._jisrMobileRequests.take(4).map(
+          ..._enterpriseHrMobileRequests.take(4).map(
                 (req) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 3),
                   child: Row(
@@ -3010,9 +3010,9 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
                       InkWell(
                         onTap: () {
                           setState(() {
-                            final idx = _jisrMobileRequests.indexOf(req);
+                            final idx = _enterpriseHrMobileRequests.indexOf(req);
                             if (idx >= 0) {
-                              _jisrMobileRequests[idx] = (
+                              _enterpriseHrMobileRequests[idx] = (
                                 id: req.id,
                                 type: req.type,
                                 status: 'معتمد نهائياً ✓',
@@ -3677,7 +3677,7 @@ KHALID AL-SULAIM TRADING GROUP — مجموعة الخالد السليم
                             : 'بانتظار تفعيل بوابة البريد على الخادم',
                       ));
                       if (res.ok) {
-                        _jisrMobileRequests.insert(0, (
+                        _enterpriseHrMobileRequests.insert(0, (
                           id: 'REEM-$stamp',
                           type: 'بريد رسمي HR@kas.sa: ${activeTpl.subjectAr}',
                           status:

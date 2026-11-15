@@ -18,10 +18,10 @@ import {
   ShiftSwapRequest,
   validateShiftSwapRequest,
   calculateSaudiOvertimePay,
-} from '../../services/jisrAdvancedComplianceEngine';
+} from '../../services/hrAdvancedComplianceEngine';
 import { useAppStore } from '../../stores/appStore';
 
-export interface JisrOvertimeRecord {
+export interface HrOvertimeRecord {
   id: string;
   company_id: string;
   employee_id: string;
@@ -50,7 +50,7 @@ export interface CompanyCircularRecord {
   acknowledged_by_ids: string[];
 }
 
-export interface JisrShiftHubEmployee {
+export interface HrShiftHubEmployee {
   id: string;
   employee_code: string;
   name: string;
@@ -71,8 +71,8 @@ interface ErpSyncRecord {
   [key: string]: any;
 }
 
-interface JisrShiftRosterAndOvertimeHubProps {
-  employees: JisrShiftHubEmployee[];
+interface HrShiftRosterAndOvertimeHubProps {
+  employees: HrShiftHubEmployee[];
   companyCode: string;
   companyName: string;
   payrollMonth: string;
@@ -116,7 +116,7 @@ const DEFAULT_COMPANY_CIRCULARS: CompanyCircularRecord[] = [
   },
 ];
 
-export const JisrShiftRosterAndOvertimeHub: React.FC<JisrShiftRosterAndOvertimeHubProps> = ({
+export const HrShiftRosterAndOvertimeHub: React.FC<HrShiftRosterAndOvertimeHubProps> = ({
   employees,
   companyCode,
   companyName,
@@ -129,7 +129,7 @@ export const JisrShiftRosterAndOvertimeHub: React.FC<JisrShiftRosterAndOvertimeH
     'OVERTIME_SYNC'
   );
 
-  const [overtimeList, setOvertimeList] = useState<JisrOvertimeRecord[]>([]);
+  const [overtimeList, setOvertimeList] = useState<HrOvertimeRecord[]>([]);
   const [rosters, setRosters] = useState<ShiftRosterEntry[]>([]);
   const [swaps, setSwaps] = useState<ShiftSwapRequest[]>([]);
   const [circulars, setCirculars] = useState<CompanyCircularRecord[]>([]);
@@ -161,7 +161,7 @@ export const JisrShiftRosterAndOvertimeHub: React.FC<JisrShiftRosterAndOvertimeH
 
   const loadHubData = async () => {
     const [ots, rsts, swps, circs, deps] = await Promise.all([
-      realErpDataStore.getRecords<JisrOvertimeRecord>('hr_overtime_records', []),
+      realErpDataStore.getRecords<HrOvertimeRecord>('hr_overtime_records', []),
       realErpDataStore.getRecords<ShiftRosterEntry>('hr_shift_rosters', []),
       realErpDataStore.getRecords<ShiftSwapRequest>('hr_shift_swap_requests', []),
       realErpDataStore.getRecords<CompanyCircularRecord>(
@@ -220,7 +220,7 @@ export const JisrShiftRosterAndOvertimeHub: React.FC<JisrShiftRosterAndOvertimeH
     if (!selectedOtEmp) return;
     if (otRegHours <= 0 && otHolHours <= 0 && otLateMins <= 0) return;
 
-    const rec: JisrOvertimeRecord = {
+    const rec: HrOvertimeRecord = {
       id: `OT-${Date.now().toString().slice(-6)}`,
       company_id: companyCode,
       employee_id: selectedOtEmp.id,
@@ -660,7 +660,7 @@ export const JisrShiftRosterAndOvertimeHub: React.FC<JisrShiftRosterAndOvertimeH
                       <th className="py-2.5 px-3 font-bold">حالة المسير</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#f1f1f1]">
+                  <tbody className="divide-y divide-[#f3f3f3]">
                     {overtimeList.map((ot) => (
                       <tr key={ot.id} className="hover:bg-[#f3f3f3]">
                         <td className="py-2.5 px-3 font-bold text-[#141414]">
@@ -855,7 +855,7 @@ export const JisrShiftRosterAndOvertimeHub: React.FC<JisrShiftRosterAndOvertimeH
                     <th className="py-2.5 px-3 font-bold">الحالة</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#f1f1f1]">
+                <tbody className="divide-y divide-[#f3f3f3]">
                   {rosters.length === 0
                     ? employees.slice(0, 8).map((e) => {
                         const sh =
@@ -999,7 +999,7 @@ export const JisrShiftRosterAndOvertimeHub: React.FC<JisrShiftRosterAndOvertimeH
                       <th className="py-2 px-3 font-bold">إدارة 360°</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#f1f1f1]">
+                  <tbody className="divide-y divide-[#f3f3f3]">
                     {employees.slice(0, 8).map((emp) => (
                       <tr key={emp.id} className="hover:bg-[#f3f3f3]">
                         <td className="py-2 px-3 font-bold text-[#141414]">{emp.name}</td>

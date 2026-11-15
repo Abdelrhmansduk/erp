@@ -326,7 +326,7 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
         ref={buttonRef}
         onClick={() => !isExporting && setIsOpen(!isOpen)}
         disabled={isExporting}
-        className={`${getButtonClass()} flex items-center gap-2 font-bold transition-all shadow-sm active:scale-95 ${
+        className={`${getButtonClass()} flex items-center gap-2 font-bold transition-all  active:scale-95 ${
           isExporting ? 'opacity-70 cursor-wait' : ''
         }`}
         type="button"
@@ -372,11 +372,11 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
                 maxHeight: '85vh',
                 zIndex: 99999,
               }}
-              className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] shadow-2xl p-3 animate-in fade-in zoom-in-95 duration-150 overflow-y-auto font-sans text-right"
+              className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px]  p-3 animate-in fade-in zoom-in-95 duration-150 overflow-y-auto font-sans text-right"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header Info */}
-              <div className="px-3 py-2.5 border-b border-[#e5e5e5] mb-2.5 flex items-center justify-between sticky top-0 bg-[#ffffff]/95 backdrop-blur-sm z-10">
+              <div className="px-3 py-2.5 border-b border-[#e0e0e0] mb-2.5 flex items-center justify-between sticky top-0 bg-[#ffffff]/95 backdrop-blur-sm z-10">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-[#141414]" />
                   <span className="text-xs font-bold text-[#141414]">
@@ -396,14 +396,14 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
                   className="w-full p-3 rounded-[18px] bg-[#141414] hover:bg-[#262626] text-[#ffffff] border border-[#141414] transition-all flex items-center justify-between gap-3 group cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-[12px] bg-[#262626] border border-[#3f3f46] flex items-center justify-center text-[#ffffff] shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="w-9 h-9 rounded-[12px] bg-[#262626] border border-[#262626] flex items-center justify-center text-[#ffffff] shrink-0 group-hover:scale-105 transition-transform">
                       <Eye className="w-4 h-4" />
                     </div>
                     <div className="text-right min-w-0">
                       <div className="text-xs font-bold text-[#ffffff] flex items-center gap-1.5">
                         <span>معاينة وتحرير الحقول وهوية الشركة قبل التصدير</span>
                       </div>
-                      <p className="text-[10.5px] text-[#a1a1aa] mt-0.5 truncate">
+                      <p className="text-[10.5px] text-[#adadad] mt-0.5 truncate">
                         تحرير الخلايا، اختيار الشركة وإلغاء جملة المجموعة، ضبط مقاس PDF/A4، وإرسال واتساب/بريد
                       </p>
                     </div>
@@ -420,14 +420,14 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
                   className="w-full mt-2 p-2.5 rounded-[16px] bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] hover:border-[#141414] transition-all flex items-center justify-between gap-2.5 group cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-[10px] bg-[#ffffff] group-hover:bg-[#262626] border border-[#e0e0e0] group-hover:border-[#3f3f46] flex items-center justify-center text-[#141414] group-hover:text-[#ffffff] shrink-0 transition-colors">
+                    <div className="w-8 h-8 rounded-[10px] bg-[#ffffff] group-hover:bg-[#262626] border border-[#e0e0e0] group-hover:border-[#262626] flex items-center justify-center text-[#141414] group-hover:text-[#ffffff] shrink-0 transition-colors">
                       <MessageCircle className="w-4 h-4" />
                     </div>
                     <div className="text-right min-w-0">
                       <div className="text-xs font-bold">
                         إرسال عبر واتساب (ملف PDF معتمد + نص رسمي)
                       </div>
-                      <p className="text-[10px] text-[#707070] group-hover:text-[#d4d4d8] mt-0.5 truncate">
+                      <p className="text-[10px] text-[#707070] group-hover:text-[#e0e0e0] mt-0.5 truncate">
                         توليد وتنزيل مستند PDF الرسمي A4 وفتح واتساب بالنص المعتمد تلقائياً
                       </p>
                     </div>
@@ -479,7 +479,7 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
               </div>
 
               {/* Section 2: Data Interchange & Integration (6 Formats) */}
-              <div className="mb-2 pt-2 border-t border-[#e5e5e5]">
+              <div className="mb-2 pt-2 border-t border-[#e0e0e0]">
                 <div className="px-3 py-1 text-[10px] font-bold text-[#707070] uppercase tracking-wider">
                   تكامل البيانات والأنظمة المحاسبية والبنكية (6 صيغ)
                 </div>
@@ -519,7 +519,7 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
               </div>
 
               {/* Footer Note */}
-              <div className="mt-2 pt-2 border-t border-[#e5e5e5] px-3 py-1.5 flex items-center justify-between text-[10px] text-[#707070] font-semibold">
+              <div className="mt-2 pt-2 border-t border-[#e0e0e0] px-3 py-1.5 flex items-center justify-between text-[10px] text-[#707070] font-semibold">
                 <span>تفقيط عربي رسمي + رمز الريال (⃁)</span>
                 <span>ZATCA UBL 2.1 & SAMA WPS</span>
               </div>

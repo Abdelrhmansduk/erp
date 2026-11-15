@@ -22,7 +22,7 @@ import {
   type CorporateCardTxRecord,
   type LeaveCarryoverRunRecord,
   type LeaveEncashmentRecord,
-} from '../../services/jisrSpendCardsAndAttendanceCutoffEngine';
+} from '../../services/hrSpendCardsAndAttendanceCutoffEngine';
 
 export interface CardLeaveEmployeeLite {
   id: string;
@@ -32,14 +32,14 @@ export interface CardLeaveEmployeeLite {
   monthlyWageSar: number;
 }
 
-interface JisrCorporateCardsAndLeaveRolloverHubProps {
+interface HrCorporateCardsAndLeaveRolloverHubProps {
   companyId: string;
   employees: CardLeaveEmployeeLite[];
   onDataChanged?: () => void;
 }
 
-export const JisrCorporateCardsAndLeaveRolloverHub: React.FC<
-  JisrCorporateCardsAndLeaveRolloverHubProps
+export const HrCorporateCardsAndLeaveRolloverHub: React.FC<
+  HrCorporateCardsAndLeaveRolloverHubProps
 > = ({ companyId, employees, onDataChanged }) => {
   const effectiveCompanyId = companyId === 'all' || companyId === 'ALL' ? 'SAF' : companyId;
   const [subTab, setSubTab] = useState<'CARDS' | 'LEAVE_CARRYOVER' | 'ENCASHMENT'>('CARDS');

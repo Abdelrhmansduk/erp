@@ -319,10 +319,10 @@ export const WebsiteVisitorsPage: React.FC = () => {
   // Source color map
   const sourceColorMap: Record<string, string> = {
     'TikTok Ads': 'bg-[#141414]',
-    'Google Search': 'bg-zinc-700',
+    'Google Search': 'bg-[#141414]',
     'Musaned Direct': 'bg-[#141414]',
-    'Instagram': 'bg-zinc-500',
-    'Direct': 'bg-zinc-400',
+    'Instagram': 'bg-[#141414]',
+    'Direct': 'bg-[#141414]',
   };
 
   // Filtered visitors with lead filter + search
@@ -379,7 +379,7 @@ export const WebsiteVisitorsPage: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'space-between',
           background: '#141414',
-          color: '#FFF',
+          color: '#ffffff',
           padding: '28px',
           borderRadius: '16px',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
@@ -401,7 +401,7 @@ export const WebsiteVisitorsPage: React.FC = () => {
             <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, margin: '0', letterSpacing: '-0.02em', color: '#ffffff', fontFamily: 'var(--font-family-display)' }}>
               زوار المنصة الخارجية ومتابعة العملاء
             </h1>
-            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#a1a1aa', fontWeight: 420 }}>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#adadad', fontWeight: 420 }}>
               تتبع التفاعل المباشر للزوار، السير الذاتية الأكثر مشاهدة، ومعدلات التحويل إلى حجوزات مساند
             </p>
           </div>
@@ -425,7 +425,7 @@ export const WebsiteVisitorsPage: React.FC = () => {
                   border: '1px solid',
                   borderColor: dateRange === key ? '#ffffff' : 'rgba(255,255,255,0.25)',
                   backgroundColor: dateRange === key ? '#ffffff' : 'transparent',
-                  color: dateRange === key ? '#141414' : '#a1a1aa',
+                  color: dateRange === key ? '#141414' : '#adadad',
                   fontWeight: dateRange === key ? 600 : 420,
                   fontSize: '11px',
                   cursor: 'pointer',
@@ -456,26 +456,26 @@ export const WebsiteVisitorsPage: React.FC = () => {
         </div>
 
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>العملاء المحتملون (Leads)</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>العملاء المحتملون (Leads)</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>{activeLeadsCount} عملاء</div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>تواصل فوري</span>
         </div>
 
-        <div className="card-feature-cinematic" style={{ padding: '24px', borderRadius: '16px', background: '#18181b', color: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>أعلى دولة مصدر</span>
+        <div className="card-feature-cinematic" style={{ padding: '24px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
+          <span style={{ fontSize: '13px', color: '#adadad', fontWeight: 550 }}>أعلى دولة مصدر</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>{topNationality.pct}%</div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>{topNationality.name}</span>
         </div>
 
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>معدل التحويل لحجز</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>معدل التحويل لحجز</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>{conversionRate}%</div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>أعلى من متوسط السوق</span>
         </div>
       </div>
 
       {/* TABS HEADER */}
-      <div className="flex gap-2 border-b border-zinc-200 pb-3">
+      <div className="flex gap-2 border-b border-[#e0e0e0] pb-3">
         <button
           onClick={() => setActiveTab('live')}
           className={`button-outline-on-light flex items-center gap-1.5 ${activeTab === 'live' ? 'bg-[#141414] text-white border-[#141414]' : ''}`}
@@ -511,7 +511,7 @@ export const WebsiteVisitorsPage: React.FC = () => {
       {activeTab === 'live' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
           {/* Search Bar + Filters */}
-          <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-white flex-wrap gap-3">
+          <div className="flex items-center justify-between p-4 border-b border-[#e0e0e0] bg-white flex-wrap gap-3">
             <div className="flex gap-1.5 overflow-x-auto">
               <button
                 onClick={() => setLeadFilter('all')}
@@ -547,7 +547,7 @@ export const WebsiteVisitorsPage: React.FC = () => {
                   placeholder="ابحث بالمدينة، IP، المصدر..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-full py-1.5 pr-8 pl-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-full py-1.5 pr-8 pl-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
               <button
@@ -570,7 +570,7 @@ export const WebsiteVisitorsPage: React.FC = () => {
           </div>
 
           {/* Last refresh timestamp */}
-          <div className="px-4 py-1.5 bg-zinc-50 border-b border-zinc-100 flex items-center gap-2">
+          <div className="px-4 py-1.5 bg-[#f3f3f3] border-b border-[#e0e0e0] flex items-center gap-2">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#141414] opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-[#141414]" />
@@ -605,8 +605,8 @@ export const WebsiteVisitorsPage: React.FC = () => {
           ) : (
             /* Visitor Table */
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs text-zinc-700">
-                <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+              <table className="w-full text-right text-xs text-[#141414]">
+                <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                   <tr>
                     <th className="p-3.5">عنوان IP / العميل</th>
                     <th className="p-3.5">المدينة</th>
@@ -618,9 +618,9 @@ export const WebsiteVisitorsPage: React.FC = () => {
                     <th className="p-3.5 text-center">الإجراء المباشر</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-[#e0e0e0]">
                   {filteredVisitors.map((row) => (
-                    <tr key={row.id} className="hover:bg-zinc-50 transition-colors">
+                    <tr key={row.id} className="hover:bg-[#f3f3f3] transition-colors">
                       <td className="p-3.5">
                         <div className="flex items-center gap-2">
                           <CorporateAvatar name={row.phone || row.city || row.ip_address} size="xs" departmentId="crm" />
@@ -638,12 +638,12 @@ export const WebsiteVisitorsPage: React.FC = () => {
                         />
                       </td>
                       <td className="p-3.5">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${row.source === 'TikTok Ads' ? 'bg-[#141414] text-white' : row.source === 'Google Search' ? 'bg-zinc-100 text-[#141414]' : row.source === 'Musaned Direct' ? 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]' : 'bg-zinc-50 text-zinc-700'}`}>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${row.source === 'TikTok Ads' ? 'bg-[#141414] text-white' : row.source === 'Google Search' ? 'bg-[#f3f3f3] text-[#141414]' : row.source === 'Musaned Direct' ? 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]' : 'bg-[#f3f3f3] text-[#141414]'}`}>
                           {row.source || 'Direct'}
                         </span>
                       </td>
                       <td className="p-3.5 font-semibold text-[#141414] text-xs">{row.page_visited || '-'}</td>
-                      <td className="p-3.5 font-mono font-bold text-zinc-700">{Math.floor((Number(row.duration_sec) || 0) / 60)} د و {(Number(row.duration_sec) || 0) % 60} ث</td>
+                      <td className="p-3.5 font-mono font-bold text-[#141414]">{Math.floor((Number(row.duration_sec) || 0) / 60)} د و {(Number(row.duration_sec) || 0) % 60} ث</td>
                       <td className="p-3.5 text-[#141414] font-bold text-xs">{row.visit_time || '-'}</td>
                       <td className="p-3.5 text-center">
                         <div className="flex items-center justify-center gap-1.5 flex-wrap">
@@ -690,7 +690,7 @@ export const WebsiteVisitorsPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {allCVs.map((cv, idx) => (
             <div key={cv.id} className="card-pricing relative" style={{ padding: '24px', borderRadius: '24px', background: '#ffffff' }}>
-              <span className={`absolute top-4 left-4 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs ${idx === 0 ? 'bg-[#141414] text-white' : 'bg-zinc-100 text-zinc-700'}`}>
+              <span className={`absolute top-4 left-4 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs ${idx === 0 ? 'bg-[#141414] text-white' : 'bg-[#f3f3f3] text-[#141414]'}`}>
                 #{idx + 1}
               </span>
 
@@ -703,7 +703,7 @@ export const WebsiteVisitorsPage: React.FC = () => {
               </div>
               <div className="text-xs text-[#707070] mb-4">كود السيرة: <strong className="font-mono text-[#141414]">{cv.cv_code}</strong> | {cv.profession}</div>
 
-              <div className="bg-zinc-50 p-3 rounded-2xl grid grid-cols-3 gap-2 text-center border border-zinc-100">
+              <div className="bg-[#f3f3f3] p-3 rounded-2xl grid grid-cols-3 gap-2 text-center border border-[#e0e0e0]">
                 <div>
                   <div className="text-[11px] text-[#707070]">المشاهدات</div>
                   <div className="text-sm font-bold text-[#141414] mt-0.5 font-mono">{cv.views_count}</div>
@@ -737,9 +737,9 @@ export const WebsiteVisitorsPage: React.FC = () => {
                     <span>{stat.source}</span>
                     <span className="font-mono">{stat.percentage}% ({stat.count} زيارة)</span>
                   </div>
-                  <div className="w-full bg-zinc-100 h-2 rounded-full overflow-hidden">
+                  <div className="w-full bg-[#f3f3f3] h-2 rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full ${sourceColorMap[stat.source] || 'bg-zinc-400'}`}
+                      className={`h-full rounded-full ${sourceColorMap[stat.source] || 'bg-[#141414]'}`}
                       style={{ width: `${stat.percentage}%`, transition: 'width 0.5s ease' }}
                     />
                   </div>
@@ -762,7 +762,7 @@ export const WebsiteVisitorsPage: React.FC = () => {
                   <span>الهواتف الذكية (iOS Safari & Android)</span>
                   <span className="font-mono">{deviceStats.mobilePct}%</span>
                 </div>
-                <div className="w-full bg-zinc-100 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-[#f3f3f3] h-2 rounded-full overflow-hidden">
                   <div className="h-full bg-[#f3f3f3] border-b border-[#e0e0e0] rounded-full" style={{ width: `${deviceStats.mobilePct}%`, transition: 'width 0.5s ease' }} />
                 </div>
               </div>
@@ -772,8 +772,8 @@ export const WebsiteVisitorsPage: React.FC = () => {
                   <span>أجهزة الكمبيوتر المكتبية (Desktop)</span>
                   <span className="font-mono">{deviceStats.desktopPct}%</span>
                 </div>
-                <div className="w-full bg-zinc-100 h-2 rounded-full overflow-hidden">
-                  <div className="h-full bg-zinc-700 rounded-full" style={{ width: `${deviceStats.desktopPct}%`, transition: 'width 0.5s ease' }} />
+                <div className="w-full bg-[#f3f3f3] h-2 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#141414] rounded-full" style={{ width: `${deviceStats.desktopPct}%`, transition: 'width 0.5s ease' }} />
                 </div>
               </div>
             </div>

@@ -262,7 +262,7 @@ export const OfficesPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
         }}
       >
@@ -293,7 +293,7 @@ export const OfficesPage: React.FC = () => {
           <div className="flex items-center gap-2.5 flex-wrap">
             <button
               onClick={() => setShowAddModal(true)}
-              className="button-white-pill text-xs font-bold flex items-center gap-2 shadow-lg hover:border-[#141414]"
+              className="button-white-pill text-xs font-bold flex items-center gap-2  hover:border-[#141414]"
               style={{ minHeight: '38px', padding: '8px 20px', backgroundColor: '#ffffff', color: '#141414', fontWeight: '700' }}
             >
               <Plus className="w-4 h-4 text-[#141414]" />
@@ -332,7 +332,7 @@ export const OfficesPage: React.FC = () => {
                 }}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[#141414] text-[#ffffff] shadow-sm'
+                    ? 'bg-[#141414] text-[#ffffff] '
                     : 'bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
                 }`}
               >
@@ -347,7 +347,7 @@ export const OfficesPage: React.FC = () => {
       <div className="stat-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         {/* Card 1: White Card */}
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>إجمالي الوكلاء الدوليين</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>إجمالي الوكلاء الدوليين</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {offices.length} وكالات
           </div>
@@ -365,7 +365,7 @@ export const OfficesPage: React.FC = () => {
 
         {/* Card 3: Pitch Black Featured Card */}
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>عقود الاستقدام المنجزة</span>
+          <span style={{ fontSize: '13px', color: '#adadad', fontWeight: 550 }}>عقود الاستقدام المنجزة</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {totalContracts} عقد
           </div>
@@ -374,19 +374,19 @@ export const OfficesPage: React.FC = () => {
 
         {/* Card 4: White Card */}
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>أرصدة المحافظ والحسابات</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>أرصدة المحافظ والحسابات</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>
             ${totalBalanceUsd.toLocaleString()}
           </div>
-          <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden mt-2">
-            <div className="w-full h-full bg-[#141414] rounded-full shadow-xs" />
+          <div className="w-full h-1.5 bg-[#f3f3f3] rounded-full overflow-hidden mt-2">
+            <div className="w-full h-full bg-[#141414] rounded-full " />
           </div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>رصيد دائن بالدولار</span>
         </div>
       </div>
 
       {/* Filter and View Switcher Toolbar */}
-      <div className="p-4 rounded-3xl bg-white border border-zinc-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="p-4 rounded-3xl bg-white border border-[#e0e0e0]  flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex items-center gap-2 overflow-x-auto">
           {countries.map(c => {
             const isActive = countryFilter === c;
@@ -413,18 +413,18 @@ export const OfficesPage: React.FC = () => {
               placeholder="ابحث بالاسم، الحساب، أو المدير..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-3 pr-9 py-2 rounded-full bg-zinc-50 border border-zinc-200 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#141414]/20 font-semibold"
+              className="w-full pl-3 pr-9 py-2 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-xs text-[#141414] focus:outline-none focus:ring-2 focus:ring-[#141414]/20 font-semibold"
             />
           </div>
 
           {/* View Toggle */}
-          <div className="flex items-center bg-zinc-100 p-1 rounded-full border border-zinc-200">
+          <div className="flex items-center bg-[#f3f3f3] p-1 rounded-full border border-[#e0e0e0]">
             <button
               onClick={() => setViewMode('cards')}
               className={`p-2 rounded-full text-xs font-bold flex items-center gap-1 transition-all ${
                 viewMode === 'cards'
-                  ? 'bg-white  text-[#141414] shadow-xs border border-[#e0e0e0]'
-                  : 'text-[#707070] hover:text-zinc-900 '
+                  ? 'bg-white  text-[#141414]  border border-[#e0e0e0]'
+                  : 'text-[#707070] hover:text-[#141414] '
               }`}
               title="عرض الكروت"
             >
@@ -434,8 +434,8 @@ export const OfficesPage: React.FC = () => {
               onClick={() => setViewMode('table')}
               className={`p-2 rounded-full text-xs font-bold flex items-center gap-1 transition-all ${
                 viewMode === 'table'
-                  ? 'bg-white  text-[#141414] shadow-xs border border-[#e0e0e0]'
-                  : 'text-[#707070] hover:text-zinc-900 '
+                  ? 'bg-white  text-[#141414]  border border-[#e0e0e0]'
+                  : 'text-[#707070] hover:text-[#141414] '
               }`}
               title="عرض الجدول"
             >
@@ -475,21 +475,21 @@ export const OfficesPage: React.FC = () => {
               <div className="mt-2 flex items-center justify-end gap-2 px-1">
                 <button
                   onClick={() => setSelectedOfficeStatement(office)}
-                  className="px-3 py-1.5 rounded-xl bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] font-bold text-xs flex items-center gap-1.5 transition shadow-xs"
+                  className="px-3 py-1.5 rounded-xl bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] font-bold text-xs flex items-center gap-1.5 transition "
                 >
                   <DollarSign className="w-3.5 h-3.5" />
                   <span>كشف حساب ($)</span>
                 </button>
                 <button
                   onClick={() => setSelectedOfficeCredentials(office)}
-                  className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition"
+                  className="p-1.5 rounded-xl bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070] transition"
                   title="بيانات بوابة الوكيل"
                 >
                   <Key className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => handleDeleteOffice(office)}
-                  className="p-1.5 rounded-xl hover:bg-[#eaeaea] text-slate-400 hover:text-[#141414] transition"
+                  className="p-1.5 rounded-xl hover:bg-[#f3f3f3] text-[#adadad] hover:text-[#141414] transition"
                   title="حذف"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -499,10 +499,10 @@ export const OfficesPage: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+        <div className="rounded-3xl bg-white border border-[#e0e0e0]  overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-slate-700">
-              <thead className="bg-slate-100 text-slate-800 font-bold border-b border-slate-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">كود المكتب</th>
                   <th className="p-3.5">اسم المكتب والمدير</th>
@@ -515,16 +515,16 @@ export const OfficesPage: React.FC = () => {
                   <th className="p-3.5 text-center">الإجراءات</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {filteredOffices.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50">
-                    <td className="p-3.5 font-mono font-bold text-slate-900">{row.id}</td>
+                  <tr key={row.id} className="hover:bg-[#f3f3f3]">
+                    <td className="p-3.5 font-mono font-bold text-[#141414]">{row.id}</td>
                     <td className="p-3.5">
                       <div className="flex items-center gap-2.5">
                         <CorporateAvatar name={row.manager} role={row.name} size="sm" status="verified" />
                         <div>
-                          <div className="font-bold text-slate-900">{row.name}</div>
-                          <div className="text-[11px] text-slate-500">المدير: {row.manager} | ترخيص: {row.license_no}</div>
+                          <div className="font-bold text-[#141414]">{row.name}</div>
+                          <div className="text-[11px] text-[#707070]">المدير: {row.manager} | ترخيص: {row.license_no}</div>
                         </div>
                       </div>
                     </td>
@@ -532,17 +532,17 @@ export const OfficesPage: React.FC = () => {
                       <Badge text={row.nationality} type="info" />
                     </td>
                     <td className="p-3.5">
-                      <span className="font-mono text-[11px] px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
+                      <span className="font-mono text-[11px] px-2 py-0.5 rounded-lg bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]">
                         {row.account_code}
                       </span>
                     </td>
                     <td className="p-3.5">
-                      <div className="font-bold text-slate-900">سير: {row.cvs_count ?? 0}</div>
+                      <div className="font-bold text-[#141414]">سير: {row.cvs_count ?? 0}</div>
                       <div className="text-[11px] text-[#141414] font-bold">عقود: {row.contracts_count ?? 0}</div>
                     </td>
                     <td className="p-3.5">
                       <div className="font-mono font-bold text-[#141414]">${(row.cost_usd ?? 0).toLocaleString()}</div>
-                      <div className="text-[10.5px] text-slate-400">~{(row.commission_sar ?? 0).toLocaleString()} ⃁</div>
+                      <div className="text-[10.5px] text-[#adadad]">~{(row.commission_sar ?? 0).toLocaleString()} ⃁</div>
                     </td>
                     <td className="p-3.5 font-mono font-bold text-[#141414]">
                       ${(row.balance_usd ?? 0).toLocaleString()}
@@ -553,21 +553,21 @@ export const OfficesPage: React.FC = () => {
                     <td className="p-3.5 text-center">
                       <div className="flex items-center justify-center gap-1.5">
                         <button
-                          className="px-3 py-1 rounded-xl bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#f3f3f3] font-bold text-xs flex items-center gap-1 transition shadow-xs"
+                          className="px-3 py-1 rounded-xl bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#f3f3f3] font-bold text-xs flex items-center gap-1 transition "
                           onClick={() => setSelectedOfficeStatement(row)}
                         >
                           <DollarSign className="w-3 h-3 text-[#141414]" />
                           <span>كشف حساب</span>
                         </button>
                         <button
-                          className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600"
+                          className="p-1.5 rounded-xl bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070]"
                           onClick={() => setSelectedOfficeCredentials(row)}
                           title="بيانات بوابة الوكيل"
                         >
                           <Key className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          className="p-1.5 rounded-xl hover:bg-[#eaeaea] text-slate-400 hover:text-[#141414] transition"
+                          className="p-1.5 rounded-xl hover:bg-[#f3f3f3] text-[#adadad] hover:text-[#141414] transition"
                           onClick={() => handleDeleteOffice(row)}
                           title="حذف الوكالة"
                         >
@@ -585,18 +585,18 @@ export const OfficesPage: React.FC = () => {
 
       {/* ADD OFFICE MODAL */}
       {showAddModal && (
-        <div role="dialog" aria-modal="true" onClick={() => setShowAddModal(false)} className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white rounded-[24px] border border-slate-200 text-slate-900 relative max-h-[90vh] overflow-y-auto">
-            <div className="absolute top-0 right-0 left-0 h-1.5 bg-gradient-to-r from-[#f3f3f3] via-[#f3f3f3] to-[#f3f3f3] rounded-t-3xl" />
+        <div role="dialog" aria-modal="true" onClick={() => setShowAddModal(false)} className="fixed inset-0 z-50 bg-[#141414] backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white rounded-[24px] border border-[#e0e0e0] text-[#141414] relative max-h-[90vh] overflow-y-auto">
+            <div className="absolute top-0 right-0 left-0 h-1.5 bg-[#f3f3f3]    rounded-t-3xl" />
 
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
+            <div className="p-5 border-b border-[#e0e0e0] flex items-center justify-between">
+              <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Building className="w-4 h-4 text-[#141414]" />
                 <span>تسجيل وكالة استقدام خارجية جديدة</span>
               </h3>
               <button 
                 onClick={() => setShowAddModal(false)} 
-                className="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition"
+                className="p-2 rounded-2xl bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070] hover:text-[#141414] transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -604,24 +604,24 @@ export const OfficesPage: React.FC = () => {
 
             <form onSubmit={handleCreateOffice} className="p-6 space-y-4 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">اسم المكتب الخارجي (الرسمي) *</label>
+                <label className="block font-bold text-[#141414] mb-1.5">اسم المكتب الخارجي (الرسمي) *</label>
                 <input
                   type="text"
                   required
                   placeholder="مثال: MANILA ELITE RECRUITMENT CORP"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 font-semibold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 font-semibold text-[#141414]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1.5">دولة المصدر</label>
+                  <label className="block font-bold text-[#141414] mb-1.5">دولة المصدر</label>
                   <select
                     value={formData.nationality}
                     onChange={(e) => setFormData({ ...formData, nationality: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 font-semibold text-slate-900"
+                    className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 font-semibold text-[#141414]"
                   >
                     <option value="الفلبين">الفلبين</option>
                     <option value="إثيوبيا">إثيوبيا</option>
@@ -633,85 +633,85 @@ export const OfficesPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1.5">اسم المدير المسؤول</label>
+                  <label className="block font-bold text-[#141414] mb-1.5">اسم المدير المسؤول</label>
                   <input
                     type="text"
                     placeholder="مثال: مارك أنتوني"
                     value={formData.manager}
                     onChange={(e) => setFormData({ ...formData, manager: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 font-semibold text-slate-900"
+                    className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 font-semibold text-[#141414]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1.5">رقم الترخيص الخارجي</label>
+                  <label className="block font-bold text-[#141414] mb-1.5">رقم الترخيص الخارجي</label>
                   <input
                     type="text"
                     placeholder="POEA-XXX-2026"
                     value={formData.license_no}
                     onChange={(e) => setFormData({ ...formData, license_no: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 font-mono text-slate-900"
+                    className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 font-mono text-[#141414]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1.5">كود الحساب المحاسبي (ERP)</label>
+                  <label className="block font-bold text-[#141414] mb-1.5">كود الحساب المحاسبي (ERP)</label>
                   <input
                     type="text"
                     value={formData.account_code}
                     onChange={(e) => setFormData({ ...formData, account_code: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 font-mono text-slate-900"
+                    className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 font-mono text-[#141414]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1.5">رقم الهاتف الدولي</label>
+                  <label className="block font-bold text-[#141414] mb-1.5">رقم الهاتف الدولي</label>
                   <input
                     type="text"
                     placeholder="+63 9XX XXX XXXX"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 font-mono text-slate-900"
+                    className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 font-mono text-[#141414]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1.5">البريد الإلكتروني</label>
+                  <label className="block font-bold text-[#141414] mb-1.5">البريد الإلكتروني</label>
                   <input
                     type="email"
                     placeholder="agency@domain.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 text-slate-900"
+                    className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 text-[#141414]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">تكلفة العقد بالدولار ($ USD)</label>
+                <label className="block font-bold text-[#141414] mb-1.5">تكلفة العقد بالدولار ($ USD)</label>
                 <input
                   type="number"
                   value={formData.cost_usd}
                   onChange={(e) => setFormData({ ...formData, cost_usd: Number(e.target.value) })}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#141414]/20 font-mono font-bold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 font-mono font-bold text-[#141414]"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <div className="flex justify-end gap-3 pt-4 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition"
+                  className="px-5 py-2.5 rounded-2xl bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] font-bold text-xs transition"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-2xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] border border-[#141414] font-bold text-xs shadow-md transition"
+                  className="px-6 py-2.5 rounded-2xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] border border-[#141414] font-bold text-xs  transition"
                 >
                   حفظ واعتماد الوكالة
                 </button>
@@ -723,18 +723,18 @@ export const OfficesPage: React.FC = () => {
 
       {/* STATEMENT MODAL */}
       {selectedOfficeStatement && (
-        <div role="dialog" aria-modal="true" onClick={() => setSelectedOfficeStatement(null)} className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white rounded-[24px] border border-slate-200 text-slate-900 relative max-h-[90vh] overflow-y-auto">
-            <div className="absolute top-0 right-0 left-0 h-1.5 bg-gradient-to-r from-[#f3f3f3] via-[#f3f3f3] to-[#f3f3f3] rounded-t-3xl" />
+        <div role="dialog" aria-modal="true" onClick={() => setSelectedOfficeStatement(null)} className="fixed inset-0 z-50 bg-[#141414] backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white rounded-[24px] border border-[#e0e0e0] text-[#141414] relative max-h-[90vh] overflow-y-auto">
+            <div className="absolute top-0 right-0 left-0 h-1.5 bg-[#f3f3f3]    rounded-t-3xl" />
 
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+            <div className="p-5 border-b border-[#e0e0e0] flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-base text-slate-900">كشف حساب المعاملات: {selectedOfficeStatement.name}</h3>
-                <p className="text-xs text-slate-500 font-mono mt-0.5">كود الحساب: {selectedOfficeStatement.account_code} | الدولة: {selectedOfficeStatement.nationality}</p>
+                <h3 className="font-bold text-base text-[#141414]">كشف حساب المعاملات: {selectedOfficeStatement.name}</h3>
+                <p className="text-xs text-[#707070] font-mono mt-0.5">كود الحساب: {selectedOfficeStatement.account_code} | الدولة: {selectedOfficeStatement.nationality}</p>
               </div>
               <button 
                 onClick={() => setSelectedOfficeStatement(null)} 
-                className="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition"
+                className="p-2 rounded-2xl bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070] hover:text-[#141414] transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -743,27 +743,27 @@ export const OfficesPage: React.FC = () => {
             <div className="p-6 space-y-4 text-xs">
               <div className="p-4 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] grid grid-cols-3 gap-3 text-center">
                 <div>
-                  <div className="text-[11px] text-slate-500">الرصيد الدائن المستحق</div>
+                  <div className="text-[11px] text-[#707070]">الرصيد الدائن المستحق</div>
                   <div className="text-base font-mono font-bold text-[#141414]">${(selectedOfficeStatement.balance_usd ?? 0).toLocaleString()}</div>
                 </div>
                 <div>
-                  <div className="text-[11px] text-slate-500">العقود المنجزة</div>
-                  <div className="text-base font-mono font-bold text-slate-900">{selectedOfficeStatement.contracts_count ?? 0} عقود</div>
+                  <div className="text-[11px] text-[#707070]">العقود المنجزة</div>
+                  <div className="text-base font-mono font-bold text-[#141414]">{selectedOfficeStatement.contracts_count ?? 0} عقود</div>
                 </div>
                 <div>
-                  <div className="text-[11px] text-slate-500">متوسط العمولة</div>
+                  <div className="text-[11px] text-[#707070]">متوسط العمولة</div>
                   <div className="text-base font-mono font-bold text-[#141414]">${(selectedOfficeStatement.cost_usd ?? 0).toLocaleString()}</div>
                 </div>
               </div>
 
-              <p className="text-xs text-slate-600 leading-relaxed font-medium">
+              <p className="text-xs text-[#707070] leading-relaxed font-medium">
                 • تم إجراء آخر تسوية نقدية عبر التحويل البنكي الخارجي بتاريخ 2026-08-10 بمبلغ $5,000.<br />
                 • توجد 3 إرساليات قيد إجراءات إصدار تذاكر الطيران للوصول إلى مطار الملك خالد الدولي.
               </p>
 
-              <div className="flex justify-between items-center gap-2 pt-3 border-t border-slate-100 flex-wrap">
+              <div className="flex justify-between items-center gap-2 pt-3 border-t border-[#e0e0e0] flex-wrap">
                 <button
-                  className="px-4 py-2 rounded-2xl bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#141414] font-bold text-xs flex items-center gap-1.5 transition shadow-sm"
+                  className="px-4 py-2 rounded-2xl bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#141414] font-bold text-xs flex items-center gap-1.5 transition "
                   onClick={() => {
                     addNotification({
                       title: 'تسوية رصيد معتمد',
@@ -786,7 +786,7 @@ export const OfficesPage: React.FC = () => {
                     <span>طباعة الكشف</span>
                   </button>
                   <button
-                    className="px-4 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition"
+                    className="px-4 py-2 rounded-2xl bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] font-bold text-xs transition"
                     onClick={() => setSelectedOfficeStatement(null)}
                   >
                     إغلاق
@@ -799,22 +799,22 @@ export const OfficesPage: React.FC = () => {
       )}
       {/* AGENT PORTAL CREDENTIALS MODAL */}
       {selectedOfficeCredentials && (
-        <div role="dialog" aria-modal="true" onClick={() => setSelectedOfficeCredentials(null)} className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-slate-200 text-slate-900 relative max-h-[90vh] overflow-y-auto">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
+        <div role="dialog" aria-modal="true" onClick={() => setSelectedOfficeCredentials(null)} className="fixed inset-0 z-50 bg-[#141414] backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] text-[#141414] relative max-h-[90vh] overflow-y-auto">
+            <div className="p-5 border-b border-[#e0e0e0] flex items-center justify-between">
+              <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Key className="w-4 h-4 text-[#141414]" />
                 <span>بيانات دخول بوابة الوكيل الخارجي</span>
               </h3>
               <button
                 onClick={() => setSelectedOfficeCredentials(null)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-[#adadad] hover:text-[#707070]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="p-6 space-y-4 text-xs font-sans">
-              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+              <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0]">
                 <div className="text-[#707070] mb-1">الوكالة المعتمدة:</div>
                 <div className="font-bold text-sm text-[#141414]">{selectedOfficeCredentials.name}</div>
                 <div className="text-[11px] text-[#707070] font-mono mt-0.5">الدولة: {selectedOfficeCredentials.nationality} | كود الحساب: {selectedOfficeCredentials.account_code}</div>
@@ -827,7 +827,7 @@ export const OfficesPage: React.FC = () => {
                     type="text"
                     readOnly
                     value={`agent.${(selectedOfficeCredentials.account_code || 'ext').toLowerCase()}@alsulaim-portal.com`}
-                    className="w-full bg-slate-100 border border-slate-200 rounded-xl py-2 px-3 font-mono font-bold text-[#141414]"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 font-mono font-bold text-[#141414]"
                   />
                 </div>
                 <div>
@@ -836,12 +836,12 @@ export const OfficesPage: React.FC = () => {
                     type="text"
                     readOnly
                     value={`AGNT-SEC-${selectedOfficeCredentials.account_code || 'KEY'}-2026`}
-                    className="w-full bg-slate-100 border border-slate-200 rounded-xl py-2 px-3 font-mono font-bold text-[#141414]"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 font-mono font-bold text-[#141414]"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => {

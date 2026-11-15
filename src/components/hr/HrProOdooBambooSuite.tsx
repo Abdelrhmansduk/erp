@@ -1566,7 +1566,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
       {/* Modal: New Performance Review / PIP */}
       {showNewReviewModal && (
         <div className="fixed inset-0 z-[2100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-[#e0e0e0] rounded-[24px] max-w-lg w-full overflow-hidden shadow-[var(--elevation-modal)]">
+          <div className="bg-white border border-[#e0e0e0] rounded-[24px] max-w-lg w-full overflow-hidden ">
             <div className="p-4 bg-[#f3f3f3] text-[#141414] border-b border-[#e0e0e0] flex items-center justify-between">
               <h4 className="text-sm font-bold text-[#141414]">تسجيل تقييم أداء معياري (1–5) / خطة تحسين PIP</h4>
               <button
@@ -1672,7 +1672,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
       {/* Modal: Add Dependent & Medical Insurance Coverage */}
       {showAddDependentModal && (
         <div className="fixed inset-0 z-[2100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-[#e0e0e0] rounded-[24px] max-w-md w-full overflow-hidden shadow-[var(--elevation-modal)]">
+          <div className="bg-white border border-[#e0e0e0] rounded-[24px] max-w-md w-full overflow-hidden ">
             <div className="p-4 bg-[#f3f3f3] text-[#141414] border-b border-[#e0e0e0] flex items-center justify-between">
               <h4 className="text-sm font-bold text-[#141414]">إضافة تابع وتفعيل التغطية التأمينية الطبية</h4>
               <button

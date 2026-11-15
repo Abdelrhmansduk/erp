@@ -145,13 +145,13 @@ export const SponsorshipTransferPage: React.FC = () => {
 
   // Helper for office badge
   const getOfficeMeta = (officeId: GroupOfficeId) => {
-    return GROUP_OFFICES[officeId] || { name: officeId, primaryColor: '#6366f1', badgeColor: 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]' };
+    return GROUP_OFFICES[officeId] || { name: officeId, primaryColor: '#707070', badgeColor: 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]' };
   };
 
   return (
-    <div className="space-y-6 text-zinc-900 font-sans" dir="rtl">
+    <div className="space-y-6 text-[#141414] font-sans" dir="rtl">
       {/* 1. Master Cinematic Hero Header - KAS Suite Luxury Design */}
-      <div className="rounded-2xl p-6 bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] shadow-xs relative overflow-hidden">
+      <div className="rounded-2xl p-6 bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]  relative overflow-hidden">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="flex items-start gap-4">
             <BusinessIllustration type="sponsorship-transfer" size="sm" />
@@ -200,7 +200,7 @@ export const SponsorshipTransferPage: React.FC = () => {
                   setActiveTab('catalog');
                 }
               }}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#141414] text-[#ffffff] hover:bg-[#262626] shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#141414] text-[#ffffff] hover:bg-[#262626]  flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <Sparkles className="w-4 h-4 text-[#ffffff]" />
               <span>+ حجز نقل خدمات لعميل</span>
@@ -242,9 +242,9 @@ export const SponsorshipTransferPage: React.FC = () => {
 
       {/* 1.5 Urgent Proactive Alert Banner (T=0 / Overdue) */}
       {criticalAlertsCount > 0 && (
-        <div className="rounded-2xl p-4 bg-[#fff1f2] text-[#141414] flex items-center justify-between flex-wrap gap-4 border border-[#fecdd3]">
+        <div className="rounded-2xl p-4 bg-[#f3f3f3] text-[#141414] flex items-center justify-between flex-wrap gap-4 border border-[#e0e0e0]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white border border-[#fecdd3] flex items-center justify-center font-bold shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-white border border-[#e0e0e0] flex items-center justify-center font-bold shrink-0">
               <AlertTriangle className="w-5 h-5 text-[#141414]" />
             </div>
             <div>
@@ -335,7 +335,7 @@ export const SponsorshipTransferPage: React.FC = () => {
       </div>
 
       {/* 3. Navigation SubTabs - KAS Suite Pill Styling */}
-      <div className="rounded-2xl p-2 bg-[#ffffff] border border-[#e0e0e0] shadow-md">
+      <div className="rounded-2xl p-2 bg-[#ffffff] border border-[#e0e0e0] ">
         <div className="flex items-center gap-2 flex-wrap p-1">
           {/* Tab 1: Daily Follow-up */}
           <button
@@ -343,7 +343,7 @@ export const SponsorshipTransferPage: React.FC = () => {
             onClick={() => setActiveTab('followup')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'followup'
-                ? 'bg-[#141414] text-[#ffffff] shadow-md '
+                ? 'bg-[#141414] text-[#ffffff]  '
                 : 'text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3]'
             }`}
           >
@@ -362,7 +362,7 @@ export const SponsorshipTransferPage: React.FC = () => {
             onClick={() => setActiveTab('catalog')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'catalog'
-                ? 'bg-[#141414] text-[#ffffff] shadow-md '
+                ? 'bg-[#141414] text-[#ffffff]  '
                 : 'text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3]'
             }`}
           >
@@ -379,7 +379,7 @@ export const SponsorshipTransferPage: React.FC = () => {
             onClick={() => setActiveTab('inmates')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'inmates'
-                ? 'bg-[#141414] text-[#ffffff] shadow-md '
+                ? 'bg-[#141414] text-[#ffffff]  '
                 : 'text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3]'
             }`}
           >
@@ -393,7 +393,7 @@ export const SponsorshipTransferPage: React.FC = () => {
             onClick={() => setActiveTab('transfers')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'transfers'
-                ? 'bg-[#141414] text-[#ffffff] shadow-md '
+                ? 'bg-[#141414] text-[#ffffff]  '
                 : 'text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3]'
             }`}
           >
@@ -407,7 +407,7 @@ export const SponsorshipTransferPage: React.FC = () => {
             onClick={() => setActiveTab('timeline')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'timeline'
-                ? 'bg-[#141414] text-[#ffffff] shadow-md '
+                ? 'bg-[#141414] text-[#ffffff]  '
                 : 'text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3]'
             }`}
           >
@@ -421,7 +421,7 @@ export const SponsorshipTransferPage: React.FC = () => {
             onClick={() => setActiveTab('dashboard')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'dashboard'
-                ? 'bg-[#141414] text-[#ffffff] shadow-md '
+                ? 'bg-[#141414] text-[#ffffff]  '
                 : 'text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3]'
             }`}
           >
@@ -456,7 +456,7 @@ export const SponsorshipTransferPage: React.FC = () => {
 
       {/* TAB 3: Shelter Inmates & Intake Management */}
       {activeTab === 'inmates' && (
-        <div className="rounded-2xl bg-[#ffffff] border border-[#e0e0e0] p-5 shadow-md space-y-4">
+        <div className="rounded-2xl bg-[#ffffff] border border-[#e0e0e0] p-5  space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-4 pb-3 border-b border-[#e0e0e0]">
             <div>
               <h2 className="text-sm font-bold text-[#141414] m-0">
@@ -470,7 +470,7 @@ export const SponsorshipTransferPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowIntakeModal(true)}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#ffffff] bg-[#141414] hover:bg-[#262626] shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#ffffff] bg-[#141414] hover:bg-[#262626]  transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>+ تسكين نزيلة جديدة</span>
@@ -583,7 +583,7 @@ export const SponsorshipTransferPage: React.FC = () => {
 
       {/* TAB 4: All Transfer Cases */}
       {activeTab === 'transfers' && (
-        <div className="rounded-2xl bg-[#ffffff] border border-[#e0e0e0] p-5 shadow-md space-y-4">
+        <div className="rounded-2xl bg-[#ffffff] border border-[#e0e0e0] p-5  space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-4 pb-3 border-b border-[#e0e0e0]">
             <div>
               <div className="flex items-center gap-2">
@@ -727,7 +727,7 @@ export const SponsorshipTransferPage: React.FC = () => {
 
       {/* TAB 5: Movement Timeline Audit Trail */}
       {activeTab === 'timeline' && (
-        <div className="rounded-2xl bg-[#ffffff] border border-[#e0e0e0] p-5 shadow-md space-y-4">
+        <div className="rounded-2xl bg-[#ffffff] border border-[#e0e0e0] p-5  space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-4 pb-3 border-b border-[#e0e0e0]">
             <div>
               <h2 className="text-sm font-bold text-[#141414] m-0">
@@ -802,7 +802,7 @@ export const SponsorshipTransferPage: React.FC = () => {
               return (
                 <div 
                   key={office.id}
-                  className="bg-[#ffffff] rounded-2xl p-4 border border-[#e0e0e0] shadow-md relative overflow-hidden space-y-3"
+                  className="bg-[#ffffff] rounded-2xl p-4 border border-[#e0e0e0]  relative overflow-hidden space-y-3"
                 >
                   <div className="h-1 w-full absolute top-0 right-0 left-0" style={{ backgroundColor: office.brandColor }} />
                   
@@ -837,7 +837,7 @@ export const SponsorshipTransferPage: React.FC = () => {
             })}
           </div>
 
-          <div className="p-5 bg-gradient-to-l from-[#f3f3f3] via-[#f3f3f3] to-[#f3f3f3] border border-[#e0e0e0] rounded-2xl text-[#141414] shadow-md flex items-center justify-between flex-wrap gap-4">
+          <div className="p-5 bg-[#f3f3f3]    border border-[#e0e0e0] rounded-2xl text-[#141414]  flex items-center justify-between flex-wrap gap-4">
             <div>
               <h3 className="text-sm font-bold m-0 flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-[#141414]" />

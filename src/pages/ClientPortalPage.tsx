@@ -217,7 +217,7 @@ export const ClientPortalPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
         }}
       >
@@ -245,7 +245,7 @@ export const ClientPortalPage: React.FC = () => {
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => handleOpenSupport()}
-              className="button-white-pill text-xs font-bold flex items-center gap-2 shadow-lg"
+              className="button-white-pill text-xs font-bold flex items-center gap-2 "
               style={{ minHeight: '38px', padding: '8px 20px', backgroundColor: '#141414', color: '#ffffff', fontWeight: '700' }}
             >
               <AlertCircle className="w-4 h-4 text-white" />
@@ -255,7 +255,7 @@ export const ClientPortalPage: React.FC = () => {
               href="https://wa.me/966500000000"
               target="_blank"
               rel="noopener noreferrer"
-              className="button-white-pill text-xs font-bold flex items-center gap-2 shadow-lg"
+              className="button-white-pill text-xs font-bold flex items-center gap-2 "
               style={{ minHeight: '38px', padding: '8px 20px', backgroundColor: '#ffffff', color: '#141414', fontWeight: '700' }}
             >
               <MessageCircle className="w-4 h-4 text-[#141414]" />
@@ -266,7 +266,7 @@ export const ClientPortalPage: React.FC = () => {
       </div>
 
       {/* Contract Quick Lookup Search Bar */}
-      <div className="card-pricing p-4 rounded-2xl bg-white border border-zinc-200 shadow-sm flex items-center gap-3">
+      <div className="card-pricing p-4 rounded-2xl bg-white border border-[#e0e0e0]  flex items-center gap-3">
         <CorporateAvatar name={nationalIdOrPhone || 'عميل البوابة الموثق'} archetype="client-vip" size="sm" status="verified" />
         <div className="flex-1">
           <label className="block text-[11px] font-bold text-[#707070] mb-0.5">البحث الفوري عن العقود ومراحل العمالة</label>
@@ -293,7 +293,7 @@ export const ClientPortalPage: React.FC = () => {
       <div className="stat-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         {/* Card 1: White Card */}
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>العقود النشطة تحت التنفيذ</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>العقود النشطة تحت التنفيذ</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {activeContracts.length} عقود
           </div>
@@ -311,7 +311,7 @@ export const ClientPortalPage: React.FC = () => {
 
         {/* Card 3: Pitch Black Featured Card */}
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>إجمالي المدفوعات الموثقة</span>
+          <span style={{ fontSize: '13px', color: '#adadad', fontWeight: 550 }}>إجمالي المدفوعات الموثقة</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>
             33,000 ⃁
           </div>
@@ -320,11 +320,11 @@ export const ClientPortalPage: React.FC = () => {
 
         {/* Card 4: White Card */}
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>سريان الضمان والحماية</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>سريان الضمان والحماية</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>
             90 يوماً
           </div>
-          <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden mt-2">
+          <div className="w-full h-1.5 bg-[#f3f3f3] rounded-full overflow-hidden mt-2">
             <div className="w-full h-full bg-[#141414] rounded-full" />
           </div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>ضمان رسمي شامل</span>
@@ -334,7 +334,7 @@ export const ClientPortalPage: React.FC = () => {
       {/* Contract Lifecycle Cards */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <h2 className="text-lg font-bold text-[#141414] flex items-center gap-2">
             <Plane className="w-5 h-5 text-[#141414]" />
             <span>العقود السارية ومراحل الوصول الحية</span>
           </h2>
@@ -342,26 +342,26 @@ export const ClientPortalPage: React.FC = () => {
         </div>
 
         {filteredContracts.length === 0 ? (
-          <div className="card-pricing border border-zinc-200 rounded-3xl p-10 text-center flex flex-col items-center justify-center bg-white">
+          <div className="card-pricing border border-[#e0e0e0] rounded-3xl p-10 text-center flex flex-col items-center justify-center bg-white">
             <BusinessIllustration type="empty-search" size="md" />
-            <div className="text-sm font-bold text-zinc-600 mt-3">لا توجد عقود مطابقة لرقم الهوية أو البحث المدخل</div>
+            <div className="text-sm font-bold text-[#707070] mt-3">لا توجد عقود مطابقة لرقم الهوية أو البحث المدخل</div>
           </div>
         ) : (
         <div className="grid grid-cols-1 gap-4">
           {filteredContracts.map((contract) => (
             <div 
               key={contract.id}
-              className="card-pricing border border-zinc-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all space-y-4 bg-white"
+              className="card-pricing border border-[#e0e0e0] rounded-3xl p-6   transition-all space-y-4 bg-white"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-100">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#e0e0e0]">
                 <div className="flex items-center gap-3">
                   <CorporateAvatar name={contract.workerName} profession={contract.profession} size="md" status="verified" />
                   <div>
-                    <h3 className="font-bold text-slate-900 text-base">
+                    <h3 className="font-bold text-[#141414] text-base">
                       {contract.workerName}
                     </h3>
                     <div className="flex items-center gap-2 text-xs text-[#707070] mt-0.5">
-                      <span>رقم العقد: <strong className="text-zinc-800">{contract.contractNumber}</strong></span>
+                      <span>رقم العقد: <strong className="text-[#141414]">{contract.contractNumber}</strong></span>
                       <span>•</span>
                       <span>{contract.profession}</span>
                       <span>•</span>
@@ -377,7 +377,7 @@ export const ClientPortalPage: React.FC = () => {
                   {contract.amount > contract.paidAmount && (
                     <button 
                       onClick={() => handleOpenPayment(contract)}
-                      className="button-primary-pill text-xs font-bold flex items-center gap-1 shadow-sm"
+                      className="button-primary-pill text-xs font-bold flex items-center gap-1 "
                       style={{ minHeight: '34px', padding: '6px 14px', background: '#141414', color: '#ffffff' }}
                     >
                       <CreditCard className="w-3.5 h-3.5" />
@@ -386,7 +386,7 @@ export const ClientPortalPage: React.FC = () => {
                   )}
                   <button 
                     onClick={() => handleOpenSupport(contract)}
-                    className="button-outline-on-light text-xs font-bold flex items-center gap-1 text-[#141414] hover:bg-[#eaeaea]"
+                    className="button-outline-on-light text-xs font-bold flex items-center gap-1 text-[#141414] hover:bg-[#f3f3f3]"
                     style={{ minHeight: '34px', padding: '6px 12px' }}
                   >
                     <AlertCircle className="w-3.5 h-3.5 text-[#141414]" />
@@ -405,13 +405,13 @@ export const ClientPortalPage: React.FC = () => {
 
               {/* 8-Stage Progress Tracker */}
               <div className="space-y-2">
-                <div className="flex justify-between text-xs font-bold text-slate-700">
+                <div className="flex justify-between text-xs font-bold text-[#141414]">
                   <span>نسبة الإنجاز: {contract.progressPct}%</span>
                   <span className="text-[#141414]">
                     الوصول المتوقع: {contract.expectedArrival}
                   </span>
                 </div>
-                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                <div className="w-full bg-[#f3f3f3] h-2.5 rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-[#141414] rounded-full transition-all duration-500" 
                     style={{ width: `${contract.progressPct}%` }}
@@ -427,21 +427,21 @@ export const ClientPortalPage: React.FC = () => {
               </div>
 
               {/* Bottom Metadata & Guarantee */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs text-slate-600">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs text-[#707070]">
                 <div>
-                  <span className="text-slate-400 block text-[11px]">قيمة العقد الإجمالية</span>
-                  <strong className="text-slate-900 font-bold">{contract.amount.toLocaleString()} ⃁</strong>
+                  <span className="text-[#adadad] block text-[11px]">قيمة العقد الإجمالية</span>
+                  <strong className="text-[#141414] font-bold">{contract.amount.toLocaleString()} ⃁</strong>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[11px]">المبلغ المسدد</span>
+                  <span className="text-[#adadad] block text-[11px]">المبلغ المسدد</span>
                   <strong className="text-[#141414] font-bold">{contract.paidAmount.toLocaleString()} ⃁</strong>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[11px]">الوكيل الخارجي</span>
-                  <strong className="text-slate-800 font-medium">{contract.agencyName}</strong>
+                  <span className="text-[#adadad] block text-[11px]">الوكيل الخارجي</span>
+                  <strong className="text-[#141414] font-medium">{contract.agencyName}</strong>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[11px]">فترة الضمان المتبقية</span>
+                  <span className="text-[#adadad] block text-[11px]">فترة الضمان المتبقية</span>
                   <strong className="text-[#141414] font-bold">{contract.guaranteeDaysLeft} يوماً</strong>
                 </div>
               </div>
@@ -454,18 +454,18 @@ export const ClientPortalPage: React.FC = () => {
       {/* Contract Detail Modal */}
       {selectedContract && (
         <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setSelectedContract(null)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div onClick={(e) => e.stopPropagation()} className="erp-printable-sheet bg-white rounded-[24px] p-6 max-w-xl w-full border border-slate-200 relative space-y-5 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div onClick={(e) => e.stopPropagation()} className="erp-printable-sheet bg-white rounded-[24px] p-6 max-w-xl w-full border border-[#e0e0e0] relative space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#e0e0e0]">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-6 h-6 text-[#141414]" />
-                <h3 className="font-bold text-slate-900 text-base">
+                <h3 className="font-bold text-[#141414] text-base">
                   سجل العقد المعتمد #{selectedContract.contractNumber}
                 </h3>
               </div>
               <button 
                 type="button"
                 onClick={() => setSelectedContract(null)}
-                className="no-print print:hidden w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer"
+                className="no-print print:hidden w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070] flex items-center justify-center cursor-pointer"
                 aria-label="إغلاق"
               >
                 ✕
@@ -474,9 +474,9 @@ export const ClientPortalPage: React.FC = () => {
 
             <div className="space-y-3 text-xs">
               {/* Official Verification QR Stamp */}
-              <div className="p-3 bg-zinc-50 rounded-2xl border border-dashed border-zinc-300 flex items-center justify-between">
+              <div className="p-3 bg-[#f3f3f3] rounded-2xl border border-dashed border-[#e0e0e0] flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-[#141414] text-white flex items-center justify-center shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-[#141414] text-white flex items-center justify-center ">
                     <QrCode className="w-6 h-6 text-[#ffffff]" />
                   </div>
                   <div>
@@ -487,22 +487,22 @@ export const ClientPortalPage: React.FC = () => {
                 <span className="pill-tag-mint text-[10px]">ساري ومعتمد</span>
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-xl space-y-1.5">
+              <div className="p-3 bg-[#f3f3f3] rounded-xl space-y-1.5">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">اسم العامل/ة:</span>
-                  <span className="font-bold text-slate-900">{selectedContract.workerName}</span>
+                  <span className="text-[#707070]">اسم العامل/ة:</span>
+                  <span className="font-bold text-[#141414]">{selectedContract.workerName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">رقم جواز السفر:</span>
-                  <span className="font-mono font-bold text-slate-900">{selectedContract.passportNumber}</span>
+                  <span className="text-[#707070]">رقم جواز السفر:</span>
+                  <span className="font-mono font-bold text-[#141414]">{selectedContract.passportNumber}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">المهنة والجنسية:</span>
-                  <span className="font-medium text-slate-800">{selectedContract.profession} - {selectedContract.nationality}</span>
+                  <span className="text-[#707070]">المهنة والجنسية:</span>
+                  <span className="font-medium text-[#141414]">{selectedContract.profession} - {selectedContract.nationality}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">الوكالة المصدرة:</span>
-                  <span className="font-medium text-slate-800">{selectedContract.agencyName}</span>
+                  <span className="text-[#707070]">الوكالة المصدرة:</span>
+                  <span className="font-medium text-[#141414]">{selectedContract.agencyName}</span>
                 </div>
               </div>
 
@@ -524,11 +524,11 @@ export const ClientPortalPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="no-print print:hidden flex justify-between items-center gap-2 pt-3 border-t border-zinc-100 flex-wrap">
+            <div className="no-print print:hidden flex justify-between items-center gap-2 pt-3 border-t border-[#e0e0e0] flex-wrap">
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="button-primary-pill text-xs font-bold inline-flex items-center gap-1.5 shadow-sm"
+                className="button-primary-pill text-xs font-bold inline-flex items-center gap-1.5 "
                 style={{ padding: '6px 16px', minHeight: '34px' }}
               >
                 <Printer className="w-3.5 h-3.5" />
@@ -548,7 +548,7 @@ export const ClientPortalPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedContract(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-bold text-xs"
+                  className="px-4 py-2 rounded-xl bg-[#141414] text-white hover:bg-[#262626] font-bold text-xs"
                 >
                   إغلاق
                 </button>
@@ -561,18 +561,18 @@ export const ClientPortalPage: React.FC = () => {
       {/* Support / Complaint Modal */}
       {showSupportModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowSupportModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white rounded-[24px] p-6 max-w-lg w-full border border-zinc-200 space-y-4 text-right dir-rtl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white rounded-[24px] p-6 max-w-lg w-full border border-[#e0e0e0] space-y-4 text-right dir-rtl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#e0e0e0]">
               <div className="flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-[#141414]" />
-                <h3 className="font-bold text-slate-900 text-base">
+                <h3 className="font-bold text-[#141414] text-base">
                   تقديم بلاغ أو طلب دعم ومتابعة
                 </h3>
               </div>
               <button 
                 type="button" 
                 onClick={() => setShowSupportModal(false)} 
-                className="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-600 flex items-center justify-center cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070] flex items-center justify-center cursor-pointer"
                 aria-label="إغلاق"
               >
                 ✕
@@ -582,36 +582,36 @@ export const ClientPortalPage: React.FC = () => {
             <form onSubmit={handleCreateSupportTicket} className="space-y-3 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-zinc-600 mb-1">اسم العميل بالكامل *</label>
+                  <label className="block font-bold text-[#707070] mb-1">اسم العميل بالكامل *</label>
                   <input
                     type="text"
                     required
                     placeholder="اسم صاحب العقد"
                     value={supportForm.clientName}
                     onChange={e => setSupportForm({ ...supportForm, clientName: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 text-slate-900"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-[#141414]"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-zinc-600 mb-1">رقم الجوال للتواصل *</label>
+                  <label className="block font-bold text-[#707070] mb-1">رقم الجوال للتواصل *</label>
                   <input
                     type="text"
                     required
                     placeholder="05XXXXXXXX"
                     value={supportForm.clientPhone}
                     onChange={e => setSupportForm({ ...supportForm, clientPhone: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 text-slate-900 font-mono"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-[#141414] font-mono"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-zinc-600 mb-1">رقم العقد المرتبط</label>
+                  <label className="block font-bold text-[#707070] mb-1">رقم العقد المرتبط</label>
                   <select
                     value={supportForm.contractNumber}
                     onChange={e => setSupportForm({ ...supportForm, contractNumber: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 text-slate-900 font-mono"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-[#141414] font-mono"
                   >
                     {contractsList.map(c => (
                       <option key={c.id} value={c.contractNumber}>
@@ -621,11 +621,11 @@ export const ClientPortalPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-bold text-zinc-600 mb-1">نوع الطلب / البلاغ *</label>
+                  <label className="block font-bold text-[#707070] mb-1">نوع الطلب / البلاغ *</label>
                   <select
                     value={supportForm.type}
                     onChange={e => setSupportForm({ ...supportForm, type: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 text-slate-900"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-[#141414]"
                   >
                     <option value="تأخير في إجراءات الاستقدام">تأخير في إجراءات الاستقدام</option>
                     <option value="طلب استبدال خلال فترة الضمان">طلب استبدال خلال فترة الضمان</option>
@@ -638,18 +638,18 @@ export const ClientPortalPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-bold text-zinc-600 mb-1">تفاصيل البلاغ أو الملاحظات *</label>
+                <label className="block font-bold text-[#707070] mb-1">تفاصيل البلاغ أو الملاحظات *</label>
                 <textarea
                   required
                   rows={3}
                   placeholder="يرجى توضيح تفاصيل طلبك أو الشكوى بالتفصيل لسرعة اتخاذ الإجراء..."
                   value={supportForm.description}
                   onChange={e => setSupportForm({ ...supportForm, description: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 text-slate-900 resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-[#141414] resize-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-zinc-100">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowSupportModal(false)}
@@ -674,18 +674,18 @@ export const ClientPortalPage: React.FC = () => {
       {/* Pay Contract Balance Modal */}
       {showPayModal && payingContract && (
         <div role="dialog" aria-modal="true" onClick={() => { setShowPayModal(false); setPayingContract(null); }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white rounded-[24px] p-6 max-w-md w-full border border-zinc-200 space-y-4 text-right dir-rtl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white rounded-[24px] p-6 max-w-md w-full border border-[#e0e0e0] space-y-4 text-right dir-rtl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#e0e0e0]">
               <div className="flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-[#141414]" />
-                <h3 className="font-bold text-slate-900 text-base">
+                <h3 className="font-bold text-[#141414] text-base">
                   سداد الدفعة المتبقية للعقد
                 </h3>
               </div>
               <button 
                 type="button" 
                 onClick={() => { setShowPayModal(false); setPayingContract(null); }} 
-                className="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-600 flex items-center justify-center cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070] flex items-center justify-center cursor-pointer"
                 aria-label="إغلاق"
               >
                 ✕
@@ -695,24 +695,24 @@ export const ClientPortalPage: React.FC = () => {
             <form onSubmit={handleProcessPayment} className="space-y-3.5 text-xs">
               <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-zinc-600">رقم العقد:</span>
-                  <span className="font-mono font-bold text-slate-900">{payingContract.contractNumber}</span>
+                  <span className="text-[#707070]">رقم العقد:</span>
+                  <span className="font-mono font-bold text-[#141414]">{payingContract.contractNumber}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-600">العاملة:</span>
-                  <span className="font-bold text-slate-900">{payingContract.workerName}</span>
+                  <span className="text-[#707070]">العاملة:</span>
+                  <span className="font-bold text-[#141414]">{payingContract.workerName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-600">إجمالي قيمة العقد:</span>
-                  <span className="font-mono font-bold text-slate-900">{payingContract.amount.toLocaleString()} ⃁</span>
+                  <span className="text-[#707070]">إجمالي قيمة العقد:</span>
+                  <span className="font-mono font-bold text-[#141414]">{payingContract.amount.toLocaleString()} ⃁</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-600">المسدد مسبقاً:</span>
-                  <span className="font-mono font-bold text-zinc-700">{payingContract.paidAmount.toLocaleString()} ⃁</span>
+                  <span className="text-[#707070]">المسدد مسبقاً:</span>
+                  <span className="font-mono font-bold text-[#141414]">{payingContract.paidAmount.toLocaleString()} ⃁</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-600">تاريخ بدء العقد وفترة الضمان:</span>
-                  <span className="font-mono font-bold text-slate-900">
+                  <span className="text-[#707070]">تاريخ بدء العقد وفترة الضمان:</span>
+                  <span className="font-mono font-bold text-[#141414]">
                     {payingContract.startDate} ({payingContract.guaranteeDaysLeft} يوم ضمان)
                   </span>
                 </div>
@@ -729,11 +729,11 @@ export const ClientPortalPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-bold text-zinc-600 mb-1">طريقة الدفع الإلكتروني *</label>
+                <label className="block font-bold text-[#707070] mb-1">طريقة الدفع الإلكتروني *</label>
                 <select
                   value={payMethod}
                   onChange={e => setPayMethod(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 text-slate-900"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-[#141414]"
                 >
                   <option value="بطاقة مدى البنكية (Mada)">بطاقة مدى البنكية (Mada)</option>
                   <option value="بطاقة ائتمانية (Visa / MasterCard)">بطاقة ائتمانية (Visa / MasterCard)</option>
@@ -742,17 +742,17 @@ export const ClientPortalPage: React.FC = () => {
                 </select>
               </div>
 
-              <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 space-y-1.5">
+              <div className="p-3 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0] space-y-1.5">
                 <div className="flex items-center gap-2 text-[#141414] font-bold">
                   <ShieldCheck className="w-4 h-4 text-[#141414]" />
                   <span className="text-[11px]">إفصاح نظام التجارة الإلكترونية السعودي (Art. 18 & Reg Art. 7)</span>
                 </div>
-                <p className="text-[10.5px] text-zinc-600 leading-relaxed m-0">
+                <p className="text-[10.5px] text-[#707070] leading-relaxed m-0">
                   يحق للعميل إلغاء العقد واسترداد المبالغ وفق لائحة منصة مساند ووزارة الموارد البشرية قبل إصدار التأشيرة أو خلال فترة الضمان النظامية (90 يوماً) عبر تقديم طلب في بوابة الدعم أعلاه. النقر على زر الدفع أدناه يُنشئ التزاماً نظامياً بالسداد.
                 </p>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">
+              <div className="flex justify-end gap-2 pt-2 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => { setShowPayModal(false); setPayingContract(null); }}

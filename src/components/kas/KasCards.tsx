@@ -38,64 +38,64 @@ export const KasKpiCard: React.FC<KasKpiCardProps> = ({
 }) => {
   const variantStyles = {
     emerald: {
-      cardBg: 'bg-gradient-to-b from-[#f3f3f3] via-[#f3f3f3]/[0.03] to-white   ',
+      cardBg: 'bg-[#f3f3f3]  /[0.03] to-white   ',
       border: 'border-[#e0e0e0] hover:border-[#141414]',
       topBeam: 'bg-[#141414]   ',
-      iconGradient: 'bg-[#141414]   text-white shadow-md ',
+      iconGradient: 'bg-[#141414]   text-white  ',
       glow: '',
       valueColor: 'text-[#141414] ',
       badgeBg: 'bg-[#f3f3f3] text-[#141414]   border-[#e0e0e0] ',
       bar: 'bg-[#141414]  ',
     },
     gold: {
-      cardBg: 'bg-gradient-to-b from-[#f3f3f3] via-[#f3f3f3]/[0.03] to-white   ',
+      cardBg: 'bg-[#f3f3f3]  /[0.03] to-white   ',
       border: 'border-[#e0e0e0] hover:border-[#141414]',
       topBeam: 'bg-[#141414]   ',
-      iconGradient: 'bg-[#141414]   text-white shadow-md ',
+      iconGradient: 'bg-[#141414]   text-white  ',
       glow: '',
       valueColor: 'text-[#141414] ',
       badgeBg: 'bg-[#f3f3f3] text-[#141414]   border-[#e0e0e0] ',
       bar: 'bg-[#141414]  ',
     },
     sky: {
-      cardBg: 'bg-gradient-to-b from-[#f3f3f3] via-[#f3f3f3]/[0.03] to-white   ',
+      cardBg: 'bg-[#f3f3f3]  /[0.03] to-white   ',
       border: 'border-[#e0e0e0] hover:border-[#141414]',
       topBeam: 'bg-[#141414]   ',
-      iconGradient: 'bg-[#141414]   text-white shadow-md ',
+      iconGradient: 'bg-[#141414]   text-white  ',
       glow: '',
       valueColor: 'text-[#141414] ',
       badgeBg: 'bg-[#f3f3f3] text-[#141414]   border-[#e0e0e0] ',
       bar: 'bg-[#141414]  ',
     },
     purple: {
-      cardBg: 'bg-gradient-to-b from-[#f3f3f3] via-[#f3f3f3]/[0.03] to-white   ',
+      cardBg: 'bg-[#f3f3f3]  /[0.03] to-white   ',
       border: 'border-[#e0e0e0] hover:border-[#141414]',
       topBeam: 'bg-[#141414]   ',
-      iconGradient: 'bg-[#141414]   text-white shadow-md ',
+      iconGradient: 'bg-[#141414]   text-white  ',
       glow: '',
       valueColor: 'text-[#141414] ',
       badgeBg: 'bg-[#f3f3f3] text-[#141414]   border-[#e0e0e0] ',
       bar: 'bg-[#141414]  ',
     },
     rose: {
-      cardBg: 'bg-gradient-to-b from-[#f3f3f3] via-[#f3f3f3]/[0.03] to-white   ',
+      cardBg: 'bg-[#f3f3f3]  /[0.03] to-white   ',
       border: 'border-[#e0e0e0] hover:border-[#141414]',
       topBeam: 'bg-[#141414]   ',
-      iconGradient: 'bg-[#141414]   text-white shadow-md ',
+      iconGradient: 'bg-[#141414]   text-white  ',
       glow: '',
       valueColor: 'text-[#141414] ',
       badgeBg: 'bg-[#f3f3f3] text-[#141414]   border-[#e0e0e0] ',
       bar: 'bg-[#141414]  ',
     },
     slate: {
-      cardBg: 'bg-gradient-to-b from-slate-500/10 via-slate-500/[0.03] to-white   ',
-      border: 'border-zinc-300  hover:border-zinc-500',
-      topBeam: 'bg-gradient-to-r from-slate-600 via-zinc-400 to-slate-700',
-      iconGradient: 'bg-gradient-to-br from-slate-700 to-[#f3f3f3] text-white shadow-md shadow-slate-700/30',
+      cardBg: 'bg-[#f3f3f3]  /[0.03] to-white   ',
+      border: 'border-[#e0e0e0]  hover:border-[#adadad]',
+      topBeam: 'bg-[#f3f3f3]   ',
+      iconGradient: 'bg-[#f3f3f3]   text-white  shadow-slate-700/30',
       glow: 'hover:shadow-slate-500/15',
-      valueColor: 'text-zinc-800 ',
-      badgeBg: 'bg-zinc-100 text-zinc-800   border-zinc-300 ',
-      bar: 'bg-gradient-to-r from-slate-600 to-slate-400',
+      valueColor: 'text-[#141414] ',
+      badgeBg: 'bg-[#f3f3f3] text-[#141414]   border-[#e0e0e0] ',
+      bar: 'bg-[#f3f3f3]  ',
     },
   };
 
@@ -104,7 +104,7 @@ export const KasKpiCard: React.FC<KasKpiCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`group relative overflow-hidden rounded-3xl ${style.cardBg} border ${style.border} p-4 sm:p-5 shadow-sm hover:shadow-xl ${style.glow} transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col justify-between ${
+      className={`group relative overflow-hidden rounded-3xl ${style.cardBg} border ${style.border} p-4 sm:p-5   ${style.glow} transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col justify-between ${
         onClick ? 'cursor-pointer' : ''
       }`}
     >
@@ -119,7 +119,7 @@ export const KasKpiCard: React.FC<KasKpiCardProps> = ({
               <Icon className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <span className="text-xs sm:text-sm font-bold text-zinc-800 block truncate leading-tight">
+              <span className="text-xs sm:text-sm font-bold text-[#141414] block truncate leading-tight">
                 {title}
               </span>
               {subtitle && (
@@ -156,7 +156,7 @@ export const KasKpiCard: React.FC<KasKpiCardProps> = ({
               <span>نسبة الإنجاز</span>
               <span className="font-mono">{progressPct}%</span>
             </div>
-            <div className="w-full h-2 bg-zinc-200/60 rounded-full overflow-hidden p-0.5">
+            <div className="w-full h-2 bg-[#e0e0e0] rounded-full overflow-hidden p-0.5">
               <div className={`h-full rounded-full ${style.bar}`} style={{ width: `${Math.min(progressPct, 100)}%` }} />
             </div>
           </div>
@@ -204,7 +204,7 @@ export const KasTenderCard: React.FC<KasTenderCardProps> = ({
   const isAwarded = tender.status.includes('ترسية') || tender.status.includes('فائز') || tender.status.includes('معتمد');
 
   return (
-    <div className="group relative bg-white border border-zinc-200 rounded-3xl p-6 shadow-sm hover:shadow-xl hover:border-[#141414] transition-all duration-300 flex flex-col justify-between space-y-5 overflow-hidden">
+    <div className="group relative bg-white border border-[#e0e0e0] rounded-3xl p-6   hover:border-[#141414] transition-all duration-300 flex flex-col justify-between space-y-5 overflow-hidden">
       {/* Top Accent Strip */}
       <div className={`absolute top-0 right-0 left-0 h-1.5 ${
         isAwarded 
@@ -224,7 +224,7 @@ export const KasTenderCard: React.FC<KasTenderCardProps> = ({
           </span>
         </div>
 
-        <h3 className="text-base font-bold text-slate-900 line-clamp-2 leading-snug group-hover:text-[#141414] transition-colors pt-1">
+        <h3 className="text-base font-bold text-[#141414] line-clamp-2 leading-snug group-hover:text-[#141414] transition-colors pt-1">
           {tender.title}
         </h3>
 
@@ -235,15 +235,15 @@ export const KasTenderCard: React.FC<KasTenderCardProps> = ({
       </div>
 
       {/* Financial & Items Overview Box */}
-      <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100 space-y-2 text-xs">
+      <div className="bg-[#f3f3f3] p-4 rounded-2xl border border-[#e0e0e0] space-y-2 text-xs">
         <div className="flex items-baseline justify-between">
           <span className="text-[#707070]">القيمة شاملة الضريبة:</span>
           <span className="text-lg font-bold font-mono text-[#141414]">
             {tender.grandTotal.toLocaleString()} <span className="text-xs font-sans">⃁</span>
           </span>
         </div>
-        <div className="flex items-center justify-between text-[11px] text-[#707070] pt-1 border-t border-zinc-200/60">
-          <span>بنود الكراسة: <strong className="text-zinc-700 font-mono">{tender.itemsCount}</strong> بند</span>
+        <div className="flex items-center justify-between text-[11px] text-[#707070] pt-1 border-t border-[#e0e0e0]">
+          <span>بنود الكراسة: <strong className="text-[#141414] font-mono">{tender.itemsCount}</strong> بند</span>
           {tender.submissionDate && (
             <span className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
@@ -267,7 +267,7 @@ export const KasTenderCard: React.FC<KasTenderCardProps> = ({
         {onPrint && (
           <button
             onClick={onPrint}
-            className="w-9 h-9 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-700 flex items-center justify-center transition"
+            className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] flex items-center justify-center transition"
             title="طباعة العرض الرسمي"
           >
             <Printer className="w-4 h-4" />
@@ -277,7 +277,7 @@ export const KasTenderCard: React.FC<KasTenderCardProps> = ({
         {onEdit && (
           <button
             onClick={onEdit}
-            className="w-9 h-9 rounded-full bg-zinc-100 hover:bg-[#eaeaea] hover:text-[#141414] text-zinc-700 flex items-center justify-center transition"
+            className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#f3f3f3] hover:text-[#141414] text-[#141414] flex items-center justify-center transition"
             title="تعديل المنافسة"
           >
             <Edit3 className="w-4 h-4" />
@@ -287,7 +287,7 @@ export const KasTenderCard: React.FC<KasTenderCardProps> = ({
         {onDuplicate && (
           <button
             onClick={onDuplicate}
-            className="w-9 h-9 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-700 flex items-center justify-center transition"
+            className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] flex items-center justify-center transition"
             title="نسخ المنافسة"
           >
             <Copy className="w-4 h-4" />
@@ -297,7 +297,7 @@ export const KasTenderCard: React.FC<KasTenderCardProps> = ({
         {onDelete && (
           <button
             onClick={onDelete}
-            className="w-9 h-9 rounded-full bg-zinc-100 hover:bg-[#eaeaea] hover:text-[#141414] text-zinc-700 flex items-center justify-center transition"
+            className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#f3f3f3] hover:text-[#141414] text-[#141414] flex items-center justify-center transition"
             title="حذف المنافسة"
           >
             <Trash2 className="w-4 h-4" />
@@ -339,14 +339,14 @@ export const KasSupplierCard: React.FC<KasSupplierCardProps> = ({
   onEdit,
 }) => {
   return (
-    <div className="group bg-white border border-zinc-200 rounded-3xl p-6 shadow-sm hover:shadow-xl hover:border-[#141414] transition-all duration-300 space-y-4">
+    <div className="group bg-white border border-[#e0e0e0] rounded-3xl p-6   hover:border-[#141414] transition-all duration-300 space-y-4">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
           <span className="pill-tag-mint text-[10px] font-bold">
             {supplier.category}
           </span>
-          <h2 className="text-base font-bold text-slate-900 mt-1.5 group-hover:text-[#141414] transition-colors">
+          <h2 className="text-base font-bold text-[#141414] mt-1.5 group-hover:text-[#141414] transition-colors">
             {supplier.name}
           </h2>
           <div className="flex items-center gap-2 text-xs text-[#707070] mt-0.5">
@@ -364,33 +364,33 @@ export const KasSupplierCard: React.FC<KasSupplierCardProps> = ({
       </div>
 
       {/* Triple Score Metric Bars */}
-      <div className="bg-zinc-50 p-3.5 rounded-2xl space-y-2 text-xs">
+      <div className="bg-[#f3f3f3] p-3.5 rounded-2xl space-y-2 text-xs">
         <div>
           <div className="flex justify-between text-[11px] font-semibold mb-1">
-            <span className="text-zinc-600">جودة المواد والتوريد</span>
+            <span className="text-[#707070]">جودة المواد والتوريد</span>
             <span className="font-mono font-bold text-[#141414]">{supplier.qualityScore}%</span>
           </div>
-          <div className="w-full bg-zinc-200 h-1.5 rounded-full overflow-hidden">
+          <div className="w-full bg-[#e0e0e0] h-1.5 rounded-full overflow-hidden">
             <div className="bg-[#141414] h-full rounded-full" style={{ width: `${supplier.qualityScore}%` }} />
           </div>
         </div>
 
         <div>
           <div className="flex justify-between text-[11px] font-semibold mb-1">
-            <span className="text-zinc-600">الالتزام بمواعيد التسليم</span>
+            <span className="text-[#707070]">الالتزام بمواعيد التسليم</span>
             <span className="font-mono font-bold text-[#141414]">{supplier.commitmentScore}%</span>
           </div>
-          <div className="w-full bg-zinc-200 h-1.5 rounded-full overflow-hidden">
+          <div className="w-full bg-[#e0e0e0] h-1.5 rounded-full overflow-hidden">
             <div className="bg-[#141414] h-full rounded-full" style={{ width: `${supplier.commitmentScore}%` }} />
           </div>
         </div>
 
         <div>
           <div className="flex justify-between text-[11px] font-semibold mb-1">
-            <span className="text-zinc-600">التنافسية السعرية</span>
+            <span className="text-[#707070]">التنافسية السعرية</span>
             <span className="font-mono font-bold text-[#141414]">{supplier.priceCompetitiveness}%</span>
           </div>
-          <div className="w-full bg-zinc-200 h-1.5 rounded-full overflow-hidden">
+          <div className="w-full bg-[#e0e0e0] h-1.5 rounded-full overflow-hidden">
             <div className="bg-[#141414] h-full rounded-full" style={{ width: `${supplier.priceCompetitiveness}%` }} />
           </div>
         </div>
@@ -451,7 +451,7 @@ export const KasInvoiceCard: React.FC<KasInvoiceCardProps> = ({
   const grandTotal = invoice.total || (invoice.amount + invoice.taxAmount);
 
   return (
-    <div className="group relative bg-white border border-zinc-200 rounded-3xl p-6 shadow-sm hover:shadow-xl hover:border-[#141414] transition-all duration-300 space-y-4 overflow-hidden">
+    <div className="group relative bg-white border border-[#e0e0e0] rounded-3xl p-6   hover:border-[#141414] transition-all duration-300 space-y-4 overflow-hidden">
       {/* Top Accent line */}
       <div className={`absolute top-0 right-0 left-0 h-1.5 ${
         isPaid 
@@ -471,7 +471,7 @@ export const KasInvoiceCard: React.FC<KasInvoiceCardProps> = ({
       </div>
 
       <div>
-        <h4 className="text-base font-bold text-slate-900 leading-snug line-clamp-1 group-hover:text-[#141414] transition-colors">
+        <h4 className="text-base font-bold text-[#141414] leading-snug line-clamp-1 group-hover:text-[#141414] transition-colors">
           {invoice.clientName}
         </h4>
         {invoice.project && (
@@ -482,15 +482,15 @@ export const KasInvoiceCard: React.FC<KasInvoiceCardProps> = ({
       </div>
 
       {/* Financial Details */}
-      <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100 space-y-2 text-xs">
+      <div className="bg-[#f3f3f3] p-4 rounded-2xl border border-[#e0e0e0] space-y-2 text-xs">
         <div className="flex items-baseline justify-between">
           <span className="text-[#707070]">الإجمالي شامل الضريبة:</span>
           <span className="text-lg font-bold font-mono text-[#141414]">
             {grandTotal.toLocaleString()} <span className="text-xs font-sans">⃁</span>
           </span>
         </div>
-        <div className="flex items-center justify-between text-[11px] text-[#707070] pt-1 border-t border-zinc-200/60">
-          <span>الضريبة (15%): <strong className="text-zinc-600 font-mono">{invoice.taxAmount.toLocaleString()} ⃁</strong></span>
+        <div className="flex items-center justify-between text-[11px] text-[#707070] pt-1 border-t border-[#e0e0e0]">
+          <span>الضريبة (15%): <strong className="text-[#707070] font-mono">{invoice.taxAmount.toLocaleString()} ⃁</strong></span>
           <span className="flex items-center gap-1 font-mono">
             <Clock className="w-3 h-3 text-[#707070]" />
             استحقاق: {invoice.dueDate}
@@ -523,7 +523,7 @@ export const KasInvoiceCard: React.FC<KasInvoiceCardProps> = ({
         {onDelete && (
           <button
             onClick={onDelete}
-            className="w-9 h-9 rounded-full bg-zinc-100 hover:bg-[#eaeaea] hover:text-[#141414] text-zinc-600 flex items-center justify-center transition"
+            className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#f3f3f3] hover:text-[#141414] text-[#707070] flex items-center justify-center transition"
             title="حذف الفاتورة"
           >
             <Trash2 className="w-4 h-4" />

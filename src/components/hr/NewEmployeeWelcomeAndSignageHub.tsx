@@ -60,7 +60,7 @@ import {
   calculateFamilyAirTicketEntitlement,
   calculateRetroactivePayAdjustment,
   evaluatePayrollCutoffWindow,
-} from '../../services/jisrAdvancedComplianceEngine';
+} from '../../services/hrAdvancedComplianceEngine';
 import { CorporateDigitalSignagePlayer } from './CorporateDigitalSignagePlayer';
 
 export interface WelcomeHubEmployeeItem {
@@ -160,7 +160,7 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
   const [selectedEmpId, setSelectedEmpId] = useState<string>(
     initialEmployeeId || employees[0]?.id || ''
   );
-  const [buddyName, setBuddyName] = useState<string>('فهد العتيبي (مرشد الاندماج الوظيفي)');
+  const [buddyName, setBuddyName] = useState<string>('ريم احمد بن حسين (مرشد الاندماج الوظيفي - HR)');
   const [starterDevice, setStarterDevice] = useState<string>(
     'حاسب محمول للأعمال Lenovo ThinkPad X1 + شريحة اتصال رسمية'
   );
@@ -352,7 +352,7 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
     return generateRealQrSvg(welcomeEmailQrPayload, {
       sizePx: 108,
       darkColor: '#141414',
-      lightColor: '#FFFFFF',
+      lightColor: '#ffffff',
       borderStyle: false,
     });
   }, [welcomeEmailQrPayload]);
@@ -363,7 +363,7 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
       widthPx: 206,
       heightPx: 44,
       darkColor: '#141414',
-      lightColor: '#FFFFFF',
+      lightColor: '#ffffff',
       showText: true,
     });
   }, [dailyEmployeeBarcode]);
@@ -1297,7 +1297,7 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
                       بث حي متزامن
                     </span>
                   </div>
-                  <p className="text-[11px] text-[#a3a3a3] m-0 leading-relaxed">
+                  <p className="text-[11px] text-[#adadad] m-0 leading-relaxed">
                     افتح رابط الشاشة الذكية على أي شاشة تلفاز متصلة بالإنترنت في الشركة أو الفروع
                     لعرض الترحيب تلقائياً بدون الحاجة لتسجيل دخول يدوي.
                   </p>
@@ -1316,7 +1316,7 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
                         const url = buildScreenWebPlayerUrl('ALL', companyCode);
                         window.open(url, '_blank', 'noopener,noreferrer');
                       }}
-                      className="px-3 py-1.5 rounded-full bg-[#262626] text-[#ffffff] border border-[#404040] text-[11px] font-bold inline-flex items-center gap-1.5 cursor-pointer"
+                      className="px-3 py-1.5 rounded-full bg-[#262626] text-[#ffffff] border border-[#262626] text-[11px] font-bold inline-flex items-center gap-1.5 cursor-pointer"
                     >
                       <ExternalLink className="w-3 h-3" />
                       <span>فتح شاشة الإنترنت في نافذة مستقلة</span>
@@ -1329,7 +1329,7 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
                           'رابط شاشة العرض المتصلة بالإنترنت'
                         )
                       }
-                      className="px-3 py-1.5 rounded-full bg-[#262626] text-[#ffffff] border border-[#404040] text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                      className="px-3 py-1.5 rounded-full bg-[#262626] text-[#ffffff] border border-[#262626] text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
                     >
                       <Copy className="w-3 h-3" />
                       <span>نسخ رابط الشاشة</span>
@@ -1424,7 +1424,7 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
                   <div className="text-xs font-bold leading-snug">{step.titleAr}</div>
                   <div
                     className={`text-[11px] font-mono truncate ${
-                      step.completed ? 'text-[#a3a3a3]' : 'text-[#707070]'
+                      step.completed ? 'text-[#adadad]' : 'text-[#707070]'
                     }`}
                   >
                     {step.referenceCode}

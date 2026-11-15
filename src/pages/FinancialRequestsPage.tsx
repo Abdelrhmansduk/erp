@@ -558,7 +558,7 @@ export const FinancialRequestsPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
           display: 'flex',
           flexDirection: 'row',
@@ -582,7 +582,7 @@ export const FinancialRequestsPage: React.FC = () => {
             <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, letterSpacing: '-0.02em', color: '#ffffff', margin: 0, fontFamily: 'var(--font-family-display)' }}>
               إدارة الطلبات المالية والتشغيلية
             </h1>
-            <p style={{ fontSize: '13px', color: '#a1a1aa', margin: '4px 0 0 0', fontWeight: 420 }}>
+            <p style={{ fontSize: '13px', color: '#adadad', margin: '4px 0 0 0', fontWeight: 420 }}>
               إصدار طلبات سداد الرسوم الحكومية، الجوازات، تذاكر الطيران، وتسويات المكاتب الخارجية لـ{' '}
               <strong style={{ color: '#ffffff' }}>{activeCompany.name}</strong>
             </p>
@@ -619,7 +619,7 @@ export const FinancialRequestsPage: React.FC = () => {
       </div>
 
       {/* Sub Tabs Navigation */}
-      <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-[#e0e0e0] pb-3">
         {[
           { id: 'all', label: `جميع الطلبات المالية (${requests.length})` },
           { id: 'hr-outputs', label: `مخرجات الموارد البشرية والرواتب (${hrOutputs.length})` },
@@ -637,9 +637,9 @@ export const FinancialRequestsPage: React.FC = () => {
                 padding: '6px 16px',
                 borderRadius: '9999px',
                 border: '1px solid',
-                borderColor: isActive ? '#141414' : '#e4e4e7',
+                borderColor: isActive ? '#141414' : '#e0e0e0',
                 backgroundColor: isActive ? '#141414' : '#ffffff',
-                color: isActive ? '#ffffff' : '#27272a',
+                color: isActive ? '#ffffff' : '#262626',
                 fontWeight: isActive ? 550 : 420,
                 fontSize: '12.5px',
                 cursor: 'pointer',
@@ -680,7 +680,7 @@ export const FinancialRequestsPage: React.FC = () => {
                   className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
                     hrCategoryFilter === cat.id
                       ? 'bg-[#141414] text-white border-[#141414]'
-                      : 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0] hover:bg-[#e8e8e8]'
+                      : 'bg-[#f3f3f3] text-[#141414] border-[#e0e0e0] hover:bg-[#e0e0e0]'
                   }`}
                 >
                   {cat.label}
@@ -763,7 +763,7 @@ export const FinancialRequestsPage: React.FC = () => {
 
       {/* Requests Table */}
       <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-        <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-white flex-wrap gap-3">
+        <div className="flex items-center justify-between p-4 border-b border-[#e0e0e0] bg-white flex-wrap gap-3">
           <div className="relative w-full md:w-80">
             <Search className="w-4 h-4 absolute right-3 top-3 text-[#707070]" />
             <input
@@ -782,8 +782,8 @@ export const FinancialRequestsPage: React.FC = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-right text-xs text-zinc-700">
-            <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+          <table className="w-full text-right text-xs text-[#141414]">
+            <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
               <tr>
                 <th className="p-3.5">رقم الطلب</th>
                 <th className="p-3.5">المدفوع له</th>
@@ -797,18 +797,18 @@ export const FinancialRequestsPage: React.FC = () => {
                 <th className="p-3.5 text-center">الإجراءات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-[#e0e0e0]">
               {currentDisplayList.map((r) => (
-                <tr key={r.id} className="hover:bg-zinc-50">
+                <tr key={r.id} className="hover:bg-[#f3f3f3]">
                   <td className="p-3.5 font-mono font-bold text-[#141414]">{r.request_number}</td>
                   <td className="p-3.5">
                     <div className="font-bold text-[#141414]">{r.paid_to}</div>
                     <div className="text-[11px] text-[#707070]">{r.accounting_name}</div>
                   </td>
                   <td className="p-3.5"><Badge text={r.request_type} type="purple" /></td>
-                  <td className="p-3.5 text-zinc-600">{r.branch}</td>
+                  <td className="p-3.5 text-[#141414]">{r.branch}</td>
                   <td className="p-3.5 font-mono font-bold text-[#141414]">{r.amount.toLocaleString()} ⃁</td>
-                  <td className="p-3.5 text-zinc-600">{r.payment_method}</td>
+                  <td className="p-3.5 text-[#141414]">{r.payment_method}</td>
                   <td className="p-3.5"><Badge text={r.escalation} type={r.escalation === 'شديد الأهمية' ? 'danger' : 'warning'} /></td>
                   <td className="p-3.5"><Badge text={r.status} type={r.status === 'تم السداد' ? 'success' : 'warning'} /></td>
                   <td className="p-3.5 font-semibold text-[#141414]">
@@ -837,7 +837,7 @@ export const FinancialRequestsPage: React.FC = () => {
                       )}
                       <button
                         onClick={() => handleDeleteRequest(r)}
-                        className="p-1 rounded-full hover:bg-[#eaeaea] text-[#707070] hover:text-[#141414] transition-colors"
+                        className="p-1 rounded-full hover:bg-[#e0e0e0] text-[#707070] hover:text-[#141414] transition-colors"
                         title="حذف الطلب"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -854,13 +854,13 @@ export const FinancialRequestsPage: React.FC = () => {
       {/* Add Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
-          <div className="w-full max-w-2xl bg-white rounded-[24px] border border-zinc-200 overflow-hidden font-sans max-h-[90vh] flex flex-col">
+          <div className="w-full max-w-2xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[90vh] flex flex-col">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between shrink-0">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <FileText className="w-4 h-4 text-[#141414]" />
                 <span>إنشاء طلب مالي جديد</span>
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors">
+              <button onClick={() => setShowAddModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#141414] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -868,12 +868,12 @@ export const FinancialRequestsPage: React.FC = () => {
             <form onSubmit={handleCreateRequest} className="p-6 space-y-4 overflow-y-auto flex-1 bg-white text-[#141414]">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">المدفوع له *</label>
-                  <input type="text" required value={paidTo} onChange={(e) => setPaidTo(e.target.value)} placeholder="جهة الصرف أو المستفيد" className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" />
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">المدفوع له *</label>
+                  <input type="text" required value={paidTo} onChange={(e) => setPaidTo(e.target.value)} placeholder="جهة الصرف أو المستفيد" className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">الفرع *</label>
-                  <select value={branch} onChange={(e) => setBranch(e.target.value)} className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none">
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">الفرع *</label>
+                  <select value={branch} onChange={(e) => setBranch(e.target.value)} className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none">
                     <option>الفرع الرئيسي - الرياض</option>
                     <option>فرع جدة</option>
                     <option>فرع الدمام</option>
@@ -882,8 +882,8 @@ export const FinancialRequestsPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">نوع الطلب *</label>
-                  <select value={requestType} onChange={(e) => setRequestType(e.target.value as any)} className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none">
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">نوع الطلب *</label>
+                  <select value={requestType} onChange={(e) => setRequestType(e.target.value as any)} className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none">
                     <option value="سداد مساند">سداد مساند</option>
                     <option value="رسوم إقامة">رسوم إقامة</option>
                     <option value="فحص طبي">فحص طبي</option>
@@ -896,12 +896,12 @@ export const FinancialRequestsPage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">المبلغ المطلوب (⃁) *</label>
-                  <input type="number" required value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none" />
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">المبلغ المطلوب (⃁) *</label>
+                  <input type="number" required value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">طريقة الدفع *</label>
-                  <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as any)} className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none">
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">طريقة الدفع *</label>
+                  <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as any)} className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none">
                     <option value="تحويل بنكي">تحويل بنكي</option>
                     <option value="نقداً من الصندوق">نقداً من الصندوق</option>
                     <option value="بطاقة مدى">بطاقة مدى</option>
@@ -909,8 +909,8 @@ export const FinancialRequestsPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">الأولوية / التصعيد *</label>
-                  <select value={escalation} onChange={(e) => setEscalation(e.target.value as any)} className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none">
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">الأولوية / التصعيد *</label>
+                  <select value={escalation} onChange={(e) => setEscalation(e.target.value as any)} className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none">
                     <option value="عادي">عادي</option>
                     <option value="هام">هام</option>
                     <option value="شديد الأهمية">شديد الأهمية VIP</option>
@@ -919,29 +919,29 @@ export const FinancialRequestsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">وصف الدفع والغرض منه *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">وصف الدفع والغرض منه *</label>
                 <textarea
                   required
                   rows={2}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="سبب الصرف وتفاصيل المعاملة..."
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم البنك المستفيد</label>
-                  <input type="text" value={bankName} onChange={(e) => setBankName(e.target.value)} className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" />
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">اسم البنك المستفيد</label>
+                  <input type="text" value={bankName} onChange={(e) => setBankName(e.target.value)} className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">رقم الآيبان (IBAN)</label>
-                  <input type="text" value={iban} onChange={(e) => setIban(e.target.value)} placeholder="SA..." className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" />
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رقم الآيبان (IBAN)</label>
+                  <input type="text" value={iban} onChange={(e) => setIban(e.target.value)} placeholder="SA..." className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" />
                 </div>
               </div>
 
-              <div className="flex gap-3 justify-end pt-3 border-t border-zinc-100">
+              <div className="flex gap-3 justify-end pt-3 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}

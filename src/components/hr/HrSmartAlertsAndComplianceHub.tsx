@@ -56,11 +56,11 @@ import {
   computeNitaqatSnapshot,
   evaluateQiwaVisaEligibility,
   type QiwaVisaRequestType,
-} from '../../services/jisrAdvancedComplianceEngine';
+} from '../../services/hrAdvancedComplianceEngine';
 import { ExportDropdown } from '../common/ExportDropdown';
 import { maskIban } from '../../utils/pdplMasking';
 
-export interface JisrComplianceEmployeeLite {
+export interface HrComplianceEmployeeLite {
   id: string;
   name: string;
   email?: string;
@@ -150,9 +150,9 @@ interface QiwaMuqeemVisaOrderRow {
   created_at: string;
 }
 
-interface JisrSmartAlertsAndComplianceHubProps {
+interface HrSmartAlertsAndComplianceHubProps {
   companyId: string;
-  employees: JisrComplianceEmployeeLite[];
+  employees: HrComplianceEmployeeLite[];
   onNavigateTab?: (tabKey: string) => void;
   onRecordsChanged?: () => void;
 }
@@ -164,7 +164,7 @@ function resolveGovCompany(companyId: string): GovCompanyCode {
     : 'SAF';
 }
 
-function isEmployeeSaudi(emp: Pick<JisrComplianceEmployeeLite, 'nationality' | 'national_id'>): boolean {
+function isEmployeeSaudi(emp: Pick<HrComplianceEmployeeLite, 'nationality' | 'national_id'>): boolean {
   if (
     emp.nationality === 'سعودي' ||
     emp.nationality === 'السعودية' ||
@@ -178,7 +178,7 @@ function isEmployeeSaudi(emp: Pick<JisrComplianceEmployeeLite, 'nationality' | '
   return false;
 }
 
-export const JisrSmartAlertsAndComplianceHub: React.FC<JisrSmartAlertsAndComplianceHubProps> = ({
+export const HrSmartAlertsAndComplianceHub: React.FC<HrSmartAlertsAndComplianceHubProps> = ({
   companyId,
   employees,
   onNavigateTab,
@@ -203,7 +203,7 @@ export const JisrSmartAlertsAndComplianceHub: React.FC<JisrSmartAlertsAndComplia
   const [lastVoiceSummary, setLastVoiceSummary] = useState('');
 
   // Merge prop employees with persisted real updates from `employees` table
-  const effectiveEmployees = useMemo<JisrComplianceEmployeeLite[]>(() => {
+  const effectiveEmployees = useMemo<HrComplianceEmployeeLite[]>(() => {
     return employees.map((emp) => {
       const saved = persistedEmployeesMap[String(emp.id)];
       if (!saved) return emp;
@@ -1080,7 +1080,7 @@ export const JisrSmartAlertsAndComplianceHub: React.FC<JisrSmartAlertsAndComplia
     [nitaqatEmployeeInputs, visaReqType, visaRequestedCount]
   );
 
-  const handleOpenEditEmpWeight = (emp: JisrComplianceEmployeeLite) => {
+  const handleOpenEditEmpWeight = (emp: HrComplianceEmployeeLite) => {
     setEditingNitaqatEmpId(emp.id);
     setEditBasicSalary(Number(emp.basicSalary || 0));
     setEditHousingAllowance(Number(emp.housingAllowance || 0));
@@ -1093,7 +1093,7 @@ export const JisrSmartAlertsAndComplianceHub: React.FC<JisrSmartAlertsAndComplia
     }
   };
 
-  const handleSaveEmpNitaqatRecord = async (emp: JisrComplianceEmployeeLite) => {
+  const handleSaveEmpNitaqatRecord = async (emp: HrComplianceEmployeeLite) => {
     if (savingEmpWeight) return;
     setSavingEmpWeight(true);
     try {
@@ -2471,4 +2471,4 @@ export const JisrSmartAlertsAndComplianceHub: React.FC<JisrSmartAlertsAndComplia
   );
 };
 
-export default JisrSmartAlertsAndComplianceHub;
+export default HrSmartAlertsAndComplianceHub;

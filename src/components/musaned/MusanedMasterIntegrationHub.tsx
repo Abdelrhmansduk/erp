@@ -93,7 +93,7 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
         }}
       >
@@ -178,7 +178,7 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
         </div>
 
         <div className="card-pricing-featured" style={{ padding: '20px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
-          <span style={{ fontSize: '12.5px', fontWeight: 550, color: '#a1a1aa' }}>العقود المتزامنة والمطابقة</span>
+          <span style={{ fontSize: '12.5px', fontWeight: 550, color: '#adadad' }}>العقود المتزامنة والمطابقة</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#ffffff', marginTop: '4px' }}>
             115 عقد
           </div>
@@ -188,7 +188,7 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
         </div>
 
         <div className="card-pricing" style={{ padding: '20px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '12.5px', fontWeight: 550, color: '#71717a' }}>التسويات المالية اليومية</span>
+          <span style={{ fontSize: '12.5px', fontWeight: 550, color: '#707070' }}>التسويات المالية اليومية</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '4px' }}>
             284,500 ⃁
           </div>
@@ -198,7 +198,7 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
         </div>
 
         <div className="card-pricing" style={{ padding: '20px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '12.5px', fontWeight: 550, color: '#71717a' }}>جاهزية الاعتماد الرسمي (Sandbox)</span>
+          <span style={{ fontSize: '12.5px', fontWeight: 550, color: '#707070' }}>جاهزية الاعتماد الرسمي (Sandbox)</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '4px' }}>
             94%
           </div>
@@ -209,7 +209,7 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
       </div>
 
       {/* Main Navigation Sub-Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-[#e0e0e0] pb-3">
         {[
           { id: 'overview', label: 'لوحة العمليات وحالة البوابة' },
           { id: 'multi_company', label: 'معمارية الشركات الأربع (4 Companies)' },
@@ -230,9 +230,9 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                 padding: '6px 16px',
                 borderRadius: '9999px',
                 border: '1px solid',
-                borderColor: isActive ? '#141414' : '#e4e4e7',
+                borderColor: isActive ? '#141414' : '#e0e0e0',
                 backgroundColor: isActive ? '#141414' : '#ffffff',
-                color: isActive ? '#ffffff' : '#27272a',
+                color: isActive ? '#ffffff' : '#141414',
                 fontWeight: isActive ? 550 : 420,
                 fontSize: '12.5px',
                 cursor: 'pointer',
@@ -249,7 +249,7 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
       {activeTab === 'overview' && (
         <div className="space-y-6">
           <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-4">
+            <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-4 mb-4">
               <div>
                 <h3 className="text-base font-bold text-[#141414] flex items-center gap-2 m-0">
                   <Server className="w-4 h-4 text-[#141414]" />
@@ -263,32 +263,32 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200">
+              <div className="p-4 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0]">
                 <div className="flex items-center gap-2 text-[#141414] font-bold text-xs mb-2">
                   <span className="w-2 h-2 rounded-full bg-[#141414]" />
                   <span>1. طبقة المواءمة (Musaned Adapter)</span>
                 </div>
-                <p className="text-[11.5px] text-zinc-600 leading-relaxed m-0">
+                <p className="text-[11.5px] text-[#707070] leading-relaxed m-0">
                   تشفير الطلبات عبر TLS 1.3، توقيع الرسائل الرقمية بـ HMAC-SHA256، ومنع تكرار العمليات بواسطة Idempotency Keys موحدة.
                 </p>
               </div>
 
-              <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200">
+              <div className="p-4 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0]">
                 <div className="flex items-center gap-2 text-[#141414] font-bold text-xs mb-2">
                   <span className="w-2 h-2 rounded-full bg-[#141414]" />
                   <span>2. طابور الرسائل (Queue & Retries)</span>
                 </div>
-                <p className="text-[11.5px] text-zinc-600 leading-relaxed m-0">
+                <p className="text-[11.5px] text-[#707070] leading-relaxed m-0">
                   فصل المعالجة غير المتزامنة مع Exponential Backoff وخوارزمية Jitter، وتحويل الإخفاقات غير المسترجعة إلى DLQ للتدقيق.
                 </p>
               </div>
 
-              <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200">
+              <div className="p-4 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0]">
                 <div className="flex items-center gap-2 text-[#141414] font-bold text-xs mb-2">
                   <span className="w-2 h-2 rounded-full bg-[#141414]" />
                   <span>3. عزل الشركات (Tenant Isolation)</span>
                 </div>
-                <p className="text-[11.5px] text-zinc-600 leading-relaxed m-0">
+                <p className="text-[11.5px] text-[#707070] leading-relaxed m-0">
                   فصل صارم لبيانات ووثائق شركات المجموعة (السفير الماسي، ياقوت نجد، توباز، دار الرواد) عبر Row-Level Security مشدد.
                 </p>
               </div>
@@ -297,14 +297,14 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
 
           {/* Dual Status Mapping Table */}
           <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-            <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between">
+            <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between">
               <h3 className="text-sm font-bold text-[#141414] m-0">مصفوفة تتبع الحالات الرسمية لمساند مقابل حالات ERP التشغيلية</h3>
               <span className="pill-tag-mint" style={{ fontSize: '11px' }}>14 مرحلة تشغيلية</span>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs text-zinc-700">
-                <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+              <table className="w-full text-right text-xs text-[#141414]">
+                <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                   <tr>
                     <th className="p-3.5">الرمز التقني</th>
                     <th className="p-3.5">الحالة الرسمية في مساند</th>
@@ -313,7 +313,7 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                     <th className="p-3.5">الالتزام بالـ SLA</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-[#e0e0e0]">
                   {[
                     { code: 'DRAFT_READY', official: 'غير مسجل بمساند بعد', erp: 'جاهز للإرسال (تدقيق داخلي مكتمل)', action: 'توليد Correlation ID والتحقق المسبق', sla: '1 ساعة' },
                     { code: 'OFFER_ACCEPTED', official: 'تم قبول العرض من صاحب العمل', erp: 'بانتظار سداد الفاتورة الحكومية', action: 'إصدار إشعار دفع وتنبيه العميل بالرسائل', sla: '24 ساعة' },
@@ -322,11 +322,11 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                     { code: 'ARRIVAL_PENDING', official: 'تم حجز الرحلة وإصدار التذكرة', erp: 'جدولة الاستقبال في صالة المطار', action: 'تكليف السائق وتجهيز السكن/التسليم المباشر', sla: '48 ساعة' },
                     { code: 'ARRIVED_INSURED', official: 'تم استلام العاملة وتوثيق الوصول', erp: 'سريان بوليصة التأمين (24 شهراً)', action: 'تفعيل فترة الضمان وبدء تغطية شركة التأمين', sla: '90 يوماً / سنتين' },
                   ].map((row, idx) => (
-                    <tr key={idx} className="hover:bg-zinc-50">
+                    <tr key={idx} className="hover:bg-[#f3f3f3]">
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{row.code}</td>
                       <td className="p-3.5 font-bold text-[#141414]">{row.official}</td>
                       <td className="p-3.5 font-bold text-[#141414]">{row.erp}</td>
-                      <td className="p-3.5 text-zinc-700">{row.action}</td>
+                      <td className="p-3.5 text-[#141414]">{row.action}</td>
                       <td className="p-3.5"><Badge text={row.sla} type="shade" /></td>
                     </tr>
                   ))}
@@ -342,7 +342,7 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
         <div className="space-y-6">
           {/* Header Card */}
           <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-4 flex-wrap gap-3">
+            <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-4 mb-4 flex-wrap gap-3">
               <div>
                 <h3 className="text-base font-bold text-[#141414] flex items-center gap-2 m-0">
                   <Building2 className="w-5 h-5 text-[#141414]" />
@@ -362,9 +362,9 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
               {[
                 { key: 'SAF', code: 'RC01', name: 'شركة السفير الماسي للاستقدام', estab: 'EST-SAF-001', color: '#141414', bank: 'مصرف الإنماء' },
-                { key: 'YAQ', code: 'RC02', name: 'شركة ياقوت نجد للاستقدام', estab: 'EST-YAQ-002', color: '#3b82f6', bank: 'بنك الرياض' },
-                { key: 'TOP', code: 'RC03', name: 'شركة توباز للاستقدام والتشغيل', estab: 'EST-TOP-003', color: '#8b5cf6', bank: 'البنك الأهلي السعودي' },
-                { key: 'DAR', code: 'RC04', name: 'شركة دار الرواد / كاس', estab: 'EST-DAR-004', color: '#f59e0b', bank: 'مصرف الراجحي' },
+                { key: 'YAQ', code: 'RC02', name: 'شركة ياقوت نجد للاستقدام', estab: 'EST-YAQ-002', color: '#707070', bank: 'بنك الرياض' },
+                { key: 'TOP', code: 'RC03', name: 'شركة توباز للاستقدام والتشغيل', estab: 'EST-TOP-003', color: '#707070', bank: 'البنك الأهلي السعودي' },
+                { key: 'DAR', code: 'RC04', name: 'شركة دار الرواد / كاس', estab: 'EST-DAR-004', color: '#adadad', bank: 'مصرف الراجحي' },
               ].map((comp) => {
                 const isSelected = selectedCompany === comp.key;
                 return (
@@ -373,8 +373,8 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                     onClick={() => setSelectedCompany(comp.key as any)}
                     className="p-4 rounded-2xl text-right transition-all cursor-pointer flex flex-col justify-between"
                     style={{
-                      border: isSelected ? '2px solid #141414' : '1px solid #e4e4e7',
-                      background: isSelected ? '#141414' : '#fcfcfc',
+                      border: isSelected ? '2px solid #141414' : '1px solid #e0e0e0',
+                      background: isSelected ? '#141414' : '#ffffff',
                       color: isSelected ? '#ffffff' : '#141414',
                       boxShadow: isSelected ? '0 8px 24px rgba(0,0,0,0.12)' : 'none',
                     }}
@@ -394,7 +394,7 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                       </div>
                       <div className="font-bold text-xs leading-snug">{comp.name}</div>
                     </div>
-                    <div className="mt-3 pt-2 border-t border-zinc-200/40 text-[10.5px] opacity-80 flex items-center justify-between font-mono">
+                    <div className="mt-3 pt-2 border-t border-[#e0e0e0] text-[10.5px] opacity-80 flex items-center justify-between font-mono">
                       <span>{comp.estab}</span>
                       <span>{comp.bank}</span>
                     </div>
@@ -404,8 +404,8 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
             </div>
 
             {/* Selected Company In-Depth Specs */}
-            <div className="p-5 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-4">
-              <div className="flex items-center justify-between flex-wrap gap-2 border-b border-zinc-200 pb-3">
+            <div className="p-5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-2 border-b border-[#e0e0e0] pb-3">
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-[#141414] animate-pulse" />
                   <span className="font-bold text-sm text-[#141414]">
@@ -436,25 +436,25 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                <div className="p-3 bg-white rounded-xl border border-zinc-200">
+                <div className="p-3 bg-white rounded-xl border border-[#e0e0e0]">
                   <div className="text-[#707070] text-[11px] mb-1 font-mono">1. Musaned Gateway Client</div>
                   <div className="font-bold text-[#141414] font-mono text-xs">client_id: musaned_{selectedCompany.toLowerCase()}_prod</div>
                   <div className="text-[10.5px] text-[#141414] mt-1">mTLS Cert: Valid (Exp: 2027)</div>
                 </div>
 
-                <div className="p-3 bg-white rounded-xl border border-zinc-200">
+                <div className="p-3 bg-white rounded-xl border border-[#e0e0e0]">
                   <div className="text-[#707070] text-[11px] mb-1 font-mono">2. Webhook HMAC Secret</div>
                   <div className="font-bold text-[#141414] font-mono text-xs">sec_hmac_{selectedCompany.toLowerCase()}_99x</div>
                   <div className="text-[10.5px] text-[#141414] mt-1">SHA-256 Signature Guard</div>
                 </div>
 
-                <div className="p-3 bg-white rounded-xl border border-zinc-200">
+                <div className="p-3 bg-white rounded-xl border border-[#e0e0e0]">
                   <div className="text-[#707070] text-[11px] mb-1 font-mono">3. Accounting Ledger</div>
                   <div className="font-bold text-[#141414] font-mono text-xs">{selectedCompany}-LEDGER-01</div>
                   <div className="text-[10.5px] text-[#141414] mt-1">{i18n.t("finance.separateCoa", "دليل محاسبي مستقل")}</div>
                 </div>
 
-                <div className="p-3 bg-white rounded-xl border border-zinc-200">
+                <div className="p-3 bg-white rounded-xl border border-[#e0e0e0]">
                   <div className="text-[#707070] text-[11px] mb-1 font-mono">4. Partition Queue & DLQ</div>
                   <div className="font-bold text-[#141414] font-mono text-xs">queue:musaned:{selectedCompany.toLowerCase()}</div>
                   <div className="text-[10.5px] text-[#141414] mt-1">DLQ: 0 Failed Messages</div>
@@ -463,8 +463,8 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
 
               {/* Multi-Layer Protection Architecture Accordion/Grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-                <div className="p-3.5 bg-white rounded-xl border border-zinc-200 space-y-1">
-                  <div className="font-bold text-zinc-900 text-xs flex items-center gap-1.5">
+                <div className="p-3.5 bg-white rounded-xl border border-[#e0e0e0] space-y-1">
+                  <div className="font-bold text-[#141414] text-xs flex items-center gap-1.5">
                     <Lock className="w-3.5 h-3.5 text-[#141414]" />
                     <span>طبقة سياسات الأمان (Policy Engine)</span>
                   </div>
@@ -473,8 +473,8 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="p-3.5 bg-white rounded-xl border border-zinc-200 space-y-1">
-                  <div className="font-bold text-zinc-900 text-xs flex items-center gap-1.5">
+                <div className="p-3.5 bg-white rounded-xl border border-[#e0e0e0] space-y-1">
+                  <div className="font-bold text-[#141414] text-xs flex items-center gap-1.5">
                     <Database className="w-3.5 h-3.5 text-[#141414]" />
                     <span>قيود قاعدة البيانات (RLS Constraints)</span>
                   </div>
@@ -483,8 +483,8 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="p-3.5 bg-white rounded-xl border border-zinc-200 space-y-1">
-                  <div className="font-bold text-zinc-900 text-xs flex items-center gap-1.5">
+                <div className="p-3.5 bg-white rounded-xl border border-[#e0e0e0] space-y-1">
+                  <div className="font-bold text-[#141414] text-xs flex items-center gap-1.5">
                     <ArrowRightLeft className="w-3.5 h-3.5 text-[#141414]" />
                     <span>توجيه الـ Webhooks بالبصمة الرقمية</span>
                   </div>
@@ -498,12 +498,12 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
             {/* RACI Matrix Table */}
             <div className="mt-6">
               <h4 className="text-xs font-bold text-[#141414] mb-2 flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-zinc-700" />
+                <Users className="w-4 h-4 text-[#141414]" />
                 <span>مصفوفة توزيع المسؤوليات (RACI Matrix) بين فرق المجموعة</span>
               </h4>
-              <div className="overflow-x-auto rounded-xl border border-zinc-200">
+              <div className="overflow-x-auto rounded-xl border border-[#e0e0e0]">
                 <table className="w-full text-right text-xs">
-                  <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+                  <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                     <tr>
                       <th className="p-3">المهمة التشغيلية / التقنية</th>
                       <th className="p-3 text-center">تقنية التكامل</th>
@@ -513,7 +513,7 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                       <th className="p-3 text-center">إدارة المجموعة</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-100 bg-white">
+                  <tbody className="divide-y divide-[#e0e0e0] bg-white">
                     {[
                       { task: 'إدارة مفاتيح ومصادقة مساند (Credentials)', tech: 'R (مسؤول)', ops: 'C (استشاري)', fin: 'I (إشعار)', comp: 'A/C (معتمد)', grp: 'I (إشعار)' },
                       { task: 'مطابقة البيانات وتعيين الحقول (Mapping)', tech: 'R/A (مسؤول/معتمد)', ops: 'C (استشاري)', fin: 'C (استشاري)', comp: 'C (استشاري)', grp: 'I (إشعار)' },
@@ -523,10 +523,10 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                       { task: 'معالجة الطوارئ والحوادث التقنية (Incidents)', tech: 'R/A (مسؤول/معتمد)', ops: 'C (استشاري)', fin: 'C (استشاري)', comp: 'I (إشعار)', grp: 'I (إشعار)' },
                       { task: 'متابعة مؤشرات أداء المجموعة الموحدة (Group KPIs)', tech: 'C (استشاري)', ops: 'I (إشعار)', fin: 'C (استشاري)', comp: 'I (إشعار)', grp: 'R/A (مسؤول/معتمد)' },
                     ].map((row, idx) => (
-                      <tr key={idx} className="hover:bg-zinc-50">
+                      <tr key={idx} className="hover:bg-[#f3f3f3]">
                         <td className="p-3 font-semibold text-[#141414]">{row.task}</td>
                         <td className="p-3 text-center font-mono font-bold text-[#141414]">{row.tech}</td>
-                        <td className="p-3 text-center font-mono text-zinc-700">{row.ops}</td>
+                        <td className="p-3 text-center font-mono text-[#141414]">{row.ops}</td>
                         <td className="p-3 text-center font-mono text-[#141414]">{row.fin}</td>
                         <td className="p-3 text-center font-mono text-[#141414]">{row.comp}</td>
                         <td className="p-3 text-center font-mono text-[#141414]">{row.grp}</td>
@@ -544,19 +544,19 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                 <span>خطة الإطلاق المتدرجة للأربع شركات (Phased Waves 0 to 6)</span>
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200">
+                <div className="p-3 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0]">
                   <div className="font-bold text-[#141414] mb-1 text-xs">Wave 0: Sandbox + RC01</div>
                   <p className="text-[#707070] m-0 text-[11px]">اختبارات UAT وعزل الصلاحيات لشركة السفير الماسي.</p>
                 </div>
-                <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200">
+                <div className="p-3 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0]">
                   <div className="font-bold text-[#141414] mb-1 text-xs">Wave 1 & 2: RC01 Live + RC02 Read</div>
                   <p className="text-[#707070] m-0 text-[11px]">إطلاق السفير الماسي ثم ضم ياقوت نجد للقراءة فقط.</p>
                 </div>
-                <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200">
+                <div className="p-3 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0]">
                   <div className="font-bold text-[#141414] mb-1 text-xs">Wave 3 & 4: RC02/03 Live + RC04</div>
                   <p className="text-[#707070] m-0 text-[11px]">تفعيل ياقوت نجد وتوباز وإدخال دار الرواد.</p>
                 </div>
-                <div className="p-3 rounded-xl bg-zinc-50 border border-[#e0e0e0] bg-[#f3f3f3]">
+                <div className="p-3 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] bg-[#f3f3f3]">
                   <div className="font-bold text-[#141414] mb-1 text-xs">Wave 5 & 6: Full 4-Company Live</div>
                   <p className="text-[#141414] m-0 text-[11px]">اكتمال الإطلاق لكافة الشركات مع تقارير المجموعة الموحدة.</p>
                 </div>
@@ -650,7 +650,7 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
       {activeTab === 'reconciliation' && (
         <div className="space-y-6">
           <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-            <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between">
+            <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-[#141414] m-0">سجل دفعات وتسويات مساند والمطابقة البنكية (Daily Settlement Batches)</h3>
                 <p className="text-xs text-[#707070] mt-0.5">مطابقة المبالغ المحصلة عبر مساند مع حسابات البنك الوسيط (Clearing Account) وحسابات ضريبة القيمة المضافة</p>
@@ -659,8 +659,8 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs text-zinc-700">
-                <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+              <table className="w-full text-right text-xs text-[#141414]">
+                <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                   <tr>
                     <th className="p-3.5">رقم الدفعة / التسوية</th>
                     <th className="p-3.5">تاريخ التسوية</th>
@@ -672,16 +672,16 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                     <th className="p-3.5">حالة المطابقة</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-[#e0e0e0]">
                   {[
                     { id: 'SETTL-2026-0831', date: '2026-08-31', gross: 284500, fee: 2845, vat: 426.75, net: 281228.25, count: 18, status: 'مطابق ومقفل بالكامل' },
                     { id: 'SETTL-2026-0830', date: '2026-08-30', gross: 162400, fee: 1624, vat: 243.60, net: 160532.40, count: 11, status: 'مطابق ومقفل بالكامل' },
                     { id: 'SETTL-2026-0829', date: '2026-08-29', gross: 98500, fee: 985, vat: 147.75, net: 97367.25, count: 7, status: 'مطابق ومقفل بالكامل' },
                     { id: 'SETTL-2026-0828', date: '2026-08-28', gross: 45000, fee: 450, vat: 67.50, net: 44482.50, count: 3, status: 'مطابق ومقفل بالكامل' },
                   ].map((row) => (
-                    <tr key={row.id} className="hover:bg-zinc-50">
+                    <tr key={row.id} className="hover:bg-[#f3f3f3]">
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{row.id}</td>
-                      <td className="p-3.5 font-mono text-zinc-600">{row.date}</td>
+                      <td className="p-3.5 font-mono text-[#707070]">{row.date}</td>
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{row.gross.toLocaleString()} ⃁</td>
                       <td className="p-3.5 font-mono text-[#141414]">‎- ⃁</td>
                       <td className="p-3.5 font-mono text-[#707070]">‎- ⃁</td>
@@ -716,7 +716,7 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                   { provider: 'الشركة التعاونية للتأمين', policy: 'POL-TAWUNIYA-2026-310', count: '39 وثيقة سارية', claim: '1 مطالبة معوضة' },
                   { provider: 'شركة سلامة للتأمين التعاوني', policy: 'POL-SALAMA-2026-118', count: '28 وثيقة سارية', claim: '0 مطالبات' },
                 ].map((ins, i) => (
-                  <div key={i} className="p-3 rounded-xl bg-zinc-50 border border-zinc-200 flex items-center justify-between text-xs">
+                  <div key={i} className="p-3 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-between text-xs">
                     <div>
                       <div className="font-bold text-[#141414]">{ins.provider}</div>
                       <div className="text-[11px] text-[#707070] font-mono">{ins.policy}</div>
@@ -744,12 +744,12 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                   <span className="font-bold text-[#141414]">طلبات نقل الخدمات النشطة حالياً</span>
                   <span className="font-mono font-bold text-[#141414]">14 طلباً</span>
                 </div>
-                <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200 flex items-center justify-between">
-                  <span className="font-semibold text-zinc-700">عمالة في مرحلة التجربة (Trial Period - 7 أيام)</span>
-                  <span className="font-mono font-bold text-zinc-800">5 عاملات</span>
+                <div className="p-3 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-between">
+                  <span className="font-semibold text-[#141414]">عمالة في مرحلة التجربة (Trial Period - 7 أيام)</span>
+                  <span className="font-mono font-bold text-[#141414]">5 عاملات</span>
                 </div>
-                <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200 flex items-center justify-between">
-                  <span className="font-semibold text-zinc-700">عمليات نقل مكتملة وموثقة هذا الشهر</span>
+                <div className="p-3 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-between">
+                  <span className="font-semibold text-[#141414]">عمليات نقل مكتملة وموثقة هذا الشهر</span>
                   <span className="font-mono font-bold text-[#141414]">9 عمليات</span>
                 </div>
               </div>
@@ -762,7 +762,7 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
       {activeTab === 'webhooks_dlq' && (
         <div className="space-y-6">
           <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-            <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-3">
+            <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h3 className="text-sm font-bold text-[#141414] m-0">سجل استقبال الأحداث اللحظية (Webhooks Receiver & Event Store)</h3>
                 <p className="text-xs text-[#707070] mt-0.5">التحقق من التوقيع الرقمي، منع إعادة الإرسال (Replay Protection)، ومعالجة الأحداث</p>
@@ -781,8 +781,8 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs text-zinc-700">
-                <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+              <table className="w-full text-right text-xs text-[#141414]">
+                <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                   <tr>
                     <th className="p-3.5">معرف الحدث (Event ID)</th>
                     <th className="p-3.5">نوع الحدث (Event Type)</th>
@@ -793,12 +793,12 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                     <th className="p-3.5">حالة المعالجة</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-[#e0e0e0]">
                   {webhookEvents.map((row) => (
-                    <tr key={row.id} className="hover:bg-zinc-50">
+                    <tr key={row.id} className="hover:bg-[#f3f3f3]">
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{row.id}</td>
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{row.type}</td>
-                      <td className="p-3.5 font-mono text-zinc-700">{row.ref}</td>
+                      <td className="p-3.5 font-mono text-[#141414]">{row.ref}</td>
                       <td className="p-3.5 font-semibold text-[#141414]">{row.tenant}</td>
                       <td className="p-3.5 font-mono text-[#707070]">{row.time}</td>
                       <td className="p-3.5 font-mono text-[#141414]">{row.sig}</td>
@@ -816,7 +816,7 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
       {activeTab === 'checklist' && (
         <div className="space-y-6">
           <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-4">
+            <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-4 mb-4">
               <div>
                 <h3 className="text-base font-bold text-[#141414] m-0">قائمة التحقق للحصول على اعتماد الربط الرسمي (Musaned Accreditation Checklist)</h3>
                 <p className="text-xs text-[#707070] mt-1">30 بنداً تقنياً وإجرائياً لمطابقة المعايير الحكومية واجتياز اختبارات UAT وSandbox</p>
@@ -844,10 +844,10 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                   <div
                     key={item.id}
                     onClick={() => toggleCheck(item.id)}
-                    className="p-3.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all hover:bg-zinc-50"
+                    className="p-3.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all hover:bg-[#f3f3f3]"
                     style={{
-                      borderColor: isChecked ? '#10b981' : '#e4e4e7',
-                      backgroundColor: isChecked ? '#f0fdf4' : '#ffffff',
+                      borderColor: isChecked ? '#707070' : '#e0e0e0',
+                      backgroundColor: isChecked ? '#ffffff' : '#ffffff',
                     }}
                   >
                     <div className="flex items-center gap-3">
@@ -857,8 +857,8 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                           height: '20px',
                           borderRadius: '6px',
                           border: '2px solid',
-                          borderColor: isChecked ? '#10b981' : '#a1a1aa',
-                          backgroundColor: isChecked ? '#10b981' : 'transparent',
+                          borderColor: isChecked ? '#707070' : '#adadad',
+                          backgroundColor: isChecked ? '#707070' : 'transparent',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -867,7 +867,7 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
                       >
                         {isChecked && <Check className="w-3.5 h-3.5" />}
                       </div>
-                      <span className="text-xs font-semibold text-zinc-800">{item.title}</span>
+                      <span className="text-xs font-semibold text-[#141414]">{item.title}</span>
                     </div>
                     <span className="pill-tag-mint" style={{ fontSize: '10px' }}>
                       {isChecked ? 'مكتمل ومعتمد' : 'قيد التدقيق'}

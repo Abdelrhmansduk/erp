@@ -9,7 +9,7 @@ import {
   generateIso20022Pain001Xml,
   createBankB2BPayoutBatch,
   settleBankB2BBatch,
-} from './jisrPayrollArrearsAndB2BEngine';
+} from './hrPayrollArrearsAndB2BEngine';
 import {
   issueCorporateCard,
   toggleCorporateCardFreeze,
@@ -20,7 +20,7 @@ import {
   ingestAdmsPunchBatch,
   executeYearEndLeaveCarryover,
   executeInServiceLeaveEncashment,
-} from './jisrSpendCardsAndAttendanceCutoffEngine';
+} from './hrSpendCardsAndAttendanceCutoffEngine';
 import {
   validateCustomFieldValues,
   issueEsignOtpChallenge,
@@ -32,7 +32,7 @@ import {
   DEFAULT_CAREER_JOB_POSTINGS,
   type CustomFieldDefinitionRecord,
   type EnpsResponseRecord,
-} from './jisrGovernanceTalentPulseEngine';
+} from './hrGovernanceTalentPulseEngine';
 import { HrWorkflowEngine, type ConditionalWorkflowRule } from './hrWorkflowEngine';
 import { journalEngine } from './accounting/journalEngine';
 

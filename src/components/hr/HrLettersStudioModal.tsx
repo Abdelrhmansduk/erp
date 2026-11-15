@@ -508,7 +508,7 @@ export const HrLettersStudioModal: React.FC<HrLettersStudioModalProps> = ({
               <h3 className="font-bold text-sm text-[#ffffff] m-0">
                 استوديو الخطابات والقرارات الرسمية الموثقة بـ QR (12 نموذجاً ثنائي اللغة)
               </h3>
-              <p className="text-[11px] text-[#a1a1aa] m-0 mt-0.5">
+              <p className="text-[11px] text-[#adadad] m-0 mt-0.5">
                 {employee.name} • {employee.employee_code} • الشركة المصدرة: {effectiveCompanyNameAr}
               </p>
             </div>
@@ -542,7 +542,7 @@ export const HrLettersStudioModal: React.FC<HrLettersStudioModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 text-[#a1a1aa] hover:text-[#ffffff] hover:bg-[#262626] rounded-full transition-colors cursor-pointer"
+              className="p-2 text-[#adadad] hover:text-[#ffffff] hover:bg-[#262626] rounded-full transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>

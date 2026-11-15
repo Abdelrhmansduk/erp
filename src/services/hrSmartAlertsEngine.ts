@@ -18,7 +18,7 @@
  *   - Corporate WhatsApp / SMS Outbox (`sent_messages`) & Faris/Noura Voice Briefing (`speakDynamicSpeech`)
  */
 
-import { computeNitaqatSnapshot } from './jisrAdvancedComplianceEngine';
+import { computeNitaqatSnapshot } from './hrAdvancedComplianceEngine';
 import { notificationPopupEngine } from './notificationPopupEngine';
 import { realErpDataStore } from './realErpDataStore';
 import { speakDynamicSpeech, AssistantPersona } from './audioVoiceService';
@@ -387,7 +387,7 @@ export function scanHrComplianceRadars(input: SmartAlertsScanInput): HrSmartAler
           messageAr: `تنتهي فترة التجربة النظامية (${probDays} يوماً) للموظف ${emp.name} بتاريخ ${probEndIso}. يلزم التقييم أو التمديد الكتابي قبل انقضاء المدة.`,
           dueDate: probEndIso,
           daysRemaining: remProb,
-          targetTab: 'jisr-talent-360',
+          targetTab: 'hr-talent-360',
           acknowledged: false,
           dispatchedChannels: { inApp: true, popup: true, whatsapp: false, voice: false },
           createdAt: nowIso,
@@ -417,7 +417,7 @@ export function scanHrComplianceRadars(input: SmartAlertsScanInput): HrSmartAler
           messageAr: `هوية مقيم للموظف ${emp.name} تنتهي بتاريخ ${iqamaExpiry}. بادر بالتجديد عبر مكتب عمليات مقيم لتفادي الغرامات وإيقاف الخدمات.`,
           dueDate: iqamaExpiry,
           daysRemaining: remIqama,
-          targetTab: 'jisr-org-muqeem',
+          targetTab: 'hr-org-muqeem',
           acknowledged: false,
           dispatchedChannels: { inApp: true, popup: true, whatsapp: false, voice: false },
           createdAt: nowIso,
@@ -471,7 +471,7 @@ export function scanHrComplianceRadars(input: SmartAlertsScanInput): HrSmartAler
           messageAr: `جواز السفر للموظف ${emp.name} ينتهي في ${passportExpiry} مما يعيق إصدار تأشيرات الخروج والعودة في مقيم.`,
           dueDate: passportExpiry,
           daysRemaining: remPass,
-          targetTab: 'jisr-org-muqeem',
+          targetTab: 'hr-org-muqeem',
           acknowledged: false,
           dispatchedChannels: { inApp: true, popup: false, whatsapp: false, voice: false },
           createdAt: nowIso,
@@ -583,7 +583,7 @@ export function scanHrComplianceRadars(input: SmartAlertsScanInput): HrSmartAler
         titleAr: `بوابة إخلاء طرف قيد الاستكمال — ${empName}`,
         messageAr: `إخلاء الطرف عبر الإدارات الخمس للموظف ${empName} لم يكتمل بعد؛ صرف المخالصة النهائية موقوف لحين الإقفال.`,
         dueDate: lwDay,
-        targetTab: 'jisr-talent-360',
+        targetTab: 'hr-talent-360',
         acknowledged: false,
         dispatchedChannels: { inApp: true, popup: false, whatsapp: false, voice: false },
         createdAt: nowIso,
@@ -618,7 +618,7 @@ export function scanHrComplianceRadars(input: SmartAlertsScanInput): HrSmartAler
         severity: nitaqatSnap.band === 'أحمر' ? 'critical' : 'warning',
         titleAr: `تنبيه مؤشر نطاقات التوطين (${nitaqatSnap.band} — ${nitaqatSnap.saudizationPercent}%)`,
         messageAr: `نسبة التوطين الموزونة حالياً ${nitaqatSnap.saudizationPercent}% (${nitaqatSnap.band}). تحتاج المنشأة ${nitaqatSnap.pointsNeededForNextBand} نقطة توطين للانتقال إلى ${nitaqatSnap.nextBandLabel}.`,
-        targetTab: 'jisr-alerts-compliance',
+        targetTab: 'hr-alerts-compliance',
         acknowledged: false,
         dispatchedChannels: { inApp: true, popup: true, whatsapp: false, voice: false },
         createdAt: nowIso,
@@ -676,7 +676,7 @@ export function scanHrComplianceRadars(input: SmartAlertsScanInput): HrSmartAler
           messageAr: `الترخيص رقم (${lic.license_number}) الخاص بـ (${lic.company_name}) ينتهي بتاريخ ${lic.expiry_date}. بادر بالتجديد لضمان استمرارية الخدمات الحكومية.`,
           dueDate: lic.expiry_date,
           daysRemaining: remLic,
-          targetTab: 'jisr-alerts-compliance',
+          targetTab: 'hr-alerts-compliance',
           acknowledged: false,
           dispatchedChannels: { inApp: true, popup: remLic <= 15, whatsapp: false, voice: false },
           createdAt: nowIso,

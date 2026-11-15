@@ -384,4 +384,55 @@ describe('Live Snapshot & Multi-Company (SAF • YAQ • TOP • KAS • DAR) Re
       )
     ).toHaveLength(0);
   });
+
+  it('normalizes legacy Supabase/local contracts and ingaz_delegations rows so Musaned and Enjaz stay READY across companies', async () => {
+    localStorage.clear();
+    localStorage.setItem(
+      'ALSULAIM_ERP_DB_V1_contracts',
+      JSON.stringify([
+        {
+          id: 'LEGACY-CTR-1',
+          company_id: 'SAF',
+          contract_number: 'CTR-101',
+          client_national_id: '1012345678',
+          maid_passport: 'P998811',
+          amount: 15500,
+        },
+        {
+          id: 'LEGACY-CTR-2',
+          company_id: 'KAS', // Ineligible for Musaned, should normalize cleanly
+          contract_number: '99881122',
+          amount: 14000,
+        },
+      ])
+    );
+    localStorage.setItem(
+      'ALSULAIM_ERP_DB_V1_ingaz_delegations',
+      JSON.stringify([
+        {
+          id: 'LEGACY-DEL-1',
+          company_id: 'SAF',
+          visa_number: '1900112233',
+          maid_passport: 'P776655',
+          medical_status: 'FIT',
+        },
+      ])
+    );
+
+    const snapshot = await loadLiveGovSnapshot();
+    const report = runReadinessAudit(snapshot, {
+      environment: 'SIMULATION',
+      gatewayConfigured: false,
+      now: NOW,
+    });
+
+    const musaned = report.agencies.find((a) => a.agencyId === 'musaned');
+    const enjaz = report.agencies.find((a) => a.agencyId === 'enjaz');
+    expect(musaned?.status).toBe('READY');
+    expect(musaned?.validRecords).toBe(2);
+    expect(enjaz?.status).toBe('READY');
+    expect(enjaz?.validRecords).toBe(1);
+    expect(report.agencies.every((a) => a.status === 'READY')).toBe(true);
+    localStorage.clear();
+  });
 });

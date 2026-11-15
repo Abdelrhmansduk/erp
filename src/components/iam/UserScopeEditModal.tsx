@@ -129,11 +129,11 @@ export const UserScopeEditModal: React.FC<UserScopeEditModalProps> = ({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#141414]/60 backdrop-blur-sm animate-fade-in font-sans">
       <div 
-        className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden"
+        className="bg-[#ffffff] rounded-[24px] border border-[#e0e0e0]  w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden"
         dir="rtl"
       >
         {/* Header — Mobbin Pure Light Mode */}
-        <div className="p-5 sm:p-6 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5] flex items-center justify-between flex-shrink-0">
+        <div className="p-5 sm:p-6 bg-[#ffffff] text-[#141414] border-b border-[#e0e0e0] flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-[14px] bg-[#f3f3f3] flex items-center justify-center text-[#141414] border border-[#e0e0e0]">
               <ShieldCheck className="w-5 h-5" />
@@ -151,7 +151,7 @@ export const UserScopeEditModal: React.FC<UserScopeEditModalProps> = ({
           <button 
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -160,35 +160,35 @@ export const UserScopeEditModal: React.FC<UserScopeEditModalProps> = ({
         {/* Modal Form Body */}
         <form onSubmit={handleSave} className="p-6 overflow-y-auto flex-1 space-y-6">
           {/* Section 1: User Profile & Account Type */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-2xl bg-zinc-50 border border-zinc-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0]">
             <div>
-              <label className="block text-xs font-bold text-zinc-700 mb-1">الاسم الرباعي الكامل:</label>
+              <label className="block text-xs font-bold text-[#141414] mb-1">الاسم الرباعي الكامل:</label>
               <input
                 type="text"
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
                 required
-                className="w-full bg-white border border-zinc-300 rounded-xl p-2 text-xs font-bold text-[#141414]"
+                className="w-full bg-white border border-[#e0e0e0] rounded-xl p-2 text-xs font-bold text-[#141414]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-zinc-700 mb-1">المسمى الوظيفي الرسمي:</label>
+              <label className="block text-xs font-bold text-[#141414] mb-1">المسمى الوظيفي الرسمي:</label>
               <input
                 type="text"
                 value={jobTitle}
                 onChange={e => setJobTitle(e.target.value)}
                 required
-                className="w-full bg-white border border-zinc-300 rounded-xl p-2 text-xs font-bold text-[#141414]"
+                className="w-full bg-white border border-[#e0e0e0] rounded-xl p-2 text-xs font-bold text-[#141414]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-zinc-700 mb-1">نوع الحساب الإداري (Account Role):</label>
+              <label className="block text-xs font-bold text-[#141414] mb-1">نوع الحساب الإداري (Account Role):</label>
               <select
                 value={accountType}
                 onChange={e => setAccountType(e.target.value as AccountType)}
-                className="w-full bg-white border border-zinc-300 rounded-xl p-2 text-xs font-bold text-[#141414]"
+                className="w-full bg-white border border-[#e0e0e0] rounded-xl p-2 text-xs font-bold text-[#141414]"
               >
                 <option value="Group Super Admin">Group Super Admin (مدير عام المجموعة)</option>
                 <option value="Board / Group Executive">Board / Group Executive (إدارة عليا)</option>
@@ -201,11 +201,11 @@ export const UserScopeEditModal: React.FC<UserScopeEditModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-zinc-700 mb-1">حالة الحساب:</label>
+              <label className="block text-xs font-bold text-[#141414] mb-1">حالة الحساب:</label>
               <select
                 value={status}
                 onChange={e => setStatus(e.target.value as any)}
-                className="w-full bg-white border border-zinc-300 rounded-xl p-2 text-xs font-bold text-[#141414]"
+                className="w-full bg-white border border-[#e0e0e0] rounded-xl p-2 text-xs font-bold text-[#141414]"
               >
                 <option value="نشط">نشط (Active)</option>
                 <option value="معلق">معلق (Suspended)</option>
@@ -225,8 +225,8 @@ export const UserScopeEditModal: React.FC<UserScopeEditModalProps> = ({
                   key={scope.level}
                   className={`flex items-start gap-3 p-3 rounded-[16px] border cursor-pointer transition-all ${
                     dataScope === scope.level 
-                      ? 'border-[#141414] bg-[#f3f3f3] shadow-xs' 
-                      : 'border-[#e5e5e5] bg-[#ffffff] hover:border-[#141414]'
+                      ? 'border-[#141414] bg-[#f3f3f3] ' 
+                      : 'border-[#e0e0e0] bg-[#ffffff] hover:border-[#141414]'
                   }`}
                 >
                   <input
@@ -259,13 +259,13 @@ export const UserScopeEditModal: React.FC<UserScopeEditModalProps> = ({
                     onClick={() => handleToggleCompany(c.code)}
                     className={`p-3 rounded-2xl border cursor-pointer flex items-center justify-between transition-all ${
                       checked 
-                        ? 'border-[#141414] bg-zinc-50 font-bold text-[#141414]' 
-                        : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300'
+                        ? 'border-[#141414] bg-[#f3f3f3] font-bold text-[#141414]' 
+                        : 'border-[#e0e0e0] bg-white text-[#707070] hover:border-[#e0e0e0]'
                     }`}
                   >
                     <span className="text-xs">{c.name}</span>
                     <span className={`w-4 h-4 rounded-md flex items-center justify-center text-[10px] ${
-                      checked ? 'bg-[#141414] text-white' : 'bg-zinc-100 text-transparent'
+                      checked ? 'bg-[#141414] text-white' : 'bg-[#f3f3f3] text-transparent'
                     }`}>
                       ✓
                     </span>
@@ -289,13 +289,13 @@ export const UserScopeEditModal: React.FC<UserScopeEditModalProps> = ({
                     onClick={() => handleToggleBranch(b.id)}
                     className={`p-3 rounded-2xl border cursor-pointer flex items-center justify-between transition-all ${
                       checked 
-                        ? 'border-[#141414] bg-zinc-50 font-bold text-[#141414]' 
-                        : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300'
+                        ? 'border-[#141414] bg-[#f3f3f3] font-bold text-[#141414]' 
+                        : 'border-[#e0e0e0] bg-white text-[#707070] hover:border-[#e0e0e0]'
                     }`}
                   >
                     <span className="text-xs">{b.name}</span>
                     <span className={`w-4 h-4 rounded-md flex items-center justify-center text-[10px] ${
-                      checked ? 'bg-[#141414] text-white' : 'bg-zinc-100 text-transparent'
+                      checked ? 'bg-[#141414] text-white' : 'bg-[#f3f3f3] text-transparent'
                     }`}>
                       ✓
                     </span>
@@ -319,13 +319,13 @@ export const UserScopeEditModal: React.FC<UserScopeEditModalProps> = ({
                     onClick={() => handleToggleDepartment(d.id)}
                     className={`p-2.5 rounded-xl border cursor-pointer flex items-center justify-between transition-all ${
                       checked 
-                        ? 'border-[#141414] bg-zinc-50 font-bold text-[#141414]' 
-                        : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300'
+                        ? 'border-[#141414] bg-[#f3f3f3] font-bold text-[#141414]' 
+                        : 'border-[#e0e0e0] bg-white text-[#707070] hover:border-[#e0e0e0]'
                     }`}
                   >
                     <span className="text-[11px] truncate">{d.name}</span>
                     <span className={`w-3.5 h-3.5 rounded flex items-center justify-center text-[9px] ${
-                      checked ? 'bg-[#141414] text-white' : 'bg-zinc-100 text-transparent'
+                      checked ? 'bg-[#141414] text-white' : 'bg-[#f3f3f3] text-transparent'
                     }`}>
                       ✓
                     </span>
@@ -367,7 +367,7 @@ export const UserScopeEditModal: React.FC<UserScopeEditModalProps> = ({
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-200">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e0e0e0]">
             <button
               type="button"
               onClick={onClose}

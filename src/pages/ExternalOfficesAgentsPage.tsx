@@ -342,7 +342,7 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
           backgroundColor: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -365,7 +365,7 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
             <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, margin: 0, letterSpacing: '-0.02em', color: '#ffffff', fontFamily: 'var(--font-family-display)' }}>
               بوابة المكاتب والوكلاء الخارجيين المعتمدين
             </h1>
-            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#a1a1aa', fontWeight: 420 }}>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#adadad', fontWeight: 420 }}>
               الربط المباشر مع مكاتب الفلبين، إثيوبيا، الهند، كينيا، وأوغندا وإدارة الوثائق والتراخيص بقاعدة البيانات
             </p>
           </div>
@@ -408,7 +408,7 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
       </div>
 
       {/* Sub Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-[#e0e0e0] pb-3">
         {[
           { id: 'offices', label: `المكاتب والوكالات الخارجية (${offices.length})`, icon: Building2 },
           { id: 'users', label: `مستخدمي الوكلاء (${officeUsers.length})`, icon: Users },
@@ -427,9 +427,9 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
                 padding: '6px 16px',
                 borderRadius: '9999px',
                 border: '1px solid',
-                borderColor: isActive ? '#141414' : '#e4e4e7',
+                borderColor: isActive ? '#141414' : '#e0e0e0',
                 backgroundColor: isActive ? '#141414' : '#ffffff',
-                color: isActive ? '#ffffff' : '#27272a',
+                color: isActive ? '#ffffff' : '#141414',
                 fontWeight: isActive ? 550 : 420,
                 fontSize: '12.5px',
                 cursor: 'pointer',
@@ -480,7 +480,7 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
                     <Badge text={office.country} type="purple" />
                   </div>
 
-                  <div className="text-xs text-zinc-600 space-y-2 mb-4">
+                  <div className="text-xs text-[#707070] space-y-2 mb-4">
                     <div className="flex items-center gap-2">
                       <ShieldCheck className="w-3.5 h-3.5 text-[#707070]" />
                       <span>الترخيص: <strong className="font-mono text-[#141414]">{office.licenseNumber}</strong></span>
@@ -500,7 +500,7 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-between border-t border-zinc-100 pt-3 text-xs bg-zinc-50 -mx-6 -mb-6 p-4 rounded-b-3xl">
+                <div className="flex justify-between border-t border-[#e0e0e0] pt-3 text-xs bg-[#f3f3f3] -mx-6 -mb-6 p-4 rounded-b-3xl">
                   <div>السير المتاحة: <strong className="text-[#141414] font-mono font-bold">{office.activeCandidatesCount}</strong></div>
                   <div>العمالة الواصلة: <strong className="text-[#141414] font-mono font-bold">{office.arrivedCountCount}</strong></div>
                 </div>
@@ -513,7 +513,7 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
       {/* Tab 2: Users */}
       {activeTab === 'users' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between">
+          <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between">
             <h3 className="text-sm font-bold text-[#141414] m-0">مستخدمي الوكلاء والمكاتب الخارجية ({officeUsers.length})</h3>
             <button
               onClick={() => setShowAddUserModal(true)}
@@ -524,8 +524,8 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
             </button>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">#</th>
                   <th className="p-3.5">اسم المستخدم</th>
@@ -535,9 +535,9 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
                   <th className="p-3.5">الحالة</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {officeUsers.map((u, idx) => (
-                  <tr key={u.id} className="hover:bg-zinc-50">
+                  <tr key={u.id} className="hover:bg-[#f3f3f3]">
                     <td className="p-3.5 font-bold font-mono text-[#141414]">{idx + 1}</td>
                     <td className="p-3.5 font-bold text-[#141414]">
                       <div className="flex items-center gap-2">
@@ -550,7 +550,7 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
                       <div className="text-[11px] text-[#707070]">{u.email}</div>
                     </td>
                     <td className="p-3.5 font-semibold text-[#141414]">{u.linked_office}</td>
-                    <td className="p-3.5 text-zinc-600">{u.nationality}</td>
+                    <td className="p-3.5 text-[#707070]">{u.nationality}</td>
                     <td className="p-3.5"><Badge text={u.status} type="success" /></td>
                   </tr>
                 ))}
@@ -563,7 +563,7 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
       {/* Tab 3: Files */}
       {activeTab === 'files' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between">
+          <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between">
             <h3 className="text-sm font-bold text-[#141414] m-0">وثائق وتراخيص المكاتب الخارجية ({officeFiles.length})</h3>
             <button
               onClick={() => setShowAddFileModal(true)}
@@ -574,8 +574,8 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
             </button>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">#</th>
                   <th className="p-3.5">المكتب الخارجي</th>
@@ -586,12 +586,12 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
                   <th className="p-3.5 text-center">الإجراء</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {officeFiles.map((f, idx) => (
-                  <tr key={f.id} className="hover:bg-zinc-50">
+                  <tr key={f.id} className="hover:bg-[#f3f3f3]">
                     <td className="p-3.5 font-bold font-mono text-[#141414]">{idx + 1}</td>
                     <td className="p-3.5 font-bold text-[#141414]">{f.office_name}</td>
-                    <td className="p-3.5 font-semibold text-zinc-800">{f.file_title}</td>
+                    <td className="p-3.5 font-semibold text-[#141414]">{f.file_title}</td>
                     <td className="p-3.5"><Badge text={f.file_type} type="purple" /></td>
                     <td className="p-3.5 font-mono text-[#707070]">{f.upload_date}</td>
                     <td className="p-3.5 font-mono">{f.file_size}</td>
@@ -616,8 +616,8 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
       {/* MODAL 1: Add Office */}
       {showAddOfficeModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowAddOfficeModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-3 mb-4 border-b border-zinc-100">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-3 mb-4 border-b border-[#e0e0e0]">
               <h3 className="text-sm font-bold text-[#141414] m-0">تسجيل وكالة / مكتب خارجي معتمد</h3>
               <button onClick={() => setShowAddOfficeModal(false)} className="text-[#707070] hover:text-[#141414]">
                 <X className="w-5 h-5" />
@@ -625,19 +625,19 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
             </div>
             <form onSubmit={handleSaveOffice} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">اسم الوكالة / المكتب بالكامل *</label>
+                <label className="text-xs font-semibold text-[#141414] block mb-1">اسم الوكالة / المكتب بالكامل *</label>
                 <input
                   type="text"
                   required
                   placeholder="مثال: Nile International Bureau"
                   value={officeForm.officeName}
                   onChange={e => setOfficeForm({ ...officeForm, officeName: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">الدولة</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">الدولة</label>
                   <select
                     value={officeForm.country}
                     onChange={e => {
@@ -649,7 +649,7 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
                       else if (c === 'أوغندا') code = 'UG';
                       setOfficeForm({ ...officeForm, country: c, countryCode: code });
                     }}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="الفلبين">الفلبين</option>
                     <option value="إثيوبيا">إثيوبيا</option>
@@ -659,61 +659,61 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">رقم الترخيص الوزاري *</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">رقم الترخيص الوزاري *</label>
                   <input
                     type="text"
                     required
                     placeholder="POEA-2026-..."
                     value={officeForm.licenseNumber}
                     onChange={e => setOfficeForm({ ...officeForm, licenseNumber: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">اسم المدير المسؤول</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">اسم المدير المسؤول</label>
                   <input
                     type="text"
                     placeholder="اسم مدير المكتب..."
                     value={officeForm.managerName}
                     onChange={e => setOfficeForm({ ...officeForm, managerName: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">عدد السير الجاهزة</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">عدد السير الجاهزة</label>
                   <input
                     type="number"
                     value={officeForm.activeCandidatesCount}
                     onChange={e => setOfficeForm({ ...officeForm, activeCandidatesCount: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">الهاتف الدولي</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">الهاتف الدولي</label>
                   <input
                     type="text"
                     placeholder="+..."
                     value={officeForm.phone}
                     onChange={e => setOfficeForm({ ...officeForm, phone: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">البريد الإلكتروني</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">البريد الإلكتروني</label>
                   <input
                     type="email"
                     placeholder="agency@..."
                     value={officeForm.email}
                     onChange={e => setOfficeForm({ ...officeForm, email: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">
+              <div className="flex justify-end gap-2 pt-2 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddOfficeModal(false)}
@@ -736,8 +736,8 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
       {/* MODAL 2: Add User */}
       {showAddUserModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowAddUserModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-3 mb-4 border-b border-zinc-100">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-3 mb-4 border-b border-[#e0e0e0]">
               <h3 className="text-sm font-bold text-[#141414] m-0">إضافة مستخدم وكيل خارجي</h3>
               <button onClick={() => setShowAddUserModal(false)} className="text-[#707070] hover:text-[#141414]">
                 <X className="w-5 h-5" />
@@ -745,22 +745,22 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
             </div>
             <form onSubmit={handleSaveUser} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">اسم المستخدم بالكامل *</label>
+                <label className="text-xs font-semibold text-[#141414] block mb-1">اسم المستخدم بالكامل *</label>
                 <input
                   type="text"
                   required
                   placeholder="مثال: John Dela Cruz"
                   value={userForm.name}
                   onChange={e => setUserForm({ ...userForm, name: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">المكتب المرتبط</label>
+                <label className="text-xs font-semibold text-[#141414] block mb-1">المكتب المرتبط</label>
                 <select
                   value={userForm.linked_office}
                   onChange={e => setUserForm({ ...userForm, linked_office: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   {offices.map(o => (
                     <option key={o.id} value={o.officeName}>{o.officeName} ({o.country})</option>
@@ -769,29 +769,29 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">رقم الجوال *</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">رقم الجوال *</label>
                   <input
                     type="text"
                     required
                     placeholder="+..."
                     value={userForm.phone}
                     onChange={e => setUserForm({ ...userForm, phone: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">البريد الإلكتروني *</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">البريد الإلكتروني *</label>
                   <input
                     type="email"
                     required
                     placeholder="user@agency.com"
                     value={userForm.email}
                     onChange={e => setUserForm({ ...userForm, email: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">
+              <div className="flex justify-end gap-2 pt-2 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddUserModal(false)}
@@ -814,8 +814,8 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
       {/* MODAL 3: Add File */}
       {showAddFileModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowAddFileModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-3 mb-4 border-b border-zinc-100">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-[24px] p-6 w-full max-w-lg border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-3 mb-4 border-b border-[#e0e0e0]">
               <h3 className="text-sm font-bold text-[#141414] m-0">رفع وثيقة أو ترخيص معتمد للمكتب</h3>
               <button onClick={() => setShowAddFileModal(false)} className="text-[#707070] hover:text-[#141414]">
                 <X className="w-5 h-5" />
@@ -823,11 +823,11 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
             </div>
             <form onSubmit={handleSaveFile} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">المكتب الخارجي</label>
+                <label className="text-xs font-semibold text-[#141414] block mb-1">المكتب الخارجي</label>
                 <select
                   value={fileForm.office_name}
                   onChange={e => setFileForm({ ...fileForm, office_name: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   {offices.map(o => (
                     <option key={o.id} value={o.officeName}>{o.officeName} ({o.country})</option>
@@ -835,29 +835,29 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">عنوان الوثيقة أو الترخيص *</label>
+                <label className="text-xs font-semibold text-[#141414] block mb-1">عنوان الوثيقة أو الترخيص *</label>
                 <input
                   type="text"
                   required
                   placeholder="مثال: ترخيص وزارة العمل السنوي 2026"
                   value={fileForm.file_title}
                   onChange={e => setFileForm({ ...fileForm, file_title: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">نوع الملف</label>
+                <label className="text-xs font-semibold text-[#141414] block mb-1">نوع الملف</label>
                 <select
                   value={fileForm.file_type}
                   onChange={e => setFileForm({ ...fileForm, file_type: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option value="PDF">مستند PDF رقمي</option>
                   <option value="Image (JPG/PNG)">صورة ترخيص رسمية</option>
                   <option value="DOCX">ملف وورد تعاقدي</option>
                 </select>
               </div>
-              <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">
+              <div className="flex justify-end gap-2 pt-2 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddFileModal(false)}

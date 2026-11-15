@@ -178,7 +178,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           dir={currentLanguage.dir}
         >
           <div
-            className="w-full max-w-md bg-[#ffffff] rounded-t-[24px] border-t border-[#e0e0e0] shadow-2xl p-4 space-y-3 pb-24 motion-silk-enter"
+            className="w-full max-w-md bg-[#ffffff] rounded-t-[24px] border-t border-[#e0e0e0]  p-4 space-y-3 pb-24 motion-silk-enter"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-2.5">
@@ -196,7 +196,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
               <button
                 type="button"
                 onClick={() => setShowQuickSheet(false)}
-                className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center cursor-pointer transition-colors"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] flex items-center justify-center cursor-pointer transition-colors"
                 aria-label="إغلاق"
               >
                 <X className="w-4 h-4" />
@@ -210,7 +210,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                   setShowQuickSheet(false);
                   setQuickSearchOpen(true);
                 }}
-                className="p-3 min-h-[56px] rounded-[16px] bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center gap-2.5 text-right border border-[#e0e0e0] motion-spring-press cursor-pointer"
+                className="p-3 min-h-[56px] rounded-[16px] bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] flex items-center gap-2.5 text-right border border-[#e0e0e0] motion-spring-press cursor-pointer"
               >
                 <Search className="w-4 h-4 text-[#141414] shrink-0" />
                 <div>
@@ -287,7 +287,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                         setShowQuickSheet(false);
                         onSelectTab(pin.href, t(pin.href, pin.title));
                       }}
-                      className="px-3 py-2 min-h-[40px] rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] border border-[#e0e0e0] text-[11px] font-semibold text-[#141414] cursor-pointer"
+                      className="px-3 py-2 min-h-[40px] rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[11px] font-semibold text-[#141414] cursor-pointer"
                     >
                       {t(pin.href, pin.title)}
                     </button>
@@ -303,7 +303,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         data-slot="mobile-bottom-nav"
         dir={currentLanguage.dir}
         aria-label="شريط التنقل السفلي للهاتف"
-        className="fixed bottom-0 inset-x-0 z-[95] lg:hidden bg-[#ffffff]/95 backdrop-blur-xl border-t border-[#e0e0e0] shadow-[0_-8px_24px_rgba(20,20,20,0.06)] select-none"
+        className="fixed bottom-0 inset-x-0 z-[95] lg:hidden bg-[#ffffff]/95 backdrop-blur-xl border-t border-[#e0e0e0]  select-none"
         style={{
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         }}
@@ -396,7 +396,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
               type="button"
               onClick={() => setShowQuickSheet((prev) => !prev)}
               aria-label="الإجراءات السريعة ووحدات القسم"
-              className="w-12 h-12 min-w-[48px] min-h-[48px] -mt-4 rounded-[18px] bg-[#141414] text-[#ffffff] border-2 border-[#ffffff] shadow-lg flex flex-col items-center justify-center gap-0.5 motion-spring-press cursor-pointer"
+              className="w-12 h-12 min-w-[48px] min-h-[48px] -mt-4 rounded-[18px] bg-[#141414] text-[#ffffff] border-2 border-[#ffffff]  flex flex-col items-center justify-center gap-0.5 motion-spring-press cursor-pointer"
             >
               <Zap className="w-4 h-4 text-[#ffffff]" />
               <span className="text-[9px] font-bold text-[#ffffff] leading-none">

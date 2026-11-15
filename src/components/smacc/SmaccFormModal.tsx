@@ -53,7 +53,7 @@ export const SmaccFormModal: React.FC<SmaccFormModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[#141414] hover:bg-[#e5e5e5] text-xs font-bold transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[#141414] hover:bg-[#e0e0e0] text-xs font-bold transition-colors cursor-pointer"
           >
             إلغاء
           </button>

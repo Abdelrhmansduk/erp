@@ -227,7 +227,7 @@ export const MasterConstantsPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
         }}
       >
@@ -283,7 +283,7 @@ export const MasterConstantsPage: React.FC = () => {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-[#e0e0e0] pb-3">
         {[
           { id: 'nationalities', label: `الجنسيات (${nationalities.length})`, icon: Globe },
           { id: 'professions', label: `المهن (${professions.length})`, icon: UserCheck },
@@ -303,9 +303,9 @@ export const MasterConstantsPage: React.FC = () => {
                 padding: '6px 16px',
                 borderRadius: '9999px',
                 border: '1px solid',
-                borderColor: isActive ? '#141414' : '#e4e4e7',
+                borderColor: isActive ? '#141414' : '#e0e0e0',
                 backgroundColor: isActive ? '#141414' : '#ffffff',
-                color: isActive ? '#ffffff' : '#27272a',
+                color: isActive ? '#ffffff' : '#141414',
                 fontWeight: isActive ? 550 : 420,
                 fontSize: '12.5px',
                 cursor: 'pointer',
@@ -330,7 +330,7 @@ export const MasterConstantsPage: React.FC = () => {
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           placeholder="بحث سريع في القائمة الحالية..."
-          className="w-full bg-zinc-50 border border-zinc-200 rounded-full py-1.5 px-4 text-xs text-[#141414] focus:outline-none focus:border-[#141414]"
+          className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-full py-1.5 px-4 text-xs text-[#141414] focus:outline-none focus:border-[#141414]"
         />
       </div>
 
@@ -339,7 +339,7 @@ export const MasterConstantsPage: React.FC = () => {
         {activeList.map((item) => (
           <div
             key={item.id}
-            className={`p-4 bg-white rounded-2xl border border-zinc-200 flex items-center justify-between transition-opacity ${item.status === 'معطل' ? 'opacity-50' : 'opacity-100'}`}
+            className={`p-4 bg-white rounded-2xl border border-[#e0e0e0] flex items-center justify-between transition-opacity ${item.status === 'معطل' ? 'opacity-50' : 'opacity-100'}`}
           >
             <div className="flex items-center gap-3">
               {item.icon ? (
@@ -384,42 +384,42 @@ export const MasterConstantsPage: React.FC = () => {
       {/* Add Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
-          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans max-h-[90vh]">
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] overflow-y-auto font-sans max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Plus className="w-4 h-4 text-[#141414]" />
                 <span>إضافة بند جديد في القاموس</span>
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors">
+              <button onClick={() => setShowAddModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#262626] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleAddItem} className="p-6 space-y-4 bg-white text-[#141414]">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم البند / العنوان *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">اسم البند / العنوان *</label>
                 <input
                   type="text"
                   required
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="مثال: إندونيسيا، رعاية صحية، مطار دبي"
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">الكود الإنجليزي / الرمز (اختياري)</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">الكود الإنجليزي / الرمز (اختياري)</label>
                 <input
                   type="text"
                   value={newCode}
                   onChange={(e) => setNewCode(e.target.value)}
                   placeholder="مثال: IDN, HEALTH_CARE, DXB"
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-zinc-100">
+              <div className="flex justify-end gap-3 pt-3 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}

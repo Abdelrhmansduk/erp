@@ -282,7 +282,7 @@ export const Header: React.FC<HeaderProps> = ({
             title="القائمة الجانبية"
             aria-label="القائمة الجانبية"
           >
-            <Menu className="w-4 h-4 shrink-0 text-[#4f46e5]" data-colored-icon="true" />
+            <Menu className="w-4 h-4 shrink-0 text-[#262626]" data-colored-icon="true" />
           </button>
 
           <button
@@ -291,7 +291,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onOpenAppLauncher}
             title={t('appLauncherTitle', 'شاشات القسم المصرح بها')}
           >
-            <Grid className="w-3.5 h-3.5 shrink-0 text-[#2563eb]" data-colored-icon="true" />
+            <Grid className="w-3.5 h-3.5 shrink-0 text-[#707070]" data-colored-icon="true" />
             <span>{t('header.departmentScreens', 'شاشات القسم')}</span>
           </button>
 
@@ -310,13 +310,13 @@ export const Header: React.FC<HeaderProps> = ({
               className="max-w-full px-3.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] cursor-pointer flex items-center gap-1.5 text-xs font-semibold transition-colors overflow-hidden"
               title={selectedBranch}
             >
-              <MapPin className="w-3.5 h-3.5 text-[#e11d48] shrink-0" data-colored-icon="true" />
+              <MapPin className="w-3.5 h-3.5 text-[#262626] shrink-0" data-colored-icon="true" />
               <span className="truncate">{selectedBranch}</span>
               <ChevronDown className="w-3.5 h-3.5 text-[#707070] shrink-0" />
             </button>
 
             {showBranchDropdown && (
-              <div className="absolute top-full mt-2 right-0 bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] w-64 z-[250] p-2.5 space-y-1 shadow-lg">
+              <div className="absolute top-full mt-2 right-0 bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] w-64 z-[250] p-2.5 space-y-1 ">
                 <div className="px-3 py-1.5 text-[11px] font-semibold text-[#707070] border-b border-[#f0f0f0]">
                   {t('header.operationalBranch', 'الفرع التشغيلي:')}
                 </div>
@@ -360,7 +360,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
             {parentSection && (
               <>
-                <span className="text-[#d4d4d8] shrink-0">/</span>
+                <span className="text-[#e0e0e0] shrink-0">/</span>
                 <button
                   type="button"
                   onClick={() => {
@@ -379,7 +379,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               </>
             )}
-            <span className="text-[#d4d4d8] shrink-0">/</span>
+            <span className="text-[#e0e0e0] shrink-0">/</span>
             <h1 className="text-xs font-bold text-[#141414] m-0 truncate" title={resolvedTabTitle}>
               {resolvedTabTitle}
             </h1>
@@ -396,7 +396,7 @@ export const Header: React.FC<HeaderProps> = ({
               title="حالة الاتصال بقاعدة البيانات السحابية"
               aria-label="قاعدة البيانات"
             >
-              <Database className="w-4 h-4 text-[#0d9488] shrink-0" data-colored-icon="true" />
+              <Database className="w-4 h-4 text-[#707070] shrink-0" data-colored-icon="true" />
             </button>
           )}
 
@@ -407,7 +407,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer whitespace-nowrap"
             title="رادار مراقبة وتشخيص الأخطاء المباشر ومحرك الإصلاح الذاتي"
           >
-            <Activity className="w-3.5 h-3.5 text-[#059669] shrink-0" data-colored-icon="true" />
+            <Activity className="w-3.5 h-3.5 text-[#707070] shrink-0" data-colored-icon="true" />
             <span className="hidden 2xl:inline">
               {openErrorCount > 0
                 ? t('header.systemErrors', 'الأخطاء')
@@ -425,7 +425,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#141414] hover:bg-[#262626] text-[#ffffff] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer whitespace-nowrap"
             title="رفع واستخلاص آلي لأي مستند (100 صورة فاتورة / PDF / Word / Excel)"
           >
-            <UploadCloud className="w-3.5 h-3.5 text-[#38bdf8] shrink-0" data-colored-icon="true" />
+            <UploadCloud className="w-3.5 h-3.5 text-[#707070] shrink-0" data-colored-icon="true" />
             <span className="hidden xl:inline">{t('header.docExtractor', 'مستخرج المستندات')}</span>
           </button>
 
@@ -438,7 +438,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-full text-xs font-semibold transition-colors shrink-0 cursor-pointer whitespace-nowrap"
             title="استدعاء المستشار المؤسسي الصوتي والنصي (فارس / نُورة)"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#7c3aed] shrink-0" data-colored-icon="true" />
+            <Sparkles className="w-3.5 h-3.5 text-[#707070] shrink-0" data-colored-icon="true" />
             <span className="hidden 2xl:inline">{t('header.aiAdvisor', 'فارس ونُورة')}</span>
           </button>
 
@@ -461,7 +461,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="fixed inset-x-3 top-[calc(var(--header-height,64px)+8px)] sm:absolute sm:inset-x-auto sm:top-full sm:mt-2 sm:left-0 bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] sm:w-64 max-w-[calc(100vw-24px)] z-[350] p-3 space-y-2 text-right">
                 <div className="px-2 pt-1 pb-2 border-b border-[#f0f0f0] flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#141414] flex items-center gap-1.5">
-                    <Globe className="w-3.5 h-3.5 text-[#0284c7]" data-colored-icon="true" />
+                    <Globe className="w-3.5 h-3.5 text-[#707070]" data-colored-icon="true" />
                     <span>{t('header.officialLanguages', 'لغات النظام الرسمية')}</span>
                   </span>
                   <button
@@ -573,7 +573,7 @@ export const Header: React.FC<HeaderProps> = ({
             title="بطاقة الباركود الوظيفي وحالة بصمة الجلسة"
             aria-label="بطاقة الباركود الوظيفي وحالة البصمة"
           >
-            <Fingerprint className="w-4 h-4 text-[#059669]" data-colored-icon="true" />
+            <Fingerprint className="w-4 h-4 text-[#707070]" data-colored-icon="true" />
           </button>
 
           {/* Smart Notifications & Proactive Compliance Bell */}
@@ -586,7 +586,7 @@ export const Header: React.FC<HeaderProps> = ({
               title="مركز التنبيهات والوثائق وإعادات الإجازات"
               aria-label="مركز التنبيهات والإشعارات"
             >
-              <Bell className="w-4 h-4 text-[#d97706]" data-colored-icon="true" />
+              <Bell className="w-4 h-4 text-[#707070]" data-colored-icon="true" />
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#141414] text-[#ffffff] text-[10px] font-bold font-mono flex items-center justify-center leading-none border border-[#ffffff]">
                   {unreadCount > 99 ? '99+' : unreadCount}
@@ -632,7 +632,7 @@ export const Header: React.FC<HeaderProps> = ({
               title="تسجيل الخروج وتوثيق بصمة الانصراف بالكاميرا أو الباركود"
               aria-label="تسجيل الخروج"
             >
-              <LogOut className="w-4 h-4 text-[#e11d48]" data-colored-icon="true" />
+              <LogOut className="w-4 h-4 text-[#262626]" data-colored-icon="true" />
             </button>
           )}
         </div>
@@ -651,10 +651,10 @@ export const Header: React.FC<HeaderProps> = ({
           dir="rtl"
         >
           <div
-            className="w-full max-w-6xl bg-[#ffffff] rounded-[24px] border border-[#e0e0e0] shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col"
+            className="w-full max-w-6xl bg-[#ffffff] rounded-[24px] border border-[#e0e0e0]  overflow-hidden my-auto max-h-[92vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-5 py-4 bg-[#ffffff] text-[#141414] border-b border-[#e5e5e5] flex items-center justify-between shrink-0">
+            <div className="px-5 py-4 bg-[#ffffff] text-[#141414] border-b border-[#e0e0e0] flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-[12px] bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-center text-[#141414]">
                   <Activity className="w-4 h-4 text-[#141414]" />
@@ -666,7 +666,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 onClick={() => setShowErrorMonitorModal(false)}
-                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-[#141414] flex items-center justify-center cursor-pointer transition-colors"
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] flex items-center justify-center cursor-pointer transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>

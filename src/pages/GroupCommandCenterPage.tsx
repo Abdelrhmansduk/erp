@@ -104,7 +104,7 @@ export const GroupCommandCenterPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -120,7 +120,7 @@ export const GroupCommandCenterPage: React.FC = () => {
               <span className="pill-tag-mint" style={{ fontSize: '11px' }}>
                 {i18n.t("exec.groupGovernance", "الحوكمة والقيادة التنفيذية")}
               </span>
-              <span style={{ fontSize: '12px', color: '#a1a1aa' }}>خالد السليم للاستقدام والتشغيل</span>
+              <span style={{ fontSize: '12px', color: '#adadad' }}>خالد السليم للاستقدام والتشغيل</span>
             </div>
             <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, margin: '0', letterSpacing: '-0.02em', color: '#ffffff', fontFamily: 'var(--font-family-display)' }}>
               مركز القيادة والرقابة التنفيذية للمجموعة
@@ -164,7 +164,7 @@ export const GroupCommandCenterPage: React.FC = () => {
         </div>
 
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <div style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>إجمالي كادر المجموعة (HR Live)</div>
+          <div style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>إجمالي كادر المجموعة (HR Live)</div>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {liveEmployeeCount.toLocaleString('en-US')} موظف
           </div>
@@ -179,13 +179,13 @@ export const GroupCommandCenterPage: React.FC = () => {
         </div>
 
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
-          <div style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>الطلبات السارية في الشركات</div>
+          <div style={{ fontSize: '13px', color: '#adadad', fontWeight: 550 }}>الطلبات السارية في الشركات</div>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>1,240 طلب</div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>استقدام وتأجير وتشغيل</span>
         </div>
 
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <div style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>مرشحو مسار ATS الدولي</div>
+          <div style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>مرشحو مسار ATS الدولي</div>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>3,410 مرشح</div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>من 5 مكاتب خارجية</span>
         </div>
@@ -193,7 +193,7 @@ export const GroupCommandCenterPage: React.FC = () => {
 
       {/* Group Companies Comparison Matrix */}
       <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-        <div className="p-4 border-b border-zinc-100 bg-white">
+        <div className="p-4 border-b border-[#e0e0e0] bg-white">
           <h2 className="text-sm font-bold text-[#141414] flex items-center gap-2 m-0">
             <Building2 className="w-4 h-4 text-[#141414]" />
             <span>مصفوفة أداء الكيانات الخمسة المعتمدة (Consolidated 5-Companies Matrix)</span>
@@ -201,8 +201,8 @@ export const GroupCommandCenterPage: React.FC = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-right text-xs text-zinc-700">
-            <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+          <table className="w-full text-right text-xs text-[#141414]">
+            <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
               <tr>
                 <th className="p-3.5">اسم الشركة / الكيان</th>
                 <th className="p-3.5">الفروع</th>
@@ -213,9 +213,9 @@ export const GroupCommandCenterPage: React.FC = () => {
                 <th className="p-3.5 text-center">التحكم</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-[#e0e0e0]">
               {companies.map((c) => (
-                <tr key={c.id} className="hover:bg-zinc-50 transition-colors">
+                <tr key={c.id} className="hover:bg-[#f3f3f3] transition-colors">
                   <td className="p-3.5 font-bold text-[#141414]">
                     <div className="flex items-center gap-2.5">
                       <CorporateAvatar size="sm" archetype="saudi-executive" status="verified" name={c.name} />
@@ -223,7 +223,7 @@ export const GroupCommandCenterPage: React.FC = () => {
                     </div>
                   </td>
                   <td className="p-3.5">{c.branchesCount} فروع</td>
-                  <td className="p-3.5 font-bold text-zinc-800">{c.employeesCount} موظف</td>
+                  <td className="p-3.5 font-bold text-[#141414]">{c.employeesCount} موظف</td>
                   <td className="p-3.5 font-mono">{c.activeOrdersCount} طلب</td>
                   <td className="p-3.5 font-mono font-bold text-[#141414]">
                     {c.revenueYTD.toLocaleString('ar-SA')} ⃁
@@ -264,19 +264,19 @@ export const GroupCommandCenterPage: React.FC = () => {
           {auditLogs.map((log) => (
             <div
               key={log.id}
-              className="flex items-center justify-between p-3 bg-zinc-50 rounded-2xl border border-zinc-100 text-xs"
+              className="flex items-center justify-between p-3 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] text-xs"
             >
               <div className="flex items-center gap-3">
                 <CorporateAvatar size="sm" archetype="saudi-executive" status="verified" name={log.actorName} />
                 <div>
                   <div className="flex items-center gap-2 mb-0.5">
                     <span className="font-bold text-[#141414]">{log.actorName}</span>
-                    <span className="bg-zinc-200 text-[#141414] px-2 py-0.5 rounded-full text-[10px] font-bold">
+                    <span className="bg-[#f3f3f3] text-[#141414] px-2 py-0.5 rounded-full text-[10px] font-bold">
                       {log.actionType}
                     </span>
                     <span className="text-[11px] text-[#707070] font-mono">IP: {log.ipAddress}</span>
                   </div>
-                  <div className="text-zinc-600">{log.details}</div>
+                  <div className="text-[#141414]">{log.details}</div>
                 </div>
               </div>
               <div className="text-[11px] text-[#707070] font-mono">
@@ -290,13 +290,13 @@ export const GroupCommandCenterPage: React.FC = () => {
       {/* Impersonation Modal */}
       {showImpersonateModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowImpersonateModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <UserCheck className="w-4 h-4 text-[#141414]" />
                 <span>دخول النظام بصلاحيات موظف (Act As Employee)</span>
               </h3>
-              <button onClick={() => setShowImpersonateModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors">
+              <button onClick={() => setShowImpersonateModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#141414] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -307,13 +307,13 @@ export const GroupCommandCenterPage: React.FC = () => {
               </p>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
+                <label className="block text-xs font-semibold text-[#141414] mb-1">
                   اختيار الشركة (Target Company) *
                 </label>
                 <select
                   value={selectedTargetCompany}
                   onChange={(e) => setSelectedTargetCompany(e.target.value as CompanyId)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option value="SAF">شركة السفير الماسي</option>
                   <option value="YAQ">شركة ياقوت نجد</option>
@@ -323,32 +323,32 @@ export const GroupCommandCenterPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
+                <label className="block text-xs font-semibold text-[#141414] mb-1">
                   الموظف المستهدف (Target Employee) *
                 </label>
                 <input
                   type="text"
                   value={selectedEmpName}
                   onChange={(e) => setSelectedEmpName(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
+                <label className="block text-xs font-semibold text-[#141414] mb-1">
                   سبب الدخول والمراجعة الرقابية (Reason for Audit Log) *
                 </label>
                 <textarea
                   value={impersonationReason}
                   onChange={(e) => setImpersonationReason(e.target.value)}
                   rows={3}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] leading-relaxed focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] leading-relaxed focus:border-[#141414] focus:outline-none"
                   required
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-zinc-100">
+              <div className="flex justify-end gap-3 pt-3 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowImpersonateModal(false)}

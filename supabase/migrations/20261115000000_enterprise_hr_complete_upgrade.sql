@@ -1,6 +1,6 @@
 -- =============================================================================
--- Migration: 20261115000000_jisr_hr_complete_upgrade.sql
--- Purpose: Complete Jisr 2.0 Parity Upgrade for Khalid Al-Sulaim Holding Group ERP:
+-- Migration: 20261115000000_enterprise_hr_complete_upgrade.sql
+-- Purpose: Complete Hr 2.0 Parity Upgrade for Khalid Al-Sulaim Holding Group ERP:
 --   1. Smart Shifts, Ramadan Auto-Hours, GPS Geofencing, Kiosk & Punch Corrections
 --   2. Multi-Level Approval Workflows, Manager Delegation & SLA Escalation
 --   3. Pay Groups, Employee Cost Center Allocations, Monthly IFRS Accruals & Skip Installment
@@ -9,7 +9,7 @@
 --   6. Corporate HR ATS, 360° Performance Reviews, L&D Training & 5-Dept Offboarding Gate
 -- =============================================================================
 
--- 1. Extend employees with Jisr 2.0 organizational & financial attributes
+-- 1. Extend employees with Hr 2.0 organizational & financial attributes
 ALTER TABLE IF EXISTS public.employees
   ADD COLUMN IF NOT EXISTS manager_id TEXT,
   ADD COLUMN IF NOT EXISTS pay_group TEXT DEFAULT 'الإدارة العامة',
@@ -319,7 +319,7 @@ CREATE INDEX IF NOT EXISTS idx_hr_business_trips_company ON public.hr_business_t
 CREATE INDEX IF NOT EXISTS idx_hr_corp_cand_company ON public.hr_corporate_candidates(company_id, stage);
 CREATE INDEX IF NOT EXISTS idx_hr_offboarding_company ON public.hr_offboarding_clearances(company_id, status);
 
--- Enable Row Level Security (RLS) across all new Jisr HR tables
+-- Enable Row Level Security (RLS) across all new Hr HR tables
 DO $$
 DECLARE
   tbl TEXT;
@@ -343,14 +343,14 @@ BEGIN
   ]
   LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', tbl);
-    EXECUTE format('DROP POLICY IF EXISTS "jisr_hr_select_%I" ON public.%I;', tbl, tbl);
+    EXECUTE format('DROP POLICY IF EXISTS "hr_core_select_%I" ON public.%I;', tbl, tbl);
     EXECUTE format(
-      'CREATE POLICY "jisr_hr_select_%I" ON public.%I FOR SELECT TO authenticated USING ((SELECT auth.uid()) IS NOT NULL);',
+      'CREATE POLICY "hr_core_select_%I" ON public.%I FOR SELECT TO authenticated USING ((SELECT auth.uid()) IS NOT NULL);',
       tbl, tbl
     );
-    EXECUTE format('DROP POLICY IF EXISTS "jisr_hr_modify_%I" ON public.%I;', tbl, tbl);
+    EXECUTE format('DROP POLICY IF EXISTS "hr_core_modify_%I" ON public.%I;', tbl, tbl);
     EXECUTE format(
-      'CREATE POLICY "jisr_hr_modify_%I" ON public.%I FOR ALL TO authenticated USING ((SELECT auth.uid()) IS NOT NULL) WITH CHECK ((SELECT auth.uid()) IS NOT NULL);',
+      'CREATE POLICY "hr_core_modify_%I" ON public.%I FOR ALL TO authenticated USING ((SELECT auth.uid()) IS NOT NULL) WITH CHECK ((SELECT auth.uid()) IS NOT NULL);',
       tbl, tbl
     );
   END LOOP;

@@ -9,7 +9,7 @@ import {
   resolveAttendanceCutoffWindow,
   type AdmsPunchEventRecord,
   type AttendanceCutoffPolicy,
-} from '../../services/jisrSpendCardsAndAttendanceCutoffEngine';
+} from '../../services/hrSpendCardsAndAttendanceCutoffEngine';
 
 interface AttendanceCutoffAndAdmsHubProps {
   companyId: string;

@@ -266,7 +266,7 @@ export const ReportsPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
         }}
       >
@@ -324,26 +324,26 @@ export const ReportsPage: React.FC = () => {
         </div>
 
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
-          <span style={{ fontSize: '13px', fontWeight: 550, color: '#a1a1aa' }}>صافي الأرباح التشغيلية</span>
+          <span style={{ fontSize: '13px', fontWeight: 550, color: '#adadad' }}>صافي الأرباح التشغيلية</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>{totalNetProfit.toLocaleString()} ⃁</div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>هامش ربح مجمع 57.6%</span>
         </div>
 
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', fontWeight: 550, color: '#71717a' }}>عقود الاستقدام (مساند)</span>
+          <span style={{ fontSize: '13px', fontWeight: 550, color: '#707070' }}>عقود الاستقدام (مساند)</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>{totalRecruitment} عقد</div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>دورة الإنجاز 28 يوماً</span>
         </div>
 
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', fontWeight: 550, color: '#71717a' }}>عقود التأجير والتشغيل</span>
+          <span style={{ fontSize: '13px', fontWeight: 550, color: '#707070' }}>عقود التأجير والتشغيل</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>{totalRent} عقد</div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>تغطية تشغيلية كاملة</span>
         </div>
       </div>
 
       {/* Sub Tabs Navigation */}
-      <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-[#e0e0e0] pb-3">
         {[
           { id: 'executive', label: 'الملخص التنفيذي الموحد' },
           { id: 'sales', label: 'تقارير المبيعات والتعاقدات' },
@@ -361,9 +361,9 @@ export const ReportsPage: React.FC = () => {
                 padding: '6px 16px',
                 borderRadius: '9999px',
                 border: '1px solid',
-                borderColor: isActive ? '#141414' : '#e4e4e7',
+                borderColor: isActive ? '#141414' : '#e0e0e0',
                 backgroundColor: isActive ? '#141414' : '#ffffff',
-                color: isActive ? '#ffffff' : '#27272a',
+                color: isActive ? '#ffffff' : '#262626',
                 fontWeight: isActive ? 550 : 420,
                 fontSize: '12.5px',
                 cursor: 'pointer',
@@ -379,7 +379,7 @@ export const ReportsPage: React.FC = () => {
       {/* Filters Bar */}
       <div className="card-pricing" style={{ padding: '14px 20px', borderRadius: '16px', background: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div className="flex flex-wrap gap-1.5 items-center">
-          <span className="text-xs font-semibold text-zinc-700 ml-2">الفترة الزمنية:</span>
+          <span className="text-xs font-semibold text-[#141414] ml-2">الفترة الزمنية:</span>
           {(['today', 'month', 'quarter', 'year'] as const).map((p) => {
             const labels = { today: 'اليوم', month: 'هذا الشهر', quarter: 'الربع الثالث (Q3)', year: 'السنة المالية 2026' };
             const isActive = selectedPeriod === p;
@@ -393,9 +393,9 @@ export const ReportsPage: React.FC = () => {
                   fontSize: '11.5px',
                   fontWeight: isActive ? 550 : 420,
                   border: '1px solid',
-                  borderColor: isActive ? '#141414' : '#e4e4e7',
+                  borderColor: isActive ? '#141414' : '#e0e0e0',
                   backgroundColor: isActive ? '#141414' : '#ffffff',
-                  color: isActive ? '#ffffff' : '#27272a',
+                  color: isActive ? '#ffffff' : '#262626',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -407,12 +407,12 @@ export const ReportsPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-zinc-700">الشركة:</span>
+          <span className="text-xs font-semibold text-[#141414]">الشركة:</span>
           <select
             aria-label="تصفية حسب الشركة"
             value={selectedCompany}
             onChange={(e) => setSelectedCompany(e.target.value)}
-            className="bg-zinc-50 border border-zinc-200 rounded-full py-1.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+            className="bg-[#f3f3f3] border border-[#e0e0e0] rounded-full py-1.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
           >
             <option value="all">كافة شركات المجموعة الموحدة</option>
             <option value="SAF">شركة السفير الماسي (SAF RC01)</option>
@@ -427,7 +427,7 @@ export const ReportsPage: React.FC = () => {
       {/* 1. Executive Summary Tab */}
       {activeReportTab === 'executive' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-2">
+          <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between flex-wrap gap-2">
             <h2 className="text-sm font-bold text-[#141414] flex items-center gap-2 m-0">
               <Building2 className="w-4 h-4 text-[#141414]" />
               <span>جدول الأداء المالي والتشغيلي المقارن لشركات المجموعة</span>
@@ -442,8 +442,8 @@ export const ReportsPage: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">الشركة / الكيان</th>
                   <th className="p-3.5">عقود الاستقدام</th>
@@ -454,9 +454,9 @@ export const ReportsPage: React.FC = () => {
                   <th className="p-3.5">هامش الربح</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {reportData.map((row) => (
-                  <tr key={row.id} className="hover:bg-zinc-50 transition-colors">
+                  <tr key={row.id} className="hover:bg-[#f3f3f3] transition-colors">
                     <td className="p-3.5 font-bold text-[#141414]">{row.name}</td>
                     <td className="p-3.5 font-mono">{row.recruitment_contracts} عقد</td>
                     <td className="p-3.5 font-mono">{row.rent_contracts} عقد</td>
@@ -470,7 +470,7 @@ export const ReportsPage: React.FC = () => {
                 ))}
               </tbody>
               <tfoot>
-                <tr className="bg-zinc-50 font-bold text-[#141414] border-t border-zinc-200">
+                <tr className="bg-[#f3f3f3] font-bold text-[#141414] border-t border-[#e0e0e0]">
                   <td className="p-3.5">الإجمالي المجمع للمجموعة</td>
                   <td className="p-3.5 font-mono">{totalRecruitment} عقد</td>
                   <td className="p-3.5 font-mono">{totalRent} عقد</td>
@@ -488,7 +488,7 @@ export const ReportsPage: React.FC = () => {
       {/* 2. Sales Reports Tab */}
       {activeReportTab === 'sales' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-2">
+          <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between flex-wrap gap-2">
             <div>
               <h3 className="text-sm font-bold text-[#141414] m-0">تقرير المبيعات والتعاقدات حسب القنوات وفروع المجموعة</h3>
               <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '4px', display: 'inline-block' }}>إجمالي المبيعات: 590,400 ⃁</span>
@@ -502,8 +502,8 @@ export const ReportsPage: React.FC = () => {
             />
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">قناة البيع / الفرع</th>
                   <th className="p-3.5">عدد العقود</th>
@@ -513,9 +513,9 @@ export const ReportsPage: React.FC = () => {
                   <th className="p-3.5">معدل التحويل</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {salesReportData.map((s, idx) => (
-                  <tr key={idx} className="hover:bg-zinc-50">
+                  <tr key={idx} className="hover:bg-[#f3f3f3]">
                     <td className="p-3.5 font-bold text-[#141414]">{s.channel}</td>
                     <td className="p-3.5 font-mono">{s.count} عقد</td>
                     <td className="p-3.5 font-mono">{s.avg.toLocaleString()} ⃁</td>
@@ -533,7 +533,7 @@ export const ReportsPage: React.FC = () => {
       {/* 3. Recruitment Logistics & Timelines Tab */}
       {activeReportTab === 'recruitment' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-2">
+          <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between flex-wrap gap-2">
             <div>
               <h3 className="text-sm font-bold text-[#141414] m-0">تقرير مدد الاستقدام ودورات الإنجاز حسب الدول والمكاتب</h3>
               <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '4px', display: 'inline-block' }}>متوسط الوصول: 28 يوماً</span>
@@ -547,8 +547,8 @@ export const ReportsPage: React.FC = () => {
             />
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">الدولة ومكتب المصدر</th>
                   <th className="p-3.5">العقود المنفذة</th>
@@ -558,12 +558,12 @@ export const ReportsPage: React.FC = () => {
                   <th className="p-3.5">معدل رضا العملاء</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {recruitmentReportData.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-zinc-50">
+                  <tr key={idx} className="hover:bg-[#f3f3f3]">
                     <td className="p-3.5 font-bold text-[#141414]">{item.country}</td>
                     <td className="p-3.5 font-mono">{item.count} تأشيرة</td>
-                    <td className="p-3.5 font-mono text-zinc-600">{item.visa_days}</td>
+                    <td className="p-3.5 font-mono text-[#141414]">{item.visa_days}</td>
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{item.total_days}</td>
                     <td className="p-3.5 font-bold text-[#141414]">{item.on_time}</td>
                     <td className="p-3.5"><Badge text={item.rating} type="success" /></td>
@@ -578,7 +578,7 @@ export const ReportsPage: React.FC = () => {
       {/* 4. Financial & Profit Margins Tab */}
       {activeReportTab === 'financial' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-2">
+          <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between flex-wrap gap-2">
             <div>
               <h2 className="text-sm font-bold text-[#141414] m-0">التقرير المالي التفصيلي وتكاليف التشغيل وهوامش الأرباح</h2>
               <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '4px', display: 'inline-block' }}>صافي الأرباح: 340,400 ⃁</span>
@@ -592,8 +592,8 @@ export const ReportsPage: React.FC = () => {
             />
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">بند الإيراد / التكلفة</th>
                   <th className="p-3.5">المبلغ الإجمالي</th>
@@ -604,14 +604,14 @@ export const ReportsPage: React.FC = () => {
                   <th className="p-3.5">الحالة المحاسبية</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {financialReportData.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-zinc-50">
+                  <tr key={idx} className="hover:bg-[#f3f3f3]">
                     <td className="p-3.5 font-bold text-[#141414]">{row.item}</td>
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{row.total.toLocaleString()} ⃁</td>
                     <td className="p-3.5 font-mono text-[#707070]">{row.vat.toLocaleString()} ⃁</td>
                     <td className="p-3.5 font-mono text-[#141414]">{row.direct.toLocaleString()} ⃁</td>
-                    <td className="p-3.5 font-mono text-zinc-600">{row.admin.toLocaleString()} ⃁</td>
+                    <td className="p-3.5 font-mono text-[#141414]">{row.admin.toLocaleString()} ⃁</td>
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{row.net.toLocaleString()} ⃁</td>
                     <td className="p-3.5"><Badge text={row.status} type="success" /></td>
                   </tr>

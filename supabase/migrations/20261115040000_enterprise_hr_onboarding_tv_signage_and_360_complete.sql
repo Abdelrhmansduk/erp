@@ -1,11 +1,11 @@
 -- =============================================================================
--- Migration: 20261115040000_jisr_onboarding_tv_signage_and_360_complete.sql
--- Purpose: Complete Jisr 360° Cloud Schema, Payroll Cutoff & Retroactive Pay,
+-- Migration: 20261115040000_enterprise_hr_onboarding_tv_signage_and_360_complete.sql
+-- Purpose: Complete Hr 360° Cloud Schema, Payroll Cutoff & Retroactive Pay,
 --          Exit Interviews, Automated New Employee Onboarding Consequences,
 --          and Corporate Network Digital Signage / Smart TV Welcome Broadcasts.
 -- =============================================================================
 
--- 1. Extend public.employees with complete Jisr 360° compliance & personal attributes
+-- 1. Extend public.employees with complete Hr 360° compliance & personal attributes
 ALTER TABLE IF EXISTS public.employees
   ADD COLUMN IF NOT EXISTS name_en TEXT,
   ADD COLUMN IF NOT EXISTS marital_status TEXT DEFAULT 'أعزب/عزباء',
@@ -241,14 +241,14 @@ BEGIN
   ]
   LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', tbl);
-    EXECUTE format('DROP POLICY IF EXISTS "jisr_360_select_%I" ON public.%I;', tbl, tbl);
+    EXECUTE format('DROP POLICY IF EXISTS "hr_360_select_%I" ON public.%I;', tbl, tbl);
     EXECUTE format(
-      'CREATE POLICY "jisr_360_select_%I" ON public.%I FOR SELECT TO authenticated USING ((SELECT auth.uid()) IS NOT NULL);',
+      'CREATE POLICY "hr_360_select_%I" ON public.%I FOR SELECT TO authenticated USING ((SELECT auth.uid()) IS NOT NULL);',
       tbl, tbl
     );
-    EXECUTE format('DROP POLICY IF EXISTS "jisr_360_modify_%I" ON public.%I;', tbl, tbl);
+    EXECUTE format('DROP POLICY IF EXISTS "hr_360_modify_%I" ON public.%I;', tbl, tbl);
     EXECUTE format(
-      'CREATE POLICY "jisr_360_modify_%I" ON public.%I FOR ALL TO authenticated USING ((SELECT auth.uid()) IS NOT NULL) WITH CHECK ((SELECT auth.uid()) IS NOT NULL);',
+      'CREATE POLICY "hr_360_modify_%I" ON public.%I FOR ALL TO authenticated USING ((SELECT auth.uid()) IS NOT NULL) WITH CHECK ((SELECT auth.uid()) IS NOT NULL);',
       tbl, tbl
     );
   END LOOP;

@@ -31,7 +31,7 @@ export const BudgetVsActualWidget: React.FC<{ items?: BudgetItem[] }> = ({ items
     <div className="space-y-6">
       {/* Top Metrics Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-[#f3f3f3] text-[#141414] shadow-sm border border-[#e0e0e0]">
+        <div className="p-4 rounded-2xl bg-[#f3f3f3] text-[#141414]  border border-[#e0e0e0]">
           <div className="flex items-center justify-between text-[#707070] text-xs mb-1">
             <span>إجمالي الميزانية المعتمدة</span>
             <DollarSign className="w-4 h-4 text-[#141414]" />
@@ -40,17 +40,17 @@ export const BudgetVsActualWidget: React.FC<{ items?: BudgetItem[] }> = ({ items
           <div className="text-[10px] text-[#707070] mt-1">المخصص لعام 2026</div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white shadow-xs border border-zinc-200">
-          <div className="flex items-center justify-between text-zinc-600 text-xs mb-1">
+        <div className="p-4 rounded-2xl bg-white  border border-[#e0e0e0]">
+          <div className="flex items-center justify-between text-[#707070] text-xs mb-1">
             <span>المصروف الفعلي (Actual)</span>
             <TrendingDown className="w-4 h-4 text-[#141414]" />
           </div>
-          <div className="text-xl font-bold font-mono text-zinc-900">{totalSpent.toLocaleString()} ⃁</div>
+          <div className="text-xl font-bold font-mono text-[#141414]">{totalSpent.toLocaleString()} ⃁</div>
           <div className="text-[10px] text-[#707070] mt-1">{((totalSpent / totalAllocated) * 100).toFixed(1)}% من الميزانية</div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white shadow-xs border border-zinc-200">
-          <div className="flex items-center justify-between text-zinc-600 text-xs mb-1">
+        <div className="p-4 rounded-2xl bg-white  border border-[#e0e0e0]">
+          <div className="flex items-center justify-between text-[#707070] text-xs mb-1">
             <span>التزامات قيد الصرف (Committed)</span>
             <TrendingUp className="w-4 h-4 text-[#141414]" />
           </div>
@@ -58,8 +58,8 @@ export const BudgetVsActualWidget: React.FC<{ items?: BudgetItem[] }> = ({ items
           <div className="text-[10px] text-[#707070] mt-1">عقود وأوامر شراء معتمدة</div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white shadow-xs border border-zinc-200">
-          <div className="flex items-center justify-between text-zinc-600 text-xs mb-1">
+        <div className="p-4 rounded-2xl bg-white  border border-[#e0e0e0]">
+          <div className="flex items-center justify-between text-[#707070] text-xs mb-1">
             <span>الفائض / المتبقي المتاح</span>
             {totalRemaining >= 0 ? <CheckCircle2 className="w-4 h-4 text-[#141414]" /> : <AlertTriangle className="w-4 h-4 text-[#141414]" />}
           </div>
@@ -71,8 +71,8 @@ export const BudgetVsActualWidget: React.FC<{ items?: BudgetItem[] }> = ({ items
       </div>
 
       {/* Breakdown Table */}
-      <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-xs">
-        <div className="p-4 border-b border-zinc-100 flex items-center justify-between">
+      <div className="bg-white rounded-2xl border border-[#e0e0e0] overflow-hidden ">
+        <div className="p-4 border-b border-[#e0e0e0] flex items-center justify-between">
           <div>
             <h4 className="text-sm font-bold text-[#141414] m-0">تفاصيل الميزانيات المعتمدة مقابل الفعلي حسب القسم</h4>
             <p className="text-xs text-[#707070] mt-0.5">مراقبة الانحرافات المالية والتحكم في الإنفاق التشغيلي والمنافسات</p>
@@ -82,7 +82,7 @@ export const BudgetVsActualWidget: React.FC<{ items?: BudgetItem[] }> = ({ items
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200 text-right">
+              <tr className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0] text-right">
                 <th className="p-3">بند الميزانية</th>
                 <th className="p-3">القسم / الإدارة</th>
                 <th className="p-3 text-center">الميزانية المعتمدة</th>
@@ -92,7 +92,7 @@ export const BudgetVsActualWidget: React.FC<{ items?: BudgetItem[] }> = ({ items
                 <th className="p-3 text-center">الحالة</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-[#e0e0e0]">
               {items.map((item) => {
                 const totalUsed = item.spentAmount + item.committedAmount;
                 const percent = Math.min(100, Math.round((totalUsed / item.allocatedBudget) * 100));
@@ -101,17 +101,17 @@ export const BudgetVsActualWidget: React.FC<{ items?: BudgetItem[] }> = ({ items
                 const isOver = percent >= 100;
 
                 return (
-                  <tr key={item.id} className="hover:bg-zinc-50/80 transition-colors">
-                    <td className="p-3 font-semibold text-zinc-900">{item.category}</td>
-                    <td className="p-3 text-zinc-600">{item.department}</td>
+                  <tr key={item.id} className="hover:bg-[#f3f3f3] transition-colors">
+                    <td className="p-3 font-semibold text-[#141414]">{item.category}</td>
+                    <td className="p-3 text-[#707070]">{item.department}</td>
                     <td className="p-3 text-center font-mono font-bold">{item.allocatedBudget.toLocaleString()} ⃁</td>
-                    <td className="p-3 text-center font-mono text-zinc-800">{item.spentAmount.toLocaleString()} ⃁</td>
+                    <td className="p-3 text-center font-mono text-[#141414]">{item.spentAmount.toLocaleString()} ⃁</td>
                     <td className={`p-3 text-center font-mono font-bold ${remaining < 0 ? 'text-[#141414]' : 'text-[#141414]'}`}>
                       {remaining.toLocaleString()} ⃁
                     </td>
                     <td className="p-3">
                       <div className="flex items-center gap-2">
-                        <div className="flex-grow h-2 bg-zinc-100 rounded-full overflow-hidden">
+                        <div className="flex-grow h-2 bg-[#f3f3f3] rounded-full overflow-hidden">
                           <div
                             className={`h-full rounded-full transition-all ${
                               isOver ? 'bg-[#141414]' : isWarning ? 'bg-[#141414]' : 'bg-[#141414]'

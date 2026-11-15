@@ -91,14 +91,14 @@ export const AvailableWorkersCatalog: React.FC<AvailableWorkersCatalogProps> = (
   // Helper for office badge
   const getOfficeBadge = (officeId: GroupOfficeId) => {
     const comp = GROUP_OFFICES[officeId];
-    if (!comp) return { name: officeId, color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' };
+    if (!comp) return { name: officeId, color: '#707070', bg: 'rgba(59, 130, 246, 0.1)' };
     return { name: comp.name, color: comp.primaryColor, bg: `${comp.primaryColor}20` };
   };
 
   return (
     <div className="space-y-6 text-[#141414] font-sans" dir="rtl">
       {/* Header & Filter Controls Bar - Dark Executive */}
-      <div className="bg-[#ffffff] rounded-2xl border border-[#e0e0e0] p-5 shadow-md space-y-4">
+      <div className="bg-[#ffffff] rounded-2xl border border-[#e0e0e0] p-5  space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -139,7 +139,7 @@ export const AvailableWorkersCatalog: React.FC<AvailableWorkersCatalogProps> = (
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="بحث بالاسم، الجواز، المهارة..."
-              className="w-full pr-9 pl-3 py-2 rounded-xl text-xs bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] placeholder-zinc-500 focus:outline-none focus:border-[#141414]"
+              className="w-full pr-9 pl-3 py-2 rounded-xl text-xs bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] placeholder-[#141414] focus:outline-none focus:border-[#141414]"
             />
           </div>
 
@@ -199,7 +199,7 @@ export const AvailableWorkersCatalog: React.FC<AvailableWorkersCatalogProps> = (
             onClick={() => setTrialsFilter('all')}
             className={`px-3 py-1 rounded-xl font-bold transition-all cursor-pointer ${
               trialsFilter === 'all' 
-                ? 'bg-[#141414] text-[#ffffff] shadow-md ' 
+                ? 'bg-[#141414] text-[#ffffff]  ' 
                 : 'bg-[#f3f3f3] text-[#707070] hover:text-[#141414] border border-[#e0e0e0]'
             }`}
           >
@@ -210,8 +210,8 @@ export const AvailableWorkersCatalog: React.FC<AvailableWorkersCatalogProps> = (
             onClick={() => setTrialsFilter('zero')}
             className={`px-3 py-1 rounded-xl font-bold transition-all cursor-pointer ${
               trialsFilter === 'zero' 
-                ? 'bg-[#141414] text-[#ffffff] shadow-md' 
-                : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#eaeaea]'
+                ? 'bg-[#141414] text-[#ffffff] ' 
+                : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#f3f3f3]'
             }`}
           >
             استقدام جديد (0 تجارب سابقة)
@@ -221,8 +221,8 @@ export const AvailableWorkersCatalog: React.FC<AvailableWorkersCatalogProps> = (
             onClick={() => setTrialsFilter('one_plus')}
             className={`px-3 py-1 rounded-xl font-bold transition-all cursor-pointer ${
               trialsFilter === 'one_plus' 
-                ? 'bg-[#141414] text-[#ffffff] shadow-md ' 
-                : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#eaeaea]'
+                ? 'bg-[#141414] text-[#ffffff]  ' 
+                : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#f3f3f3]'
             }`}
           >
             عاملات خاضت تجارب سابقة (تنازل كفيل أول / إرجاع)
@@ -232,7 +232,7 @@ export const AvailableWorkersCatalog: React.FC<AvailableWorkersCatalogProps> = (
 
       {/* Workers Grid */}
       {availableWorkers.length === 0 ? (
-        <div className="bg-[#ffffff] rounded-2xl border border-[#e0e0e0] p-12 text-center shadow-md">
+        <div className="bg-[#ffffff] rounded-2xl border border-[#e0e0e0] p-12 text-center ">
           <div className="w-16 h-16 rounded-2xl bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] flex items-center justify-center mx-auto mb-4">
             <UserCheck className="w-8 h-8" />
           </div>
@@ -249,7 +249,7 @@ export const AvailableWorkersCatalog: React.FC<AvailableWorkersCatalogProps> = (
               setSelectedSkill('all');
               setTrialsFilter('all');
             }}
-            className="mt-4 px-4 py-2 rounded-xl bg-[#141414] text-[#ffffff] text-xs font-bold hover:bg-[#262626] transition-all cursor-pointer shadow-md"
+            className="mt-4 px-4 py-2 rounded-xl bg-[#141414] text-[#ffffff] text-xs font-bold hover:bg-[#262626] transition-all cursor-pointer "
           >
             إعادة تعيين الفلاتر
           </button>
@@ -261,7 +261,7 @@ export const AvailableWorkersCatalog: React.FC<AvailableWorkersCatalogProps> = (
             return (
               <div
                 key={worker.id}
-                className="bg-[#ffffff] rounded-2xl border border-[#e0e0e0] hover:border-[#141414] shadow-md transition-all duration-300 overflow-hidden flex flex-col group relative"
+                className="bg-[#ffffff] rounded-2xl border border-[#e0e0e0] hover:border-[#141414]  transition-all duration-300 overflow-hidden flex flex-col group relative"
               >
                 {/* Top Accent Strip */}
                 <div 
@@ -387,7 +387,7 @@ export const AvailableWorkersCatalog: React.FC<AvailableWorkersCatalogProps> = (
                   <button
                     type="button"
                     onClick={() => onBookTransfer(worker)}
-                    className="px-3 py-1.5 rounded-xl text-xs font-bold text-[#ffffff] bg-[#141414] hover:bg-[#262626] shadow-md transition-all flex items-center justify-center gap-1 cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold text-[#ffffff] bg-[#141414] hover:bg-[#262626]  transition-all flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-[#141414]" />
                     <span>حجز لعميل</span>

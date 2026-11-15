@@ -70,10 +70,10 @@ import {
   calculateEarnedWageAccess,
   computeEmployeeNitaqatWeight,
   calculateSaudiOvertimePay,
-  calculateJisrFinalSettlement,
+  calculateHrFinalSettlement,
   computeEmployee360Completeness,
-  JisrSeparationType,
-} from '../../services/jisrAdvancedComplianceEngine';
+  HrSeparationType,
+} from '../../services/hrAdvancedComplianceEngine';
 import { DEFAULT_HR_SHIFTS } from '../../services/hrShiftAttendanceEngine';
 import { RecordQuickActions } from '../common/RecordQuickActions';
 import { HrLettersStudioModal } from './HrLettersStudioModal';
@@ -236,7 +236,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
   });
 
   const [ewaWithdrawInput, setEwaWithdrawInput] = useState<number>(500);
-  const [settlementSepType, setSettlementSepType] = useState<JisrSeparationType>(
+  const [settlementSepType, setSettlementSepType] = useState<HrSeparationType>(
     'CONTRACT_EXPIRY_OR_EMPLOYER_ART84'
   );
 
@@ -677,7 +677,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
 
   const finalSettlementPreview = useMemo(
     () =>
-      calculateJisrFinalSettlement({
+      calculateHrFinalSettlement({
         hireDate: emp.hire_date || '2024-01-15',
         lastWorkingDay: empClearance?.last_working_day || new Date().toISOString().slice(0, 10),
         basicSalary,
@@ -1380,8 +1380,8 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
             </div>
           </div>
 
-          {/* 11-Tab Employee 360° Pill Navigation Strip */}
-          <div className="px-6 py-2.5 bg-[#ffffff] border-b border-[#e0e0e0] flex items-center gap-1.5 overflow-x-auto no-scrollbar print:hidden">
+          {/* Grouped 3-Category Employee 360° Navigation (Mobile Pill Strip + Desktop Side-Rail) */}
+          <div className="lg:hidden px-6 py-2.5 bg-[#ffffff] border-b border-[#e0e0e0] flex items-center gap-1.5 overflow-x-auto no-scrollbar print:hidden">
             {[
               { id: 'overview', label: 'البيانات والعقد', icon: Briefcase },
               { id: 'payroll', label: 'الرواتب وEWA ومراكز التكلفة', icon: DollarSign },
@@ -1435,8 +1435,85 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
             })}
           </div>
 
-          {/* Drawer Body Content */}
-          <div className="p-6 overflow-y-auto flex-1 space-y-4">
+          {/* Drawer Body Content with Desktop Grouped Side-Rail */}
+          <div className="flex-1 flex overflow-hidden">
+            <aside className="hidden lg:flex lg:w-64 shrink-0 border-l border-[#e0e0e0] bg-[#f3f3f3] flex-col p-3.5 gap-4 overflow-y-auto print:hidden">
+              {[
+                {
+                  groupTitle: '1. البيانات والعقد والدوام',
+                  items: [
+                    { id: 'overview', label: 'البيانات والعقد', icon: Briefcase },
+                    {
+                      id: 'attendance',
+                      label: `الدوام والإضافي (${empAttendances.length + empOvertime.length})`,
+                      icon: Clock,
+                    },
+                    {
+                      id: 'leaves',
+                      label: `الإجازات والمباشرة (${empLeaves.length})`,
+                      icon: CalendarCheck,
+                    },
+                    { id: 'biometric_gate', label: 'البصمة والباركود', icon: Fingerprint },
+                  ],
+                },
+                {
+                  groupTitle: '2. الرواتب والمستحقات والعهد',
+                  items: [
+                    { id: 'payroll', label: 'الرواتب وEWA والتكلفة', icon: DollarSign },
+                    {
+                      id: 'financials',
+                      label: `السلف والجزاءات (${financialRecordsCount})`,
+                      icon: Wallet,
+                    },
+                    { id: 'custodies', label: `العهد (${empCustodies.length})`, icon: Package },
+                    {
+                      id: 'dependents',
+                      label: `التابعون والتذاكر (${empDependents.length})`,
+                      icon: HeartHandshake,
+                    },
+                  ],
+                },
+                {
+                  groupTitle: '3. الوثائق والخطابات والأداء',
+                  items: [
+                    {
+                      id: 'documents',
+                      label: `الوثائق ومقيم (${docs.length + empMuqeem.length})`,
+                      icon: FileText,
+                    },
+                    { id: 'letters', label: `الخطابات (${empLetters.length})`, icon: FileSignature },
+                    { id: 'performance', label: 'تقييم 360° والمخالصة', icon: TrendingUp },
+                  ],
+                },
+              ].map((group) => (
+                <div key={group.groupTitle} className="space-y-1">
+                  <div className="px-2.5 py-1 text-[10px] font-bold text-[#707070]">
+                    {group.groupTitle}
+                  </div>
+                  {group.items.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setActiveTab(tab.id as Employee360TabId)}
+                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-[14px] text-xs font-bold text-right transition-all cursor-pointer border ${
+                          isActive
+                            ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                            : 'bg-[#ffffff] text-[#141414] border-[#e0e0e0] hover:bg-[#e0e0e0]'
+                        }`}
+                      >
+                        <Icon className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+            </aside>
+
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
             {/* TAB 1: OVERVIEW & FULL EMPLOYEE PROFILE */}
             {activeTab === 'overview' && (
               <div className="space-y-4">
@@ -2642,7 +2719,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                           )}
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#f1f1f1]">
+                      <tbody className="divide-y divide-[#f3f3f3]">
                         {empLeaves.map((lv) => {
                           const isApproved =
                             lv.status === 'معتمد' ||
@@ -2974,7 +3051,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                           <th className="py-2.5 px-3 font-bold">الحالة</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#f1f1f1]">
+                      <tbody className="divide-y divide-[#f3f3f3]">
                         {empDependents.map((dep) => (
                           <tr key={dep.id} className="hover:bg-[#f3f3f3]">
                             <td className="py-2.5 px-3 font-bold text-[#141414]">
@@ -3134,7 +3211,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                           )}
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#f1f1f1]">
+                      <tbody className="divide-y divide-[#f3f3f3]">
                         {empCustodies.map((c) => {
                           const isReturned = String(c.status || '').includes('إرجاع');
                           return (
@@ -3306,7 +3383,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                         )}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#f1f1f1]">
+                    <tbody className="divide-y divide-[#f3f3f3]">
                       {docs.map((doc) => (
                         <tr key={doc.id} className="hover:bg-[#f3f3f3]">
                           <td className="py-2.5 px-3 font-bold text-[#141414]">
@@ -3440,7 +3517,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                           <th className="py-2.5 px-3 font-bold print:hidden">إرسال</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#f1f1f1]">
+                      <tbody className="divide-y divide-[#f3f3f3]">
                         {empLetters.map((lt) => (
                           <tr key={lt.id} className="hover:bg-[#f3f3f3]">
                             <td className="py-2.5 px-3 font-mono font-bold text-[#141414]">
@@ -3676,7 +3753,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                     <select
                       value={settlementSepType}
                       onChange={(e) =>
-                        setSettlementSepType(e.target.value as JisrSeparationType)
+                        setSettlementSepType(e.target.value as HrSeparationType)
                       }
                       className="px-3 py-1.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[11px] font-bold text-[#141414]"
                     >
@@ -3756,6 +3833,7 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
                 </div>
               </div>
             )}
+            </div>
           </div>
 
           {/* Drawer Footer */}
@@ -3777,8 +3855,8 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
       {openLettersStudio && (
         <HrLettersStudioModal
           employee={{
-            id: String(emp.id || 'EMP-1'),
-            employee_code: String(emp.employee_code || emp.id || 'EMP-101'),
+            id: String(emp.id || 'KAS-EMP-001'),
+            employee_code: String(emp.employee_code || emp.id || 'KAS-EMP-001'),
             name: emp.name,
             national_id: String(emp.national_id || '1098765432'),
             job_title: emp.job_title || emp.role || 'أخصائي',

@@ -212,7 +212,7 @@ export const SettingsPage: React.FC = () => {
   const [faviconUrl, setFaviconUrl] = useState('/logo.png');
   const [watermarkText, setWatermarkText] = useState('مجموعة خالد السليم - نسخة إلكترونية معتمدة');
   const [brandColorPrimary, setBrandColorPrimary] = useState('#141414');
-  const [brandColorAccent, setBrandColorAccent] = useState('#10B981');
+  const [brandColorAccent, setBrandColorAccent] = useState('#707070');
 
   // Section 6: Quick Links State
   const [quickLinks, setQuickLinks] = useState<QuickLinkItem[]>(DEFAULT_QUICK_LINKS);
@@ -444,7 +444,7 @@ export const SettingsPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
         }}
       >
@@ -513,7 +513,7 @@ export const SettingsPage: React.FC = () => {
                     border: '1px solid',
                     borderColor: isActive ? '#141414' : 'transparent',
                     backgroundColor: isActive ? '#141414' : 'transparent',
-                    color: isActive ? '#ffffff' : '#27272a',
+                    color: isActive ? '#ffffff' : '#141414',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -539,7 +539,7 @@ export const SettingsPage: React.FC = () => {
           {/* 1. Security & 2FA */}
           {activeSection === 'security-2fa' && (
             <div className="space-y-5">
-              <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+              <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
                 <div>
                   <h2 className="text-sm font-bold text-[#141414] m-0">
                     إعدادات أمان المصادقة الثنائية (Two-Factor Authentication 2FA Policy)
@@ -552,7 +552,7 @@ export const SettingsPage: React.FC = () => {
               </div>
 
               <div className="space-y-3">
-                <label className="flex items-center gap-3 p-4 rounded-2xl bg-zinc-50 border border-zinc-200 cursor-pointer hover:border-[#141414] transition-colors">
+                <label className="flex items-center gap-3 p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] cursor-pointer hover:border-[#141414] transition-colors">
                   <input
                     type="checkbox"
                     checked={require2FAAdmin}
@@ -569,7 +569,7 @@ export const SettingsPage: React.FC = () => {
                   </div>
                 </label>
 
-                <label className="flex items-center gap-3 p-4 rounded-2xl bg-zinc-50 border border-zinc-200 cursor-pointer hover:border-[#141414] transition-colors">
+                <label className="flex items-center gap-3 p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] cursor-pointer hover:border-[#141414] transition-colors">
                   <input
                     type="checkbox"
                     checked={allowOptional2FA}
@@ -598,13 +598,13 @@ export const SettingsPage: React.FC = () => {
                       <Fingerprint className="w-3.5 h-3.5 text-[#141414]" />
                       <span>تفعيل الدخول ببصمة الإصبع (Touch ID / Windows Hello / WebAuthn)</span>
                     </span>
-                    <span className="text-[11px] text-zinc-600 block mt-0.5">
+                    <span className="text-[11px] text-[#707070] block mt-0.5">
                       السماح للمستخدمين بالدخول الفوري المشفر للمنظومة عبر مستشعر البصمة الحيوي للأجهزة المعتمدة.
                     </span>
                   </div>
                 </label>
 
-                <label className="flex items-center gap-3 p-4 rounded-2xl bg-zinc-50 border border-zinc-200 cursor-pointer hover:border-[#141414] transition-colors">
+                <label className="flex items-center gap-3 p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] cursor-pointer hover:border-[#141414] transition-colors">
                   <input
                     type="checkbox"
                     checked={allowFaceId}
@@ -624,10 +624,10 @@ export const SettingsPage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">صلاحية رمز التحقق OTP بالدقائق</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">صلاحية رمز التحقق OTP بالدقائق</label>
                   <select 
                     aria-label="صلاحية رمز التحقق OTP بالدقائق"
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
                     value={otpExpiryMinutes} 
                     onChange={e => setOtpExpiryMinutes(Number(e.target.value))}
                   >
@@ -638,10 +638,10 @@ export const SettingsPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">وسيلة الإرسال الافتراضية للرموز</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">وسيلة الإرسال الافتراضية للرموز</label>
                   <select 
                     aria-label="وسيلة الإرسال الافتراضية للرموز"
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
                     value={defaultOtpChannel}
                     onChange={e => setDefaultOtpChannel(e.target.value)}
                   >
@@ -653,17 +653,17 @@ export const SettingsPage: React.FC = () => {
               </div>
 
               {/* Device Biometric Registration & Testing Card */}
-              <div className="p-5 bg-gradient-to-br from-[#f3f3f3] to-zinc-50 rounded-2xl border border-[#e0e0e0] space-y-4">
+              <div className="p-5 bg-[#f3f3f3]   rounded-2xl border border-[#e0e0e0] space-y-4">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-[#f3f3f3] text-[#141414] flex items-center justify-center shadow-xs">
+                    <div className="w-8 h-8 rounded-full bg-[#f3f3f3] text-[#141414] flex items-center justify-center ">
                       <Fingerprint className="w-4 h-4" />
                     </div>
                     <div>
                       <h3 className="font-bold text-xs text-[#141414] m-0">
                         إدارة وتفويض بصمة هذا الجهاز لحسابك (This Device WebAuthn)
                       </h3>
-                      <p className="text-[11px] text-zinc-600 m-0 font-sans">
+                      <p className="text-[11px] text-[#707070] m-0 font-sans">
                         تسجيل مستشعر البصمة البيومترية لجهازك الحالي للتمكن من الدخول المباشر الموثق.
                       </p>
                     </div>
@@ -672,14 +672,14 @@ export const SettingsPage: React.FC = () => {
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${
                     hwSupport.hasHardware 
                       ? 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]' 
-                      : 'bg-zinc-100 text-zinc-700 border border-zinc-200'
+                      : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
                   }`}>
                     <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
                     <span>{hwSupport.hasHardware ? 'المستشعر متصل ومتاح' : 'متاح عبر التشفير'}</span>
                   </span>
                 </div>
 
-                <div className="text-xs text-zinc-600 flex items-center gap-2 bg-white/80 p-2.5 rounded-xl border border-[#e0e0e0] font-sans">
+                <div className="text-xs text-[#707070] flex items-center gap-2 bg-white/80 p-2.5 rounded-xl border border-[#e0e0e0] font-sans">
                   <Laptop className="w-4 h-4 text-[#141414] flex-shrink-0" />
                   <span>الجهاز المكتشف: <strong>{hwSupport.detectedDevice}</strong></span>
                 </div>
@@ -687,7 +687,7 @@ export const SettingsPage: React.FC = () => {
                 {/* Enrolled Keys */}
                 {deviceBiometrics.length > 0 && (
                   <div className="space-y-2">
-                    <div className="text-[11px] font-bold text-zinc-700">المفاتيح البيومترية المسجلة على حسابك:</div>
+                    <div className="text-[11px] font-bold text-[#141414]">المفاتيح البيومترية المسجلة على حسابك:</div>
                     {deviceBiometrics.map(cred => {
                       const isTesting = testingSettingsBioId === cred.id;
                       const hasResult = settingsTestResult && settingsTestResult.credId === cred.id;
@@ -715,7 +715,7 @@ export const SettingsPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleDeleteSettingsBiometric(cred)}
-                              className="p-1 rounded-lg border border-[#e0e0e0] text-[#141414] hover:bg-[#eaeaea]"
+                              className="p-1 rounded-lg border border-[#e0e0e0] text-[#141414] hover:bg-[#f3f3f3]"
                               title="حذف البصمة"
                             >
                               <Trash2 className="w-3 h-3" />
@@ -767,7 +767,7 @@ export const SettingsPage: React.FC = () => {
           {/* 2. RBAC Matrix */}
           {activeSection === 'rbac-matrix' && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+              <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
                 <div>
                   <h3 className="text-sm font-bold text-[#141414] m-0">
                     مصفوفة الصلاحيات والأدوار (Role-Based Access Control - RBAC Matrix)
@@ -780,8 +780,8 @@ export const SettingsPage: React.FC = () => {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-right text-xs text-zinc-700">
-                  <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+                <table className="w-full text-right text-xs text-[#141414]">
+                  <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                     <tr>
                       <th className="p-3.5">الدور الوظيفي (Role)</th>
                       <th className="p-3.5 text-center">عرض (Read)</th>
@@ -792,9 +792,9 @@ export const SettingsPage: React.FC = () => {
                       <th className="p-3.5 text-center">تصدير (Export)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-100">
+                  <tbody className="divide-y divide-[#e0e0e0]">
                     {rolesPermissions.map((row, idx) => (
-                      <tr key={idx} className="hover:bg-zinc-50">
+                      <tr key={idx} className="hover:bg-[#f3f3f3]">
                         <td className="p-3.5 font-bold text-[#141414]">{row.role}</td>
                         <td className="p-3.5 text-center">
                           <input 
@@ -861,82 +861,82 @@ export const SettingsPage: React.FC = () => {
           {/* 3. General Information */}
           {activeSection === 'general' && (
             <div className="space-y-4">
-              <div className="border-b border-zinc-100 pb-3">
+              <div className="border-b border-[#e0e0e0] pb-3">
                 <h3 className="text-sm font-bold text-[#141414] m-0">البيانات الأساسية للمنظومة والهوية الرسمية</h3>
                 <p className="text-xs text-[#707070] mt-1">تعديل الأسماء الرسمية، أرقام السجلات والتراخيص، والعنوان المعتمد للتقارير والسندات.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم الموقع بالعربية *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">اسم الموقع بالعربية *</label>
                   <input 
                     type="text" 
                     value={siteNameAr} 
                     onChange={e => setSiteNameAr(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم الموقع بالإنجليزية *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">اسم الموقع بالإنجليزية *</label>
                   <input 
                     type="text" 
                     value={siteNameEn} 
                     onChange={e => setSiteNameEn(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-sans focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-sans focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">رقم السجل التجاري الرئيسي (CR)</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رقم السجل التجاري الرئيسي (CR)</label>
                   <input 
                     type="text" 
                     value={crNumber} 
                     onChange={e => setCrNumber(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">الرقم الضريبي (VAT Number)</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">الرقم الضريبي (VAT Number)</label>
                   <input 
                     type="text" 
                     value={taxNumber} 
                     onChange={e => setTaxNumber(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">العنوان الوطني والرسمي *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">العنوان الوطني والرسمي *</label>
                   <input 
                     type="text" 
                     value={nationalAddress} 
                     onChange={e => setNationalAddress(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">البريد الإلكتروني الرسمي للمراسلات</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">البريد الإلكتروني الرسمي للمراسلات</label>
                   <input 
                     type="email" 
                     value={officialEmail} 
                     onChange={e => setOfficialEmail(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">رقم الهاتف وخدمة العملاء</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رقم الهاتف وخدمة العملاء</label>
                   <input 
                     type="text" 
                     value={supportPhone} 
                     onChange={e => setSupportPhone(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">شعار المنظومة / الشعار الترويجي (Slogan)</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">شعار المنظومة / الشعار الترويجي (Slogan)</label>
                   <input 
                     type="text" 
                     value={portalSlogan} 
                     onChange={e => setPortalSlogan(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
               </div>
@@ -946,73 +946,73 @@ export const SettingsPage: React.FC = () => {
           {/* 4. Contacts & Social */}
           {activeSection === 'contacts' && (
             <div className="space-y-4">
-              <div className="border-b border-zinc-100 pb-3">
+              <div className="border-b border-[#e0e0e0] pb-3">
                 <h3 className="text-sm font-bold text-[#141414] m-0">قنوات التواصل والشبكات الاجتماعية والموقع الجغرافي</h3>
                 <p className="text-xs text-[#707070] mt-1">تحديد روابط السوشيال ميديا وربط الخريطة الحية للمقر الرئيسي وفروعه.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">رقم الواتساب الرسمي (WhatsApp API)</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رقم الواتساب الرسمي (WhatsApp API)</label>
                   <input 
                     type="text" 
                     value={whatsappNumber} 
                     onChange={e => setWhatsappNumber(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">الرقم الموحد المجاني (Hotline)</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">الرقم الموحد المجاني (Hotline)</label>
                   <input 
                     type="text" 
                     value={supportHotline} 
                     onChange={e => setSupportHotline(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">حساب منصة إكس (Twitter / X)</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">حساب منصة إكس (Twitter / X)</label>
                   <input 
                     type="url" 
                     value={twitterUrl} 
                     onChange={e => setTwitterUrl(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">حساب إنستغرام (Instagram)</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">حساب إنستغرام (Instagram)</label>
                   <input 
                     type="url" 
                     value={instagramUrl} 
                     onChange={e => setInstagramUrl(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">حساب لينكد إن (LinkedIn)</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">حساب لينكد إن (LinkedIn)</label>
                   <input 
                     type="url" 
                     value={linkedinUrl} 
                     onChange={e => setLinkedinUrl(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">حساب تيك توك (TikTok)</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">حساب تيك توك (TikTok)</label>
                   <input 
                     type="url" 
                     value={tiktokUrl} 
                     onChange={e => setTiktokUrl(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">رابط موقع المقر في خرائط جوجل (Google Maps Link)</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رابط موقع المقر في خرائط جوجل (Google Maps Link)</label>
                   <input 
                     type="url" 
                     value={googleMapsEmbedUrl} 
                     onChange={e => setGoogleMapsEmbedUrl(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
               </div>
@@ -1022,14 +1022,14 @@ export const SettingsPage: React.FC = () => {
           {/* 5. Media & Branding */}
           {activeSection === 'media' && (
             <div className="space-y-4">
-              <div className="border-b border-zinc-100 pb-3">
+              <div className="border-b border-[#e0e0e0] pb-3">
                 <h3 className="text-sm font-bold text-[#141414] m-0">الشعارات والهوية البصرية والعلامة المائية</h3>
                 <p className="text-xs text-[#707070] mt-1">تحديد مسارات الشعارات المعتمدة للمنصة، الأيقونات المصغرة، ونصوص الختم والطباعة.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 rounded-2xl border border-zinc-200 bg-zinc-50 flex flex-col items-center justify-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-white p-2 border border-zinc-200 flex items-center justify-center mb-3 shadow-sm">
+                <div className="p-4 rounded-2xl border border-[#e0e0e0] bg-[#f3f3f3] flex flex-col items-center justify-center text-center">
+                  <div className="w-16 h-16 rounded-full bg-white p-2 border border-[#e0e0e0] flex items-center justify-center mb-3 ">
                     <img loading="lazy" decoding="async" src={logoLightUrl} alt="Logo Light" className="max-h-full max-w-full object-contain" />
                   </div>
                   <label className="text-xs font-bold text-[#141414] mb-1">شعار المنظومة الرئيسي</label>
@@ -1037,12 +1037,12 @@ export const SettingsPage: React.FC = () => {
                     type="text" 
                     value={logoLightUrl} 
                     onChange={e => setLogoLightUrl(e.target.value)} 
-                    className="w-full bg-white border border-zinc-200 rounded-xl py-1.5 px-2 text-[11px] text-zinc-700 text-center font-mono mt-2" 
+                    className="w-full bg-white border border-[#e0e0e0] rounded-xl py-1.5 px-2 text-[11px] text-[#141414] text-center font-mono mt-2" 
                   />
                 </div>
 
-                <div className="p-4 rounded-2xl border border-zinc-200 bg-[#f3f3f3] text-[#141414] flex flex-col items-center justify-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-zinc-800 p-2 border border-[#e0e0e0] flex items-center justify-center mb-3 shadow-sm">
+                <div className="p-4 rounded-2xl border border-[#e0e0e0] bg-[#f3f3f3] text-[#141414] flex flex-col items-center justify-center text-center">
+                  <div className="w-16 h-16 rounded-full bg-[#262626] p-2 border border-[#e0e0e0] flex items-center justify-center mb-3 ">
                     <img loading="lazy" decoding="async" src={logoDarkUrl} alt="Logo Dark" className="max-h-full max-w-full object-contain" />
                   </div>
                   <label className="text-xs font-bold text-[#141414] mb-1">شعار النمط الليلي (Dark Mode)</label>
@@ -1050,12 +1050,12 @@ export const SettingsPage: React.FC = () => {
                     type="text" 
                     value={logoDarkUrl} 
                     onChange={e => setLogoDarkUrl(e.target.value)} 
-                    className="w-full bg-zinc-800 border border-[#e0e0e0] rounded-xl py-1.5 px-2 text-[11px] text-white text-center font-mono mt-2" 
+                    className="w-full bg-[#262626] border border-[#e0e0e0] rounded-xl py-1.5 px-2 text-[11px] text-white text-center font-mono mt-2" 
                   />
                 </div>
 
-                <div className="p-4 rounded-2xl border border-zinc-200 bg-zinc-50 flex flex-col items-center justify-center text-center">
-                  <div className="w-12 h-12 rounded-xl bg-white p-2 border border-zinc-200 flex items-center justify-center mb-3 shadow-sm">
+                <div className="p-4 rounded-2xl border border-[#e0e0e0] bg-[#f3f3f3] flex flex-col items-center justify-center text-center">
+                  <div className="w-12 h-12 rounded-xl bg-white p-2 border border-[#e0e0e0] flex items-center justify-center mb-3 ">
                     <img loading="lazy" decoding="async" src={faviconUrl} alt="Favicon" className="max-h-full max-w-full object-contain" />
                   </div>
                   <label className="text-xs font-bold text-[#141414] mb-1">أيقونة المتصفح (Favicon)</label>
@@ -1063,35 +1063,35 @@ export const SettingsPage: React.FC = () => {
                     type="text" 
                     value={faviconUrl} 
                     onChange={e => setFaviconUrl(e.target.value)} 
-                    className="w-full bg-white border border-zinc-200 rounded-xl py-1.5 px-2 text-[11px] text-zinc-700 text-center font-mono mt-2" 
+                    className="w-full bg-white border border-[#e0e0e0] rounded-xl py-1.5 px-2 text-[11px] text-[#141414] text-center font-mono mt-2" 
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">العلامة المائية المطبوعة على العقود والسندات</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">العلامة المائية المطبوعة على العقود والسندات</label>
                   <input 
                     type="text" 
                     value={watermarkText} 
                     onChange={e => setWatermarkText(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">اللون الرئيسي للعلامة التجارية (Primary Hex Color)</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">اللون الرئيسي للعلامة التجارية (Primary Hex Color)</label>
                   <div className="flex items-center gap-2">
                     <input 
                       type="color" 
                       value={brandColorPrimary} 
                       onChange={e => setBrandColorPrimary(e.target.value)} 
-                      className="w-10 h-9 p-0.5 rounded-xl border border-zinc-200 cursor-pointer" 
+                      className="w-10 h-9 p-0.5 rounded-xl border border-[#e0e0e0] cursor-pointer" 
                     />
                     <input 
                       type="text" 
                       value={brandColorPrimary} 
                       onChange={e => setBrandColorPrimary(e.target.value)} 
-                      className="flex-1 bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs font-mono text-[#141414]" 
+                      className="flex-1 bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs font-mono text-[#141414]" 
                     />
                   </div>
                 </div>
@@ -1102,7 +1102,7 @@ export const SettingsPage: React.FC = () => {
           {/* 6. Quick Links */}
           {activeSection === 'quick-links' && (
             <div className="space-y-5">
-              <div className="border-b border-zinc-100 pb-3">
+              <div className="border-b border-[#e0e0e0] pb-3">
                 <h3 className="text-sm font-bold text-[#141414] m-0">إدارة الروابط السريعة الحكومية والخدمية (Quick Links Bar)</h3>
                 <p className="text-xs text-[#707070] mt-1">الروابط المباشرة الظاهرة في القائمة والشريط العلوي لتسريع وصول الموظفين للبوابات الحكومية.</p>
               </div>
@@ -1132,27 +1132,27 @@ export const SettingsPage: React.FC = () => {
               </div>
 
               {/* Add Quick Link Form */}
-              <form onSubmit={handleAddQuickLink} className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+              <form onSubmit={handleAddQuickLink} className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم الرابط *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">اسم الرابط *</label>
                   <input 
                     type="text" 
                     required 
                     placeholder="مثال: مساند توثيق"
                     value={newLinkName}
                     onChange={e => setNewLinkName(e.target.value)}
-                    className="w-full bg-white border border-zinc-200 rounded-2xl py-1.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-white border border-[#e0e0e0] rounded-2xl py-1.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">الرابط المباشر (URL) *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">الرابط المباشر (URL) *</label>
                   <input 
                     type="url" 
                     required 
                     placeholder="https://example.com"
                     value={newLinkUrl}
                     onChange={e => setNewLinkUrl(e.target.value)}
-                    className="w-full bg-white border border-zinc-200 rounded-2xl py-1.5 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-white border border-[#e0e0e0] rounded-2xl py-1.5 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
                 <button type="submit" className="button-primary-pill w-full flex items-center justify-center gap-1 text-xs py-2">
@@ -1163,8 +1163,8 @@ export const SettingsPage: React.FC = () => {
 
               {/* Quick Links Table */}
               <div className="overflow-x-auto">
-                <table className="w-full text-right text-xs text-zinc-700">
-                  <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+                <table className="w-full text-right text-xs text-[#141414]">
+                  <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                     <tr>
                       <th className="p-3.5">اسم البوابة / الرابط</th>
                       <th className="p-3.5">الرابط المباشر</th>
@@ -1173,9 +1173,9 @@ export const SettingsPage: React.FC = () => {
                       <th className="p-3.5 text-center">إجراءات</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-100">
+                  <tbody className="divide-y divide-[#e0e0e0]">
                     {quickLinks.map((link) => (
-                      <tr key={link.id} className="hover:bg-zinc-50">
+                      <tr key={link.id} className="hover:bg-[#f3f3f3]">
                         <td className="p-3.5 font-bold text-[#141414]">{link.name}</td>
                         <td className="p-3.5 font-mono text-[#707070] text-[11px]">
                           <a href={link.url} target="_blank" rel="noreferrer" className="text-[#141414] hover:underline flex items-center gap-1">
@@ -1188,7 +1188,7 @@ export const SettingsPage: React.FC = () => {
                         <td className="p-3.5 text-center">
                           <button 
                             onClick={() => handleDeleteQuickLink(link.id)}
-                            className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#eaeaea] transition-colors"
+                            className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3] transition-colors"
                             title="حذف الرابط"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1205,13 +1205,13 @@ export const SettingsPage: React.FC = () => {
           {/* 7. Client Portal Login Config */}
           {activeSection === 'login-config' && (
             <div className="space-y-4">
-              <div className="border-b border-zinc-100 pb-3">
+              <div className="border-b border-[#e0e0e0] pb-3">
                 <h3 className="text-sm font-bold text-[#141414] m-0">إعدادات بوابة تسجيل دخول العملاء والموقع الخارجي</h3>
                 <p className="text-xs text-[#707070] mt-1">تحديد بوابات الدخول المعتمدة للعملاء والزوار وطرق التحقق من الهوية.</p>
               </div>
 
               <div className="space-y-3">
-                <label className="flex items-center gap-3 p-4 rounded-2xl bg-zinc-50 border border-zinc-200 cursor-pointer hover:border-[#141414] transition-colors">
+                <label className="flex items-center gap-3 p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] cursor-pointer hover:border-[#141414] transition-colors">
                   <input
                     type="checkbox"
                     checked={allowNafathSso}
@@ -1228,7 +1228,7 @@ export const SettingsPage: React.FC = () => {
                   </div>
                 </label>
 
-                <label className="flex items-center gap-3 p-4 rounded-2xl bg-zinc-50 border border-zinc-200 cursor-pointer hover:border-[#141414] transition-colors">
+                <label className="flex items-center gap-3 p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] cursor-pointer hover:border-[#141414] transition-colors">
                   <input
                     type="checkbox"
                     checked={allowOtpLogin}
@@ -1245,7 +1245,7 @@ export const SettingsPage: React.FC = () => {
                   </div>
                 </label>
 
-                <label className="flex items-center gap-3 p-4 rounded-2xl bg-zinc-50 border border-zinc-200 cursor-pointer hover:border-[#141414] transition-colors">
+                <label className="flex items-center gap-3 p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] cursor-pointer hover:border-[#141414] transition-colors">
                   <input
                     type="checkbox"
                     checked={allowGuestBrowsing}
@@ -1264,12 +1264,12 @@ export const SettingsPage: React.FC = () => {
               </div>
 
               <div className="pt-2">
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">الحد الأقصى لانتهاء جلسة العميل غير النشطة (بالدقائق)</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">الحد الأقصى لانتهاء جلسة العميل غير النشطة (بالدقائق)</label>
                 <input 
                   type="number" 
                   value={sessionTimeoutMinutes} 
                   onChange={e => setSessionTimeoutMinutes(Number(e.target.value))}
-                  className="w-full md:w-60 bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs font-mono text-[#141414]" 
+                  className="w-full md:w-60 bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs font-mono text-[#141414]" 
                 />
               </div>
             </div>
@@ -1278,68 +1278,68 @@ export const SettingsPage: React.FC = () => {
           {/* 8. SEO & Tags */}
           {activeSection === 'seo' && (
             <div className="space-y-4">
-              <div className="border-b border-zinc-100 pb-3">
+              <div className="border-b border-[#e0e0e0] pb-3">
                 <h3 className="text-sm font-bold text-[#141414] m-0">تهيئة محركات البحث والإحصائيات (SEO & Analytics Tags)</h3>
                 <p className="text-xs text-[#707070] mt-1">تحديد وسوم الميتا تاغ، ومعرفات Google Analytics وميتا بيكسل لتحسين الظهور الرقمي.</p>
               </div>
 
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">عنوان الصفحة الرئيسي (Meta Title)</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">عنوان الصفحة الرئيسي (Meta Title)</label>
                   <input 
                     type="text" 
                     value={metaTitle} 
                     onChange={e => setMetaTitle(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">الوصف العام (Meta Description)</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">الوصف العام (Meta Description)</label>
                   <textarea 
                     rows={2} 
                     value={metaDescription} 
                     onChange={e => setMetaDescription(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">الكلمات الدلالية المفتاحية (Meta Keywords)</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">الكلمات الدلالية المفتاحية (Meta Keywords)</label>
                   <input 
                     type="text" 
                     value={metaKeywords} 
                     onChange={e => setMetaKeywords(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-700 mb-1">معرف Google Analytics (GA4)</label>
+                    <label className="block text-xs font-semibold text-[#141414] mb-1">معرف Google Analytics (GA4)</label>
                     <input 
                       type="text" 
                       value={ga4MeasurementId} 
                       onChange={e => setGa4MeasurementId(e.target.value)}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs font-mono text-[#141414]" 
+                      className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs font-mono text-[#141414]" 
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-700 mb-1">Google Tag Manager (GTM)</label>
+                    <label className="block text-xs font-semibold text-[#141414] mb-1">Google Tag Manager (GTM)</label>
                     <input 
                       type="text" 
                       value={gtmId} 
                       onChange={e => setGtmId(e.target.value)}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs font-mono text-[#141414]" 
+                      className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs font-mono text-[#141414]" 
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-700 mb-1">معرف Meta Pixel</label>
+                    <label className="block text-xs font-semibold text-[#141414] mb-1">معرف Meta Pixel</label>
                     <input 
                       type="text" 
                       value={metaPixelId} 
                       onChange={e => setMetaPixelId(e.target.value)}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs font-mono text-[#141414]" 
+                      className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs font-mono text-[#141414]" 
                     />
                   </div>
                 </div>
@@ -1350,7 +1350,7 @@ export const SettingsPage: React.FC = () => {
           {/* 9. Zoho SalesIQ Live Chat */}
           {activeSection === 'zoho' && (
             <div className="space-y-4">
-              <div className="border-b border-zinc-100 pb-3">
+              <div className="border-b border-[#e0e0e0] pb-3">
                 <h3 className="text-sm font-bold text-[#141414] m-0">إعدادات الشات المباشر (Zoho SalesIQ Live Chat)</h3>
                 <p className="text-xs text-[#707070] mt-1">تضمين ويدجت المحادثة الحية لدعم العملاء على مدار الساعة.</p>
               </div>
@@ -1366,14 +1366,14 @@ export const SettingsPage: React.FC = () => {
                   <span className="font-bold text-xs text-[#141414] block">
                     تفعيل نافذة المحادثة الفورية في الموقع الخارجي وبوابة العملاء
                   </span>
-                  <span className="text-[11px] text-zinc-600 block mt-0.5">
+                  <span className="text-[11px] text-[#707070] block mt-0.5">
                     إظهار زر الشات المباشر للزوار للرد التلقائي وتوزيع المحادثات على موظفي خدمة العملاء.
                   </span>
                 </div>
               </label>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">كود التضمين (Zoho SalesIQ Embed Script)</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">كود التضمين (Zoho SalesIQ Embed Script)</label>
                 <textarea 
                   rows={4} 
                   value={zohoSalesIqCode} 
@@ -1384,11 +1384,11 @@ export const SettingsPage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">القسم المستلم للمحادثات</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">القسم المستلم للمحادثات</label>
                   <select 
                     value={chatDepartment} 
                     onChange={e => setChatDepartment(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414]"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414]"
                   >
                     <option>قسم خدمة العملاء والمبيعات</option>
                     <option>قسم الدعم الفني والشكاوى</option>
@@ -1396,12 +1396,12 @@ export const SettingsPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">رسالة الترحيب التلقائية</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رسالة الترحيب التلقائية</label>
                   <input 
                     type="text" 
                     value={welcomeMessage} 
                     onChange={e => setWelcomeMessage(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414]" 
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414]" 
                   />
                 </div>
               </div>
@@ -1411,38 +1411,38 @@ export const SettingsPage: React.FC = () => {
           {/* 10. Policies & Warranty Stipulations */}
           {activeSection === 'stipulations' && (
             <div className="space-y-4">
-              <div className="border-b border-zinc-100 pb-3">
+              <div className="border-b border-[#e0e0e0] pb-3">
                 <h3 className="text-sm font-bold text-[#141414] m-0">السياسات والشروط وبنود ضمان مساند</h3>
                 <p className="text-xs text-[#707070] mt-1">صياغة وتعديل الشروط الملحقة بعقود الاستقدام والتأجير وسياسة الضمان 90 يوماً.</p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">شروط وبنود ضمان الاستقدام (Musaned 90 Days Warranty)</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">شروط وبنود ضمان الاستقدام (Musaned 90 Days Warranty)</label>
                 <textarea 
                   rows={4} 
                   value={musanedWarrantyTerms} 
                   onChange={e => setMusanedWarrantyTerms(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl p-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl p-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">شروط عقود التأجير والتشغيل المرن</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">شروط عقود التأجير والتشغيل المرن</label>
                 <textarea 
                   rows={3} 
                   value={rentalGuaranteeTerms} 
                   onChange={e => setRentalGuaranteeTerms(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl p-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl p-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">سياسة الخصوصية وحماية البيانات الشخصية</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">سياسة الخصوصية وحماية البيانات الشخصية</label>
                 <textarea 
                   rows={3} 
                   value={privacyPolicyText} 
                   onChange={e => setPrivacyPolicyText(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl p-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl p-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" 
                 />
               </div>
             </div>
@@ -1462,10 +1462,10 @@ export const SettingsPage: React.FC = () => {
               </div>
 
               {/* 1. Salla Integration Card */}
-              <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#fafafa', border: '1px solid #e4e4e7' }}>
+              <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff', border: '1px solid #e0e0e0' }}>
                 <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
                   <div className="flex items-center gap-2.5">
-                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#004d40', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '13px' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#262626', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '13px' }}>
                       S
                     </div>
                     <div>
@@ -1493,40 +1493,40 @@ export const SettingsPage: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-700 mb-1">معرف المتجر (Salla Merchant ID)</label>
+                    <label className="block text-xs font-semibold text-[#141414] mb-1">معرف المتجر (Salla Merchant ID)</label>
                     <input
                       type="text"
                       value={sallaStoreId}
                       onChange={e => setSallaStoreId(e.target.value)}
-                      className="w-full bg-white border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                      className="w-full bg-white border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-700 mb-1">مفتاح التطبيق المباشر (App Live Token)</label>
+                    <label className="block text-xs font-semibold text-[#141414] mb-1">مفتاح التطبيق المباشر (App Live Token)</label>
                     <input
                       type="password"
                       value={sallaApiKey}
                       onChange={e => setSallaApiKey(e.target.value)}
-                      className="w-full bg-white border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                      className="w-full bg-white border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-semibold text-zinc-700 mb-1">الرابط المعتمد لاستقبال الإشعارات (Webhook Endpoint)</label>
+                    <label className="block text-xs font-semibold text-[#141414] mb-1">الرابط المعتمد لاستقبال الإشعارات (Webhook Endpoint)</label>
                     <input
                       type="text"
                       readOnly
                       value="https://api.alsalim-group.sa/webhooks/salla/orders"
-                      className="w-full bg-zinc-100 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-zinc-700 font-mono"
+                      className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono"
                     />
                   </div>
                 </div>
               </div>
 
               {/* 2. Zid Integration Card */}
-              <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#fafafa', border: '1px solid #e4e4e7' }}>
+              <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff', border: '1px solid #e0e0e0' }}>
                 <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
                   <div className="flex items-center gap-2.5">
-                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#6d28d9', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '13px' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#262626', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '13px' }}>
                       Z
                     </div>
                     <div>
@@ -1554,28 +1554,28 @@ export const SettingsPage: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-700 mb-1">معرف متجر زد (Store ID)</label>
+                    <label className="block text-xs font-semibold text-[#141414] mb-1">معرف متجر زد (Store ID)</label>
                     <input
                       type="text"
                       value={zidStoreId}
                       onChange={e => setZidStoreId(e.target.value)}
-                      className="w-full bg-white border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                      className="w-full bg-white border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-700 mb-1">رمز مدير المتجر (X-Manager-Token)</label>
+                    <label className="block text-xs font-semibold text-[#141414] mb-1">رمز مدير المتجر (X-Manager-Token)</label>
                     <input
                       type="password"
                       value={zidManagerToken}
                       onChange={e => setZidManagerToken(e.target.value)}
-                      className="w-full bg-white border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                      className="w-full bg-white border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                     />
                   </div>
                 </div>
               </div>
 
               {/* 3. Shopify Integration Card */}
-              <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#fafafa', border: '1px solid #e4e4e7' }}>
+              <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff', border: '1px solid #e0e0e0' }}>
                 <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
                   <div className="flex items-center gap-2.5">
                     <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#141414', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '13px' }}>
@@ -1606,31 +1606,31 @@ export const SettingsPage: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-700 mb-1">رابط نطاق المتجر (Store Myshopify Domain)</label>
+                    <label className="block text-xs font-semibold text-[#141414] mb-1">رابط نطاق المتجر (Store Myshopify Domain)</label>
                     <input
                       type="text"
                       value={shopifyStoreUrl}
                       onChange={e => setShopifyStoreUrl(e.target.value)}
-                      className="w-full bg-white border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                      className="w-full bg-white border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-700 mb-1">رمز وصول المدير (Admin Access Token)</label>
+                    <label className="block text-xs font-semibold text-[#141414] mb-1">رمز وصول المدير (Admin Access Token)</label>
                     <input
                       type="password"
                       value={shopifyAdminToken}
                       onChange={e => setShopifyAdminToken(e.target.value)}
-                      className="w-full bg-white border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                      className="w-full bg-white border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                     />
                   </div>
                 </div>
               </div>
 
               {/* 4. Moyasar Payment Gateway Card */}
-              <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#fafafa', border: '1px solid #e4e4e7' }}>
+              <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff', border: '1px solid #e0e0e0' }}>
                 <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
                   <div className="flex items-center gap-2.5">
-                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#0284c7', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '13px' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#707070', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '13px' }}>
                       <CreditCard className="w-4 h-4" />
                     </div>
                     <div>
@@ -1658,21 +1658,21 @@ export const SettingsPage: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-700 mb-1">المفتاح القابل للنشر (Publishable Key)</label>
+                    <label className="block text-xs font-semibold text-[#141414] mb-1">المفتاح القابل للنشر (Publishable Key)</label>
                     <input
                       type="text"
                       value={moyasarPublishableKey}
                       onChange={e => setMoyasarPublishableKey(e.target.value)}
-                      className="w-full bg-white border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                      className="w-full bg-white border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-700 mb-1">المفتاح السري (Secret Key)</label>
+                    <label className="block text-xs font-semibold text-[#141414] mb-1">المفتاح السري (Secret Key)</label>
                     <input
                       type="password"
                       value={moyasarSecretKey}
                       onChange={e => setMoyasarSecretKey(e.target.value)}
-                      className="w-full bg-white border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                      className="w-full bg-white border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -1683,7 +1683,7 @@ export const SettingsPage: React.FC = () => {
           {/* 12. System Backup & Real Data Persistence Engine */}
           {activeSection === 'system-backup' && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between border-b border-zinc-100 pb-3 flex-wrap gap-2">
+              <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3 flex-wrap gap-2">
                 <div>
                   <h3 className="text-sm font-bold text-[#141414] m-0">
                     النسخ الاحتياطي الشامل وإدارة البيانات الحقيقية وقواعد البيانات
@@ -1696,7 +1696,7 @@ export const SettingsPage: React.FC = () => {
               </div>
 
               {/* Data Mode Switcher Card */}
-              <div className="card-pricing p-5 rounded-3xl bg-zinc-50 border border-zinc-200 space-y-3">
+              <div className="card-pricing p-5 rounded-3xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-2xl bg-[#141414] text-white flex items-center justify-center font-bold">
@@ -1731,7 +1731,7 @@ export const SettingsPage: React.FC = () => {
                     </button>
                   </div>
                 </div>
-                <p className="text-[11px] text-[#707070] leading-relaxed m-0 border-t border-zinc-200/60 pt-2">
+                <p className="text-[11px] text-[#707070] leading-relaxed m-0 border-t border-[#e0e0e0] pt-2">
                   في وضع العمل بالبيانات الحقيقية، يتم حفظ كافة العقود والعملاء والقيود في الذاكرة الدائمة وقاعدة البيانات الحقيقية فقط دون إدراج سجلات افتراضية مسبقة، لتكون المجموعة جاهزة للتشغيل اليومي المباشر.
                 </p>
               </div>
@@ -1739,7 +1739,7 @@ export const SettingsPage: React.FC = () => {
               {/* Backup & Restore Tools Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Export Full Database */}
-                <div className="card-pricing p-5 rounded-3xl bg-white border border-zinc-200 space-y-4">
+                <div className="card-pricing p-5 rounded-3xl bg-white border border-[#e0e0e0] space-y-4">
                   <div className="flex items-center gap-2.5">
                     <div className="w-9 h-9 rounded-xl bg-[#f3f3f3] text-[#141414] flex items-center justify-center font-bold">
                       <Download className="w-4 h-4" />
@@ -1750,7 +1750,7 @@ export const SettingsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <p className="text-xs text-zinc-600 leading-relaxed">
+                  <p className="text-xs text-[#707070] leading-relaxed">
                     يتضمن ملف النسخة الاحتياطية: شجرة الحسابات، قيود اليومية، سندات الصرف والقبض، عقود الاستقدام والتأجير، بيانات العملاء، السير الذاتية، وسجلات الحضور والعهد.
                   </p>
 
@@ -1767,7 +1767,7 @@ export const SettingsPage: React.FC = () => {
                 </div>
 
                 {/* Import / Restore Database */}
-                <div className="card-pricing p-5 rounded-3xl bg-white border border-zinc-200 space-y-4">
+                <div className="card-pricing p-5 rounded-3xl bg-white border border-[#e0e0e0] space-y-4">
                   <div className="flex items-center gap-2.5">
                     <div className="w-9 h-9 rounded-xl bg-[#f3f3f3] text-[#141414] flex items-center justify-center font-bold">
                       <UploadCloud className="w-4 h-4" />
@@ -1778,7 +1778,7 @@ export const SettingsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <p className="text-xs text-zinc-600 leading-relaxed">
+                  <p className="text-xs text-[#707070] leading-relaxed">
                     اختر ملف النسخة الاحتياطية (.json) الذي قمت بتنزيله سابقاً لاستعادة كافة الحسابات والعمليات إلى حالتها السابقة.
                   </p>
 
@@ -1796,10 +1796,10 @@ export const SettingsPage: React.FC = () => {
               </div>
 
               {/* Automated Schedule & Policy */}
-              <div className="card-pricing p-5 rounded-3xl bg-white border border-zinc-200 space-y-3">
+              <div className="card-pricing p-5 rounded-3xl bg-white border border-[#e0e0e0] space-y-3">
                 <h4 className="font-bold text-sm text-[#141414] m-0">جدولة النسخ الاحتياطي التلقائي للأرشفة</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                  <label className="flex items-center gap-2 p-3 bg-zinc-50 rounded-xl border border-zinc-200 cursor-pointer">
+                  <label className="flex items-center gap-2 p-3 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0] cursor-pointer">
                     <input
                       type="radio"
                       name="backupSchedule"
@@ -1813,7 +1813,7 @@ export const SettingsPage: React.FC = () => {
                       <span className="text-[10px] text-[#707070]">عند نهاية يوم العمل (الساعة 11:59 مساءً)</span>
                     </div>
                   </label>
-                  <label className="flex items-center gap-2 p-3 bg-zinc-50 rounded-xl border border-zinc-200 cursor-pointer">
+                  <label className="flex items-center gap-2 p-3 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0] cursor-pointer">
                     <input
                       type="radio"
                       name="backupSchedule"
@@ -1827,7 +1827,7 @@ export const SettingsPage: React.FC = () => {
                       <span className="text-[10px] text-[#707070]">كل يوم جمعة مع بداية الأسبوع المالي</span>
                     </div>
                   </label>
-                  <label className="flex items-center gap-2 p-3 bg-zinc-50 rounded-xl border border-zinc-200 cursor-pointer">
+                  <label className="flex items-center gap-2 p-3 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0] cursor-pointer">
                     <input
                       type="radio"
                       name="backupSchedule"

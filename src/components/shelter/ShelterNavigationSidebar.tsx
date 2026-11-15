@@ -155,13 +155,13 @@ export const ShelterNavigationSidebar: React.FC<ShelterNavigationSidebarProps> =
 
   return (
     <aside 
-      className="w-72 bg-[#ffffff] text-[#141414] border-l border-[#e0e0e0] flex flex-col h-full select-none shrink-0 shadow-2xl overflow-hidden font-sans"
+      className="w-72 bg-[#ffffff] text-[#141414] border-l border-[#e0e0e0] flex flex-col h-full select-none shrink-0  overflow-hidden font-sans"
       dir="rtl"
     >
       {/* Brand & Entity Header */}
       <div className="p-4 border-b border-[#e0e0e0] bg-[#ffffff]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#141414] text-[#ffffff] flex items-center justify-center font-bold text-base shadow-lg shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-[#141414] text-[#ffffff] flex items-center justify-center font-bold text-base  shrink-0">
             <Hotel className="w-5 h-5 text-[#ffffff]" />
           </div>
           <div className="min-w-0 flex-1">
@@ -207,7 +207,7 @@ export const ShelterNavigationSidebar: React.FC<ShelterNavigationSidebarProps> =
             placeholder="بحث في أقسام الإيواء..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-1.5 pr-8 pl-2.5 text-xs text-[#141414] placeholder-zinc-500 focus:outline-none focus:border-[#141414] font-sans"
+            className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-1.5 pr-8 pl-2.5 text-xs text-[#141414] placeholder-[#141414] focus:outline-none focus:border-[#141414] font-sans"
           />
         </div>
       </div>
@@ -218,7 +218,7 @@ export const ShelterNavigationSidebar: React.FC<ShelterNavigationSidebarProps> =
           <button
             type="button"
             onClick={onOpenCheckinModal}
-            className="w-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] rounded-xl py-2 px-3 text-xs font-bold flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer"
+            className="w-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] rounded-xl py-2 px-3 text-xs font-bold flex items-center justify-center gap-1.5  transition-all cursor-pointer"
           >
             <UserPlus className="w-3.5 h-3.5" />
             <span>+ تسكين نزيلة جديدة الآن</span>
@@ -244,14 +244,14 @@ export const ShelterNavigationSidebar: React.FC<ShelterNavigationSidebarProps> =
               onClick={() => onSelectDepartment(dept.id)}
               className={`w-full text-right p-2.5 rounded-xl transition-all duration-150 flex items-start gap-3 relative group cursor-pointer ${
                 isActive
-                  ? 'bg-gradient-to-l from-[#f3f3f3] to-[#f3f3f3] text-[#141414] border border-[#e0e0e0] shadow-md '
+                  ? 'bg-[#f3f3f3]   text-[#141414] border border-[#e0e0e0]  '
                   : 'text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3] border border-transparent'
               }`}
             >
               <div 
                 className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                   isActive 
-                    ? 'bg-[#141414] text-[#ffffff] shadow-md  font-bold' 
+                    ? 'bg-[#141414] text-[#ffffff]   font-bold' 
                     : 'bg-[#f3f3f3] text-[#707070] group-hover:text-[#141414] group-hover:bg-[#f3f3f3]'
                 }`}
               >
@@ -274,7 +274,7 @@ export const ShelterNavigationSidebar: React.FC<ShelterNavigationSidebarProps> =
                           ? 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
                           : dept.badgeType === 'success'
                           ? 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
-                          : 'bg-zinc-800 text-[#141414]'
+                          : 'bg-[#262626] text-[#141414]'
                       }`}
                     >
                       {badgeValue}

@@ -144,7 +144,7 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'space-between',
           background: '#141414',
-          color: '#FFF',
+          color: '#ffffff',
           padding: '28px',
           borderRadius: '16px',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
@@ -161,7 +161,7 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
             <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, margin: '0', letterSpacing: '-0.02em', color: '#ffffff', fontFamily: 'var(--font-family-display)' }}>
               مركز التواصل والمراسلات الموحد للمجموعة
             </h1>
-            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#a1a1aa', fontWeight: 420 }}>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#adadad', fontWeight: 420 }}>
               إصدار وتوثيق الخطابات الرسمية بين الشركات، التعميمات التنفيذية، والتوجيهات للمكاتب الخارجية
             </p>
           </div>
@@ -182,7 +182,7 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
       {/* KPI Stats */}
       <div className="stat-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>إجمالي الخطابات والتعميمات</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>إجمالي الخطابات والتعميمات</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>{correspondenceList.length} مراسلة</div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>موثقة إلكترونياً</span>
         </div>
@@ -194,20 +194,20 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
         </div>
 
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>التوجيهات للمكاتب الدولية</span>
+          <span style={{ fontSize: '13px', color: '#adadad', fontWeight: 550 }}>التوجيهات للمكاتب الدولية</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>18 توجيهاً</div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>الفلبين، إثيوبيا</span>
         </div>
 
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>نسبة الاعتماد والتنفيذ</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>نسبة الاعتماد والتنفيذ</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>98.5%</div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>حوكمة متكاملة</span>
         </div>
       </div>
 
       {/* Sub Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-[#e0e0e0] pb-3">
         {[
           { id: 'inbox', label: `وارد وصادر المراسلات (${correspondenceList.length})`, icon: Inbox },
           { id: 'compose', label: 'منشئ الخطابات والتعميمات', icon: PenSquare },
@@ -223,9 +223,9 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
                 padding: '6px 16px',
                 borderRadius: '9999px',
                 border: '1px solid',
-                borderColor: isActive ? '#141414' : '#e4e4e7',
+                borderColor: isActive ? '#141414' : '#e0e0e0',
                 backgroundColor: isActive ? '#141414' : '#ffffff',
-                color: isActive ? '#ffffff' : '#27272a',
+                color: isActive ? '#ffffff' : '#141414',
                 fontWeight: isActive ? 550 : 420,
                 fontSize: '12.5px',
                 cursor: 'pointer',
@@ -276,7 +276,7 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
           {filteredList.length === 0 ? (
             <div className="card-pricing flex flex-col items-center justify-center py-12 text-center" style={{ borderRadius: '16px', background: '#ffffff' }}>
               <BusinessIllustration type="empty-search" size="md" />
-              <div className="text-sm font-bold text-zinc-600 mt-3">لا توجد مراسلات أو خطابات مطابقة للتصنيف</div>
+              <div className="text-sm font-bold text-[#707070] mt-3">لا توجد مراسلات أو خطابات مطابقة للتصنيف</div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -297,7 +297,7 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
 
                     <h2 className="text-sm font-bold text-[#141414] mb-2">{memo.subject}</h2>
 
-                    <div className="bg-zinc-50 p-2.5 rounded-xl text-xs text-zinc-600 mb-3 flex items-center gap-2.5">
+                    <div className="bg-[#f3f3f3] p-2.5 rounded-xl text-xs text-[#707070] mb-3 flex items-center gap-2.5">
                       <CorporateAvatar name={memo.sender_entity} role={memo.recipient_entity} size="sm" status="verified" />
                       <div className="space-y-0.5">
                         <div><strong>الجهة المصدرة:</strong> {memo.sender_entity}</div>
@@ -305,7 +305,7 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <p className="text-xs text-zinc-700 leading-relaxed mb-3">
+                    <p className="text-xs text-[#141414] leading-relaxed mb-3">
                       {memo.body}
                     </p>
 
@@ -317,7 +317,7 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
                     )}
                   </div>
 
-                  <div className="flex justify-between items-center pt-3 border-t border-zinc-100 text-xs">
+                  <div className="flex justify-between items-center pt-3 border-t border-[#e0e0e0] text-xs">
                     <span className="text-[#707070] font-mono">{memo.created_at}</span>
                     <button
                       className="button-outline-on-light"
@@ -349,34 +349,34 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
           <form onSubmit={handleCreateMemo} className="space-y-4 bg-white text-[#141414]">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">الجهة المصدرة للخطاب *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">الجهة المصدرة للخطاب *</label>
                 <input
                   type="text"
                   value={formData.sender_entity}
                   onChange={(e) => setFormData({ ...formData, sender_entity: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">الجهة أو الشخص المستلم *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">الجهة أو الشخص المستلم *</label>
                 <input
                   type="text"
                   placeholder="مثال: شركة توباز للاستقدام / وكالة مانيلا"
                   value={formData.recipient_entity}
                   onChange={(e) => setFormData({ ...formData, recipient_entity: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">تصنيف المراسلة</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">تصنيف المراسلة</label>
                 <select
                   value={formData.category}
                   onChange={(e: any) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option value="خطاب رسمي">خطاب رسمي</option>
                   <option value="تعميم إداري">تعميم إداري</option>
@@ -387,11 +387,11 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">مستوى الأهمية والسرية</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">مستوى الأهمية والسرية</label>
                 <select
                   value={formData.priority}
                   onChange={(e: any) => setFormData({ ...formData, priority: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option value="عادي">عادي</option>
                   <option value="عاجل جداً">عاجل جداً</option>
@@ -401,41 +401,41 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-700 mb-1">موضوع الخطاب *</label>
+              <label className="block text-xs font-semibold text-[#141414] mb-1">موضوع الخطاب *</label>
               <input
                 type="text"
                 placeholder="اكتب عنوان وموضوع الخطاب..."
                 value={formData.subject}
                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-700 mb-1">نص الخطاب / التوجيه الإداري *</label>
+              <label className="block text-xs font-semibold text-[#141414] mb-1">نص الخطاب / التوجيه الإداري *</label>
               <textarea
                 rows={5}
                 placeholder="اكتب نص الخطاب هنا بالتفصيل..."
                 value={formData.body}
                 onChange={(e) => setFormData({ ...formData, body: e.target.value })}
-                className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] leading-relaxed focus:border-[#141414] focus:outline-none"
+                className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] leading-relaxed focus:border-[#141414] focus:outline-none"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم الملف المرفق (اختياري)</label>
+              <label className="block text-xs font-semibold text-[#141414] mb-1">اسم الملف المرفق (اختياري)</label>
               <input
                 type="text"
                 placeholder="مثال: ملحق_العقود_المعتمدة.pdf"
                 value={formData.attachment_name}
                 onChange={(e) => setFormData({ ...formData, attachment_name: e.target.value })}
-                className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-3 border-t border-zinc-100">
+            <div className="flex justify-end gap-3 pt-3 border-t border-[#e0e0e0]">
               <button
                 type="button"
                 onClick={() => setActiveTab('inbox')}
@@ -459,14 +459,14 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
 
       {/* TAB 3: LETTERHEAD PREVIEW */}
       {activeTab === 'letterhead-preview' && selectedMemo && (
-        <div data-printable-modal="true" className="erp-printable-sheet bg-white rounded-3xl border border-zinc-200 p-8 max-w-3xl mx-auto shadow-sm">
+        <div data-printable-modal="true" className="erp-printable-sheet bg-white rounded-3xl border border-[#e0e0e0] p-8 max-w-3xl mx-auto ">
           {/* Header of Letter */}
           <div className="flex justify-between items-center border-b-2 border-[#141414] pb-4 mb-6">
             <div>
               <h2 className="text-base font-bold text-[#141414] m-0">مجموعة شركات خالد السليم للاستقدام والتشغيل</h2>
               <div className="text-xs text-[#707070] mt-0.5">المملكة العربية السعودية | المركز الرئيسي - الرياض</div>
             </div>
-            <div className="text-left font-mono text-xs text-zinc-600">
+            <div className="text-left font-mono text-xs text-[#707070]">
               <div><strong>الرقم الإشاري:</strong> {selectedMemo.memo_no}</div>
               <div><strong>التاريخ:</strong> {selectedMemo.created_at}</div>
               <div><strong>التصنيف:</strong> {selectedMemo.category}</div>
@@ -483,17 +483,17 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-zinc-50 p-3 rounded-2xl text-xs font-bold text-[#141414] mb-5 border border-zinc-200">
+          <div className="bg-[#f3f3f3] p-3 rounded-2xl text-xs font-bold text-[#141414] mb-5 border border-[#e0e0e0]">
             الموضوع: {selectedMemo.subject}
           </div>
 
           {/* Memo Body */}
-          <div className="text-xs text-zinc-800 leading-relaxed min-h-[140px] whitespace-pre-wrap">
+          <div className="text-xs text-[#141414] leading-relaxed min-h-[140px] whitespace-pre-wrap">
             {selectedMemo.body}
           </div>
 
           {/* Signatures & Seal */}
-          <div className="flex justify-between items-end mt-10 border-t border-zinc-200 pt-5">
+          <div className="flex justify-between items-end mt-10 border-t border-[#e0e0e0] pt-5">
             <div>
               <div className="text-xs text-[#707070]">الختم والتصديق الرقمي:</div>
               <div className="inline-flex items-center gap-1.5 bg-[#f3f3f3] text-[#141414] px-3 py-1 rounded-full text-xs font-bold mt-1 border border-[#e0e0e0]">
@@ -512,7 +512,7 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
           </div>
 
           {/* Print/Download Bar */}
-          <div className="no-print print:hidden flex justify-end gap-2 mt-6 pt-4 border-t border-zinc-100">
+          <div className="no-print print:hidden flex justify-end gap-2 mt-6 pt-4 border-t border-[#e0e0e0]">
             <button
               className="button-outline-on-light"
               onClick={() => window.print()}

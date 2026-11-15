@@ -15,10 +15,10 @@ import {
   computeNitaqatSnapshot,
   evaluateQiwaVisaEligibility,
   calculateSaudiOvertimePay,
-  calculateJisrFinalSettlement,
+  calculateHrFinalSettlement,
   mapSeparationReasonLabelToType,
   computeEmployee360Completeness,
-} from './jisrAdvancedComplianceEngine';
+} from './hrAdvancedComplianceEngine';
 
 describe('HR Advanced Compliance Engine (Saudi Labor Law, ZATCA, EWA & Live Qiwa Nitaqat)', () => {
   it('excludes official Saudi public holidays (Eid Al-Fitr & National Day) from annual leave balance deduction', () => {
@@ -311,7 +311,7 @@ describe('HR Advanced Compliance Engine (Saudi Labor Law, ZATCA, EWA & Live Qiwa
     );
 
     // 1. Art. 85 resignation < 2 years -> 0% EOSB, still receives pro-rata pay & Art. 111 unused leave
-    const shortResignation = calculateJisrFinalSettlement({
+    const shortResignation = calculateHrFinalSettlement({
       hireDate: '2025-11-15',
       lastWorkingDay: '2026-11-14',
       basicSalary: 6000,
@@ -332,7 +332,7 @@ describe('HR Advanced Compliance Engine (Saudi Labor Law, ZATCA, EWA & Live Qiwa
     expect(shortResignation.netPayable).toBe(6000);
 
     // 2. Art. 85 resignation ~3 years (between 2 and 5 years) -> 1/3 EOSB
-    const midResignation = calculateJisrFinalSettlement({
+    const midResignation = calculateHrFinalSettlement({
       hireDate: '2023-01-01',
       lastWorkingDay: '2026-01-01',
       basicSalary: 6000,
@@ -347,7 +347,7 @@ describe('HR Advanced Compliance Engine (Saudi Labor Law, ZATCA, EWA & Live Qiwa
     expect(midResignation.netEosbEntitlement).toBeGreaterThan(4400);
 
     // 3. Art. 80 disciplinary -> 0% EOSB
-    const art80 = calculateJisrFinalSettlement({
+    const art80 = calculateHrFinalSettlement({
       hireDate: '2018-01-01',
       lastWorkingDay: '2026-11-14',
       basicSalary: 6000,

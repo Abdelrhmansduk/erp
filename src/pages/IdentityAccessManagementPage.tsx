@@ -293,9 +293,9 @@ export const IdentityAccessManagementPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 lg:p-8 font-sans space-y-6" dir="rtl">
+    <div className="min-h-screen bg-[#f3f3f3] text-[#141414] p-4 lg:p-8 font-sans space-y-6" dir="rtl">
       {/* Top Breadcrumb & Hero Banner */}
-      <div className="bg-[#f3f3f3] border border-[#e0e0e0] rounded-3xl p-6 lg:p-8 text-[#141414] shadow-xs relative overflow-hidden">
+      <div className="bg-[#f3f3f3] border border-[#e0e0e0] rounded-3xl p-6 lg:p-8 text-[#141414]  relative overflow-hidden">
         <div className="absolute top-0 left-0 w-96 h-96 bg-[#f3f3f3] rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-start gap-4">
@@ -365,8 +365,8 @@ export const IdentityAccessManagementPage: React.FC = () => {
                 onClick={() => setActiveTab(tab.id as IamTab)}
                 className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl whitespace-nowrap transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[#141414] text-[#ffffff] font-bold shadow-lg'
-                    : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-zinc-800'
+                    ? 'bg-[#141414] text-[#ffffff] font-bold '
+                    : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#262626]'
                 }`}
               >
                 <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#141414]' : 'text-[#141414]'}`} />
@@ -390,17 +390,17 @@ export const IdentityAccessManagementPage: React.FC = () => {
       {activeTab === 'users' && (
         <div className="space-y-6">
           {/* Action & Filter Bar */}
-          <div className="bg-white border border-slate-200 rounded-3xl p-4 lg:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="bg-white border border-[#e0e0e0] rounded-3xl p-4 lg:p-6  flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-3 flex-1">
               <div className="relative flex-1 min-w-[240px]">
-                <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+                <Search className="w-4 h-4 text-[#adadad] absolute right-3.5 top-3.5" />
                 <input
                   type="text"
                   aria-label="البحث بالاسم، البريد، الرقم الوظيفي، أو المسمى"
                   placeholder="البحث بالاسم، البريد، الرقم الوظيفي، أو المسمى..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl pr-10 pl-4 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#141414]/20"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl pr-10 pl-4 py-2.5 text-xs text-[#141414] focus:outline-none focus:ring-2 focus:ring-[#141414]/20"
                 />
               </div>
 
@@ -408,7 +408,7 @@ export const IdentityAccessManagementPage: React.FC = () => {
                 aria-label="تصفية حسب نوع الحساب"
                 value={filterAccountType}
                 onChange={(e) => setFilterAccountType(e.target.value)}
-                className="bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2.5 text-xs text-slate-700 focus:outline-none"
+                className="bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl px-3 py-2.5 text-xs text-[#141414] focus:outline-none"
               >
                 <option value="all">كافة أنواع الحسابات</option>
                 <option value="Group Super Admin">Group Super Admin</option>
@@ -425,7 +425,7 @@ export const IdentityAccessManagementPage: React.FC = () => {
                 aria-label="تصفية حسب حالة الحساب"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2.5 text-xs text-slate-700 focus:outline-none"
+                className="bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl px-3 py-2.5 text-xs text-[#141414] focus:outline-none"
               >
                 <option value="all">كافة الحالات</option>
                 <option value="نشط">نشط</option>
@@ -444,11 +444,11 @@ export const IdentityAccessManagementPage: React.FC = () => {
           </div>
 
           {/* Users Table */}
-          <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+          <div className="bg-white border border-[#e0e0e0] rounded-3xl overflow-hidden ">
             <div className="overflow-x-auto">
               <table className="w-full text-right border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
+                  <tr className="bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#707070] font-bold">
                     <th className="py-4 px-6">المستخدم / الرقم الوظيفي</th>
                     <th className="py-4 px-6">نوع الحساب والنطاق</th>
                     <th className="py-4 px-6">المسمى الوظيفي</th>
@@ -458,9 +458,9 @@ export const IdentityAccessManagementPage: React.FC = () => {
                     <th className="py-4 px-6 text-center">الإجراءات</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-medium">
+                <tbody className="divide-y divide-[#e0e0e0] font-medium">
                   {filteredUsers.map((u) => (
-                    <tr key={u.id} className="hover:bg-slate-50/80 transition">
+                    <tr key={u.id} className="hover:bg-[#f3f3f3] transition">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
                           <CorporateAvatar
@@ -471,7 +471,7 @@ export const IdentityAccessManagementPage: React.FC = () => {
                             status={u.status === 'نشط' ? 'verified' : 'none'}
                           />
                           <div>
-                            <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                            <div className="font-bold text-[#141414] flex items-center gap-1.5">
                               {u.fullName}
                               {u.accountType === 'Group Super Admin' && (
                                 <span className="px-1.5 py-0.5 bg-[#f3f3f3] text-[#141414] text-[10px] font-bold rounded border border-[#e0e0e0]">
@@ -479,18 +479,18 @@ export const IdentityAccessManagementPage: React.FC = () => {
                                 </span>
                               )}
                             </div>
-                            <div className="text-[11px] text-slate-500">{u.email} • {u.employeeNumber}</div>
+                            <div className="text-[11px] text-[#707070]">{u.email} • {u.employeeNumber}</div>
                           </div>
                         </div>
                       </td>
 
                       <td className="py-4 px-6">
-                        <span className="px-2.5 py-1 bg-slate-100 text-slate-700 font-bold rounded-lg border border-slate-200">
+                        <span className="px-2.5 py-1 bg-[#f3f3f3] text-[#141414] font-bold rounded-lg border border-[#e0e0e0]">
                           {u.accountType}
                         </span>
                       </td>
 
-                      <td className="py-4 px-6 text-slate-700">
+                      <td className="py-4 px-6 text-[#141414]">
                         {u.jobTitle}
                       </td>
 
@@ -501,7 +501,7 @@ export const IdentityAccessManagementPage: React.FC = () => {
                             {u.mfaMethod}
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full font-bold text-[10px]">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#f3f3f3] text-[#707070] rounded-full font-bold text-[10px]">
                             معطل
                           </span>
                         )}
@@ -514,7 +514,7 @@ export const IdentityAccessManagementPage: React.FC = () => {
                             {u.biometricType || 'Touch ID'}
                           </span>
                         ) : (
-                          <span className="text-slate-400 text-[11px]">—</span>
+                          <span className="text-[#adadad] text-[11px]">—</span>
                         )}
                       </td>
 
@@ -532,7 +532,7 @@ export const IdentityAccessManagementPage: React.FC = () => {
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => setSelectedUserForDetail(u)}
-                            className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-lg transition"
+                            className="p-1.5 hover:bg-[#f3f3f3] text-[#707070] rounded-lg transition"
                             title="تفاصيل الصلاحيات"
                           >
                             <Eye className="w-4 h-4" />
@@ -541,7 +541,7 @@ export const IdentityAccessManagementPage: React.FC = () => {
                             onClick={() => handleToggleUserStatus(u)}
                             className={`p-1.5 rounded-lg transition ${
                               u.status === 'نشط' 
-                                ? 'hover:bg-[#eaeaea]  text-[#141414]' 
+                                ? 'hover:bg-[#f3f3f3]  text-[#141414]' 
                                 : 'hover:bg-[#f3f3f3] text-[#141414]'
                             }`}
                             title={u.status === 'نشط' ? 'إيقاف الحساب' : 'تفعيل الحساب'}
@@ -567,7 +567,7 @@ export const IdentityAccessManagementPage: React.FC = () => {
           {companies.map((comp) => (
             <div
               key={comp.id}
-              className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4 hover:border-[#141414] transition relative overflow-hidden"
+              className="bg-white border border-[#e0e0e0] rounded-3xl p-6  space-y-4 hover:border-[#141414] transition relative overflow-hidden"
             >
               <div
                 className="absolute top-0 right-0 left-0 h-1.5"
@@ -576,31 +576,31 @@ export const IdentityAccessManagementPage: React.FC = () => {
 
               <div className="flex items-start justify-between">
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{comp.code}</span>
-                  <h3 className="text-base font-bold text-slate-900 mt-0.5">
+                  <span className="text-[10px] font-bold text-[#adadad] uppercase tracking-wider">{comp.code}</span>
+                  <h3 className="text-base font-bold text-[#141414] mt-0.5">
                     {comp.commercialName}
                   </h3>
-                  <p className="text-xs text-slate-500">{comp.legalName}</p>
+                  <p className="text-xs text-[#707070]">{comp.legalName}</p>
                 </div>
                 <span className="px-2.5 py-1 bg-[#f3f3f3] text-[#141414] text-[10px] font-bold rounded-full border border-[#e0e0e0]">
                   {comp.status}
                 </span>
               </div>
 
-              <div className="bg-slate-50 p-3 rounded-2xl space-y-1.5 text-xs text-slate-600">
+              <div className="bg-[#f3f3f3] p-3 rounded-2xl space-y-1.5 text-xs text-[#707070]">
                 <div className="flex justify-between">
                   <span>السجل التجاري:</span>
-                  <span className="font-bold text-slate-800">{comp.crNumber}</span>
+                  <span className="font-bold text-[#141414]">{comp.crNumber}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>الرقم الضريبي ZATCA:</span>
-                  <span className="font-bold text-slate-800">{comp.vatNumber}</span>
+                  <span className="font-bold text-[#141414]">{comp.vatNumber}</span>
                 </div>
               </div>
 
               <button
                 onClick={() => switchCompany(comp.code)}
-                className="w-full py-2.5 bg-slate-100 hover:bg-[#141414] hover:text-white text-slate-700 text-xs font-bold rounded-2xl transition flex items-center justify-center gap-2"
+                className="w-full py-2.5 bg-[#f3f3f3] hover:bg-[#141414] hover:text-white text-[#141414] text-xs font-bold rounded-2xl transition flex items-center justify-center gap-2"
               >
                 <ArrowLeftRight className="w-3.5 h-3.5" />
                 التبديل إلى هذه الشركة
@@ -614,9 +614,9 @@ export const IdentityAccessManagementPage: React.FC = () => {
       {/* TAB 3: MEMBERSHIPS & DATA SCOPE (العضويات ونطاق الوصول) */}
       {/* ==================================================================== */}
       {activeTab === 'memberships' && (
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+        <div className="bg-white border border-[#e0e0e0] rounded-3xl p-6  space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <h3 className="text-base font-bold text-[#141414] flex items-center gap-2">
               <Layers className="w-5 h-5 text-[#141414]" />
               العضويات المؤسسية ونطاق عزل البيانات (Multi-Company & Department Scope)
             </h3>
@@ -624,7 +624,7 @@ export const IdentityAccessManagementPage: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-right border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
+                <tr className="bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#707070] font-bold">
                   <th className="py-3 px-4">الموظف</th>
                   <th className="py-3 px-4">نوع الحساب</th>
                   <th className="py-3 px-4">نطاق عزل البيانات (Data Scope)</th>
@@ -632,10 +632,10 @@ export const IdentityAccessManagementPage: React.FC = () => {
                   <th className="py-3 px-4 text-center">إدارة النطاق</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {users.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-50/80 transition">
-                    <td className="py-3 px-4 font-bold text-slate-900">
+                  <tr key={u.id} className="hover:bg-[#f3f3f3] transition">
+                    <td className="py-3 px-4 font-bold text-[#141414]">
                       <div className="flex items-center gap-2.5">
                         <CorporateAvatar
                           name={u.fullName}
@@ -647,18 +647,18 @@ export const IdentityAccessManagementPage: React.FC = () => {
                         <span>{u.fullName}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-slate-700">{u.accountType}</td>
+                    <td className="py-3 px-4 text-[#141414]">{u.accountType}</td>
                     <td className="py-3 px-4">
                       <span className="px-2.5 py-1 bg-[#f3f3f3] text-[#141414] rounded-full font-bold text-[10.5px]">
                         {u.accountType === 'Group Super Admin' ? 'المستوى 6 — كامل المجموعة (Group)' : 'المستوى 3 — القسم والشركة المختصة'}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-slate-600">{u.jobTitle}</td>
+                    <td className="py-3 px-4 text-[#707070]">{u.jobTitle}</td>
                     <td className="py-3 px-4 text-center">
                       <button
                         type="button"
                         onClick={() => setSelectedUserForDetail(u)}
-                        className="px-3 py-1.5 bg-[#141414] text-[#ffffff] rounded-xl font-bold text-[11px] hover:bg-zinc-800 cursor-pointer"
+                        className="px-3 py-1.5 bg-[#141414] text-[#ffffff] rounded-xl font-bold text-[11px] hover:bg-[#262626] cursor-pointer"
                       >
                         تعديل النطاق
                       </button>
@@ -682,9 +682,9 @@ export const IdentityAccessManagementPage: React.FC = () => {
       {/* TAB 5: ACCESS REQUESTS (طلبات الصلاحيات) */}
       {/* ==================================================================== */}
       {activeTab === 'access-requests' && (
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+        <div className="bg-white border border-[#e0e0e0] rounded-3xl p-6  space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <h3 className="text-base font-bold text-[#141414] flex items-center gap-2">
               <Send className="w-5 h-5 text-[#141414]" />
               طلبات الصلاحيات والوصول الاستثنائي (Access Requests)
             </h3>
@@ -692,7 +692,7 @@ export const IdentityAccessManagementPage: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-right border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
+                <tr className="bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#707070] font-bold">
                   <th className="py-3 px-4">رقم الطلب</th>
                   <th className="py-3 px-4">الموظف</th>
                   <th className="py-3 px-4">الأدوار المطلوبة</th>
@@ -701,11 +701,11 @@ export const IdentityAccessManagementPage: React.FC = () => {
                   <th className="py-3 px-4 text-center">الإجراء</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {accessRequests.map((req) => (
-                  <tr key={req.id} className="hover:bg-slate-50/80 transition">
-                    <td className="py-3 px-4 font-mono font-bold text-slate-800">{req.requestNumber}</td>
-                    <td className="py-3 px-4 font-bold text-slate-900">
+                  <tr key={req.id} className="hover:bg-[#f3f3f3] transition">
+                    <td className="py-3 px-4 font-mono font-bold text-[#141414]">{req.requestNumber}</td>
+                    <td className="py-3 px-4 font-bold text-[#141414]">
                       <div className="flex items-center gap-2">
                         <CorporateAvatar
                           name={req.userName || req.userId}
@@ -715,8 +715,8 @@ export const IdentityAccessManagementPage: React.FC = () => {
                         <span>{req.userName || req.userId}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 font-mono text-slate-600">{req.requestedRoles.join(', ')}</td>
-                    <td className="py-3 px-4 text-slate-700">{req.justification}</td>
+                    <td className="py-3 px-4 font-mono text-[#707070]">{req.requestedRoles.join(', ')}</td>
+                    <td className="py-3 px-4 text-[#141414]">{req.justification}</td>
                     <td className="py-3 px-4 text-center">
                       <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] ${
                         req.finalStatus === 'معتمد' ? 'bg-[#f3f3f3] text-[#141414]' : 'bg-[#f3f3f3] text-[#141414]'
@@ -754,7 +754,7 @@ export const IdentityAccessManagementPage: React.FC = () => {
       {activeTab === 'delegations' && (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <h3 className="text-lg font-bold text-[#141414] flex items-center gap-2">
               <ArrowLeftRight className="w-5 h-5 text-[#141414]" />
               سجل التفويضات المؤقتة والإجازات
             </h3>
@@ -769,26 +769,26 @@ export const IdentityAccessManagementPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {delegations.length === 0 ? (
-              <div className="col-span-full py-12 text-center text-slate-400 text-xs">
+              <div className="col-span-full py-12 text-center text-[#adadad] text-xs">
                 لا توجد تفويضات نشطة حالياً.
               </div>
             ) : (
               delegations.map((d) => (
-                <div key={d.id} className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-3">
+                <div key={d.id} className="bg-white border border-[#e0e0e0] rounded-3xl p-5  space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="px-2 py-0.5 bg-[#f3f3f3] text-[#141414] text-[10px] font-bold rounded-md">
                       {d.status}
                     </span>
-                    <span className="text-[10px] text-slate-400">{d.validFrom} إلى {d.validTo}</span>
+                    <span className="text-[10px] text-[#adadad]">{d.validFrom} إلى {d.validTo}</span>
                   </div>
                   <div className="text-xs space-y-2">
                     {d.fromUserName && (
                       <div className="flex items-center gap-2">
                         <CorporateAvatar name={d.fromUserName} size="xs" status="verified" />
-                        <span className="font-bold text-slate-700">من:</span> {d.fromUserName} ← <span className="font-bold">{d.toUserName}</span>
+                        <span className="font-bold text-[#141414]">من:</span> {d.fromUserName} ← <span className="font-bold">{d.toUserName}</span>
                       </div>
                     )}
-                    <div><span className="font-bold text-slate-700">السبب:</span> {d.reason}</div>
+                    <div><span className="font-bold text-[#141414]">السبب:</span> {d.reason}</div>
                   </div>
                 </div>
               ))
@@ -804,11 +804,11 @@ export const IdentityAccessManagementPage: React.FC = () => {
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-[#141414] flex items-center gap-2">
                 <ShieldAlert className="w-5 h-5 text-[#141414]" />
                 قواعد فصل المهام المتعارضة (Separation of Duties - SoD)
               </h3>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-[#707070] mt-1">
                 منع تضارب المصالح ومنع جمع صلاحيات الإنشاء والاعتماد والصرف في حساب واحد وفقاً للمعايير الرقابية.
               </p>
             </div>
@@ -823,18 +823,18 @@ export const IdentityAccessManagementPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sodRules.map((rule) => (
-              <div key={rule.id} className="bg-white border border-[#e0e0e0] rounded-3xl p-5 shadow-sm space-y-3">
+              <div key={rule.id} className="bg-white border border-[#e0e0e0] rounded-3xl p-5  space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="font-mono text-xs font-bold text-[#141414]">{rule.code}</span>
                   <span className="px-2 py-0.5 bg-[#f3f3f3] text-[#141414] text-[10px] font-bold rounded-md border border-[#e0e0e0]">
                     مستوى الخطر: {rule.riskLevel}
                   </span>
                 </div>
-                <h4 className="text-sm font-bold text-slate-900">{rule.name}</h4>
-                <p className="text-xs text-slate-600 leading-relaxed">{rule.description}</p>
-                <div className="p-2.5 bg-slate-50 rounded-xl space-y-1 text-[11px] font-mono">
-                  <div className="text-slate-700">الصلاحية 1: <span className="text-[#141414] font-bold">{rule.permissionA}</span></div>
-                  <div className="text-slate-700">الصلاحية 2: <span className="text-[#141414] font-bold">{rule.permissionB}</span></div>
+                <h4 className="text-sm font-bold text-[#141414]">{rule.name}</h4>
+                <p className="text-xs text-[#707070] leading-relaxed">{rule.description}</p>
+                <div className="p-2.5 bg-[#f3f3f3] rounded-xl space-y-1 text-[11px] font-mono">
+                  <div className="text-[#141414]">الصلاحية 1: <span className="text-[#141414] font-bold">{rule.permissionA}</span></div>
+                  <div className="text-[#141414]">الصلاحية 2: <span className="text-[#141414] font-bold">{rule.permissionB}</span></div>
                 </div>
               </div>
             ))}
@@ -846,9 +846,9 @@ export const IdentityAccessManagementPage: React.FC = () => {
       {/* TAB 8: ACCESS REVIEWS (المراجعات الدورية) */}
       {/* ==================================================================== */}
       {activeTab === 'access-reviews' && (
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+        <div className="bg-white border border-[#e0e0e0] rounded-3xl p-6  space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <h3 className="text-base font-bold text-[#141414] flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-[#141414]" />
               حملات المراجعة الدورية للصلاحيات (Quarterly Access Reviews)
             </h3>
@@ -856,7 +856,7 @@ export const IdentityAccessManagementPage: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-right border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
+                <tr className="bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#707070] font-bold">
                   <th className="py-3 px-4">اسم الحملة الرقابية</th>
                   <th className="py-3 px-4">الربع السنوي</th>
                   <th className="py-3 px-4">المراجع المسؤول</th>
@@ -865,12 +865,12 @@ export const IdentityAccessManagementPage: React.FC = () => {
                   <th className="py-3 px-4 text-center">الحالة</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {accessReviews.map((rev) => (
-                  <tr key={rev.id} className="hover:bg-slate-50/80 transition">
-                    <td className="py-3 px-4 font-bold text-slate-900">{rev.campaignName}</td>
-                    <td className="py-3 px-4 font-mono text-slate-700">{rev.quarter}</td>
-                    <td className="py-3 px-4 text-slate-700">{rev.reviewerName || 'رئيس مجلس الإدارة'}</td>
+                  <tr key={rev.id} className="hover:bg-[#f3f3f3] transition">
+                    <td className="py-3 px-4 font-bold text-[#141414]">{rev.campaignName}</td>
+                    <td className="py-3 px-4 font-mono text-[#141414]">{rev.quarter}</td>
+                    <td className="py-3 px-4 text-[#141414]">{rev.reviewerName || 'رئيس مجلس الإدارة'}</td>
                     <td className="py-3 px-4 text-center font-bold">{rev.totalUsersReviewed}</td>
                     <td className="py-3 px-4 text-center font-bold text-[#141414]">{rev.revokedPermissionsCount}</td>
                     <td className="py-3 px-4 text-center">
@@ -890,9 +890,9 @@ export const IdentityAccessManagementPage: React.FC = () => {
       {/* TAB 9: ACTIVE SESSIONS (الجلسات والأجهزة) */}
       {/* ==================================================================== */}
       {activeTab === 'sessions' && (
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+        <div className="bg-white border border-[#e0e0e0] rounded-3xl p-6  space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <h3 className="text-base font-bold text-[#141414] flex items-center gap-2">
               <Smartphone className="w-5 h-5 text-[#141414]" />
               الجلسات النشطة والأجهزة المتصلة (Active Sessions)
             </h3>
@@ -900,7 +900,7 @@ export const IdentityAccessManagementPage: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-right border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
+                <tr className="bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#707070] font-bold">
                   <th className="py-3 px-4">المستخدم</th>
                   <th className="py-3 px-4">الشركة النشطة</th>
                   <th className="py-3 px-4">الجهاز والمتصفح</th>
@@ -909,10 +909,10 @@ export const IdentityAccessManagementPage: React.FC = () => {
                   <th className="py-3 px-4 text-center">إجراء أمني</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {sessions.map((sess) => (
-                  <tr key={sess.id} className="hover:bg-slate-50/80 transition">
-                    <td className="py-3 px-4 font-bold text-slate-900">
+                  <tr key={sess.id} className="hover:bg-[#f3f3f3] transition">
+                    <td className="py-3 px-4 font-bold text-[#141414]">
                       <div className="flex items-center gap-2">
                         <CorporateAvatar
                           name={sess.userName || sess.userId}
@@ -923,8 +923,8 @@ export const IdentityAccessManagementPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="py-3 px-4 font-mono font-bold text-[#141414]">{sess.companyCode || sess.activeCompanyId}</td>
-                    <td className="py-3 px-4 text-slate-600">{sess.userAgent}</td>
-                    <td className="py-3 px-4 font-mono text-slate-600">{sess.ipAddress}</td>
+                    <td className="py-3 px-4 text-[#707070]">{sess.userAgent}</td>
+                    <td className="py-3 px-4 font-mono text-[#707070]">{sess.ipAddress}</td>
                     <td className="py-3 px-4 text-center">
                       <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] ${
                         sess.status === 'نشطة' ? 'bg-[#f3f3f3] text-[#141414]' : 'bg-[#f3f3f3] text-[#141414]'
@@ -940,7 +940,7 @@ export const IdentityAccessManagementPage: React.FC = () => {
                             setSessions(prev => prev.map(s => s.id === sess.id ? { ...s, status: 'ملغاة إجبارياً' } : s));
                             addNotification({ title: 'إنهاء الجلسة عن بُعد', message: `تم إنهاء جلسة (${sess.userName || sess.userId}) فوراً.`, type: 'warning' });
                           }}
-                          className="px-3 py-1 bg-[#f3f3f3] hover:bg-[#eaeaea] text-[#141414] border border-[#e0e0e0] rounded-xl font-bold text-[11px] cursor-pointer"
+                          className="px-3 py-1 bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] rounded-xl font-bold text-[11px] cursor-pointer"
                         >
                           إنهاء الجلسة
                         </button>
@@ -958,19 +958,19 @@ export const IdentityAccessManagementPage: React.FC = () => {
       {/* TAB 10: AUDIT TRAIL (سجل التدقيق الشامل) */}
       {/* ==================================================================== */}
       {activeTab === 'audit-logs' && (
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+        <div className="bg-white border border-[#e0e0e0] rounded-3xl p-6  space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <h3 className="text-base font-bold text-[#141414] flex items-center gap-2">
               <Activity className="w-5 h-5 text-[#141414]" />
               سجل التدقيق الأمني والامتثال (Immutable Audit Trail)
             </h3>
-            <span className="text-xs text-slate-400 font-mono">آخر 100 حركة مسجلة</span>
+            <span className="text-xs text-[#adadad] font-mono">آخر 100 حركة مسجلة</span>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-right border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
+                <tr className="bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#707070] font-bold">
                   <th className="py-3 px-4">الطابع الزمني</th>
                   <th className="py-3 px-4">المستخدم (Actor)</th>
                   <th className="py-3 px-4">الشركة</th>
@@ -979,14 +979,14 @@ export const IdentityAccessManagementPage: React.FC = () => {
                   <th className="py-3 px-4 text-center">النتيجة</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 font-medium font-mono text-[11px]">
+              <tbody className="divide-y divide-[#e0e0e0] font-medium font-mono text-[11px]">
                 {auditLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-50/80 transition">
-                    <td className="py-3 px-4 text-slate-400">{log.createdAt.slice(0, 19).replace('T', ' ')}</td>
-                    <td className="py-3 px-4 text-slate-800 font-sans font-bold">{log.actorEmail}</td>
+                  <tr key={log.id} className="hover:bg-[#f3f3f3] transition">
+                    <td className="py-3 px-4 text-[#adadad]">{log.createdAt.slice(0, 19).replace('T', ' ')}</td>
+                    <td className="py-3 px-4 text-[#141414] font-sans font-bold">{log.actorEmail}</td>
                     <td className="py-3 px-4 text-[#141414] font-bold">{log.companyCode || '—'}</td>
                     <td className="py-3 px-4 text-[#141414]">{log.action}</td>
-                    <td className="py-3 px-4 text-slate-600">{log.resource}</td>
+                    <td className="py-3 px-4 text-[#707070]">{log.resource}</td>
                     <td className="py-3 px-4 text-center">
                       <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${
                         log.result === 'SUCCESS'
@@ -1008,47 +1008,47 @@ export const IdentityAccessManagementPage: React.FC = () => {
 
       {/* MODAL: NEW DELEGATION */}
       {showNewDelegationModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-[2000]" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowNewDelegationModal(false); }}>
+        <div className="fixed inset-0 bg-[#141414] backdrop-blur-sm flex items-center justify-center p-4 z-[2000]" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowNewDelegationModal(false); }}>
           <div className="bg-white rounded-[24px] max-w-lg w-full p-6 space-y-4 text-xs max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900">إنشاء تفويض صلاحيات مؤقت</h3>
-              <button type="button" onClick={() => setShowNewDelegationModal(false)} className="text-slate-400 hover:text-[#141414]">
+            <div className="flex justify-between items-center pb-3 border-b border-[#e0e0e0]">
+              <h3 className="text-base font-bold text-[#141414]">إنشاء تفويض صلاحيات مؤقت</h3>
+              <button type="button" onClick={() => setShowNewDelegationModal(false)} className="text-[#adadad] hover:text-[#141414]">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleCreateDelegation} className="space-y-3">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">المفوِّض (البريد الإلكتروني)</label>
+                <label className="block font-bold text-[#141414] mb-1">المفوِّض (البريد الإلكتروني)</label>
                 <select
                   value={newDelegationForm.fromUserEmail}
                   onChange={(e) => setNewDelegationForm({ ...newDelegationForm, fromUserEmail: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl px-3 py-2"
                 >
                   {users.map(u => <option key={u.id} value={u.email}>{u.fullName} ({u.email})</option>)}
                 </select>
               </div>
               <div>
-                <label className="block font-bold text-slate-700 mb-1">المفوَّض إليه (البديل)</label>
+                <label className="block font-bold text-[#141414] mb-1">المفوَّض إليه (البديل)</label>
                 <select
                   value={newDelegationForm.toUserEmail}
                   onChange={(e) => setNewDelegationForm({ ...newDelegationForm, toUserEmail: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl px-3 py-2"
                 >
                   {users.map(u => <option key={u.id} value={u.email}>{u.fullName} ({u.email})</option>)}
                 </select>
               </div>
               <div>
-                <label className="block font-bold text-slate-700 mb-1">السبب التشغيلي للتفويض</label>
+                <label className="block font-bold text-[#141414] mb-1">السبب التشغيلي للتفويض</label>
                 <input
                   type="text"
                   required
                   value={newDelegationForm.reason}
                   onChange={(e) => setNewDelegationForm({ ...newDelegationForm, reason: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl px-3 py-2"
                 />
               </div>
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                <button type="button" onClick={() => setShowNewDelegationModal(false)} className="px-4 py-2 bg-slate-100 rounded-xl font-bold">إلغاء</button>
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#e0e0e0]">
+                <button type="button" onClick={() => setShowNewDelegationModal(false)} className="px-4 py-2 bg-[#f3f3f3] rounded-xl font-bold">إلغاء</button>
                 <button type="submit" className="px-5 py-2 bg-[#141414] text-[#ffffff] rounded-xl font-bold">اعتماد التفويض</button>
               </div>
             </form>
@@ -1058,39 +1058,39 @@ export const IdentityAccessManagementPage: React.FC = () => {
 
       {/* MODAL: NEW SOD RULE */}
       {showNewSoDModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-[2000]" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowNewSoDModal(false); }}>
+        <div className="fixed inset-0 bg-[#141414] backdrop-blur-sm flex items-center justify-center p-4 z-[2000]" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowNewSoDModal(false); }}>
           <div className="bg-white rounded-[24px] max-w-lg w-full p-6 space-y-4 text-xs max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900">إضافة قاعدة فصل مهام رقابية (SoD)</h3>
-              <button type="button" onClick={() => setShowNewSoDModal(false)} className="text-slate-400 hover:text-[#141414]">
+            <div className="flex justify-between items-center pb-3 border-b border-[#e0e0e0]">
+              <h3 className="text-base font-bold text-[#141414]">إضافة قاعدة فصل مهام رقابية (SoD)</h3>
+              <button type="button" onClick={() => setShowNewSoDModal(false)} className="text-[#adadad] hover:text-[#141414]">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleCreateSoD} className="space-y-3">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">اسم القاعدة الرقابية *</label>
+                <label className="block font-bold text-[#141414] mb-1">اسم القاعدة الرقابية *</label>
                 <input
                   type="text"
                   required
                   value={newSoDForm.name}
                   onChange={(e) => setNewSoDForm({ ...newSoDForm, name: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl px-3 py-2"
                   placeholder="مثال: فصل اعتماد مسير الرواتب عن تعديل الآيبان"
                 />
               </div>
               <div>
-                <label className="block font-bold text-slate-700 mb-1">الوصف والضابط الرقابي *</label>
+                <label className="block font-bold text-[#141414] mb-1">الوصف والضابط الرقابي *</label>
                 <input
                   type="text"
                   required
                   value={newSoDForm.description}
                   onChange={(e) => setNewSoDForm({ ...newSoDForm, description: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl px-3 py-2"
                   placeholder="وصف التعارض الرقابي..."
                 />
               </div>
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                <button type="button" onClick={() => setShowNewSoDModal(false)} className="px-4 py-2 bg-slate-100 rounded-xl font-bold">إلغاء</button>
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#e0e0e0]">
+                <button type="button" onClick={() => setShowNewSoDModal(false)} className="px-4 py-2 bg-[#f3f3f3] rounded-xl font-bold">إلغاء</button>
                 <button type="submit" className="px-5 py-2 bg-[#141414] text-white rounded-xl font-bold">حفظ القاعدة</button>
               </div>
             </form>
@@ -1100,14 +1100,14 @@ export const IdentityAccessManagementPage: React.FC = () => {
 
       {/* MODAL: NEW USER */}
       {showNewUserModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-[2000] animate-in fade-in duration-200" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowNewUserModal(false); }}>
-          <div className="bg-white border border-slate-200 rounded-[24px] max-w-xl w-full p-6 lg:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-4 border-b border-slate-100">
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+        <div className="fixed inset-0 bg-[#141414] backdrop-blur-sm flex items-center justify-center p-4 z-[2000] animate-in fade-in duration-200" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowNewUserModal(false); }}>
+          <div className="bg-white border border-[#e0e0e0] rounded-[24px] max-w-xl w-full p-6 lg:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-4 border-b border-[#e0e0e0]">
+              <h3 className="text-lg font-bold text-[#141414] flex items-center gap-2">
                 <Users className="w-5 h-5 text-[#141414]" />
                 إضافة مستخدم وموظف جديد للمنظومة
               </h3>
-              <button onClick={() => setShowNewUserModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowNewUserModal(false)} className="text-[#adadad] hover:text-[#707070]">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1115,43 +1115,43 @@ export const IdentityAccessManagementPage: React.FC = () => {
             <form onSubmit={handleCreateUser} className="space-y-4 text-xs">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1.5">الاسم الرباعي الكامل *</label>
+                  <label className="block font-bold text-[#141414] mb-1.5">الاسم الرباعي الكامل *</label>
                   <input
                     type="text"
                     required
                     value={newUserForm.fullName}
                     onChange={(e) => setNewUserForm({ ...newUserForm, fullName: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl px-4 py-2.5"
                     placeholder="مثال: فهد بن إبراهيم السليم"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1.5">البريد الإلكتروني المهني *</label>
+                  <label className="block font-bold text-[#141414] mb-1.5">البريد الإلكتروني المهني *</label>
                   <input
                     type="email"
                     required
                     value={newUserForm.email}
                     onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl px-4 py-2.5"
                     placeholder="fahad@alsulaim.sa"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1.5">المسمى الوظيفي</label>
+                  <label className="block font-bold text-[#141414] mb-1.5">المسمى الوظيفي</label>
                   <input
                     type="text"
                     value={newUserForm.jobTitle}
                     onChange={(e) => setNewUserForm({ ...newUserForm, jobTitle: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl px-4 py-2.5"
                     placeholder="أخصائي شؤون مالية"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1.5">نوع الحساب ونطاق الدور</label>
+                  <label className="block font-bold text-[#141414] mb-1.5">نوع الحساب ونطاق الدور</label>
                   <select
                     value={newUserForm.accountType}
                     onChange={(e) => setNewUserForm({ ...newUserForm, accountType: e.target.value as any })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl px-4 py-2.5"
                   >
                     <option value="Employee">Employee (موظف تشغيلي)</option>
                     <option value="Department Manager">Department Manager (مدير قسم)</option>
@@ -1171,7 +1171,7 @@ export const IdentityAccessManagementPage: React.FC = () => {
                     onChange={(e) => setNewUserForm({ ...newUserForm, mfaEnabled: e.target.checked })}
                     className="rounded text-[#141414] focus:ring-[#141414]/20 w-4 h-4"
                   />
-                  <span className="font-bold text-slate-700">إلزام المصادقة الثنائية (MFA)</span>
+                  <span className="font-bold text-[#141414]">إلزام المصادقة الثنائية (MFA)</span>
                 </label>
 
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -1181,15 +1181,15 @@ export const IdentityAccessManagementPage: React.FC = () => {
                     onChange={(e) => setNewUserForm({ ...newUserForm, biometricEnabled: e.target.checked })}
                     className="rounded text-[#141414] focus:ring-[#141414]/20 w-4 h-4"
                   />
-                  <span className="font-bold text-slate-700">تفعيل البصمة البيومترية (Touch/Face ID)</span>
+                  <span className="font-bold text-[#141414]">تفعيل البصمة البيومترية (Touch/Face ID)</span>
                 </label>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowNewUserModal(false)}
-                  className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl transition font-bold"
+                  className="px-5 py-2.5 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] rounded-2xl transition font-bold"
                 >
                   إلغاء
                 </button>

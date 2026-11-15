@@ -800,7 +800,7 @@ export const BranchDepartmentsPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="p-4 rounded-3xl bg-white border border-[#e0e0e0] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="p-4 rounded-3xl bg-white border border-[#e0e0e0]  flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Category Filter Tabs */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
           {[
@@ -859,7 +859,7 @@ export const BranchDepartmentsPage: React.FC = () => {
               onClick={() => setSelectedEntityId(e.id)}
               className={`p-5 rounded-3xl transition-all cursor-pointer relative overflow-hidden group ${
                 isSelected
-                  ? 'bg-[#f3f3f3] text-[#141414] border-2 border-[#141414] shadow-sm'
+                  ? 'bg-[#f3f3f3] text-[#141414] border-2 border-[#141414] '
                   : 'bg-[#ffffff] text-[#141414] border border-[#e0e0e0] hover:border-[#141414]'
               }`}
             >
@@ -901,7 +901,7 @@ export const BranchDepartmentsPage: React.FC = () => {
       {selectedEntity && (() => {
         const selectedMetrics = getEntityMetrics(selectedEntity);
         return (
-          <div className="rounded-3xl bg-[#f3f3f3] border border-[#e0e0e0] p-6 shadow-sm">
+          <div className="rounded-3xl bg-[#f3f3f3] border border-[#e0e0e0] p-6 ">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-2">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -938,7 +938,7 @@ export const BranchDepartmentsPage: React.FC = () => {
 
               <button
                 onClick={() => setShowAddDeptModal(true)}
-                className="button-primary-pill text-xs font-bold flex items-center gap-2 shadow-lg self-start md:self-center cursor-pointer"
+                className="button-primary-pill text-xs font-bold flex items-center gap-2  self-start md:self-center cursor-pointer"
                 style={{ padding: '8px 22px', minHeight: '38px' }}
               >
                 <Plus className="w-4 h-4" />
@@ -969,11 +969,11 @@ export const BranchDepartmentsPage: React.FC = () => {
                 <div 
                   key={dept.id}
                   onClick={() => setSelectedDrilldownDept(dept)}
-                  className="card-pricing border border-[#e0e0e0] rounded-3xl p-6 shadow-sm hover:shadow-xl hover:border-[#141414] transition-all flex flex-col justify-between group bg-white cursor-pointer"
+                  className="card-pricing border border-[#e0e0e0] rounded-3xl p-6  hover: hover:border-[#141414] transition-all flex flex-col justify-between group bg-white cursor-pointer"
                 >
                   <div>
                     <div className="flex justify-between items-start mb-3">
-                      <div className="w-12 h-12 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] flex items-center justify-center font-bold shadow-xs">
+                      <div className="w-12 h-12 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] flex items-center justify-center font-bold ">
                         <Building2 className="w-6 h-6" />
                       </div>
                       <div className="flex flex-col items-end gap-1">
@@ -1044,7 +1044,7 @@ export const BranchDepartmentsPage: React.FC = () => {
           >
             <div
               onClick={e => e.stopPropagation()}
-              className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] max-w-4xl w-full p-6 space-y-5 text-[#141414] max-h-[90vh] overflow-y-auto shadow-2xl"
+              className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] max-w-4xl w-full p-6 space-y-5 text-[#141414] max-h-[90vh] overflow-y-auto "
             >
               <div className="flex items-start justify-between gap-4 border-b border-[#e0e0e0] pb-4">
                 <div>

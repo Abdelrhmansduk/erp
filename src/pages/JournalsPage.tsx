@@ -404,7 +404,7 @@ export const JournalsPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
           display: 'flex',
           flexDirection: 'row',
@@ -428,7 +428,7 @@ export const JournalsPage: React.FC = () => {
             <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, letterSpacing: '-0.02em', color: '#ffffff', margin: 0, fontFamily: 'var(--font-family-display)' }}>
               دفتر اليومية والقيود المزدوجة
             </h1>
-            <p style={{ fontSize: '13px', color: '#a1a1aa', margin: '4px 0 0 0', fontWeight: 420 }}>
+            <p style={{ fontSize: '13px', color: '#adadad', margin: '4px 0 0 0', fontWeight: 420 }}>
               إدارة وترحيل قيود اليومية العامة لـ{' '}
               <strong style={{ color: '#ffffff', fontWeight: 600 }}>{activeCompany.name}</strong> بدقة محاسبية متوازنة (Double Entry)
             </p>
@@ -472,13 +472,13 @@ export const JournalsPage: React.FC = () => {
       {/* KPI Cards */}
       <div className="stat-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>إجمالي القيود المرحّلة</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>إجمالي القيود المرحّلة</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>{journals.length} قيداً</div>
           <span className="pill-tag-mint" style={{ fontSize: '11px', marginTop: '10px' }}>100% متطابقة</span>
         </div>
 
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>إجمالي حركات المدين (Debit)</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>إجمالي حركات المدين (Debit)</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {journals.reduce((acc, j) => acc + (j.total_debit || 0), 0).toLocaleString()} ⃁
           </div>
@@ -486,7 +486,7 @@ export const JournalsPage: React.FC = () => {
         </div>
 
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>إجمالي حركات الدائن (Credit)</span>
+          <span style={{ fontSize: '13px', color: '#adadad', fontWeight: 550 }}>إجمالي حركات الدائن (Credit)</span>
           <div className="display-sm" style={{ fontSize: '32px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {journals.reduce((acc, j) => acc + (j.total_credit || 0), 0).toLocaleString()} ⃁
           </div>
@@ -570,7 +570,7 @@ export const JournalsPage: React.FC = () => {
 
       {/* Filter & Table Card */}
       <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-        <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-white flex-wrap gap-3">
+        <div className="flex items-center justify-between p-4 border-b border-[#e0e0e0] bg-white flex-wrap gap-3">
           <div className="relative w-full md:w-80">
             <Search className="w-4 h-4 absolute right-3 top-3 text-[#707070]" />
             <input
@@ -589,7 +589,7 @@ export const JournalsPage: React.FC = () => {
               aria-label="تصفية حسب نوع القيد"
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="bg-zinc-50 border border-zinc-200 rounded-2xl py-1.5 px-3 text-xs font-bold text-[#141414] focus:border-[#141414] focus:outline-none"
+              className="bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-1.5 px-3 text-xs font-bold text-[#141414] focus:border-[#141414] focus:outline-none"
             >
               <option value="ALL">جميع أنواع القيود</option>
               <option value="MANUAL">قيود يدوية (MANUAL)</option>
@@ -601,8 +601,8 @@ export const JournalsPage: React.FC = () => {
 
         {/* Journals Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-right text-xs text-zinc-700">
-            <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+          <table className="w-full text-right text-xs text-[#141414]">
+            <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
               <tr>
                 <th className="p-3.5">رقم القيد</th>
                 <th className="p-3.5">التاريخ</th>
@@ -615,7 +615,7 @@ export const JournalsPage: React.FC = () => {
                 <th className="p-3.5 text-center">إجراءات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-[#e0e0e0]">
               {isLoading ? (
                 <tr>
                   <td colSpan={9} className="py-10 text-center text-[#707070]">
@@ -630,7 +630,7 @@ export const JournalsPage: React.FC = () => {
                 </tr>
               ) : (
                 filteredJournals.map((j) => (
-                  <tr key={j.id} className="hover:bg-zinc-50 transition-colors">
+                  <tr key={j.id} className="hover:bg-[#f3f3f3] transition-colors">
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{j.entry_number}</td>
                     <td className="p-3.5 font-mono text-[#707070]">{j.entry_date}</td>
                     <td className="p-3.5 font-semibold text-[#141414] max-w-xs truncate" title={j.description}>
@@ -638,13 +638,13 @@ export const JournalsPage: React.FC = () => {
                     </td>
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{j.total_debit.toLocaleString()} ⃁</td>
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{j.total_credit.toLocaleString()} ⃁</td>
-                    <td className="p-3.5 text-zinc-600">
+                    <td className="p-3.5 text-[#707070]">
                       <div>{j.branch_name}</div>
                       {j.cost_center_code && (
                         <span className="text-[10px] text-[#707070] font-mono">[{j.cost_center_code}]</span>
                       )}
                     </td>
-                    <td className="p-3.5 text-zinc-600">
+                    <td className="p-3.5 text-[#707070]">
                       <div className="flex items-center gap-2">
                         <CorporateAvatar
                           name={j.created_by}
@@ -675,7 +675,7 @@ export const JournalsPage: React.FC = () => {
 
                         <button
                           onClick={() => handleReverseJournal(j)}
-                          className="button-outline-on-light text-[#141414] hover:bg-[#eaeaea]"
+                          className="button-outline-on-light text-[#141414] hover:bg-[#f3f3f3]"
                           style={{ padding: '3px 8px', fontSize: '11px', minHeight: '26px' }}
                           title="عكس القيد وتوليد قيد مضاد متوازن"
                         >
@@ -703,13 +703,13 @@ export const JournalsPage: React.FC = () => {
       {/* Add Balanced Journal Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
-          <div className="w-full max-w-3xl bg-white rounded-[24px] border border-zinc-200 overflow-hidden font-sans max-h-[90vh] flex flex-col">
+          <div className="w-full max-w-3xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[90vh] flex flex-col">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between shrink-0">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-[#141414]" />
                 <span>إنشاء قيد يومية متوازن جديد (Double-Entry Journal)</span>
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors">
+              <button onClick={() => setShowAddModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#262626] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -718,22 +718,22 @@ export const JournalsPage: React.FC = () => {
               {/* Header Details */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">تاريخ القيد *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">تاريخ القيد *</label>
                   <input
                     type="date"
                     value={entryDate}
                     onChange={(e) => setEntryDate(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">نوع القيد *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">نوع القيد *</label>
                   <select
                     value={entryType}
                     onChange={(e) => setEntryType(e.target.value as any)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="MANUAL">قيد يومية يدوي (MANUAL)</option>
                     <option value="AUTOMATIC">قيد تسوية / تلقائي (AUTOMATIC)</option>
@@ -742,11 +742,11 @@ export const JournalsPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">الفرع *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">الفرع *</label>
                   <select
                     value={branchName}
                     onChange={(e) => setBranchName(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option>فرع الرياض الرئيسي</option>
                     <option>فرع جدة</option>
@@ -757,19 +757,19 @@ export const JournalsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">البيان والشرح المحاسبي للقيد *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">البيان والشرح المحاسبي للقيد *</label>
                 <input
                   type="text"
                   placeholder="مثال: إثبات سداد مصاريف استقدام عمالة / تحصيل دفعة عقد إيجار..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   required
                 />
               </div>
 
               {/* Multi-Line Journal Lines Builder */}
-              <div className="border border-zinc-200 rounded-2xl p-4 bg-zinc-50 space-y-3">
+              <div className="border border-[#e0e0e0] rounded-2xl p-4 bg-[#f3f3f3] space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold text-[#141414]">بنود وأطراف القيد المحاسبي</h4>
                   <button
@@ -785,13 +785,13 @@ export const JournalsPage: React.FC = () => {
 
                 <div className="space-y-2">
                   {lines.map((line, idx) => (
-                    <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-white p-3 rounded-2xl border border-zinc-200">
+                    <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-white p-3 rounded-2xl border border-[#e0e0e0]">
                       <div className="col-span-5">
                         <label className="block text-[10px] text-[#707070] font-semibold mb-1">الحساب المحاسبي</label>
                         <select
                           value={line.account_code}
                           onChange={(e) => handleLineChange(idx, 'account_code', e.target.value)}
-                          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-1.5 px-2 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                          className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-1.5 px-2 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                         >
                           {accountsList.map((acc) => (
                             <option key={acc.code} value={acc.code}>
@@ -802,14 +802,14 @@ export const JournalsPage: React.FC = () => {
                       </div>
 
                       <div className="col-span-3">
-                        <label className="block text-[10px] text-zinc-700 font-semibold mb-1">مدين (Debit)</label>
+                        <label className="block text-[10px] text-[#141414] font-semibold mb-1">مدين (Debit)</label>
                         <input
                           type="number"
                           step="0.01"
                           value={line.debit === 0 ? '' : line.debit}
                           onChange={(e) => handleLineChange(idx, 'debit', e.target.value)}
                           placeholder="0.00"
-                          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-1.5 px-2 text-xs font-mono font-bold text-[#141414] focus:border-[#141414] focus:outline-none"
+                          className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-1.5 px-2 text-xs font-mono font-bold text-[#141414] focus:border-[#141414] focus:outline-none"
                         />
                       </div>
 
@@ -866,7 +866,7 @@ export const JournalsPage: React.FC = () => {
               </div>
 
               {/* Submit Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-100">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
@@ -892,7 +892,7 @@ export const JournalsPage: React.FC = () => {
       {/* View & Print Selected Journal Modal */}
       {selectedJournal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" data-printable-modal="true" onClick={(e) => { if (e.target === e.currentTarget) setSelectedJournal(null); }}>
-          <div className="w-full max-w-3xl bg-white rounded-[24px] border border-zinc-200 overflow-y-auto text-[#141414] font-sans max-h-[90vh]">
+          <div className="w-full max-w-3xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-y-auto text-[#141414] font-sans max-h-[90vh]">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between print:hidden">
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-[#141414]" />
@@ -918,33 +918,33 @@ export const JournalsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="erp-printable-sheet p-8 space-y-6 bg-white border border-zinc-300 m-4 rounded-2xl">
+            <div className="erp-printable-sheet p-8 space-y-6 bg-white border border-[#e0e0e0] m-4 rounded-2xl">
               {/* Header */}
               <div className="flex items-center justify-between border-b-2 border-[#141414] pb-4">
                 <div>
                   <h2 className="text-lg font-bold text-[#141414] m-0">{activeCompany.name}</h2>
-                  <p className="text-xs text-zinc-600 mt-0.5 font-mono">س.ت: 1010892819 | الرقم الضريبي: 310928374900003</p>
+                  <p className="text-xs text-[#707070] mt-0.5 font-mono">س.ت: 1010892819 | الرقم الضريبي: 310928374900003</p>
                   <p className="text-xs text-[#707070]">سجل القيود المحاسبية المعتمدة (Double-Entry Ledger)</p>
                 </div>
                 <div className="text-left">
                   <div className="text-sm font-bold text-[#141414] font-mono border-2 border-[#141414] px-3 py-1 rounded-xl">
                     قيد محاسبي: {selectedJournal.entry_number}
                   </div>
-                  <div className="text-xs font-mono text-zinc-600 mt-1 font-bold">التاريخ: {selectedJournal.entry_date}</div>
+                  <div className="text-xs font-mono text-[#707070] mt-1 font-bold">التاريخ: {selectedJournal.entry_date}</div>
                   <div className="text-xs text-[#707070]">الفرع: {selectedJournal.branch_name}</div>
                 </div>
               </div>
 
               {/* Description Box */}
-              <div className="p-3.5 bg-zinc-50 rounded-xl border border-zinc-200 text-xs">
-                <span className="font-bold text-zinc-700 block mb-1">البيان والشرح المحاسبي:</span>
+              <div className="p-3.5 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0] text-xs">
+                <span className="font-bold text-[#141414] block mb-1">البيان والشرح المحاسبي:</span>
                 <span className="text-[#141414] font-semibold text-sm">{selectedJournal.description}</span>
               </div>
 
               {/* Journal Line Items Table */}
-              <div className="border border-zinc-300 rounded-xl overflow-hidden">
+              <div className="border border-[#e0e0e0] rounded-xl overflow-hidden">
                 <table className="w-full text-right text-xs">
-                  <thead className="bg-zinc-100 font-bold border-b border-zinc-300 text-zinc-800">
+                  <thead className="bg-[#f3f3f3] font-bold border-b border-[#e0e0e0] text-[#141414]">
                     <tr>
                       <th className="p-3">رمز الحساب</th>
                       <th className="p-3">اسم الحساب في الدليل</th>
@@ -953,7 +953,7 @@ export const JournalsPage: React.FC = () => {
                       <th className="p-3 font-mono">دائن (Credit)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-200 font-mono">
+                  <tbody className="divide-y divide-[#e0e0e0] font-mono">
                     {(() => {
                       const engineEntry = journalEngine
                         .getJournalsByCompany((selectedJournal.company_id || activeCompanyId) as any)
@@ -981,7 +981,7 @@ export const JournalsPage: React.FC = () => {
                         </tr>
                       ));
                     })()}
-                    <tr className="bg-zinc-50 font-bold border-t-2 border-[#141414] text-xs font-sans">
+                    <tr className="bg-[#f3f3f3] font-bold border-t-2 border-[#141414] text-xs font-sans">
                       <td colSpan={3} className="p-3 text-left pl-4">الإجمالي المتوازن:</td>
                       <td className="p-3 text-[#141414] font-mono font-bold">{selectedJournal.total_debit.toLocaleString()} ⃁</td>
                       <td className="p-3 text-[#141414] font-mono font-bold">{selectedJournal.total_credit.toLocaleString()} ⃁</td>
@@ -991,32 +991,32 @@ export const JournalsPage: React.FC = () => {
               </div>
 
               {/* Status & Approvals */}
-              <div className="grid grid-cols-3 gap-4 pt-8 border-t border-zinc-200 text-center text-xs">
+              <div className="grid grid-cols-3 gap-4 pt-8 border-t border-[#e0e0e0] text-center text-xs">
                 <div>
                   <span className="text-[#707070] block font-bold mb-8">مُعد القيد</span>
-                  <span className="border-t border-zinc-400 pt-1 block font-mono text-[10px] text-zinc-800">
+                  <span className="border-t border-[#adadad] pt-1 block font-mono text-[10px] text-[#141414]">
                     {selectedJournal.created_by || 'المحاسب المالي'}
                   </span>
                 </div>
                 <div>
                   <span className="text-[#707070] block font-bold mb-8">المراجع المالي</span>
-                  <span className="border-t border-zinc-400 pt-1 block font-mono text-[10px] text-zinc-800">
+                  <span className="border-t border-[#adadad] pt-1 block font-mono text-[10px] text-[#141414]">
                     {selectedJournal.approved_by || 'تدقيق الحسابات'}
                   </span>
                 </div>
                 <div>
                   <span className="text-[#707070] block font-bold mb-8">اعتماد الإدارة المالية</span>
-                  <span className="border-t border-zinc-400 pt-1 block font-mono text-[10px] text-zinc-800">
+                  <span className="border-t border-[#adadad] pt-1 block font-mono text-[10px] text-[#141414]">
                     المدير المالي المعتمد
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="p-4 bg-zinc-50 border-t border-zinc-200 flex items-center justify-between gap-2 print:hidden">
+            <div className="p-4 bg-[#f3f3f3] border-t border-[#e0e0e0] flex items-center justify-between gap-2 print:hidden">
               <button
                 onClick={() => handleReverseJournal(selectedJournal)}
-                className="button-outline-on-light text-[#141414] hover:bg-[#eaeaea] flex items-center gap-1 font-bold"
+                className="button-outline-on-light text-[#141414] hover:bg-[#f3f3f3] flex items-center gap-1 font-bold"
                 style={{ padding: '6px 14px', fontSize: '11.5px' }}
                 title="إنشاء قيد محاسبي عكسي لهذا القيد"
               >

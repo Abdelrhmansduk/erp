@@ -460,7 +460,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
               {/* Two Column Section: Recent Tenders & Live Invoices */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Recent Tenders */}
-                <div className="rounded-2xl p-5 bg-[#ffffff] border border-[#e0e0e0] shadow-md space-y-4">
+                <div className="rounded-2xl p-5 bg-[#ffffff] border border-[#e0e0e0]  space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-bold text-[#141414] flex items-center gap-2">
                       <Layers className="w-4 h-4 text-[#141414]" />
@@ -505,7 +505,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                 </div>
 
                 {/* Recent ZATCA Invoices */}
-                <div className="rounded-2xl p-5 bg-[#ffffff] border border-[#e0e0e0] shadow-md space-y-4">
+                <div className="rounded-2xl p-5 bg-[#ffffff] border border-[#e0e0e0]  space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-bold text-[#141414] flex items-center gap-2">
                       <Receipt className="w-4 h-4 text-[#141414]" />
@@ -587,7 +587,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
               </div>
 
               {/* Tenders Table */}
-              <div className="rounded-2xl bg-[#ffffff] border border-[#e0e0e0] overflow-hidden shadow-lg">
+              <div className="rounded-2xl bg-[#ffffff] border border-[#e0e0e0] overflow-hidden ">
                 <div className="overflow-x-auto">
                   <table className="w-full text-right text-xs">
                     <thead className="bg-[#ffffff] text-[#707070] border-b border-[#e0e0e0]">
@@ -630,7 +630,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                                     message: `تم تحميل بنود المنافسة ${t.referenceNumber} في محرر الأسعار الذكي`,
                                   });
                                 }}
-                                className="px-2.5 py-1 rounded-lg bg-[#f3f3f3] text-[#141414] hover:bg-[#eaeaea] font-bold text-[11px] inline-flex items-center gap-1"
+                                className="px-2.5 py-1 rounded-lg bg-[#f3f3f3] text-[#141414] hover:bg-[#f3f3f3] font-bold text-[11px] inline-flex items-center gap-1"
                               >
                                 <Calculator className="w-3 h-3" />
                                 <span>تسعير BOQ</span>
@@ -680,7 +680,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
               </div>
 
               {/* Live BOQ Table */}
-              <div className="rounded-2xl bg-[#ffffff] border border-[#e0e0e0] overflow-hidden shadow-lg">
+              <div className="rounded-2xl bg-[#ffffff] border border-[#e0e0e0] overflow-hidden ">
                 <div className="p-3 border-b border-[#e0e0e0] bg-[#ffffff] flex items-center justify-between">
                   <div className="text-xs font-bold text-[#141414] flex items-center gap-2">
                     <FileSpreadsheet className="w-4 h-4 text-[#141414]" />
@@ -750,7 +750,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {suppliers.map(sup => (
-                  <div key={sup.id} className="p-4 rounded-2xl bg-[#ffffff] border border-[#e0e0e0] shadow-md space-y-3">
+                  <div key={sup.id} className="p-4 rounded-2xl bg-[#ffffff] border border-[#e0e0e0]  space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-[#f3f3f3] text-[#141414] flex items-center justify-center font-bold">
@@ -803,7 +803,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
           {/* ========================================================================= */}
           {activeDept === 'purchase-orders' && (
             <div className="space-y-4">
-              <div className="rounded-2xl bg-[#ffffff] border border-[#e0e0e0] overflow-hidden shadow-lg">
+              <div className="rounded-2xl bg-[#ffffff] border border-[#e0e0e0] overflow-hidden ">
                 <div className="overflow-x-auto">
                   <table className="w-full text-right text-xs">
                     <thead className="bg-[#ffffff] text-[#707070] border-b border-[#e0e0e0]">
@@ -894,7 +894,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
           {/* ========================================================================= */}
           {activeDept === 'zatca-invoices' && (
             <div className="space-y-4">
-              <div className="rounded-2xl bg-[#ffffff] border border-[#e0e0e0] overflow-hidden shadow-lg">
+              <div className="rounded-2xl bg-[#ffffff] border border-[#e0e0e0] overflow-hidden ">
                 <div className="overflow-x-auto">
                   <table className="w-full text-right text-xs">
                     <thead className="bg-[#ffffff] text-[#707070] border-b border-[#e0e0e0]">
@@ -1105,7 +1105,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#141414] text-[#ffffff] hover:bg-[#262626] shadow-md"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#141414] text-[#ffffff] hover:bg-[#262626] "
                 >
                   حفظ وتسجيل المنافسة
                 </button>
@@ -1175,7 +1175,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#141414] text-[#ffffff] hover:bg-[#262626] shadow-md"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#141414] text-[#ffffff] hover:bg-[#262626] "
                 >
                   اعتماد المورد
                 </button>
@@ -1268,7 +1268,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#141414] text-[#ffffff] hover:bg-[#262626] shadow-md"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#141414] text-[#ffffff] hover:bg-[#262626] "
                 >
                   اعتماد أمر الصرف
                 </button>
@@ -1362,7 +1362,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#141414] text-[#ffffff] hover:bg-[#262626] shadow-md flex items-center gap-1.5"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#141414] text-[#ffffff] hover:bg-[#262626]  flex items-center gap-1.5"
                 >
                   <QrCode className="w-4 h-4" />
                   <span>إصدار وتشفير ZATCA</span>

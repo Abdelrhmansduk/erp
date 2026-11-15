@@ -934,18 +934,18 @@ export const RecruitmentContractsPage: React.FC = () => {
           <button
             type="button"
             onClick={() => window.dispatchEvent(new CustomEvent('open-document-extractor'))}
-            className="px-4 py-2.5 rounded-2xl text-xs font-bold bg-[#f3f3f3] hover:bg-zinc-800 text-[#141414] border border-[#e0e0e0] flex items-center gap-1.5 transition-all cursor-pointer"
+            className="px-4 py-2.5 rounded-2xl text-xs font-bold bg-[#f3f3f3] hover:bg-[#262626] text-[#141414] border border-[#e0e0e0] flex items-center gap-1.5 transition-all cursor-pointer"
           >
             <FileText className="w-4 h-4 text-[#141414]" />
             <span>استخلاص عقود ومستندات (PDF / Word / Excel / صور)</span>
           </button>
 
           {/* Table / Kanban Toggle */}
-          <div className="bg-[#f3f3f3]/70 border border-[#e0e0e0] p-1 rounded-2xl flex gap-1 shadow-inner backdrop-blur-md">
+          <div className="bg-[#f3f3f3]/70 border border-[#e0e0e0] p-1 rounded-2xl flex gap-1  backdrop-blur-md">
             <button
               onClick={() => setViewMode('table')}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                viewMode === 'table' ? 'bg-[#141414] text-[#ffffff] shadow-sm' : 'text-[#707070] hover:text-[#141414]'
+                viewMode === 'table' ? 'bg-[#141414] text-[#ffffff] ' : 'text-[#707070] hover:text-[#141414]'
               }`}
             >
               <List className="w-3.5 h-3.5" />
@@ -954,7 +954,7 @@ export const RecruitmentContractsPage: React.FC = () => {
             <button
               onClick={() => setViewMode('kanban')}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                viewMode === 'kanban' ? 'bg-[#141414] text-[#ffffff] shadow-sm' : 'text-[#707070] hover:text-[#141414]'
+                viewMode === 'kanban' ? 'bg-[#141414] text-[#ffffff] ' : 'text-[#707070] hover:text-[#141414]'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -964,7 +964,7 @@ export const RecruitmentContractsPage: React.FC = () => {
 
           <button
             onClick={() => setShowAddModal(true)}
-            className="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold bg-[#141414] text-[#ffffff] bg-[#141414] text-[#ffffff] border border-[#e0e0e0] shadow-lg flex items-center gap-2 hover:-translate-y-0.5 transition-all cursor-pointer"
+            className="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold bg-[#141414] text-[#ffffff] bg-[#141414] text-[#ffffff] border border-[#e0e0e0]  flex items-center gap-2 hover:-translate-y-0.5 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4 shrink-0" />
             <span>إضافة عقد استقدام</span>
@@ -984,7 +984,7 @@ export const RecruitmentContractsPage: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         {/* Card 1: Total Contracts */}
         <div 
-          className="p-5 sm:p-6 rounded-3xl bg-white border border-zinc-200/80 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group"
+          className="p-5 sm:p-6 rounded-3xl bg-white border border-[#e0e0e0]   transition-all duration-300 relative overflow-hidden group"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs sm:text-sm font-bold text-[#707070]">إجمالي عقود الاستقدام</span>
@@ -992,7 +992,7 @@ export const RecruitmentContractsPage: React.FC = () => {
               <FileSignature className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-3xl sm:text-4xl font-bold text-zinc-900 mt-2.5 tracking-tight font-display">
+          <div className="text-3xl sm:text-4xl font-bold text-[#141414] mt-2.5 tracking-tight font-display">
             {contracts.length || 115} <span className="text-lg font-bold text-[#707070]">عقد</span>
           </div>
           <div className="mt-3.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]">
@@ -1003,15 +1003,15 @@ export const RecruitmentContractsPage: React.FC = () => {
 
         {/* Card 2: Active Contracts */}
         <div 
-          className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-[#f3f3f3] via-white to-white border border-[#e0e0e0] shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group"
+          className="p-5 sm:p-6 rounded-3xl bg-[#f3f3f3]  via-white to-white border border-[#e0e0e0]   transition-all duration-300 relative overflow-hidden group"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs sm:text-sm font-bold text-zinc-700">العقود السارية والتنفيذ</span>
+            <span className="text-xs sm:text-sm font-bold text-[#141414]">العقود السارية والتنفيذ</span>
             <div className="w-8 h-8 rounded-xl bg-[#f3f3f3] text-[#141414] flex items-center justify-center border border-[#e0e0e0] group-hover:scale-110 transition-transform">
               <RefreshCw className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-3xl sm:text-4xl font-bold text-zinc-900 mt-2.5 tracking-tight font-display">
+          <div className="text-3xl sm:text-4xl font-bold text-[#141414] mt-2.5 tracking-tight font-display">
             {contracts.filter(c => c.stage !== 'مكتمل' && c.stage !== 'مرتجع').length || 27} <span className="text-lg font-bold text-[#707070]">عقد</span>
           </div>
           <div className="mt-3.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]">
@@ -1022,7 +1022,7 @@ export const RecruitmentContractsPage: React.FC = () => {
 
         {/* Card 3: Total Financial Value (Royal Navy & Champagne Gold) */}
         <div 
-          className="p-5 sm:p-6 rounded-3xl relative overflow-hidden shadow-lg transition-all duration-300 group"
+          className="p-5 sm:p-6 rounded-3xl relative overflow-hidden  transition-all duration-300 group"
           style={{
             background: '#f3f3f3',
             border: '1.5px solid rgba(207, 166, 74, 0.45)',
@@ -1046,7 +1046,7 @@ export const RecruitmentContractsPage: React.FC = () => {
 
         {/* Card 4: Compliance & Arrival Rate */}
         <div 
-          className="p-5 sm:p-6 rounded-3xl bg-white border border-zinc-200/80 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group"
+          className="p-5 sm:p-6 rounded-3xl bg-white border border-[#e0e0e0]   transition-all duration-300 relative overflow-hidden group"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs sm:text-sm font-bold text-[#707070]">نسبة الامتثال والوصول</span>
@@ -1054,20 +1054,20 @@ export const RecruitmentContractsPage: React.FC = () => {
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-3xl sm:text-4xl font-bold text-zinc-900 mt-2.5 tracking-tight font-display">
+          <div className="text-3xl sm:text-4xl font-bold text-[#141414] mt-2.5 tracking-tight font-display">
             98.5%
           </div>
-          <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden mt-2.5">
+          <div className="w-full h-1.5 bg-[#f3f3f3] rounded-full overflow-hidden mt-2.5">
             <div className="w-[98.5%] h-full bg-[#141414] rounded-full" />
           </div>
-          <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-zinc-100 text-zinc-700 border border-zinc-200">
+          <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]">
             <span>ضمان 90 يوماً وتأمين شامل</span>
           </div>
         </div>
       </div>
 
       {/* Main Sub-Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-[#e0e0e0] pb-3">
         {[
           { id: 'all', label: `جميع عقود الاستقدام (${contracts.length || 115})` },
           { id: 'active', label: `العقود السارية (${contracts.filter(c => c.stage !== 'مكتمل' && c.stage !== 'مرتجع').length || 27})` },
@@ -1091,9 +1091,9 @@ export const RecruitmentContractsPage: React.FC = () => {
                 padding: '6px 16px',
                 borderRadius: '9999px',
                 border: '1px solid',
-                borderColor: isActive ? '#141414' : '#e4e4e7',
+                borderColor: isActive ? '#141414' : '#e0e0e0',
                 backgroundColor: isActive ? '#141414' : '#ffffff',
-                color: isActive ? '#ffffff' : '#27272a',
+                color: isActive ? '#ffffff' : '#141414',
                 fontWeight: isActive ? 550 : 420,
                 fontSize: '12.5px',
                 cursor: 'pointer',
@@ -1110,7 +1110,7 @@ export const RecruitmentContractsPage: React.FC = () => {
       {activeTab === 'warranty' && (
         <div className="space-y-6">
           <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-            <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-3">
+            <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h2 className="display-sm" style={{ fontSize: '18px', fontWeight: 330, color: '#141414', margin: 0 }}>
                   متابعة فترة التجربة والضمان النظامي لعقود الاستقدام (90 يوماً — مساند)
@@ -1125,8 +1125,8 @@ export const RecruitmentContractsPage: React.FC = () => {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs text-zinc-700">
-                <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+              <table className="w-full text-right text-xs text-[#141414]">
+                <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                   <tr>
                     <th className="p-3.5">رقم العقد</th>
                     <th className="p-3.5">العميل</th>
@@ -1139,7 +1139,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                     <th className="p-3.5 text-center">إجراء الضمان</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-[#e0e0e0]">
                   {contracts.slice(0, 15).map((c, idx) => {
                     const rawDaysSinceCreated = c.created_at
                       ? Math.floor((Date.now() - new Date(c.created_at).getTime()) / 86400000)
@@ -1158,27 +1158,27 @@ export const RecruitmentContractsPage: React.FC = () => {
                     const pct = Math.min(100, Math.round((warranty.daysPassed / 90) * 100));
 
                     return (
-                      <tr key={c.id} className="hover:bg-zinc-50">
+                      <tr key={c.id} className="hover:bg-[#f3f3f3]">
                         <td className="p-3.5 font-mono font-bold text-[#141414]">{c.contract_number}</td>
                         <td className="p-3.5 font-bold text-[#141414]">{c.client_name}</td>
                         <td className="p-3.5">
                           <div className="font-bold text-[#141414]">{c.maid_name}</div>
                           <div className="text-[11px] text-[#707070]">{c.nationality}</div>
                         </td>
-                        <td className="p-3.5 font-mono text-zinc-600">{simulatedArrivalDate}</td>
+                        <td className="p-3.5 font-mono text-[#707070]">{simulatedArrivalDate}</td>
                         <td className="p-3.5">
                           <div className="flex items-center justify-between text-[11px] font-mono mb-1">
                             <span className="font-bold text-[#141414]">انقضى {warranty.daysPassed} يوم</span>
                             <span className="text-[#707070]">متبقي {warranty.daysRemaining} يوم</span>
                           </div>
-                          <div className="w-36 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                          <div className="w-36 h-1.5 bg-[#f3f3f3] rounded-full overflow-hidden">
                             <div
                               className="h-full bg-[#141414] rounded-full"
                               style={{ width: `${pct}%` }}
                             />
                           </div>
                         </td>
-                        <td className="p-3.5 font-mono text-zinc-700">{dailyRate} ⃁ / يوم</td>
+                        <td className="p-3.5 font-mono text-[#141414]">{dailyRate} ⃁ / يوم</td>
                         <td className="p-3.5 font-mono font-bold text-[#141414]">
                           {warranty.agencyLiabilityAmount.toLocaleString()} ⃁
                         </td>
@@ -1227,7 +1227,7 @@ export const RecruitmentContractsPage: React.FC = () => {
       {activeTab === 'insurance' && (
         <div className="space-y-6">
           <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-            <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-3">
+            <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h2 className="display-sm" style={{ fontSize: '18px', fontWeight: 330, color: '#141414', margin: 0 }}>
                   بوالص التأمين الإلزامية على عقود العمالة المنزلية (24 شهراً)
@@ -1242,7 +1242,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                 </span>
                 <button
                   onClick={() => setShowAddInsuranceModal(true)}
-                  className="button-primary-pill text-xs font-bold flex items-center gap-1.5 shadow-md"
+                  className="button-primary-pill text-xs font-bold flex items-center gap-1.5 "
                   style={{ minHeight: '34px', padding: '6px 16px' }}
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -1252,8 +1252,8 @@ export const RecruitmentContractsPage: React.FC = () => {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs text-zinc-700">
-                <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+              <table className="w-full text-right text-xs text-[#141414]">
+                <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                   <tr>
                     <th className="p-3.5">رقم البوليصة</th>
                     <th className="p-3.5">رقم العقد</th>
@@ -1267,15 +1267,15 @@ export const RecruitmentContractsPage: React.FC = () => {
                     <th className="p-3.5 text-center">الإجراءات</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-[#e0e0e0]">
                   {insurancePolicies.map(pol => (
-                    <tr key={pol.id} className="hover:bg-zinc-50">
+                    <tr key={pol.id} className="hover:bg-[#f3f3f3]">
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{pol.policy_no}</td>
-                      <td className="p-3.5 font-mono text-zinc-600">{pol.contract_number}</td>
+                      <td className="p-3.5 font-mono text-[#707070]">{pol.contract_number}</td>
                       <td className="p-3.5 font-bold text-[#141414]">{pol.client_name}</td>
                       <td className="p-3.5 text-[#141414]">{pol.maid_name}</td>
                       <td className="p-3.5 font-bold text-[#141414]">{pol.company}</td>
-                      <td className="p-3.5 text-zinc-600">{pol.coverage}</td>
+                      <td className="p-3.5 text-[#707070]">{pol.coverage}</td>
                       <td className="p-3.5 font-mono text-[#707070]">{pol.start_date} إلى {pol.end_date}</td>
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{pol.premium_sar} ⃁</td>
                       <td className="p-3.5">
@@ -1288,7 +1288,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                         {!pol.status.includes('مطالبة') ? (
                           <button
                             onClick={() => handleFileInsuranceClaim(pol)}
-                            className="button-outline-on-light text-[11px] font-bold text-[#141414] hover:bg-[#eaeaea]"
+                            className="button-outline-on-light text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3]"
                             style={{ minHeight: '26px', padding: '2px 8px' }}
                             title="رفع مطالبة تعويض لدى شركة التأمين ومساند"
                           >
@@ -1311,7 +1311,7 @@ export const RecruitmentContractsPage: React.FC = () => {
       {/* 3. Dispatches Full View */}
       {activeTab === 'dispatches' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-3">
+          <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between flex-wrap gap-3">
             <div>
               <h2 className="display-sm" style={{ fontSize: '18px', fontWeight: 330, color: '#141414', margin: 0 }}>
                 سجل إرساليات المكاتب الخارجية وتفويج العمالة
@@ -1326,7 +1326,7 @@ export const RecruitmentContractsPage: React.FC = () => {
               </span>
               <button
                 onClick={() => setShowAddDispatchModal(true)}
-                className="button-primary-pill text-xs font-bold flex items-center gap-1.5 shadow-md"
+                className="button-primary-pill text-xs font-bold flex items-center gap-1.5 "
                 style={{ minHeight: '34px', padding: '6px 16px' }}
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -1336,8 +1336,8 @@ export const RecruitmentContractsPage: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">كود الإرسالية</th>
                   <th className="p-3.5">رقم العقد</th>
@@ -1351,14 +1351,14 @@ export const RecruitmentContractsPage: React.FC = () => {
                   <th className="p-3.5 text-center">الإجراءات</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {dispatches.map(d => (
-                  <tr key={d.id} className="hover:bg-zinc-50">
+                  <tr key={d.id} className="hover:bg-[#f3f3f3]">
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{d.id}</td>
-                    <td className="p-3.5 font-mono text-zinc-600">{d.contract_number}</td>
+                    <td className="p-3.5 font-mono text-[#707070]">{d.contract_number}</td>
                     <td className="p-3.5 font-bold text-[#141414]">{d.client_name}</td>
                     <td className="p-3.5 font-bold text-[#141414]">{d.maid_name} ({d.nationality})</td>
-                    <td className="p-3.5 text-zinc-600">{d.office_name}</td>
+                    <td className="p-3.5 text-[#707070]">{d.office_name}</td>
                     <td className="p-3.5">
                       <Badge 
                         text={d.dispatch_status} 
@@ -1366,13 +1366,13 @@ export const RecruitmentContractsPage: React.FC = () => {
                       />
                     </td>
                     <td className="p-3.5 font-mono text-[#707070]">{d.dispatch_date}</td>
-                    <td className="p-3.5 text-zinc-700">{d.arrival_station}</td>
+                    <td className="p-3.5 text-[#141414]">{d.arrival_station}</td>
                     <td className="p-3.5 font-mono font-bold text-[#141414]">${d.cost_usd}</td>
                     <td className="p-3.5 text-center">
                       <div className="flex items-center justify-center gap-1.5">
                         <button
                           onClick={() => handleAdvanceDispatch(d)}
-                          className="button-outline-on-light text-[11px] font-bold text-[#141414] hover:bg-[#eaeaea]"
+                          className="button-outline-on-light text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3]"
                           style={{ minHeight: '26px', padding: '2px 8px' }}
                           title="ترقية مسار الإرسالية للمرحلة التالية"
                         >
@@ -1399,7 +1399,7 @@ export const RecruitmentContractsPage: React.FC = () => {
       {/* 4. Extensions Requests View */}
       {activeTab === 'extensions' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-3">
+          <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between flex-wrap gap-3">
             <div>
               <h2 className="display-sm" style={{ fontSize: '18px', fontWeight: 330, color: '#141414', margin: 0 }}>
                 طلبات تمديد وتجديد عقود الاستقدام
@@ -1414,7 +1414,7 @@ export const RecruitmentContractsPage: React.FC = () => {
               </span>
               <button
                 onClick={() => setShowAddExtensionModal(true)}
-                className="button-primary-pill text-xs font-bold flex items-center gap-1.5 shadow-md"
+                className="button-primary-pill text-xs font-bold flex items-center gap-1.5 "
                 style={{ minHeight: '34px', padding: '6px 16px' }}
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -1424,8 +1424,8 @@ export const RecruitmentContractsPage: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">رقم الطلب</th>
                   <th className="p-3.5">رقم العقد الأصلي</th>
@@ -1438,15 +1438,15 @@ export const RecruitmentContractsPage: React.FC = () => {
                   <th className="p-3.5 text-center">الإجراءات</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {extensions.map(ext => (
-                  <tr key={ext.id} className="hover:bg-zinc-50">
+                  <tr key={ext.id} className="hover:bg-[#f3f3f3]">
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{ext.id}</td>
-                    <td className="p-3.5 font-mono text-zinc-600">{ext.contract_number}</td>
+                    <td className="p-3.5 font-mono text-[#707070]">{ext.contract_number}</td>
                     <td className="p-3.5 font-bold text-[#141414]">{ext.client_name}</td>
                     <td className="p-3.5 text-[#141414]">{ext.maid_name}</td>
                     <td className="p-3.5 font-bold text-[#141414]">{ext.extension_years} سنوات</td>
-                    <td className="p-3.5 text-zinc-600">{ext.applicant}</td>
+                    <td className="p-3.5 text-[#707070]">{ext.applicant}</td>
                     <td className="p-3.5 font-mono text-[#707070]">{ext.request_date}</td>
                     <td className="p-3.5">
                       <Badge 
@@ -1459,7 +1459,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => handleApproveExtension(ext)}
-                            className="px-2 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#eaeaea] text-[#141414] text-[11px] font-bold flex items-center gap-1"
+                            className="px-2 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[#141414] text-[11px] font-bold flex items-center gap-1"
                             title="اعتماد التمديد وتحديث ضمان العقد"
                           >
                             <Check className="w-3 h-3" />
@@ -1467,7 +1467,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                           </button>
                           <button
                             onClick={() => handleRejectExtension(ext)}
-                            className="px-2 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#eaeaea] text-[#141414] text-[11px] font-bold flex items-center gap-1"
+                            className="px-2 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#f3f3f3] text-[#141414] text-[11px] font-bold flex items-center gap-1"
                             title="رفض طلب التمديد"
                           >
                             <X className="w-3 h-3" />
@@ -1489,7 +1489,7 @@ export const RecruitmentContractsPage: React.FC = () => {
       {/* 5. Returns Requests View */}
       {activeTab === 'returns' && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-3">
+          <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between flex-wrap gap-3">
             <div>
               <h2 className="display-sm" style={{ fontSize: '18px', fontWeight: 330, color: '#141414', margin: 0 }}>
                 طلبات استرجاع العقود والتسويات المالية
@@ -1504,7 +1504,7 @@ export const RecruitmentContractsPage: React.FC = () => {
               </span>
               <button
                 onClick={() => setShowAddReturnModal(true)}
-                className="button-primary-pill text-xs font-bold flex items-center gap-1.5 shadow-md"
+                className="button-primary-pill text-xs font-bold flex items-center gap-1.5 "
                 style={{ minHeight: '34px', padding: '6px 16px' }}
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -1514,8 +1514,8 @@ export const RecruitmentContractsPage: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">رقم الطلب</th>
                   <th className="p-3.5">رقم العقد</th>
@@ -1527,14 +1527,14 @@ export const RecruitmentContractsPage: React.FC = () => {
                   <th className="p-3.5 text-center">الإجراء المالي</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {returns.map(ret => (
-                  <tr key={ret.id} className="hover:bg-zinc-50">
+                  <tr key={ret.id} className="hover:bg-[#f3f3f3]">
                     <td className="p-3.5 font-mono font-bold text-[#141414]">{ret.id}</td>
-                    <td className="p-3.5 font-mono text-zinc-600">{ret.contract_number}</td>
+                    <td className="p-3.5 font-mono text-[#707070]">{ret.contract_number}</td>
                     <td className="p-3.5 font-bold text-[#141414]">{ret.client_name}</td>
                     <td className="p-3.5 text-[#141414]">{ret.maid_name}</td>
-                    <td className="p-3.5 text-zinc-700">{ret.notes}</td>
+                    <td className="p-3.5 text-[#141414]">{ret.notes}</td>
                     <td className="p-3.5 font-mono text-[#707070]">{ret.request_date}</td>
                     <td className="p-3.5">
                       <Badge 
@@ -1546,7 +1546,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                       {!ret.status.includes('صرف') && !ret.status.includes('تم') ? (
                         <button
                           onClick={() => handleProcessReturn(ret)}
-                          className="button-primary-pill text-[11px] font-bold flex items-center gap-1 mx-auto shadow-sm"
+                          className="button-primary-pill text-[11px] font-bold flex items-center gap-1 mx-auto "
                           style={{ minHeight: '26px', padding: '2px 10px', backgroundColor: '#141414', color: '#ffffff' }}
                           title="اعتماد الإرجاع وتوليد سند صرف استرداد مالي تلقائي"
                         >
@@ -1568,7 +1568,7 @@ export const RecruitmentContractsPage: React.FC = () => {
       {/* Contracts Table / Kanban View */}
       {['all', 'active', 'completed', 'returned'].includes(activeTab) && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-white flex-wrap gap-3">
+          <div className="flex items-center justify-between p-4 border-b border-[#e0e0e0] bg-white flex-wrap gap-3">
             <div className="relative w-full md:w-80">
               <Search className="w-4 h-4 absolute right-3 top-3 text-[#707070]" />
               <input
@@ -1588,8 +1588,8 @@ export const RecruitmentContractsPage: React.FC = () => {
 
           {viewMode === 'table' ? (
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs text-zinc-700">
-                <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+              <table className="w-full text-right text-xs text-[#141414]">
+                <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                   <tr>
                     <th className="p-3.5">رقم العقد</th>
                     <th className="p-3.5">توثيق مساند</th>
@@ -1602,9 +1602,9 @@ export const RecruitmentContractsPage: React.FC = () => {
                     <th className="p-3.5 text-center">الإجراءات</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-[#e0e0e0]">
                   {currentDisplayList.map((c) => (
-                    <tr key={c.id} className="hover:bg-zinc-50">
+                    <tr key={c.id} className="hover:bg-[#f3f3f3]">
                       <td className="p-3.5 font-mono font-bold text-[#141414]">{c.contract_number}</td>
                       <td className="p-3.5">
                         <span className="pill-tag-shade" style={{ fontFamily: 'monospace', fontSize: '10.5px' }}>
@@ -1665,7 +1665,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                           </button>
                           <button
                             onClick={() => handleDeleteContract(c)}
-                            className="button-outline-on-light text-zinc-500 hover:text-red-600"
+                            className="button-outline-on-light text-[#707070] hover:text-[#707070]"
                             style={{ padding: '3px 8px', fontSize: '11px', minHeight: '26px' }}
                             title="حذف العقد"
                           >
@@ -1681,19 +1681,19 @@ export const RecruitmentContractsPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
               {currentDisplayList.map((c) => (
-                <div key={c.id} className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex flex-col justify-between">
+                <div key={c.id} className="p-4 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-start mb-2">
                       <span className="font-mono text-xs font-bold text-[#707070]">{c.contract_number}</span>
                       <Badge text={c.stage} type="primary" />
                     </div>
                     <h4 className="font-bold text-[#141414] text-sm mb-1">{c.client_name}</h4>
-                    <p className="text-xs text-zinc-600 mb-3">{c.maid_name} - {c.nationality}</p>
-                    <div className="py-2 px-3 bg-white rounded-xl text-xs font-mono font-bold text-[#141414] mb-3 border border-zinc-200">
+                    <p className="text-xs text-[#707070] mb-3">{c.maid_name} - {c.nationality}</p>
+                    <div className="py-2 px-3 bg-white rounded-xl text-xs font-mono font-bold text-[#141414] mb-3 border border-[#e0e0e0]">
                       {(c.amount ?? 0).toLocaleString()} ⃁
                     </div>
                   </div>
-                  <div className="flex gap-1.5 pt-2 border-t border-zinc-200">
+                  <div className="flex gap-1.5 pt-2 border-t border-[#e0e0e0]">
                     <button
                       onClick={() => handleAdvanceStage(c)}
                       className="button-primary-pill flex-1"
@@ -1719,7 +1719,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                     </button>
                     <button
                       onClick={() => handleDeleteContract(c)}
-                      className="button-outline-on-light text-zinc-500 hover:text-red-600"
+                      className="button-outline-on-light text-[#707070] hover:text-[#707070]"
                       style={{ fontSize: '11px', minHeight: '28px', padding: '2px 8px' }}
                       title="حذف العقد"
                     >
@@ -1736,7 +1736,7 @@ export const RecruitmentContractsPage: React.FC = () => {
       {/* Add Contract Modal */}
       {showAddModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowAddModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white border border-zinc-200 rounded-[24px] overflow-hidden flex flex-col max-h-[90vh]">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white border border-[#e0e0e0] rounded-[24px] overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="text-base font-bold text-[#141414] flex items-center gap-2">
                 <Plus className="w-4 h-4 text-[#141414]" />
@@ -1744,7 +1744,7 @@ export const RecruitmentContractsPage: React.FC = () => {
               </h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors"
+                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#262626] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1752,7 +1752,7 @@ export const RecruitmentContractsPage: React.FC = () => {
 
             <form onSubmit={handleAddContract} className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1 bg-white text-[#141414]">
               {availableCVs.length > 0 && (
-                <div className="p-3 bg-zinc-50 rounded-2xl border border-zinc-200">
+                <div className="p-3 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0]">
                   <label className="text-xs text-[#141414] block mb-1.5 font-bold">
                     اختيار سريع من بنك السير الذاتية المتاحة (اختياري)
                   </label>
@@ -1769,7 +1769,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                       }
                     }}
                     defaultValue=""
-                    className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-white border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="">-- اختر مرشحة من بنك السير لتعبئة بياناتها تلقائياً --</option>
                     {availableCVs.map((cv: any) => (
@@ -1783,55 +1783,55 @@ export const RecruitmentContractsPage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">تصنيف العميل</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">تصنيف العميل</label>
                   <select
                     value={clientType}
                     onChange={(e) => setClientType(e.target.value as 'شخص' | 'شركة')}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="شخص">أفراد (مواطن / مقيم)</option>
                     <option value="شركة">شركات ومؤسسات</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">اسم العميل *</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">اسم العميل *</label>
                   <input
                     type="text"
                     required
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">رقم الجوال *</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">رقم الجوال *</label>
                   <input
                     type="text"
                     required
                     value={clientPhone}
                     onChange={(e) => setClientPhone(e.target.value)}
                     placeholder="+9665..."
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">رقم الهوية / الإقامة</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">رقم الهوية / الإقامة</label>
                   <input
                     type="text"
                     value={clientNationalId}
                     onChange={(e) => setClientNationalId(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">مدينة التوصيل</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">مدينة التوصيل</label>
                   <select
                     value={deliveryCity}
                     onChange={(e) => setDeliveryCity(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option>الرياض</option>
                     <option>جدة</option>
@@ -1844,35 +1844,35 @@ export const RecruitmentContractsPage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">اسم العاملة *</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">اسم العاملة *</label>
                   <input
                     type="text"
                     required
                     value={maidName}
                     onChange={(e) => setMaidName(e.target.value)}
                     placeholder="MARIA SANTOS"
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">رقم الجواز</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">رقم الجواز</label>
                   <input
                     type="text"
                     value={maidPassport}
                     onChange={(e) => setMaidPassport(e.target.value)}
                     placeholder="P1234567"
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">الجنسية</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">الجنسية</label>
                   <select
                     value={nationality}
                     onChange={(e) => setNationality(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option>الفلبين</option>
                     <option>إثيوبيا</option>
@@ -1884,11 +1884,11 @@ export const RecruitmentContractsPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">المكتب الخارجي المعتمد</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">المكتب الخارجي المعتمد</label>
                   <select
                     value={externalOffice}
                     onChange={(e) => setExternalOffice(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     {registeredOffices.map((off) => (
                       <option key={off} value={off}>{off}</option>
@@ -1899,20 +1899,20 @@ export const RecruitmentContractsPage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">مبلغ الاستقدام الأساسي (⃁)</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">مبلغ الاستقدام الأساسي (⃁)</label>
                   <input
                     type="number"
                     value={amountInput}
                     onChange={(e) => setAmountInput(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">الفرع المسؤول</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">الفرع المسؤول</label>
                   <select
                     value={branch}
                     onChange={(e) => setBranch(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option>فرع الرياض الرئيسي</option>
                     <option>فرع جدة</option>
@@ -1922,7 +1922,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end gap-3 -mx-6 -mb-6 mt-4">
+              <div className="p-4 bg-[#f3f3f3] border-t border-[#e0e0e0] flex items-center justify-end gap-3 -mx-6 -mb-6 mt-4">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
@@ -1947,7 +1947,7 @@ export const RecruitmentContractsPage: React.FC = () => {
       {/* Edit Contract Modal */}
       {editingContract && (
         <div role="dialog" aria-modal="true" onClick={() => setEditingContract(null)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in dir-rtl text-right">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white border border-zinc-200 rounded-[24px] overflow-hidden flex flex-col max-h-[90vh]">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white border border-[#e0e0e0] rounded-[24px] overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="text-base font-bold text-[#141414] flex items-center gap-2">
                 <Edit className="w-4 h-4 text-[#141414]" />
@@ -1955,7 +1955,7 @@ export const RecruitmentContractsPage: React.FC = () => {
               </h3>
               <button
                 onClick={() => setEditingContract(null)}
-                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-200 transition-colors"
+                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#e0e0e0] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1964,56 +1964,56 @@ export const RecruitmentContractsPage: React.FC = () => {
             <form onSubmit={handleUpdateContract} className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1 bg-white text-[#141414]">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">اسم العميل *</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">اسم العميل *</label>
                   <input
                     type="text"
                     required
                     value={editingContract.client_name}
                     onChange={(e) => setEditingContract({ ...editingContract, client_name: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">رقم الجوال *</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">رقم الجوال *</label>
                   <input
                     type="text"
                     required
                     value={editingContract.client_phone}
                     onChange={(e) => setEditingContract({ ...editingContract, client_phone: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">اسم العاملة *</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">اسم العاملة *</label>
                   <input
                     type="text"
                     required
                     value={editingContract.maid_name}
                     onChange={(e) => setEditingContract({ ...editingContract, maid_name: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">رقم الجواز</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">رقم الجواز</label>
                   <input
                     type="text"
                     value={editingContract.maid_passport || ''}
                     onChange={(e) => setEditingContract({ ...editingContract, maid_passport: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">المرحلة الحالية</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">المرحلة الحالية</label>
                   <select
                     value={editingContract.stage}
                     onChange={(e) => setEditingContract({ ...editingContract, stage: e.target.value as any })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     {STAGES_LIST.map((st) => (
                       <option key={st} value={st}>{st}</option>
@@ -2022,11 +2022,11 @@ export const RecruitmentContractsPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">حالة الضمان</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">حالة الضمان</label>
                   <select
                     value={editingContract.warranty_status || 'نشط'}
                     onChange={(e) => setEditingContract({ ...editingContract, warranty_status: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="نشط">نشط (90 يوماً)</option>
                     <option value="ممتد (سنتين إضافيتين)">ممتد (سنتين إضافيتين)</option>
@@ -2035,17 +2035,17 @@ export const RecruitmentContractsPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-700 block mb-1 font-semibold">مبلغ العقد (⃁)</label>
+                  <label className="text-xs text-[#141414] block mb-1 font-semibold">مبلغ العقد (⃁)</label>
                   <input
                     type="number"
                     value={editingContract.amount}
                     onChange={(e) => setEditingContract({ ...editingContract, amount: parseFloat(e.target.value) || 0 })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end gap-3 -mx-6 -mb-6 mt-4">
+              <div className="p-4 bg-[#f3f3f3] border-t border-[#e0e0e0] flex items-center justify-end gap-3 -mx-6 -mb-6 mt-4">
                 <button
                   type="button"
                   onClick={() => setEditingContract(null)}
@@ -2077,9 +2077,9 @@ export const RecruitmentContractsPage: React.FC = () => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-4xl max-h-[92vh] bg-white border border-zinc-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+            className="w-full max-w-4xl max-h-[92vh] bg-white border border-[#e0e0e0] rounded-3xl  overflow-hidden flex flex-col"
           >
-            <div className="no-print print:hidden px-6 py-4 bg-[#f3f3f3] border-b border-zinc-200 flex justify-between items-center shrink-0">
+            <div className="no-print print:hidden px-6 py-4 bg-[#f3f3f3] border-b border-[#e0e0e0] flex justify-between items-center shrink-0">
               <div className="flex items-center gap-2">
                 <Printer className="w-5 h-5 text-[#141414]" />
                 <h3 className="font-bold text-[#141414] text-base">
@@ -2090,7 +2090,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#141414] text-white hover:bg-zinc-800 flex items-center gap-1.5 transition-all cursor-pointer"
+                  className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#141414] text-white hover:bg-[#262626] flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   <Printer className="w-3.5 h-3.5" />
                   <span>طباعة / PDF</span>
@@ -2098,7 +2098,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedContractForPrint(null)}
-                  className="px-3 py-1.5 rounded-full text-xs font-bold bg-white border border-zinc-300 text-[#141414] hover:bg-zinc-100 flex items-center gap-1 transition-all cursor-pointer"
+                  className="px-3 py-1.5 rounded-full text-xs font-bold bg-white border border-[#e0e0e0] text-[#141414] hover:bg-[#f3f3f3] flex items-center gap-1 transition-all cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                   <span>إغلاق</span>
@@ -2111,9 +2111,9 @@ export const RecruitmentContractsPage: React.FC = () => {
                 documentNumber={selectedContractForPrint.contract_number}
                 date={new Date().toISOString().slice(0, 10)}
               >
-                <div className="flex flex-col gap-3.5 text-xs font-sans text-zinc-800">
+                <div className="flex flex-col gap-3.5 text-xs font-sans text-[#141414]">
                   {/* Contract Status & Musaned Badge */}
-                  <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 flex items-center justify-between flex-wrap gap-2">
+                  <div className="p-3 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0] flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-[#141414]">رقم توثيق منصة مساند:</span>
                       <span dir="ltr" className="font-mono font-bold text-[#141414] bg-[#f3f3f3] px-2.5 py-0.5 rounded-lg border border-[#e0e0e0] inline-block">
@@ -2131,8 +2131,8 @@ export const RecruitmentContractsPage: React.FC = () => {
                   {/* Parties Details Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {/* First Party (Company) */}
-                    <div className="p-3.5 bg-zinc-50 rounded-2xl border border-zinc-200 space-y-1.5">
-                      <h4 className="font-bold text-xs text-[#141414] border-b border-zinc-200 pb-1">
+                    <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] space-y-1.5">
+                      <h4 className="font-bold text-xs text-[#141414] border-b border-[#e0e0e0] pb-1">
                         الطرف الأول (المرخص له بالاستقدام)
                       </h4>
                       <div className="flex justify-between"><span className="text-[#707070]">الاسم التجاري:</span><strong className="text-[#141414]">مجموعة السليم للاستقدام</strong></div>
@@ -2142,8 +2142,8 @@ export const RecruitmentContractsPage: React.FC = () => {
                     </div>
 
                     {/* Second Party (Employer) */}
-                    <div className="p-3.5 bg-zinc-50 rounded-2xl border border-zinc-200 space-y-1.5">
-                      <h4 className="font-bold text-xs text-[#141414] border-b border-zinc-200 pb-1">
+                    <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] space-y-1.5">
+                      <h4 className="font-bold text-xs text-[#141414] border-b border-[#e0e0e0] pb-1">
                         الطرف الثاني (صاحب العمل المستقدم)
                       </h4>
                       <div className="flex justify-between"><span className="text-[#707070]">اسم صاحب العمل:</span><strong className="text-[#141414]">{selectedContractForPrint.client_name}</strong></div>
@@ -2154,8 +2154,8 @@ export const RecruitmentContractsPage: React.FC = () => {
                   </div>
 
                   {/* Worker Details */}
-                  <div className="p-3.5 bg-zinc-50 rounded-2xl border border-zinc-200 space-y-2">
-                    <h4 className="font-bold text-xs text-[#141414] border-b border-zinc-200 pb-1">
+                  <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] space-y-2">
+                    <h4 className="font-bold text-xs text-[#141414] border-b border-[#e0e0e0] pb-1">
                       بيانات ومواصفات العمالة المنزلية محل العقد
                     </h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-[11px]">
@@ -2171,7 +2171,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                   </div>
 
                   {/* Legal Terms & Obligations */}
-                  <div className="p-3.5 bg-zinc-50/80 rounded-2xl border border-zinc-200 space-y-1 text-[11px] text-zinc-700 leading-relaxed">
+                  <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] space-y-1 text-[11px] text-[#141414] leading-relaxed">
                     <h4 className="font-bold text-xs text-[#141414] mb-1">الشروط والأحكام والالتزامات النظامية:</h4>
                     <p>1. يلتزم الطرف الأول باستقدام العاملة المحددة وفق اشتراطات لائحة عمال الخدمة المنزلية وقواعد منصة مساند خلال مدة أقصاها 90 يوماً من تاريخ التوثيق.</p>
                     <p>2. يضمن الطرف الأول العاملة لمدة 90 يوماً تبدأ من تاريخ دخولها المملكة أو استلامها ضد: (رفض العمل، الهروب، الحمل، أو عدم اللياقة الطبية والصحية).</p>
@@ -2180,9 +2180,9 @@ export const RecruitmentContractsPage: React.FC = () => {
                   </div>
 
                   {/* Financial Breakdown Table */}
-                  <div className="overflow-hidden rounded-xl border border-zinc-200">
+                  <div className="overflow-hidden rounded-xl border border-[#e0e0e0]">
                     <table className="w-full text-right text-xs">
-                      <thead className="bg-zinc-100 text-zinc-700 font-bold">
+                      <thead className="bg-[#f3f3f3] text-[#141414] font-bold">
                         <tr>
                           <th className="p-2.5">البيان المالي</th>
                           <th className="p-2.5 text-center">المبلغ الأساسي</th>
@@ -2190,7 +2190,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                           <th className="p-2.5 text-left">الإجمالي المستحق</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-zinc-100 font-mono">
+                      <tbody className="bg-white divide-y divide-[#e0e0e0] font-mono">
                         <tr>
                           <td className="p-2.5 font-sans font-medium text-[#141414]">خدمات التوسط والاستقدام الشاملة</td>
                           <td className="p-2.5 text-center">{(selectedContractForPrint.amount ?? 14500).toLocaleString()} ⃁</td>
@@ -2202,7 +2202,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                   </div>
 
                   {/* Signatures & Seal Block */}
-                  <div className="grid grid-cols-2 gap-6 pt-3 border-t-2 border-zinc-300">
+                  <div className="grid grid-cols-2 gap-6 pt-3 border-t-2 border-[#e0e0e0]">
                     <div className="text-center space-y-3">
                       <div className="font-bold text-[#141414] text-xs">ختم وتوقيع الطرف الأول (الشركة)</div>
                       <div className="w-20 h-20 mx-auto border-2 border-dashed border-[#e0e0e0] rounded-full flex items-center justify-center bg-[#f3f3f3]">
@@ -2211,7 +2211,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                     </div>
                     <div className="text-center space-y-3">
                       <div className="font-bold text-[#141414] text-xs">توقيع الطرف الثاني (صاحب العمل)</div>
-                      <div className="w-full h-16 border-b-2 border-zinc-400 mt-4 flex items-end justify-center pb-1">
+                      <div className="w-full h-16 border-b-2 border-[#adadad] mt-4 flex items-end justify-center pb-1">
                         <span className="text-[11px] text-[#707070]">التوقيع الإلكتروني معتمد بموجب النفاذ الوطني</span>
                       </div>
                     </div>
@@ -2232,16 +2232,16 @@ export const RecruitmentContractsPage: React.FC = () => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl border border-zinc-200 animate-in fade-in zoom-in-95"
+            className="bg-white rounded-3xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto  border border-[#e0e0e0] animate-in fade-in zoom-in-95"
           >
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
+            <div className="flex items-center justify-between pb-4 border-b border-[#e0e0e0]">
               <div className="flex items-center gap-2">
                 <Plane className="w-5 h-5 text-[#141414]" />
                 <h3 className="font-bold text-[#141414] text-base">تسجيل إرسالية وتفويج عمالة جديدة</h3>
               </div>
               <button 
                 onClick={() => setShowAddDispatchModal(false)}
-                className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-100"
+                className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2250,7 +2250,7 @@ export const RecruitmentContractsPage: React.FC = () => {
             <form onSubmit={handleAddDispatch} className="space-y-4 pt-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">رقم العقد *</label>
+                  <label className="block text-[#707070] font-bold mb-1">رقم العقد *</label>
                   <input
                     type="text"
                     required
@@ -2261,7 +2261,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">اسم العميل *</label>
+                  <label className="block text-[#707070] font-bold mb-1">اسم العميل *</label>
                   <input
                     type="text"
                     required
@@ -2275,7 +2275,7 @@ export const RecruitmentContractsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">اسم العاملة *</label>
+                  <label className="block text-[#707070] font-bold mb-1">اسم العاملة *</label>
                   <input
                     type="text"
                     required
@@ -2286,7 +2286,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">الجنسية</label>
+                  <label className="block text-[#707070] font-bold mb-1">الجنسية</label>
                   <select
                     value={dispatchForm.nationality}
                     onChange={(e) => setDispatchForm({ ...dispatchForm, nationality: e.target.value })}
@@ -2304,7 +2304,7 @@ export const RecruitmentContractsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-zinc-600 font-bold mb-1">المكتب الخارجي الشريك</label>
+                <label className="block text-[#707070] font-bold mb-1">المكتب الخارجي الشريك</label>
                 <input
                   type="text"
                   value={dispatchForm.office_name}
@@ -2315,7 +2315,7 @@ export const RecruitmentContractsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">محطة الوصول بالمملكة</label>
+                  <label className="block text-[#707070] font-bold mb-1">محطة الوصول بالمملكة</label>
                   <select
                     value={dispatchForm.arrival_station}
                     onChange={(e) => setDispatchForm({ ...dispatchForm, arrival_station: e.target.value })}
@@ -2328,7 +2328,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">تكلفة الإرسالية الخارجية ($)</label>
+                  <label className="block text-[#707070] font-bold mb-1">تكلفة الإرسالية الخارجية ($)</label>
                   <input
                     type="number"
                     value={dispatchForm.cost_usd}
@@ -2338,7 +2338,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-zinc-100">
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddDispatchModal(false)}
@@ -2348,7 +2348,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="button-primary-pill text-xs font-bold shadow-md"
+                  className="button-primary-pill text-xs font-bold "
                 >
                   حفظ وتسجيل الإرسالية
                 </button>
@@ -2366,16 +2366,16 @@ export const RecruitmentContractsPage: React.FC = () => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl border border-zinc-200 animate-in fade-in zoom-in-95"
+            className="bg-white rounded-3xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto  border border-[#e0e0e0] animate-in fade-in zoom-in-95"
           >
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
+            <div className="flex items-center justify-between pb-4 border-b border-[#e0e0e0]">
               <div className="flex items-center gap-2">
                 <Clock className="w-5 h-5 text-[#141414]" />
                 <h3 className="font-bold text-[#141414] text-base">تقديم طلب تمديد عقد استقدام</h3>
               </div>
               <button 
                 onClick={() => setShowAddExtensionModal(false)}
-                className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-100"
+                className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2384,7 +2384,7 @@ export const RecruitmentContractsPage: React.FC = () => {
             <form onSubmit={handleAddExtension} className="space-y-4 pt-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">رقم العقد الأصلي *</label>
+                  <label className="block text-[#707070] font-bold mb-1">رقم العقد الأصلي *</label>
                   <input
                     type="text"
                     required
@@ -2395,7 +2395,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">اسم العميل *</label>
+                  <label className="block text-[#707070] font-bold mb-1">اسم العميل *</label>
                   <input
                     type="text"
                     required
@@ -2409,7 +2409,7 @@ export const RecruitmentContractsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">اسم العاملة</label>
+                  <label className="block text-[#707070] font-bold mb-1">اسم العاملة</label>
                   <input
                     type="text"
                     placeholder="JOYCE MWANGI"
@@ -2419,7 +2419,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">مدة التمديد المطلوبة</label>
+                  <label className="block text-[#707070] font-bold mb-1">مدة التمديد المطلوبة</label>
                   <select
                     value={extensionForm.extension_years}
                     onChange={(e) => setExtensionForm({ ...extensionForm, extension_years: e.target.value })}
@@ -2433,7 +2433,7 @@ export const RecruitmentContractsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-zinc-600 font-bold mb-1">مقدم الطلب وقناة التقديم</label>
+                <label className="block text-[#707070] font-bold mb-1">مقدم الطلب وقناة التقديم</label>
                 <input
                   type="text"
                   value={extensionForm.applicant}
@@ -2442,7 +2442,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-zinc-100">
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddExtensionModal(false)}
@@ -2452,7 +2452,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="button-primary-pill text-xs font-bold shadow-md"
+                  className="button-primary-pill text-xs font-bold "
                 >
                   إرسال طلب التمديد
                 </button>
@@ -2470,16 +2470,16 @@ export const RecruitmentContractsPage: React.FC = () => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl border border-zinc-200 animate-in fade-in zoom-in-95"
+            className="bg-white rounded-3xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto  border border-[#e0e0e0] animate-in fade-in zoom-in-95"
           >
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
+            <div className="flex items-center justify-between pb-4 border-b border-[#e0e0e0]">
               <div className="flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-[#141414]" />
                 <h3 className="font-bold text-[#141414] text-base">تسجيل طلب استرجاع عقد وتسوية مالية</h3>
               </div>
               <button 
                 onClick={() => setShowAddReturnModal(false)}
-                className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-100"
+                className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2488,7 +2488,7 @@ export const RecruitmentContractsPage: React.FC = () => {
             <form onSubmit={handleAddReturn} className="space-y-4 pt-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">رقم العقد *</label>
+                  <label className="block text-[#707070] font-bold mb-1">رقم العقد *</label>
                   <input
                     type="text"
                     required
@@ -2499,7 +2499,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">اسم العميل *</label>
+                  <label className="block text-[#707070] font-bold mb-1">اسم العميل *</label>
                   <input
                     type="text"
                     required
@@ -2513,7 +2513,7 @@ export const RecruitmentContractsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">اسم العاملة</label>
+                  <label className="block text-[#707070] font-bold mb-1">اسم العاملة</label>
                   <input
                     type="text"
                     placeholder="FATIMA BEGUM"
@@ -2523,7 +2523,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">الطرف المتسبب في الإلغاء / الإرجاع</label>
+                  <label className="block text-[#707070] font-bold mb-1">الطرف المتسبب في الإلغاء / الإرجاع</label>
                   <select
                     value={returnForm.cancelled_by}
                     onChange={(e) => setReturnForm({ ...returnForm, cancelled_by: e.target.value as any })}
@@ -2538,7 +2538,7 @@ export const RecruitmentContractsPage: React.FC = () => {
 
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-zinc-600 font-bold">مبلغ الاسترداد النظامي (⃁)</label>
+                  <label className="block text-[#707070] font-bold">مبلغ الاسترداد النظامي (⃁)</label>
                   <button
                     type="button"
                     onClick={() => {
@@ -2572,7 +2572,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                         notes: `${calc.legalReasonAr} [استقطاع إداري: ${calc.adminFeeDeduction} ⃁ | النسبة: ${calc.refundPercentage}%]`,
                       });
                     }}
-                    className="text-[10px] font-bold text-[#141414] bg-[#f3f3f3] hover:bg-[#eaeaea] px-2.5 py-0.5 rounded-full border border-[#e0e0e0] flex items-center gap-1 transition-all"
+                    className="text-[10px] font-bold text-[#141414] bg-[#f3f3f3] hover:bg-[#f3f3f3] px-2.5 py-0.5 rounded-full border border-[#e0e0e0] flex items-center gap-1 transition-all"
                   >
                     <Zap className="w-3 h-3 text-[#141414]" />
                     حساب نظامي آلي (مساند)
@@ -2594,7 +2594,7 @@ export const RecruitmentContractsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-zinc-600 font-bold mb-1">سبب الاسترجاع وملاحظات التسوية *</label>
+                <label className="block text-[#707070] font-bold mb-1">سبب الاسترجاع وملاحظات التسوية *</label>
                 <textarea
                   rows={3}
                   required
@@ -2604,7 +2604,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-zinc-100">
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddReturnModal(false)}
@@ -2614,7 +2614,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="button-primary-pill text-xs font-bold bg-[#141414] hover:bg-[#262626] text-white shadow-md"
+                  className="button-primary-pill text-xs font-bold bg-[#141414] hover:bg-[#262626] text-white "
                 >
                   تسجيل طلب الاسترجاع
                 </button>
@@ -2632,16 +2632,16 @@ export const RecruitmentContractsPage: React.FC = () => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl border border-zinc-200 animate-in fade-in zoom-in-95"
+            className="bg-white rounded-3xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto  border border-[#e0e0e0] animate-in fade-in zoom-in-95"
           >
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
+            <div className="flex items-center justify-between pb-4 border-b border-[#e0e0e0]">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-[#141414]" />
                 <h3 className="font-bold text-[#141414] text-base">إصدار وثيقة تأمين مساند جديدة (24 شهراً)</h3>
               </div>
               <button 
                 onClick={() => setShowAddInsuranceModal(false)}
-                className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-100"
+                className="p-1 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2650,7 +2650,7 @@ export const RecruitmentContractsPage: React.FC = () => {
             <form onSubmit={handleAddInsurance} className="space-y-4 pt-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">رقم العقد *</label>
+                  <label className="block text-[#707070] font-bold mb-1">رقم العقد *</label>
                   <input
                     type="text"
                     required
@@ -2661,7 +2661,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">اسم العميل *</label>
+                  <label className="block text-[#707070] font-bold mb-1">اسم العميل *</label>
                   <input
                     type="text"
                     required
@@ -2675,7 +2675,7 @@ export const RecruitmentContractsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">اسم العاملة</label>
+                  <label className="block text-[#707070] font-bold mb-1">اسم العاملة</label>
                   <input
                     type="text"
                     placeholder="LUCY WANJIRU"
@@ -2685,7 +2685,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">شركة التأمين المعتمدة</label>
+                  <label className="block text-[#707070] font-bold mb-1">شركة التأمين المعتمدة</label>
                   <select
                     value={insuranceForm.company}
                     onChange={(e) => setInsuranceForm({ ...insuranceForm, company: e.target.value })}
@@ -2701,7 +2701,7 @@ export const RecruitmentContractsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">رقم الوثيقة (تلقائي إن ترك فارغاً)</label>
+                  <label className="block text-[#707070] font-bold mb-1">رقم الوثيقة (تلقائي إن ترك فارغاً)</label>
                   <input
                     type="text"
                     placeholder="TR-REC-9982105"
@@ -2711,7 +2711,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-600 font-bold mb-1">قسط التأمين الإلزامي (⃁)</label>
+                  <label className="block text-[#707070] font-bold mb-1">قسط التأمين الإلزامي (⃁)</label>
                   <input
                     type="number"
                     value={insuranceForm.premium_sar}
@@ -2722,7 +2722,7 @@ export const RecruitmentContractsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-zinc-600 font-bold mb-1">حدود التغطية التأمينية</label>
+                <label className="block text-[#707070] font-bold mb-1">حدود التغطية التأمينية</label>
                 <input
                   type="text"
                   value={insuranceForm.coverage}
@@ -2731,7 +2731,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-zinc-100">
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddInsuranceModal(false)}
@@ -2741,7 +2741,7 @@ export const RecruitmentContractsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="button-primary-pill text-xs font-bold shadow-md"
+                  className="button-primary-pill text-xs font-bold "
                 >
                   إصدار وتوثيق الوثيقة
                 </button>

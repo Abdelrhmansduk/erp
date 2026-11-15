@@ -137,14 +137,14 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
   // Restrict access if user is not Administrator
   if (currentUserRole !== 'Administrator') {
     return (
-      <div className="card-pricing max-w-lg mx-auto text-center p-8 mt-12 bg-white rounded-3xl border border-zinc-200">
+      <div className="card-pricing max-w-lg mx-auto text-center p-8 mt-12 bg-white rounded-3xl border border-[#e0e0e0]">
         <div className="w-16 h-16 rounded-full bg-[#f3f3f3] text-[#141414] flex items-center justify-center mx-auto mb-4">
           <Lock className="w-8 h-8" />
         </div>
         <h2 className="text-xl font-bold text-[#141414] mb-2">
           403 Access Denied - منطقة محظورة للآدمن فقط
         </h2>
-        <p className="text-xs text-zinc-600 leading-relaxed mb-6">
+        <p className="text-xs text-[#707070] leading-relaxed mb-6">
           عذراً، هذه اللوحة مخصصة حصرياً لمديري النظام (Super Administrators). حسابك الحالي ذو دور <strong>({currentUserRole})</strong> ولا يملك صلاحيات الوصول.
         </p>
         <div className="flex gap-3 justify-center">
@@ -164,12 +164,12 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
     <div className="space-y-6">
       {/* Emergency Lockdown Notice Banner if active */}
       {emergencyLockdown && (
-        <div className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] p-3.5 rounded-2xl flex items-center justify-between font-bold text-xs shadow-md">
+        <div className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] p-3.5 rounded-2xl flex items-center justify-between font-bold text-xs ">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-[#141414]" />
             <span>وضع الطوارئ الفوري مفعّل (Emergency Lockdown Active) - تم تجميد تسجيلات الدخول وتعيين النظام على القراءة فقط.</span>
           </div>
-          <button className="bg-white text-[#141414] px-3 py-1 rounded-full text-xs font-bold hover:bg-[#eaeaea]" onClick={() => setEmergencyLockdown(false)}>
+          <button className="bg-white text-[#141414] px-3 py-1 rounded-full text-xs font-bold hover:bg-[#f3f3f3]" onClick={() => setEmergencyLockdown(false)}>
             إلغاء الإغلاق
           </button>
         </div>
@@ -182,7 +182,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
         }}
       >
@@ -284,7 +284,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
       </div>
 
       {/* Main Admin Navigation Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-[#e0e0e0] pb-3">
         {[
           { id: 'error-monitor', label: 'رادار مراقبة الأخطاء والإصلاح الذاتي (Error Monitor)', icon: Activity },
           { id: 'overview', label: 'دليل الـ 30 ميزة والرقابة', icon: Shield },
@@ -304,9 +304,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                 padding: '6px 16px',
                 borderRadius: '9999px',
                 border: '1px solid',
-                borderColor: isActive ? '#141414' : '#e4e4e7',
+                borderColor: isActive ? '#141414' : '#e0e0e0',
                 backgroundColor: isActive ? '#141414' : '#ffffff',
-                color: isActive ? '#ffffff' : '#27272a',
+                color: isActive ? '#ffffff' : '#141414',
                 fontWeight: isActive ? 550 : 420,
                 fontSize: '12.5px',
                 cursor: 'pointer',
@@ -355,7 +355,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
               { num: '11', title: 'هيكلة الفروع ومراكز التكلفة المتقدمة', desc: 'ربط الفروع بمراكز التكلفة وميزانيات المبيعات.' },
               { num: '12', title: 'متتبع أداء الموظفين والمسوقين KPI', desc: 'متابعة مبيعات وسرعة إنجاز كل موظف بالشركة.' }
             ].map(f => (
-              <div key={f.num} className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-1">
+              <div key={f.num} className="p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-1">
                 <span className="font-bold text-xs text-[#141414] block">{f.num}. {f.title}</span>
                 <span className="text-[11px] text-[#707070] block leading-relaxed">{f.desc}</span>
               </div>
@@ -374,9 +374,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-2">
+              <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2">
                 <h4 className="text-xs font-bold text-[#141414]">4. تقييد الدخول بعناوين الـ IP المعتمدة (IP Whitelisting)</h4>
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-zinc-800">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#141414]">
                   <input
                     type="checkbox"
                     checked={ipRestricted}
@@ -385,12 +385,12 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                   />
                   <span>تفعيل حظر الدخول وقصر الدخول على شريحة IP الشركة</span>
                 </label>
-                <input type="text" className="w-full bg-white border border-zinc-200 rounded-full py-1.5 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" defaultValue="197.34.110.0/24, 185.12.90.0/24" placeholder="أدخل عناوين IP المسموحة..." />
+                <input type="text" className="w-full bg-white border border-[#e0e0e0] rounded-full py-1.5 px-3 text-xs text-[#141414] font-mono focus:border-[#141414] focus:outline-none" defaultValue="197.34.110.0/24, 185.12.90.0/24" placeholder="أدخل عناوين IP المسموحة..." />
               </div>
 
-              <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-2">
+              <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2">
                 <h4 className="text-xs font-bold text-[#141414]">9. مهلة تسجيل الخروج التلقائي عند الخمول</h4>
-                <select className="w-full bg-white border border-zinc-200 rounded-full py-1.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" value={autoSessionTimeout} onChange={e => setAutoSessionTimeout(e.target.value)}>
+                <select className="w-full bg-white border border-[#e0e0e0] rounded-full py-1.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none" value={autoSessionTimeout} onChange={e => setAutoSessionTimeout(e.target.value)}>
                   <option value="5">5 دقائق</option>
                   <option value="15">15 دقيقة (الموصى به)</option>
                   <option value="30">30 دقيقة</option>
@@ -404,8 +404,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
 
             <h4 className="text-xs font-bold text-[#141414] mb-3">الجلسات الفعالة ومراقبة المستخدمين لحظياً</h4>
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs text-zinc-700">
-                <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+              <table className="w-full text-right text-xs text-[#141414]">
+                <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                   <tr>
                     <th className="p-3.5">المستخدم والدور</th>
                     <th className="p-3.5">عنوان الـ IP</th>
@@ -415,9 +415,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                     <th className="p-3.5 text-center">الإجراءات الأمنية</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-[#e0e0e0]">
                   {sessions.map(s => (
-                    <tr key={s.id} className="hover:bg-zinc-50">
+                    <tr key={s.id} className="hover:bg-[#f3f3f3]">
                       <td className="p-3.5 font-bold text-[#141414]">
                         <div className="flex items-center gap-2.5">
                           <CorporateAvatar size="sm" name={s.name} role={s.role} status="verified" />
@@ -427,13 +427,13 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                           </div>
                         </div>
                       </td>
-                      <td className="p-3.5 font-mono font-bold text-zinc-700">{s.ip_address}</td>
-                      <td className="p-3.5 text-zinc-600 text-xs">{s.device}</td>
+                      <td className="p-3.5 font-mono font-bold text-[#141414]">{s.ip_address}</td>
+                      <td className="p-3.5 text-[#707070] text-xs">{s.device}</td>
                       <td className="p-3.5 text-[#707070] text-xs">{s.login_time}</td>
                       <td className="p-3.5"><Badge text={s.two_factor_status} type="success" /></td>
                       <td className="p-3.5 text-center">
                         <button
-                          className="button-outline-on-light text-[#141414] border-[#e0e0e0] hover:bg-[#eaeaea]"
+                          className="button-outline-on-light text-[#141414] border-[#e0e0e0] hover:bg-[#f3f3f3]"
                           style={{ padding: '2px 8px', fontSize: '11px', minHeight: '26px' }}
                           onClick={() => handleForceLogout(s.id)}
                         >
@@ -445,7 +445,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                 </tbody>
               </table>
             </div>
-            <div className="mt-8 pt-6 border-t border-zinc-200">
+            <div className="mt-8 pt-6 border-t border-[#e0e0e0]">
               <IPWhitelistManager />
             </div>
           </div>
@@ -461,19 +461,19 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200">
+            <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0]">
               <span className="text-xs font-semibold text-[#707070]">حجم قاعدة البيانات الحالية</span>
               <div className="text-xl font-bold text-[#141414] mt-1 font-mono">1.42 GB</div>
               <span className="text-[11px] text-[#141414] font-semibold mt-1 block">آخر نسخة: اليوم 03:00 ص</span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200">
+            <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0]">
               <span className="text-xs font-semibold text-[#707070]">مساحة التخزين السحابي (S3)</span>
               <div className="text-xl font-bold text-[#141414] mt-1 font-mono">48.6 GB / 500 GB</div>
               <span className="text-[11px] text-[#707070] mt-1 block">مستندات وجوازات مفحوصة</span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200">
+            <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0]">
               <span className="text-xs font-semibold text-[#707070]">نسبة نجاح الـ Cache (Redis)</span>
               <div className="text-xl font-bold text-[#141414] mt-1 font-mono">96.4%</div>
               <span className="text-[11px] text-[#141414] mt-1 block">استجابة فائقة السرعة</span>
@@ -498,7 +498,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
             <span>مصفوفة الصلاحيات وحجب البيانات الحساسة (Features 13 to 18)</span>
           </h3>
 
-          <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 mb-6 flex items-center justify-between flex-wrap gap-3">
+          <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] mb-6 flex items-center justify-between flex-wrap gap-3">
             <div>
               <h4 className="text-xs font-bold text-[#141414] m-0">29. حجب البيانات الحساسة (Data Masking)</h4>
               <p className="text-[11px] text-[#707070] mt-0.5 m-0">تشفير وحجب أرقام الهويات والجوازات عن الموظفين غير المصرح لهم بأمر الإدارة.</p>
@@ -513,8 +513,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">القسم والوحدة</th>
                   <th className="p-3.5 text-center">الآدمن (Super Admin)</th>
@@ -523,9 +523,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                   <th className="p-3.5 text-center">وكيل خارجي (Agency)</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {MODULE_PERMISSIONS.map(m => (
-                  <tr key={m.id} className="hover:bg-zinc-50">
+                  <tr key={m.id} className="hover:bg-[#f3f3f3]">
                     <td className="p-3.5 font-bold text-[#141414]">{m.name}</td>
                     <td className="p-3.5 text-center">
                       <input
@@ -576,13 +576,13 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200">
+            <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0]">
               <span className="text-xs font-semibold text-[#707070]">رصيد بوابة الـ SMS الرسمية</span>
               <div className="text-xl font-bold text-[#141414] mt-1 font-mono">42,500 رسالة</div>
               <span className="text-[11px] text-[#707070] mt-1 block">مزود الخدمة: Unifonic / Mobily</span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200">
+            <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0]">
               <span className="text-xs font-semibold text-[#707070]">حالة الربط المصرفي (بنك الرياض B2B)</span>
               <div className="text-xl font-bold text-[#141414] mt-1">متصل ومفعل</div>
               <span className="text-[11px] text-[#141414] mt-1 block">الرواتب والتحويلات المباشرة</span>
@@ -590,8 +590,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">البوابة / المنصة الحكومية</th>
                   <th className="p-3.5">طبيعة الخدمة والربط</th>
@@ -600,10 +600,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                   <th className="p-3.5 text-center">الإجراءات</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
-                <tr className="hover:bg-zinc-50">
+              <tbody className="divide-y divide-[#e0e0e0]">
+                <tr className="hover:bg-[#f3f3f3]">
                   <td className="p-3.5 font-bold text-[#141414]">15. هيئة الزكاة ZATCA Phase 2</td>
-                  <td className="p-3.5 text-zinc-600">فواتير الفلترة Clearance</td>
+                  <td className="p-3.5 text-[#707070]">فواتير الفلترة Clearance</td>
                   <td className="p-3.5 font-mono text-[#707070] text-[11px]">صالحة حتى 2028-12-31</td>
                   <td className="p-3.5"><Badge text="متصل وجاهز" type="success" /></td>
                   <td className="p-3.5 text-center">
@@ -625,9 +625,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                     </button>
                   </td>
                 </tr>
-                <tr className="hover:bg-zinc-50">
+                <tr className="hover:bg-[#f3f3f3]">
                   <td className="p-3.5 font-bold text-[#141414]">16. منصة مساند توثيق وعقود</td>
-                  <td className="p-3.5 text-zinc-600">استعلام عقود وتأشيرات</td>
+                  <td className="p-3.5 text-[#707070]">استعلام عقود وتأشيرات</td>
                   <td className="p-3.5 font-mono text-[#707070] text-[11px]">ارتباط مباشر (Webhook)</td>
                   <td className="p-3.5"><Badge text="متصل وجاهز" type="success" /></td>
                   <td className="p-3.5 text-center">
@@ -643,9 +643,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                     </button>
                   </td>
                 </tr>
-                <tr className="hover:bg-zinc-50">
+                <tr className="hover:bg-[#f3f3f3]">
                   <td className="p-3.5 font-bold text-[#141414]">17. منصة سلة (Salla API v2)</td>
-                  <td className="p-3.5 text-zinc-600">ربط المتجر وباقات التأجير والطلبات</td>
+                  <td className="p-3.5 text-[#707070]">ربط المتجر وباقات التأجير والطلبات</td>
                   <td className="p-3.5 font-mono text-[#707070] text-[11px]">OAuth App Token (ساري)</td>
                   <td className="p-3.5"><Badge text="متصل وجاهز" type="success" /></td>
                   <td className="p-3.5 text-center">
@@ -663,9 +663,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                     </button>
                   </td>
                 </tr>
-                <tr className="hover:bg-zinc-50">
+                <tr className="hover:bg-[#f3f3f3]">
                   <td className="p-3.5 font-bold text-[#141414]">18. منصة زد (Zid E-Commerce)</td>
-                  <td className="p-3.5 text-zinc-600">عروض الاستقدام ومزامنة الفواتير</td>
+                  <td className="p-3.5 text-[#707070]">عروض الاستقدام ومزامنة الفواتير</td>
                   <td className="p-3.5 font-mono text-[#707070] text-[11px]">Zid Manager API (نشط)</td>
                   <td className="p-3.5"><Badge text="متصل وجاهز" type="success" /></td>
                   <td className="p-3.5 text-center">
@@ -683,9 +683,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                     </button>
                   </td>
                 </tr>
-                <tr className="hover:bg-zinc-50">
+                <tr className="hover:bg-[#f3f3f3]">
                   <td className="p-3.5 font-bold text-[#141414]">19. متجر شوبيفاي (Shopify GraphQL)</td>
-                  <td className="p-3.5 text-zinc-600">المتجر الإلكتروني الدولي للمجموعة</td>
+                  <td className="p-3.5 text-[#707070]">المتجر الإلكتروني الدولي للمجموعة</td>
                   <td className="p-3.5 font-mono text-[#707070] text-[11px]">Admin Access Token (ساري)</td>
                   <td className="p-3.5"><Badge text="متصل وجاهز" type="success" /></td>
                   <td className="p-3.5 text-center">
@@ -703,9 +703,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                     </button>
                   </td>
                 </tr>
-                <tr className="hover:bg-zinc-50">
+                <tr className="hover:bg-[#f3f3f3]">
                   <td className="p-3.5 font-bold text-[#141414]">20. بوابة الدفع الإلكتروني (Moyasar Gateway)</td>
-                  <td className="p-3.5 text-zinc-600">سداد البطاقات البنكية ومدى وApple Pay</td>
+                  <td className="p-3.5 text-[#707070]">سداد البطاقات البنكية ومدى وApple Pay</td>
                   <td className="p-3.5 font-mono text-[#707070] text-[11px]">Production Key (معتمد)</td>
                   <td className="p-3.5"><Badge text="متصل وجاهز" type="success" /></td>
                   <td className="p-3.5 text-center">
@@ -736,13 +736,13 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
             <Sparkles className="w-4 h-4 text-[#141414]" />
             <span>20. مساعد الذكاء الاصطناعي للإدارة العليا (AI Executive Assistant)</span>
           </h3>
-          <p className="text-xs text-zinc-600 leading-relaxed mb-4">
+          <p className="text-xs text-[#707070] leading-relaxed mb-4">
             تحليل توقعات الإيرادات والنمو الربع سنوي لمجموعة خالد السليم استناداً لبيانات عقود الاستقدام والتأجير:
           </p>
 
-          <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-200 space-y-2">
+          <div className="bg-[#f3f3f3] p-4 rounded-2xl border border-[#e0e0e0] space-y-2">
             <h4 className="text-xs font-bold text-[#141414]">توصيات الذكاء الاصطناعي التشغيلية:</h4>
-            <ul className="text-xs text-zinc-700 leading-relaxed space-y-1 list-disc pr-4">
+            <ul className="text-xs text-[#141414] leading-relaxed space-y-1 list-disc pr-4">
               <li>ارتفاع الطلب على العمالة المنزلية الإثيوبية بنسبة +34% خلال الشهر القادم. يُنصح بزيادة التفاويض الخارجية لمكتب DAMAS.</li>
               <li>مؤشر سرعة إنجاز تفاويض إنجاز تسجل معدل قياسي (3.2 يوم).</li>
               <li>تنبيه: يوجد 7 عقود تأجير تحتاج تمديد خلال الأيام الـ 5 القادمة.</li>
@@ -754,31 +754,31 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
       {/* Broadcast Modal */}
       {showBroadcastModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowBroadcastModal(false); }}>
-          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans max-h-[90vh]">
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] overflow-y-auto font-sans max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Radio className="w-4 h-4 text-[#141414]" />
                 <span>بث إشعار عاجل لجميع المستخدمين</span>
               </h3>
-              <button onClick={() => setShowBroadcastModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors">
+              <button onClick={() => setShowBroadcastModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#262626] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSendBroadcast} className="p-6 space-y-4 bg-white text-[#141414]">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">نص الرسالة العاجلة *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">نص الرسالة العاجلة *</label>
                 <textarea
                   rows={4}
                   value={broadcastMessage}
                   onChange={e => setBroadcastMessage(e.target.value)}
                   placeholder="مثال: يرجى العلم بوجود تحديث مجدول لسيرفرات النظام الساعة 12 منتصف الليل..."
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   required
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-zinc-100">
+              <div className="flex justify-end gap-3 pt-3 border-t border-[#e0e0e0]">
                 <button type="button" className="button-outline-on-light" onClick={() => setShowBroadcastModal(false)} style={{ padding: '6px 16px', fontSize: '13px', minHeight: '36px' }}>
                   إلغاء
                 </button>
@@ -795,19 +795,19 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
       {/* Backup Modal */}
       {showBackupModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4" dir="rtl" data-erp-modal-overlay="true" onClick={(e) => { if (e.target === e.currentTarget) setShowBackupModal(false); }}>
-          <div className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 overflow-y-auto font-sans max-h-[90vh]">
+          <div className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] overflow-y-auto font-sans max-h-[90vh]">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Database className="w-4 h-4 text-[#141414]" />
                 <span>إدارة النسخ الاحتياطي (Backup Manager)</span>
               </h3>
-              <button onClick={() => setShowBackupModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors">
+              <button onClick={() => setShowBackupModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#262626] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-6 space-y-4 bg-white text-[#141414]">
-              <p className="text-xs text-zinc-600 leading-relaxed">
+              <p className="text-xs text-[#707070] leading-relaxed">
                 إنشاء وتنزيل نسخة شاسعة لقاعدة البيانات وحفظها بالسحابة آمنة.
               </p>
               <div className="space-y-2">

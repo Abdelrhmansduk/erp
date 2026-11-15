@@ -370,7 +370,7 @@ export const ShelterPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
         }}
       >
@@ -400,7 +400,7 @@ export const ShelterPage: React.FC = () => {
             <button
               type="button"
               onClick={() => useAppStore.getState().setActiveTab('shelter-suite', 'منظومة مراكز الإيواء المستقلة')}
-              className="button-white-pill shadow-sm"
+              className="button-white-pill "
               style={{
                 fontSize: '12px',
                 padding: '6px 16px',
@@ -442,7 +442,7 @@ export const ShelterPage: React.FC = () => {
       </div>
 
       {/* Navigation SubTabs */}
-      <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-[#e0e0e0] pb-3">
         {[
           { id: 'all', label: 'كافة النزيلات', count: shelterItems.length },
           { id: 'inside', label: 'داخل الإيواء', count: shelterItems.filter(i => i.status === 'داخل الإيواء').length },
@@ -459,9 +459,9 @@ export const ShelterPage: React.FC = () => {
               padding: '6px 16px',
               borderRadius: '9999px',
               border: '1px solid',
-              borderColor: activeSubTab === tab.id ? '#141414' : '#e4e4e7',
+              borderColor: activeSubTab === tab.id ? '#141414' : '#e0e0e0',
               backgroundColor: activeSubTab === tab.id ? '#141414' : '#ffffff',
-              color: activeSubTab === tab.id ? '#ffffff' : '#27272a',
+              color: activeSubTab === tab.id ? '#ffffff' : '#141414',
               fontWeight: activeSubTab === tab.id ? 550 : 420,
               fontSize: '12.5px',
               cursor: 'pointer',
@@ -484,7 +484,7 @@ export const ShelterPage: React.FC = () => {
       {activeSubTab === 'rooms' && (
         <div className="space-y-6">
           <div className="card-pricing" style={{ padding: '24px', borderRadius: '24px', background: '#ffffff' }}>
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-4 flex-wrap gap-2">
+            <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-4 mb-4 flex-wrap gap-2">
               <div>
                 <h2 className="display-sm" style={{ fontSize: '18px', fontWeight: 330, color: '#141414', margin: 0 }}>
                   إدارة غرف الإيواء وتوزيع الأسرة والمهاجع
@@ -502,7 +502,7 @@ export const ShelterPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {rooms.map((r) => (
-                <div key={r.id} className="p-4 rounded-2xl border border-zinc-200 bg-zinc-50 flex flex-col justify-between hover:border-[#141414] transition-colors">
+                <div key={r.id} className="p-4 rounded-2xl border border-[#e0e0e0] bg-[#f3f3f3] flex flex-col justify-between hover:border-[#141414] transition-colors">
                   <div>
                     <div className="flex justify-between items-start mb-2">
                       <span className="font-bold text-[#141414] text-sm">{r.room}</span>
@@ -511,7 +511,7 @@ export const ShelterPage: React.FC = () => {
                     <p className="text-xs text-[#707070] mb-1">{r.type}</p>
                     <div className="text-xs font-mono font-bold text-[#141414] mb-2">السعة: {r.beds} (مشغول {r.occupied})</div>
                   </div>
-                  <div className="pt-2 border-t border-zinc-200 flex justify-between items-center text-[11px]">
+                  <div className="pt-2 border-t border-[#e0e0e0] flex justify-between items-center text-[11px]">
                     <span className="text-[#141414] font-semibold">{r.clean}</span>
                     <button
                       onClick={() => {
@@ -535,7 +535,7 @@ export const ShelterPage: React.FC = () => {
       {activeSubTab === 'catering' && (
         <div className="space-y-6">
           <div className="card-pricing" style={{ padding: '24px', borderRadius: '24px', background: '#ffffff' }}>
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-4 flex-wrap gap-2">
+            <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-4 mb-4 flex-wrap gap-2">
               <div>
                 <h2 className="display-sm" style={{ fontSize: '18px', fontWeight: 330, color: '#141414', margin: 0 }}>
                   سجل التغذية والإعاشة والوجبات اليومية للنزيلات
@@ -552,17 +552,17 @@ export const ShelterPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200">
+              <div className="p-4 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0]">
                 <span className="text-xs text-[#707070] font-semibold block">وجبة الإفطار (07:30 AM)</span>
                 <span className="text-sm font-bold text-[#141414] block mt-1">تم التوزيع المعتمد</span>
                 <span className="text-[11px] text-[#707070]">فطور متكامل + حليب وعصائر</span>
               </div>
-              <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200">
+              <div className="p-4 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0]">
                 <span className="text-xs text-[#707070] font-semibold block">وجبة الغداء (01:30 PM)</span>
                 <span className="text-sm font-bold text-[#141414] block mt-1">تم التوزيع المعتمد</span>
                 <span className="text-[11px] text-[#707070]">أرز ولحوم وخضار طازجة</span>
               </div>
-              <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200">
+              <div className="p-4 rounded-xl bg-[#f3f3f3] border border-[#e0e0e0]">
                 <span className="text-xs text-[#707070] font-semibold block">وجبة العشاء (08:00 PM)</span>
                 <span className="text-sm font-bold text-[#141414] block mt-1">مجدولة وجاهزة للتوزيع</span>
                 <span className="text-[11px] text-[#707070]">وجبة خفيفة ومخبوزات وفاكهة</span>
@@ -570,8 +570,8 @@ export const ShelterPage: React.FC = () => {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs text-zinc-700">
-                <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+              <table className="w-full text-right text-xs text-[#141414]">
+                <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                   <tr>
                     <th className="p-3">التاريخ</th>
                     <th className="p-3">مقر الإيواء</th>
@@ -583,16 +583,16 @@ export const ShelterPage: React.FC = () => {
                     <th className="p-3">حالة الاستلام</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-[#e0e0e0]">
                   {cateringMeals.map((row) => (
-                    <tr key={row.id} className="hover:bg-zinc-50">
+                    <tr key={row.id} className="hover:bg-[#f3f3f3]">
                       <td className="p-3 font-mono text-[#141414]">{row.date}</td>
                       <td className="p-3 font-bold text-[#141414]">{row.place}</td>
                       <td className="p-3 font-semibold text-[#141414]">{row.meal}</td>
                       <td className="p-3 font-mono font-bold text-[#141414]">{row.count} وجبة</td>
-                      <td className="p-3 text-zinc-600">{row.vendor}</td>
+                      <td className="p-3 text-[#707070]">{row.vendor}</td>
                       <td className="p-3 font-mono font-bold text-[#141414]">{row.cost.toLocaleString()} ⃁</td>
-                      <td className="p-3 text-zinc-700">{row.sup}</td>
+                      <td className="p-3 text-[#141414]">{row.sup}</td>
                       <td className="p-3"><Badge text={row.status} type="success" /></td>
                     </tr>
                   ))}
@@ -607,7 +607,7 @@ export const ShelterPage: React.FC = () => {
       {activeSubTab === 'places' && (
         <div className="space-y-6">
           <div className="card-pricing" style={{ padding: '24px', borderRadius: '24px', background: '#ffffff' }}>
-            <div className="border-b border-zinc-100 pb-4 mb-4">
+            <div className="border-b border-[#e0e0e0] pb-4 mb-4">
               <h2 className="display-sm" style={{ fontSize: '18px', fontWeight: 330, color: '#141414', margin: 0 }}>
                 مقرات وفروع مراكز الإيواء المعتمدة للمجموعة
               </h2>
@@ -620,7 +620,7 @@ export const ShelterPage: React.FC = () => {
                 { name: 'مركز استقبال وترانزيت جدة', city: 'جدة - حي النزهة (قرب المطار)', cap: '25 نزيلة', occ: '5 نزيلات', sup: 'أ. خالد باوزير', phone: '+966126543201', license: 'MOL-SH-2024-0019' },
                 { name: 'مركز إيواء المنطقة الشرقية', city: 'الدمام - حي الشاطئ', cap: '20 نزيلة', occ: '3 نزيلات', sup: 'أ. فهد الدوسري', phone: '+966138901234', license: 'MOL-SH-2025-0044' },
               ].map((p, i) => (
-                <div key={i} className="p-5 rounded-2xl border border-zinc-200 bg-zinc-50 flex flex-col justify-between">
+                <div key={i} className="p-5 rounded-2xl border border-[#e0e0e0] bg-[#f3f3f3] flex flex-col justify-between">
                   <div>
                     <h3 className="font-bold text-[#141414] text-sm mb-1">{p.name}</h3>
                     <p className="text-xs text-[#707070] mb-3">{p.city}</p>
@@ -628,11 +628,11 @@ export const ShelterPage: React.FC = () => {
                       <div className="flex justify-between"><span className="text-[#707070]">الطاقة الاستيعابية:</span><span className="font-bold text-[#141414]">{p.cap}</span></div>
                       <div className="flex justify-between"><span className="text-[#707070]">الإشغال الحالي:</span><span className="font-bold text-[#141414]">{p.occ}</span></div>
                       <div className="flex justify-between"><span className="text-[#707070]">المشرف:</span><span className="text-[#141414] font-semibold">{p.sup}</span></div>
-                      <div className="flex justify-between"><span className="text-[#707070]">الترخيص:</span><span className="font-mono text-zinc-600">{p.license}</span></div>
+                      <div className="flex justify-between"><span className="text-[#707070]">الترخيص:</span><span className="font-mono text-[#707070]">{p.license}</span></div>
                     </div>
                   </div>
-                  <div className="pt-3 border-t border-zinc-200 mt-4 flex justify-between items-center text-xs">
-                    <span className="font-mono text-zinc-600">{p.phone}</span>
+                  <div className="pt-3 border-t border-[#e0e0e0] mt-4 flex justify-between items-center text-xs">
+                    <span className="font-mono text-[#707070]">{p.phone}</span>
                     <Badge text="مرخص ونشط" type="success" />
                   </div>
                 </div>
@@ -645,7 +645,7 @@ export const ShelterPage: React.FC = () => {
       {/* Table Card */}
       {['all', 'inside', 'transfer', 'deportation'].includes(activeSubTab) && (
         <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-          <div className="p-4 border-b border-zinc-100 bg-white flex items-center justify-between flex-wrap gap-3">
+          <div className="p-4 border-b border-[#e0e0e0] bg-white flex items-center justify-between flex-wrap gap-3">
             <div className="relative w-full md:w-80">
               <Search className="w-4 h-4 absolute right-3 top-3 text-[#707070]" />
               <input
@@ -663,8 +663,8 @@ export const ShelterPage: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-700">
-              <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                 <tr>
                   <th className="p-3.5">كود النزيلة / الجواز</th>
                   <th className="p-3.5">اسم العاملة والجنسية</th>
@@ -676,7 +676,7 @@ export const ShelterPage: React.FC = () => {
                   <th className="p-3.5 text-center">إجراءات</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#e0e0e0]">
                 {isLoading ? (
                   <tr>
                     <td colSpan={8} className="py-10 text-center text-[#707070]">
@@ -691,7 +691,7 @@ export const ShelterPage: React.FC = () => {
                   </tr>
                 ) : (
                   filteredItems.map((item) => (
-                    <tr key={item.id} className="hover:bg-zinc-50">
+                    <tr key={item.id} className="hover:bg-[#f3f3f3]">
                       <td className="p-3.5">
                         <div className="font-mono font-bold text-[#141414]">{item.id}</div>
                         <div className="text-[11px] font-mono text-[#707070]">{item.passport}</div>
@@ -709,7 +709,7 @@ export const ShelterPage: React.FC = () => {
                         <div className="font-bold text-[#141414]">{item.client_name || 'تسكين عام'}</div>
                         <div className="text-[#707070]">{item.contract_ref || 'بدون عقد'}</div>
                       </td>
-                      <td className="p-3.5 font-bold text-zinc-700">
+                      <td className="p-3.5 font-bold text-[#141414]">
                         {item.shelter_location}
                       </td>
                       <td className="p-3.5 text-xs">
@@ -745,7 +745,7 @@ export const ShelterPage: React.FC = () => {
                           <select
                             value={item.status}
                             onChange={(e) => handleUpdateStatus(item, e.target.value as any)}
-                            className="bg-zinc-50 border border-zinc-200 rounded-2xl py-1 px-2.5 text-xs font-bold text-[#141414] focus:border-[#141414] focus:outline-none"
+                            className="bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-1 px-2.5 text-xs font-bold text-[#141414] focus:border-[#141414] focus:outline-none"
                           >
                             <option value="داخل الإيواء">داخل الإيواء</option>
                             <option value="متاح للنقل">متاح للنقل</option>
@@ -755,7 +755,7 @@ export const ShelterPage: React.FC = () => {
                           </select>
                           <button
                             onClick={() => handleDeleteShelter(item)}
-                            className="p-1 rounded-full hover:bg-[#eaeaea] text-[#707070] hover:text-[#141414] transition-colors"
+                            className="p-1 rounded-full hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] transition-colors"
                             title="حذف السجل"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -774,47 +774,47 @@ export const ShelterPage: React.FC = () => {
       {/* MODAL: Add Room */}
       {showAddRoomModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowAddRoomModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2000] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Bed className="w-4 h-4 text-[#141414]" />
                 <span>إضافة غرفة / جناح إيواء جديد</span>
               </h3>
-              <button onClick={() => setShowAddRoomModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors">
+              <button onClick={() => setShowAddRoomModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#262626] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveRoom} className="p-6 space-y-4 bg-white text-[#141414]">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم الجناح / الغرفة *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">اسم الجناح / الغرفة *</label>
                 <input
                   type="text"
                   required
                   placeholder="مثال: جناح د - غرفة 401"
                   value={newRoomForm.room}
                   onChange={(e) => setNewRoomForm({ ...newRoomForm, room: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">عدد الأسرة *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">عدد الأسرة *</label>
                   <input
                     type="number"
                     required
                     min="1"
                     value={newRoomForm.totalBeds}
                     onChange={(e) => setNewRoomForm({ ...newRoomForm, totalBeds: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">حالة التعقيم</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">حالة التعقيم</label>
                   <select
                     value={newRoomForm.clean}
                     onChange={(e) => setNewRoomForm({ ...newRoomForm, clean: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="تم التعقيم">تم التعقيم</option>
                     <option value="جاهز للاستقبال">جاهز للاستقبال</option>
@@ -823,17 +823,17 @@ export const ShelterPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">التصنيف أو الفئة</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">التصنيف أو الفئة</label>
                 <input
                   type="text"
                   placeholder="مثال: نزيلات الفلبين / غرف عزل"
                   value={newRoomForm.type}
                   onChange={(e) => setNewRoomForm({ ...newRoomForm, type: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-100">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddRoomModal(false)}
@@ -858,19 +858,19 @@ export const ShelterPage: React.FC = () => {
       {/* MODAL: Checkin to Room */}
       {showCheckinModal && selectedRoomForCheckin && (
         <div role="dialog" aria-modal="true" onClick={() => setShowCheckinModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2000] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Hotel className="w-4 h-4 text-[#141414]" />
                 <span>تسكين في ({selectedRoomForCheckin.room})</span>
               </h3>
-              <button onClick={() => setShowCheckinModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors">
+              <button onClick={() => setShowCheckinModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#262626] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleConfirmCheckin} className="p-6 space-y-4 bg-white text-[#141414]">
-              <div className="p-3 bg-zinc-50 rounded-2xl border border-zinc-200 text-xs">
+              <div className="p-3 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] text-xs">
                 <span className="text-[#707070] block">الغرفة المختارة:</span>
                 <span className="font-bold text-[#141414] block mt-0.5">{selectedRoomForCheckin.room} - {selectedRoomForCheckin.type}</span>
                 <span className="text-[#141414] font-mono font-bold mt-1 block">
@@ -879,12 +879,12 @@ export const ShelterPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم النزيلة المراد تسكينها *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">اسم النزيلة المراد تسكينها *</label>
                 {shelterItems.length > 0 ? (
                   <select
                     value={checkinForm.inmateName}
                     onChange={(e) => setCheckinForm({ ...checkinForm, inmateName: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                     required
                   >
                     <option value="">-- اختر نزيلة من السجل --</option>
@@ -899,12 +899,12 @@ export const ShelterPage: React.FC = () => {
                     placeholder="اسم النزيلة..."
                     value={checkinForm.inmateName}
                     onChange={(e) => setCheckinForm({ ...checkinForm, inmateName: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 )}
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-100">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowCheckinModal(false)}
@@ -929,24 +929,24 @@ export const ShelterPage: React.FC = () => {
       {/* MODAL: Add Catering Meal */}
       {showAddMealModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowAddMealModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2000] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Utensils className="w-4 h-4 text-[#141414]" />
                 <span>تسجيل وجبة غذائية جماعية</span>
               </h3>
-              <button onClick={() => setShowAddMealModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors">
+              <button onClick={() => setShowAddMealModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#262626] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveMeal} className="p-6 space-y-4 bg-white text-[#141414]">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">نوع الوجبة *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">نوع الوجبة *</label>
                 <select
                   value={newMealForm.meal}
                   onChange={(e) => setNewMealForm({ ...newMealForm, meal: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option value="وجبة إفطار">وجبة إفطار (07:30 AM)</option>
                   <option value="وجبة غداء">وجبة غداء (01:30 PM)</option>
@@ -956,11 +956,11 @@ export const ShelterPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">مقر الإيواء</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">مقر الإيواء</label>
                   <select
                     value={newMealForm.place}
                     onChange={(e) => setNewMealForm({ ...newMealForm, place: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="مقر الرياض الرئيسي">مقر الرياض الرئيسي</option>
                     <option value="فرع ترانزيت جدة">فرع ترانزيت جدة</option>
@@ -968,50 +968,50 @@ export const ShelterPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">عدد الوجبات *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">عدد الوجبات *</label>
                   <input
                     type="number"
                     required
                     min="1"
                     value={newMealForm.count}
                     onChange={(e) => setNewMealForm({ ...newMealForm, count: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">المورد / المطعم</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">المورد / المطعم</label>
                   <input
                     type="text"
                     value={newMealForm.vendor}
                     onChange={(e) => setNewMealForm({ ...newMealForm, vendor: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">التكلفة (⃁)</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">التكلفة (⃁)</label>
                   <input
                     type="number"
                     value={newMealForm.cost}
                     onChange={(e) => setNewMealForm({ ...newMealForm, cost: e.target.value })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-bold focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">المشرف المسؤول المستلم</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">المشرف المسؤول المستلم</label>
                 <input
                   type="text"
                   value={newMealForm.sup}
                   onChange={(e) => setNewMealForm({ ...newMealForm, sup: e.target.value })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-100">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddMealModal(false)}
@@ -1036,37 +1036,37 @@ export const ShelterPage: React.FC = () => {
       {/* Add Inmate Modal */}
       {showAddModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowAddModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2000] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Hotel className="w-4 h-4 text-[#141414]" />
                 <span>تسكين عاملة جديدة بمركز الإيواء</span>
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors">
+              <button onClick={() => setShowAddModal(false)} className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#262626] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleAddShelter} className="p-6 space-y-4 bg-white text-[#141414]">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">اسم العاملة بالكامل *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">اسم العاملة بالكامل *</label>
                 <input
                   type="text"
                   value={maidName}
                   onChange={(e) => setMaidName(e.target.value)}
                   placeholder="اسم العاملة حسب الجواز..."
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">الجنسية *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">الجنسية *</label>
                   <select
                     value={nationality}
                     onChange={(e) => setNationality(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option>إثيوبيا</option>
                     <option>الفلبين</option>
@@ -1076,24 +1076,24 @@ export const ShelterPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-700 mb-1">رقم جواز السفر *</label>
+                  <label className="block text-xs font-semibold text-[#141414] mb-1">رقم جواز السفر *</label>
                   <input
                     type="text"
                     value={passport}
                     onChange={(e) => setPassport(e.target.value)}
                     placeholder="Passport..."
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] font-mono font-bold focus:border-[#141414] focus:outline-none"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">مقر مركز الإيواء *</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">مقر مركز الإيواء *</label>
                 <select
                   value={shelterLocation}
                   onChange={(e) => setShelterLocation(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option>مقر الإيواء الرئيسي - الرياض</option>
                   <option>مقر الإيواء - جدة</option>
@@ -1102,11 +1102,11 @@ export const ShelterPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">الرغبة في العمل</label>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">الرغبة في العمل</label>
                 <select
                   value={workWillingness}
                   onChange={(e) => setWorkWillingness(e.target.value as any)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option value="ترغب بالعمل">ترغب بالعمل (متاحة لنقل الكفالة والتأجير)</option>
                   <option value="لا ترغب بالعمل">لا ترغب بالعمل (مرحلة الترحيل)</option>
@@ -1114,7 +1114,7 @@ export const ShelterPage: React.FC = () => {
                 </select>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-100">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}

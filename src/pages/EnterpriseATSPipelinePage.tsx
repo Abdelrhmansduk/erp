@@ -6,7 +6,7 @@ import { realErpDataStore } from '../services/realErpDataStore';
 import { useAppStore } from '../stores/appStore';
 import { saveUnifiedEmployeeProfile } from '../services/employeeProfileSync';
 import { triggerNewEmployeeOnboardingConsequences } from '../services/employeeWelcomeBroadcastService';
-import { CareerApplicationRecord } from '../services/jisrGovernanceTalentPulseEngine';
+import { CareerApplicationRecord } from '../services/hrGovernanceTalentPulseEngine';
 import { Users, UserPlus, Calendar, ArrowRight, ArrowLeft, Video, X, CheckCircle2, Tv, FileCheck } from 'lucide-react';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
@@ -505,7 +505,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'space-between',
           background: '#141414',
-          color: '#FFF',
+          color: '#ffffff',
           padding: '28px',
           borderRadius: '16px',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
@@ -520,7 +520,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
               <span className="pill-tag-mint" style={{ fontSize: '11px' }}>
                 ENTERPRISE ATS RECRUITMENT PIPELINE
               </span>
-              <span style={{ color: '#a1a1aa', fontSize: '12px' }}>
+              <span style={{ color: '#adadad', fontSize: '12px' }}>
                 بوابة التوظيف الموحدة والفرز الذكي والتهيئة التلقائية
               </span>
             </div>
@@ -537,7 +537,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
             >
               مسار التوظيف والفرز الذكي (12 مرحلة متكاملة)
             </h1>
-            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#a1a1aa', fontWeight: 420 }}>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#adadad', fontWeight: 420 }}>
               دمج متقدمي بوابة التوظيف العامة مع مرشحي الاستقدام، وإصدار ملف الموظف وخطة الـ 90 يوماً وشاشة الترحيب فور التعيين لـ {activeCompany.name}
             </p>
           </div>
@@ -571,7 +571,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
         </div>
 
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', fontWeight: 550, color: '#71717a' }}>متوسط توافق الـ AI</span>
+          <span style={{ fontSize: '13px', fontWeight: 550, color: '#707070' }}>متوسط توافق الـ AI</span>
           <div
             className="display-sm"
             style={{ fontSize: '36px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}
@@ -584,7 +584,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
         </div>
 
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
-          <span style={{ fontSize: '13px', fontWeight: 550, color: '#a1a1aa' }}>عروض العمل والانضمام</span>
+          <span style={{ fontSize: '13px', fontWeight: 550, color: '#adadad' }}>عروض العمل والانضمام</span>
           <div
             className="display-sm"
             style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}
@@ -597,7 +597,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
         </div>
 
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', fontWeight: 550, color: '#71717a' }}>متوسط مدة الفرز والتوظيف</span>
+          <span style={{ fontSize: '13px', fontWeight: 550, color: '#707070' }}>متوسط مدة الفرز والتوظيف</span>
           <div
             className="display-sm"
             style={{ fontSize: '36px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}
@@ -666,7 +666,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
       </div>
 
       {/* Stage Selector Pills */}
-      <div className="flex flex-wrap gap-2 pb-3 border-b border-zinc-200">
+      <div className="flex flex-wrap gap-2 pb-3 border-b border-[#e0e0e0]">
         <button
           type="button"
           onClick={() => setSelectedStage('الكل')}
@@ -674,9 +674,9 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
             padding: '6px 16px',
             borderRadius: '9999px',
             border: '1px solid',
-            borderColor: selectedStage === 'الكل' ? '#141414' : '#e4e4e7',
+            borderColor: selectedStage === 'الكل' ? '#141414' : '#e0e0e0',
             backgroundColor: selectedStage === 'الكل' ? '#141414' : '#ffffff',
-            color: selectedStage === 'الكل' ? '#ffffff' : '#27272a',
+            color: selectedStage === 'الكل' ? '#ffffff' : '#262626',
             fontWeight: selectedStage === 'الكل' ? 550 : 420,
             fontSize: '12.5px',
             cursor: 'pointer',
@@ -698,9 +698,9 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
                 padding: '6px 16px',
                 borderRadius: '9999px',
                 border: '1px solid',
-                borderColor: isSel ? '#141414' : '#e4e4e7',
+                borderColor: isSel ? '#141414' : '#e0e0e0',
                 backgroundColor: isSel ? '#141414' : '#ffffff',
-                color: isSel ? '#ffffff' : '#27272a',
+                color: isSel ? '#ffffff' : '#262626',
                 fontWeight: isSel ? 550 : 420,
                 fontSize: '12.5px',
                 cursor: 'pointer',
@@ -769,7 +769,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="text-xs font-semibold text-zinc-800 mb-3">
+                <div className="text-xs font-semibold text-[#141414] mb-3">
                   الوظيفة المطلوبة:{' '}
                   <span className="text-[#141414] font-bold">{cnd.appliedPosition}</span>
                 </div>
@@ -849,7 +849,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
               </div>
 
               {/* Stage Transition Buttons */}
-              <div className="flex gap-2 border-t border-zinc-100 pt-3">
+              <div className="flex gap-2 border-t border-[#e0e0e0] pt-3">
                 <button
                   type="button"
                   onClick={() => handleMoveStage(cnd.id, 'prev')}
@@ -896,7 +896,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md bg-white border border-zinc-200 rounded-[24px] flex flex-col max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-md bg-white border border-[#e0e0e0] rounded-[24px] flex flex-col max-h-[90vh] overflow-y-auto"
           >
             <div className="p-5 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h2 className="text-base font-bold text-[#141414] flex items-center gap-2">
@@ -905,7 +905,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
               </h2>
               <button
                 onClick={() => setShowInterviewModal(false)}
-                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-zinc-800 transition-colors"
+                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#141414] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -913,26 +913,26 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
 
             <div className="p-6 space-y-4 bg-white text-[#141414]">
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">
                   تاريخ وتوقيت المقابلة (بتوقيت الرياض)
                 </label>
                 <input
                   type="datetime-local"
                   value={interviewDate}
                   onChange={(e) => setInterviewDate(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-zinc-700 block mb-1 font-semibold">
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">
                   المسؤول عن المقابلة
                 </label>
                 <input
                   type="text"
                   value={interviewerName}
                   onChange={(e) => setInterviewerName(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
@@ -1003,9 +1003,9 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-[24px] w-full max-w-lg animate-fade-in border border-zinc-200 max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-[24px] w-full max-w-lg animate-fade-in border border-[#e0e0e0] max-h-[90vh] overflow-y-auto"
           >
-            <div className="p-5 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
+            <div className="p-5 border-b border-[#e0e0e0] flex items-center justify-between bg-[#f3f3f3]">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-[#f3f3f3] text-[#141414] flex items-center justify-center font-bold text-xs">
                   <UserPlus className="w-4 h-4" />
@@ -1103,7 +1103,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
               className="p-6 space-y-4"
             >
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">
+                <label className="text-xs font-semibold text-[#141414] block mb-1">
                   اسم المرشح الكامل
                 </label>
                 <input
@@ -1114,13 +1114,13 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
                     setNewCandidateForm({ ...newCandidateForm, name: e.target.value })
                   }
                   placeholder="مثال: سلطان بن فهد العتيبي / مريم أحمد"
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">
                     رقم الهاتف / الواتساب
                   </label>
                   <input
@@ -1131,11 +1131,11 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
                       setNewCandidateForm({ ...newCandidateForm, phone: e.target.value })
                     }
                     placeholder="+9665xxxxxxxx"
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">
                     مسار الاستقطاب
                   </label>
                   <select
@@ -1146,7 +1146,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
                         sourceType: e.target.value as Candidate['source'],
                       })
                     }
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="موقع الشركة">بوابة التوظيف / توظيف داخلي</option>
                     <option value="LinkedIn">استقطاب الكفاءات (LinkedIn)</option>
@@ -1157,13 +1157,13 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">الجنسية</label>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">الجنسية</label>
                   <select
                     value={newCandidateForm.nationality}
                     onChange={(e) =>
                       setNewCandidateForm({ ...newCandidateForm, nationality: e.target.value })
                     }
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   >
                     <option value="سعودي">سعودي</option>
                     <option value="الفلبين">الفلبين</option>
@@ -1176,7 +1176,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-1">
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">
                     الراتب الشهري المتوقع (⃁)
                   </label>
                   <input
@@ -1188,13 +1188,13 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
                         expectedSalary: Number(e.target.value),
                       })
                     }
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-zinc-700 block mb-1">
+                <label className="text-xs font-semibold text-[#141414] block mb-1">
                   المسمى الوظيفي المستهدف
                 </label>
                 <input
@@ -1206,11 +1206,11 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
                       appliedPosition: e.target.value,
                     })
                   }
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-zinc-100">
+              <div className="flex justify-end gap-3 pt-3 border-t border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setShowNewCandidateModal(false)}

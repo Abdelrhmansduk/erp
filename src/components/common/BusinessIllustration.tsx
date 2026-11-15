@@ -120,7 +120,7 @@ export const BusinessIllustration: React.FC<BusinessIllustrationProps> = ({
       <div
         className={`mobbin-illustration-card relative inline-flex items-center justify-center select-none shrink-0 ${
           showBackground
-            ? 'bg-[#faf9f7] border border-[#e5e2dc] p-2'
+            ? 'bg-[#ffffff] border border-[#e0e0e0] p-2'
             : 'bg-transparent p-0.5'
         } ${animated ? 'transition-transform duration-300 hover:scale-[1.03]' : ''} ${className}`}
         style={{

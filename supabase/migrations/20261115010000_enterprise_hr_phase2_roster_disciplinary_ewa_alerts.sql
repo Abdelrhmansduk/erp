@@ -1,10 +1,10 @@
 -- =============================================================================
--- Migration: 20261115010000_jisr_phase2_roster_disciplinary_ewa_alerts.sql
--- Purpose: Complete Jisr 2026 Advanced Modules & Proactive Smart Alerts Suite:
+-- Migration: 20261115010000_enterprise_hr_phase2_roster_disciplinary_ewa_alerts.sql
+-- Purpose: Complete Hr 2026 Advanced Modules & Proactive Smart Alerts Suite:
 --   1. Monthly Daily Shift Roster Matrix (`hr_shift_rosters`) & Shift Swap (`hr_shift_swap_requests`)
 --   2. Official Saudi Public Holidays Calendar (`hr_public_holidays`) — Leave Exclusion & Holiday OT
 --   3. Automated HRSD Disciplinary Matrix (`hr_disciplinary_records` — Articles 66 to 72)
---   4. Jisr Pay — Earned Wage Access (`hr_ewa_withdrawals` — الراتب المرن المبكر)
+--   4. Hr Pay — Earned Wage Access (`hr_ewa_withdrawals` — الراتب المرن المبكر)
 --   5. Proactive Multi-Channel Smart Alerts Engine (`hr_smart_alerts` — Probation Art. 53, Iqama, Qiwa, SLA, Nitaqat)
 --   6. ZATCA QR TLV Receipt metadata on `hr_expense_claims` & WebRTC Kiosk Liveness metadata on `attendances`
 -- =============================================================================
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS public.hr_disciplinary_records (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- 8. Jisr Pay — Earned Wage Access Withdrawals (الراتب المرن المبكر المستحق)
+-- 8. Hr Pay — Earned Wage Access Withdrawals (الراتب المرن المبكر المستحق)
 CREATE TABLE IF NOT EXISTS public.hr_ewa_withdrawals (
   id TEXT PRIMARY KEY,
   company_id TEXT NOT NULL DEFAULT 'SAF',
@@ -166,14 +166,14 @@ BEGIN
   ]
   LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', tbl);
-    EXECUTE format('DROP POLICY IF EXISTS "jisr_p2_select_%I" ON public.%I;', tbl, tbl);
+    EXECUTE format('DROP POLICY IF EXISTS "hr_p2_select_%I" ON public.%I;', tbl, tbl);
     EXECUTE format(
-      'CREATE POLICY "jisr_p2_select_%I" ON public.%I FOR SELECT TO authenticated USING ((SELECT auth.uid()) IS NOT NULL);',
+      'CREATE POLICY "hr_p2_select_%I" ON public.%I FOR SELECT TO authenticated USING ((SELECT auth.uid()) IS NOT NULL);',
       tbl, tbl
     );
-    EXECUTE format('DROP POLICY IF EXISTS "jisr_p2_modify_%I" ON public.%I;', tbl, tbl);
+    EXECUTE format('DROP POLICY IF EXISTS "hr_p2_modify_%I" ON public.%I;', tbl, tbl);
     EXECUTE format(
-      'CREATE POLICY "jisr_p2_modify_%I" ON public.%I FOR ALL TO authenticated USING ((SELECT auth.uid()) IS NOT NULL) WITH CHECK ((SELECT auth.uid()) IS NOT NULL);',
+      'CREATE POLICY "hr_p2_modify_%I" ON public.%I FOR ALL TO authenticated USING ((SELECT auth.uid()) IS NOT NULL) WITH CHECK ((SELECT auth.uid()) IS NOT NULL);',
       tbl, tbl
     );
   END LOOP;

@@ -987,7 +987,7 @@ export const TendersBOQPage: React.FC = () => {
           background: '#141414',
           borderRadius: '16px',
           padding: '28px',
-          color: '#FFFFFF',
+          color: '#ffffff',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
         }}
       >
@@ -1119,7 +1119,7 @@ export const TendersBOQPage: React.FC = () => {
       <div className="stat-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         {/* Card 1: White Card */}
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>إجمالي كراسات BOQ</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>إجمالي كراسات BOQ</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {tendersList.length} كراسة
           </div>
@@ -1137,7 +1137,7 @@ export const TendersBOQPage: React.FC = () => {
 
         {/* Card 3: Pitch Black Featured Card */}
         <div className="card-pricing-featured" style={{ padding: '24px', borderRadius: '16px', background: '#141414', color: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: 550 }}>إجمالي القيمة المالية</span>
+          <span style={{ fontSize: '13px', color: '#adadad', fontWeight: 550 }}>إجمالي القيمة المالية</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#ffffff', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {(tendersList.reduce((s, t) => s + t.grandTotal, 0) / 1000).toFixed(1)}k ⃁
           </div>
@@ -1146,11 +1146,11 @@ export const TendersBOQPage: React.FC = () => {
 
         {/* Card 4: White Card - Compliance & Ready */}
         <div className="card-pricing" style={{ padding: '24px', borderRadius: '16px', background: '#ffffff' }}>
-          <span style={{ fontSize: '13px', color: '#71717a', fontWeight: 550 }}>جاهزية الربط المالي والضريبي</span>
+          <span style={{ fontSize: '13px', color: '#707070', fontWeight: 550 }}>جاهزية الربط المالي والضريبي</span>
           <div className="display-sm" style={{ fontSize: '36px', fontWeight: 330, color: '#141414', marginTop: '6px', letterSpacing: '-0.02em' }}>
             100%
           </div>
-          <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden mt-2">
+          <div className="w-full h-1.5 bg-[#f3f3f3] rounded-full overflow-hidden mt-2">
             <div className="w-full h-full bg-[#141414] rounded-full" />
           </div>
           <span className="pill-tag-shade" style={{ fontSize: '11px', marginTop: '10px' }}>ZATCA Phase 2 QR</span>
@@ -1173,9 +1173,9 @@ export const TendersBOQPage: React.FC = () => {
                   fontSize: '11.5px',
                   fontWeight: isSelected ? 550 : 420,
                   border: '1px solid',
-                  borderColor: isSelected ? '#141414' : '#e4e4e7',
+                  borderColor: isSelected ? '#141414' : '#e0e0e0',
                   backgroundColor: isSelected ? '#141414' : '#ffffff',
-                  color: isSelected ? '#ffffff' : '#27272a',
+                  color: isSelected ? '#ffffff' : '#141414',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                   display: 'inline-flex',
@@ -1191,8 +1191,8 @@ export const TendersBOQPage: React.FC = () => {
                     borderRadius: '9999px',
                     fontFamily: 'monospace',
                     fontWeight: 700,
-                    backgroundColor: isSelected ? 'rgba(255,255,255,0.2)' : '#f4f4f5',
-                    color: isSelected ? '#ffffff' : '#52525b',
+                    backgroundColor: isSelected ? 'rgba(255,255,255,0.2)' : '#f3f3f3',
+                    color: isSelected ? '#ffffff' : '#262626',
                   }}
                 >
                   {t.referenceNumber}
@@ -1205,12 +1205,12 @@ export const TendersBOQPage: React.FC = () => {
         {/* Action Controls for Selected Tender */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Status Dropdown */}
-          <div className="flex items-center gap-1 bg-zinc-50 py-1 px-2.5 rounded-full border border-zinc-200">
+          <div className="flex items-center gap-1 bg-[#f3f3f3] py-1 px-2.5 rounded-full border border-[#e0e0e0]">
             <span className="text-[11px] text-[#707070] font-semibold px-1">الحالة:</span>
             <select
               aria-label="حالة المنافسة" value={selectedTender.status}
               onChange={(e) => handleStatusChange(e.target.value as any)}
-              className="text-xs font-bold bg-transparent border-none focus:outline-none text-zinc-800 cursor-pointer"
+              className="text-xs font-bold bg-transparent border-none focus:outline-none text-[#141414] cursor-pointer"
             >
               <option value="مسودة قيد الدراسة">مسودة قيد الدراسة</option>
               <option value="مقدمة ومسعرة">مقدمة ومسعرة</option>
@@ -1233,7 +1233,7 @@ export const TendersBOQPage: React.FC = () => {
             className="button-outline-on-light text-xs py-1.5 px-3 flex items-center gap-1"
             title="إنشاء نسخة مطابقة من كراسة المنافسة الحالية"
           >
-            <Copy className="w-3.5 h-3.5 text-zinc-600" />
+            <Copy className="w-3.5 h-3.5 text-[#707070]" />
             <span>نسخ</span>
           </button>
 
@@ -1248,7 +1248,7 @@ export const TendersBOQPage: React.FC = () => {
 
           <button
             onClick={() => handleDeleteTender()}
-            className="button-outline-on-light text-xs py-1.5 px-2.5 text-[#141414] border-[#e0e0e0] hover:bg-[#eaeaea]"
+            className="button-outline-on-light text-xs py-1.5 px-2.5 text-[#141414] border-[#e0e0e0] hover:bg-[#f3f3f3]"
             title="حذف هذه المنافسة"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -1285,9 +1285,9 @@ export const TendersBOQPage: React.FC = () => {
                 padding: '5px 14px',
                 borderRadius: '9999px',
                 border: '1px solid',
-                borderColor: isActive ? '#141414' : '#e4e4e7',
+                borderColor: isActive ? '#141414' : '#e0e0e0',
                 backgroundColor: isActive ? '#141414' : '#ffffff',
-                color: isActive ? '#ffffff' : '#27272a',
+                color: isActive ? '#ffffff' : '#141414',
                 fontWeight: isActive ? 550 : 420,
                 fontSize: '11.5px',
                 cursor: 'pointer',
@@ -1304,9 +1304,9 @@ export const TendersBOQPage: React.FC = () => {
       {/* Tab 0: Comprehensive Google Sheet / Monafasat Master View */}
       {activeTab === 'kas-sheet' && (
         <React.Suspense fallback={
-          <div className="p-8 text-center bg-white rounded-2xl border border-zinc-200 shadow-sm animate-pulse space-y-3">
+          <div className="p-8 text-center bg-white rounded-2xl border border-[#e0e0e0]  animate-pulse space-y-3">
             <div className="inline-block w-8 h-8 border-4 border-[#e0e0e0] border-t-transparent rounded-full animate-spin"></div>
-            <div className="text-sm font-bold text-zinc-700">جاري تحميل سجل منافسات كاس الشامل...</div>
+            <div className="text-sm font-bold text-[#141414]">جاري تحميل سجل منافسات كاس الشامل...</div>
           </div>
         }>
           <KasMonafasatSpreadsheetView onConvertToBOQ={handleConvertKasItemToBOQ} />
@@ -1316,9 +1316,9 @@ export const TendersBOQPage: React.FC = () => {
       {/* Tab 0.5: Cloned Inova Etmad Cloud Suite */}
       {activeTab === 'etmad-cloud' && (
         <React.Suspense fallback={
-          <div className="p-8 text-center bg-white rounded-2xl border border-zinc-200 shadow-sm animate-pulse space-y-3">
+          <div className="p-8 text-center bg-white rounded-2xl border border-[#e0e0e0]  animate-pulse space-y-3">
             <div className="inline-block w-8 h-8 border-4 border-[#e0e0e0] border-t-transparent rounded-full animate-spin"></div>
-            <div className="text-sm font-bold text-zinc-700">جاري تحميل سحابة منصة اعتماد...</div>
+            <div className="text-sm font-bold text-[#141414]">جاري تحميل سحابة منصة اعتماد...</div>
           </div>
         }>
           <KasEtimadCloudPage />
@@ -1329,7 +1329,7 @@ export const TendersBOQPage: React.FC = () => {
       {activeTab === 'excel-boq' && (
         <div className="space-y-4">
           {/* Header Specs Card matching Excel File */}
-          <div className="border border-[#e0e0e0] rounded-2xl overflow-hidden shadow-sm">
+          <div className="border border-[#e0e0e0] rounded-2xl overflow-hidden ">
             {/* Header Green Strip */}
             <div className="bg-[#f3f3f3] text-[#141414] border-b border-[#e0e0e0] p-3.5 flex items-center justify-between flex-wrap gap-2 font-bold text-xs">
               <div className="flex items-center gap-2">
@@ -1370,7 +1370,7 @@ export const TendersBOQPage: React.FC = () => {
 
                 <button
                   onClick={() => setShowMarginModal(true)}
-                  className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-[#eaeaea] flex items-center gap-1 cursor-pointer"
+                  className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-[#f3f3f3] flex items-center gap-1 cursor-pointer"
                 >
                   <Percent className="w-3.5 h-3.5 text-[#141414]" />
                   <span>هامش الربح</span>
@@ -1378,7 +1378,7 @@ export const TendersBOQPage: React.FC = () => {
 
                 <button
                   onClick={handleClearAllItems}
-                  className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-[#eaeaea] flex items-center gap-1 cursor-pointer"
+                  className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-[#f3f3f3] flex items-center gap-1 cursor-pointer"
                   title="تفريغ كافة بنود الجدول"
                 >
                   <Trash2 className="w-3 h-3 text-[#141414]" />
@@ -1389,7 +1389,7 @@ export const TendersBOQPage: React.FC = () => {
                 <div className="flex items-center bg-white border border-[#e0e0e0] rounded-xl p-0.5 shadow-2xs">
                   <button
                     onClick={handleExportBOQExcel}
-                    className="px-2 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#eaeaea] rounded-lg flex items-center gap-1 cursor-pointer"
+                    className="px-2 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-lg flex items-center gap-1 cursor-pointer"
                     title="تصدير جدول الكميات كـ Excel"
                   >
                     <FileSpreadsheet className="w-3 h-3 text-[#141414]" />
@@ -1397,7 +1397,7 @@ export const TendersBOQPage: React.FC = () => {
                   </button>
                   <button
                     onClick={handleExportBOQCSV}
-                    className="px-2 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#eaeaea] rounded-lg flex items-center gap-1 cursor-pointer"
+                    className="px-2 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-lg flex items-center gap-1 cursor-pointer"
                     title="تصدير كـ CSV"
                   >
                     <FileText className="w-3 h-3 text-[#141414]" />
@@ -1405,14 +1405,14 @@ export const TendersBOQPage: React.FC = () => {
                   </button>
                   <button
                     onClick={handleExportBOQJSON}
-                    className="px-2 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#eaeaea] rounded-lg flex items-center gap-1 cursor-pointer"
+                    className="px-2 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-lg flex items-center gap-1 cursor-pointer"
                     title="تصدير كـ JSON"
                   >
                     <span>JSON</span>
                   </button>
                   <button
                     onClick={() => setShowPrintModal(true)}
-                    className="px-2 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#eaeaea] rounded-lg flex items-center gap-1 cursor-pointer"
+                    className="px-2 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-lg flex items-center gap-1 cursor-pointer"
                     title="طباعة / تصدير PDF"
                   >
                     <Printer className="w-3 h-3 text-[#141414]" />
@@ -1426,7 +1426,7 @@ export const TendersBOQPage: React.FC = () => {
             <div className="overflow-x-auto bg-white">
               <table className="w-full text-right text-xs text-[#141414] border-collapse">
                 <thead>
-                  <tr className="bg-[#d9ead3] text-[#141414] font-bold border-b border-[#e0e0e0] text-center">
+                  <tr className="bg-[#e0e0e0] text-[#141414] font-bold border-b border-[#e0e0e0] text-center">
                     <th className="p-2 border-r border-[#e0e0e0] w-10">الرقم</th>
                     <th className="p-2 border-r border-[#e0e0e0] min-w-[220px]">وصف البند</th>
                     <th className="p-2 border-r border-[#e0e0e0] w-20">وحدة القياس</th>
@@ -1443,58 +1443,58 @@ export const TendersBOQPage: React.FC = () => {
                 </thead>
                 <tbody>
                   {currentItems.map((item, idx) => (
-                    <tr key={item.id} className="hover:bg-[#eaeaea] border-b border-zinc-200 transition-colors">
-                      <td className="p-2 text-center font-bold font-mono border-r border-zinc-200 bg-zinc-50">{item.itemNumber}</td>
-                      <td className="p-1 border-r border-zinc-200">
+                    <tr key={item.id} className="hover:bg-[#f3f3f3] border-b border-[#e0e0e0] transition-colors">
+                      <td className="p-2 text-center font-bold font-mono border-r border-[#e0e0e0] bg-[#f3f3f3]">{item.itemNumber}</td>
+                      <td className="p-1 border-r border-[#e0e0e0]">
                         <input
                           type="text"
                           value={item.description}
                           onChange={(e) => handleItemChange(idx, 'description', e.target.value)}
-                          className="w-full bg-transparent px-2 py-1 text-xs text-[#141414] font-semibold focus:bg-white focus:outline-emerald-600 rounded"
+                          className="w-full bg-transparent px-2 py-1 text-xs text-[#141414] font-semibold focus:bg-white focus:outline-[#141414] rounded"
                         />
                       </td>
-                      <td className="p-1 border-r border-zinc-200 text-center">
+                      <td className="p-1 border-r border-[#e0e0e0] text-center">
                         <input
                           type="text"
                           value={item.unit}
                           onChange={(e) => handleItemChange(idx, 'unit', e.target.value)}
-                          className="w-full bg-transparent text-center px-1 py-1 text-xs font-semibold focus:bg-white focus:outline-emerald-600 rounded"
+                          className="w-full bg-transparent text-center px-1 py-1 text-xs font-semibold focus:bg-white focus:outline-[#141414] rounded"
                         />
                       </td>
-                      <td className="p-1 border-r border-zinc-200 text-center">
+                      <td className="p-1 border-r border-[#e0e0e0] text-center">
                         <input
                           type="number"
                           value={item.quantity}
                           onChange={(e) => handleItemChange(idx, 'quantity', e.target.value)}
-                          className="w-full bg-transparent text-center px-1 py-1 text-xs font-mono font-bold focus:bg-white focus:outline-emerald-600 rounded"
+                          className="w-full bg-transparent text-center px-1 py-1 text-xs font-mono font-bold focus:bg-white focus:outline-[#141414] rounded"
                         />
                       </td>
-                      <td className="p-1 border-r border-zinc-200 text-center">
+                      <td className="p-1 border-r border-[#e0e0e0] text-center">
                         <input
                           type="number"
                           value={item.unitPrice}
                           onChange={(e) => handleItemChange(idx, 'unitPrice', e.target.value)}
-                          className="w-full bg-transparent text-center px-1 py-1 text-xs font-mono font-bold text-[#141414] focus:bg-white focus:outline-emerald-600 rounded"
+                          className="w-full bg-transparent text-center px-1 py-1 text-xs font-mono font-bold text-[#141414] focus:bg-white focus:outline-[#141414] rounded"
                         />
                       </td>
-                      <td className="p-2 border-r border-zinc-200 text-[11px] text-zinc-600 leading-snug">{item.unitPriceInWords}</td>
-                      <td className="p-2 border-r border-zinc-200 font-mono font-bold text-[#141414] text-center">{item.totalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                      <td className="p-2 border-r border-zinc-200 text-[11px] text-zinc-600 leading-snug">{item.totalPriceInWords}</td>
-                      <td className="p-2 border-r border-zinc-200 font-mono text-[#141414] font-bold text-center">{item.vat.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                      <td className="p-2 border-r border-zinc-200 font-mono font-bold text-[#141414] bg-[#f3f3f3] text-center">{item.totalWithVat.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                      <td className="p-2 border-r border-zinc-200 text-[11px] text-[#141414] font-medium leading-snug">{item.totalWithVatInWords}</td>
+                      <td className="p-2 border-r border-[#e0e0e0] text-[11px] text-[#707070] leading-snug">{item.unitPriceInWords}</td>
+                      <td className="p-2 border-r border-[#e0e0e0] font-mono font-bold text-[#141414] text-center">{item.totalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td className="p-2 border-r border-[#e0e0e0] text-[11px] text-[#707070] leading-snug">{item.totalPriceInWords}</td>
+                      <td className="p-2 border-r border-[#e0e0e0] font-mono text-[#141414] font-bold text-center">{item.vat.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td className="p-2 border-r border-[#e0e0e0] font-mono font-bold text-[#141414] bg-[#f3f3f3] text-center">{item.totalWithVat.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td className="p-2 border-r border-[#e0e0e0] text-[11px] text-[#141414] font-medium leading-snug">{item.totalWithVatInWords}</td>
                       <td className="p-1 text-center">
                         <div className="flex items-center justify-center gap-1">
                           <button
                             onClick={() => handleDuplicateItem(idx)}
-                            className="p-1 text-[#707070] hover:text-[#141414] rounded-full hover:bg-[#eaeaea] transition-colors cursor-pointer"
+                            className="p-1 text-[#707070] hover:text-[#141414] rounded-full hover:bg-[#f3f3f3] transition-colors cursor-pointer"
                             title="نسخ البند"
                           >
                             <Copy className="w-3 h-3" />
                           </button>
                           <button
                             onClick={() => handleDeleteItem(idx)}
-                            className="p-1 text-[#707070] hover:text-[#141414] rounded-full hover:bg-[#eaeaea] transition-colors cursor-pointer"
+                            className="p-1 text-[#707070] hover:text-[#141414] rounded-full hover:bg-[#f3f3f3] transition-colors cursor-pointer"
                             title="حذف البند"
                           >
                             <Trash2 className="w-3 h-3" />
@@ -1507,17 +1507,17 @@ export const TendersBOQPage: React.FC = () => {
                 {/* Excel Footer Calculations (Matching Image Exactly) */}
                 <tfoot className="font-bold">
                   {/* Row 1: Subtotal */}
-                  <tr className="bg-[#e2efda] border-t-2 border-[#e0e0e0] text-[#141414]">
+                  <tr className="bg-[#f3f3f3] border-t-2 border-[#e0e0e0] text-[#141414]">
                     <td colSpan={6} className="p-2.5 text-left border-r border-[#e0e0e0] font-bold">السعر الإجمالي (قبل الضريبة):</td>
                     <td colSpan={2} className="p-2.5 text-center font-mono font-bold text-sm border-r border-[#e0e0e0]">{selectedTender.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })} ريال سعودي</td>
-                    <td colSpan={4} className="p-2.5 text-xs text-zinc-700 font-medium">{selectedTender.subtotalInWords}</td>
+                    <td colSpan={4} className="p-2.5 text-xs text-[#141414] font-medium">{selectedTender.subtotalInWords}</td>
                   </tr>
 
                   {/* Row 2: VAT 15% */}
-                  <tr className="bg-[#e2efda] border-t border-[#e0e0e0] text-[#141414]">
+                  <tr className="bg-[#f3f3f3] border-t border-[#e0e0e0] text-[#141414]">
                     <td colSpan={6} className="p-2.5 text-left border-r border-[#e0e0e0] font-bold">ضريبة القيمة المضافة (15%):</td>
                     <td colSpan={2} className="p-2.5 text-center font-mono font-bold text-sm border-r border-[#e0e0e0] text-[#141414]">{selectedTender.vatAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ريال سعودي</td>
-                    <td colSpan={4} className="p-2.5 text-xs text-zinc-700 font-medium">{selectedTender.vatInWords}</td>
+                    <td colSpan={4} className="p-2.5 text-xs text-[#141414] font-medium">{selectedTender.vatInWords}</td>
                   </tr>
 
                   {/* Row 3: Grand Total */}
@@ -1535,26 +1535,26 @@ export const TendersBOQPage: React.FC = () => {
 
       {/* Tab 2: Tenders Directory */}
       {activeTab === 'directory' && (
-        <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm space-y-4">
-          <div className="p-5 border-b border-slate-100 bg-white flex items-center justify-between flex-wrap gap-3">
+        <div className="bg-white border border-[#e0e0e0] rounded-3xl overflow-hidden  space-y-4">
+          <div className="p-5 border-b border-[#e0e0e0] bg-white flex items-center justify-between flex-wrap gap-3">
             <div>
-              <h3 className="text-base font-bold text-slate-900 m-0 flex items-center gap-2">
+              <h3 className="text-base font-bold text-[#141414] m-0 flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-[#141414]" />
                 <span>سجل مناقصات وعقود التوريد المعتمدة</span>
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">كافة المنافسات المسجلة باسم مؤسسة خالد السليم للتجارة (شركة كاس)</p>
+              <p className="text-xs text-[#707070] mt-0.5">كافة المنافسات المسجلة باسم مؤسسة خالد السليم للتجارة (شركة كاس)</p>
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
               {/* Cards vs Table View Mode Switcher */}
-              <div className="flex items-center bg-slate-100 rounded-2xl p-1 border border-slate-200">
+              <div className="flex items-center bg-[#f3f3f3] rounded-2xl p-1 border border-[#e0e0e0]">
                 <button
                   type="button"
                   onClick={() => setDirectoryViewMode('cards')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                     directoryViewMode === 'cards'
-                      ? 'bg-[#141414] text-white shadow-sm'
-                      : 'text-slate-600  hover:text-slate-900'
+                      ? 'bg-[#141414] text-white '
+                      : 'text-[#707070]  hover:text-[#141414]'
                   }`}
                 >
                   <LayoutGrid className="w-3.5 h-3.5" />
@@ -1565,8 +1565,8 @@ export const TendersBOQPage: React.FC = () => {
                   onClick={() => setDirectoryViewMode('table')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                     directoryViewMode === 'table'
-                      ? 'bg-[#141414] text-white shadow-sm'
-                      : 'text-slate-600  hover:text-slate-900'
+                      ? 'bg-[#141414] text-white '
+                      : 'text-[#707070]  hover:text-[#141414]'
                   }`}
                 >
                   <List className="w-3.5 h-3.5" />
@@ -1576,28 +1576,28 @@ export const TendersBOQPage: React.FC = () => {
 
               <button
                 onClick={() => setShowNewTenderModal(true)}
-                className="px-4 py-2 bg-[#141414] hover:bg-[#262626] text-white text-xs font-bold rounded-2xl shadow-md transition flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#141414] hover:bg-[#262626] text-white text-xs font-bold rounded-2xl  transition flex items-center gap-1.5"
               >
                 <Plus className="w-4 h-4" />
                 <span>+ إنشاء منافسة جديدة</span>
               </button>
               <button
                 onClick={() => setShowImportModal(true)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-2xl transition flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] text-xs font-bold rounded-2xl transition flex items-center gap-1.5"
               >
                 <FileUp className="w-4 h-4 text-[#141414]" />
                 <span>استيراد كراسة BOQ</span>
               </button>
 
               {/* Multi-Format Export Group */}
-              <div className="flex items-center bg-slate-50 border border-slate-200 rounded-2xl p-1">
-                <span className="text-[10px] text-slate-500 font-bold px-1.5 flex items-center gap-1">
-                  <Download className="w-3 h-3 text-slate-600" />
+              <div className="flex items-center bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl p-1">
+                <span className="text-[10px] text-[#707070] font-bold px-1.5 flex items-center gap-1">
+                  <Download className="w-3 h-3 text-[#707070]" />
                   <span>تصدير:</span>
                 </span>
                 <button
                   onClick={handleExportDirectoryExcel}
-                  className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#eaeaea] rounded-xl flex items-center gap-1"
+                  className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-xl flex items-center gap-1"
                   title="تصدير كـ Excel"
                 >
                   <FileSpreadsheet className="w-3 h-3 text-[#141414]" />
@@ -1605,7 +1605,7 @@ export const TendersBOQPage: React.FC = () => {
                 </button>
                 <button
                   onClick={handleExportDirectoryCSV}
-                  className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#eaeaea] rounded-xl flex items-center gap-1"
+                  className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-xl flex items-center gap-1"
                   title="تصدير كـ CSV"
                 >
                   <FileText className="w-3 h-3 text-[#141414]" />
@@ -1613,7 +1613,7 @@ export const TendersBOQPage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => window.print()}
-                  className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#eaeaea] rounded-xl flex items-center gap-1"
+                  className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-xl flex items-center gap-1"
                   title="طباعة السجل / PDF"
                 >
                   <Printer className="w-3 h-3 text-[#141414]" />
@@ -1655,8 +1655,8 @@ export const TendersBOQPage: React.FC = () => {
           {/* Table View */}
           {directoryViewMode === 'table' && (
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs text-slate-700">
-                <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+              <table className="w-full text-right text-xs text-[#141414]">
+                <thead className="bg-[#f3f3f3] text-[#707070] font-bold border-b border-[#e0e0e0]">
                   <tr>
                     <th className="p-4">الرقم المرجعي</th>
                     <th className="p-4">عنوان المنافسة والجهة</th>
@@ -1669,19 +1669,19 @@ export const TendersBOQPage: React.FC = () => {
                     <th className="p-4 text-center min-w-[200px]">الإجراءات</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-medium">
+                <tbody className="divide-y divide-[#e0e0e0] font-medium">
                   {tendersList.map((t) => (
-                    <tr key={t.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="p-4 font-mono font-bold text-slate-900">{t.referenceNumber}</td>
+                    <tr key={t.id} className="hover:bg-[#f3f3f3] transition-colors">
+                      <td className="p-4 font-mono font-bold text-[#141414]">{t.referenceNumber}</td>
                       <td className="p-4">
-                        <div className="font-bold text-slate-900">{t.title}</div>
-                        <div className="text-[11px] text-slate-500">{t.clientName}</div>
+                        <div className="font-bold text-[#141414]">{t.title}</div>
+                        <div className="text-[11px] text-[#707070]">{t.clientName}</div>
                       </td>
                       <td className="p-4">
-                        <span className="font-semibold text-slate-800">{t.entityName}</span>
+                        <span className="font-semibold text-[#141414]">{t.entityName}</span>
                       </td>
                       <td className="p-4 font-mono text-center font-bold">{t.itemsCount} بنود</td>
-                      <td className="p-4 font-mono font-bold text-slate-900">{t.subtotal.toLocaleString()} ⃁</td>
+                      <td className="p-4 font-mono font-bold text-[#141414]">{t.subtotal.toLocaleString()} ⃁</td>
                       <td className="p-4 font-mono text-[#141414]">{t.vatAmount.toLocaleString()} ⃁</td>
                       <td className="p-4 font-mono font-bold text-[#141414] bg-[#f3f3f3]">{t.grandTotal.toLocaleString()} ⃁</td>
                       <td className="p-4"><Badge text={t.status} type="success" /></td>
@@ -1692,7 +1692,7 @@ export const TendersBOQPage: React.FC = () => {
                               handleSelectTender(t);
                               setActiveTab('excel-boq');
                             }}
-                            className="px-2.5 py-1 bg-[#f3f3f3] text-[#141414] hover:bg-[#eaeaea] rounded-xl text-xs font-bold"
+                            className="px-2.5 py-1 bg-[#f3f3f3] text-[#141414] hover:bg-[#f3f3f3] rounded-xl text-xs font-bold"
                             title="فتح محرر جدول الكميات"
                           >
                             <Eye className="w-3.5 h-3.5 ml-1 inline" />
@@ -1700,7 +1700,7 @@ export const TendersBOQPage: React.FC = () => {
                           </button>
                           <button
                             onClick={() => handleOpenEditTender(t)}
-                            className="p-1.5 hover:bg-[#eaeaea] text-[#141414] rounded-lg"
+                            className="p-1.5 hover:bg-[#f3f3f3] text-[#141414] rounded-lg"
                             title="تعديل بيانات المنافسة"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -1710,7 +1710,7 @@ export const TendersBOQPage: React.FC = () => {
                               handleSelectTender(t);
                               setShowPrintModal(true);
                             }}
-                            className="p-1.5 hover:bg-slate-100 text-slate-700 rounded-lg"
+                            className="p-1.5 hover:bg-[#f3f3f3] text-[#141414] rounded-lg"
                             title="طباعة العرض الرسمي"
                           >
                             <Printer className="w-3.5 h-3.5" />
@@ -1720,7 +1720,7 @@ export const TendersBOQPage: React.FC = () => {
                               handleSelectTender(t);
                               handleDuplicateTender();
                             }}
-                            className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-lg"
+                            className="p-1.5 hover:bg-[#f3f3f3] text-[#707070] rounded-lg"
                             title="نسخ المنافسة"
                           >
                             <Copy className="w-3.5 h-3.5" />
@@ -1730,7 +1730,7 @@ export const TendersBOQPage: React.FC = () => {
                               handleSelectTender(t);
                               handleDeleteTender();
                             }}
-                            className="p-1.5 hover:bg-[#eaeaea] text-[#141414] rounded-lg"
+                            className="p-1.5 hover:bg-[#f3f3f3] text-[#141414] rounded-lg"
                             title="حذف المنافسة"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1801,9 +1801,9 @@ export const TendersBOQPage: React.FC = () => {
                   return (
                     <div key={idx} className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: status.color }} />
-                      <span className="text-xs font-medium text-zinc-700 flex-grow">{status.status}</span>
+                      <span className="text-xs font-medium text-[#141414] flex-grow">{status.status}</span>
                       <span className="text-xs font-mono font-bold" style={{ color: status.color }}>{status.count}</span>
-                      <div className="w-24 h-2 bg-zinc-100 rounded-full overflow-hidden">
+                      <div className="w-24 h-2 bg-[#f3f3f3] rounded-full overflow-hidden">
                         <div className="h-full rounded-full transition-all" style={{ width: `${percentage}%`, backgroundColor: status.color }} />
                       </div>
                       <span className="text-[10px] text-[#707070] w-8 text-left">{percentage}%</span>
@@ -1823,14 +1823,14 @@ export const TendersBOQPage: React.FC = () => {
                 {kpis.categoryBreakdown.map((cat, idx) => {
                   const maxVal = Math.max(...kpis.categoryBreakdown.map(c => c.value), 1);
                   const barWidth = ((cat.value / maxVal) * 100).toFixed(0);
-                  const colors = ['#059669', '#0284c7', '#d97706', '#7c3aed', '#dc2626'];
+                  const colors = ['#707070', '#707070', '#707070', '#707070', '#262626'];
                   return (
                     <div key={idx}>
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-zinc-700">{cat.category}</span>
-                        <span className="text-xs font-mono font-bold text-zinc-900">{cat.value.toLocaleString()} ⃁ ({cat.count})</span>
+                        <span className="text-xs font-medium text-[#141414]">{cat.category}</span>
+                        <span className="text-xs font-mono font-bold text-[#141414]">{cat.value.toLocaleString()} ⃁ ({cat.count})</span>
                       </div>
-                      <div className="w-full h-3 bg-zinc-100 rounded-full overflow-hidden">
+                      <div className="w-full h-3 bg-[#f3f3f3] rounded-full overflow-hidden">
                         <div className="h-full rounded-full transition-all" style={{ width: `${barWidth}%`, backgroundColor: colors[idx % colors.length] }} />
                       </div>
                     </div>
@@ -1845,12 +1845,12 @@ export const TendersBOQPage: React.FC = () => {
             <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff' }}>
               <h4 className="text-xs font-bold text-[#707070] mb-2">أعلى عميل بالقيمة</h4>
               <div className="text-sm font-bold text-[#141414]">{kpis.topClient.name}</div>
-              <div className="text-xs text-zinc-600 mt-1">{kpis.topClient.value.toLocaleString()} ⃁ — {kpis.topClient.count} منافسة</div>
+              <div className="text-xs text-[#707070] mt-1">{kpis.topClient.value.toLocaleString()} ⃁ — {kpis.topClient.count} منافسة</div>
             </div>
             <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff' }}>
               <h4 className="text-xs font-bold text-[#707070] mb-2">متوسط قيمة المنافسة</h4>
               <div className="text-sm font-bold text-[#141414]">{kpis.avgTenderValue.toLocaleString()} ⃁</div>
-              <div className="text-xs text-zinc-600 mt-1">شامل الضريبة 15%</div>
+              <div className="text-xs text-[#707070] mt-1">شامل الضريبة 15%</div>
             </div>
             <div className="card-pricing" style={{ padding: '20px', borderRadius: '20px', background: '#ffffff' }}>
               <h4 className="text-xs font-bold text-[#707070] mb-2">حالة المنافسات</h4>
@@ -1869,7 +1869,7 @@ export const TendersBOQPage: React.FC = () => {
         <div className="space-y-6">
           <div className="card-pricing" style={{ padding: '24px', borderRadius: '24px', background: '#ffffff' }}>
             {/* Suppliers Header & Add / Export Buttons */}
-            <div className="border-b border-zinc-100 pb-3 mb-4 flex items-center justify-between flex-wrap gap-3">
+            <div className="border-b border-[#e0e0e0] pb-3 mb-4 flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h3 className="text-base font-bold text-[#141414] m-0 flex items-center gap-2">
                   <Users className="w-5 h-5 text-[#141414]" />
@@ -1880,14 +1880,14 @@ export const TendersBOQPage: React.FC = () => {
 
               <div className="flex items-center gap-2 flex-wrap">
                 {/* Cards vs Table View Mode Switcher */}
-                <div className="flex items-center bg-slate-100 rounded-2xl p-1 border border-slate-200">
+                <div className="flex items-center bg-[#f3f3f3] rounded-2xl p-1 border border-[#e0e0e0]">
                   <button
                     type="button"
                     onClick={() => setSuppliersViewMode('cards')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                       suppliersViewMode === 'cards'
-                        ? 'bg-[#141414] text-white shadow-sm'
-                        : 'text-slate-600  hover:text-slate-900'
+                        ? 'bg-[#141414] text-white '
+                        : 'text-[#707070]  hover:text-[#141414]'
                     }`}
                   >
                     <LayoutGrid className="w-3.5 h-3.5" />
@@ -1898,8 +1898,8 @@ export const TendersBOQPage: React.FC = () => {
                     onClick={() => setSuppliersViewMode('table')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                       suppliersViewMode === 'table'
-                        ? 'bg-[#141414] text-white shadow-sm'
-                        : 'text-slate-600  hover:text-slate-900'
+                        ? 'bg-[#141414] text-white '
+                        : 'text-[#707070]  hover:text-[#141414]'
                     }`}
                   >
                     <List className="w-3.5 h-3.5" />
@@ -1909,21 +1909,21 @@ export const TendersBOQPage: React.FC = () => {
 
                 <button
                   onClick={() => setShowNewSupplierModal(true)}
-                  className="px-4 py-2 bg-[#141414] hover:bg-[#262626] text-white text-xs font-bold rounded-2xl shadow-md transition flex items-center gap-1.5"
+                  className="px-4 py-2 bg-[#141414] hover:bg-[#262626] text-white text-xs font-bold rounded-2xl  transition flex items-center gap-1.5"
                 >
                   <Plus className="w-4 h-4" />
                   <span>+ إضافة مورد معتمد جديد</span>
                 </button>
 
                 {/* Multi-Format Export Group */}
-                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-2xl p-1">
-                  <span className="text-[10px] text-slate-500 font-bold px-1.5 flex items-center gap-1">
-                    <Download className="w-3 h-3 text-slate-600" />
+                <div className="flex items-center bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl p-1">
+                  <span className="text-[10px] text-[#707070] font-bold px-1.5 flex items-center gap-1">
+                    <Download className="w-3 h-3 text-[#707070]" />
                     <span>تصدير:</span>
                   </span>
                   <button
                     onClick={handleExportSuppliersExcel}
-                    className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#eaeaea] rounded-xl flex items-center gap-1"
+                    className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-xl flex items-center gap-1"
                     title="تصدير كـ Excel"
                   >
                     <FileSpreadsheet className="w-3 h-3 text-[#141414]" />
@@ -1931,7 +1931,7 @@ export const TendersBOQPage: React.FC = () => {
                   </button>
                   <button
                     onClick={handleExportSuppliersCSV}
-                    className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#eaeaea] rounded-xl flex items-center gap-1"
+                    className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-xl flex items-center gap-1"
                     title="تصدير كـ CSV"
                   >
                     <FileText className="w-3 h-3 text-[#141414]" />
@@ -1939,7 +1939,7 @@ export const TendersBOQPage: React.FC = () => {
                   </button>
                   <button
                     onClick={() => window.print()}
-                    className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#eaeaea] rounded-xl flex items-center gap-1"
+                    className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-xl flex items-center gap-1"
                     title="طباعة سجل الموردين / PDF"
                   >
                     <Printer className="w-3 h-3 text-[#141414]" />
@@ -1984,30 +1984,30 @@ export const TendersBOQPage: React.FC = () => {
 
             {/* Suppliers Table */}
             {suppliersViewMode === 'table' && (
-              <div className="overflow-x-auto" style={{ borderRadius: '16px', border: '1px solid #e4e4e7' }}>
+              <div className="overflow-x-auto" style={{ borderRadius: '16px', border: '1px solid #e0e0e0' }}>
                 <table className="w-full text-xs" style={{ borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
-                    <th className="p-2.5 text-right border-r border-zinc-200">اسم المورد</th>
-                    <th className="p-2.5 text-center border-r border-zinc-200 w-28">الفئة</th>
-                    <th className="p-2.5 text-center border-r border-zinc-200 w-20">المدينة</th>
-                    <th className="p-2.5 text-center border-r border-zinc-200 w-16">التقييم</th>
-                    <th className="p-2.5 text-center border-r border-zinc-200 w-16">الجودة</th>
-                    <th className="p-2.5 text-center border-r border-zinc-200 w-16">الالتزام</th>
-                    <th className="p-2.5 text-center border-r border-zinc-200 w-16">السعر</th>
-                    <th className="p-2.5 text-center border-r border-zinc-200 w-16">التعاملات</th>
-                    <th className="p-2.5 text-center border-r border-zinc-200 w-24">إجمالي القيمة</th>
-                    <th className="p-2.5 text-center border-r border-zinc-200 w-20">الحالة</th>
+                    <tr className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
+                    <th className="p-2.5 text-right border-r border-[#e0e0e0]">اسم المورد</th>
+                    <th className="p-2.5 text-center border-r border-[#e0e0e0] w-28">الفئة</th>
+                    <th className="p-2.5 text-center border-r border-[#e0e0e0] w-20">المدينة</th>
+                    <th className="p-2.5 text-center border-r border-[#e0e0e0] w-16">التقييم</th>
+                    <th className="p-2.5 text-center border-r border-[#e0e0e0] w-16">الجودة</th>
+                    <th className="p-2.5 text-center border-r border-[#e0e0e0] w-16">الالتزام</th>
+                    <th className="p-2.5 text-center border-r border-[#e0e0e0] w-16">السعر</th>
+                    <th className="p-2.5 text-center border-r border-[#e0e0e0] w-16">التعاملات</th>
+                    <th className="p-2.5 text-center border-r border-[#e0e0e0] w-24">إجمالي القيمة</th>
+                    <th className="p-2.5 text-center border-r border-[#e0e0e0] w-20">الحالة</th>
                     <th className="p-2.5 text-center w-28">الإجراءات</th>
                   </tr>
                 </thead>
                 <tbody>
                   {suppliers.map((sup) => {
-                    const statusColor = sup.status === 'معتمد' ? '#059669' : sup.status === 'تحت التقييم' ? '#d97706' : '#dc2626';
-                    const statusBg = sup.status === 'معتمد' ? '#ecfdf5' : sup.status === 'تحت التقييم' ? '#fffbeb' : '#fef2f2';
+                    const statusColor = sup.status === 'معتمد' ? '#707070' : sup.status === 'تحت التقييم' ? '#707070' : '#262626';
+                    const statusBg = sup.status === 'معتمد' ? '#f3f3f3' : sup.status === 'تحت التقييم' ? '#ffffff' : '#f3f3f3';
                     return (
-                      <tr key={sup.id} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
-                        <td className="p-2.5 border-r border-zinc-100">
+                      <tr key={sup.id} className="border-b border-[#e0e0e0] hover:bg-[#f3f3f3] transition-colors">
+                        <td className="p-2.5 border-r border-[#e0e0e0]">
                           <div className="font-bold text-[#141414]">{sup.name}</div>
                           <div className="text-[10px] text-[#707070] flex items-center gap-1 mt-0.5">
                             <Phone className="w-3 h-3" /> {sup.phone}
@@ -2015,38 +2015,38 @@ export const TendersBOQPage: React.FC = () => {
                             <Mail className="w-3 h-3" /> {sup.email}
                           </div>
                         </td>
-                        <td className="p-2 border-r border-zinc-100 text-center text-[10px]">{sup.category}</td>
-                        <td className="p-2 border-r border-zinc-100 text-center">
+                        <td className="p-2 border-r border-[#e0e0e0] text-center text-[10px]">{sup.category}</td>
+                        <td className="p-2 border-r border-[#e0e0e0] text-center">
                           <span className="flex items-center justify-center gap-1"><MapPin className="w-3 h-3 text-[#707070]" />{sup.city}</span>
                         </td>
-                        <td className="p-2 border-r border-zinc-100 text-center">
+                        <td className="p-2 border-r border-[#e0e0e0] text-center">
                           <div className="flex items-center justify-center gap-0.5">
                             {[1, 2, 3, 4, 5].map(s => (
-                              <Star key={s} className="w-3 h-3" style={{ color: s <= sup.rating ? '#f59e0b' : '#e4e4e7', fill: s <= sup.rating ? '#f59e0b' : 'none' }} />
+                              <Star key={s} className="w-3 h-3" style={{ color: s <= sup.rating ? '#adadad' : '#e0e0e0', fill: s <= sup.rating ? '#adadad' : 'none' }} />
                             ))}
                           </div>
                         </td>
-                        <td className="p-2 border-r border-zinc-100 text-center">
-                          <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full" style={{ width: `${sup.qualityScore}%`, backgroundColor: sup.qualityScore >= 90 ? '#059669' : sup.qualityScore >= 70 ? '#d97706' : '#dc2626' }} />
+                        <td className="p-2 border-r border-[#e0e0e0] text-center">
+                          <div className="w-full h-1.5 bg-[#f3f3f3] rounded-full overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: `${sup.qualityScore}%`, backgroundColor: sup.qualityScore >= 90 ? '#707070' : sup.qualityScore >= 70 ? '#707070' : '#262626' }} />
                           </div>
                           <span className="text-[9px] text-[#707070]">{sup.qualityScore}%</span>
                         </td>
-                        <td className="p-2 border-r border-zinc-100 text-center">
-                          <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full" style={{ width: `${sup.commitmentScore}%`, backgroundColor: sup.commitmentScore >= 90 ? '#059669' : sup.commitmentScore >= 70 ? '#d97706' : '#dc2626' }} />
+                        <td className="p-2 border-r border-[#e0e0e0] text-center">
+                          <div className="w-full h-1.5 bg-[#f3f3f3] rounded-full overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: `${sup.commitmentScore}%`, backgroundColor: sup.commitmentScore >= 90 ? '#707070' : sup.commitmentScore >= 70 ? '#707070' : '#262626' }} />
                           </div>
                           <span className="text-[9px] text-[#707070]">{sup.commitmentScore}%</span>
                         </td>
-                        <td className="p-2 border-r border-zinc-100 text-center">
-                          <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full" style={{ width: `${sup.priceCompetitiveness}%`, backgroundColor: sup.priceCompetitiveness >= 90 ? '#059669' : sup.priceCompetitiveness >= 70 ? '#0284c7' : '#d97706' }} />
+                        <td className="p-2 border-r border-[#e0e0e0] text-center">
+                          <div className="w-full h-1.5 bg-[#f3f3f3] rounded-full overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: `${sup.priceCompetitiveness}%`, backgroundColor: sup.priceCompetitiveness >= 90 ? '#707070' : sup.priceCompetitiveness >= 70 ? '#707070' : '#707070' }} />
                           </div>
                           <span className="text-[9px] text-[#707070]">{sup.priceCompetitiveness}%</span>
                         </td>
-                        <td className="p-2 border-r border-zinc-100 text-center font-mono font-bold">{sup.totalDeals}</td>
-                        <td className="p-2 border-r border-zinc-100 text-center font-mono font-bold">{sup.totalValue.toLocaleString()}</td>
-                        <td className="p-2 border-r border-zinc-100 text-center">
+                        <td className="p-2 border-r border-[#e0e0e0] text-center font-mono font-bold">{sup.totalDeals}</td>
+                        <td className="p-2 border-r border-[#e0e0e0] text-center font-mono font-bold">{sup.totalValue.toLocaleString()}</td>
+                        <td className="p-2 border-r border-[#e0e0e0] text-center">
                           <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ color: statusColor, backgroundColor: statusBg }}>
                             {sup.status}
                           </span>
@@ -2055,21 +2055,21 @@ export const TendersBOQPage: React.FC = () => {
                           <div className="flex items-center justify-center gap-1.5">
                             <button
                               onClick={() => handleOpenEditSupplier(sup)}
-                              className="p-1.5 text-zinc-600 hover:text-[#141414] rounded-lg hover:bg-[#eaeaea] border border-zinc-200 transition-colors cursor-pointer"
+                              className="p-1.5 text-[#707070] hover:text-[#141414] rounded-lg hover:bg-[#f3f3f3] border border-[#e0e0e0] transition-colors cursor-pointer"
                               title="تعديل بيانات المورد"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handlePrintSupplierCard(sup)}
-                              className="p-1.5 text-zinc-600 hover:text-[#141414] rounded-lg hover:bg-[#eaeaea] border border-zinc-200 transition-colors cursor-pointer"
+                              className="p-1.5 text-[#707070] hover:text-[#141414] rounded-lg hover:bg-[#f3f3f3] border border-[#e0e0e0] transition-colors cursor-pointer"
                               title="طباعة بطاقة المورد الرسمية"
                             >
                               <Printer className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handleDeleteSupplier(sup.id)}
-                              className="p-1.5 text-[#707070] hover:text-[#141414] rounded-lg hover:bg-[#eaeaea] border border-zinc-200 transition-colors cursor-pointer"
+                              className="p-1.5 text-[#707070] hover:text-[#141414] rounded-lg hover:bg-[#f3f3f3] border border-[#e0e0e0] transition-colors cursor-pointer"
                               title="حذف المورد"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -2091,7 +2091,7 @@ export const TendersBOQPage: React.FC = () => {
       {activeTab === 'awards' && (
         <div className="space-y-6">
           <div className="card-pricing" style={{ padding: '24px', borderRadius: '24px', background: '#ffffff' }}>
-            <div className="border-b border-zinc-100 pb-3 mb-4 flex items-center justify-between flex-wrap gap-3">
+            <div className="border-b border-[#e0e0e0] pb-3 mb-4 flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h3 className="text-base font-bold text-[#141414] m-0 flex items-center gap-2">
                   <Award className="w-5 h-5 text-[#141414]" />
@@ -2127,13 +2127,13 @@ export const TendersBOQPage: React.FC = () => {
               </div>
 
               {/* Warehouse PO Generator */}
-              <div className="p-5 rounded-2xl bg-zinc-50 border border-zinc-200 flex flex-col justify-between space-y-3">
+              <div className="p-5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] flex flex-col justify-between space-y-3">
                 <div>
-                  <div className="flex items-center gap-2 text-zinc-900 font-bold text-xs mb-1">
-                    <Building2 className="w-4 h-4 text-zinc-700" />
+                  <div className="flex items-center gap-2 text-[#141414] font-bold text-xs mb-1">
+                    <Building2 className="w-4 h-4 text-[#141414]" />
                     <span>أمر صرف وتوريد مستودعي (PO)</span>
                   </div>
-                  <p className="text-xs text-zinc-600 leading-relaxed">
+                  <p className="text-xs text-[#707070] leading-relaxed">
                     إصدار أمر توريد داخلي للمستودعات المركزية لشركة كاس لتجهيز البنود الـ {selectedTender.itemsCount}.
                   </p>
                 </div>
@@ -2178,13 +2178,13 @@ export const TendersBOQPage: React.FC = () => {
               </div>
 
               {/* Official Award Letter */}
-              <div className="p-5 rounded-2xl bg-zinc-50 border border-zinc-200 flex flex-col justify-between space-y-3">
+              <div className="p-5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] flex flex-col justify-between space-y-3">
                 <div>
-                  <div className="flex items-center gap-2 text-zinc-900 font-bold text-xs mb-1">
+                  <div className="flex items-center gap-2 text-[#141414] font-bold text-xs mb-1">
                     <ShieldCheck className="w-4 h-4 text-[#141414]" />
                     <span>خطاب الترسية والتعميد الرسمي</span>
                   </div>
-                  <p className="text-xs text-zinc-600 leading-relaxed">
+                  <p className="text-xs text-[#707070] leading-relaxed">
                     توليد نموذج إخطار الترسية والتعميد الرسمي الموجه لـ ({selectedTender.clientName}).
                   </p>
                 </div>
@@ -2213,7 +2213,7 @@ export const TendersBOQPage: React.FC = () => {
       {/* 1. Modal: Create New Tender */}
       {showNewTenderModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowNewTenderModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-white rounded-[24px] border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Plus className="w-4 h-4 text-[#141414]" />
@@ -2227,23 +2227,23 @@ export const TendersBOQPage: React.FC = () => {
             <form onSubmit={handleCreateTender} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">الرقم المرجعي للمنافسة / منصة اعتماد</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">الرقم المرجعي للمنافسة / منصة اعتماد</label>
                   <input
                     type="text"
                     required
                     value={newTenderForm.referenceNumber}
                     onChange={e => setNewTenderForm({ ...newTenderForm, referenceNumber: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl font-mono focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl font-mono focus:outline-hidden focus:border-[#adadad]"
                     placeholder="مثال: 260839005291"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">تصنيف المنافسة</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">تصنيف المنافسة</label>
                   <select
                     value={newTenderForm.category}
                     onChange={e => setNewTenderForm({ ...newTenderForm, category: e.target.value as any })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl focus:outline-hidden focus:border-[#adadad]"
                   >
                     <option value="احتفالات ومواسم وطنية">احتفالات ومواسم وطنية</option>
                     <option value="توريدات حكومية وتجهيزات">توريدات حكومية وتجهيزات</option>
@@ -2253,47 +2253,47 @@ export const TendersBOQPage: React.FC = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">عنوان المنافسة / المشروع</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">عنوان المنافسة / المشروع</label>
                   <input
                     type="text"
                     required
                     value={newTenderForm.title}
                     onChange={e => setNewTenderForm({ ...newTenderForm, title: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl focus:outline-hidden focus:border-[#adadad]"
                     placeholder="مثال: توريد وتجهيز فعاليات اليوم الوطني 96 لميناء جدة الإسلامي"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">الجهة الحكومية المستفيدة / العميل</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">الجهة الحكومية المستفيدة / العميل</label>
                   <input
                     type="text"
                     required
                     value={newTenderForm.clientName}
                     onChange={e => setNewTenderForm({ ...newTenderForm, clientName: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl focus:outline-hidden focus:border-[#adadad]"
                     placeholder="مثال: الهيئة العامة للموانئ - ميناء جدة الإسلامي"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">مدة التوريد والتنفيذ</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">مدة التوريد والتنفيذ</label>
                   <input
                     type="text"
                     value={newTenderForm.supplyDuration}
                     onChange={e => setNewTenderForm({ ...newTenderForm, supplyDuration: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl focus:outline-hidden focus:border-[#adadad]"
                     placeholder="مثال: خلال 7 أيام من استلام التعميد"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">مدة الالتزام بالعرض (أيام)</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">مدة الالتزام بالعرض (أيام)</label>
                   <input
                     type="number"
                     value={newTenderForm.commitmentDays}
                     onChange={e => setNewTenderForm({ ...newTenderForm, commitmentDays: parseInt(e.target.value) || 90 })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl font-mono focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl font-mono focus:outline-hidden focus:border-[#adadad]"
                   />
                 </div>
               </div>
@@ -2328,7 +2328,7 @@ export const TendersBOQPage: React.FC = () => {
       {/* 2. Modal: Create New Supplier */}
       {showNewSupplierModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowNewSupplierModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white rounded-[24px] border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Users className="w-4 h-4 text-[#141414]" />
@@ -2342,23 +2342,23 @@ export const TendersBOQPage: React.FC = () => {
             <form onSubmit={handleCreateSupplier} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">اسم المورد / الشركة</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">اسم المورد / الشركة</label>
                   <input
                     type="text"
                     required
                     value={newSupplierForm.name}
                     onChange={e => setNewSupplierForm({ ...newSupplierForm, name: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl focus:outline-hidden focus:border-[#adadad]"
                     placeholder="مثال: شركة الضيافة الملكية للتجارة"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">فئة التوريد</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">فئة التوريد</label>
                   <select
                     value={newSupplierForm.category}
                     onChange={e => setNewSupplierForm({ ...newSupplierForm, category: e.target.value as any })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl focus:outline-hidden focus:border-[#adadad]"
                   >
                     <option value="مواد غذائية وضيافة">مواد غذائية وضيافة</option>
                     <option value="دعاية وإعلان ومطبوعات">دعاية وإعلان ومطبوعات</option>
@@ -2369,46 +2369,46 @@ export const TendersBOQPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">المدينة / المقر</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">المدينة / المقر</label>
                   <input
                     type="text"
                     value={newSupplierForm.city}
                     onChange={e => setNewSupplierForm({ ...newSupplierForm, city: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl focus:outline-hidden focus:border-[#adadad]"
                     placeholder="مثال: الرياض أو جدة أو الدمام"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">الشخص المسؤول / ممثل المورد</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">الشخص المسؤول / ممثل المورد</label>
                   <input
                     type="text"
                     value={newSupplierForm.contactPerson}
                     onChange={e => setNewSupplierForm({ ...newSupplierForm, contactPerson: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl focus:outline-hidden focus:border-[#adadad]"
                     placeholder="مثال: م. أحمد عبدالسلام"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">رقم الهاتف / الجوال</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">رقم الهاتف / الجوال</label>
                   <input
                     type="text"
                     required
                     value={newSupplierForm.phone}
                     onChange={e => setNewSupplierForm({ ...newSupplierForm, phone: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl font-mono focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl font-mono focus:outline-hidden focus:border-[#adadad]"
                     placeholder="مثال: 0501234567"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">البريد الإلكتروني</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">البريد الإلكتروني</label>
                   <input
                     type="email"
                     value={newSupplierForm.email}
                     onChange={e => setNewSupplierForm({ ...newSupplierForm, email: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl font-mono focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl font-mono focus:outline-hidden focus:border-[#adadad]"
                     placeholder="مثال: info@supplier.sa"
                   />
                 </div>
@@ -2437,7 +2437,7 @@ export const TendersBOQPage: React.FC = () => {
       {/* 3. Modal: Supplier Price Comparison */}
       {showComparisonModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowComparisonModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-4xl bg-white rounded-[24px] border border-zinc-200 overflow-hidden font-sans max-h-[90vh] flex flex-col">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-4xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[90vh] flex flex-col">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <ArrowRightLeft className="w-4 h-4 text-[#141414]" />
@@ -2449,13 +2449,13 @@ export const TendersBOQPage: React.FC = () => {
             </div>
 
             <div className="p-6 overflow-y-auto space-y-4">
-              <p className="text-xs text-zinc-600">
+              <p className="text-xs text-[#707070]">
                 مقارنة أسعار شراء المواد وتكلفة التنفيذ من الموردين المعتمدين مع سعر البيع المعتمد في كراسة كاس لحساب هامش الربح:
               </p>
 
-              <div className="overflow-x-auto border border-zinc-200 rounded-2xl">
+              <div className="overflow-x-auto border border-[#e0e0e0] rounded-2xl">
                 <table className="w-full text-xs text-right">
-                  <thead className="bg-zinc-50 text-zinc-700 font-bold border-b border-zinc-200">
+                  <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                     <tr>
                       <th className="p-3">#</th>
                       <th className="p-3">وصف البند</th>
@@ -2466,18 +2466,18 @@ export const TendersBOQPage: React.FC = () => {
                       <th className="p-3 text-center">حالة التنافسية</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-100 font-mono">
+                  <tbody className="divide-y divide-[#e0e0e0] font-mono">
                     {currentItems.map((it) => {
                       const estimatedCost = Math.round(it.unitPrice * 0.75); // 25% gross margin baseline
                       const unitProfit = it.unitPrice - estimatedCost;
                       const profitMarginPct = Math.round((unitProfit / it.unitPrice) * 100);
 
                       return (
-                        <tr key={it.id} className="hover:bg-zinc-50">
-                          <td className="p-3 font-bold text-zinc-900">{it.itemNumber}</td>
-                          <td className="p-3 font-sans font-bold text-zinc-900">{it.description}</td>
+                        <tr key={it.id} className="hover:bg-[#f3f3f3]">
+                          <td className="p-3 font-bold text-[#141414]">{it.itemNumber}</td>
+                          <td className="p-3 font-sans font-bold text-[#141414]">{it.description}</td>
                           <td className="p-3 text-center">{it.quantity} {it.unit}</td>
-                          <td className="p-3 text-center text-zinc-700">{estimatedCost.toLocaleString()} ⃁</td>
+                          <td className="p-3 text-center text-[#141414]">{estimatedCost.toLocaleString()} ⃁</td>
                           <td className="p-3 text-center font-bold text-[#141414]">{it.unitPrice.toLocaleString()} ⃁</td>
                           <td className="p-3 text-center font-bold text-[#141414]">+{profitMarginPct}% ({unitProfit.toLocaleString()} ⃁)</td>
                           <td className="p-3 text-center font-sans">
@@ -2493,7 +2493,7 @@ export const TendersBOQPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="no-print print:hidden p-4 bg-zinc-50 border-t border-zinc-200 flex justify-end gap-2">
+            <div className="no-print print:hidden p-4 bg-[#f3f3f3] border-t border-[#e0e0e0] flex justify-end gap-2">
               <button
                 onClick={() => setShowComparisonModal(false)}
                 className="button-primary-pill text-xs px-5 py-2"
@@ -2508,7 +2508,7 @@ export const TendersBOQPage: React.FC = () => {
       {/* 4. Modal: ZATCA Phase 2 Live Invoice & QR */}
       {showZatcaModal && (
         <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setShowZatcaModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="erp-printable-sheet w-full max-w-2xl bg-white rounded-[24px] border border-zinc-200 overflow-hidden font-sans max-h-[90vh] flex flex-col">
+          <div onClick={(e) => e.stopPropagation()} className="erp-printable-sheet w-full max-w-2xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[90vh] flex flex-col">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <QrCode className="w-4 h-4 text-[#141414]" />
@@ -2523,8 +2523,8 @@ export const TendersBOQPage: React.FC = () => {
               <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] flex items-center justify-between">
                 <div>
                   <div className="font-bold text-[#141414] text-sm">{selectedTender.entityName}</div>
-                  <div className="text-zinc-600 mt-0.5">الرقم الضريبي: 310928374100003</div>
-                  <div className="text-zinc-600 font-mono">الرقم المرجعي: {selectedTender.referenceNumber}</div>
+                  <div className="text-[#707070] mt-0.5">الرقم الضريبي: 310928374100003</div>
+                  <div className="text-[#707070] font-mono">الرقم المرجعي: {selectedTender.referenceNumber}</div>
                 </div>
                 <div className="text-left font-mono">
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]">
@@ -2572,16 +2572,16 @@ export const TendersBOQPage: React.FC = () => {
               </div>
 
               {/* Financial Breakdown Summary */}
-              <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-2">
-                <div className="flex justify-between font-bold text-zinc-900">
+              <div className="p-4 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2">
+                <div className="flex justify-between font-bold text-[#141414]">
                   <span>المبلغ الخاضع للضريبة:</span>
                   <span className="font-mono">{selectedTender.subtotal.toLocaleString()} ⃁</span>
                 </div>
-                <div className="flex justify-between font-bold text-zinc-900">
+                <div className="flex justify-between font-bold text-[#141414]">
                   <span>ضريبة القيمة المضافة (15%):</span>
                   <span className="font-mono text-[#141414]">{selectedTender.vatAmount.toLocaleString()} ⃁</span>
                 </div>
-                <div className="flex justify-between font-bold text-base text-zinc-950 pt-2 border-t border-zinc-200">
+                <div className="flex justify-between font-bold text-base text-[#141414] pt-2 border-t border-[#e0e0e0]">
                   <span>الإجمالي المستحق شامل الضريبة:</span>
                   <span className="font-mono text-[#141414]">{selectedTender.grandTotal.toLocaleString()} ⃁</span>
                 </div>
@@ -2591,7 +2591,7 @@ export const TendersBOQPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="no-print print:hidden p-4 bg-zinc-50 border-t border-zinc-200 flex justify-end gap-2">
+            <div className="no-print print:hidden p-4 bg-[#f3f3f3] border-t border-[#e0e0e0] flex justify-end gap-2">
               <button
                 onClick={() => setShowZatcaModal(false)}
                 className="button-outline-on-light text-xs px-4 py-2"
@@ -2615,7 +2615,7 @@ export const TendersBOQPage: React.FC = () => {
       {/* 5. Modal: Import BOQ Items */}
       {showImportModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowImportModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white rounded-[24px] border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <FileUp className="w-4 h-4 text-[#141414]" />
@@ -2627,10 +2627,10 @@ export const TendersBOQPage: React.FC = () => {
             </div>
 
             <div className="p-6 space-y-4">
-              <p className="text-xs text-zinc-600 leading-relaxed">
+              <p className="text-xs text-[#707070] leading-relaxed">
                 الصق أسطر البنود من ملف إكسيل أو CSV بالتنسيق التالي (كل بند في سطر):
                 <br />
-                <span className="font-mono font-bold text-zinc-900 bg-zinc-100 px-2 py-0.5 rounded mt-1 inline-block">
+                <span className="font-mono font-bold text-[#141414] bg-[#f3f3f3] px-2 py-0.5 rounded mt-1 inline-block">
                   الوصف | وحدة القياس | الكمية | سعر الوحدة
                 </span>
               </p>
@@ -2643,7 +2643,7 @@ export const TendersBOQPage: React.FC = () => {
 تمر سكري فاخر	كجم	20	155
 القهوة العربية الفاخرة	شخص	300	40
 طباعة بنرات واستيكرات	عدد	2	2500"
-                className="w-full p-3 text-xs bg-zinc-50 border border-zinc-300 rounded-2xl font-mono focus:outline-hidden focus:border-zinc-500"
+                className="w-full p-3 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl font-mono focus:outline-hidden focus:border-[#adadad]"
               />
 
               <div className="flex justify-end gap-2 pt-2">
@@ -2670,7 +2670,7 @@ export const TendersBOQPage: React.FC = () => {
       {/* 6. Modal: Profit Margin Simulator */}
       {showMarginModal && (
         <div role="dialog" aria-modal="true" onClick={() => setShowMarginModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Percent className="w-4 h-4 text-[#141414]" />
@@ -2682,21 +2682,21 @@ export const TendersBOQPage: React.FC = () => {
             </div>
 
             <div className="p-6 space-y-4 text-xs">
-              <p className="text-zinc-600 leading-relaxed">
+              <p className="text-[#707070] leading-relaxed">
                 تعديل وتطبيق نسبة هامش الربح الإجمالي على كافة أسعار بنود كراسة ({selectedTender.title}) مع إعادة احتساب الضريبة والتفقيط آلياً:
               </p>
 
               <div>
-                <label className="block text-xs font-bold text-zinc-700 mb-1">نسبة هامش الربح المستهدف (%):</label>
+                <label className="block text-xs font-bold text-[#141414] mb-1">نسبة هامش الربح المستهدف (%):</label>
                 <input
                   type="number"
                   value={targetMarginPct}
                   onChange={e => setTargetMarginPct(e.target.value)}
-                  className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl font-mono text-center text-base font-bold focus:outline-hidden focus:border-zinc-500"
+                  className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl font-mono text-center text-base font-bold focus:outline-hidden focus:border-[#adadad]"
                 />
               </div>
 
-              <div className="p-3 bg-zinc-100 rounded-xl text-zinc-700 space-y-1">
+              <div className="p-3 bg-[#f3f3f3] rounded-xl text-[#141414] space-y-1">
                 <div>الإجمالي الحالي قبل التعديل: <strong className="font-mono">{selectedTender.grandTotal.toLocaleString()} ⃁</strong></div>
                 <div>الإجمالي التقديري بعد التطبيق (+{targetMarginPct}%): <strong className="font-mono text-[#141414]">{(selectedTender.grandTotal * (1 + (parseFloat(targetMarginPct) || 0) / 100)).toLocaleString(undefined, { maximumFractionDigits: 2 })} ⃁</strong></div>
               </div>
@@ -2725,7 +2725,7 @@ export const TendersBOQPage: React.FC = () => {
       {/* 7. Modal: Official Print Modal (Matching Excel File Layout Exactly) */}
       {showPrintModal && (
         <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setShowPrintModal(false)} className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[2200] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-5xl bg-white rounded-[24px] border border-zinc-300 overflow-hidden font-sans max-h-[95vh] flex flex-col">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-5xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[95vh] flex flex-col">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between print:hidden">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Printer className="w-4 h-4 text-[#141414]" />
@@ -2755,7 +2755,7 @@ export const TendersBOQPage: React.FC = () => {
                 {/* Print Table */}
                 <table className="w-full text-right text-xs text-[#141414] border-collapse">
                   <thead>
-                    <tr className="bg-[#d9ead3] text-[#141414] font-bold border-b border-[#e0e0e0] text-center">
+                    <tr className="bg-[#e0e0e0] text-[#141414] font-bold border-b border-[#e0e0e0] text-center">
                       <th className="p-2 border-r border-[#e0e0e0] w-10">الرقم</th>
                       <th className="p-2 border-r border-[#e0e0e0]">وصف البند</th>
                       <th className="p-2 border-r border-[#e0e0e0] w-16">الوحدة</th>
@@ -2771,28 +2771,28 @@ export const TendersBOQPage: React.FC = () => {
                   </thead>
                   <tbody>
                     {currentItems.map((item) => (
-                      <tr key={item.id} className="border-b border-zinc-200">
-                        <td className="p-2 text-center font-bold font-mono border-r border-zinc-200">{item.itemNumber}</td>
-                        <td className="p-2 border-r border-zinc-200 font-bold">{item.description}</td>
-                        <td className="p-2 border-r border-zinc-200 text-center">{item.unit}</td>
-                        <td className="p-2 border-r border-zinc-200 text-center font-mono font-bold">{item.quantity}</td>
-                        <td className="p-2 border-r border-zinc-200 text-center font-mono font-bold">{item.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                        <td className="p-2 border-r border-zinc-200 text-[10px] text-zinc-700">{item.unitPriceInWords}</td>
-                        <td className="p-2 border-r border-zinc-200 text-center font-mono font-bold">{item.totalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                        <td className="p-2 border-r border-zinc-200 text-[10px] text-zinc-700">{item.totalPriceInWords}</td>
-                        <td className="p-2 border-r border-zinc-200 text-center font-mono text-[#141414] font-bold">{item.vat.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                        <td className="p-2 border-r border-zinc-200 text-center font-mono font-bold text-[#141414] bg-[#f3f3f3]">{item.totalWithVat.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <tr key={item.id} className="border-b border-[#e0e0e0]">
+                        <td className="p-2 text-center font-bold font-mono border-r border-[#e0e0e0]">{item.itemNumber}</td>
+                        <td className="p-2 border-r border-[#e0e0e0] font-bold">{item.description}</td>
+                        <td className="p-2 border-r border-[#e0e0e0] text-center">{item.unit}</td>
+                        <td className="p-2 border-r border-[#e0e0e0] text-center font-mono font-bold">{item.quantity}</td>
+                        <td className="p-2 border-r border-[#e0e0e0] text-center font-mono font-bold">{item.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td className="p-2 border-r border-[#e0e0e0] text-[10px] text-[#141414]">{item.unitPriceInWords}</td>
+                        <td className="p-2 border-r border-[#e0e0e0] text-center font-mono font-bold">{item.totalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td className="p-2 border-r border-[#e0e0e0] text-[10px] text-[#141414]">{item.totalPriceInWords}</td>
+                        <td className="p-2 border-r border-[#e0e0e0] text-center font-mono text-[#141414] font-bold">{item.vat.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td className="p-2 border-r border-[#e0e0e0] text-center font-mono font-bold text-[#141414] bg-[#f3f3f3]">{item.totalWithVat.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                         <td className="p-2 text-[10px] font-medium text-[#141414]">{item.totalWithVatInWords}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot className="font-bold">
-                    <tr className="bg-[#e2efda] border-t-2 border-[#e0e0e0]">
+                    <tr className="bg-[#f3f3f3] border-t-2 border-[#e0e0e0]">
                       <td colSpan={6} className="p-2 text-left border-r border-[#e0e0e0]">السعر الإجمالي (قبل الضريبة):</td>
                       <td colSpan={2} className="p-2 text-center font-mono">{selectedTender.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })} ⃁</td>
                       <td colSpan={3} className="p-2 text-[11px]">{selectedTender.subtotalInWords}</td>
                     </tr>
-                    <tr className="bg-[#e2efda] border-t border-[#e0e0e0]">
+                    <tr className="bg-[#f3f3f3] border-t border-[#e0e0e0]">
                       <td colSpan={6} className="p-2 text-left border-r border-[#e0e0e0]">ضريبة القيمة المضافة (15%):</td>
                       <td colSpan={2} className="p-2 text-center font-mono text-[#141414]">{selectedTender.vatAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ⃁</td>
                       <td colSpan={3} className="p-2 text-[11px]">{selectedTender.vatInWords}</td>
@@ -2808,12 +2808,12 @@ export const TendersBOQPage: React.FC = () => {
                 {/* Signatures Footer */}
                 <div className="p-6 grid grid-cols-2 gap-4 border-t-2 border-[#e0e0e0] text-xs">
                   <div>
-                    <div className="font-bold text-zinc-700">المدير العام / المفوض بالتوقيع:</div>
+                    <div className="font-bold text-[#141414]">المدير العام / المفوض بالتوقيع:</div>
                     <div className="font-bold text-[#141414] mt-1">خالد عبدالعزيز السليم</div>
                     <div className="text-[11px] text-[#707070]">مؤسسة خالد عبدالعزيز السليم للتجارة (كاس)</div>
                   </div>
                   <div className="text-left">
-                    <div className="font-bold text-zinc-700">الختم والاعتماد الرسمي:</div>
+                    <div className="font-bold text-[#141414]">الختم والاعتماد الرسمي:</div>
                     <div className="border border-[#e0e0e0] rounded-lg p-2 mt-1 inline-block text-center text-[#141414] font-bold text-[11px]">
                       معتمد ومطابق للأنظمة السعودية
                     </div>
@@ -2823,7 +2823,7 @@ export const TendersBOQPage: React.FC = () => {
             </div>
 
             {/* Modal Actions */}
-            <div className="p-4 bg-zinc-50 border-t border-zinc-200 flex justify-end gap-3 print:hidden">
+            <div className="p-4 bg-[#f3f3f3] border-t border-[#e0e0e0] flex justify-end gap-3 print:hidden">
               <button
                 onClick={() => setShowPrintModal(false)}
                 className="button-outline-on-light text-xs py-2 px-4"
@@ -2845,7 +2845,7 @@ export const TendersBOQPage: React.FC = () => {
       {/* 8. Modal: Edit Supplier */}
       {showEditSupplierModal && editingSupplier && (
         <div role="dialog" aria-modal="true" onClick={() => setShowEditSupplierModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white rounded-[24px] border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Edit3 className="w-4 h-4 text-[#141414]" />
@@ -2859,22 +2859,22 @@ export const TendersBOQPage: React.FC = () => {
             <form onSubmit={handleUpdateSupplier} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">اسم المورد / الشركة</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">اسم المورد / الشركة</label>
                   <input
                     type="text"
                     required
                     value={editingSupplier.name}
                     onChange={e => setEditingSupplier({ ...editingSupplier, name: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl focus:outline-hidden focus:border-[#adadad]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">فئة التوريد</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">فئة التوريد</label>
                   <select
                     value={editingSupplier.category}
                     onChange={e => setEditingSupplier({ ...editingSupplier, category: e.target.value as any })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl focus:outline-hidden focus:border-[#adadad]"
                   >
                     <option value="مواد غذائية وضيافة">مواد غذائية وضيافة</option>
                     <option value="دعاية وإعلان ومطبوعات">دعاية وإعلان ومطبوعات</option>
@@ -2885,52 +2885,52 @@ export const TendersBOQPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">المدينة / المقر</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">المدينة / المقر</label>
                   <input
                     type="text"
                     value={editingSupplier.city}
                     onChange={e => setEditingSupplier({ ...editingSupplier, city: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl focus:outline-hidden focus:border-[#adadad]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">الشخص المسؤول</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">الشخص المسؤول</label>
                   <input
                     type="text"
                     value={editingSupplier.contactPerson}
                     onChange={e => setEditingSupplier({ ...editingSupplier, contactPerson: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl focus:outline-hidden focus:border-[#adadad]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">رقم الهاتف / الجوال</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">رقم الهاتف / الجوال</label>
                   <input
                     type="text"
                     required
                     value={editingSupplier.phone}
                     onChange={e => setEditingSupplier({ ...editingSupplier, phone: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl font-mono focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl font-mono focus:outline-hidden focus:border-[#adadad]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">البريد الإلكتروني</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">البريد الإلكتروني</label>
                   <input
                     type="email"
                     value={editingSupplier.email}
                     onChange={e => setEditingSupplier({ ...editingSupplier, email: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl font-mono focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl font-mono focus:outline-hidden focus:border-[#adadad]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">حالة الاعتماد</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">حالة الاعتماد</label>
                   <select
                     value={editingSupplier.status}
                     onChange={e => setEditingSupplier({ ...editingSupplier, status: e.target.value as any })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl font-bold focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl font-bold focus:outline-hidden focus:border-[#adadad]"
                   >
                     <option value="معتمد">معتمد</option>
                     <option value="تحت التقييم">تحت التقييم</option>
@@ -2939,26 +2939,26 @@ export const TendersBOQPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">تقييم الجودة (%)</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">تقييم الجودة (%)</label>
                   <input
                     type="number"
                     min="0"
                     max="100"
                     value={editingSupplier.qualityScore}
                     onChange={e => setEditingSupplier({ ...editingSupplier, qualityScore: parseInt(e.target.value) || 0 })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl font-mono focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl font-mono focus:outline-hidden focus:border-[#adadad]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">تقييم الالتزام بالمواعيد (%)</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">تقييم الالتزام بالمواعيد (%)</label>
                   <input
                     type="number"
                     min="0"
                     max="100"
                     value={editingSupplier.commitmentScore}
                     onChange={e => setEditingSupplier({ ...editingSupplier, commitmentScore: parseInt(e.target.value) || 0 })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl font-mono focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl font-mono focus:outline-hidden focus:border-[#adadad]"
                   />
                 </div>
               </div>
@@ -2986,7 +2986,7 @@ export const TendersBOQPage: React.FC = () => {
       {/* 9. Modal: Edit Tender Metadata */}
       {showEditTenderModal && editingTender && (
         <div role="dialog" aria-modal="true" onClick={() => setShowEditTenderModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[2300] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-white rounded-[24px] border border-zinc-200 font-sans max-h-[90vh] overflow-y-auto">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-white rounded-[24px] border border-[#e0e0e0] font-sans max-h-[90vh] overflow-y-auto">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Edit3 className="w-4 h-4 text-[#141414]" />
@@ -3000,22 +3000,22 @@ export const TendersBOQPage: React.FC = () => {
             <form onSubmit={handleUpdateTender} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">الرقم المرجعي للمنافسة / منصة اعتماد</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">الرقم المرجعي للمنافسة / منصة اعتماد</label>
                   <input
                     type="text"
                     required
                     value={editingTender.referenceNumber}
                     onChange={e => setEditingTender({ ...editingTender, referenceNumber: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl font-mono focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl font-mono focus:outline-hidden focus:border-[#adadad]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">تصنيف المنافسة</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">تصنيف المنافسة</label>
                   <select
                     value={editingTender.category}
                     onChange={e => setEditingTender({ ...editingTender, category: e.target.value as any })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl focus:outline-hidden focus:border-[#adadad]"
                   >
                     <option value="احتفالات ومواسم وطنية">احتفالات ومواسم وطنية</option>
                     <option value="توريدات حكومية وتجهيزات">توريدات حكومية وتجهيزات</option>
@@ -3025,53 +3025,53 @@ export const TendersBOQPage: React.FC = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">عنوان المنافسة / المشروع</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">عنوان المنافسة / المشروع</label>
                   <input
                     type="text"
                     required
                     value={editingTender.title}
                     onChange={e => setEditingTender({ ...editingTender, title: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl focus:outline-hidden focus:border-[#adadad]"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">الجهة الحكومية المستفيدة / العميل</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">الجهة الحكومية المستفيدة / العميل</label>
                   <input
                     type="text"
                     required
                     value={editingTender.clientName}
                     onChange={e => setEditingTender({ ...editingTender, clientName: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl focus:outline-hidden focus:border-[#adadad]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">مدة التوريد والتنفيذ</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">مدة التوريد والتنفيذ</label>
                   <input
                     type="text"
                     value={editingTender.supplyDuration}
                     onChange={e => setEditingTender({ ...editingTender, supplyDuration: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl focus:outline-hidden focus:border-[#adadad]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">مدة الالتزام بالعرض (أيام)</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">مدة الالتزام بالعرض (أيام)</label>
                   <input
                     type="number"
                     value={editingTender.commitmentDays}
                     onChange={e => setEditingTender({ ...editingTender, commitmentDays: parseInt(e.target.value) || 90 })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl font-mono focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl font-mono focus:outline-hidden focus:border-[#adadad]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">حالة المنافسة</label>
+                  <label className="block text-xs font-bold text-[#141414] mb-1">حالة المنافسة</label>
                   <select
                     value={editingTender.status}
                     onChange={e => setEditingTender({ ...editingTender, status: e.target.value as any })}
-                    className="w-full p-2.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl font-bold focus:outline-hidden focus:border-zinc-500"
+                    className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl font-bold focus:outline-hidden focus:border-[#adadad]"
                   >
                     <option value="مسودة قيد الدراسة">مسودة قيد الدراسة</option>
                     <option value="مقدمة ومسعرة">مقدمة ومسعرة</option>
@@ -3104,7 +3104,7 @@ export const TendersBOQPage: React.FC = () => {
       {/* 10. Modal: Supplier Profile Print Card */}
       {showPrintSupplierModal && selectedSupplierForPrint && (
         <div role="dialog" aria-modal="true" data-printable-modal="true" onClick={() => setShowPrintSupplierModal(false)} className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[2300] flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-white rounded-[24px] border border-zinc-300 overflow-hidden font-sans max-h-[95vh] flex flex-col">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-white rounded-[24px] border border-[#e0e0e0] overflow-hidden font-sans max-h-[95vh] flex flex-col">
             <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] text-[#141414] flex items-center justify-between print:hidden">
               <h3 className="font-bold text-sm text-[#141414] flex items-center gap-2">
                 <Printer className="w-4 h-4 text-[#141414]" />
@@ -3160,28 +3160,28 @@ export const TendersBOQPage: React.FC = () => {
                 {/* Score Grid */}
                 <div className="grid grid-cols-3 gap-3 p-3 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0] text-center text-xs">
                   <div>
-                    <div className="text-zinc-600 text-[11px]">مؤشر الجودة</div>
+                    <div className="text-[#707070] text-[11px]">مؤشر الجودة</div>
                     <div className="font-bold text-[#141414] text-base mt-0.5 font-mono">{selectedSupplierForPrint.qualityScore}%</div>
                   </div>
                   <div>
-                    <div className="text-zinc-600 text-[11px]">الالتزام بالتسليم</div>
+                    <div className="text-[#707070] text-[11px]">الالتزام بالتسليم</div>
                     <div className="font-bold text-[#141414] text-base mt-0.5 font-mono">{selectedSupplierForPrint.commitmentScore}%</div>
                   </div>
                   <div>
-                    <div className="text-zinc-600 text-[11px]">تنافسية الأسعار</div>
+                    <div className="text-[#707070] text-[11px]">تنافسية الأسعار</div>
                     <div className="font-bold text-[#141414] text-base mt-0.5 font-mono">{selectedSupplierForPrint.priceCompetitiveness}%</div>
                   </div>
                 </div>
 
                 {/* Financial Summary */}
-                <div className="flex justify-between items-center text-xs p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+                <div className="flex justify-between items-center text-xs p-3 bg-[#f3f3f3] rounded-xl border border-[#e0e0e0]">
                   <div>إجمالي العمليات السابقة: <strong className="font-mono">{selectedSupplierForPrint.totalDeals} توريدات</strong></div>
                   <div>إجمالي حجم التعاملات: <strong className="font-mono text-[#141414]">{selectedSupplierForPrint.totalValue.toLocaleString()} ⃁</strong></div>
                 </div>
               </div>
             </div>
 
-            <div className="p-4 bg-zinc-50 border-t border-zinc-200 flex justify-end gap-3 print:hidden">
+            <div className="p-4 bg-[#f3f3f3] border-t border-[#e0e0e0] flex justify-end gap-3 print:hidden">
               <button
                 onClick={() => setShowPrintSupplierModal(false)}
                 className="button-outline-on-light text-xs py-2 px-4 cursor-pointer"

@@ -386,14 +386,14 @@ export const PerEmployeeBiometricVerificationHub: React.FC<
       widthPx: 236,
       heightPx: 54,
       darkColor: '#141414',
-      lightColor: '#FFFFFF',
+      lightColor: '#ffffff',
       showText: true,
     });
 
     const qrSvg = generateRealQrSvg(prof.qrPayload, {
       sizePx: 104,
       darkColor: '#141414',
-      lightColor: '#FFFFFF',
+      lightColor: '#ffffff',
       borderStyle: true,
     });
 
@@ -854,7 +854,7 @@ export const PerEmployeeBiometricVerificationHub: React.FC<
             </thead>
             <tbody className="divide-y divide-[#f0f0f0]">
               {filteredDirectory.map((emp) => (
-                <tr key={emp.employeeKey} className="hover:bg-[#fafafa] transition-colors">
+                <tr key={emp.employeeKey} className="hover:bg-[#f3f3f3] transition-colors">
                   <td className="py-3 px-4">
                     <div className="font-bold text-[#141414]">{emp.fullName}</div>
                     <div className="text-[11px] text-[#707070] flex items-center gap-1.5 flex-wrap mt-0.5">

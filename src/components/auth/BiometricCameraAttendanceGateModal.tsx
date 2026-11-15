@@ -110,7 +110,7 @@ export const BiometricCameraAttendanceGateModal: React.FC<
         widthPx: 228,
         heightPx: 52,
         darkColor: '#141414',
-        lightColor: '#FFFFFF',
+        lightColor: '#ffffff',
         showText: true,
       }),
     [identity.badgeCode]
@@ -121,7 +121,7 @@ export const BiometricCameraAttendanceGateModal: React.FC<
       generateRealQrSvg(identity.qrPayload, {
         sizePx: 96,
         darkColor: '#141414',
-        lightColor: '#FFFFFF',
+        lightColor: '#ffffff',
         borderStyle: true,
       }),
     [identity.qrPayload]
@@ -529,11 +529,11 @@ export const BiometricCameraAttendanceGateModal: React.FC<
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-11 h-11 rounded-[15px] bg-[#141414] text-[#ffffff] flex items-center justify-center shrink-0">
               {isCheckOut ? (
-                <LogOut className="w-5 h-5 text-[#fb7185]" data-colored-icon="true" />
+                <LogOut className="w-5 h-5 text-[#707070]" data-colored-icon="true" />
               ) : isBadgeOnly ? (
-                <QrCode className="w-5 h-5 text-[#38bdf8]" data-colored-icon="true" />
+                <QrCode className="w-5 h-5 text-[#707070]" data-colored-icon="true" />
               ) : (
-                <Fingerprint className="w-5 h-5 text-[#34d399]" data-colored-icon="true" />
+                <Fingerprint className="w-5 h-5 text-[#707070]" data-colored-icon="true" />
               )}
             </div>
             <div className="min-w-0">
@@ -541,7 +541,7 @@ export const BiometricCameraAttendanceGateModal: React.FC<
                 <h2 className="text-base sm:text-lg font-bold text-[#141414] m-0 leading-snug">
                   {headerTitle}
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full bg-[#eef2ff] border border-[#c7d2fe] text-[11px] font-bold font-mono text-[#4338ca]">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[11px] font-bold font-mono text-[#262626]">
                   {liveTimeStr}
                 </span>
               </div>
@@ -555,9 +555,9 @@ export const BiometricCameraAttendanceGateModal: React.FC<
             <button
               type="button"
               onClick={onCancel}
-              className="h-9 px-3.5 rounded-full bg-[#fff1f2] hover:bg-[#ffe4e6] border border-[#fecdd3] text-[#be123c] text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors no-print"
+              className="h-9 px-3.5 rounded-full bg-[#f3f3f3] hover:bg-[#f3f3f3] border border-[#e0e0e0] text-[#262626] text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors no-print"
             >
-              <X className="w-3.5 h-3.5 text-[#e11d48]" data-colored-icon="true" />
+              <X className="w-3.5 h-3.5 text-[#262626]" data-colored-icon="true" />
               <span>{isCheckOut ? 'إلغاء والبقاء في النظام' : 'إغلاق'}</span>
             </button>
           )}
@@ -573,8 +573,8 @@ export const BiometricCameraAttendanceGateModal: React.FC<
             <span className="text-[#707070] font-medium">
               {user.role || user.department_name_ar || 'الإدارة التشغيلية'}
             </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#eef2ff] border border-[#c7d2fe] text-[11px] font-semibold text-[#4338ca]">
-              <Building2 className="w-3 h-3 text-[#4f46e5]" data-colored-icon="true" />
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[11px] font-semibold text-[#262626]">
+              <Building2 className="w-3 h-3 text-[#262626]" data-colored-icon="true" />
               <span>{entityBranding.displayNameAr}</span>
             </span>
           </div>
@@ -582,7 +582,7 @@ export const BiometricCameraAttendanceGateModal: React.FC<
           <div className="flex items-center gap-2">
             {existingStamp && (
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold">
-                <CheckCircle2 className="w-3 h-3 text-[#34d399]" data-colored-icon="true" />
+                <CheckCircle2 className="w-3 h-3 text-[#707070]" data-colored-icon="true" />
                 <span>وقت الدخول المسجل: {existingStamp.checkInTime}</span>
               </span>
             )}
@@ -1009,7 +1009,7 @@ export const BiometricCameraAttendanceGateModal: React.FC<
                 stopCameraStream();
                 onSwitchAccount();
               }}
-              className="h-8 px-3.5 rounded-full bg-[#262626] hover:bg-[#3a3a3a] text-[#ffffff] text-[11px] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+              className="h-8 px-3.5 rounded-full bg-[#262626] hover:bg-[#262626] text-[#ffffff] text-[11px] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>تبديل الحساب / العودة لشاشة الدخول</span>
