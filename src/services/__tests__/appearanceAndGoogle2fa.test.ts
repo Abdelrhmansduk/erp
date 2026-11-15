@@ -17,6 +17,12 @@ import {
   verifyLoginSecondFactor,
   regenerateBackupCodes,
   disableUserTwoFactor,
+  getEmployeeDedicatedAuthenticatorProfile,
+  getAllEmployeesAuthenticatorDirectory,
+  provisionEmployeeDedicatedTotp,
+  provisionAllEmployeesDedicatedTotp,
+  verifyEmployeeSpecificTotpCode,
+  auditAllEmployeesDedicatedTotpIsolation,
 } from '../googleTwoFactorService';
 
 describe('Appearance & Display Customization Service', () => {
@@ -255,5 +261,68 @@ describe('Online Google 2FA & Google Authenticator Service', () => {
 
     disableUserTwoFactor(TEST_KAS_EMAIL, 'all');
     expect(getLoginChallengeForUser(TEST_KAS_EMAIL).required).toBe(false);
+  });
+
+  it('provisions a unique, isolated Google Authenticator 2FA secret, QR code, and backup codes for every employee (69 employees)', async () => {
+    const directory = getAllEmployeesAuthenticatorDirectory('all');
+    expect(directory.length).toBe(69);
+
+    const secrets = new Set(directory.map((d) => d.totpSecret));
+    const uris = new Set(directory.map((d) => d.otpAuthUri));
+    expect(secrets.size).toBe(69);
+    expect(uris.size).toBe(69);
+
+    // Provision single employee and test rotation
+    const emp1Before = getEmployeeDedicatedAuthenticatorProfile('khalid@kas.sa');
+    expect(emp1Before.employeeId).toBe('KAS-EMP-001');
+    expect(emp1Before.qrSvg).toContain('<svg');
+    expect(emp1Before.backupCodes).toHaveLength(8);
+
+    const emp1Provisioned = provisionEmployeeDedicatedTotp('khalid@kas.sa');
+    expect(emp1Provisioned.totpEnabled).toBe(true);
+    expect(emp1Provisioned.totpSecret).toBe(emp1Before.totpSecret);
+
+    const emp1Rotated = provisionEmployeeDedicatedTotp('khalid@kas.sa', {
+      rotateSecret: true,
+    });
+    expect(emp1Rotated.secretVersion).toBe(2);
+    expect(emp1Rotated.totpSecret).not.toBe(emp1Before.totpSecret);
+
+    // Verify own code vs cross-employee code rejection
+    const fixedTime = 1_730_000_000_000;
+    const emp1LiveCode = await generateTotpCodeAtTime(emp1Rotated.totpSecret, fixedTime);
+    const ownCheck = await verifyEmployeeSpecificTotpCode(
+      'khalid@kas.sa',
+      emp1LiveCode,
+      fixedTime
+    );
+    expect(ownCheck.valid).toBe(true);
+
+    // Another employee's code must be rejected for khalid@kas.sa
+    const emp2 = getEmployeeDedicatedAuthenticatorProfile('hr@kas.sa');
+    const emp2LiveCode = await generateTotpCodeAtTime(emp2.totpSecret, fixedTime);
+    if (emp2LiveCode !== emp1LiveCode) {
+      const crossCheck = await verifyEmployeeSpecificTotpCode(
+        'khalid@kas.sa',
+        emp2LiveCode,
+        fixedTime
+      );
+      expect(crossCheck.valid).toBe(false);
+      expect(crossCheck.crossEmployeeMismatch).toBe(true);
+    }
+
+    // Bulk provision all 69 employees and run isolation audit
+    const bulk = provisionAllEmployeesDedicatedTotp();
+    expect(bulk.totalProvisioned).toBe(69);
+    expect(bulk.uniqueSecretsCount).toBe(69);
+
+    const audit = await auditAllEmployeesDedicatedTotpIsolation(fixedTime);
+    expect(audit.totalEmployees).toBe(69);
+    expect(audit.uniqueSecretsCount).toBe(69);
+    expect(audit.uniqueQrUrisCount).toBe(69);
+    expect(audit.enabledTotpCount).toBe(69);
+    expect(audit.zeroSecretCollisions).toBe(true);
+    expect(audit.allSelfCodesVerified).toBe(true);
+    expect(audit.crossEmployeeIsolationVerified).toBe(true);
   });
 });

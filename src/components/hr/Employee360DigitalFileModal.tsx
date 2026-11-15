@@ -88,6 +88,7 @@ import { RecordQuickActions } from '../common/RecordQuickActions';
 import { HrLettersStudioModal } from './HrLettersStudioModal';
 import { EmployeePayslipModal } from './HrEnterpriseModals';
 import { PerEmployeeBiometricVerificationHub } from './PerEmployeeBiometricVerificationHub';
+import { GoogleTwoFactorHub } from '../settings/GoogleTwoFactorHub';
 
 export interface Employee360DigitalFileModalProps {
   employee: Record<string, any>;
@@ -3871,12 +3872,18 @@ export const Employee360DigitalFileModal: React.FC<Employee360DigitalFileModalPr
               </div>
             )}
 
-            {/* TAB 10: BIOMETRIC & QR GATE */}
+            {/* TAB 10: BIOMETRIC & QR GATE + DEDICATED GOOGLE AUTHENTICATOR 2FA */}
             {activeTab === 'biometric_gate' && (
-              <PerEmployeeBiometricVerificationHub
-                singleEmployee={emp as any}
-                readOnly={readOnlyMode}
-              />
+              <div className="space-y-4">
+                <GoogleTwoFactorHub
+                  singleEmployee={emp as any}
+                  readOnly={readOnlyMode}
+                />
+                <PerEmployeeBiometricVerificationHub
+                  singleEmployee={emp as any}
+                  readOnly={readOnlyMode}
+                />
+              </div>
             )}
 
             {/* TAB 11: LIVE 360° PERFORMANCE, ONBOARDING, PROMOTIONS & FINAL SETTLEMENT */}
