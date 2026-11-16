@@ -235,6 +235,44 @@ async function main() {
 
     await page.screenshot({ path: DASHBOARD_SCREENSHOT_PATH, fullPage: false });
     console.log(`  5️⃣  Saved Dashboard screenshot → ${DASHBOARD_SCREENSHOT_PATH}`);
+
+    // 5.5️⃣ Navigate to KAS Exact Replica Sheets (`/workspace/kas-exact-sheets`) & verify Share/Export/Audit Modals
+    console.log('  5.5️⃣ Navigating to `/workspace/kas-exact-sheets` & testing Share/Attachment/Audit modals...');
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('alsulaim_navigate', {
+          detail: { tab: 'kas-exact-sheets', title: 'جداول ومصنفات كاس المطابقة للأصل' },
+        })
+      );
+    });
+    await new Promise((r) => setTimeout(r, 1800));
+
+    const kasText = await page.evaluate(() => document.body.innerText || '');
+    const hasEstTable = kasText.includes('ورقة: المؤسسات');
+    const hasBoqTable = kasText.includes('جدول الكميات والاسعار لمنافسة');
+    console.log(`     ✅ Table 1 (ورقة: المؤسسات) rendered: ${hasEstTable}`);
+    console.log(`     ✅ Table 2 (ورقة: الجدول C3:O112) rendered: ${hasBoqTable}`);
+
+    // Open WhatsApp Share Modal from Table 1 (`[data-slot="exact-est-whatsapp-btn"]`)
+    const estWaBtn = await page.$('[data-slot="exact-est-whatsapp-btn"]');
+    if (estWaBtn) {
+      await estWaBtn.click();
+      await new Promise((r) => setTimeout(r, 600));
+    }
+    const modalText = await page.evaluate(() => document.body.innerText || '');
+    const hasShareModal = modalText.includes(
+      'إرفاق المستندات وتضمين الجداول عند الإرسال بالواتساب أو البريد الإلكتروني'
+    );
+    const hasLiveEmbeddedPreview = modalText.includes(
+      'معاينة حية للجدول الملون المضمّن في البريد والمرفقات'
+    );
+    console.log(`     ✅ KasShareAndExportModal opened: ${hasShareModal}`);
+    console.log(`     ✅ Live Embedded Colored Table Preview rendered: ${hasLiveEmbeddedPreview}`);
+
+    const KAS_MODAL_SCREENSHOT = path.join(OUT_DIR, 'kas_share_modal_e2e_verified.png');
+    await page.screenshot({ path: KAS_MODAL_SCREENSHOT, fullPage: false });
+    console.log(`     📸 Saved KAS Share & Attachment Modal screenshot → ${KAS_MODAL_SCREENSHOT}`);
+
     console.log(`  6️⃣  Runtime Page Errors: ${consoleErrors.length}`);
 
     if (
@@ -243,6 +281,10 @@ async function main() {
       !hasGoogleBindingPrompt ||
       !hasSaudiRiyalSymbol ||
       hasLegacyRiyalText ||
+      !hasEstTable ||
+      !hasBoqTable ||
+      !hasShareModal ||
+      !hasLiveEmbeddedPreview ||
       consoleErrors.length > 0
     ) {
       exitCode = 1;
