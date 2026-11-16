@@ -113,6 +113,7 @@ export interface KasExactReplicaWorkbooksSectionProps {
   onSwitchToOtherSection?: () => void;
   otherSectionLabel?: string;
   lastSyncTimestamp?: string;
+  hideTopHeader?: boolean;
 }
 
 export const KasExactReplicaWorkbooksSection: React.FC<
@@ -159,6 +160,7 @@ export const KasExactReplicaWorkbooksSection: React.FC<
   onSwitchToOtherSection,
   otherSectionLabel = 'قسم جداول الكميات والمنافسات (BOQ)',
   lastSyncTimestamp,
+  hideTopHeader = false,
 }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const bothTablesContainerRef = useRef<HTMLDivElement | null>(null);
@@ -569,7 +571,8 @@ export const KasExactReplicaWorkbooksSection: React.FC<
           TOP LIVE BI-DIRECTIONAL SYNC & 4 WORKBOOK COPIES BAR (شهر11 نسخة 1..4)
          ===================================================================== */}
       <div className="bg-[#ffffff] border-2 border-[#141414] rounded-2xl p-4 space-y-3 shadow-xs">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-[#e0e0e0] pb-3">
+        {!hideTopHeader && (
+        <div className="flex flex-col gap-3 border-b border-[#e0e0e0] pb-3">
           <div className="flex items-start sm:items-center gap-3">
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-sm shrink-0 border border-black"
@@ -661,6 +664,7 @@ export const KasExactReplicaWorkbooksSection: React.FC<
             </button>
           </div>
         </div>
+        )}
 
         {/* ===================================================================
             MOUSE TABLE SELECTION & COPY BAR + THEME SWITCHER + WHATSAPP/EMAIL ATTACHMENTS
@@ -744,7 +748,7 @@ export const KasExactReplicaWorkbooksSection: React.FC<
               onChange={(e) =>
                 setExportTheme(e.target.value as KasVisualExportTheme)
               }
-              className="px-2.5 py-1.5 rounded-lg border-2 border-black bg-white text-xs font-extrabold text-black cursor-pointer"
+              className="px-2.5 py-1.5 rounded-lg border-2 border-black bg-white text-xs font-extrabold text-black cursor-pointer max-w-full sm:max-w-[300px]"
             >
               <option value="kas-original-xlsm">
                 1. مطابق للقسم الجديد بالملي (ألوان إكسيل كاس #00CC00 / #A9D18E / #4472C4)

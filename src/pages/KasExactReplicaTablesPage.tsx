@@ -1004,8 +1004,8 @@ export const KasExactReplicaTablesPage: React.FC = () => {
       data-slot="kas-exact-replica-standalone-page"
     >
       {/* Independent Section Header Banner */}
-      <div className="rounded-2xl bg-[#141414] text-white p-5 border border-[#262626] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="space-y-1">
+      <div className="rounded-2xl bg-[#141414] text-white p-5 border border-[#262626] flex flex-col gap-3.5 overflow-hidden">
+        <div className="w-full min-w-0 space-y-1.5">
           <div className="flex items-center gap-2 flex-wrap">
             <span
               className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border border-black"
@@ -1026,97 +1026,112 @@ export const KasExactReplicaTablesPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap shrink-0">
-          <div className="inline-flex rounded-xl bg-[#262626] p-1 border border-white/20">
+        <div className="w-full pt-3 border-t border-white/15 flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="inline-flex flex-wrap rounded-xl bg-[#262626] p-1 border border-white/20">
+              <button
+                type="button"
+                onClick={() => setPageSectionView('tables')}
+                style={
+                  pageSectionView === 'tables'
+                    ? { backgroundColor: '#00CC00', color: '#000000' }
+                    : undefined
+                }
+                className="px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                <span>الجداول المطابقة للأصل</span>
+              </button>
+              <button
+                type="button"
+                data-slot="toggle-modification-audit-log-btn"
+                onClick={() => setPageSectionView('audit')}
+                style={
+                  pageSectionView === 'audit'
+                    ? { backgroundColor: '#4472C4', color: '#FFFFFF' }
+                    : undefined
+                }
+                className="px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
+              >
+                <History className="w-3.5 h-3.5" />
+                <span>قسم سجل التعديلات ومن قام بها ({modLogsCount})</span>
+              </button>
+            </div>
+
             <button
               type="button"
-              onClick={() => setPageSectionView('tables')}
-              style={
-                pageSectionView === 'tables'
-                  ? { backgroundColor: '#00CC00', color: '#000000' }
-                  : undefined
-              }
-              className="px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
+              onClick={() => setShowNewSheetModal(true)}
+              className="px-3.5 py-2 rounded-xl font-extrabold text-xs border border-black flex items-center gap-1.5 cursor-pointer"
+              style={{ backgroundColor: '#00CC00', color: '#000000' }}
             >
-              <FileSpreadsheet className="w-3.5 h-3.5" />
-              <span>الجداول المطابقة للأصل</span>
+              <Plus className="w-4 h-4" />
+              <span>+ إنشاء ورقة جدول جديدة</span>
             </button>
+
             <button
               type="button"
-              onClick={() => setPageSectionView('audit')}
-              style={
-                pageSectionView === 'audit'
-                  ? { backgroundColor: '#4472C4', color: '#FFFFFF' }
-                  : undefined
-              }
-              className="px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
+              onClick={() => setShowPasteItemsModal(true)}
+              className="px-3 py-2 rounded-xl bg-[#262626] hover:bg-[#363636] text-white text-xs font-bold border border-white/15 flex items-center gap-1.5 cursor-pointer"
             >
-              <History className="w-3.5 h-3.5" />
-              <span>قسم سجل التعديلات ومن قام بها ({modLogsCount})</span>
+              <ClipboardPaste className="w-3.5 h-3.5" />
+              <span>لصق بنود</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowMarginModal(true)}
+              className="px-3 py-2 rounded-xl bg-[#262626] hover:bg-[#363636] text-white text-xs font-bold border border-white/15 flex items-center gap-1.5 cursor-pointer"
+            >
+              <Percent className="w-3.5 h-3.5" />
+              <span>هامش الربح</span>
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={handleUndo}
-            style={{ backgroundColor: '#F8CBAD', color: '#9C0006' }}
-            className="px-3 py-2 rounded-xl font-extrabold text-xs border border-black flex items-center gap-1 cursor-pointer"
-            title="التراجع عن آخر تعديل"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>تراجع عن التعديل</span>
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={handleUndo}
+              style={{ backgroundColor: '#F8CBAD', color: '#9C0006' }}
+              className="px-3 py-2 rounded-xl font-extrabold text-xs border border-black flex items-center gap-1 cursor-pointer"
+              title="التراجع عن آخر تعديل"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>تراجع عن التعديل</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={handleRedo}
-            style={{ backgroundColor: '#A9D18E', color: '#000000' }}
-            className="px-3 py-2 rounded-xl font-extrabold text-xs border border-black flex items-center gap-1 cursor-pointer"
-            title="زر التراجع عن الإرجاع — استعادة الإجراء المتراجع عنه"
-          >
-            <RotateCw className="w-3.5 h-3.5" />
-            <span>زر التراجع عن الإجراء</span>
-          </button>
+            <button
+              type="button"
+              data-slot="undo-revert-action-btn"
+              onClick={() => {
+                const restored = kasNovemberWorkbooksService.undoLatestRevertedModification();
+                if (restored) {
+                  setEstablishments([...kasNovemberWorkbooksService.getEstablishments()]);
+                  setTendersList([...kasNovemberWorkbooksService.getTenders()]);
+                  setModLogsCount(kasNovemberWorkbooksService.getModificationLogs().length);
+                } else {
+                  handleRedo();
+                }
+              }}
+              style={{ backgroundColor: '#A9D18E', color: '#000000' }}
+              className="px-3 py-2 rounded-xl font-extrabold text-xs border border-black flex items-center gap-1 cursor-pointer"
+              title="زر التراجع عن الإرجاع — استعادة الإجراء المتراجع عنه"
+            >
+              <RotateCw className="w-3.5 h-3.5" />
+              <span>زر التراجع عن الإجراء</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setShowNewSheetModal(true)}
-            className="px-3.5 py-2 rounded-xl font-extrabold text-xs border border-black flex items-center gap-1.5 cursor-pointer"
-            style={{ backgroundColor: '#00CC00', color: '#000000' }}
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ إنشاء ورقة جدول جديدة</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowPasteItemsModal(true)}
-            className="px-3 py-2 rounded-xl bg-[#262626] hover:bg-[#363636] text-white text-xs font-bold border border-white/15 flex items-center gap-1.5 cursor-pointer"
-          >
-            <ClipboardPaste className="w-3.5 h-3.5" />
-            <span>لصق بنود</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowMarginModal(true)}
-            className="px-3 py-2 rounded-xl bg-[#262626] hover:bg-[#363636] text-white text-xs font-bold border border-white/15 flex items-center gap-1.5 cursor-pointer"
-          >
-            <Percent className="w-3.5 h-3.5" />
-            <span>هامش الربح</span>
-          </button>
-
-          <button
-            type="button"
-            data-slot="goto-paired-boq-page-btn"
-            onClick={() =>
-              setGlobalTab('tenders-boq', 'منافسات اعتماد وجداول الكميات (BOQ)')
-            }
-            className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#f3f3f3] text-[#141414] text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
-          >
-            <ArrowRightLeft className="w-3.5 h-3.5" />
-            <span>فتح القسم الآخر (منافسات وجداول BOQ)</span>
-          </button>
+            <button
+              type="button"
+              data-slot="goto-paired-boq-page-btn"
+              onClick={() =>
+                setGlobalTab('tenders-boq', 'منافسات اعتماد وجداول الكميات (BOQ)')
+              }
+              className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#f3f3f3] text-[#141414] text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5" />
+              <span>فتح القسم الآخر (منافسات وجداول BOQ)</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1179,6 +1194,7 @@ export const KasExactReplicaTablesPage: React.FC = () => {
           }
           otherSectionLabel="قسم منافسات اعتماد وجداول الكميات (BOQ)"
           lastSyncTimestamp={lastSyncTimestamp}
+          hideTopHeader={true}
         />
         )
       )}
