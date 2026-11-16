@@ -25,7 +25,11 @@ import {
   saveCustomEmployeePassword,
 } from '../config/kasEmployeePasswordHashes';
 import { SIDEBAR_MENU } from '../data/sidebarMenu';
-import { resolveUserVisibilityAccess, isVisibilityControllerUser } from './moduleVisibility';
+import {
+  resolveUserVisibilityAccess,
+  isVisibilityControllerUser,
+  useModuleVisibilityStore,
+} from './moduleVisibility';
 
 export {
   KAS_ALLOWED_EMPLOYEES,
@@ -791,12 +795,15 @@ export function getFullStaffDirectory(): StaffDirectoryEntry[] {
     .map((c) => {
       const official = findAllowedKasEmployee(c.email);
       if (!official) return c;
-      // Enforce authoritative RBAC scope for official @kas.sa accounts even if localStorage was modified
+      // Enforce authoritative RBAC scope & updated official job title for @kas.sa accounts even if localStorage was modified
       return {
         ...c,
         id: official.id,
         username: official.username,
         email: official.email,
+        full_name: official.nameAr,
+        nameEn: official.nameEn,
+        role: official.titleAr,
         company_id: official.company_id,
         department_id: official.department_id,
         default_tab: official.defaultTab,
@@ -2237,17 +2244,35 @@ export const authService = {
       }
       if (parsed?.email) {
         const official = findAllowedKasEmployee(parsed.email);
+        const profileOverride =
+          useModuleVisibilityStore.getState().employeeProfileOverrides?.[
+            parsed.email.trim().toLowerCase()
+          ];
         if (official) {
           const linkedBinding = getLinkedGoogleAccountForKasEmail(official.email);
           return {
             ...parsed,
-            company_id: official.company_id,
-            department_id: official.department_id,
+            id: official.id,
+            username: official.username,
+            full_name: official.nameAr,
+            role: profileOverride?.titleAr || official.titleAr,
+            branch: profileOverride?.branch || official.branch || parsed.branch,
+            company_id: profileOverride?.companyId || official.company_id,
+            department_id: (profileOverride?.departmentId as DepartmentId) || official.department_id,
             default_tab: official.defaultTab,
             default_tab_title: official.defaultTabTitle,
             allowed_tabs_override: official.allowedTabsOverride,
             extra_allowed_departments: official.extraAllowedDepartments,
             linked_google_email: linkedBinding?.googleEmail || parsed.linked_google_email,
+          };
+        }
+        if (profileOverride) {
+          return {
+            ...parsed,
+            role: profileOverride.titleAr || parsed.role,
+            branch: profileOverride.branch || parsed.branch,
+            company_id: profileOverride.companyId || parsed.company_id,
+            department_id: (profileOverride.departmentId as DepartmentId) || parsed.department_id,
           };
         }
       }

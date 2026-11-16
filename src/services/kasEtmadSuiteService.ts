@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { downloadThemedXlsxWorkbook } from './excelThemeEngine';
 import { journalEngine } from './accounting/journalEngine';
 import {
   KasEtmadCompetition,
@@ -37,7 +38,7 @@ export const INITIAL_CATEGORIES: KasEtmadCategory[] = [
 ];
 
 export const INITIAL_STAFF: KasEtmadStaff[] = [
-  { id: 'st-1', name: 'Ahmed Gamal', email: 'mr.ahmed.elbashir@gmail.com', role: 'Employee / مدير العمليات', lastLogin: 'الآن', active: true, phone: '0554166722' },
+  { id: 'st-1', name: 'احمد جمال احمد البشير', email: 'a.albashir.trade@kas.sa', role: 'مسؤول المنافسات', lastLogin: 'الآن', active: true, phone: '0554166722' },
   { id: 'st-2', name: 'خالد عبدالعزيز السليم', email: 'khaled@alsulaim.sa', role: 'Super_Admin / رئيس مجلس الإدارة', lastLogin: 'منذ يوم', active: true, phone: '0508987888' },
   { id: 'st-3', name: 'Mohammed Khaled', email: 'accmohamedkhaled1996@gmail.com', role: 'المحاسب المالي المعتمد', lastLogin: 'منذ 3 ساعات', active: true, phone: '0550001122' },
   { id: 'st-4', name: 'abdallah mohamed', email: 'abdallahobya@gmail.com', role: 'Super_Admin', lastLogin: 'منذ يومين', active: true },
@@ -738,7 +739,7 @@ class KasEtmadSuiteService {
     const wb = XLSX.utils.book_new();
     wb.Workbook = { Views: [{ RTL: true }] };
     XLSX.utils.book_append_sheet(wb, ws, 'المنافسات');
-    XLSX.writeFile(wb, `KAS_Competitions_${new Date().toISOString().split('T')[0]}.xlsx`);
+    downloadThemedXlsxWorkbook(wb, `KAS_Competitions_${new Date().toISOString().split('T')[0]}.xlsx`);
   }
 
   public exportInvoicesToXLSX() {
@@ -750,7 +751,7 @@ class KasEtmadSuiteService {
     const wb = XLSX.utils.book_new();
     wb.Workbook = { Views: [{ RTL: true }] };
     XLSX.utils.book_append_sheet(wb, ws, 'الفواتير');
-    XLSX.writeFile(wb, `KAS_Invoices_${new Date().toISOString().split('T')[0]}.xlsx`);
+    downloadThemedXlsxWorkbook(wb, `KAS_Invoices_${new Date().toISOString().split('T')[0]}.xlsx`);
   }
 
   public exportProposalsToXLSX() {
@@ -762,7 +763,7 @@ class KasEtmadSuiteService {
     const wb = XLSX.utils.book_new();
     wb.Workbook = { Views: [{ RTL: true }] };
     XLSX.utils.book_append_sheet(wb, ws, 'العروض');
-    XLSX.writeFile(wb, `KAS_Proposals_${new Date().toISOString().split('T')[0]}.xlsx`);
+    downloadThemedXlsxWorkbook(wb, `KAS_Proposals_${new Date().toISOString().split('T')[0]}.xlsx`);
   }
 
   /**

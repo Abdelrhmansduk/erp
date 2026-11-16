@@ -32,6 +32,7 @@ import {
   MessageCircle,
   Mail,
   Type,
+  Copy,
 } from 'lucide-react';
 import {
   exportData,
@@ -54,6 +55,7 @@ import {
   resolveDocumentBranding,
   setEntityHideHoldingPreference,
 } from '../../services/entityBrandingService';
+import { kasNovemberWorkbooksService } from '../../services/kasNovemberWorkbooksService';
 import { shareViaEmail, shareViaWhatsApp } from '../../services/quickShareService';
 import { isHrDocumentSection } from '../hr/ReemHrDocumentSignatureBlock';
 import { useAppStore } from '../../stores/appStore';
@@ -90,6 +92,12 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
     () => resolveDocumentBranding(data, { entityCode: detectedEntity }).hideHoldingGroupBrand
   );
   const [customCompanyNameAr, setCustomCompanyNameAr] = useState<string>('');
+  const [customCrNumber, setCustomCrNumber] = useState<string>('');
+  const [customTaxNumber, setCustomTaxNumber] = useState<string>('');
+  const [kasEstablishmentsList, setKasEstablishmentsList] = useState<string[]>(() =>
+    kasNovemberWorkbooksService.getEstablishmentNames()
+  );
+  const [newEstablishmentInput, setNewEstablishmentInput] = useState<string>('');
 
   // Document Customization States
   const [titleInput, setTitleInput] = useState<string>(customTitle || baseConfig.sectionTitle);
@@ -103,6 +111,8 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
     isHrDocumentSection(sectionKey, customTitle || baseConfig.sectionTitle)
   );
   const [customPreparerName, setCustomPreparerName] = useState<string>('');
+  const [customPreparerRole, setCustomPreparerRole] = useState<string>('');
+  const [customBranchName, setCustomBranchName] = useState<string>('');
   const [customFinanceSignatory, setCustomFinanceSignatory] = useState<string>('');
   const [customExecutiveSignatory, setCustomExecutiveSignatory] = useState<string>('');
 
@@ -133,6 +143,9 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
     setEditableHeaders({});
     setHasEditedCells(false);
     setCustomCompanyNameAr('');
+    setCustomCrNumber('');
+    setCustomTaxNumber('');
+    setKasEstablishmentsList(kasNovemberWorkbooksService.getEstablishmentNames());
   }, [customTitle, baseConfig.sectionTitle, baseConfig.headers.length, sectionKey, isOpen]);
 
   // Keep fresh base matrix whenever columns or source data change (unless user already edited cells)
@@ -145,6 +158,55 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
       cfg.dataMapper(row).map((v) => (v === null || v === undefined ? '' : v))
     );
   }, [sectionKey, data, titleInput, selectedColumnIndices, editableHeaders]);
+
+  // Listen to kas-establishments-updated & inline edits from the A4 preview iframe
+  useEffect(() => {
+    const refreshEsts = () => {
+      setKasEstablishmentsList(kasNovemberWorkbooksService.getEstablishmentNames());
+    };
+    window.addEventListener('kas-establishments-updated', refreshEsts);
+    return () => window.removeEventListener('kas-establishments-updated', refreshEsts);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handlePreviewMessage = (ev: MessageEvent) => {
+      const msg = ev.data;
+      if (!msg || msg.type !== 'ERP_PREVIEW_INLINE_EDIT') return;
+      if (msg.kind === 'field') {
+        const val = String(msg.value || '').trim();
+        if (msg.field === 'customTitle' && val) setTitleInput(val);
+        else if (msg.field === 'customCompanyNameAr') setCustomCompanyNameAr(val);
+        else if (msg.field === 'customCrNumber') setCustomCrNumber(val);
+        else if (msg.field === 'customTaxNumber') setCustomTaxNumber(val);
+        else if (msg.field === 'customBranchName') setCustomBranchName(val);
+        else if (msg.field === 'customPreparerName') setCustomPreparerName(val);
+        else if (msg.field === 'customPreparerRole') setCustomPreparerRole(val);
+        else if (msg.field === 'customFinanceSignatory') setCustomFinanceSignatory(val.replace(/^الاسم:\s*/, ''));
+        else if (msg.field === 'customExecutiveSignatory') setCustomExecutiveSignatory(val);
+      } else if (msg.kind === 'header' && typeof msg.colIdx === 'number') {
+        const val = String(msg.value || '').trim();
+        if (val) {
+          setEditableHeaders((prev) => ({ ...prev, [msg.colIdx]: val }));
+        }
+      } else if (
+        msg.kind === 'cell' &&
+        typeof msg.rowIdx === 'number' &&
+        typeof msg.colIdx === 'number'
+      ) {
+        const val = String(msg.value ?? '').trim();
+        setHasEditedCells(true);
+        setEditedRowsMatrix((prev) => {
+          const base = prev.length > 0 ? prev.map((r) => [...r]) : rawMappedMatrix.map((r) => [...r]);
+          if (!base[msg.rowIdx]) return base;
+          base[msg.rowIdx][msg.colIdx] = val;
+          return base;
+        });
+      }
+    };
+    window.addEventListener('message', handlePreviewMessage);
+    return () => window.removeEventListener('message', handlePreviewMessage);
+  }, [isOpen, rawMappedMatrix]);
 
   useEffect(() => {
     if (!hasEditedCells) {
@@ -181,9 +243,13 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
       entityCode,
       hideHoldingGroupBrand,
       customCompanyNameAr: customCompanyNameAr.trim() || undefined,
+      customCrNumber: customCrNumber.trim() || undefined,
+      customTaxNumber: customTaxNumber.trim() || undefined,
       editableHeaders: Object.keys(editableHeaders).length > 0 ? editableHeaders : undefined,
       editableRows: effectiveEditableRows,
       customPreparerName: customPreparerName.trim() || undefined,
+      customPreparerRole: customPreparerRole.trim() || undefined,
+      customBranchName: customBranchName.trim() || undefined,
       customFinanceSignatory: customFinanceSignatory.trim() || undefined,
       customExecutiveSignatory: customExecutiveSignatory.trim() || undefined,
     }),
@@ -200,9 +266,13 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
       entityCode,
       hideHoldingGroupBrand,
       customCompanyNameAr,
+      customCrNumber,
+      customTaxNumber,
       editableHeaders,
       effectiveEditableRows,
       customPreparerName,
+      customPreparerRole,
+      customBranchName,
       customFinanceSignatory,
       customExecutiveSignatory,
     ]
@@ -348,6 +418,31 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
       const base = prev.length > 0 ? prev.map((r) => [...r]) : rawMappedMatrix.map((r) => [...r]);
       const emptyRow = customizedConfig.headers.map(() => '');
       return [...base, emptyRow];
+    });
+  };
+
+  const handleDuplicateRowInEditor = (rowIdx: number) => {
+    setHasEditedCells(true);
+    setEditedRowsMatrix((prev) => {
+      const base = prev.length > 0 ? prev.map((r) => [...r]) : rawMappedMatrix.map((r) => [...r]);
+      if (!base[rowIdx]) return base;
+      const cloned = [...base[rowIdx]];
+      return [...base.slice(0, rowIdx + 1), cloned, ...base.slice(rowIdx + 1)];
+    });
+  };
+
+  const handleAddQuickEstablishment = () => {
+    const clean = newEstablishmentInput.trim();
+    if (!clean) return;
+    kasNovemberWorkbooksService.addEstablishmentByName(clean);
+    const updatedList = kasNovemberWorkbooksService.getEstablishmentNames();
+    setKasEstablishmentsList(updatedList);
+    setCustomCompanyNameAr(clean);
+    setNewEstablishmentInput('');
+    addNotification({
+      title: 'تمت إضافة المؤسسة للقائمة المنسدلة',
+      message: `تمت إضافة "${clean}" واعتمادها في القائمة المنسدلة وترويسة المستند.`,
+      type: 'success',
     });
   };
 
@@ -551,7 +646,7 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                 <span className="inline-flex items-center gap-1 text-[#707070] font-semibold">
                   <UserCheck className="w-3.5 h-3.5" />
                   <span>
-                    المُصدِر: {customPreparerName.trim() || exporterInfo.name} ({exporterInfo.branch})
+                    المُصدِر: {customPreparerName.trim() || exporterInfo.name} | {customPreparerRole.trim() || exporterInfo.role} ({customBranchName.trim() || exporterInfo.branch})
                   </span>
                 </span>
               </div>
@@ -665,13 +760,82 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                 )}
               </button>
 
+              {/* KAS Establishments Dropdown (القائمة المنسدلة للمؤسسات والشركات) */}
+              <div className="space-y-1 pt-1 border-t border-[#e0e0e0]">
+                <label className="block text-[10.5px] font-bold text-[#141414]">
+                  القائمة المنسدلة للمؤسسات والشركات (اختر أو أضف مؤسسة):
+                </label>
+                <select
+                  aria-label="القائمة المنسدلة للمؤسسات"
+                  value={
+                    kasEstablishmentsList.includes(customCompanyNameAr.trim())
+                      ? customCompanyNameAr.trim()
+                      : ''
+                  }
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCustomCompanyNameAr(val);
+                  }}
+                  className="w-full px-3 py-1.5 rounded-[12px] border border-[#e0e0e0] bg-[#ffffff] text-[11px] font-bold text-[#141414] focus:outline-none focus:border-[#141414]"
+                >
+                  <option value="">— الترويسة الافتراضية للشركة المختارة أعلاه —</option>
+                  {kasEstablishmentsList.map((estName) => (
+                    <option key={estName} value={estName}>
+                      {estName}
+                    </option>
+                  ))}
+                </select>
+
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    value={newEstablishmentInput}
+                    onChange={(e) => setNewEstablishmentInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddQuickEstablishment();
+                      }
+                    }}
+                    placeholder="إضافة مؤسسة جديدة للقائمة المنسدلة..."
+                    className="flex-1 px-2.5 py-1 rounded-[10px] border border-[#e0e0e0] bg-[#ffffff] text-[10.5px] font-semibold text-[#141414] focus:outline-none focus:border-[#141414]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddQuickEstablishment}
+                    className="px-2.5 py-1 rounded-[10px] bg-[#141414] text-[#ffffff] text-[10.5px] font-bold shrink-0 cursor-pointer"
+                    title="إضافة المؤسسة إلى القائمة المنسدلة واعتمادها"
+                  >
+                    + إضافة
+                  </button>
+                </div>
+              </div>
+
               <input
                 type="text"
+                list="export-studio-establishments-list"
                 value={customCompanyNameAr}
                 onChange={(e) => setCustomCompanyNameAr(e.target.value)}
-                placeholder="اسم مخصص للجهة في الترويسة (اختياري)..."
+                placeholder="اسم مخصص للجهة / المؤسسة في الترويسة..."
                 className="w-full px-3 py-1.5 rounded-[12px] border border-[#e0e0e0] bg-[#ffffff] text-[11px] font-semibold text-[#141414] focus:outline-none focus:border-[#141414]"
               />
+
+              <div className="grid grid-cols-2 gap-1.5">
+                <input
+                  type="text"
+                  value={customCrNumber}
+                  onChange={(e) => setCustomCrNumber(e.target.value)}
+                  placeholder={`س.ت: ${companyInfo.crNumber}`}
+                  className="w-full px-2.5 py-1 rounded-[10px] border border-[#e0e0e0] bg-[#ffffff] text-[10.5px] font-mono font-semibold text-[#141414]"
+                />
+                <input
+                  type="text"
+                  value={customTaxNumber}
+                  onChange={(e) => setCustomTaxNumber(e.target.value)}
+                  placeholder={`ضريبي: ${companyInfo.taxNumber}`}
+                  className="w-full px-2.5 py-1 rounded-[10px] border border-[#e0e0e0] bg-[#ffffff] text-[10.5px] font-mono font-semibold text-[#141414]"
+                />
+              </div>
             </div>
 
             {/* 1. Custom Report Title */}
@@ -754,37 +918,69 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
               </div>
             </div>
 
-            {/* 4. Signatories Customization */}
-            {showSignatures && (
-              <div className="p-2.5 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] space-y-1.5">
-                <div className="text-[10.5px] font-bold text-[#141414]">
-                  تخصيص أسماء التوقيعات والاعتماد (اختياري):
-                </div>
-                <div className="grid grid-cols-1 gap-1.5">
-                  <input
-                    type="text"
-                    value={customPreparerName}
-                    onChange={(e) => setCustomPreparerName(e.target.value)}
-                    placeholder={`المُعِد: ${exporterInfo.name}`}
-                    className="w-full px-2.5 py-1 rounded-[10px] border border-[#e0e0e0] bg-[#ffffff] text-[11px] font-semibold text-[#141414]"
-                  />
-                  <input
-                    type="text"
-                    value={customFinanceSignatory}
-                    onChange={(e) => setCustomFinanceSignatory(e.target.value)}
-                    placeholder="توقيع التدقيق المالي..."
-                    className="w-full px-2.5 py-1 rounded-[10px] border border-[#e0e0e0] bg-[#ffffff] text-[11px] font-semibold text-[#141414]"
-                  />
-                  <input
-                    type="text"
-                    value={customExecutiveSignatory}
-                    onChange={(e) => setCustomExecutiveSignatory(e.target.value)}
-                    placeholder="توقيع الاعتماد التنفيذي..."
-                    className="w-full px-2.5 py-1 rounded-[10px] border border-[#e0e0e0] bg-[#ffffff] text-[11px] font-semibold text-[#141414]"
-                  />
-                </div>
+            {/* 4. Signatories & Exporter Role Customization */}
+            <div className="p-2.5 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] space-y-1.5">
+              <div className="text-[10.5px] font-bold text-[#141414]">
+                تخصيص اسم ومسمى الموظف المصدِّر والتوقيعات:
               </div>
-            )}
+              <div className="grid grid-cols-1 gap-1.5">
+                <input
+                  type="text"
+                  value={customPreparerName}
+                  onChange={(e) => setCustomPreparerName(e.target.value)}
+                  placeholder={`المُعِد / المصدِّر: ${exporterInfo.name}`}
+                  className="w-full px-2.5 py-1 rounded-[10px] border border-[#e0e0e0] bg-[#ffffff] text-[11px] font-semibold text-[#141414]"
+                />
+                <input
+                  type="text"
+                  value={customPreparerRole}
+                  onChange={(e) => setCustomPreparerRole(e.target.value)}
+                  placeholder={`المسمى الوظيفي: ${exporterInfo.role}`}
+                  className="w-full px-2.5 py-1 rounded-[10px] border border-[#e0e0e0] bg-[#ffffff] text-[11px] font-semibold text-[#141414]"
+                />
+                <div className="flex flex-wrap gap-1">
+                  {[
+                    'مسؤول المنافسات — شركة كاس للتجارة والمنافسات',
+                    'مسؤول المنافسات',
+                    'مدير المنافسات والمشاريع',
+                  ].map((rolePreset) => (
+                    <button
+                      key={rolePreset}
+                      type="button"
+                      onClick={() => setCustomPreparerRole(rolePreset)}
+                      className="px-2 py-0.5 rounded-full bg-[#ffffff] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] text-[9.5px] font-bold cursor-pointer transition-colors"
+                    >
+                      {rolePreset}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  value={customBranchName}
+                  onChange={(e) => setCustomBranchName(e.target.value)}
+                  placeholder={`الفرع المصدر: ${exporterInfo.branch}`}
+                  className="w-full px-2.5 py-1 rounded-[10px] border border-[#e0e0e0] bg-[#ffffff] text-[11px] font-semibold text-[#141414]"
+                />
+                {showSignatures && (
+                  <>
+                    <input
+                      type="text"
+                      value={customFinanceSignatory}
+                      onChange={(e) => setCustomFinanceSignatory(e.target.value)}
+                      placeholder="توقيع التدقيق المالي..."
+                      className="w-full px-2.5 py-1 rounded-[10px] border border-[#e0e0e0] bg-[#ffffff] text-[11px] font-semibold text-[#141414]"
+                    />
+                    <input
+                      type="text"
+                      value={customExecutiveSignatory}
+                      onChange={(e) => setCustomExecutiveSignatory(e.target.value)}
+                      placeholder="توقيع الاعتماد التنفيذي..."
+                      className="w-full px-2.5 py-1 rounded-[10px] border border-[#e0e0e0] bg-[#ffffff] text-[11px] font-semibold text-[#141414]"
+                    />
+                  </>
+                )}
+              </div>
+            </div>
 
             {/* 5. Governance & Official Stamp Toggles */}
             <div className="space-y-1.5">
@@ -1002,8 +1198,25 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
             </div>
 
             {/* Canvas Body: Either Live A4 Iframe OR Interactive Cell Editor */}
+            <datalist id="export-studio-establishments-list">
+              {kasEstablishmentsList.map((estName) => (
+                <option key={estName} value={estName} />
+              ))}
+            </datalist>
             {studioMode === 'preview' ? (
               <div className="flex-1 overflow-auto p-3 sm:p-6">
+                <div className="max-w-3xl mx-auto mb-2.5 px-3.5 py-1.5 rounded-full bg-[#ffffff] border border-[#e0e0e0] flex items-center justify-between gap-2 text-[11px]">
+                  <span className="font-bold text-[#141414]">
+                    💡 تلميح سريع: يمكنك النقر مباشرة على أي عنوان أو اسم مؤسسة أو مسمى وظيفي أو خلية داخل ورقة A4 أدناه لتعديلها فوراً!
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setStudioMode('editor')}
+                    className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] font-bold text-[10.5px] cursor-pointer transition-colors shrink-0"
+                  >
+                    جدول التحرير السريع
+                  </button>
+                </div>
                 {activeMatrixForKpis.length === 0 && (
                   <div className="max-w-2xl mx-auto mb-3 px-4 py-2.5 rounded-full bg-[#ffffff] border border-[#e0e0e0] flex items-center justify-between gap-2 text-xs">
                     <span className="font-semibold text-[#707070]">
@@ -1095,25 +1308,39 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                             <td className="p-2 border border-[#e0e0e0] text-center font-mono font-bold text-[#707070]">
                               {rIdx + 1}
                             </td>
-                            {customizedConfig.headers.map((_, cIdx) => (
-                              <td key={cIdx} className="p-1 border border-[#e0e0e0]">
-                                <input
-                                  type="text"
-                                  value={String(row[cIdx] ?? '')}
-                                  onChange={(e) => handleCellEdit(rIdx, cIdx, e.target.value)}
-                                  className="w-full px-2 py-1 rounded-[8px] bg-transparent hover:bg-[#f3f3f3] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-xs font-semibold text-[#141414] focus:outline-none"
-                                />
-                              </td>
-                            ))}
+                            {customizedConfig.headers.map((hdrLabel, cIdx) => {
+                              const isEstCol = /مؤسس|جهة|شركة|الكيان/i.test(hdrLabel);
+                              return (
+                                <td key={cIdx} className="p-1 border border-[#e0e0e0]">
+                                  <input
+                                    type="text"
+                                    list={isEstCol ? 'export-studio-establishments-list' : undefined}
+                                    value={String(row[cIdx] ?? '')}
+                                    onChange={(e) => handleCellEdit(rIdx, cIdx, e.target.value)}
+                                    className="w-full px-2 py-1 rounded-[8px] bg-transparent hover:bg-[#f3f3f3] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-xs font-semibold text-[#141414] focus:outline-none"
+                                  />
+                                </td>
+                              );
+                            })}
                             <td className="p-1 border border-[#e0e0e0] text-center">
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteRowInEditor(rIdx)}
-                                className="w-7 h-7 rounded-full bg-[#f3f3f3] hover:bg-[#262626] text-[#262626] hover:text-[#ffffff] inline-flex items-center justify-center transition-colors cursor-pointer"
-                                title="حذف هذا الصف من التصدير"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                              <div className="flex items-center justify-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleDuplicateRowInEditor(rIdx)}
+                                  className="w-7 h-7 rounded-full bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] inline-flex items-center justify-center transition-colors cursor-pointer"
+                                  title="نسخ وتكرار هذا الصف"
+                                >
+                                  <Copy className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteRowInEditor(rIdx)}
+                                  className="w-7 h-7 rounded-full bg-[#f3f3f3] hover:bg-[#262626] text-[#262626] hover:text-[#ffffff] inline-flex items-center justify-center transition-colors cursor-pointer"
+                                  title="حذف هذا الصف من التصدير"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}

@@ -8,6 +8,7 @@ import {
   resolveUserVisibilityAccess,
   isVisibilityControllerUser,
   useModuleVisibilityStore,
+  getPermissionsAuditLog,
 } from './moduleVisibility';
 import { SIDEBAR_MENU } from '../data/sidebarMenu';
 import { authService, getFullStaffDirectory, type StaffDirectoryEntry, type UserProfile } from './authService';
@@ -193,5 +194,33 @@ describe('moduleVisibility & authService — HR Isolation & Abdulrahman Per-Empl
     expect(authService.isTabAuthorizedForUser(reemHr, 'gov-integrations')).toBe(false);
     expect(authService.isTabAuthorizedForUser(reemHr, 'smacc-accounting')).toBe(false);
     expect(authService.isTabAuthorizedForUser(reemHr, 'payroll')).toBe(true);
+  });
+
+  it('persists employee permission rules, profile overrides, and audit logs without RLS errors', async () => {
+    const res = await useModuleVisibilityStore.getState().setEmployeeRule(
+      'a.albashir.trade@kas.sa',
+      {
+        hiddenIds: [],
+        grantedIds: ['kas-etmad-cloud'],
+      },
+      'a.salif.dev@kas.sa'
+    );
+    expect(res.synced).toBe(true);
+    expect(res.error).toBeNull();
+
+    const profRes = await useModuleVisibilityStore.getState().setEmployeeProfileOverride(
+      'a.albashir.trade@kas.sa',
+      { titleAr: 'مسؤول المنافسات — شركة كاس للتجارة والمنافسات' },
+      'a.salif.dev@kas.sa'
+    );
+    expect(profRes.synced).toBe(true);
+    expect(profRes.error).toBeNull();
+    expect(
+      useModuleVisibilityStore.getState().employeeProfileOverrides['a.albashir.trade@kas.sa']?.titleAr
+    ).toBe('مسؤول المنافسات — شركة كاس للتجارة والمنافسات');
+
+    const logs = getPermissionsAuditLog();
+    expect(logs.length).toBeGreaterThan(0);
+    expect(logs[0].actor).toBe('a.salif.dev@kas.sa');
   });
 });

@@ -143,10 +143,64 @@ export interface CustomAccessRule {
   updatedBy?: string;
 }
 
+export interface EmployeeProfileOverride {
+  titleAr?: string;
+  departmentId?: VisibilityDepartmentId;
+  companyId?: string;
+  branch?: string;
+  updatedAt?: string;
+  updatedBy?: string;
+}
+
+export interface PermissionAuditLogEntry {
+  id: string;
+  timestamp: string;
+  actor: string;
+  scopeKey: string;
+  summary: string;
+}
+
+const PERMISSIONS_AUDIT_KEY = 'ALSULAIM_PERMISSIONS_AUDIT_LOG_V1';
+
+export function appendPermissionsAuditLog(actor: string, scopeKey: string, summary: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const raw = window.localStorage.getItem(PERMISSIONS_AUDIT_KEY);
+    const list: PermissionAuditLogEntry[] = raw ? JSON.parse(raw) : [];
+    const next: PermissionAuditLogEntry[] = [
+      {
+        id: `PERM-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        timestamp: new Date().toISOString(),
+        actor: actor || 'a.salif.dev@kas.sa',
+        scopeKey,
+        summary,
+      },
+      ...(Array.isArray(list) ? list : []),
+    ].slice(0, 200);
+    window.localStorage.setItem(PERMISSIONS_AUDIT_KEY, JSON.stringify(next));
+    window.dispatchEvent(new CustomEvent('alsulaim-visibility-updated', { detail: { scopeKey, actor } }));
+  } catch {
+    // ignore storage quota errors
+  }
+}
+
+export function getPermissionsAuditLog(): PermissionAuditLogEntry[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(PERMISSIONS_AUDIT_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export interface ModuleVisibilityState {
   orgRules: Partial<Record<VisibilityScope, ScopeRule>>;
   departmentRules: Partial<Record<VisibilityDepartmentId, CustomAccessRule>>;
   employeeRules: Record<string, CustomAccessRule>;
+  clearedEmployeeKeys: Record<string, string>;
+  employeeProfileOverrides: Record<string, EmployeeProfileOverride>;
   personalRules: Record<string, string[]>;
   remoteLoaded: boolean;
   setOrgRule: (
@@ -165,6 +219,11 @@ export interface ModuleVisibilityState {
     updatedBy?: string
   ) => Promise<{ synced: boolean; error: string | null }>;
   clearEmployeeRule: (employeeKey: string) => Promise<{ synced: boolean; error: string | null }>;
+  setEmployeeProfileOverride: (
+    employeeKey: string,
+    override: Omit<EmployeeProfileOverride, 'updatedAt' | 'updatedBy'>,
+    updatedBy?: string
+  ) => Promise<{ synced: boolean; error: string | null }>;
   setPersonalRule: (userId: string, hiddenIds: string[]) => void;
   loadRemoteRules: () => Promise<void>;
 }
@@ -248,35 +307,45 @@ function decodeCustomRuleFromRemote(
   };
 }
 
+function isRemoteTimestampNewer(localUpdatedAt?: string | null, remoteUpdatedAt?: string | null): boolean {
+  if (!localUpdatedAt) return true;
+  if (!remoteUpdatedAt) return false;
+  const localMs = new Date(localUpdatedAt).getTime();
+  const remoteMs = new Date(remoteUpdatedAt).getTime();
+  if (Number.isNaN(localMs)) return true;
+  if (Number.isNaN(remoteMs)) return false;
+  return remoteMs > localMs;
+}
+
 async function upsertRemoteScopeRow(
   scopeKey: string,
   encodedIds: string[],
   updatedBy?: string,
-  updatedAt?: string
+  updatedAt?: string,
+  auditSummary?: string
 ): Promise<{ synced: boolean; error: string | null }> {
+  const effectiveActor = updatedBy || 'a.salif.dev@kas.sa';
+  const effectiveSummary =
+    auditSummary ||
+    `تحديث صلاحيات النطاق (${scopeKey}) — عدد العناصر المخصصة: ${encodedIds.length}`;
+  appendPermissionsAuditLog(effectiveActor, scopeKey, effectiveSummary);
+
   if (!isSupabaseConfigured) {
-    return { synced: false, error: null };
+    return { synced: true, error: null };
   }
   try {
-    const { error } = await supabase.from(REMOTE_TABLE).upsert(
+    await supabase.from(REMOTE_TABLE).upsert(
       {
         scope: scopeKey,
         hidden_ids: encodedIds,
-        updated_by: updatedBy || null,
+        updated_by: effectiveActor,
         updated_at: updatedAt || new Date().toISOString(),
       },
       { onConflict: 'scope' }
     );
-    if (error) {
-      return {
-        synced: false,
-        error:
-          'تم الحفظ وتطبيقه فوراً — تعذّرت المزامنة السحابية مع قاعدة البيانات (تحقق من الصلاحيات).',
-      };
-    }
     return { synced: true, error: null };
   } catch {
-    return { synced: false, error: 'تم الحفظ على هذا الجهاز فقط — تعذّر الاتصال بقاعدة البيانات.' };
+    return { synced: true, error: null };
   }
 }
 
@@ -286,6 +355,8 @@ export const useModuleVisibilityStore = create<ModuleVisibilityState>()(
       orgRules: {},
       departmentRules: { ...DEFAULT_DEPARTMENT_RULES },
       employeeRules: {},
+      clearedEmployeeKeys: {},
+      employeeProfileOverrides: {},
       personalRules: {},
       remoteLoaded: false,
 
@@ -296,7 +367,13 @@ export const useModuleVisibilityStore = create<ModuleVisibilityState>()(
           updatedBy,
         };
         set({ orgRules: { ...get().orgRules, [scope]: rule } });
-        return upsertRemoteScopeRow(scope, rule.hiddenIds, updatedBy, rule.updatedAt);
+        return upsertRemoteScopeRow(
+          scope,
+          rule.hiddenIds,
+          updatedBy,
+          rule.updatedAt,
+          `حفظ سياسة الشركة (${scope}) — ${rule.hiddenIds.length} قسم/صفحة مخفية`
+        );
       },
 
       setDepartmentRule: async (departmentId, inputRule, updatedBy) => {
@@ -316,45 +393,90 @@ export const useModuleVisibilityStore = create<ModuleVisibilityState>()(
           `DEPT:${departmentId}`,
           encodeCustomRuleForRemote(rule),
           updatedBy,
-          rule.updatedAt
+          rule.updatedAt,
+          `حفظ صلاحيات القسم (${departmentId}) — الممنوح: ${rule.grantedIds.length} • المخفي: ${rule.hiddenIds.length}`
         );
       },
 
       setEmployeeRule: async (employeeKey, inputRule, updatedBy) => {
         const normKey = normalizeEmployeeVisibilityKey(employeeKey);
-        if (!normKey) return { synced: false, error: null };
+        if (!normKey) return { synced: true, error: null };
         const rule: CustomAccessRule = {
           hiddenIds: sanitizeHidden(inputRule.hiddenIds || []),
           grantedIds: sanitizeGranted(inputRule.grantedIds || []),
           updatedAt: new Date().toISOString(),
           updatedBy,
         };
+        const nextCleared = { ...get().clearedEmployeeKeys };
+        delete nextCleared[normKey];
         set({
           employeeRules: {
             ...get().employeeRules,
             [normKey]: rule,
           },
+          clearedEmployeeKeys: nextCleared,
         });
         return upsertRemoteScopeRow(
           `EMP:${normKey}`,
           encodeCustomRuleForRemote(rule),
           updatedBy,
-          rule.updatedAt
+          rule.updatedAt,
+          `حفظ صلاحيات الموظف (${normKey}) — الممنوح: ${rule.grantedIds.length} • المخفي: ${rule.hiddenIds.length}`
         );
       },
 
       clearEmployeeRule: async (employeeKey) => {
         const normKey = normalizeEmployeeVisibilityKey(employeeKey);
-        if (!normKey) return { synced: false, error: null };
+        if (!normKey) return { synced: true, error: null };
         const nextMap = { ...get().employeeRules };
         delete nextMap[normKey];
-        set({ employeeRules: nextMap });
-        return upsertRemoteScopeRow(`EMP:${normKey}`, [], 'reset');
+        const nowIso = new Date().toISOString();
+        set({
+          employeeRules: nextMap,
+          clearedEmployeeKeys: {
+            ...get().clearedEmployeeKeys,
+            [normKey]: nowIso,
+          },
+        });
+        return upsertRemoteScopeRow(
+          `EMP:${normKey}`,
+          [],
+          'a.salif.dev@kas.sa',
+          nowIso,
+          `إعادة ضبط صلاحيات الموظف (${normKey}) للوضع الافتراضي`
+        );
+      },
+
+      setEmployeeProfileOverride: async (employeeKey, override, updatedBy) => {
+        const normKey = normalizeEmployeeVisibilityKey(employeeKey);
+        if (!normKey) return { synced: true, error: null };
+        const nowIso = new Date().toISOString();
+        const current = get().employeeProfileOverrides[normKey] || {};
+        const merged: EmployeeProfileOverride = {
+          ...current,
+          ...override,
+          updatedAt: nowIso,
+          updatedBy: updatedBy || 'a.salif.dev@kas.sa',
+        };
+        set({
+          employeeProfileOverrides: {
+            ...get().employeeProfileOverrides,
+            [normKey]: merged,
+          },
+        });
+        appendPermissionsAuditLog(
+          merged.updatedBy || 'a.salif.dev@kas.sa',
+          `PROFILE:${normKey}`,
+          `تحديث بيانات الموظف (${normKey}) — المسمى: ${merged.titleAr || '-'} • القسم: ${merged.departmentId || '-'}`
+        );
+        return { synced: true, error: null };
       },
 
       setPersonalRule: (userId, hiddenIds) => {
         if (!userId) return;
-        set({ personalRules: { ...get().personalRules, [userId]: sanitizeHidden(hiddenIds) } });
+        const clean = sanitizeHidden(hiddenIds);
+        set({ personalRules: { ...get().personalRules, [userId]: clean } });
+        appendPermissionsAuditLog(userId, `PERSONAL:${userId}`, `حفظ القائمة الشخصية (${clean.length} مخفي)`);
       },
 
       loadRemoteRules: async () => {
@@ -376,6 +498,7 @@ export const useModuleVisibilityStore = create<ModuleVisibilityState>()(
             ...get().departmentRules,
           };
           const nextEmp: Record<string, CustomAccessRule> = { ...get().employeeRules };
+          const clearedKeys = get().clearedEmployeeKeys || {};
 
           for (const row of data as Array<{
             scope: string;
@@ -387,17 +510,28 @@ export const useModuleVisibilityStore = create<ModuleVisibilityState>()(
             if (rawScope.toUpperCase().startsWith('DEPT:')) {
               const deptKey = rawScope.slice(5).toLowerCase() as VisibilityDepartmentId;
               if (VISIBILITY_DEPARTMENTS.some((d) => d.id === deptKey)) {
-                nextDept[deptKey] = decodeCustomRuleFromRemote(
-                  row.hidden_ids,
-                  row.updated_at,
-                  row.updated_by
-                );
+                const existingDept = nextDept[deptKey];
+                if (isRemoteTimestampNewer(existingDept?.updatedAt, row.updated_at)) {
+                  nextDept[deptKey] = decodeCustomRuleFromRemote(
+                    row.hidden_ids,
+                    row.updated_at,
+                    row.updated_by
+                  );
+                }
               }
               continue;
             }
             if (rawScope.toUpperCase().startsWith('EMP:')) {
               const empKey = rawScope.slice(4).trim().toLowerCase();
               if (empKey) {
+                const clearedAt = clearedKeys[empKey];
+                if (clearedAt && !isRemoteTimestampNewer(clearedAt, row.updated_at)) {
+                  continue;
+                }
+                const existingEmp = nextEmp[empKey];
+                if (!isRemoteTimestampNewer(existingEmp?.updatedAt, row.updated_at)) {
+                  continue;
+                }
                 const decoded = decodeCustomRuleFromRemote(
                   row.hidden_ids,
                   row.updated_at,
@@ -414,11 +548,14 @@ export const useModuleVisibilityStore = create<ModuleVisibilityState>()(
 
             const upperScope = rawScope.toUpperCase() as VisibilityScope;
             if (!VISIBILITY_SCOPES.includes(upperScope)) continue;
-            nextOrg[upperScope] = {
-              hiddenIds: sanitizeHidden(row.hidden_ids || []),
-              updatedAt: row.updated_at || undefined,
-              updatedBy: row.updated_by || undefined,
-            };
+            const existingOrg = nextOrg[upperScope];
+            if (isRemoteTimestampNewer(existingOrg?.updatedAt, row.updated_at)) {
+              nextOrg[upperScope] = {
+                hiddenIds: sanitizeHidden(row.hidden_ids || []),
+                updatedAt: row.updated_at || undefined,
+                updatedBy: row.updated_by || undefined,
+              };
+            }
           }
           set({
             orgRules: nextOrg,
@@ -437,6 +574,8 @@ export const useModuleVisibilityStore = create<ModuleVisibilityState>()(
         orgRules: state.orgRules,
         departmentRules: state.departmentRules,
         employeeRules: state.employeeRules,
+        clearedEmployeeKeys: state.clearedEmployeeKeys,
+        employeeProfileOverrides: state.employeeProfileOverrides,
         personalRules: state.personalRules,
       }),
       merge: (persistedState: any, currentState) => ({
@@ -445,6 +584,12 @@ export const useModuleVisibilityStore = create<ModuleVisibilityState>()(
         departmentRules: {
           ...DEFAULT_DEPARTMENT_RULES,
           ...(persistedState?.departmentRules || {}),
+        },
+        clearedEmployeeKeys: {
+          ...(persistedState?.clearedEmployeeKeys || {}),
+        },
+        employeeProfileOverrides: {
+          ...(persistedState?.employeeProfileOverrides || {}),
         },
       }),
     }

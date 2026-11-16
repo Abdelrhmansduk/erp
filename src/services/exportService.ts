@@ -18,6 +18,13 @@ import {
   isHrDocumentSection,
 } from '../components/hr/ReemHrDocumentSignatureBlock';
 import { REEM_HR_SIGNATORY } from './reemHrEmailTemplatesEngine';
+import {
+  buildThemedEnterpriseStylesXml,
+  fromUtf8Bytes,
+  injectFullCalcOnLoad,
+  resolveExcelThemePalette,
+  toUtf8Bytes,
+} from './excelThemeEngine';
 
 export interface SectionExportConfig {
   sectionTitle: string;
@@ -1673,7 +1680,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 36. المنافسات الحكومية وجداول الكميات (شركة كاس - اعتماد)
   tenders_boq: {
     sectionTitle: 'كشف المنافسات الحكومية وجداول الكميات والتسعير (منصة اعتماد - كاس)',
-    headers: ['رقم المنافسة / الكراسة', 'اسم المشروع / المنافسة', 'الجهة / المؤسسة', 'قيمة العطاء (⃁)', 'الضريبة 15% (⃁)', 'الإجمالي شامل الضريبة (⃁)', 'قيمة الضمان الابتدائي (⃁)', 'نسبة الإنجاز / الترسية', 'المهندس المسؤول', 'الحالة'],
+    headers: ['رقم المنافسة / الكراسة', 'اسم المشروع / المنافسة', 'الجهة / المؤسسة', 'قيمة العطاء (⃁)', 'الضريبة 15% (⃁)', 'الإجمالي شامل الضريبة (⃁)', 'قيمة الضمان الابتدائي (⃁)', 'نسبة الإنجاز / الترسية', 'مسؤول المنافسات', 'الحالة'],
     dataMapper: (r: any) => {
       const val = Number(r.subtotal ?? r.total_value ?? r.bidValue ?? r.amount ?? r.bid_amount ?? r.budget ?? 0);
       const vat = Number(r.vatAmount ?? r.vat_amount ?? +(val * 0.15).toFixed(2));
@@ -1687,14 +1694,14 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
         grand,
         r.bond_amount || Math.round(val * 0.02),
         r.progress ? `${r.progress}%` : (r.award_probability || r.supplyDuration || 'قيد التقييم'),
-        r.engineer || r.managerName || r.manager || 'م. أحمد البشير',
+        r.engineer || r.managerName || r.manager || 'احمد جمال احمد البشير — مسؤول المنافسات',
         r.status || r.notes || 'مقدم عبر اعتماد'
       ];
     }
   },
   'tenders-boq': {
     sectionTitle: 'كشف المنافسات الحكومية وجداول الكميات والتسعير (منصة اعتماد - كاس)',
-    headers: ['رقم المنافسة / الكراسة', 'اسم المشروع / المنافسة', 'الجهة / المؤسسة', 'قيمة العطاء (⃁)', 'الضريبة 15% (⃁)', 'الإجمالي شامل الضريبة (⃁)', 'قيمة الضمان الابتدائي (⃁)', 'نسبة الإنجاز / الترسية', 'المهندس المسؤول', 'الحالة'],
+    headers: ['رقم المنافسة / الكراسة', 'اسم المشروع / المنافسة', 'الجهة / المؤسسة', 'قيمة العطاء (⃁)', 'الضريبة 15% (⃁)', 'الإجمالي شامل الضريبة (⃁)', 'قيمة الضمان الابتدائي (⃁)', 'نسبة الإنجاز / الترسية', 'مسؤول المنافسات', 'الحالة'],
     dataMapper: (r: any) => {
       const val = Number(r.subtotal ?? r.total_value ?? r.bidValue ?? r.amount ?? r.bid_amount ?? r.budget ?? 0);
       const vat = Number(r.vatAmount ?? r.vat_amount ?? +(val * 0.15).toFixed(2));
@@ -1708,7 +1715,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
         grand,
         r.bond_amount || Math.round(val * 0.02),
         r.progress ? `${r.progress}%` : (r.award_probability || r.supplyDuration || 'قيد التقييم'),
-        r.engineer || r.managerName || r.manager || 'م. أحمد البشير',
+        r.engineer || r.managerName || r.manager || 'احمد جمال احمد البشير — مسؤول المنافسات',
         r.status || r.notes || 'مقدم عبر اعتماد'
       ];
     }
@@ -1748,7 +1755,7 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
       'المؤسسات',
       'انتهاء اليوم',
       'انتهاء بعد اليوم',
-      'الإجمالى',
+      'الإجمالي',
       'عدد الكراسات المسعرة',
       'إجمالي القيمة شامل الضريبة (⃁)',
     ],
@@ -2797,12 +2804,19 @@ export interface ExportCustomizationOptions {
   editableHeaders?: string[] | Record<number, string>;
   editableRows?: (string | number)[][];
   customPreparerName?: string;
+  customPreparerRole?: string;
+  customBranchName?: string;
+  customDepartmentName?: string;
+  customCrNumber?: string;
+  customTaxNumber?: string;
   customFinanceSignatory?: string;
   customExecutiveSignatory?: string;
   /** Include official HR Manager signature block (Ms. Reem Ahmed Bin Hussain — HR@kas.sa); defaults to true on HR documents */
   includeReemHrSignature?: boolean;
   /** When true, renders clean A4 sheet HTML for live studio preview without the inner toolbar */
   embedPreview?: boolean;
+  /** Optional explicit visual theme override for Excel/Report exports */
+  uiTheme?: 'corporate-color' | 'monochrome';
 }
 
 function isRunningInTest(): boolean {
@@ -2829,11 +2843,11 @@ export function getActiveCompanyInfo(
   if (branding.code !== 'HQ') {
     return {
       code: branding.code,
-      nameAr: branding.displayNameAr,
+      nameAr: options?.customCompanyNameAr?.trim() || branding.displayNameAr,
       nameEn: branding.displayNameEn,
-      tagline: `منظومة تخطيط الموارد الموحدة — ${branding.displayNameAr}`,
-      crNumber: branding.crNumber,
-      taxNumber: branding.taxNumber,
+      tagline: `منظومة تخطيط الموارد الموحدة — ${options?.customCompanyNameAr?.trim() || branding.displayNameAr}`,
+      crNumber: options?.customCrNumber?.trim() || branding.crNumber,
+      taxNumber: options?.customTaxNumber?.trim() || branding.taxNumber,
       address: branding.address,
       phone: branding.phone,
       email: branding.email,
@@ -2843,11 +2857,11 @@ export function getActiveCompanyInfo(
 
   return {
     code: 'ALL',
-    nameAr: branding.hideHoldingGroupBrand ? branding.displayNameAr : GROUP_COMPANY_INFO.nameAr,
+    nameAr: options?.customCompanyNameAr?.trim() || (branding.hideHoldingGroupBrand ? branding.displayNameAr : GROUP_COMPANY_INFO.nameAr),
     nameEn: branding.hideHoldingGroupBrand ? branding.displayNameEn : GROUP_COMPANY_INFO.nameEn,
     tagline: branding.hideHoldingGroupBrand ? branding.systemPlatformTitleAr : GROUP_COMPANY_INFO.tagline,
-    crNumber: GROUP_COMPANY_INFO.crNumber,
-    taxNumber: GROUP_COMPANY_INFO.taxNumber,
+    crNumber: options?.customCrNumber?.trim() || GROUP_COMPANY_INFO.crNumber,
+    taxNumber: options?.customTaxNumber?.trim() || GROUP_COMPANY_INFO.taxNumber,
     address: 'المملكة العربية السعودية - الرياض - طريق الملك فهد',
     phone: '+966 11 400 1122',
     email: 'info@alsulaim.sa',
@@ -2864,13 +2878,30 @@ export function getAuthenticatedExporterInfo(): ExportingEmployeeInfo {
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed && (parsed.full_name || parsed.name)) {
+          const emailLower = String(parsed.email || '').trim().toLowerCase();
+          const usernameLower = String(parsed.username || '').trim().toLowerCase();
+          const nameStr = String(parsed.full_name || parsed.name || '').trim();
+          const officialKas = KAS_ALLOWED_EMPLOYEES.find(
+            (e) =>
+              (emailLower && e.email.toLowerCase() === emailLower) ||
+              (usernameLower && e.username.toLowerCase() === usernameLower) ||
+              (parsed.id && e.id === parsed.id) ||
+              (nameStr && e.nameAr === nameStr)
+          );
+          let resolvedRole = officialKas?.titleAr || parsed.role || 'مسؤول العمليات والتقارير';
+          if (
+            (nameStr.includes('البشير') || emailLower.includes('albashir')) &&
+            resolvedRole.includes('داتا انتري')
+          ) {
+            resolvedRole = 'مسؤول المنافسات — شركة كاس للتجارة والمنافسات';
+          }
           return {
-            id: parsed.id || 'USR-GRP-EXEC-01',
-            name: parsed.full_name || parsed.name,
-            role: parsed.role || 'مسؤول العمليات والتقارير',
+            id: officialKas?.id || parsed.id || 'USR-GRP-EXEC-01',
+            name: officialKas?.nameAr || parsed.full_name || parsed.name,
+            role: resolvedRole,
             department: parsed.department_name_ar || parsed.department || 'الإدارة التنفيذية للمجموعة',
-            branch: parsed.branch || 'المقر الرئيسي للمجموعة - الرياض',
-            email: parsed.email || 'chairman@alsulaim.sa',
+            branch: officialKas?.branch || parsed.branch || 'المقر الرئيسي للمجموعة - الرياض',
+            email: officialKas?.email || parsed.email || 'chairman@alsulaim.sa',
           };
         }
       }
@@ -3203,11 +3234,36 @@ export function calculateReportKpis(headers: string[], mappedRows: any[][]): Rep
     }
   }
 
-  const columnTotals: (number | null)[] = headers.map((headerName, colIdx) => {
-    const isMoneyOrCount = /مبلغ|قيمة|ضريبة|إجمالي|سعر|راتب|مصروف|رصيد|تكلفة|بدل|صافي|عطاء|ضمان|أثر مالي|مستحقات|مدين|دائن|إيراد|ربح|مبيعات|محصل|مشتريات|أصول/i.test(headerName);
-    const isIdOrCode = /هاتف|جوال|هوية|سجل|كود|رقم|مرجع|iban|نسبة|%|تراكمي/i.test(headerName);
+  const hasExplicitCurrencyCol = headers.some(
+    (h) =>
+      !/كتابة|تفقيط|حروف/i.test(h) &&
+      /مبلغ|قيمة|سعر|راتب|مصروف|رصيد|تكلفة|بدل|صافي|عطاء|ضمان|أثر مالي|مستحقات|مدين|دائن|إيراد|ربح|مبيعات|محصل|مشتريات|أصول|ضريبة|\u20C1|⃁|ريال|SAR/i.test(h)
+  );
+  const hasExplicitTotalCurrencyCol = headers.some(
+    (h) =>
+      !/كتابة|تفقيط|حروف/i.test(h) &&
+      /إجمالي|الإجمالى|صافي|شامل\s*الضريبة|قيمة\s*العطاء|قيمة\s*الأمر|قيمة\s*المطالبة|الرصيد/i.test(h) &&
+      /مبلغ|قيمة|سعر|راتب|مصروف|رصيد|تكلفة|صافي|عطاء|شامل\s*الضريبة|\u20C1|⃁|ريال|SAR/i.test(h)
+  );
 
-    if (!isMoneyOrCount || isIdOrCode) return null;
+  const columnTotals: (number | null)[] = headers.map((headerName, colIdx) => {
+    const isWordsOrTafqeet = /كتابة|تفقيط|حروف/i.test(headerName);
+    if (isWordsOrTafqeet) return null;
+
+    const isIdOrCode = /هاتف|جوال|هوية|سجل|كود|رقم|مرجع|iban|نسبة|%|تراكمي|تسلسلي/i.test(headerName);
+    if (isIdOrCode) return null;
+
+    const isCountColumn =
+      /^الإجمالي$|^الإجمالى$|عدد|كمية|انتهاء/i.test(headerName.trim()) &&
+      !/\u20C1|⃁|ريال|SAR|قيمة|مبلغ|سعر|ضريبة|راتب|رصيد|تكلفة|عطاء/i.test(headerName);
+
+    const isCurrencyColumn =
+      /مبلغ|قيمة|ضريبة|سعر|راتب|مصروف|رصيد|تكلفة|بدل|صافي|عطاء|ضمان|أثر مالي|مستحقات|مدين|دائن|إيراد|ربح|مبيعات|محصل|مشتريات|أصول|\u20C1|⃁|ريال|SAR/i.test(
+        headerName
+      ) ||
+      (/إجمالي|الإجمالى/i.test(headerName) && !hasExplicitCurrencyCol);
+
+    if (!isCurrencyColumn && !isCountColumn) return null;
 
     let colSum = 0;
     let hasValidNum = false;
@@ -3221,11 +3277,19 @@ export function calculateReportKpis(headers: string[], mappedRows: any[][]): Rep
     }
 
     if (hasValidNum) {
-      hasFinancials = true;
-      if (/ضريبة/i.test(headerName)) {
-        totalVat += colSum;
-      } else if (/مبلغ|قيمة|إجمالي|مصروف|صافي|عطاء|راتب|أثر مالي|مستحقات|مدين|رصيد|إيراد|ربح|مبيعات|محصل|تكلفة/i.test(headerName)) {
-        totalAmount = Math.max(totalAmount, colSum);
+      if (isCurrencyColumn && !isCountColumn) {
+        hasFinancials = true;
+        const isPureVat =
+          /ضريبة|vat/i.test(headerName) &&
+          !/شامل\s*الضريبة|قبل\s*الضريبة|بدون\s*ضريبة/i.test(headerName);
+        const isUnitRateOnly =
+          /سعر\s*الوحدة/i.test(headerName) && hasExplicitTotalCurrencyCol;
+
+        if (isPureVat) {
+          totalVat += colSum;
+        } else if (!isUnitRateOnly) {
+          totalAmount = Math.max(totalAmount, colSum);
+        }
       }
       return Math.round(colSum * 100) / 100;
     }
@@ -3234,7 +3298,11 @@ export function calculateReportKpis(headers: string[], mappedRows: any[][]): Rep
   });
 
   const roundedTotal = Math.round(totalAmount * 100) / 100;
-  const roundedVat = Math.round((totalVat || roundedTotal * 0.15) * 100) / 100;
+  const hasVatInclusiveHeader = headers.some((h) => /شامل\s*الضريبة/i.test(h));
+  const fallbackVat = hasVatInclusiveHeader
+    ? roundedTotal - roundedTotal / 1.15
+    : roundedTotal * 0.15;
+  const roundedVat = Math.round((totalVat || fallbackVat) * 100) / 100;
 
   return {
     recordCount: mappedRows.length,
@@ -3279,9 +3347,9 @@ export function generateExecutiveReportHtml(
   const exporter = {
     ...rawExporter,
     name: escapeHtmlReportText(options?.customPreparerName?.trim() || rawExporter.name),
-    role: escapeHtmlReportText(rawExporter.role),
-    branch: escapeHtmlReportText(rawExporter.branch),
-    department: escapeHtmlReportText(rawExporter.department),
+    role: escapeHtmlReportText(options?.customPreparerRole?.trim() || rawExporter.role),
+    branch: escapeHtmlReportText(options?.customBranchName?.trim() || rawExporter.branch),
+    department: escapeHtmlReportText(options?.customDepartmentName?.trim() || rawExporter.department),
     email: escapeHtmlReportText(rawExporter.email),
     id: escapeHtmlReportText(rawExporter.id),
   };
@@ -3324,11 +3392,13 @@ export function generateExecutiveReportHtml(
   const tdFontPx = (10.5 * scaleRatio).toFixed(1);
   const cellPadY = config.headers.length > 9 ? 5 : 7;
   const cellPadX = config.headers.length > 9 ? 6 : 9;
+  const isInteractivePreview = Boolean(options?.embedPreview);
+  const editAttr = isInteractivePreview ? 'contenteditable="true" spellcheck="false"' : '';
 
   const headersHtml = `
     <th onclick="window.__sortTable && window.__sortTable(0)" style="padding: ${cellPadY + 2}px 6px; background: #141414; color: #FFFFFF; border: 1px solid #262626; width: 38px; text-align: center; font-weight: 800; font-size: ${thFontPx}px; cursor: pointer;">#</th>
     ${config.headers.map((h, i) => `
-      <th onclick="window.__sortTable && window.__sortTable(${i + 1})" style="padding: ${cellPadY + 2}px ${cellPadX}px; background: #141414; color: #FFFFFF; border: 1px solid #262626; font-size: ${thFontPx}px; font-weight: 800; text-align: right; word-break: break-word; line-height: 1.35; cursor: pointer;">
+      <th ${editAttr} data-edit-header="${i}" onclick="window.__sortTable && window.__sortTable(${i + 1})" style="padding: ${cellPadY + 2}px ${cellPadX}px; background: #141414; color: #FFFFFF; border: 1px solid #262626; font-size: ${thFontPx}px; font-weight: 800; text-align: right; word-break: normal; overflow-wrap: break-word; line-height: 1.35; cursor: pointer;">
         ${escapeHtmlReportText(h)}
       </th>
     `).join('')}
@@ -3349,7 +3419,7 @@ export function generateExecutiveReportHtml(
           const displayVal = escapeHtmlReportText(rawDisplayVal || '-');
 
           return `
-            <td style="padding: ${cellPadY}px ${cellPadX}px; border: 1px solid #E4E4E7; font-size: ${tdFontPx}px; color: #141414; word-break: break-word; line-height: 1.4; ${align}">
+            <td ${editAttr} data-edit-row="${idx}" data-edit-col="${cIdx}" style="padding: ${cellPadY}px ${cellPadX}px; border: 1px solid #E4E4E7; font-size: ${tdFontPx}px; color: #141414; word-break: normal; overflow-wrap: break-word; line-height: 1.4; ${align}">
               ${displayVal}
             </td>
           `;
@@ -3368,12 +3438,22 @@ export function generateExecutiveReportHtml(
           <td colspan="1" style="text-align: center; padding: 9px 6px; border: 1px solid #E0E0E0; font-size: ${tdFontPx}px; color: #141414;">
             المجموع
           </td>
-          ${config.headers.map((_, colIdx) => {
+          ${config.headers.map((colHeader, colIdx) => {
             const tot = kpis.columnTotals[colIdx];
             if (colIdx === 0 && tot === null) {
               return `<td style="padding: 9px; border: 1px solid #E0E0E0; font-size: ${tdFontPx}px; color: #141414; font-weight: 900;">الإجمالي العام المعتمد</td>`;
             }
             if (tot !== null) {
+              const isCountCol =
+                /^الإجمالي$|^الإجمالى$|عدد|كمية|انتهاء/i.test(colHeader.trim()) &&
+                !/\u20C1|⃁|ريال|SAR|قيمة|مبلغ|سعر|ضريبة|راتب|رصيد|تكلفة|عطاء/i.test(colHeader);
+              if (isCountCol) {
+                return `
+                  <td style="padding: 9px; border: 1px solid #E0E0E0; font-size: ${thFontPx}px; color: #141414; font-weight: 900; font-family: monospace; text-align: left;">
+                    ${tot.toLocaleString('en-US')}
+                  </td>
+                `;
+              }
               return `
                 <td style="padding: 9px; border: 1px solid #E0E0E0; font-size: ${thFontPx}px; color: #141414; font-weight: 900; font-family: 'saudi_riyal', monospace; text-align: left;">
                   \u200E\u20C1 ${tot.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -3568,7 +3648,7 @@ export function generateExecutiveReportHtml(
           border-bottom: 2.5px solid #141414;
           padding-bottom: 16px;
           margin-bottom: 16px;
-          gap: 16px;
+          gap: 14px;
           position: relative;
           z-index: 1;
         }
@@ -3576,12 +3656,14 @@ export function generateExecutiveReportHtml(
         .company-brand {
           display: flex;
           align-items: center;
-          gap: 14px;
+          gap: 12px;
+          flex: 0 1 35%;
+          max-width: 37%;
         }
         .logo-emblem {
-          width: 60px;
-          height: 60px;
-          border-radius: 16px;
+          width: 56px;
+          height: 56px;
+          border-radius: 15px;
           border: 1px solid #141414;
           background: #141414;
           display: flex;
@@ -3591,11 +3673,12 @@ export function generateExecutiveReportHtml(
           color: #FFFFFF;
           font-weight: 900;
           font-family: 'Inter', monospace;
+          flex-shrink: 0;
         }
 
         .company-titles h1 {
           margin: 0;
-          font-size: 19px;
+          font-size: 17.5px;
           font-weight: 800;
           color: #141414;
           line-height: 1.25;
@@ -3612,19 +3695,20 @@ export function generateExecutiveReportHtml(
           margin-bottom: 4px;
         }
         .company-titles .en-name {
-          font-size: 10.5px;
+          font-size: 10px;
           color: #707070;
           font-weight: 700;
           margin-top: 2px;
-          letter-spacing: 0.4px;
+          letter-spacing: 0.3px;
         }
         .company-titles .legal-info {
           display: flex;
-          gap: 10px;
-          font-size: 10px;
+          gap: 8px;
+          font-size: 9.8px;
           color: #707070;
-          margin-top: 5px;
+          margin-top: 4px;
           flex-wrap: wrap;
+          line-height: 1.4;
         }
         .company-titles .legal-info strong {
           color: #141414;
@@ -3632,44 +3716,50 @@ export function generateExecutiveReportHtml(
 
         .center-meta {
           text-align: center;
-          flex: 1;
-          padding: 0 10px;
+          flex: 1 1 45%;
+          min-width: 240px;
+          padding: 0 6px;
         }
         .official-tag {
           display: inline-block;
           background: #141414;
           border: 1px solid #141414;
           color: #FFFFFF;
-          font-size: 10px;
+          font-size: 9.8px;
           font-weight: 700;
-          padding: 3px 14px;
+          padding: 3px 12px;
           border-radius: 9999px;
           margin-bottom: 6px;
-          letter-spacing: 0.3px;
+          letter-spacing: 0.2px;
         }
         .report-title-text {
-          font-size: 18px;
+          font-size: 16.5px;
           font-weight: 800;
           color: #141414;
           margin: 0;
+          line-height: 1.35;
         }
         .report-subtitle {
-          font-size: 10.5px;
+          font-size: 10px;
           color: #707070;
           margin-top: 4px;
         }
         .exporter-pill {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 5px;
           margin-top: 6px;
-          padding: 3px 12px;
-          border-radius: 9999px;
+          padding: 4px 12px;
+          border-radius: 12px;
           background: #F3F3F3;
           border: 1px solid #E0E0E0;
           color: #141414;
           font-size: 10px;
           font-weight: 700;
+          line-height: 1.45;
+          max-width: 100%;
         }
 
         .qr-section {
@@ -3677,6 +3767,20 @@ export function generateExecutiveReportHtml(
           display: flex;
           flex-direction: column;
           align-items: center;
+          flex: 0 0 auto;
+        }
+        [contenteditable="true"] {
+          border-radius: 4px;
+          transition: background-color 0.15s, box-shadow 0.15s;
+        }
+        [contenteditable="true"]:hover {
+          box-shadow: 0 0 0 1px #707070;
+          cursor: text;
+        }
+        [contenteditable="true"]:focus {
+          outline: none;
+          box-shadow: 0 0 0 1.5px #141414;
+          background-color: rgba(243, 243, 243, 0.55);
         }
         .serial-pill {
           font-size: 9.5px;
@@ -3887,27 +3991,27 @@ export function generateExecutiveReportHtml(
             <span style="font-size: 7.5px; color: #ADADAD; letter-spacing: 0.5px; margin-top: 3px;">ERP 4.0</span>
           </div>
           <div class="company-titles">
-            ${branding.holdingBadgeAr ? `<span class="holding-badge">${escapeHtmlReportText(branding.holdingBadgeAr)}</span>` : ''}
-            <h1>${escapeHtmlReportText(company.nameAr)}</h1>
-            <div class="en-name">${escapeHtmlReportText(company.nameEn)}</div>
+            ${branding.holdingBadgeAr ? `<span ${editAttr} class="holding-badge">${escapeHtmlReportText(branding.holdingBadgeAr)}</span>` : ''}
+            <h1 ${editAttr} data-edit-field="customCompanyNameAr">${escapeHtmlReportText(company.nameAr)}</h1>
+            <div ${editAttr} class="en-name">${escapeHtmlReportText(company.nameEn)}</div>
             <div class="legal-info">
-              <span>س.ت: <strong>${escapeHtmlReportText(company.crNumber)}</strong></span>
+              <span>س.ت: <strong ${editAttr} data-edit-field="customCrNumber">${escapeHtmlReportText(company.crNumber)}</strong></span>
               <span>•</span>
-              <span>الرقم الضريبي: <strong>${escapeHtmlReportText(company.taxNumber)}</strong></span>
+              <span>الرقم الضريبي: <strong ${editAttr} data-edit-field="customTaxNumber">${escapeHtmlReportText(company.taxNumber)}</strong></span>
               <span>•</span>
-              <span>الفرع المصدر: <strong>${exporter.branch}</strong></span>
+              <span>الفرع المصدر: <strong ${editAttr} data-edit-field="customBranchName">${exporter.branch}</strong></span>
             </div>
           </div>
         </div>
 
         <div class="center-meta">
-          <div class="official-tag">وثيقة رسمية معتمدة • ZATCA & ERP COMPLIANT • SAMA WPS</div>
-          <h2 class="report-title-text">${title}</h2>
-          <div class="report-subtitle">تاريخ الاستخراج: <strong>${dateAr}</strong> — الساعة <strong>${timeStr}</strong></div>
+          <div ${editAttr} class="official-tag">وثيقة رسمية معتمدة • ZATCA & ERP COMPLIANT • SAMA WPS</div>
+          <h2 ${editAttr} data-edit-field="customTitle" class="report-title-text">${title}</h2>
+          <div ${editAttr} class="report-subtitle">تاريخ الاستخراج: <strong>${dateAr}</strong> — الساعة <strong>${timeStr}</strong></div>
           <div class="exporter-pill">
-            <span>الموظف المصدِّر: ${exporter.name}</span>
+            <span>الموظف المصدِّر: <strong ${editAttr} data-edit-field="customPreparerName">${exporter.name}</strong></span>
             <span>|</span>
-            <span>${exporter.role}</span>
+            <span ${editAttr} data-edit-field="customPreparerRole">${exporter.role}</span>
           </div>
         </div>
 
@@ -3992,32 +4096,32 @@ export function generateExecutiveReportHtml(
       <!-- 4. Signatures & Approvals Matrix (Attributed to Real Employee, Entity & Branch) -->
       <div class="signatures-grid">
         <div class="sig-box">
-          <div class="sig-title">إعداد الموظف المختص (استخراج وتوثيق)</div>
-          <div class="sig-role">${exporter.role}</div>
+          <div ${editAttr} class="sig-title">إعداد الموظف المختص (استخراج وتوثيق)</div>
+          <div ${editAttr} data-edit-field="customPreparerRole" class="sig-role">${exporter.role}</div>
           <div class="sig-line"></div>
-          <div class="sig-meta">الاسم: ${exporter.name}</div>
-          <div class="sig-meta">الفرع: ${exporter.branch} • التاريخ: ${isoDate}</div>
-          <div class="sig-badge">✓ توقيع إلكتروني موثق (${exporter.id})</div>
+          <div ${editAttr} class="sig-meta">الاسم: ${exporter.name}</div>
+          <div ${editAttr} class="sig-meta">الفرع: ${exporter.branch} • التاريخ: ${isoDate}</div>
+          <div ${editAttr} class="sig-badge">✓ توقيع إلكتروني موثق (${exporter.id})</div>
         </div>
 
         <div class="sig-box">
-          <div class="sig-title">مراجعة وتدقيق الإدارة المالية</div>
-          <div class="sig-role">${escapeHtmlReportText(branding.financeSignatoryRoleAr)}</div>
+          <div ${editAttr} class="sig-title">مراجعة وتدقيق الإدارة المالية</div>
+          <div ${editAttr} class="sig-role">${escapeHtmlReportText(branding.financeSignatoryRoleAr)}</div>
           <div class="sig-line"></div>
-          <div class="sig-meta">الاسم: ${escapeHtmlReportText(branding.financeSignatoryNameAr)}</div>
-          <div class="sig-meta">المطابقة الدفترية: ${isoDate}</div>
-          <div class="sig-badge">✓ مطابق للدفاتر وميزان المراجعة</div>
+          <div ${editAttr} data-edit-field="customFinanceSignatory" class="sig-meta">الاسم: ${escapeHtmlReportText(branding.financeSignatoryNameAr)}</div>
+          <div ${editAttr} class="sig-meta">المطابقة الدفترية: ${isoDate}</div>
+          <div ${editAttr} class="sig-badge">✓ مطابق للدفاتر وميزان المراجعة</div>
         </div>
 
         <div class="sig-box">
-          <div class="sig-title">اعتماد الإدارة والختم الرسمي (القيادة التنفيذية)</div>
-          <div class="sig-role">${escapeHtmlReportText(branding.executiveSignatoryRoleAr)}</div>
+          <div ${editAttr} class="sig-title">اعتماد الإدارة والختم الرسمي (القيادة التنفيذية)</div>
+          <div ${editAttr} class="sig-role">${escapeHtmlReportText(branding.executiveSignatoryRoleAr)}</div>
           <div class="seal-stamp">
-            <div>${escapeHtmlReportText(company.nameAr.slice(0, 18))}</div>
-            <div style="font-size: 7.5px; color: #707070; margin: 1px 0;">معتمد رسمياً • س.ت ${escapeHtmlReportText(company.crNumber)}</div>
-            <div style="font-size: 7.5px;">${isoDate}</div>
+            <div ${editAttr}>${escapeHtmlReportText(company.nameAr.slice(0, 18))}</div>
+            <div ${editAttr} style="font-size: 7.5px; color: #707070; margin: 1px 0;">معتمد رسمياً • س.ت ${escapeHtmlReportText(company.crNumber)}</div>
+            <div ${editAttr} style="font-size: 7.5px;">${isoDate}</div>
           </div>
-          <div class="sig-badge">${escapeHtmlReportText(branding.executiveApprovalBadgeAr)}</div>
+          <div ${editAttr} data-edit-field="customExecutiveSignatory" class="sig-badge">${escapeHtmlReportText(branding.executiveApprovalBadgeAr)}</div>
         </div>
       </div>
       ` : ''}
@@ -4031,16 +4135,32 @@ export function generateExecutiveReportHtml(
       <!-- 5. Security & Verification Footer -->
       <div class="official-footer">
         <div>
-          <span>وثيقة إلكترونية رسمية معتمدة بموجب نظام التعاملات الإلكترونية السعودي (مرسوم ملكي م/18) ونظام الإثبات.</span>
+          <span ${editAttr}>وثيقة إلكترونية رسمية معتمدة بموجب نظام التعاملات الإلكترونية السعودي (مرسوم ملكي م/18) ونظام الإثبات.</span>
           <br>
           <span style="font-family: monospace; font-size: 9px; color: #707070;">${verificationHash} • الرقم المرجعي: ${serialNumber} • المستخرج: ${exporter.email}</span>
         </div>
-        <div style="text-align: left; font-weight: 800; color: #141414;">
+        <div ${editAttr} style="text-align: left; font-weight: 800; color: #141414;">
           ${escapeHtmlReportText(branding.footerOrganizationLineAr)}
         </div>
       </div>
 
       <script>
+        document.addEventListener('blur', function(ev) {
+          var el = ev.target;
+          if (!el || !window.parent || window.parent === window) return;
+          var field = el.getAttribute && el.getAttribute('data-edit-field');
+          var hdrIdx = el.getAttribute && el.getAttribute('data-edit-header');
+          var rowIdx = el.getAttribute && el.getAttribute('data-edit-row');
+          var colIdx = el.getAttribute && el.getAttribute('data-edit-col');
+          var textVal = (el.innerText || '').trim();
+          if (field) {
+            window.parent.postMessage({ type: 'ERP_PREVIEW_INLINE_EDIT', kind: 'field', field: field, value: textVal }, '*');
+          } else if (hdrIdx !== null && hdrIdx !== undefined) {
+            window.parent.postMessage({ type: 'ERP_PREVIEW_INLINE_EDIT', kind: 'header', colIdx: parseInt(hdrIdx, 10), value: textVal }, '*');
+          } else if (rowIdx !== null && rowIdx !== undefined && colIdx !== null && colIdx !== undefined) {
+            window.parent.postMessage({ type: 'ERP_PREVIEW_INLINE_EDIT', kind: 'cell', rowIdx: parseInt(rowIdx, 10), colIdx: parseInt(colIdx, 10), value: textVal }, '*');
+          }
+        }, true);
         window.__filterRows = function(query) {
           var q = (query || '').toLowerCase().trim();
           var rows = document.querySelectorAll('#enterprise-report-tbody .report-data-row');
@@ -4073,35 +4193,31 @@ export function generateExecutiveReportHtml(
 }
 
 // ─── Export to Multi-Sheet Enterprise Excel (.xlsx) ──────────────────
-function toUtf8Bytes(xml: string): Uint8Array {
-  if (typeof TextEncoder !== 'undefined') {
-    return new TextEncoder().encode(xml);
+function resolveExportUiTheme(explicit?: 'corporate-color' | 'monochrome'): 'corporate-color' | 'monochrome' {
+  if (explicit) return explicit;
+  try {
+    const storeTheme = useAppStore.getState?.()?.uiTheme;
+    if (storeTheme === 'monochrome' || storeTheme === 'corporate-color') {
+      return storeTheme;
+    }
+  } catch {
+    // ignore in isolated test states
   }
-  const arr = new Uint8Array(xml.length);
-  for (let i = 0; i < xml.length; i++) arr[i] = xml.charCodeAt(i) & 0xff;
-  return arr;
-}
-
-function fromUtf8Bytes(bytes: Uint8Array | number[]): string {
-  const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
-  if (typeof TextDecoder !== 'undefined') {
-    return new TextDecoder('utf-8').decode(u8);
-  }
-  let out = '';
-  for (let i = 0; i < u8.length; i++) out += String.fromCharCode(u8[i]);
-  return out;
+  return resolveExcelThemePalette().uiTheme;
 }
 
 /**
- * OpenXML SpreadsheetML Styling Engine (Mobbin Light Mode + Official SAMA SRS ⃁)
- * Injects rich corporate typography, Ink Black (#141414) headers, Soft Gray (#F3F3F3) banners & totals,
- * Zebra striping (#F8FAFC / #FFFFFF), crisp 1px borders (#E4E4E7), RTL frozen panes, and SAMA ⃁ number formats
+ * OpenXML SpreadsheetML Styling Engine (Active Theme: Corporate Color / Mobbin Monochrome + SAMA SRS ⃁)
+ * Injects theme-bound corporate typography, headers, banners, totals, zebra striping,
+ * formula highlight styles, RTL frozen panes, <calcPr fullCalcOnLoad="1"/>, and SAMA ⃁ number formats
  * directly into the .xlsx ZIP container via XLSX.CFB.
  */
 function applyEnterpriseOpenXmlExcelStyles(
   wb: XLSX.WorkBook,
   dataRowCount: number,
-  hasTotals: boolean
+  hasTotals: boolean,
+  options?: ExportCustomizationOptions,
+  resolvedEntityCode?: string
 ): Uint8Array {
   const rawBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   const cfbLib = (XLSX as any).CFB;
@@ -4111,83 +4227,20 @@ function applyEnterpriseOpenXmlExcelStyles(
 
   try {
     const cfb = cfbLib.read(new Uint8Array(rawBuffer), { type: 'array' });
+    const palette = resolveExcelThemePalette({
+      uiTheme: resolveExportUiTheme(options?.uiTheme),
+      entityCode: options?.entityCode || resolvedEntityCode,
+    });
 
-    // 1. Replace xl/styles.xml with Institutional Mobbin Light Mode + SAMA ⃁ StyleSheet
+    // 1. Replace xl/styles.xml with active theme-aware StyleSheet
     const stylesEntry = cfbLib.find(cfb, 'Root Entry/xl/styles.xml');
     if (stylesEntry) {
-      const enterpriseStylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-  <numFmts count="2">
-    <numFmt numFmtId="164" formatCode="#,##0.00 &quot;\u20C1&quot;;(#,##0.00 &quot;\u20C1&quot;);&quot;0.00 \u20C1&quot;"/>
-    <numFmt numFmtId="165" formatCode="#,##0"/>
-  </numFmts>
-  <fonts count="6">
-    <font><sz val="11"/><color rgb="FF141414"/><name val="Segoe UI"/><family val="2"/></font>
-    <font><b/><sz val="12"/><color rgb="FFFFFFFF"/><name val="Segoe UI"/><family val="2"/></font>
-    <font><b/><sz val="13"/><color rgb="FF141414"/><name val="Segoe UI"/><family val="2"/></font>
-    <font><b/><sz val="10"/><color rgb="FF52525B"/><name val="Segoe UI"/><family val="2"/></font>
-    <font><b/><sz val="11"/><color rgb="FF141414"/><name val="Segoe UI"/><family val="2"/></font>
-    <font><b/><sz val="10.5"/><color rgb="FF141414"/><name val="Segoe UI"/><family val="2"/></font>
-  </fonts>
-  <fills count="6">
-    <fill><patternFill patternType="none"/></fill>
-    <fill><patternFill patternType="gray125"/></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FF141414"/><bgColor indexed="64"/></patternFill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FFF3F3F3"/><bgColor indexed="64"/></patternFill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FFF8FAFC"/><bgColor indexed="64"/></patternFill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FFFFFFFF"/><bgColor indexed="64"/></patternFill></fill>
-  </fills>
-  <borders count="4">
-    <border><left/><right/><top/><bottom/><diagonal/></border>
-    <border>
-      <left style="thin"><color rgb="FFE4E4E7"/></left>
-      <right style="thin"><color rgb="FFE4E4E7"/></right>
-      <top style="thin"><color rgb="FFE4E4E7"/></top>
-      <bottom style="thin"><color rgb="FFE4E4E7"/></bottom>
-      <diagonal/>
-    </border>
-    <border>
-      <left style="thin"><color rgb="FF3F3F46"/></left>
-      <right style="thin"><color rgb="FF3F3F46"/></right>
-      <top style="medium"><color rgb="FF141414"/></top>
-      <bottom style="medium"><color rgb="FF141414"/></bottom>
-      <diagonal/>
-    </border>
-    <border>
-      <left style="thin"><color rgb="FFE4E4E7"/></left>
-      <right style="thin"><color rgb="FFE4E4E7"/></right>
-      <top style="medium"><color rgb="FF141414"/></top>
-      <bottom style="double"><color rgb="FF141414"/></bottom>
-      <diagonal/>
-    </border>
-  </borders>
-  <cellStyleXfs count="1">
-    <xf numFmtId="0" fontId="0" fillId="0" borderId="0"/>
-  </cellStyleXfs>
-  <cellXfs count="13">
-    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
-    <xf numFmtId="0" fontId="1" fillId="2" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf>
-    <xf numFmtId="0" fontId="2" fillId="3" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf>
-    <xf numFmtId="0" fontId="3" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf>
-    <xf numFmtId="0" fontId="1" fillId="2" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1" readingOrder="2"/></xf>
-    <xf numFmtId="0" fontId="0" fillId="5" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center" wrapText="1" readingOrder="2"/></xf>
-    <xf numFmtId="0" fontId="0" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center" wrapText="1" readingOrder="2"/></xf>
-    <xf numFmtId="164" fontId="4" fillId="5" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
-    <xf numFmtId="164" fontId="4" fillId="4" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
-    <xf numFmtId="0" fontId="4" fillId="3" borderId="3" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf>
-    <xf numFmtId="164" fontId="4" fillId="3" borderId="3" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
-    <xf numFmtId="165" fontId="3" fillId="3" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
-    <xf numFmtId="0" fontId="5" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center" wrapText="1" readingOrder="2"/></xf>
-  </cellXfs>
-  <cellStyles count="1">
-    <cellStyle name="Normal" xfId="0" builtinId="0"/>
-  </cellStyles>
-  <dxfs count="0"/>
-  <tableStyles count="0" defaultTableStyle="TableStyleMedium2" defaultPivotStyle="PivotStyleLight16"/>
-</styleSheet>`;
-      stylesEntry.content = toUtf8Bytes(enterpriseStylesXml);
+      stylesEntry.content = toUtf8Bytes(buildThemedEnterpriseStylesXml(palette));
       stylesEntry.size = stylesEntry.content.length;
     }
+
+    // Ensure Excel recalculates dynamic formulas immediately upon opening
+    injectFullCalcOnLoad(cfbLib, cfb);
 
     // 2. Style Sheet 1 (Detailed Data Worksheet + Frozen Header Pane)
     const sheet1Entry = cfbLib.find(cfb, 'Root Entry/xl/worksheets/sheet1.xml');
@@ -4231,9 +4284,15 @@ function applyEnterpriseOpenXmlExcelStyles(
         return `<row r="${rStr}"${rowAttrs}>${styledInner}</row>`;
       });
 
+      if (!s1Xml.includes('<sheetPr')) {
+        s1Xml = s1Xml.replace(
+          /(<worksheet[^>]*>)/,
+          '$1<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>'
+        );
+      }
       s1Xml = s1Xml.replace(
         /(<pageMargins[^>]*\/>)(?!\s*<pageSetup)/,
-        '$1<pageSetup paperSize="9" orientation="landscape"/>'
+        '$1<pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"/>'
       );
 
       sheet1Entry.content = toUtf8Bytes(s1Xml);
@@ -4261,6 +4320,7 @@ function applyEnterpriseOpenXmlExcelStyles(
           else if (rNum === 2) styleIdx = 2;
           else if (sectionHeaderRows.has(rNum)) styleIdx = 4;
           else if (rNum === 23) styleIdx = colLet === 'A' ? 9 : 12;
+          else if ((rNum === 21 || rNum === 22) && colLet === 'B' && isNumericCell) styleIdx = 13;
           else if (isNumericCell) styleIdx = 7;
           else if (colLet === 'A') styleIdx = 3;
           else styleIdx = 5;
@@ -4270,9 +4330,15 @@ function applyEnterpriseOpenXmlExcelStyles(
         return `<row r="${rStr}"${rowAttrs}>${styledInner}</row>`;
       });
 
+      if (!s2Xml.includes('<sheetPr')) {
+        s2Xml = s2Xml.replace(
+          /(<worksheet[^>]*>)/,
+          '$1<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>'
+        );
+      }
       s2Xml = s2Xml.replace(
         /(<pageMargins[^>]*\/>)(?!\s*<pageSetup)/,
-        '$1<pageSetup paperSize="9" orientation="portrait"/>'
+        '$1<pageSetup paperSize="9" orientation="portrait" fitToWidth="1" fitToHeight="0"/>'
       );
 
       sheet2Entry.content = toUtf8Bytes(s2Xml);
@@ -4404,6 +4470,35 @@ export function buildStyledExcelBuffer(
 
   const ws = XLSX.utils.aoa_to_sheet(wsData);
 
+  // Inject live Excel =SUBTOTAL(109,...) formulas on non-hierarchical total columns
+  const financialTotalRefs: string[] = [];
+  if (hasTotals && numberedRows.length > 0) {
+    const totalsExcelRow = 6 + numberedRows.length + 2;
+    const lastDataExcelRow = 6 + numberedRows.length;
+    config.headers.forEach((headerName, colIdx) => {
+      const totalVal = kpis.columnTotals[colIdx];
+      if (totalVal === null || totalVal === undefined) return;
+      const excelColLetter = XLSX.utils.encode_col(colIdx + 1);
+      const rawColumnSum = Number(
+        numberedRows
+          .reduce((sum, r) => sum + (typeof r[colIdx + 1] === 'number' ? Number(r[colIdx + 1]) : 0), 0)
+          .toFixed(2)
+      );
+      // Only attach SUBTOTAL formula when direct range sum matches KPI (skips COA multi-level deduplication)
+      if (Math.abs(rawColumnSum - totalVal) <= 0.05) {
+        const cellAddr = `${excelColLetter}${totalsExcelRow}`;
+        ws[cellAddr] = {
+          t: 'n',
+          f: `SUBTOTAL(109,${excelColLetter}7:${excelColLetter}${lastDataExcelRow})`,
+          v: totalVal,
+        };
+        if (/مبلغ|إجمالي|قيمة|راتب|صافي|تكلفة|ضريبة|عهدة|مستحق|سلفة|بدل|موازنة|ميزانية|مدين|دائن|رصيد|ربح|ايراد|إيراد/i.test(headerName)) {
+          financialTotalRefs.push(cellAddr);
+        }
+      }
+    });
+  }
+
   // Merge Corporate Header Banner Rows across columns
   ws['!merges'] = [
     { s: { r: 0, c: 0 }, e: { r: 0, c: colCount - 1 } },
@@ -4416,23 +4511,29 @@ export function buildStyledExcelBuffer(
     ws['!merges'].push({ s: { r: tafqeetRowIdx, c: 1 }, e: { r: tafqeetRowIdx, c: colCount - 1 } });
   }
 
-  // Row Heights for Executive Readability
+  // Row Heights for Executive Readability (auto-scaled for multi-line Arabic & Tafqeet cells)
   const wsRowsMeta: Array<{ hpt: number }> = [
     { hpt: 32 }, // Row 1: Holding Banner
     { hpt: 28 }, // Row 2: Report Title
     { hpt: 22 }, // Row 3: CR / VAT / Serial
     { hpt: 22 }, // Row 4: Exporter Metadata
     { hpt: 10 }, // Row 5: Spacer
-    { hpt: 28 }, // Row 6: Table Column Headers
+    { hpt: 30 }, // Row 6: Table Column Headers
   ];
   for (let i = 0; i < numberedRows.length; i++) {
-    wsRowsMeta.push({ hpt: 23 });
+    const rowCells = numberedRows[i] || [];
+    const maxChars = rowCells.reduce(
+      (m, c) => Math.max(m, c !== undefined && c !== null ? String(c).length : 0),
+      0
+    );
+    const dynamicHpt = maxChars > 90 ? 40 : maxChars > 50 ? 31 : 24;
+    wsRowsMeta.push({ hpt: dynamicHpt });
   }
   if (hasTotals) {
-    wsRowsMeta.push({ hpt: 10 }, { hpt: 26 }, { hpt: 25 });
+    wsRowsMeta.push({ hpt: 10 }, { hpt: 28 }, { hpt: 26 });
   }
   if (options?.executiveNote) {
-    wsRowsMeta.push({ hpt: 25 });
+    wsRowsMeta.push({ hpt: 26 });
   }
   ws['!rows'] = wsRowsMeta;
 
@@ -4536,10 +4637,38 @@ export function buildStyledExcelBuffer(
   wb.Workbook.Views = [{ RTL: true }];
 
   const sanitizedSheetName = title.replace(/[:\\/?*[\]]/g, '').slice(0, 28) || 'البيانات_التفصيلية';
+
+  // Link Sheet 2 KPI Amount & VAT cells dynamically via cross-sheet Excel formulas when totals match
+  if (hasTotals && financialTotalRefs.length > 0 && kpis.totalAmount > 0 && summaryWs['B21']) {
+    const quotedSheet = `'${sanitizedSheetName.replace(/'/g, "''")}'`;
+    const amountRef = financialTotalRefs.find(
+      (ref) => Math.abs((Number(ws[ref]?.v) || 0) - kpis.totalAmount) <= 0.05
+    );
+    if (amountRef) {
+      summaryWs['B21'] = { t: 'n', f: `${quotedSheet}!${amountRef}`, v: kpis.totalAmount };
+      if (summaryWs['B22']) {
+        const vatRef = financialTotalRefs.find(
+          (ref) => ref !== amountRef && Math.abs((Number(ws[ref]?.v) || 0) - kpis.totalVat) <= 0.05
+        );
+        summaryWs['B22'] = {
+          t: 'n',
+          f: vatRef ? `${quotedSheet}!${vatRef}` : 'ROUND(B21*0.15,2)',
+          v: kpis.totalVat,
+        };
+      }
+    }
+  }
+
   XLSX.utils.book_append_sheet(wb, ws, sanitizedSheetName);
   XLSX.utils.book_append_sheet(wb, summaryWs, 'ملخص_المؤشرات_والاعتماد');
 
-  const styledBytes = applyEnterpriseOpenXmlExcelStyles(wb, numberedRows.length, hasTotals);
+  const styledBytes = applyEnterpriseOpenXmlExcelStyles(
+    wb,
+    numberedRows.length,
+    hasTotals,
+    options,
+    company.code
+  );
   const cleanFileName = `${title.replace(/[\s/\\:]+/g, '_')}_${isoDate}.xlsx`;
   return { buffer: styledBytes, fileName: cleanFileName };
 }
@@ -4681,6 +4810,27 @@ export function buildMultiSheetExcelBuffer(
     }
 
     const ws = XLSX.utils.aoa_to_sheet(wsData);
+    if (hasTotals && numberedRows.length > 0) {
+      const totalsExcelRow = 6 + numberedRows.length + 2;
+      const lastDataExcelRow = 6 + numberedRows.length;
+      spec.headers.forEach((_hName, colIdx) => {
+        const totalVal = kpis.columnTotals[colIdx];
+        if (totalVal === null || totalVal === undefined) return;
+        const excelColLetter = XLSX.utils.encode_col(colIdx + 1);
+        const rawColumnSum = Number(
+          numberedRows
+            .reduce((sum, r) => sum + (typeof r[colIdx + 1] === 'number' ? Number(r[colIdx + 1]) : 0), 0)
+            .toFixed(2)
+        );
+        if (Math.abs(rawColumnSum - totalVal) <= 0.05) {
+          ws[`${excelColLetter}${totalsExcelRow}`] = {
+            t: 'n',
+            f: `SUBTOTAL(109,${excelColLetter}7:${excelColLetter}${lastDataExcelRow})`,
+            v: totalVal,
+          };
+        }
+      });
+    }
     ws['!merges'] = [
       { s: { r: 0, c: 0 }, e: { r: 0, c: colCount - 1 } },
       { s: { r: 1, c: 0 }, e: { r: 1, c: colCount - 1 } },
@@ -4739,11 +4889,13 @@ export function buildMultiSheetExcelBuffer(
     });
   });
 
-  // Apply OpenXML styles across all sheets in the workbook
+  // Apply OpenXML styles across all sheets in the workbook (theme-aware)
   const styledInitBytes = applyEnterpriseOpenXmlExcelStyles(
     wb,
     sheetMetaList[0]?.dataRowCount || 0,
-    sheetMetaList[0]?.hasTotals || false
+    sheetMetaList[0]?.hasTotals || false,
+    options,
+    company.code
   );
 
   let finalBytes = styledInitBytes;

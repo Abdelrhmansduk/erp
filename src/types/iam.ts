@@ -83,6 +83,11 @@ export interface IamUser {
   lastLoginIp?: string;
   created_at?: string;
   memberships?: IamMembership[];
+  selectedCompanies?: string[];
+  selectedBranches?: string[];
+  selectedDepartments?: string[];
+  overrideReason?: string;
+  overrideExpiry?: string;
 }
 
 export interface IamCompany {

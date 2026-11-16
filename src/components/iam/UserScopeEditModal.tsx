@@ -11,6 +11,7 @@ import {
   AccountType 
 } from '../../types/iam';
 import { useAppStore } from '../../stores/appStore';
+import { useModuleVisibilityStore } from '../../services/moduleVisibility';
 
 interface UserScopeEditModalProps {
   user: IamUser;
@@ -69,12 +70,24 @@ export const UserScopeEditModal: React.FC<UserScopeEditModalProps> = ({
   const [status, setStatus] = useState(user.status);
   const [dataScope, setDataScope] = useState<DataScopeLevel>(user.dataScope ?? 5);
 
-  const [selectedCompanies, setSelectedCompanies] = useState<string[]>(['SAF', 'YAQ', 'TOP', 'KAS']);
-  const [selectedBranches, setSelectedBranches] = useState<string[]>(['BR-RUH', 'BR-JED', 'BR-DMM', 'SHL-RUH']);
-  const [selectedDepartments, setSelectedDepartments] = useState<string[]>(['DEPT-HR', 'DEPT-FIN', 'DEPT-REC']);
+  const [selectedCompanies, setSelectedCompanies] = useState<string[]>(
+    user.selectedCompanies && user.selectedCompanies.length > 0
+      ? user.selectedCompanies
+      : ['SAF', 'YAQ', 'TOP', 'KAS']
+  );
+  const [selectedBranches, setSelectedBranches] = useState<string[]>(
+    user.selectedBranches && user.selectedBranches.length > 0
+      ? user.selectedBranches
+      : ['BR-RUH', 'BR-JED', 'BR-DMM', 'SHL-RUH']
+  );
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>(
+    user.selectedDepartments && user.selectedDepartments.length > 0
+      ? user.selectedDepartments
+      : ['DEPT-HR', 'DEPT-FIN', 'DEPT-REC']
+  );
 
-  const [overrideReason, setOverrideReason] = useState('');
-  const [overrideExpiry, setOverrideExpiry] = useState('');
+  const [overrideReason, setOverrideReason] = useState(user.overrideReason || '');
+  const [overrideExpiry, setOverrideExpiry] = useState(user.overrideExpiry || '');
 
   const handleToggleCompany = (code: string) => {
     setSelectedCompanies(prev => 
@@ -115,7 +128,18 @@ export const UserScopeEditModal: React.FC<UserScopeEditModalProps> = ({
       accountType,
       status,
       dataScope,
+      selectedCompanies,
+      selectedBranches,
+      selectedDepartments,
+      overrideReason,
+      overrideExpiry,
     };
+
+    if (email) {
+      void useModuleVisibilityStore
+        .getState()
+        .setEmployeeProfileOverride(email, { titleAr: jobTitle }, 'a.salif.dev@kas.sa');
+    }
 
     onSave(updatedUser);
     addNotification({

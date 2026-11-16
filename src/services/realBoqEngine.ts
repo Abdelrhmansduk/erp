@@ -12,6 +12,11 @@
 import * as XLSX from 'xlsx';
 import { BOQItem, KasEstablishmentRow, TenderRecord } from '../types/tenders';
 import { tafqeet } from './tafqeetService';
+import {
+  applyThemedBoqWorkbookStyles,
+  BoqStyledSheetMeta,
+  ExcelThemeOptions,
+} from './excelThemeEngine';
 
 export interface ParsedBoqResult {
   items: BOQItem[];
@@ -474,6 +479,12 @@ export class RealBoqEngine {
       setCell(`${h.col}5`, { t: 's', v: h.text });
     }
 
+    // Ensure continuous banner background cells C3:M3 & C4:M4 without overwriting named cells
+    for (const col of ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']) {
+      if (!ws[`${col}3`]) setCell(`${col}3`, { t: 's', v: '' });
+      if (!ws[`${col}4`]) setCell(`${col}4`, { t: 's', v: '' });
+    }
+
     // Rows 6 .. 6 + itemRowsCount - 1: Editable Line Items with Live Excel Formulas
     for (let idx = 0; idx < itemRowsCount; idx++) {
       const r = 6 + idx;
@@ -548,6 +559,9 @@ export class RealBoqEngine {
       f: `SUBTOTAL(103,D6:D${lastItemRow})`,
       v: activeItems.length,
     });
+    for (const col of ['D', 'E', 'F', 'G', 'H', 'J']) {
+      if (!ws[`${col}${subtotalRowNum}`]) setCell(`${col}${subtotalRowNum}`, { t: 's', v: '' });
+    }
 
     // Summary Footer Rows (matching Rows 107, 108, 109)
     const rSub = subtotalRowNum + 1;
@@ -597,23 +611,67 @@ export class RealBoqEngine {
 
     ws['!ref'] = `A1:O${rValidity + 1}`;
     ws['!sheetViews'] = [{ rightToLeft: true }];
+
+    let maxDescLen = 48;
+    let maxUnitWordsLen = 36;
+    let maxTotalWordsLen = 38;
+    let maxVatWordsLen = 42;
+    for (const it of activeItems) {
+      if ((it.description || '').length + 6 > maxDescLen) {
+        maxDescLen = Math.min(72, (it.description || '').length + 6);
+      }
+      if ((it.unitPriceInWords || '').length + 6 > maxUnitWordsLen) {
+        maxUnitWordsLen = Math.min(54, (it.unitPriceInWords || '').length + 6);
+      }
+      if ((it.totalPriceInWords || '').length + 6 > maxTotalWordsLen) {
+        maxTotalWordsLen = Math.min(56, (it.totalPriceInWords || '').length + 6);
+      }
+      if ((it.totalWithVatInWords || '').length + 6 > maxVatWordsLen) {
+        maxVatWordsLen = Math.min(60, (it.totalWithVatInWords || '').length + 6);
+      }
+    }
+
     ws['!cols'] = [
-      { wch: 3 },  // A
-      { wch: 3 },  // B
-      { wch: 14 }, // C: الرقم التسلسلي
-      { wch: 48 }, // D: وصف البند
-      { wch: 14 }, // E: وحدة القياس
-      { wch: 12 }, // F: الكمية
-      { wch: 16 }, // G: سعر الوحدة
-      { wch: 34 }, // H: سعر الوحدة كتابة
-      { wch: 18 }, // I: السعر الإجمالي
-      { wch: 36 }, // J: السعر الإجمالي كتابة
-      { wch: 16 }, // K: الضريبة
-      { wch: 22 }, // L: السعر الإجمالي شامل الضريبة
-      { wch: 38 }, // M: السعر الإجمالي شامل الضريبة كتابة
-      { wch: 4 },  // N
-      { wch: 12 }, // O: الجدول / النص
+      { wch: 3 },               // A
+      { wch: 3 },               // B
+      { wch: 15 },              // C: الرقم التسلسلي
+      { wch: maxDescLen },      // D: وصف البند
+      { wch: 16 },              // E: وحدة القياس
+      { wch: 14 },              // F: الكمية
+      { wch: 18 },              // G: سعر الوحدة
+      { wch: maxUnitWordsLen }, // H: سعر الوحدة كتابة
+      { wch: 20 },              // I: السعر الإجمالي
+      { wch: maxTotalWordsLen },// J: السعر الإجمالي كتابة
+      { wch: 18 },              // K: الضريبة
+      { wch: 24 },              // L: السعر الإجمالي شامل الضريبة
+      { wch: maxVatWordsLen },  // M: السعر الإجمالي شامل الضريبة كتابة
+      { wch: 4 },               // N
+      { wch: 14 },              // O: الجدول / النص
     ];
+
+    const wsRows: Array<{ hpt: number }> = [];
+    for (let rIdx = 1; rIdx <= rValidity + 1; rIdx++) {
+      if (rIdx <= 2) {
+        wsRows.push({ hpt: 14 });
+      } else if (rIdx === 3 || rIdx === 4) {
+        wsRows.push({ hpt: 28 });
+      } else if (rIdx === 5) {
+        wsRows.push({ hpt: 32 });
+      } else if (rIdx >= 6 && rIdx < subtotalRowNum) {
+        const it = activeItems[rIdx - 6];
+        const longestText = Math.max(
+          (it?.description || '').length,
+          (it?.totalWithVatInWords || '').length
+        );
+        const hpt = longestText > 95 ? 42 : longestText > 55 ? 32 : 25;
+        wsRows.push({ hpt });
+      } else if (rIdx === subtotalRowNum || rIdx === rGrand) {
+        wsRows.push({ hpt: 30 });
+      } else {
+        wsRows.push({ hpt: 25 });
+      }
+    }
+    ws['!rows'] = wsRows;
 
     return ws;
   }
@@ -708,42 +766,61 @@ export class RealBoqEngine {
 
     ws['!ref'] = `A1:G${totalRow}`;
     ws['!sheetViews'] = [{ rightToLeft: true }];
+    const maxEstNameLen = establishments.reduce(
+      (m, e) => Math.max(m, (e.name || '').length + 10),
+      44
+    );
     ws['!cols'] = [
-      { wch: 4 },  // A
-      { wch: 42 }, // B: المؤسسات
-      { wch: 16 }, // C: انتهاء اليوم
-      { wch: 18 }, // D: انتهاء بعد اليوم
-      { wch: 16 }, // E: الإجمالي
-      { wch: 20 }, // F: عدد الكراسات
-      { wch: 28 }, // G: إجمالي القيمة
+      { wch: 4 },                                // A
+      { wch: Math.min(62, maxEstNameLen) },      // B: المؤسسات
+      { wch: 18 },                               // C: انتهاء اليوم
+      { wch: 20 },                               // D: انتهاء بعد اليوم
+      { wch: 18 },                               // E: الإجمالي
+      { wch: 22 },                               // F: عدد الكراسات
+      { wch: 32 },                               // G: إجمالي القيمة
     ];
+    ws['!rows'] = Array.from({ length: totalRow }, (_, idx) =>
+      idx === 0 ? { hpt: 30 } : idx === totalRow - 1 ? { hpt: 28 } : { hpt: 25 }
+    );
 
     return ws;
   }
 
   /**
    * Generates a single-tender Excel workbook with live formulas & المؤسسات summary sheet
+   * styled automatically to match the active ERP theme (Corporate Color / Monochrome / Entity Accent).
    */
   public static exportToExcelWithFormulas(
     tender: TenderRecord,
     items: BOQItem[],
-    establishments?: KasEstablishmentRow[]
+    establishments?: KasEstablishmentRow[],
+    themeOptions?: ExcelThemeOptions
   ): Uint8Array {
     const workbook = XLSX.utils.book_new();
     workbook.Workbook = { Views: [{ RTL: true }] };
 
+    const activeItems = (items && items.length > 0 ? items : tender.items || []).filter(
+      (it) => it.description || it.quantity > 0 || it.unitPrice > 0
+    );
+    const subRow = 6 + Math.max(activeItems.length, 1);
+
     const boqSheet = this.buildKasBoqWorksheet(tender, items);
     const safeSheetName = (tender.sheetName || `الجدول_${tender.referenceNumber || '1'}`).slice(0, 31);
     XLSX.utils.book_append_sheet(workbook, boqSheet, safeSheetName);
+
+    const sheetMeta: BoqStyledSheetMeta[] = [
+      { kind: 'boq', subtotalRowNum: subRow, grandTotalRowNum: subRow + 3 },
+    ];
 
     if (establishments && establishments.length > 0) {
       const estSheet = this.buildEstablishmentsWorksheet(establishments, [
         { ...tender, items },
       ]);
       XLSX.utils.book_append_sheet(workbook, estSheet, 'المؤسسات');
+      sheetMeta.push({ kind: 'establishments', totalsRowNum: establishments.length + 2 });
     }
 
-    return XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    return applyThemedBoqWorkbookStyles(workbook, sheetMeta, themeOptions);
   }
 
   /**
@@ -751,13 +828,16 @@ export class RealBoqEngine {
    * - Sheet 1: `الجدول` (Blank editable template with formulas)
    * - Sheet 2: `المؤسسات` (Establishments table with live `=C+D` & `=SUM` formulas)
    * - Sheets 3..N: `الجدول (N)` for each tender with live formulas
+   * All worksheets automatically adhere to the active ERP theme (Corporate Color / Monochrome / Entity Accent).
    */
   public static exportKasMultiSheetWorkbookWithFormulas(
     establishments: KasEstablishmentRow[],
-    tenders: TenderRecord[]
+    tenders: TenderRecord[],
+    themeOptions?: ExcelThemeOptions
   ): Uint8Array {
     const workbook = XLSX.utils.book_new();
     workbook.Workbook = { Views: [{ RTL: true }] };
+    const sheetMeta: BoqStyledSheetMeta[] = [];
 
     // 1. Blank Template Sheet `الجدول`
     const templateTender: TenderRecord = {
@@ -784,6 +864,7 @@ export class RealBoqEngine {
       ),
     };
     XLSX.utils.book_append_sheet(workbook, this.buildKasBoqWorksheet(templateTender), 'الجدول');
+    sheetMeta.push({ kind: 'boq', subtotalRowNum: 11, grandTotalRowNum: 14 });
 
     // 2. Establishments Sheet `المؤسسات`
     XLSX.utils.book_append_sheet(
@@ -791,6 +872,7 @@ export class RealBoqEngine {
       this.buildEstablishmentsWorksheet(establishments, tenders),
       'المؤسسات'
     );
+    sheetMeta.push({ kind: 'establishments', totalsRowNum: establishments.length + 2 });
 
     // 3. Populated Tender Sheets
     const usedNames = new Set<string>(['الجدول', 'المؤسسات']);
@@ -804,14 +886,19 @@ export class RealBoqEngine {
         candidateName = `جدول_${idx + 1}_${suffix++}`.slice(0, 31);
       }
       usedNames.add(candidateName);
+      const activeItems = (tender.items || []).filter(
+        (it) => it.description || it.quantity > 0 || it.unitPrice > 0
+      );
+      const subRow = 6 + Math.max(activeItems.length, 1);
       XLSX.utils.book_append_sheet(
         workbook,
         this.buildKasBoqWorksheet(tender, tender.items),
         candidateName
       );
+      sheetMeta.push({ kind: 'boq', subtotalRowNum: subRow, grandTotalRowNum: subRow + 3 });
     });
 
-    return XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    return applyThemedBoqWorkbookStyles(workbook, sheetMeta, themeOptions);
   }
 
   /**

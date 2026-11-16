@@ -9,8 +9,17 @@ import { BOQItem, KasEstablishmentRow, KasWorkbookMeta, TenderRecord } from '../
 import { erpIndexedStorage } from './storage/erpIndexedStorage';
 import { tafqeet } from './tafqeetService';
 
-const STORAGE_KEY_TENDERS = 'kas_november_boq_tenders_v1';
-const STORAGE_KEY_ESTABLISHMENTS = 'kas_november_establishments_v1';
+const STORAGE_KEY_TENDERS = 'kas_november_boq_tenders_v2';
+const STORAGE_KEY_ESTABLISHMENTS = 'kas_november_establishments_v2';
+
+export const KAS_DEFAULT_ESTABLISHMENT_NAMES: string[] = [
+  'مؤسسة خالد عبدالعزيز السليم للتجارة',
+  'مؤسسة بنايات ذكية للمقاولات',
+  'شركة الاميال للسفر و السياحة',
+  'شركة كاس ميديا للدعاية والاعلان',
+  'شركة كاس تك للاتصالات و تقنية المعلومات',
+  'مؤسسة كاس لتنظيم المعارض والمؤتمرات',
+];
 
 export interface KasWorkbookSystemSnapshot {
   actionLabel: string;
@@ -153,6 +162,41 @@ class KasNovemberWorkbooksService {
 
   public getEstablishments(): KasEstablishmentRow[] {
     return this.establishments;
+  }
+
+  public getEstablishmentNames(): string[] {
+    const dynamicNames = this.establishments.map((e) => e.name.trim()).filter(Boolean);
+    return Array.from(new Set([...dynamicNames, ...KAS_DEFAULT_ESTABLISHMENT_NAMES]));
+  }
+
+  public addEstablishmentByName(rawName: string): KasEstablishmentRow | null {
+    const clean = String(rawName || '').trim();
+    if (!clean) return null;
+    const existing = this.establishments.find(
+      (e) =>
+        e.name.trim() === clean ||
+        (e.aliases && e.aliases.some((a) => a.trim() === clean))
+    );
+    if (existing) return existing;
+    const newRow: KasEstablishmentRow = {
+      id: `est-${Date.now()}`,
+      name: clean,
+      aliases: [clean],
+      endingToday: 0,
+      endingAfterToday: 0,
+      totalTenders: 0,
+      totalValueWithVat: 0,
+    };
+    this.establishments = [...this.establishments, newRow];
+    this.saveEstablishments(this.establishments);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('kas-establishments-updated', {
+          detail: { establishments: this.establishments },
+        })
+      );
+    }
+    return newRow;
   }
 
   public getTenders(): TenderRecord[] {

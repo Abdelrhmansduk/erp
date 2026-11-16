@@ -55,6 +55,9 @@ export interface TenderRecord {
   workbookLabel?: string;
   sourceFileName?: string;
   sheetName?: string;
+  deadlineDate?: string;
+  estimatedBudget?: number;
+  guaranteePct?: number;
 }
 
 export interface KasEstablishmentRow {

@@ -324,6 +324,7 @@ export const TendersBOQPage: React.FC = () => {
   const [newTenderForm, setNewTenderForm] = useState({
     referenceNumber: `2608${Math.floor(10000000 + Math.random() * 90000000)}`,
     title: '',
+    entityName: 'مؤسسة خالد عبدالعزيز السليم للتجارة',
     clientName: '',
     category: 'توريدات حكومية وتجهيزات' as TenderRecord['category'],
     submissionDate: new Date().toISOString().split('T')[0],
@@ -349,6 +350,67 @@ export const TendersBOQPage: React.FC = () => {
 
   // Editing state for active BOQ
   const [currentItems, setCurrentItems] = useState<BOQItem[]>(selectedTender.items);
+  const [showPriceCatalogModal, setShowPriceCatalogModal] = useState(false);
+  const [priceCatalogSearch, setPriceCatalogSearch] = useState('');
+
+  // Feature 1: Smart Historical Item Price Catalog extracted from all KAS BOQ sheets
+  const historicalItemsCatalog = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        description: string;
+        unit: string;
+        unitPrice: number;
+        tenderTitle: string;
+        entityName: string;
+        referenceNumber: string;
+        occurrences: number;
+      }
+    >();
+    for (const t of tendersList) {
+      for (const it of t.items || []) {
+        const desc = String(it.description || '').trim();
+        if (
+          !desc ||
+          desc === 'بند توريد جديد' ||
+          desc === 'بند جديد' ||
+          !(Number(it.unitPrice) > 0)
+        ) {
+          continue;
+        }
+        const key = desc.toLowerCase();
+        const existing = map.get(key);
+        if (existing) {
+          existing.occurrences += 1;
+        } else {
+          map.set(key, {
+            description: desc,
+            unit: it.unit || 'عدد',
+            unitPrice: Number(it.unitPrice),
+            tenderTitle: t.title,
+            entityName: t.entityName,
+            referenceNumber: t.referenceNumber,
+            occurrences: 1,
+          });
+        }
+      }
+    }
+    return Array.from(map.values());
+  }, [tendersList]);
+
+  const filteredCatalogItems = useMemo(() => {
+    const q = priceCatalogSearch.trim().toLowerCase();
+    if (!q) return historicalItemsCatalog.slice(0, 120);
+    return historicalItemsCatalog
+      .filter(
+        (c) =>
+          c.description.toLowerCase().includes(q) ||
+          c.tenderTitle.toLowerCase().includes(q) ||
+          c.entityName.toLowerCase().includes(q) ||
+          c.unit.toLowerCase().includes(q)
+      )
+      .slice(0, 120);
+  }, [historicalItemsCatalog, priceCatalogSearch]);
 
   // Computed KPIs
   const kpis = useMemo(() => computeTenderKPIs(tendersList), [tendersList]);
@@ -807,29 +869,246 @@ export const TendersBOQPage: React.FC = () => {
     });
   };
 
-  // Update inline tender header metadata (E3, M3, E4, E111, E112)
+  // Update inline tender header metadata (E3, M3, E4, E111, E112 & all metadata fields)
   const handleInlineTenderHeaderChange = (
     field:
       | 'entityName'
       | 'referenceNumber'
       | 'title'
       | 'clientName'
+      | 'sheetName'
+      | 'category'
+      | 'submissionDate'
+      | 'deadlineDate'
+      | 'estimatedBudget'
       | 'supplyDuration'
       | 'validityDuration',
-    val: string
+    val: string | number
   ) => {
     pushUndoSnapshot(`تعديل ترويسة الورقة (${selectedTender.sheetName || selectedTender.referenceNumber})`);
     const updatedTender: TenderRecord = {
       ...selectedTender,
-      [field]: val,
+      [field]: field === 'estimatedBudget' ? Number(val) || 0 : val,
       ...(field === 'validityDuration'
-        ? { commitmentDays: parseInt(val, 10) || selectedTender.commitmentDays || 180 }
+        ? { commitmentDays: parseInt(String(val), 10) || selectedTender.commitmentDays || 180 }
         : {}),
     };
     setSelectedTender(updatedTender);
     const nextList = tendersList.map((t) => (t.id === updatedTender.id ? updatedTender : t));
     setTendersList(nextList);
     persistWorkbookState(nextList);
+  };
+
+  // Feature 2: Sync `endingToday` & `endingAfterToday` counts in Establishments table from active tenders
+  const handleSyncEstablishmentsClosingCounts = () => {
+    pushUndoSnapshot('مزامنة عدادات انتهاء اليوم وانتهاء بعد اليوم في جدول المؤسسات');
+    const todayIso = new Date().toISOString().split('T')[0];
+    const updated = establishments.map((est) => {
+      const matching = tendersList.filter(
+        (t) =>
+          t.entityName === est.name ||
+          (est.aliases &&
+            est.aliases.some((a) => t.entityName.includes(a) || a.includes(t.entityName)))
+      );
+      let endingTodayCount = 0;
+      let endingAfterCount = 0;
+      for (const t of matching) {
+        const closeDate = t.deadlineDate || t.submissionDate || '';
+        if (closeDate === todayIso) {
+          endingTodayCount += 1;
+        } else {
+          endingAfterCount += 1;
+        }
+      }
+      return {
+        ...est,
+        endingToday: endingTodayCount,
+        endingAfterToday: endingAfterCount,
+      };
+    });
+    setEstablishments(updated);
+    persistWorkbookState(tendersList, updated);
+    addNotification({
+      title: 'تمت مزامنة عدادات إغلاق المنافسات',
+      message: 'تم حساب وتحديث أعمدة (انتهاء اليوم) و(انتهاء بعد اليوم) و(الإجمالي) في جدول المؤسسات آلياً.',
+      type: 'success',
+    });
+  };
+
+  // Feature 1 helper: Insert an item from the Historical Price Catalog directly into the active BOQ
+  const handleInsertCatalogItem = (catItem: {
+    description: string;
+    unit: string;
+    unitPrice: number;
+  }) => {
+    pushUndoSnapshot(`إدراج بند من بنك الأسعار: ${catItem.description}`);
+    const nextNum = currentItems.length + 1;
+    const price = Number(catItem.unitPrice) || 0;
+    const vat = Number((price * 0.15).toFixed(2));
+    const totalWithVat = Number((price + vat).toFixed(2));
+    const newItem: BOQItem = {
+      id: `item-cat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      itemNumber: nextNum,
+      description: catItem.description,
+      unit: catItem.unit || 'عدد',
+      quantity: 1,
+      unitPrice: price,
+      unitPriceInWords: price > 0 ? tafqeet(price) : 'صفر',
+      totalPrice: price,
+      totalPriceInWords: price > 0 ? tafqeet(price) : 'صفر',
+      vat,
+      totalWithVat,
+      totalWithVatInWords: totalWithVat > 0 ? tafqeet(totalWithVat) : 'صفر',
+    };
+    const updated = [...currentItems, newItem];
+    setCurrentItems(updated);
+    const totals = RealBoqEngine.recalculateTender(updated);
+    const updatedTender: TenderRecord = {
+      ...selectedTender,
+      items: updated,
+      itemsCount: updated.length,
+      ...totals,
+    };
+    setSelectedTender(updatedTender);
+    const nextList = tendersList.map((t) => (t.id === updatedTender.id ? updatedTender : t));
+    setTendersList(nextList);
+    persistWorkbookState(nextList);
+    addNotification({
+      title: 'تم إدراج البند بالسعر المرجعي السابق',
+      message: `تمت إضافة "${catItem.description}" بسعر (${price.toLocaleString('en-US')} ⃁) إلى الكراسة النشطة.`,
+      type: 'success',
+    });
+  };
+
+  // Feature 3 helper: Open Formal Bank Guarantee Request Letter in Preview & Print Studio
+  const handleOpenBankGuaranteeLetter = () => {
+    const gt = Number(selectedTender.grandTotal) || 0;
+    const g1 = Number((gt * 0.01).toFixed(2));
+    const g2 = Number((gt * 0.02).toFixed(2));
+    const g5 = Number((gt * 0.05).toFixed(2));
+    const guaranteeRows = [
+      {
+        itemNumber: 1,
+        description: `ضمان بنكي ابتدائي (1%) — منافسة: ${selectedTender.title} (${selectedTender.referenceNumber})`,
+        unit: 'خطاب ضمان 1%',
+        quantity: 1,
+        unitPrice: g1,
+        unitPriceInWords: g1 > 0 ? tafqeet(g1) : 'صفر',
+        totalPrice: g1,
+        totalPriceInWords: g1 > 0 ? tafqeet(g1) : 'صفر',
+        vat: 0,
+        totalWithVat: g1,
+        totalWithVatInWords: g1 > 0 ? tafqeet(g1) : 'صفر',
+      },
+      {
+        itemNumber: 2,
+        description: `ضمان بنكي ابتدائي (2%) — لصالح: ${selectedTender.clientName || 'الجهة الحكومية'} (${selectedTender.entityName})`,
+        unit: 'خطاب ضمان 2%',
+        quantity: 1,
+        unitPrice: g2,
+        unitPriceInWords: g2 > 0 ? tafqeet(g2) : 'صفر',
+        totalPrice: g2,
+        totalPriceInWords: g2 > 0 ? tafqeet(g2) : 'صفر',
+        vat: 0,
+        totalWithVat: g2,
+        totalWithVatInWords: g2 > 0 ? tafqeet(g2) : 'صفر',
+      },
+      {
+        itemNumber: 3,
+        description: `ضمان بنكي نهائي للتنفيذ (5%) — إجمالي العرض المالي: ${gt.toLocaleString('en-US', { minimumFractionDigits: 2 })} ⃁`,
+        unit: 'خطاب ضمان 5%',
+        quantity: 1,
+        unitPrice: g5,
+        unitPriceInWords: g5 > 0 ? tafqeet(g5) : 'صفر',
+        totalPrice: g5,
+        totalPriceInWords: g5 > 0 ? tafqeet(g5) : 'صفر',
+        vat: 0,
+        totalWithVat: g5,
+        totalWithVatInWords: g5 > 0 ? tafqeet(g5) : 'صفر',
+      },
+    ];
+    handleOpenPreviewStudio(
+      'kas_boq_items',
+      guaranteeRows,
+      `طلب إصدار خطاب ضمان بنكي لمنافسة: ${selectedTender.title} — رقم مرجعي (${selectedTender.referenceNumber}) — ${selectedTender.entityName}`
+    );
+  };
+
+  const handleSaveCurrentEntityToEstablishments = () => {
+    const clean = (selectedTender.entityName || '').trim();
+    if (!clean) return;
+    const alreadyExists = establishments.some(
+      (e) =>
+        e.name.trim() === clean ||
+        (e.aliases && e.aliases.some((a) => a.trim() === clean))
+    );
+    if (alreadyExists) {
+      addNotification({
+        title: 'المؤسسة موجودة في القائمة المنسدلة',
+        message: `"${clean}" مدرجة بالفعل في قائمة المؤسسات.`,
+        type: 'info',
+      });
+      return;
+    }
+    pushUndoSnapshot(`إضافة مؤسسة للقائمة المنسدلة: ${clean}`);
+    const newRow = kasNovemberWorkbooksService.addEstablishmentByName(clean);
+    if (newRow) {
+      const updated = kasNovemberWorkbooksService.getEstablishments();
+      setEstablishments([...updated]);
+      addNotification({
+        title: 'تمت إضافة المؤسسة للقائمة المنسدلة',
+        message: `تم حفظ "${clean}" في جدول المؤسسات والقوائم المنسدلة بالنظام.`,
+        type: 'success',
+      });
+    }
+  };
+
+  const handleQuickPriceAdjust = (mode: number | 'round') => {
+    pushUndoSnapshot(
+      mode === 'round'
+        ? 'تقريب أسعار البنود لأقرب ريال'
+        : `تعديل أسعار البنود بنسبة (${mode > 0 ? `+${mode}%` : `${mode}%`})`
+    );
+    const updated = currentItems.map((it) => {
+      const rawNewPrice =
+        mode === 'round'
+          ? Math.round(it.unitPrice)
+          : Number((it.unitPrice * (1 + mode / 100)).toFixed(2));
+      const newPrice = Math.max(0, rawNewPrice);
+      const totalPrice = Number((it.quantity * newPrice).toFixed(2));
+      const vat = Number((totalPrice * 0.15).toFixed(2));
+      const totalWithVat = Number((totalPrice + vat).toFixed(2));
+      return {
+        ...it,
+        unitPrice: newPrice,
+        unitPriceInWords: newPrice > 0 ? tafqeet(newPrice) : 'صفر',
+        totalPrice,
+        totalPriceInWords: totalPrice > 0 ? tafqeet(totalPrice) : 'صفر',
+        vat,
+        totalWithVat,
+        totalWithVatInWords: totalWithVat > 0 ? tafqeet(totalWithVat) : 'صفر',
+      };
+    });
+    setCurrentItems(updated);
+    const totals = RealBoqEngine.recalculateTender(updated);
+    const updatedTender: TenderRecord = {
+      ...selectedTender,
+      items: updated,
+      itemsCount: updated.length,
+      ...totals,
+    };
+    setSelectedTender(updatedTender);
+    const nextList = tendersList.map((t) => (t.id === updatedTender.id ? updatedTender : t));
+    setTendersList(nextList);
+    persistWorkbookState(nextList);
+    addNotification({
+      title: 'تم تحديث الأسعار والتفقيط آلياً',
+      message:
+        mode === 'round'
+          ? 'تم تقريب جميع أسعار الوحدة لأقرب ريال وإعادة حساب الضريبة والتفقيط.'
+          : `تم تعديل أسعار كافة البنود بنسبة (${mode > 0 ? `+${mode}%` : `${mode}%`}) بنجاح.`,
+      type: 'success',
+    });
   };
 
   // Macro O3 (`الجدول`) & O4 (`النص`) Quick Copy Handlers
@@ -926,7 +1205,17 @@ export const TendersBOQPage: React.FC = () => {
     const updated = [...currentItems];
     const item = { ...updated[index] };
 
-    if (field === 'description') item.description = val;
+    if (field === 'description') {
+      item.description = val;
+      // Auto-suggest historical unit & unitPrice when picking an item from the catalog datalist
+      const matchedCatalog = historicalItemsCatalog.find(
+        (c) => c.description.toLowerCase() === String(val || '').trim().toLowerCase()
+      );
+      if (matchedCatalog && (item.unitPrice === 0 || item.unitPrice === 1000)) {
+        item.unit = matchedCatalog.unit || item.unit;
+        item.unitPrice = matchedCatalog.unitPrice;
+      }
+    }
     if (field === 'unit') item.unit = val;
     if (field === 'quantity') item.quantity = parseFloat(val) || 0;
     if (field === 'unitPrice') item.unitPrice = parseFloat(val) || 0;
@@ -1148,6 +1437,14 @@ export const TendersBOQPage: React.FC = () => {
       totalWithVatInWords: tafqeet(57500),
     };
 
+    const chosenEntity =
+      (newTenderForm.entityName || '').trim() ||
+      (activeEstablishmentFilter !== 'all'
+        ? activeEstablishmentFilter
+        : 'مؤسسة خالد عبدالعزيز السليم للتجارة');
+    kasNovemberWorkbooksService.addEstablishmentByName(chosenEntity);
+    setEstablishments([...kasNovemberWorkbooksService.getEstablishments()]);
+
     const newTender: TenderRecord = {
       id: `TND-${new Date().getFullYear()}-${String(tendersList.length + 1).padStart(3, '0')}`,
       sheetName: `الجدول (${tendersList.length + 1})`,
@@ -1155,10 +1452,7 @@ export const TendersBOQPage: React.FC = () => {
       workbookLabel: 'كراسة جديدة',
       referenceNumber: newTenderForm.referenceNumber,
       title: newTenderForm.title,
-      entityName:
-        activeEstablishmentFilter !== 'all'
-          ? activeEstablishmentFilter
-          : 'مؤسسة خالد عبدالعزيز السليم للتجارة',
+      entityName: chosenEntity,
       clientName: newTenderForm.clientName,
       category: newTenderForm.category,
       status: 'مسودة قيد الدراسة',
@@ -1676,12 +1970,12 @@ export const TendersBOQPage: React.FC = () => {
                 size="sm"
                 archetype="tenders-engineer"
                 status="verified"
-                name="م. أحمد البشير"
-                role="مهندس تسعير المنافسات والمشاريع"
+                name="احمد جمال احمد البشير"
+                role="مسؤول المنافسات"
               />
               <div className="text-right">
-                <div className="text-[11px] font-bold text-[#141414] leading-tight">م. أحمد البشير</div>
-                <div className="text-[10px] text-[#141414] leading-tight">مهندس تسعير معتمد</div>
+                <div className="text-[11px] font-bold text-[#141414] leading-tight">احمد جمال احمد البشير</div>
+                <div className="text-[10px] text-[#141414] leading-tight">مسؤول المنافسات</div>
               </div>
             </div>
             <button
@@ -2028,12 +2322,34 @@ export const TendersBOQPage: React.FC = () => {
           <div className="border border-[#e0e0e0] rounded-2xl overflow-hidden bg-[#ffffff]">
             {/* Row C3:M4 Editable Header Block + O3 (الجدول) & O4 (النص) Macro Buttons */}
             <div className="bg-[#f3f3f3] text-[#141414] border-b border-[#e0e0e0] p-4 space-y-3">
-              {/* Row 3 in Excel: C3 (اسم المؤسسة) | E3 | L3 (رقم مرجعي) | M3 | O3 (الجدول) */}
+              {/* Row 3 in Excel: C3 (اسم المؤسسة — القائمة المنسدلة + تحرير حر) | E3 | L3 (رقم مرجعي) | M3 | O3 & O4 */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
-                <div className="lg:col-span-5 flex items-center gap-2">
+                <div className="lg:col-span-6 flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
                   <span className="text-xs font-extrabold text-[#141414] shrink-0">
                     اسم المؤسسة (E3):
                   </span>
+                  <select
+                    aria-label="القائمة المنسدلة للمؤسسات"
+                    value={
+                      establishments.some((e) => e.name === selectedTender.entityName)
+                        ? selectedTender.entityName
+                        : ''
+                    }
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        handleInlineTenderHeaderChange('entityName', e.target.value);
+                      }
+                    }}
+                    className="px-2.5 py-1.5 rounded-xl bg-[#141414] text-[#ffffff] border border-[#141414] text-xs font-bold outline-none cursor-pointer shrink-0 max-w-[210px]"
+                    title="اختر المؤسسة من القائمة المنسدلة"
+                  >
+                    <option value="">▾ القائمة المنسدلة للمؤسسات ({establishments.length})</option>
+                    {establishments.map((est) => (
+                      <option key={est.id} value={est.name}>
+                        {est.name}
+                      </option>
+                    ))}
+                  </select>
                   <input
                     type="text"
                     list="kas-establishments-datalist"
@@ -2041,9 +2357,18 @@ export const TendersBOQPage: React.FC = () => {
                     onChange={(e) =>
                       handleInlineTenderHeaderChange('entityName', e.target.value)
                     }
+                    placeholder="اكتب أو عدل اسم المؤسسة..."
                     aria-label="اسم المؤسسة"
                     className="w-full px-3 py-1.5 rounded-xl bg-[#ffffff] border border-[#e0e0e0] focus:border-[#141414] text-xs font-bold text-[#141414] outline-none"
                   />
+                  <button
+                    type="button"
+                    onClick={handleSaveCurrentEntityToEstablishments}
+                    className="px-2.5 py-1.5 rounded-xl bg-[#ffffff] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] text-[11px] font-bold shrink-0 cursor-pointer transition-colors"
+                    title="حفظ هذا الاسم في القائمة المنسدلة للمؤسسات"
+                  >
+                    + حفظ بالقائمة
+                  </button>
                   <datalist id="kas-establishments-datalist">
                     {establishments.map((est) => (
                       <option key={est.id} value={est.name} />
@@ -2051,7 +2376,7 @@ export const TendersBOQPage: React.FC = () => {
                   </datalist>
                 </div>
 
-                <div className="lg:col-span-4 flex items-center gap-2">
+                <div className="lg:col-span-3 flex items-center gap-1.5">
                   <span className="text-xs font-extrabold text-[#141414] shrink-0">
                     رقم مرجعي (M3):
                   </span>
@@ -2065,6 +2390,21 @@ export const TendersBOQPage: React.FC = () => {
                     aria-label="الرقم المرجعي للمنافسة"
                     className="w-full px-3 py-1.5 rounded-xl bg-[#ffffff] border border-[#e0e0e0] focus:border-[#141414] text-xs font-mono font-bold text-[#141414] outline-none"
                   />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void navigator.clipboard?.writeText(selectedTender.referenceNumber);
+                      addNotification({
+                        title: 'تم نسخ الرقم المرجعي',
+                        message: `تم نسخ (${selectedTender.referenceNumber}) للحافظة.`,
+                        type: 'success',
+                      });
+                    }}
+                    className="p-1.5 rounded-lg bg-[#ffffff] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] shrink-0 cursor-pointer"
+                    title="نسخ الرقم المرجعي"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                  </button>
                 </div>
 
                 {/* O3 & O4 Macro Quick Copy Triggers matching KAS XLSM */}
@@ -2118,6 +2458,166 @@ export const TendersBOQPage: React.FC = () => {
                     })}{' '}
                     ⃁
                   </span>
+                </div>
+              </div>
+
+              {/* Extended Editable Metadata Strip: الجهة الحكومية + اسم الورقة + التصنيف + تاريخ التقديم */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-2 border-t border-[#e0e0e0]">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold text-[#707070] shrink-0">الجهة الحكومية:</span>
+                  <input
+                    type="text"
+                    value={selectedTender.clientName || ''}
+                    onChange={(e) => handleInlineTenderHeaderChange('clientName', e.target.value)}
+                    placeholder="الجهة الحكومية المستفيدة..."
+                    className="w-full px-2.5 py-1 rounded-lg bg-[#ffffff] border border-[#e0e0e0] focus:border-[#141414] text-[11px] font-bold text-[#141414] outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold text-[#707070] shrink-0">اسم الورقة:</span>
+                  <input
+                    type="text"
+                    value={selectedTender.sheetName || ''}
+                    onChange={(e) => handleInlineTenderHeaderChange('sheetName', e.target.value)}
+                    placeholder="مثال: الجدول (85)"
+                    className="w-full px-2.5 py-1 rounded-lg bg-[#ffffff] border border-[#e0e0e0] focus:border-[#141414] text-[11px] font-bold text-[#141414] outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold text-[#707070] shrink-0">التصنيف:</span>
+                  <input
+                    type="text"
+                    value={selectedTender.category || ''}
+                    onChange={(e) => handleInlineTenderHeaderChange('category', e.target.value)}
+                    placeholder="تصنيف المنافسة..."
+                    className="w-full px-2.5 py-1 rounded-lg bg-[#ffffff] border border-[#e0e0e0] focus:border-[#141414] text-[11px] font-bold text-[#141414] outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold text-[#707070] shrink-0">تاريخ التقديم:</span>
+                  <input
+                    type="date"
+                    value={selectedTender.submissionDate || ''}
+                    onChange={(e) => handleInlineTenderHeaderChange('submissionDate', e.target.value)}
+                    className="w-full px-2.5 py-1 rounded-lg bg-[#ffffff] border border-[#e0e0e0] focus:border-[#141414] text-[11px] font-mono font-bold text-[#141414] outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Feature 2, 3 & 4 Strip: Closing Date Sync + Estimated Gov Budget Variance + Live Bank Guarantee Calculator (1% / 2% / 5%) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 pt-2 border-t border-[#e0e0e0] items-center">
+                {/* Feature 2: Deadline & Establishments Sync */}
+                <div className="lg:col-span-4 flex items-center gap-1.5 flex-wrap bg-[#ffffff] px-2.5 py-1.5 rounded-xl border border-[#e0e0e0]">
+                  <span className="text-[11px] font-bold text-[#141414] shrink-0">موعد الإغلاق:</span>
+                  <input
+                    type="date"
+                    value={selectedTender.deadlineDate || selectedTender.submissionDate || ''}
+                    onChange={(e) => handleInlineTenderHeaderChange('deadlineDate', e.target.value)}
+                    className="px-2 py-0.5 rounded-lg bg-[#f3f3f3] border border-[#e0e0e0] text-[11px] font-mono font-bold text-[#141414] outline-none"
+                  />
+                  {[
+                    { label: 'ينتهي اليوم', offsetDays: 0 },
+                    { label: 'غداً', offsetDays: 1 },
+                    { label: '+3 أيام', offsetDays: 3 },
+                  ].map((dBtn) => (
+                    <button
+                      key={dBtn.label}
+                      type="button"
+                      onClick={() => {
+                        const dt = new Date();
+                        dt.setDate(dt.getDate() + dBtn.offsetDays);
+                        handleInlineTenderHeaderChange('deadlineDate', dt.toISOString().split('T')[0]);
+                      }}
+                      className="px-2 py-0.5 rounded-full bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] text-[10px] font-bold cursor-pointer transition-colors"
+                    >
+                      {dBtn.label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={handleSyncEstablishmentsClosingCounts}
+                    className="px-2 py-0.5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-[10px] font-bold cursor-pointer transition-colors"
+                    title="تحديث عدادات انتهاء اليوم وانتهاء بعد اليوم في جدول المؤسسات تلقائياً"
+                  >
+                    مزامنة عدادات المؤسسات
+                  </button>
+                </div>
+
+                {/* Feature 4: Estimated Gov Budget Comparison */}
+                <div className="lg:col-span-4 flex items-center justify-between gap-1.5 flex-wrap bg-[#ffffff] px-2.5 py-1.5 rounded-xl border border-[#e0e0e0]">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-bold text-[#141414] shrink-0">السقف التقديري (⃁):</span>
+                    <input
+                      type="number"
+                      placeholder="الميزانية التقديرية..."
+                      value={selectedTender.estimatedBudget || ''}
+                      onChange={(e) => handleInlineTenderHeaderChange('estimatedBudget', e.target.value)}
+                      className="w-28 px-2 py-0.5 rounded-lg bg-[#f3f3f3] border border-[#e0e0e0] focus:bg-[#ffffff] focus:border-[#141414] text-[11px] font-mono font-bold text-[#141414] outline-none"
+                    />
+                  </div>
+                  {Number(selectedTender.estimatedBudget) > 0 && (
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold font-mono ${
+                        selectedTender.grandTotal <= Number(selectedTender.estimatedBudget)
+                          ? 'bg-[#141414] text-[#ffffff]'
+                          : 'bg-[#f3f3f3] text-[#141414] border border-[#141414]'
+                      }`}
+                    >
+                      {(() => {
+                        const budget = Number(selectedTender.estimatedBudget);
+                        const diffPct = (((selectedTender.grandTotal - budget) / budget) * 100).toFixed(1);
+                        return Number(diffPct) <= 0
+                          ? `الفارق: ${diffPct}% (ضمن السقف ✓)`
+                          : `الفارق: +${diffPct}% (أعلى من السقف)`;
+                      })()}
+                    </span>
+                  )}
+                </div>
+
+                {/* Feature 3: Live Bank Guarantee Calculator (1% / 2% / 5%) + Request Letter */}
+                <div className="lg:col-span-4 flex items-center justify-between gap-1.5 flex-wrap bg-[#ffffff] px-2.5 py-1.5 rounded-xl border border-[#e0e0e0]">
+                  <div className="flex items-center gap-2 flex-wrap text-[10.5px] font-bold text-[#141414]">
+                    <span>
+                      ضمان 1%:{' '}
+                      <strong className="font-mono">
+                        {(selectedTender.grandTotal * 0.01).toLocaleString('en-US', {
+                          maximumFractionDigits: 0,
+                        })}{' '}
+                        ⃁
+                      </strong>
+                    </span>
+                    <span className="text-[#e0e0e0]">|</span>
+                    <span>
+                      2%:{' '}
+                      <strong className="font-mono">
+                        {(selectedTender.grandTotal * 0.02).toLocaleString('en-US', {
+                          maximumFractionDigits: 0,
+                        })}{' '}
+                        ⃁
+                      </strong>
+                    </span>
+                    <span className="text-[#e0e0e0]">|</span>
+                    <span>
+                      نهائي 5%:{' '}
+                      <strong className="font-mono">
+                        {(selectedTender.grandTotal * 0.05).toLocaleString('en-US', {
+                          maximumFractionDigits: 0,
+                        })}{' '}
+                        ⃁
+                      </strong>
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleOpenBankGuaranteeLetter}
+                    className="px-2.5 py-0.5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-[10px] font-bold cursor-pointer transition-colors shrink-0"
+                    title="معاينة وطباعة خطاب طلب إصدار ضمان بنكي (1% / 2% / 5%)"
+                  >
+                    خطاب الضمان البنكي
+                  </button>
                 </div>
               </div>
             </div>
@@ -2175,12 +2675,43 @@ export const TendersBOQPage: React.FC = () => {
 
                 <button
                   type="button"
+                  onClick={() => setShowPriceCatalogModal(true)}
+                  className="bg-[#ffffff] text-[#141414] border border-[#141414] px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-[#141414] hover:text-[#ffffff] flex items-center gap-1 cursor-pointer transition-colors"
+                  title="بحث وإدراج سريع من بنك أسعار البنود السابقة في كراسات كاس"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>بنك أسعار البنود ({historicalItemsCatalog.length})</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setShowMarginModal(true)}
                   className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-[#e0e0e0] flex items-center gap-1 cursor-pointer"
                 >
                   <Percent className="w-3.5 h-3.5" />
                   <span>هامش الربح</span>
                 </button>
+
+                {/* Quick 1-Click Price Adjustment Pills for Tenders Officer */}
+                <div className="inline-flex items-center gap-1 bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl px-2 py-1">
+                  <span className="text-[10.5px] font-bold text-[#707070] ml-0.5">تسعير سريع:</span>
+                  {[
+                    { label: '+5%', val: 5 as const },
+                    { label: '+10%', val: 10 as const },
+                    { label: '-5%', val: -5 as const },
+                    { label: 'تقريب ريال', val: 'round' as const },
+                  ].map((btn) => (
+                    <button
+                      key={btn.label}
+                      type="button"
+                      onClick={() => handleQuickPriceAdjust(btn.val)}
+                      className="px-2 py-0.5 rounded-lg bg-[#ffffff] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] text-[10.5px] font-bold font-mono cursor-pointer transition-colors"
+                      title="تطبيق التعديل السريع على كافة أسعار الوحدة مع إمكانية التراجع"
+                    >
+                      {btn.label}
+                    </button>
+                  ))}
+                </div>
 
                 <button
                   type="button"
@@ -2286,6 +2817,7 @@ export const TendersBOQPage: React.FC = () => {
                       <td className="p-1 border-r border-[#e0e0e0]">
                         <input
                           type="text"
+                          list="kas-items-catalog-datalist"
                           value={item.description}
                           onChange={(e) => handleItemChange(idx, 'description', e.target.value)}
                           className="w-full bg-transparent px-2 py-1 text-xs text-[#141414] font-semibold focus:bg-white focus:outline-[#141414] rounded"
@@ -2294,6 +2826,7 @@ export const TendersBOQPage: React.FC = () => {
                       <td className="p-1 border-r border-[#e0e0e0] text-center">
                         <input
                           type="text"
+                          list="kas-units-datalist"
                           value={item.unit}
                           onChange={(e) => handleItemChange(idx, 'unit', e.target.value)}
                           className="w-full bg-transparent text-center px-1 py-1 text-xs font-semibold focus:bg-white focus:outline-[#141414] rounded"
@@ -2392,37 +2925,97 @@ export const TendersBOQPage: React.FC = () => {
               </table>
             </div>
 
-            {/* Rows 111 & 112: Editable Supply Duration & Offer Validity Terms */}
-            <div className="bg-[#f3f3f3] border-t border-[#e0e0e0] p-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-bold text-[#141414]">
-              <div className="flex items-center gap-2 flex-wrap bg-[#ffffff] p-2.5 rounded-xl border border-[#e0e0e0]">
-                <span>مــــدة الـتـــــوريـــد : خـــــلال (</span>
-                <input
-                  type="text"
-                  value={selectedTender.supplyDuration}
-                  onChange={(e) =>
-                    handleInlineTenderHeaderChange('supplyDuration', e.target.value)
-                  }
-                  aria-label="مدة التوريد"
-                  className="px-2.5 py-1 rounded-lg bg-[#f3f3f3] border border-[#e0e0e0] focus:bg-[#ffffff] focus:border-[#141414] text-xs font-extrabold text-[#141414] w-44 text-center outline-none"
+            {/* Rows 111 & 112: Editable Supply Duration & Offer Validity Terms + Quick Presets */}
+            <datalist id="kas-items-catalog-datalist">
+              {historicalItemsCatalog.slice(0, 150).map((cat) => (
+                <option
+                  key={`${cat.description}-${cat.referenceNumber}`}
+                  value={cat.description}
+                  label={`${cat.unit} — ${cat.unitPrice.toLocaleString('en-US')} ⃁ (${cat.entityName})`}
                 />
-                <span>) مــن تـاريـــخ اســــــتـلام الـتـعـــــمـيـد.</span>
+              ))}
+            </datalist>
+            <datalist id="kas-units-datalist">
+              {[
+                'عدد',
+                'كرتون',
+                'متر',
+                'متر مربع',
+                'متر طولي',
+                'كجم',
+                'لتر',
+                'طقم',
+                'يوم',
+                'شهر',
+                'سنة',
+                'مقطوعية',
+                'علبة',
+                'شدة',
+                'رول',
+                'جهاز',
+                'رحلة',
+              ].map((u) => (
+                <option key={u} value={u} />
+              ))}
+            </datalist>
+            <div className="bg-[#f3f3f3] border-t border-[#e0e0e0] p-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-bold text-[#141414]">
+              <div className="flex items-center justify-between gap-2 flex-wrap bg-[#ffffff] p-2.5 rounded-xl border border-[#e0e0e0]">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span>مــــدة الـتـــــوريـــد : خـــــلال (</span>
+                  <input
+                    type="text"
+                    value={selectedTender.supplyDuration}
+                    onChange={(e) =>
+                      handleInlineTenderHeaderChange('supplyDuration', e.target.value)
+                    }
+                    aria-label="مدة التوريد"
+                    className="px-2.5 py-1 rounded-lg bg-[#f3f3f3] border border-[#e0e0e0] focus:bg-[#ffffff] focus:border-[#141414] text-xs font-extrabold text-[#141414] w-40 text-center outline-none"
+                  />
+                  <span>) مــن اسـتـلام الـتـعـمـيـد.</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {['7 أيام', '15 يوم', '30 يوم', '60 يوم'].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => handleInlineTenderHeaderChange('supplyDuration', preset)}
+                      className="px-2 py-0.5 rounded-full bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] text-[10px] font-bold cursor-pointer transition-colors"
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap bg-[#ffffff] p-2.5 rounded-xl border border-[#e0e0e0]">
-                <span>مــــدة الالــــتزام بـالــــعــرض (</span>
-                <input
-                  type="text"
-                  value={
-                    selectedTender.validityDuration ||
-                    `${selectedTender.commitmentDays || 180} يوم`
-                  }
-                  onChange={(e) =>
-                    handleInlineTenderHeaderChange('validityDuration', e.target.value)
-                  }
-                  aria-label="مدة الالتزام بالعرض"
-                  className="px-2.5 py-1 rounded-lg bg-[#f3f3f3] border border-[#e0e0e0] focus:bg-[#ffffff] focus:border-[#141414] text-xs font-extrabold text-[#141414] w-32 text-center outline-none"
-                />
-                <span>) مــن تـاريـــخ الـتـقـديم على المنافسة.</span>
+              <div className="flex items-center justify-between gap-2 flex-wrap bg-[#ffffff] p-2.5 rounded-xl border border-[#e0e0e0]">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span>مــــدة الالــــتزام بـالــــعــرض (</span>
+                  <input
+                    type="text"
+                    value={
+                      selectedTender.validityDuration ||
+                      `${selectedTender.commitmentDays || 180} يوم`
+                    }
+                    onChange={(e) =>
+                      handleInlineTenderHeaderChange('validityDuration', e.target.value)
+                    }
+                    aria-label="مدة الالتزام بالعرض"
+                    className="px-2.5 py-1 rounded-lg bg-[#f3f3f3] border border-[#e0e0e0] focus:bg-[#ffffff] focus:border-[#141414] text-xs font-extrabold text-[#141414] w-28 text-center outline-none"
+                  />
+                  <span>) مــن تـاريـخ الـتـقـديم.</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {['90 يوم', '180 يوم', '365 يوم'].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => handleInlineTenderHeaderChange('validityDuration', preset)}
+                      className="px-2 py-0.5 rounded-full bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] text-[10px] font-bold cursor-pointer transition-colors"
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -3206,11 +3799,45 @@ export const TendersBOQPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] text-xs text-[#141414] flex items-center justify-between">
-                <div>
-                  <span className="font-bold">الجهة المقدمة:</span> مؤسسة خالد عبدالعزيز السليم للتجارة (كاس)
+              <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] text-xs text-[#141414] space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-[#141414]">
+                    المؤسسة المقدمة للعرض (اختر من القائمة المنسدلة أو اكتب اسماً جديداً):
+                  </label>
+                  <span className="text-[11px] font-mono text-[#141414] font-bold">الضريبة: 15%</span>
                 </div>
-                <span className="text-[11px] font-mono text-[#141414] font-bold">الضريبة: 15%</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <select
+                    value={
+                      establishments.some((e) => e.name === newTenderForm.entityName)
+                        ? newTenderForm.entityName
+                        : ''
+                    }
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setNewTenderForm({ ...newTenderForm, entityName: e.target.value });
+                      }
+                    }}
+                    className="w-full p-2 text-xs bg-[#ffffff] border border-[#e0e0e0] rounded-xl font-bold text-[#141414]"
+                  >
+                    <option value="">— اختر من القائمة المنسدلة للمؤسسات —</option>
+                    {establishments.map((est) => (
+                      <option key={est.id} value={est.name}>
+                        {est.name}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    list="kas-establishments-datalist"
+                    value={newTenderForm.entityName}
+                    onChange={(e) =>
+                      setNewTenderForm({ ...newTenderForm, entityName: e.target.value })
+                    }
+                    placeholder="أو اكتب اسم المؤسسة..."
+                    className="w-full p-2 text-xs bg-[#ffffff] border border-[#e0e0e0] rounded-xl font-bold text-[#141414]"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -3907,6 +4534,44 @@ export const TendersBOQPage: React.FC = () => {
 
             <form onSubmit={handleUpdateTender} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-[#141414] mb-1">
+                    اسم المؤسسة المقدمة للعرض (القائمة المنسدلة للمؤسسات أو تحرير حر)
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <select
+                      value={
+                        establishments.some((e) => e.name === editingTender.entityName)
+                          ? editingTender.entityName
+                          : ''
+                      }
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          setEditingTender({ ...editingTender, entityName: e.target.value });
+                        }
+                      }}
+                      className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl font-bold text-[#141414]"
+                    >
+                      <option value="">— اختر من القائمة المنسدلة للمؤسسات —</option>
+                      {establishments.map((est) => (
+                        <option key={est.id} value={est.name}>
+                          {est.name}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      list="kas-establishments-datalist"
+                      value={editingTender.entityName}
+                      onChange={(e) =>
+                        setEditingTender({ ...editingTender, entityName: e.target.value })
+                      }
+                      placeholder="اسم المؤسسة..."
+                      className="w-full p-2.5 text-xs bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl font-bold text-[#141414]"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-[#141414] mb-1">الرقم المرجعي للمنافسة / منصة اعتماد</label>
                   <input
@@ -4109,6 +4774,102 @@ export const TendersBOQPage: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Modal: Smart Historical Item Price Catalog (بنك أسعار البنود المتكررة) */}
+      {showPriceCatalogModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#141414]/60 backdrop-blur-sm p-4"
+          dir="rtl"
+        >
+          <div className="bg-[#ffffff] rounded-3xl border border-[#e0e0e0] max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="p-5 bg-[#141414] text-[#ffffff] flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Sparkles className="w-5 h-5 text-[#ffffff]" />
+                <div>
+                  <h3 className="text-sm font-bold m-0">
+                    بنك أسعار البنود المرجعية في كراسات كاس ({historicalItemsCatalog.length} بند مسعّر)
+                  </h3>
+                  <p className="text-[11px] text-[#adadad] m-0 mt-0.5">
+                    ابحث في كافة البنود المسعرة سابقاً وأدرجها بضغطة واحدة مع السعر والوحدة والتفقيط التلقائي
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPriceCatalogModal(false)}
+                className="px-3 py-1 rounded-full bg-[#262626] hover:bg-[#707070] text-[#ffffff] text-xs font-bold cursor-pointer"
+              >
+                إغلاق ✕
+              </button>
+            </div>
+
+            <div className="p-4 border-b border-[#e0e0e0] bg-[#f3f3f3] flex items-center gap-3 flex-wrap">
+              <div className="relative flex-1 min-w-[240px]">
+                <Search className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="search"
+                  value={priceCatalogSearch}
+                  onChange={(e) => setPriceCatalogSearch(e.target.value)}
+                  placeholder="ابحث باسم البند أو الكراسة أو المؤسسة..."
+                  className="w-full h-9 pr-10 pl-3 rounded-full bg-[#ffffff] border border-[#e0e0e0] focus:border-[#141414] text-xs font-bold text-[#141414] outline-none"
+                />
+              </div>
+              <span className="text-xs font-bold text-[#707070]">
+                النتائج المعروضة: {filteredCatalogItems.length} بند
+              </span>
+            </div>
+
+            <div className="overflow-y-auto flex-1 p-4">
+              <table className="w-full text-right text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
+                    <th className="p-2.5 border-l border-[#e0e0e0]">وصف البند</th>
+                    <th className="p-2.5 border-l border-[#e0e0e0] text-center w-20">الوحدة</th>
+                    <th className="p-2.5 border-l border-[#e0e0e0] text-center w-28">سعر الوحدة (⃁)</th>
+                    <th className="p-2.5 border-l border-[#e0e0e0]">المؤسسة / المنافسة المرجعية</th>
+                    <th className="p-2.5 text-center w-32">إجراء</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCatalogItems.map((cat, i) => (
+                    <tr
+                      key={`${cat.referenceNumber}-${i}`}
+                      className="border-b border-[#f0f0f0] hover:bg-[#f3f3f3] transition-colors"
+                    >
+                      <td className="p-2.5 border-l border-[#f0f0f0] font-bold text-[#141414]">
+                        {cat.description}
+                      </td>
+                      <td className="p-2.5 border-l border-[#f0f0f0] text-center text-[#707070] font-semibold">
+                        {cat.unit}
+                      </td>
+                      <td className="p-2.5 border-l border-[#f0f0f0] text-center font-mono font-extrabold text-[#141414]">
+                        {cat.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })} ⃁
+                      </td>
+                      <td className="p-2.5 border-l border-[#f0f0f0] text-[11px] text-[#707070]">
+                        <div className="font-bold text-[#141414] truncate max-w-[260px]">
+                          {cat.entityName}
+                        </div>
+                        <div className="truncate max-w-[260px]">
+                          {cat.tenderTitle} ({cat.referenceNumber})
+                        </div>
+                      </td>
+                      <td className="p-2.5 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleInsertCatalogItem(cat)}
+                          className="px-3 py-1 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-[11px] font-bold cursor-pointer transition-colors"
+                        >
+                          + إدراج بالكراسة
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ExportPreviewModal
         isOpen={previewStudioState.isOpen}
         onClose={() =>

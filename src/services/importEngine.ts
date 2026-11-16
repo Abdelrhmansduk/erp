@@ -7,6 +7,7 @@
  */
 import * as XLSX from 'xlsx';
 import { realErpDataStore } from './realErpDataStore';
+import { downloadThemedXlsxWorkbook } from './excelThemeEngine';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -1219,12 +1220,13 @@ export function downloadTemplate(template: ImportTemplate, format: 'xlsx' | 'csv
   // Set column widths
   ws['!cols'] = headers.map(() => ({ wch: 22 }));
 
-  XLSX.utils.book_append_sheet(wb, ws, template.displayName);
-  if (isRunningInTest()) {
-    XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
-  } else {
-    XLSX.writeFile(wb, `قالب_استيراد_${template.displayName.replace(/[\s/\\:]+/g, '_')}.xlsx`);
-  }
+  ws['!sheetViews'] = [{ rightToLeft: true }];
+  wb.Workbook = { Views: [{ RTL: true }] };
+  XLSX.utils.book_append_sheet(wb, ws, template.displayName.slice(0, 31));
+  downloadThemedXlsxWorkbook(
+    wb,
+    `قالب_استيراد_${template.displayName.replace(/[\s/\\:]+/g, '_')}.xlsx`
+  );
 }
 
 /**

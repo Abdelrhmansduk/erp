@@ -187,13 +187,39 @@ export const ROLE_PRESETS = [
 
 export const RolesPermissionsMatrixWidget: React.FC = () => {
   const { addNotification } = useAppStore();
-  const [rows, setRows] = useState<ModulePermissionRow[]>(INITIAL_MODULE_ROWS);
-  const [selectedPreset, setSelectedPreset] = useState<string>('company_admin');
+  const [rows, setRows] = useState<ModulePermissionRow[]>(() => {
+    try {
+      const saved = localStorage.getItem('ERP_IAM_ROLES_MATRIX');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // fallback
+    }
+    return INITIAL_MODULE_ROWS;
+  });
+  const [selectedPreset, setSelectedPreset] = useState<string>(() => {
+    try {
+      return localStorage.getItem('ERP_IAM_ROLES_MATRIX_PRESET') || 'company_admin';
+    } catch {
+      return 'company_admin';
+    }
+  });
   const [isSaving, setIsSaving] = useState(false);
 
+  const persistMatrixRows = (nextRows: ModulePermissionRow[], presetKey = selectedPreset) => {
+    try {
+      localStorage.setItem('ERP_IAM_ROLES_MATRIX', JSON.stringify(nextRows));
+      localStorage.setItem('ERP_IAM_ROLES_MATRIX_PRESET', presetKey);
+    } catch {
+      // ignore
+    }
+  };
+
   const handleToggleAction = (moduleId: string, action: ModuleAction) => {
-    setRows(prev =>
-      prev.map(r => {
+    setRows(prev => {
+      const next = prev.map(r => {
         if (r.moduleId === moduleId) {
           return {
             ...r,
@@ -204,13 +230,15 @@ export const RolesPermissionsMatrixWidget: React.FC = () => {
           };
         }
         return r;
-      })
-    );
+      });
+      persistMatrixRows(next);
+      return next;
+    });
   };
 
   const handleToggleRowAll = (moduleId: string, enable: boolean) => {
-    setRows(prev =>
-      prev.map(r => {
+    setRows(prev => {
+      const next = prev.map(r => {
         if (r.moduleId === moduleId) {
           const newActions = DEFAULT_ACTIONS.reduce((acc, a) => ({
             ...acc,
@@ -219,18 +247,22 @@ export const RolesPermissionsMatrixWidget: React.FC = () => {
           return { ...r, actions: newActions };
         }
         return r;
-      })
-    );
+      });
+      persistMatrixRows(next);
+      return next;
+    });
   };
 
   const handleApplyPreset = (presetId: string) => {
     setSelectedPreset(presetId);
     const preset = ROLE_PRESETS.find(p => p.id === presetId);
     if (preset) {
-      setRows(preset.apply(INITIAL_MODULE_ROWS));
+      const next = preset.apply(INITIAL_MODULE_ROWS);
+      setRows(next);
+      persistMatrixRows(next, presetId);
       addNotification({
         title: 'تطبيق قالب الدور المعتمد',
-        message: `تم تطبيق نمط مصفوفة الصلاحيات المعتمدة لـ (${preset.name}) بنجاح.`,
+        message: `تم تطبيق وحفظ نمط مصفوفة الصلاحيات المعتمدة لـ (${preset.name}) بنجاح.`,
         type: 'success',
       });
     }
@@ -238,15 +270,15 @@ export const RolesPermissionsMatrixWidget: React.FC = () => {
 
   const handleSaveMatrix = () => {
     setIsSaving(true);
+    persistMatrixRows(rows, selectedPreset);
     setTimeout(() => {
-      localStorage.setItem('ERP_IAM_ROLES_MATRIX', JSON.stringify(rows));
       setIsSaving(false);
       addNotification({
         title: 'حفظ مصفوفة الصلاحيات',
         message: 'تم اعتماد وتثبيت مصفوفة الصلاحيات الـ 12 بنجاح وتعميمها على الكيانات.',
         type: 'success',
       });
-    }, 600);
+    }, 300);
   };
 
   const handleExportJSON = () => {

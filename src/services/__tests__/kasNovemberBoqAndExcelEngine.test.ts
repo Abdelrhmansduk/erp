@@ -2,15 +2,21 @@ import { describe, it, expect } from 'vitest';
 import * as XLSX from 'xlsx';
 import { RealBoqEngine } from '../realBoqEngine';
 import { kasNovemberWorkbooksService } from '../kasNovemberWorkbooksService';
-import { SECTION_CONFIGS, resolveConfig } from '../exportService';
+import {
+  SECTION_CONFIGS,
+  resolveConfig,
+  calculateReportKpis,
+  generateExecutiveReportHtml,
+} from '../exportService';
+import { findAllowedKasEmployee } from '../../config/kasAllowedEmails';
 
 describe('KAS November Workbooks, Establishments Tracker & Live Excel Engine', () => {
-  it('loads the 7 KAS establishments and real November tenders from شهر 11 (نسخة 1..4)', () => {
+  it('loads the 6 active KAS establishments and real November tenders from شهر 11 (نسخة 1..4)', () => {
     const establishments = kasNovemberWorkbooksService.getEstablishments();
     const tenders = kasNovemberWorkbooksService.getTenders();
     const workbooks = kasNovemberWorkbooksService.getWorkbooksMeta();
 
-    expect(establishments.length).toBeGreaterThanOrEqual(7);
+    expect(establishments.length).toBeGreaterThanOrEqual(6);
     expect(establishments.map((e) => e.name)).toEqual(
       expect.arrayContaining([
         'مؤسسة بنايات ذكية للمقاولات',
@@ -124,5 +130,82 @@ describe('KAS November Workbooks, Establishments Tracker & Live Excel Engine', (
     expect(estCfg.headers).toContain('المؤسسات');
     expect(estCfg.headers).toContain('انتهاء اليوم');
     expect(estCfg.headers).toContain('انتهاء بعد اليوم');
+  });
+
+  it('sets Ahmed Al-Bashir job title to مسؤول المنافسات and computes non-zero financial KPIs + live A4 inline editing', () => {
+    const bashir = findAllowedKasEmployee('a.albashir.trade@kas.sa');
+    expect(bashir).toBeDefined();
+    expect(bashir?.nameAr).toBe('احمد جمال احمد البشير');
+    expect(bashir?.titleAr).toContain('مسؤول المنافسات');
+
+    const establishments = kasNovemberWorkbooksService.getEstablishments();
+    const estCfg = resolveConfig('kas_establishments_tracker', establishments);
+    const mappedRows = establishments.map((r) => estCfg.dataMapper(r));
+    const kpis = calculateReportKpis(estCfg.headers, mappedRows);
+
+    expect(kpis.hasFinancials).toBe(true);
+    expect(kpis.totalAmount).toBeGreaterThan(100000);
+    expect(kpis.tafqeetAr).toContain('ريال سعودي');
+
+    const previewHtml = generateExecutiveReportHtml(
+      'kas_establishments_tracker',
+      establishments,
+      'جدول متابعة مؤسسات وشركات كاس للمنافسات (المؤسسات)',
+      false,
+      {
+        embedPreview: true,
+        customPreparerName: 'احمد جمال احمد البشير',
+        customPreparerRole: 'مسؤول المنافسات — شركة كاس للتجارة والمنافسات',
+      }
+    );
+    expect(previewHtml).toContain('contenteditable="true"');
+    expect(previewHtml).toContain('مسؤول المنافسات — شركة كاس للتجارة والمنافسات');
+  });
+
+  it('applies active UI theme & entity palette (Corporate Color KAS/Group vs Mobbin Monochrome) and fullCalcOnLoad to BOQ formula workbooks', () => {
+    const tenders = kasNovemberWorkbooksService.getTenders();
+    const establishments = kasNovemberWorkbooksService.getEstablishments();
+    const sampleTender = tenders[0];
+    const decoder = new TextDecoder('utf-8');
+
+    // 1. Corporate Color + KAS Entity Accent
+    const kasColorBuf = RealBoqEngine.exportToExcelWithFormulas(
+      sampleTender,
+      sampleTender.items,
+      establishments,
+      { uiTheme: 'corporate-color', entityCode: 'KAS' }
+    );
+    const kasCfb = XLSX.CFB.read(kasColorBuf, { type: 'array' });
+    const kasStyles = decoder.decode(XLSX.CFB.find(kasCfb, 'Root Entry/xl/styles.xml')!.content as Uint8Array);
+    const kasWbXml = decoder.decode(XLSX.CFB.find(kasCfb, 'Root Entry/xl/workbook.xml')!.content as Uint8Array);
+    const kasSheet1 = decoder.decode(XLSX.CFB.find(kasCfb, 'Root Entry/xl/worksheets/sheet1.xml')!.content as Uint8Array);
+
+    expect(kasStyles).toContain('FFB45309'); // KAS Gold header
+    expect(kasStyles).toContain('FFFFFBEB'); // KAS Soft Banner
+    expect(kasStyles).toContain('FFECFDF5'); // Live Formula highlight fill
+    expect(kasStyles).toContain('FF047857'); // Live Formula Emerald font
+    expect(kasStyles).toContain('\u20C1'); // SAMA Riyal symbol
+    expect(kasWbXml).toContain('fullCalcOnLoad="1"');
+    expect(kasSheet1).toContain('rightToLeft="1"');
+    expect(kasSheet1).toContain('ySplit="5"');
+    expect(kasSheet1).toContain('s="4"'); // Header style
+    expect(kasSheet1).toContain('s="13"'); // Formula style
+
+    // Formulas still parse cleanly
+    const kasParsedWb = XLSX.read(kasColorBuf, { type: 'array', cellFormula: true });
+    expect(kasParsedWb.Sheets[kasParsedWb.SheetNames[0]]['I6']?.f).toBe('F6*G6');
+    expect(kasParsedWb.Sheets['المؤسسات']['E2']?.f).toBe('C2+D2');
+
+    // 2. Mobbin Monochrome
+    const monoBuf = RealBoqEngine.exportKasMultiSheetWorkbookWithFormulas(
+      establishments,
+      tenders.slice(0, 2),
+      { uiTheme: 'monochrome', entityCode: 'KAS' }
+    );
+    const monoCfb = XLSX.CFB.read(monoBuf, { type: 'array' });
+    const monoStyles = decoder.decode(XLSX.CFB.find(monoCfb, 'Root Entry/xl/styles.xml')!.content as Uint8Array);
+    expect(monoStyles).toContain('FF141414');
+    expect(monoStyles).toContain('FFF3F3F3');
+    expect(monoStyles).not.toContain('FFB45309');
   });
 });

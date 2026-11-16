@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { downloadThemedXlsxWorkbook } from './excelThemeEngine';
 import { KasTenderItem, KasKPIStats, KasSheetMeta, SheetCategory } from '../types/kasMonafasat';
 import seedData from '../data/kasMonafasatSeedData.json';
 import { erpIndexedStorage } from './storage/erpIndexedStorage';
@@ -294,7 +295,10 @@ class KasMonafasatService {
     const workbook = XLSX.utils.book_new();
     workbook.Workbook = { Views: [{ RTL: true }] };
     XLSX.utils.book_append_sheet(workbook, worksheet, sheetName.substring(0, 31));
-    XLSX.writeFile(workbook, `KAS_Monafasat_${sheetName}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    downloadThemedXlsxWorkbook(
+      workbook,
+      `KAS_Monafasat_${sheetName}_${new Date().toISOString().split('T')[0]}.xlsx`
+    );
   }
 
   public exportFullWorkbook() {
@@ -325,7 +329,10 @@ class KasMonafasatService {
       XLSX.utils.book_append_sheet(workbook, worksheet, sheetName.substring(0, 31));
     });
 
-    XLSX.writeFile(workbook, `KAS_Monafasat_Master_${new Date().toISOString().split('T')[0]}.xlsx`);
+    downloadThemedXlsxWorkbook(
+      workbook,
+      `KAS_Monafasat_Master_${new Date().toISOString().split('T')[0]}.xlsx`
+    );
   }
 
   public async importFromXLSX(file: File): Promise<{ success: boolean; importedCount: number; message: string }> {

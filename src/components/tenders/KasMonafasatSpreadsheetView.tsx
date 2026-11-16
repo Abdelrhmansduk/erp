@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { KasTenderItem, SheetCategory, KasSheetMeta } from '../../types/kasMonafasat';
 import { kasMonafasatService, KAS_SHEETS_META } from '../../services/kasMonafasatService';
+import { kasNovemberWorkbooksService } from '../../services/kasNovemberWorkbooksService';
 import { generateZatcaQR } from '../../services/zatcaPhase2Service';
 import { useAppStore } from '../../stores/appStore';
 import { tafqeet } from '../../services/tafqeetService';
@@ -1404,20 +1405,39 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
               </div>
 
               <div>
-                <label className="block font-bold text-[#141414] mb-1.5">المؤسسة / الشركة</label>
-                <select
-                  value={formData.company || ''}
-                  onChange={e => setFormData(p => ({ ...p, company: e.target.value }))}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 text-xs font-semibold text-[#141414]"
-                >
-                  <option value="مؤسسة خالد السليم للتجارة">مؤسسة خالد السليم للتجارة (كاس)</option>
-                  <option value="مؤسسة كاس لتنظيم المعارض والمؤتمرات">مؤسسة كاس لتنظيم المعارض والمؤتمرات</option>
-                  <option value="مؤسسة خالد السليم للدعاية والإعلان">مؤسسة خالد السليم للدعاية والإعلان</option>
-                  <option value="مؤسسة بنايات ذكية للمقاولات">مؤسسة بنايات ذكية للمقاولات</option>
-                  <option value="وكالة الأميال للسفر والسياحة">وكالة الأميال للسفر والسياحة</option>
-                  <option value="مؤسسة اللمسة الخارقة للاتصالات والتقنية">مؤسسة اللمسة الخارقة للاتصالات والتقنية</option>
-                  <option value="الادارة الطبية">الادارة الطبية</option>
-                </select>
+                <label className="block font-bold text-[#141414] mb-1.5">المؤسسة / الشركة (القائمة المنسدلة أو تحرير حر)</label>
+                <div className="space-y-1.5">
+                  <select
+                    value={
+                      kasNovemberWorkbooksService
+                        .getEstablishmentNames()
+                        .includes(formData.company || '')
+                        ? formData.company
+                        : ''
+                    }
+                    onChange={e => {
+                      if (e.target.value) {
+                        setFormData(p => ({ ...p, company: e.target.value }));
+                      }
+                    }}
+                    className="w-full px-3 py-2 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 text-xs font-bold text-[#141414]"
+                  >
+                    <option value="">— اختر من القائمة المنسدلة للمؤسسات —</option>
+                    {kasNovemberWorkbooksService.getEstablishmentNames().map((estName) => (
+                      <option key={estName} value={estName}>
+                        {estName}
+                      </option>
+                    ))}
+                    <option value="الادارة الطبية">الادارة الطبية</option>
+                  </select>
+                  <input
+                    type="text"
+                    value={formData.company || ''}
+                    onChange={e => setFormData(p => ({ ...p, company: e.target.value }))}
+                    placeholder="أو اكتب وعدل اسم المؤسسة..."
+                    className="w-full px-3 py-2 rounded-2xl bg-[#ffffff] border border-[#e0e0e0] focus:ring-2 focus:ring-[#141414]/20 text-xs font-semibold text-[#141414]"
+                  />
+                </div>
               </div>
 
               <div>

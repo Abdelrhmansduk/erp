@@ -859,12 +859,12 @@ export const KasEtimadCloudPage: React.FC = () => {
                 size="sm"
                 archetype="tenders-engineer"
                 status="verified"
-                name="م. أحمد البشير"
-                role="رئيس قسم المنافسات واعتماد"
+                name="احمد جمال احمد البشير"
+                role="مسؤول المنافسات"
               />
               <div className="text-right">
-                <div className="text-[11px] font-bold text-[#141414] leading-tight">م. أحمد البشير</div>
-                <div className="text-[10px] text-[#141414] leading-tight">مسؤول سحابة اعتماد</div>
+                <div className="text-[11px] font-bold text-[#141414] leading-tight">احمد جمال احمد البشير</div>
+                <div className="text-[10px] text-[#141414] leading-tight">مسؤول المنافسات</div>
               </div>
             </div>
             {/* Live Task Timer */}

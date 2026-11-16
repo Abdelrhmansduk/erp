@@ -142,12 +142,14 @@ export const ModuleVisibilityManager: React.FC = () => {
   const orgRules = useModuleVisibilityStore((s) => s.orgRules);
   const departmentRules = useModuleVisibilityStore((s) => s.departmentRules);
   const employeeRules = useModuleVisibilityStore((s) => s.employeeRules);
+  const employeeProfileOverrides = useModuleVisibilityStore((s) => s.employeeProfileOverrides);
   const personalRules = useModuleVisibilityStore((s) => s.personalRules);
 
   const setOrgRule = useModuleVisibilityStore((s) => s.setOrgRule);
   const setDepartmentRule = useModuleVisibilityStore((s) => s.setDepartmentRule);
   const setEmployeeRule = useModuleVisibilityStore((s) => s.setEmployeeRule);
   const clearEmployeeRule = useModuleVisibilityStore((s) => s.clearEmployeeRule);
+  const setEmployeeProfileOverride = useModuleVisibilityStore((s) => s.setEmployeeProfileOverride);
   const setPersonalRule = useModuleVisibilityStore((s) => s.setPersonalRule);
   const loadRemoteRules = useModuleVisibilityStore((s) => s.loadRemoteRules);
 
@@ -189,16 +191,17 @@ export const ModuleVisibilityManager: React.FC = () => {
         id: emp.id,
       });
       if (!key) continue;
+      const profOverride = employeeProfileOverrides?.[key];
       map.set(key, {
         key,
         id: emp.id,
         nameAr: emp.nameAr,
         email: emp.email,
         username: emp.username,
-        titleAr: emp.titleAr,
-        companyId: emp.company_id,
-        departmentId: emp.department_id,
-        branch: emp.branch,
+        titleAr: profOverride?.titleAr || emp.titleAr,
+        companyId: profOverride?.companyId || emp.company_id,
+        departmentId: (profOverride?.departmentId as DepartmentId) || emp.department_id,
+        branch: profOverride?.branch || emp.branch,
         defaultTab: emp.defaultTab,
         allowedTabsOverride: emp.allowedTabsOverride,
         extraAllowedDepartments: emp.extraAllowedDepartments,
@@ -214,21 +217,22 @@ export const ModuleVisibilityManager: React.FC = () => {
       if (!rawName) continue;
       const rawDept = String(row.department_id || 'hr').toLowerCase() as DepartmentId;
       const validDept: DepartmentId = CORPORATE_DEPARTMENTS[rawDept] ? rawDept : 'hr';
+      const profOverride = employeeProfileOverrides?.[key];
       map.set(key, {
         key,
         id: rawId || key,
         nameAr: rawName,
         email: rawEmail || `${key}@kas.sa`,
         username: rawEmail ? rawEmail.split('@')[0] : key,
-        titleAr: String(row.job_title || 'موظف'),
-        companyId: String(row.company_id || 'SAF'),
-        departmentId: validDept,
-        branch: String(row.branch || 'الفرع الرئيسي - الرياض'),
+        titleAr: profOverride?.titleAr || String(row.job_title || 'موظف'),
+        companyId: profOverride?.companyId || String(row.company_id || 'SAF'),
+        departmentId: (profOverride?.departmentId as DepartmentId) || validDept,
+        branch: profOverride?.branch || String(row.branch || 'الفرع الرئيسي - الرياض'),
       });
     }
 
     return Array.from(map.values());
-  }, [dynamicHrRows]);
+  }, [dynamicHrRows, employeeProfileOverrides]);
 
   const [selectedEmpKey, setSelectedEmpKey] = useState<string>(() => {
     const hrDefault = allEmployees.find((e) => e.email.toLowerCase() === 'hr@kas.sa');
@@ -536,7 +540,50 @@ export const ModuleVisibilityManager: React.FC = () => {
 
     setDraftHidden(nextHidden);
     setDraftGranted(nextGranted);
-    setStatus(null);
+    const actor = activeUser?.email || activeUser?.username || 'a.salif.dev@kas.sa';
+    if (mode === 'employee' && selectedEmployee) {
+      if (nextHidden.size === 0 && nextGranted.size === 0) {
+        void clearEmployeeRule(selectedEmployee.key);
+      } else {
+        void setEmployeeRule(
+          selectedEmployee.key,
+          {
+            hiddenIds: Array.from(nextHidden),
+            grantedIds: Array.from(nextGranted),
+          },
+          actor
+        );
+      }
+      setStatus({
+        type: 'success',
+        text: `تم الحفظ التلقائي الفوري لتخصيص (${item.title}) للموظف (${selectedEmployee.nameAr}).`,
+      });
+    } else if (mode === 'department') {
+      void setDepartmentRule(
+        selectedDept,
+        {
+          hiddenIds: Array.from(nextHidden),
+          grantedIds: Array.from(nextGranted),
+        },
+        actor
+      );
+      setStatus({
+        type: 'success',
+        text: `تم الحفظ التلقائي الفوري لسياسة القسم (${selectedDept}).`,
+      });
+    } else if (mode === 'org') {
+      void setOrgRule(scope, Array.from(nextHidden), actor);
+      setStatus({
+        type: 'success',
+        text: `تم الحفظ التلقائي الفوري لسياسة الشركة (${scopeLabel(scope)}).`,
+      });
+    } else if (activeUser?.id) {
+      setPersonalRule(activeUser.id, Array.from(nextHidden));
+      setStatus({
+        type: 'success',
+        text: 'تم الحفظ التلقائي الفوري لقائمتك الشخصية.',
+      });
+    }
   };
 
   const query = search.trim().toLowerCase();
@@ -646,19 +693,68 @@ export const ModuleVisibilityManager: React.FC = () => {
     sections.forEach((s) => nextGranted.add(s.id));
     setDraftHidden(new Set());
     setDraftGranted(nextGranted);
-    setStatus(null);
+    if (selectedEmployee) {
+      const actor = activeUser?.email || activeUser?.username || 'a.salif.dev@kas.sa';
+      void setEmployeeRule(
+        selectedEmployee.key,
+        {
+          hiddenIds: [],
+          grantedIds: Array.from(nextGranted),
+        },
+        actor
+      );
+      setStatus({
+        type: 'success',
+        text: `تم منح وإظهار جميع الأقسام وحفظ الصلاحيات فوراً للموظف (${selectedEmployee.nameAr}).`,
+      });
+    }
   };
 
   const handleResetCurrentDraft = () => {
+    const actor = activeUser?.email || activeUser?.username || 'a.salif.dev@kas.sa';
     if (mode === 'department') {
       const defaults = DEFAULT_DEPARTMENT_RULES[selectedDept];
-      setDraftHidden(new Set(defaults?.hiddenIds || []));
-      setDraftGranted(new Set(defaults?.grantedIds || []));
+      const nextHidden = new Set(defaults?.hiddenIds || []);
+      const nextGranted = new Set(defaults?.grantedIds || []);
+      setDraftHidden(nextHidden);
+      setDraftGranted(nextGranted);
+      void setDepartmentRule(
+        selectedDept,
+        {
+          hiddenIds: Array.from(nextHidden),
+          grantedIds: Array.from(nextGranted),
+        },
+        actor
+      );
+      setStatus({
+        type: 'success',
+        text: 'تمت استعادة وحفظ الإعدادات الافتراضية للقسم بنجاح.',
+      });
+    } else if (mode === 'employee' && selectedEmployee) {
+      setDraftHidden(new Set());
+      setDraftGranted(new Set());
+      void clearEmployeeRule(selectedEmployee.key);
+      setStatus({
+        type: 'success',
+        text: `تمت إعادة صلاحيات الموظف (${selectedEmployee.nameAr}) للوضع الافتراضي وحفظها بنجاح.`,
+      });
+    } else if (mode === 'org') {
+      setDraftHidden(new Set());
+      setDraftGranted(new Set());
+      void setOrgRule(scope, [], actor);
+      setStatus({
+        type: 'success',
+        text: `تمت استعادة الإعدادات الافتراضية للشركة (${scopeLabel(scope)}).`,
+      });
     } else {
       setDraftHidden(new Set());
       setDraftGranted(new Set());
+      if (activeUser?.id) setPersonalRule(activeUser.id, []);
+      setStatus({
+        type: 'success',
+        text: 'تمت استعادة قائمتك الشخصية للوضع الافتراضي.',
+      });
     }
-    setStatus(null);
   };
 
   const renderSectionOrLeaf = (
@@ -1044,35 +1140,119 @@ export const ModuleVisibilityManager: React.FC = () => {
             })}
           </div>
 
-          {/* Active Employee Summary Bar + Quick Presets */}
-          <div className="pt-2 border-t border-[#f0f0f0] flex items-center justify-between gap-3 flex-wrap">
-            <div className="text-xs text-[#141414]">
-              الموظف المحدد حالياً:{' '}
-              <strong className="font-bold">{selectedEmployee.nameAr}</strong>{' '}
-              <span className="font-mono text-[11px] text-[#707070]">({selectedEmployee.email})</span>{' '}
-              —{' '}
-              <span className="text-[#707070]">
-                {CORPORATE_DEPARTMENTS[selectedEmployee.departmentId]?.nameAr}
-              </span>
+          {/* Active Employee Summary Bar + Quick Role/Profile Editor + Quick Presets */}
+          <div className="pt-3 border-t border-[#f0f0f0] space-y-2.5">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="text-xs text-[#141414]">
+                الموظف المحدد حالياً:{' '}
+                <strong className="font-bold">{selectedEmployee.nameAr}</strong>{' '}
+                <span className="font-mono text-[11px] text-[#707070]">({selectedEmployee.email})</span>{' '}
+                —{' '}
+                <span className="text-[#707070]">
+                  {selectedEmployee.titleAr} • {CORPORATE_DEPARTMENTS[selectedEmployee.departmentId]?.nameAr}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleGrantAllToSelectedEmployee}
+                  className="h-8 px-3.5 rounded-full border border-[#141414] bg-[#ffffff] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] text-[11px] font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>إظهار جميع الأقسام للموظف</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetCurrentDraft}
+                  className="h-8 px-3.5 rounded-full border border-[#e0e0e0] bg-[#ffffff] hover:bg-[#e0e0e0] text-[#141414] text-[11px] font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>إعادة للوضع الافتراضي لقسمه</span>
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={handleGrantAllToSelectedEmployee}
-                className="h-8 px-3.5 rounded-full border border-[#141414] bg-[#ffffff] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] text-[11px] font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>إظهار جميع الأقسام للموظف</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleResetCurrentDraft}
-                className="h-8 px-3.5 rounded-full border border-[#e0e0e0] bg-[#ffffff] hover:bg-[#e0e0e0] text-[#141414] text-[11px] font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>إعادة للوضع الافتراضي لقسمه</span>
-              </button>
+            {/* Inline Employee Title, Department & Company Override Editor */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-[#f3f3f3] border border-[#e0e0e0] rounded-[16px] p-2.5">
+              <div>
+                <label className="block text-[10px] font-bold text-[#707070] mb-1">
+                  تعديل المسمى الوظيفي للموظف:
+                </label>
+                <input
+                  type="text"
+                  value={selectedEmployee.titleAr}
+                  onChange={(e) => {
+                    const actor = activeUser?.email || 'a.salif.dev@kas.sa';
+                    void setEmployeeProfileOverride(
+                      selectedEmployee.key,
+                      { titleAr: e.target.value },
+                      actor
+                    );
+                    setStatus({
+                      type: 'success',
+                      text: `تم تحديث وحفظ المسمى الوظيفي للموظف (${selectedEmployee.nameAr}) فوراً.`,
+                    });
+                  }}
+                  className="w-full h-8 px-3 rounded-lg border border-[#e0e0e0] bg-[#ffffff] text-xs font-bold text-[#141414]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-[#707070] mb-1">
+                  القسم الإداري التابع له:
+                </label>
+                <select
+                  value={selectedEmployee.departmentId}
+                  onChange={(e) => {
+                    const actor = activeUser?.email || 'a.salif.dev@kas.sa';
+                    void setEmployeeProfileOverride(
+                      selectedEmployee.key,
+                      { departmentId: e.target.value as VisibilityDepartmentId },
+                      actor
+                    );
+                    setStatus({
+                      type: 'success',
+                      text: `تم تحديث وحفظ القسم الإداري للموظف (${selectedEmployee.nameAr}) فوراً.`,
+                    });
+                  }}
+                  className="w-full h-8 px-2.5 rounded-lg border border-[#e0e0e0] bg-[#ffffff] text-xs font-bold text-[#141414]"
+                >
+                  {VISIBILITY_DEPARTMENTS.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.labelAr}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-[#707070] mb-1">
+                  الشركة / الكيان التابع له:
+                </label>
+                <select
+                  value={selectedEmployee.companyId.toUpperCase()}
+                  onChange={(e) => {
+                    const actor = activeUser?.email || 'a.salif.dev@kas.sa';
+                    void setEmployeeProfileOverride(
+                      selectedEmployee.key,
+                      { companyId: e.target.value },
+                      actor
+                    );
+                    setStatus({
+                      type: 'success',
+                      text: `تم تحديث وحفظ الكيان القانوني للموظف (${selectedEmployee.nameAr}) فوراً.`,
+                    });
+                  }}
+                  className="w-full h-8 px-2.5 rounded-lg border border-[#e0e0e0] bg-[#ffffff] text-xs font-bold text-[#141414]"
+                >
+                  {VISIBILITY_SCOPES.map((s) => (
+                    <option key={s} value={s}>
+                      {scopeLabel(s)}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -1188,13 +1368,32 @@ export const ModuleVisibilityManager: React.FC = () => {
                   isCustomHide={draftHidden.has(part.id)}
                   disabled={enforced}
                   onToggle={() => {
-                    setDraftHidden((prev) => {
-                      const next = new Set(prev);
-                      if (next.has(part.id)) next.delete(part.id);
-                      else next.add(part.id);
-                      return next;
+                    const next = new Set(draftHidden);
+                    if (next.has(part.id)) next.delete(part.id);
+                    else next.add(part.id);
+                    setDraftHidden(next);
+                    const actor = activeUser?.email || activeUser?.username || 'a.salif.dev@kas.sa';
+                    if (mode === 'employee' && selectedEmployee) {
+                      void setEmployeeRule(
+                        selectedEmployee.key,
+                        { hiddenIds: Array.from(next), grantedIds: Array.from(draftGranted) },
+                        actor
+                      );
+                    } else if (mode === 'department') {
+                      void setDepartmentRule(
+                        selectedDept,
+                        { hiddenIds: Array.from(next), grantedIds: Array.from(draftGranted) },
+                        actor
+                      );
+                    } else if (mode === 'org') {
+                      void setOrgRule(scope, Array.from(next), actor);
+                    } else if (activeUser?.id) {
+                      setPersonalRule(activeUser.id, Array.from(next));
+                    }
+                    setStatus({
+                      type: 'success',
+                      text: `تم تحديث وحفظ حالة (${part.title}) فوراً.`,
                     });
-                    setStatus(null);
                   }}
                   label={part.title}
                 />
@@ -1232,21 +1431,19 @@ export const ModuleVisibilityManager: React.FC = () => {
         </button>
 
         <div className="flex items-center gap-3">
-          {isDirty && (
-            <span className="text-[11px] font-bold text-[#141414] bg-[#f3f3f3] px-3 py-1 rounded-full border border-[#e0e0e0]">
-              تغييرات غير محفوظة
-            </span>
-          )}
+          <span className="text-[11px] font-bold text-[#141414] bg-[#f3f3f3] px-3 py-1 rounded-full border border-[#e0e0e0]">
+            {isDirty ? 'تغييرات جاهزة للحفظ' : 'الحفظ الفوري مفعّل ومثبّت ✓'}
+          </span>
           <button
             type="button"
             onClick={() => void handleSave()}
-            disabled={!isDirty || saving}
+            disabled={saving}
             className="h-10 px-5 rounded-full bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold inline-flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             <span>
               {mode === 'employee' && selectedEmployee
-                ? `حفظ وتطبيق للموظف (${selectedEmployee.nameAr.split(' ')[0]})`
+                ? `حفظ وتثبيت صلاحيات (${selectedEmployee.nameAr.split(' ')[0]})`
                 : 'حفظ وتطبيق الصلاحيات'}
             </span>
           </button>

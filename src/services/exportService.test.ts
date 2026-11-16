@@ -500,4 +500,64 @@ describe('Executive Export Suite 4.0 & Security Standards', () => {
     expect(printSpy).toHaveBeenCalled();
     openSpy.mockRestore();
   });
+
+  it('switches Excel OpenXML palette dynamically between Corporate Color entities and Monochrome while injecting live SUBTOTAL & cross-sheet KPI formulas', () => {
+    const sampleContracts = [
+      {
+        contract_number: 'SAF-RC-2026-0001',
+        musaned_number: 'MSN-998811',
+        client_name: 'أحمد محمد السديري',
+        client_phone: '0501234567',
+        maid_name: 'Maria Santos',
+        nationality: 'الفلبين',
+        external_office: 'Manila Recruitment Agency',
+        stage: 'سداد الرسوم وتفويض إنجاز',
+        amount: 14500,
+        branch: 'الفرع الرئيسي - الرياض',
+      },
+      {
+        contract_number: 'SAF-RC-2026-0002',
+        musaned_number: 'MSN-998812',
+        client_name: 'فهد عبد الله العتيبي',
+        client_phone: '0559876543',
+        maid_name: 'Siti Rahmah',
+        nationality: 'إندونيسيا',
+        external_office: 'Jakarta Manpower',
+        stage: 'إصدار التأشيرة',
+        amount: 16200,
+        branch: 'فرع جدة',
+      },
+    ];
+
+    const decoder = new TextDecoder('utf-8');
+
+    // Corporate Color with SAF entity accent
+    const { buffer: safColorBuf } = buildStyledExcelBuffer('contracts', sampleContracts, 'عقود السفير', {
+      uiTheme: 'corporate-color',
+      entityCode: 'SAF',
+    });
+    const safCfb = XLSX.CFB.read(safColorBuf, { type: 'array' });
+    const safStyles = decoder.decode(XLSX.CFB.find(safCfb, 'Root Entry/xl/styles.xml')!.content as Uint8Array);
+    expect(safStyles).toContain('FF1D4ED8'); // SAF Corporate Blue
+    expect(safStyles).toContain('FFECFDF5'); // Emerald formula highlight
+
+    // Verify live SUBTOTAL(109,...) formula in Sheet 1 totals row & Sheet 2 cross-sheet link
+    const parsedWb = XLSX.read(safColorBuf, { type: 'array', cellFormula: true });
+    const sheet1 = parsedWb.Sheets[parsedWb.SheetNames[0]];
+    const sheet2 = parsedWb.Sheets[parsedWb.SheetNames[1]];
+    expect(sheet1['J10']?.f).toBe('SUBTOTAL(109,J7:J8)');
+    expect(sheet1['L10']?.f).toBe('SUBTOTAL(109,L7:L8)');
+    expect(sheet2['B21']?.f).toBe("'عقود السفير'!L10");
+    expect(sheet2['B22']?.f).toBeTruthy();
+
+    // Monochrome override
+    const { buffer: monoBuf } = buildStyledExcelBuffer('contracts', sampleContracts, 'عقود السفير', {
+      uiTheme: 'monochrome',
+      entityCode: 'SAF',
+    });
+    const monoCfb = XLSX.CFB.read(monoBuf, { type: 'array' });
+    const monoStyles = decoder.decode(XLSX.CFB.find(monoCfb, 'Root Entry/xl/styles.xml')!.content as Uint8Array);
+    expect(monoStyles).toContain('FF141414');
+    expect(monoStyles).not.toContain('FF1D4ED8');
+  });
 });
