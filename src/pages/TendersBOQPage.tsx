@@ -4856,6 +4856,19 @@ export const TendersBOQPage: React.FC = () => {
         data={previewStudioState.data}
         customTitle={previewStudioState.customTitle}
       />
+
+      <KasShareAndExportModal
+        isOpen={kasShareModal.isOpen}
+        onClose={() =>
+          setKasShareModal((prev) => ({ ...prev, isOpen: false }))
+        }
+        initialMode={kasShareModal.mode}
+        initialScope={kasShareModal.scope}
+        tender={selectedTender}
+        items={currentItems}
+        establishments={establishments}
+        allTenders={tendersList}
+      />
     </div>
   );
 };
