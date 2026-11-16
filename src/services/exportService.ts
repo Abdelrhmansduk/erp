@@ -3441,7 +3441,7 @@ export function generateExecutiveReportHtml(
           ${config.headers.map((colHeader, colIdx) => {
             const tot = kpis.columnTotals[colIdx];
             if (colIdx === 0 && tot === null) {
-              return `<td style="padding: 9px; border: 1px solid #E0E0E0; font-size: ${tdFontPx}px; color: #141414; font-weight: 900;">الإجمالي العام المعتمد</td>`;
+              return `<td style="padding: 9px; border: 1px solid #E0E0E0; font-size: ${tdFontPx}px; color: #141414; font-weight: 900;">الإجمالي شامل الضريبة</td>`;
             }
             if (tot !== null) {
               const isCountCol =
@@ -4035,7 +4035,7 @@ export function generateExecutiveReportHtml(
 
         ${kpis.hasFinancials && kpis.totalAmount > 0 ? `
         <div class="kpi-box accent-blue">
-          <div class="label">إجمالي القيمة المالية المعتمدة</div>
+          <div class="label">الإجمالي شامل الضريبة</div>
           <div class="val">\u200E\u20C1 ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
           <div class="note">إجمالي الحركة المالية للكشف</div>
         </div>
@@ -4419,7 +4419,7 @@ export function buildStyledExcelBuffer(
   if (hasTotals) {
     config.headers.forEach((_, colIdx) => {
       if (colIdx === 0 && kpis.columnTotals[colIdx] === null) {
-        totalRow.push('الإجمالي العام المعتمد (Grand Total)');
+        totalRow.push('الإجمالي شامل الضريبة');
       } else if (kpis.columnTotals[colIdx] !== null) {
         totalRow.push(kpis.columnTotals[colIdx]);
       } else {
@@ -5038,7 +5038,7 @@ export function buildCsvContent(
   if (kpis.columnTotals.some(t => t !== null)) {
     const totCells = config.headers.map((_, idx) => {
       const tot = kpis.columnTotals[idx];
-      if (idx === 0 && tot === null) return csvQuoteCell('الإجمالي العام (Total)');
+      if (idx === 0 && tot === null) return csvQuoteCell('الإجمالي شامل الضريبة');
       return tot !== null ? csvQuoteCell(tot) : '""';
     });
     rows.push(totCells.join(','));
@@ -5770,7 +5770,7 @@ export function exportToWord(
         <td style="border: 1px solid #E0E0E0; padding: 8px; text-align: center; color: #141414;">المجموع</td>
         ${config.headers.map((_, colIdx) => {
           const tot = kpis.columnTotals[colIdx];
-          if (colIdx === 0 && tot === null) return `<td style="border: 1px solid #E0E0E0; padding: 8px; color: #141414;">الإجمالي العام المعتمد</td>`;
+          if (colIdx === 0 && tot === null) return `<td style="border: 1px solid #E0E0E0; padding: 8px; color: #141414;">الإجمالي شامل الضريبة</td>`;
           if (tot !== null) return `<td style="border: 1px solid #E0E0E0; padding: 8px; text-align: left; font-family: monospace; color: #141414;">\u200E\u20C1 ${tot.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>`;
           return `<td style="border: 1px solid #E0E0E0; padding: 8px;"></td>`;
         }).join('')}
@@ -5853,7 +5853,7 @@ export function exportToWord(
         </div>
         ${kpis.hasFinancials && kpis.totalAmount > 0 ? `
         <div style="background-color: #F3F3F3; border: 1pt solid #E0E0E0; border-right: 3pt solid #141414; padding: 6px 10px; font-size: 10pt; font-weight: bold; color: #141414; margin-top: 6px;">
-          الإجمالي المالي المعتمد: \u200E\u20C1 ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} — (${kpis.tafqeetAr})
+          الإجمالي شامل الضريبة: \u200E\u20C1 ${kpis.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} — (${kpis.tafqeetAr})
         </div>
         ` : ''}
       </div>
