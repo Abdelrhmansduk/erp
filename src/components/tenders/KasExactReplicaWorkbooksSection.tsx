@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   Plus,
   Copy,
@@ -18,6 +18,10 @@ import {
   FileText,
   Sparkles,
   RefreshCw,
+  MousePointerClick,
+  History,
+  Palette,
+  Paperclip,
 } from 'lucide-react';
 import {
   BOQItem,
@@ -26,8 +30,23 @@ import {
   TenderRecord,
 } from '../../types/tenders';
 import { RealBoqEngine } from '../../services/realBoqEngine';
+import {
+  KasVisualExportTheme,
+  KasExportTargetScope,
+  KasExportFileFormat,
+  buildThemedEstablishmentsHtml,
+  buildThemedBoqTableHtml,
+  executeKasExactExport,
+  selectDomElementAndCopyAsIs,
+  copyBothKasTablesAsIs,
+  handleNativeMouseTableCopyEvent,
+  copyHtmlAndTextToClipboard,
+} from '../../services/kasExactExportAndShareEngine';
+import { kasNovemberWorkbooksService } from '../../services/kasNovemberWorkbooksService';
 import { ExportDropdown } from '../common/ExportDropdown';
 import { ExportPreviewModal } from '../common/ExportPreviewModal';
+import { KasShareAndExportModal } from './KasShareAndExportModal';
+import { KasModificationAuditLogSection } from './KasModificationAuditLogSection';
 import { printSpecificElement } from '../../utils/printManager';
 
 export interface KasExactReplicaWorkbooksSectionProps {
@@ -142,6 +161,10 @@ export const KasExactReplicaWorkbooksSection: React.FC<
   lastSyncTimestamp,
 }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const bothTablesContainerRef = useRef<HTMLDivElement | null>(null);
+  const estTableElementRef = useRef<HTMLTableElement | null>(null);
+  const boqTableElementRef = useRef<HTMLTableElement | null>(null);
+
   const [activeFormulaInfo, setActiveFormulaInfo] = useState<{
     cellRef: string;
     formulaText: string;
@@ -151,6 +174,40 @@ export const KasExactReplicaWorkbooksSection: React.FC<
   });
   const [showExtendedEstCols, setShowExtendedEstCols] = useState<boolean>(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+  const [exportTheme, setExportTheme] = useState<KasVisualExportTheme>('kas-original-xlsm');
+  const [mouseSelectMode, setMouseSelectMode] = useState<boolean>(false);
+  const [isDraggingEstRows, setIsDraggingEstRows] = useState<boolean>(false);
+  const [selectedEstRowRange, setSelectedEstRowRange] = useState<{
+    start: number;
+    end: number;
+  } | null>(null);
+  const [isDraggingBoqRows, setIsDraggingBoqRows] = useState<boolean>(false);
+  const [selectedBoqRowRange, setSelectedBoqRowRange] = useState<{
+    start: number;
+    end: number;
+  } | null>(null);
+  const [mouseContextMenu, setMouseContextMenu] = useState<{
+    x: number;
+    y: number;
+    targetTable: 'establishments' | 'boq' | 'both';
+    rowIndex?: number;
+  } | null>(null);
+
+  const [showAuditLogSection, setShowAuditLogSection] = useState<boolean>(false);
+  const [modLogsState, setModLogsState] = useState(() =>
+    kasNovemberWorkbooksService.getModificationLogs()
+  );
+
+  const [shareModal, setShareModal] = useState<{
+    isOpen: boolean;
+    mode: 'whatsapp' | 'email' | 'export';
+    scope: KasExportTargetScope;
+  }>({
+    isOpen: false,
+    mode: 'whatsapp',
+    scope: 'both',
+  });
+
   const [previewModal, setPreviewModal] = useState<{
     isOpen: boolean;
     sectionKey: string;
@@ -163,11 +220,37 @@ export const KasExactReplicaWorkbooksSection: React.FC<
     title: '',
   });
 
+  useEffect(() => {
+    const unsub = kasNovemberWorkbooksService.subscribe(() => {
+      setModLogsState(kasNovemberWorkbooksService.getModificationLogs());
+    });
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      setIsDraggingEstRows(false);
+      setIsDraggingBoqRows(false);
+    };
+    const handleGlobalClick = () => {
+      setMouseContextMenu(null);
+    };
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    window.addEventListener('click', handleGlobalClick);
+    return () => {
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+      window.removeEventListener('click', handleGlobalClick);
+    };
+  }, []);
+
+  const activeModificationsCount = modLogsState.filter((l) => !l.reverted).length;
+  const revertedModificationsCount = modLogsState.filter((l) => l.reverted).length;
+
   const triggerCopyBanner = (msg: string) => {
     setCopyFeedback(msg);
     setTimeout(() => {
       setCopyFeedback((prev) => (prev === msg ? null : prev));
-    }, 3200);
+    }, 3600);
   };
 
   // Enrich establishments with live tender counts & total value
@@ -238,38 +321,41 @@ export const KasExactReplicaWorkbooksSection: React.FC<
     URL.revokeObjectURL(url);
   };
 
-  // 1. Export Exact Replica Establishments Excel (.xlsx with #4472C4, #F8CBAD, #A9D18E, #00B0F0, #D9E1F2 & =C2+D2)
+  // 1. Export Establishments Excel (.xlsx in selected theme with =C2+D2)
   const handleExportExactEstablishmentsExcel = () => {
-    const buf = RealBoqEngine.exportExactEstablishmentsOnlyExcel(
-      enrichedEstablishments,
-      tendersList
-    );
-    downloadExcelBuffer(
-      buf,
-      `المؤسسات_طبق_الأصل_${new Date().toISOString().slice(0, 10)}.xlsx`
-    );
+    void executeKasExactExport({
+      format: 'xlsx',
+      scope: 'establishments',
+      tender: selectedTender,
+      items: currentItems,
+      establishments: enrichedEstablishments,
+      allTenders: tendersList,
+      theme: exportTheme,
+      hideHoldingGroupBrand: true,
+    });
     triggerCopyBanner(
       'تم تصدير جدول (المؤسسات) بصيغة Excel مطابق للأصل بالملي مع الألوان ومعادلة الإجمالي (=C+D)'
     );
   };
 
-  // 2. Export Exact Replica Current Sheet + المؤسسات (.xlsx with #A9D18E, #00CC00, #006600, #92D050, #00B0F0 & merges)
+  // 2. Export Current Sheet + المؤسسات (.xlsx in selected theme with live formulas)
   const handleExportExactSingleBoqExcel = () => {
-    const buf = RealBoqEngine.exportExactReplicaToExcelWithFormulas(
-      selectedTender,
-      currentItems,
-      enrichedEstablishments
-    );
-    downloadExcelBuffer(
-      buf,
-      `${selectedTender.sheetName || 'الجدول'}_${selectedTender.referenceNumber}_طبق_الأصل.xlsx`
-    );
+    void executeKasExactExport({
+      format: 'xlsx',
+      scope: 'boq',
+      tender: selectedTender,
+      items: currentItems,
+      establishments: enrichedEstablishments,
+      allTenders: tendersList,
+      theme: exportTheme,
+      hideHoldingGroupBrand: true,
+    });
     triggerCopyBanner(
       `تم تصدير ورقة (${selectedTender.sheetName || 'الجدول'}) + ورقة (المؤسسات) بنفس الشكل والهيئة والدمج والمعادلات الأصلية`
     );
   };
 
-  // 3. Export Exact Replica Full Multi-Sheet Workbook (نسخة 1 / 2 / 3 / 4 أو الكل)
+  // 3. Export Full Multi-Sheet Workbook (نسخة 1 / 2 / 3 / 4 أو الكل)
   const handleExportExactFullWorkbookExcel = (targetWbId?: string) => {
     const wbIdToUse = targetWbId ?? activeWorkbookFilter;
     const sheetsToExport = tendersList.filter((t) =>
@@ -279,20 +365,35 @@ export const KasExactReplicaWorkbooksSection: React.FC<
     const fileLabel = wbMeta
       ? wbMeta.fileName.replace(/\.xlsm$/i, '')
       : 'مصنف_شهر11_الشامل';
-    const buf = RealBoqEngine.exportExactReplicaMultiSheetWorkbook(
-      enrichedEstablishments,
-      sheetsToExport.slice(0, 95)
-    );
-    downloadExcelBuffer(buf, `${fileLabel}_طبق_الأصل.xlsx`);
+    if (exportTheme === 'kas-original-xlsm') {
+      const buf = RealBoqEngine.exportExactReplicaMultiSheetWorkbook(
+        enrichedEstablishments,
+        sheetsToExport.slice(0, 95)
+      );
+      downloadExcelBuffer(buf, `${fileLabel}_طبق_الأصل.xlsx`);
+    } else {
+      void executeKasExactExport({
+        format: 'xlsx',
+        scope: 'full_workbook',
+        tender: selectedTender,
+        items: currentItems,
+        establishments: enrichedEstablishments,
+        allTenders: sheetsToExport,
+        theme: exportTheme,
+        hideHoldingGroupBrand: true,
+      });
+    }
     triggerCopyBanner(
       `تم تصدير المصنف (${fileLabel}) شاملاً ورقة القالب (الجدول) + (المؤسسات) + (${sheetsToExport.length}) ورقة بنفس الشكل والهيئة`
     );
   };
 
-  // 4. Copy Establishments Table in Exact Shape & Colors (Rich HTML + TSV)
+  // 4. Copy Establishments Table in Exact Shape & Colors + Visually Highlight with Mouse Selection
   const handleCopyExactEstablishments = async () => {
-    const html = RealBoqEngine.formatExactEstablishmentsHtmlTable(
-      enrichedEstablishments
+    const html = buildThemedEstablishmentsHtml(
+      enrichedEstablishments,
+      exportTheme,
+      { entityName: selectedTender.entityName, hideHoldingGroupBrand: true }
     );
     const header = ['المؤسسات', 'انتهاء اليوم', 'انتهاء بعد اليوم', 'الإجمالى'].join(
       '\t'
@@ -306,25 +407,93 @@ export const KasExactReplicaWorkbooksSection: React.FC<
       );
     });
     const plain = [header, ...rows].join('\n');
-    await RealBoqEngine.copyRichTableToClipboard(html, plain);
+    await selectDomElementAndCopyAsIs(estTableElementRef.current, html, plain);
     triggerCopyBanner(
-      'تم نسخ جدول (المؤسسات) بنفس الشكل والألوان والحدود جاهزاً للصق في Excel أو Word أو Outlook'
+      'تم تحديد ونسخ جدول (المؤسسات) كما هو بالماوس بنفس الشكل والألوان والحدود جاهزاً للصق في Excel أو Word أو الواتساب'
     );
   };
 
-  // 5. Macro O3 (`الجدول`): Copy Full BOQ Table in Exact Shape & Colors (Rich HTML + TSV)
+  // 5. Macro O3 (`الجدول`): Copy Full BOQ Table in Exact Shape & Colors + Visually Highlight with Mouse Selection
   const handleCopyMacroO3Table = async () => {
-    const html = RealBoqEngine.formatExactBoqHtmlTable(
+    const html = buildThemedBoqTableHtml(
       selectedTender,
-      currentItems
+      currentItems,
+      exportTheme,
+      { hideHoldingGroupBrand: true }
     );
     const plain = RealBoqEngine.formatKasTableClipboardText(
       selectedTender,
       currentItems
     );
-    await RealBoqEngine.copyRichTableToClipboard(html, plain);
+    await selectDomElementAndCopyAsIs(boqTableElementRef.current, html, plain);
     triggerCopyBanner(
-      `تم تنفيذ ماكرو الخلية O3 (الجدول): نسخ جدول الكميات (${currentItems.length} بند) بنفس الألوان والهيئة والتفقيط للحافظة`
+      `تم تنفيذ ماكرو الخلية O3 (الجدول): تحديد ونسخ جدول الكميات (${currentItems.length} بند) كما هو بالماوس بنفس الألوان والهيئة والتفقيط`
+    );
+  };
+
+  // 5B. Copy BOTH Tables Together (`المؤسسات` + `الجدول`) as they are with Mouse Selection
+  const handleCopyBothTablesTogether = async (themeOverride?: KasVisualExportTheme) => {
+    const targetTheme = themeOverride || exportTheme;
+    await copyBothKasTablesAsIs({
+      establishments: enrichedEstablishments,
+      tender: selectedTender,
+      items: currentItems,
+      theme: targetTheme,
+      domContainer: bothTablesContainerRef.current,
+    });
+    triggerCopyBanner(
+      `تم تحديد ونسخ الجدولين معاً (جدول المؤسسات + جدول الكميات ${selectedTender.sheetName || 'الجدول'}) كما هما بالماوس بنفس الألوان والحدود والدمج!`
+    );
+  };
+
+  // 5C. Copy Mouse-Dragged Establishments Rows Range
+  const handleCopyDraggedEstRows = async () => {
+    if (!selectedEstRowRange) {
+      await handleCopyExactEstablishments();
+      return;
+    }
+    const minIdx = Math.min(selectedEstRowRange.start, selectedEstRowRange.end);
+    const maxIdx = Math.max(selectedEstRowRange.start, selectedEstRowRange.end);
+    const slicedEsts = enrichedEstablishments.slice(minIdx, maxIdx + 1);
+    const html = buildThemedEstablishmentsHtml(slicedEsts, exportTheme, {
+      entityName: selectedTender.entityName,
+      hideHoldingGroupBrand: true,
+    });
+    const header = ['المؤسسات', 'انتهاء اليوم', 'انتهاء بعد اليوم', 'الإجمالى'].join('\t');
+    const rows = slicedEsts.map((e) => {
+      const t = Number(e.endingToday) || 0;
+      const a = Number(e.endingAfterToday) || 0;
+      const s = t + a;
+      return [e.name, t === 0 ? '' : t, a === 0 ? '' : a, s === 0 ? '-' : s].join('\t');
+    });
+    await copyHtmlAndTextToClipboard(html, [header, ...rows].join('\n'));
+    triggerCopyBanner(
+      `تم نسخ (${slicedEsts.length}) صفوف محددة بالماوس من جدول المؤسسات كما هي بألوانها وحدودها!`
+    );
+  };
+
+  // 5D. Copy Mouse-Dragged BOQ Rows Range
+  const handleCopyDraggedBoqRows = async () => {
+    if (!selectedBoqRowRange) {
+      await handleCopyMacroO3Table();
+      return;
+    }
+    const minIdx = Math.min(selectedBoqRowRange.start, selectedBoqRowRange.end);
+    const maxIdx = Math.max(selectedBoqRowRange.start, selectedBoqRowRange.end);
+    const slicedItems = currentItems.slice(minIdx, maxIdx + 1);
+    const html = buildThemedBoqTableHtml(
+      selectedTender,
+      slicedItems,
+      exportTheme,
+      { hideHoldingGroupBrand: true }
+    );
+    const plain = RealBoqEngine.formatKasTableClipboardText(
+      selectedTender,
+      slicedItems
+    );
+    await copyHtmlAndTextToClipboard(html, plain);
+    triggerCopyBanner(
+      `تم نسخ (${slicedItems.length}) بنود محددة بالماوس من جدول الكميات كما هي بألوانها ومعادلاتها!`
     );
   };
 
@@ -346,40 +515,29 @@ export const KasExactReplicaWorkbooksSection: React.FC<
 
   // 7. Print / PDF in Exact Shape & Colors (`المؤسسات` + `الجدول`)
   const handlePrintExactReplica = (mode: 'both' | 'establishments' | 'boq') => {
-    const estHtml =
-      mode === 'both' || mode === 'establishments'
-        ? `<div style="margin-bottom:24px;"><h3 style="font-family:Arial,sans-serif;font-size:15px;font-weight:bold;margin:0 0 8px 0;">ورقة: المؤسسات</h3>${RealBoqEngine.formatExactEstablishmentsHtmlTable(
-            enrichedEstablishments
-          )}</div>`
-        : '';
-    const boqHtml =
-      mode === 'both' || mode === 'boq'
-        ? `<div><h3 style="font-family:Arial,sans-serif;font-size:15px;font-weight:bold;margin:0 0 8px 0;">ورقة: ${
-            selectedTender.sheetName || 'الجدول'
-          } — رقم مرجعي (${
-            selectedTender.referenceNumber
-          })</h3>${RealBoqEngine.formatExactBoqHtmlTable(
-            selectedTender,
-            currentItems
-          )}</div>`
-        : '';
+    void executeKasExactExport({
+      format: 'print',
+      scope: mode,
+      tender: selectedTender,
+      items: currentItems,
+      establishments: enrichedEstablishments,
+      allTenders: tendersList,
+      theme: exportTheme,
+      hideHoldingGroupBrand: true,
+    });
+  };
 
-    const fullHtml = `<div dir="rtl" style="direction:rtl;padding:12px;font-family:Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
-      ${estHtml}
-      ${boqHtml}
-    </div>`;
-    if (typeof document !== 'undefined') {
-      const tempContainer = document.createElement('div');
-      tempContainer.setAttribute('data-printable-card', 'true');
-      tempContainer.setAttribute('data-print-orientation', 'landscape');
-      tempContainer.innerHTML = fullHtml;
-      document.body.appendChild(tempContainer);
-      printSpecificElement(tempContainer);
-      setTimeout(() => {
-        if (tempContainer.parentNode) {
-          tempContainer.parentNode.removeChild(tempContainer);
-        }
-      }, 2500);
+  // 8. Undo-Revert Action (`زر التراجع عن الإرجاع — استعادة الإجراء`)
+  const handleUndoRevertLatest = () => {
+    const restored = kasNovemberWorkbooksService.undoLatestRevertedModification();
+    if (restored) {
+      setModLogsState(kasNovemberWorkbooksService.getModificationLogs());
+      triggerCopyBanner(
+        `تم التراجع عن الإرجاع واستعادة الإجراء: "${restored.actionSummary}" (${restored.actorName})`
+      );
+    } else if (canRedo) {
+      onRedo();
+      triggerCopyBanner('تمت استعادة آخر إجراء متراجع عنه بنجاح');
     }
   };
 
@@ -389,9 +547,23 @@ export const KasExactReplicaWorkbooksSection: React.FC<
 
   return (
     <div
-      className="space-y-5"
+      ref={bothTablesContainerRef}
+      className="space-y-5 select-text"
       dir="rtl"
       data-slot="kas-exact-replica-workbooks-section"
+      onCopy={(e) => {
+        const handled = handleNativeMouseTableCopyEvent(e, {
+          establishments: enrichedEstablishments,
+          tender: selectedTender,
+          items: currentItems,
+          theme: exportTheme,
+        });
+        if (handled) {
+          triggerCopyBanner(
+            'تم نسخ الجزء المحدد بالماوس كما هو بنفس ألوان وحدود وتنسيق الجدول!'
+          );
+        }
+      }}
     >
       {/* =====================================================================
           TOP LIVE BI-DIRECTIONAL SYNC & 4 WORKBOOK COPIES BAR (شهر11 نسخة 1..4)
@@ -425,7 +597,7 @@ export const KasExactReplicaWorkbooksSection: React.FC<
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap" data-no-copy="true">
             {onSwitchToOtherSection && (
               <button
                 type="button"
@@ -442,23 +614,187 @@ export const KasExactReplicaWorkbooksSection: React.FC<
             <button
               type="button"
               onClick={onUndo}
-              disabled={!canUndo}
-              className="px-2.5 py-1.5 rounded-xl bg-[#f3f3f3] hover:bg-[#e0e0e0] disabled:opacity-40 text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center gap-1 cursor-pointer"
+              disabled={!canUndo && activeModificationsCount === 0}
+              style={{
+                backgroundColor: canUndo || activeModificationsCount > 0 ? '#F8CBAD' : '#f3f3f3',
+                color: canUndo || activeModificationsCount > 0 ? '#9C0006' : '#141414',
+              }}
+              className="px-3 py-1.5 rounded-xl disabled:opacity-40 border border-black text-xs font-extrabold flex items-center gap-1 cursor-pointer"
               title="التراجع عن آخر تعديل (Ctrl+Z)"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>تراجع ({undoCount})</span>
+              <span>التراجع عن التعديل ({undoCount || activeModificationsCount})</span>
             </button>
 
             <button
               type="button"
-              onClick={onRedo}
-              disabled={!canRedo}
-              className="px-2.5 py-1.5 rounded-xl bg-[#f3f3f3] hover:bg-[#e0e0e0] disabled:opacity-40 text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center gap-1 cursor-pointer"
-              title="إعادة التعديل (Ctrl+Y)"
+              data-slot="undo-revert-action-btn"
+              onClick={handleUndoRevertLatest}
+              disabled={!canRedo && revertedModificationsCount === 0}
+              style={{
+                backgroundColor:
+                  canRedo || revertedModificationsCount > 0 ? '#00CC00' : '#f3f3f3',
+                color: '#000000',
+              }}
+              className="px-3 py-1.5 rounded-xl disabled:opacity-40 border border-black text-xs font-extrabold flex items-center gap-1 cursor-pointer"
+              title="زر التراجع عن الإرجاع — استعادة الإجراء المتراجع عنه (Redo)"
             >
               <RotateCw className="w-3.5 h-3.5" />
-              <span>إعادة ({redoCount})</span>
+              <span>
+                زر التراجع عن الإجراء ({revertedModificationsCount || redoCount})
+              </span>
+            </button>
+
+            <button
+              type="button"
+              data-slot="toggle-modification-audit-log-btn"
+              onClick={() => setShowAuditLogSection((v) => !v)}
+              style={{
+                backgroundColor: showAuditLogSection ? '#4472C4' : '#D9E1F2',
+                color: showAuditLogSection ? '#FFFFFF' : '#000000',
+              }}
+              className="px-3 py-1.5 rounded-xl border border-black text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
+              title="عرض سجل التعديلات ومن قام بها مع خيار التراجع عن أي تعديل"
+            >
+              <History className="w-3.5 h-3.5" />
+              <span>سجل التعديلات ومن قام بها ({modLogsState.length})</span>
+            </button>
+          </div>
+        </div>
+
+        {/* ===================================================================
+            MOUSE TABLE SELECTION & COPY BAR + THEME SWITCHER + WHATSAPP/EMAIL ATTACHMENTS
+           =================================================================== */}
+        <div
+          data-no-copy="true"
+          className="bg-[#D9E1F2] border-2 border-black rounded-xl p-2.5 flex flex-col xl:flex-row xl:items-center justify-between gap-2.5"
+        >
+          {/* Mouse Copy & Selection Controls */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-xs font-extrabold text-black flex items-center gap-1 ml-1">
+              <MousePointerClick className="w-4 h-4 text-[#006600]" />
+              <span>نسخ الجداول كما هي بالماوس:</span>
+            </span>
+
+            <button
+              type="button"
+              data-slot="mouse-select-mode-toggle-btn"
+              onClick={() => setMouseSelectMode((v) => !v)}
+              style={{
+                backgroundColor: mouseSelectMode ? '#00CC00' : '#FFFFFF',
+                color: '#000000',
+              }}
+              className="px-2.5 py-1.5 rounded-lg border-2 border-black text-xs font-extrabold flex items-center gap-1 cursor-pointer"
+              title="عند تفعيل هذا الوضع يمكنك سحب الماوس بحرية فوق أي خلايا أو صفوف أو الجدول كامل ونسخه كما هو (كليك يمين -> نسخ أو Ctrl+C)"
+            >
+              <MousePointerClick className="w-3.5 h-3.5" />
+              <span>
+                {mouseSelectMode
+                  ? '✓ وضع التحديد والنسخ الحر بالماوس مفعّل (اسحب بالماوس وانسخ)'
+                  : 'تفعيل التحديد الحر بالماوس على الخلايا'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              data-slot="mouse-copy-both-tables-btn"
+              onClick={() => void handleCopyBothTablesTogether()}
+              style={{ backgroundColor: '#00CC00', color: '#000000' }}
+              className="px-3 py-1.5 rounded-lg border border-black text-xs font-extrabold flex items-center gap-1 cursor-pointer hover:opacity-90"
+              title="يحدد الجدولين معاً على الشاشة بالماوس وينسخهما كما هما بألوانهما وحدودهما"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              <span>نسخ الجدولين معاً كما هما بالماوس</span>
+            </button>
+
+            <button
+              type="button"
+              data-slot="mouse-copy-est-table-btn"
+              onClick={() => void handleCopyExactEstablishments()}
+              style={{ backgroundColor: '#4472C4', color: '#FFFFFF' }}
+              className="px-2.5 py-1.5 rounded-lg border border-black text-xs font-extrabold flex items-center gap-1 cursor-pointer hover:opacity-90"
+              title="يحدد جدول المؤسسات بالماوس وينسخه كما هو بألوانه وحدوده"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              <span>نسخ جدول المؤسسات بالماوس</span>
+            </button>
+
+            <button
+              type="button"
+              data-slot="mouse-copy-boq-table-btn"
+              onClick={() => void handleCopyMacroO3Table()}
+              style={{ backgroundColor: '#92D050', color: '#000000' }}
+              className="px-2.5 py-1.5 rounded-lg border border-black text-xs font-extrabold flex items-center gap-1 cursor-pointer hover:opacity-90"
+              title="يحدد جدول الكميات (C3:O112) بالماوس وينسخه كما هو بألوانه ومعادلاته"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              <span>نسخ جدول الكميات بالماوس</span>
+            </button>
+          </div>
+
+          {/* Export Visual Theme Switcher + WhatsApp/Email Attachment Selector */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-xs font-extrabold text-black flex items-center gap-1">
+              <Palette className="w-3.5 h-3.5" />
+              <span>ثيم التصدير:</span>
+            </span>
+            <select
+              aria-label="اختيار ثيم التصدير والنسخ"
+              value={exportTheme}
+              onChange={(e) =>
+                setExportTheme(e.target.value as KasVisualExportTheme)
+              }
+              className="px-2.5 py-1.5 rounded-lg border-2 border-black bg-white text-xs font-extrabold text-black cursor-pointer"
+            >
+              <option value="kas-original-xlsm">
+                1. مطابق للقسم الجديد بالملي (ألوان إكسيل كاس #00CC00 / #A9D18E / #4472C4)
+              </option>
+              <option value="company-corporate">
+                2. ثيم الشركة الرسمي الآخر (هوية الشركة / المؤسسة المختارة)
+              </option>
+              <option value="monochrome">3. الثيم التنفيذي الأحادي (Monochrome)</option>
+            </select>
+
+            <button
+              type="button"
+              data-slot="open-whatsapp-attachments-modal-btn"
+              onClick={() =>
+                setShareModal({ isOpen: true, mode: 'whatsapp', scope: 'both' })
+              }
+              style={{ backgroundColor: '#00CC00', color: '#000000' }}
+              className="px-2.5 py-1.5 rounded-lg border border-black text-xs font-extrabold flex items-center gap-1 cursor-pointer"
+              title="إرسال عبر الواتساب مع تحديد المرفقات وأجزاء النص"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span>واتساب (تحديد المرفقات للنص)</span>
+            </button>
+
+            <button
+              type="button"
+              data-slot="open-email-attachments-modal-btn"
+              onClick={() =>
+                setShareModal({ isOpen: true, mode: 'email', scope: 'both' })
+              }
+              style={{ backgroundColor: '#00B0F0', color: '#000000' }}
+              className="px-2.5 py-1.5 rounded-lg border border-black text-xs font-extrabold flex items-center gap-1 cursor-pointer"
+              title="إرسال عبر البريد الإلكتروني مع تحديد المرفقات وأجزاء النص"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>بريد (تحديد المرفقات للنص)</span>
+            </button>
+
+            <button
+              type="button"
+              data-slot="open-all-formats-exact-modal-btn"
+              onClick={() =>
+                setShareModal({ isOpen: true, mode: 'export', scope: 'both' })
+              }
+              style={{ backgroundColor: '#F8CBAD', color: '#9C0006' }}
+              className="px-2.5 py-1.5 rounded-lg border border-black text-xs font-extrabold flex items-center gap-1 cursor-pointer"
+              title="تصدير بالملي بكافة الصيغ (Excel, PDF, Word, HTML, CSV, JSON, XML) مع المعادلات"
+            >
+              <Paperclip className="w-3.5 h-3.5" />
+              <span>تصدير بالملي بكل الصيغ (12 صيغة)</span>
             </button>
           </div>
         </div>
@@ -609,13 +945,32 @@ export const KasExactReplicaWorkbooksSection: React.FC<
       </div>
 
       {/* =====================================================================
+          DEDICATED MODIFICATION AUDIT LOG & ROLLBACK SECTION (قسم سجل التعديلات ومن قام بها والتراجع عنها)
+         ===================================================================== */}
+      {showAuditLogSection && (
+        <div data-no-copy="true">
+          <KasModificationAuditLogSection
+            onStateRestored={() => {
+              setModLogsState(kasNovemberWorkbooksService.getModificationLogs());
+              triggerCopyBanner(
+                'تم تحديث الجداول في القسمين وفق الإجراء المختار من سجل التعديلات!'
+              );
+            }}
+          />
+        </div>
+      )}
+
+      {/* =====================================================================
           TABLE 1: EXACT REPLICA OF `المؤسسات` SHEET (مطابق للصورة بالملي)
           Columns: المؤسسات (#4472C4) | انتهاء اليوم (#F8CBAD) | انتهاء بعد اليوم (#A9D18E) | الإجمالى (#00B0F0)
           Rows: #D9E1F2 with crisp 1px solid #000000 borders & "-" when zero
          ===================================================================== */}
       <div className="bg-[#ffffff] border-2 border-black rounded-xl overflow-hidden shadow-xs">
         {/* Sheet Header Bar */}
-        <div className="bg-[#e9edf4] border-b border-black px-3.5 py-2 flex items-center justify-between flex-wrap gap-2">
+        <div
+          data-no-copy="true"
+          className="bg-[#e9edf4] border-b border-black px-3.5 py-2 flex items-center justify-between flex-wrap gap-2"
+        >
           <div className="flex items-center gap-2 flex-wrap">
             <span
               className="px-2.5 py-0.5 rounded border border-black text-xs font-extrabold"
@@ -624,11 +979,26 @@ export const KasExactReplicaWorkbooksSection: React.FC<
               ورقة: المؤسسات (الجدول 1)
             </span>
             <span className="text-xs font-bold text-black">
-              مطابق 100% لجدول المؤسسات في إكسيل كاس — انقر على أي خلية للتعديل الفوري (الإجمالى = انتهاء اليوم + انتهاء بعد اليوم)
+              مطابق 100% لجدول المؤسسات في إكسيل كاس — انقر على أي خلية للتعديل الفوري أو حدد بالماوس للنسخ (الإجمالى = انتهاء اليوم + انتهاء بعد اليوم)
             </span>
           </div>
 
           <div className="flex items-center gap-1.5 flex-wrap">
+            {selectedEstRowRange && (
+              <button
+                type="button"
+                onClick={() => void handleCopyDraggedEstRows()}
+                style={{ backgroundColor: '#00CC00', color: '#000000' }}
+                className="px-2.5 py-1 rounded border-2 border-black text-xs font-extrabold flex items-center gap-1 cursor-pointer animate-pulse"
+              >
+                <MousePointerClick className="w-3.5 h-3.5" />
+                <span>
+                  نسخ الصفوف المحددة بالماوس (
+                  {Math.abs(selectedEstRowRange.end - selectedEstRowRange.start) + 1})
+                </span>
+              </button>
+            )}
+
             <button
               type="button"
               data-slot="exact-est-add-btn"
@@ -646,10 +1016,10 @@ export const KasExactReplicaWorkbooksSection: React.FC<
               onClick={handleCopyExactEstablishments}
               className="px-2.5 py-1 rounded border border-black text-xs font-extrabold flex items-center gap-1 cursor-pointer"
               style={{ backgroundColor: '#00B0F0', color: '#000000' }}
-              title="نسخ جدول المؤسسات بنفس الألوان والحدود والهيئة"
+              title="تحديد ونسخ جدول المؤسسات بالماوس بنفس الألوان والحدود والهيئة"
             >
               <Copy className="w-3.5 h-3.5" />
-              <span>نسخ الجدول بنفس الشكل</span>
+              <span>تحديد ونسخ الجدول كما هو بالماوس</span>
             </button>
 
             <button
@@ -661,6 +1031,42 @@ export const KasExactReplicaWorkbooksSection: React.FC<
             >
               <FileSpreadsheet className="w-3.5 h-3.5" />
               <span>تصدير Excel بنفس الهيئة</span>
+            </button>
+
+            <button
+              type="button"
+              data-slot="exact-est-whatsapp-btn"
+              onClick={() =>
+                setShareModal({
+                  isOpen: true,
+                  mode: 'whatsapp',
+                  scope: 'establishments',
+                })
+              }
+              style={{ backgroundColor: '#00CC00', color: '#000000' }}
+              className="px-2.5 py-1 rounded border border-black text-xs font-extrabold flex items-center gap-1 cursor-pointer hover:opacity-90"
+              title="إرسال جدول المؤسسات عبر الواتساب مع تضمين الجدول وإرفاق مستنداته"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span>واتساب (جدول المؤسسات)</span>
+            </button>
+
+            <button
+              type="button"
+              data-slot="exact-est-email-btn"
+              onClick={() =>
+                setShareModal({
+                  isOpen: true,
+                  mode: 'email',
+                  scope: 'establishments',
+                })
+              }
+              style={{ backgroundColor: '#00B0F0', color: '#000000' }}
+              className="px-2.5 py-1 rounded border border-black text-xs font-extrabold flex items-center gap-1 cursor-pointer hover:opacity-90"
+              title="إرسال جدول المؤسسات عبر البريد الإلكتروني مع تضمين الجدول الملون وإرفاق مستنداته"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>بريد (جدول المؤسسات)</span>
             </button>
 
             <button
@@ -693,8 +1099,19 @@ export const KasExactReplicaWorkbooksSection: React.FC<
         </div>
 
         {/* Exact Pixel-Faithful المؤسسات Grid */}
-        <div className="overflow-x-auto p-3 bg-white">
+        <div
+          className="overflow-x-auto p-3 bg-white select-text"
+          onContextMenu={(e) => {
+            e.preventDefault();
+            setMouseContextMenu({
+              x: e.clientX,
+              y: e.clientY,
+              targetTable: 'establishments',
+            });
+          }}
+        >
           <table
+            ref={estTableElementRef}
             dir="rtl"
             data-slot="exact-establishments-table"
             style={{
@@ -703,6 +1120,7 @@ export const KasExactReplicaWorkbooksSection: React.FC<
               maxWidth: showExtendedEstCols ? '100%' : '860px',
               fontFamily: 'Arial, Tahoma, sans-serif',
               border: '1px solid #000000',
+              userSelect: 'text',
             }}
           >
             <thead>
@@ -916,12 +1334,33 @@ export const KasExactReplicaWorkbooksSection: React.FC<
                 const afterVal = Number(est.endingAfterToday) || 0;
                 const rowSum = todayVal + afterVal;
                 const isFiltered = activeEstablishmentFilter === est.name;
+                const isRowMouseSelected =
+                  selectedEstRowRange !== null &&
+                  idx >= Math.min(selectedEstRowRange.start, selectedEstRowRange.end) &&
+                  idx <= Math.max(selectedEstRowRange.start, selectedEstRowRange.end);
 
                 return (
                   <tr
                     key={est.id}
+                    onMouseDown={(e) => {
+                      if (e.button === 0 && (mouseSelectMode || e.shiftKey)) {
+                        setIsDraggingEstRows(true);
+                        setSelectedEstRowRange({ start: idx, end: idx });
+                      }
+                    }}
+                    onMouseEnter={() => {
+                      if (isDraggingEstRows) {
+                        setSelectedEstRowRange((prev) =>
+                          prev ? { ...prev, end: idx } : { start: idx, end: idx }
+                        );
+                      }
+                    }}
                     style={{
-                      backgroundColor: isFiltered ? '#B4C6E7' : '#D9E1F2',
+                      backgroundColor: isRowMouseSelected
+                        ? '#A9D18E'
+                        : isFiltered
+                          ? '#B4C6E7'
+                          : '#D9E1F2',
                       height: '36px',
                     }}
                   >
@@ -934,29 +1373,48 @@ export const KasExactReplicaWorkbooksSection: React.FC<
                       }}
                     >
                       <div className="flex items-center justify-between gap-1 group">
-                        <input
-                          type="text"
-                          value={est.name}
-                          onFocus={() =>
-                            setActiveFormulaInfo({
-                              cellRef: `B${idx + 2}`,
-                              formulaText: est.name,
-                            })
-                          }
-                          onChange={(e) =>
-                            onUpdateEstablishment(idx, 'name', e.target.value)
-                          }
-                          aria-label={`اسم المؤسسة ${idx + 1}`}
-                          style={{
-                            fontSize: '15px',
-                            fontWeight: 700,
-                            color: '#000000',
-                            backgroundColor: 'transparent',
-                            width: '100%',
-                            outline: 'none',
-                          }}
-                        />
-                        <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 shrink-0">
+                        {mouseSelectMode ? (
+                          <span
+                            onDoubleClick={() => setMouseSelectMode(false)}
+                            style={{
+                              fontSize: '15px',
+                              fontWeight: 700,
+                              color: '#000000',
+                              width: '100%',
+                              display: 'inline-block',
+                              userSelect: 'text',
+                            }}
+                          >
+                            {est.name}
+                          </span>
+                        ) : (
+                          <input
+                            type="text"
+                            value={est.name}
+                            onFocus={() =>
+                              setActiveFormulaInfo({
+                                cellRef: `B${idx + 2}`,
+                                formulaText: est.name,
+                              })
+                            }
+                            onChange={(e) =>
+                              onUpdateEstablishment(idx, 'name', e.target.value)
+                            }
+                            aria-label={`اسم المؤسسة ${idx + 1}`}
+                            style={{
+                              fontSize: '15px',
+                              fontWeight: 700,
+                              color: '#000000',
+                              backgroundColor: 'transparent',
+                              width: '100%',
+                              outline: 'none',
+                            }}
+                          />
+                        )}
+                        <div
+                          data-no-copy="true"
+                          className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 shrink-0"
+                        >
                           <button
                             type="button"
                             onClick={() =>
@@ -997,37 +1455,51 @@ export const KasExactReplicaWorkbooksSection: React.FC<
                         textAlign: 'center',
                       }}
                     >
-                      <input
-                        type="number"
-                        min={0}
-                        value={todayVal === 0 ? '' : todayVal}
-                        placeholder=""
-                        onFocus={() =>
-                          setActiveFormulaInfo({
-                            cellRef: `C${idx + 2}`,
-                            formulaText: String(todayVal || ''),
-                          })
-                        }
-                        onChange={(e) =>
-                          onUpdateEstablishment(
-                            idx,
-                            'endingToday',
-                            e.target.value === ''
-                              ? 0
-                              : parseInt(e.target.value, 10) || 0
-                          )
-                        }
-                        aria-label={`انتهاء اليوم - ${est.name}`}
-                        style={{
-                          fontSize: '15px',
-                          fontWeight: 700,
-                          color: '#000000',
-                          backgroundColor: 'transparent',
-                          width: '100%',
-                          textAlign: 'center',
-                          outline: 'none',
-                        }}
-                      />
+                      {mouseSelectMode ? (
+                        <span
+                          onDoubleClick={() => setMouseSelectMode(false)}
+                          style={{
+                            fontSize: '15px',
+                            fontWeight: 700,
+                            color: '#000000',
+                            userSelect: 'text',
+                          }}
+                        >
+                          {todayVal === 0 ? '' : todayVal}
+                        </span>
+                      ) : (
+                        <input
+                          type="number"
+                          min={0}
+                          value={todayVal === 0 ? '' : todayVal}
+                          placeholder=""
+                          onFocus={() =>
+                            setActiveFormulaInfo({
+                              cellRef: `C${idx + 2}`,
+                              formulaText: String(todayVal || ''),
+                            })
+                          }
+                          onChange={(e) =>
+                            onUpdateEstablishment(
+                              idx,
+                              'endingToday',
+                              e.target.value === ''
+                                ? 0
+                                : parseInt(e.target.value, 10) || 0
+                            )
+                          }
+                          aria-label={`انتهاء اليوم - ${est.name}`}
+                          style={{
+                            fontSize: '15px',
+                            fontWeight: 700,
+                            color: '#000000',
+                            backgroundColor: 'transparent',
+                            width: '100%',
+                            textAlign: 'center',
+                            outline: 'none',
+                          }}
+                        />
+                      )}
                     </td>
 
                     {/* Col D: انتهاء بعد اليوم (Blank when 0, exact match to screenshot) */}
@@ -1038,37 +1510,51 @@ export const KasExactReplicaWorkbooksSection: React.FC<
                         textAlign: 'center',
                       }}
                     >
-                      <input
-                        type="number"
-                        min={0}
-                        value={afterVal === 0 ? '' : afterVal}
-                        placeholder=""
-                        onFocus={() =>
-                          setActiveFormulaInfo({
-                            cellRef: `D${idx + 2}`,
-                            formulaText: String(afterVal || ''),
-                          })
-                        }
-                        onChange={(e) =>
-                          onUpdateEstablishment(
-                            idx,
-                            'endingAfterToday',
-                            e.target.value === ''
-                              ? 0
-                              : parseInt(e.target.value, 10) || 0
-                          )
-                        }
-                        aria-label={`انتهاء بعد اليوم - ${est.name}`}
-                        style={{
-                          fontSize: '15px',
-                          fontWeight: 700,
-                          color: '#000000',
-                          backgroundColor: 'transparent',
-                          width: '100%',
-                          textAlign: 'center',
-                          outline: 'none',
-                        }}
-                      />
+                      {mouseSelectMode ? (
+                        <span
+                          onDoubleClick={() => setMouseSelectMode(false)}
+                          style={{
+                            fontSize: '15px',
+                            fontWeight: 700,
+                            color: '#000000',
+                            userSelect: 'text',
+                          }}
+                        >
+                          {afterVal === 0 ? '' : afterVal}
+                        </span>
+                      ) : (
+                        <input
+                          type="number"
+                          min={0}
+                          value={afterVal === 0 ? '' : afterVal}
+                          placeholder=""
+                          onFocus={() =>
+                            setActiveFormulaInfo({
+                              cellRef: `D${idx + 2}`,
+                              formulaText: String(afterVal || ''),
+                            })
+                          }
+                          onChange={(e) =>
+                            onUpdateEstablishment(
+                              idx,
+                              'endingAfterToday',
+                              e.target.value === ''
+                                ? 0
+                                : parseInt(e.target.value, 10) || 0
+                            )
+                          }
+                          aria-label={`انتهاء بعد اليوم - ${est.name}`}
+                          style={{
+                            fontSize: '15px',
+                            fontWeight: 700,
+                            color: '#000000',
+                            backgroundColor: 'transparent',
+                            width: '100%',
+                            textAlign: 'center',
+                            outline: 'none',
+                          }}
+                        />
+                      )}
                     </td>
 
                     {/* Col E: الإجمالى (=C+D, displays "-" when 0 just like screenshot) */}
@@ -1166,7 +1652,10 @@ export const KasExactReplicaWorkbooksSection: React.FC<
          ===================================================================== */}
       <div className="bg-[#ffffff] border-2 border-black rounded-xl overflow-hidden shadow-xs">
         {/* Excel Formula Bar (`fx`) & Active Sheet Actions */}
-        <div className="bg-[#f3f3f3] border-b border-black px-3 py-2 flex flex-col lg:flex-row lg:items-center justify-between gap-2">
+        <div
+          data-no-copy="true"
+          className="bg-[#f3f3f3] border-b border-black px-3 py-2 flex flex-col lg:flex-row lg:items-center justify-between gap-2"
+        >
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <span className="px-2.5 py-1 rounded bg-white border border-black font-mono text-xs font-extrabold text-black shrink-0 min-w-[54px] text-center">
               {activeFormulaInfo.cellRef}
@@ -1185,6 +1674,21 @@ export const KasExactReplicaWorkbooksSection: React.FC<
           </div>
 
           <div className="flex items-center gap-1.5 flex-wrap shrink-0">
+            {selectedBoqRowRange && (
+              <button
+                type="button"
+                onClick={() => void handleCopyDraggedBoqRows()}
+                style={{ backgroundColor: '#00CC00', color: '#000000' }}
+                className="px-2.5 py-1 rounded border-2 border-black text-xs font-extrabold flex items-center gap-1 cursor-pointer animate-pulse"
+              >
+                <MousePointerClick className="w-3.5 h-3.5" />
+                <span>
+                  نسخ البنود المحددة بالماوس (
+                  {Math.abs(selectedBoqRowRange.end - selectedBoqRowRange.start) + 1})
+                </span>
+              </button>
+            )}
+
             <button
               type="button"
               data-slot="exact-boq-add-item-btn"
@@ -1194,6 +1698,17 @@ export const KasExactReplicaWorkbooksSection: React.FC<
             >
               <Plus className="w-3.5 h-3.5" />
               <span>+ إضافة بند بالجدول</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void handleCopyMacroO3Table()}
+              style={{ backgroundColor: '#92D050', color: '#000000' }}
+              className="px-2.5 py-1 rounded border border-black text-xs font-extrabold flex items-center gap-1 cursor-pointer"
+              title="تحديد ونسخ جدول الكميات (C3:O112) بالماوس كما هو بألوانه ومعادلاته"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              <span>تحديد ونسخ الجدول بالماوس</span>
             </button>
 
             <button
@@ -1224,20 +1739,28 @@ export const KasExactReplicaWorkbooksSection: React.FC<
 
             <button
               type="button"
-              onClick={() => onShareActiveBoq('whatsapp')}
-              className="px-2 py-1 rounded border border-black bg-white hover:bg-[#e8e8e8] text-black text-xs font-bold flex items-center gap-1 cursor-pointer"
+              data-slot="exact-boq-whatsapp-btn"
+              onClick={() =>
+                setShareModal({ isOpen: true, mode: 'whatsapp', scope: 'boq' })
+              }
+              className="px-2 py-1 rounded border border-black bg-[#00CC00] hover:opacity-90 text-black text-xs font-extrabold flex items-center gap-1 cursor-pointer"
+              title="إرسال جدول الكميات النشط عبر الواتساب مع تضمين الجدول وإرفاق مستنداته"
             >
-              <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-              <span>واتساب</span>
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span>واتساب (هذا الجدول + مرفقات)</span>
             </button>
 
             <button
               type="button"
-              onClick={() => onShareActiveBoq('email')}
-              className="px-2 py-1 rounded border border-black bg-white hover:bg-[#e8e8e8] text-black text-xs font-bold flex items-center gap-1 cursor-pointer"
+              data-slot="exact-boq-email-btn"
+              onClick={() =>
+                setShareModal({ isOpen: true, mode: 'email', scope: 'boq' })
+              }
+              className="px-2 py-1 rounded border border-black bg-[#00B0F0] hover:opacity-90 text-black text-xs font-extrabold flex items-center gap-1 cursor-pointer"
+              title="إرسال جدول الكميات النشط عبر البريد الإلكتروني مع تضمين الجدول الملون وإرفاق مستنداته"
             >
-              <Mail className="w-3.5 h-3.5 text-sky-600" />
-              <span>بريد</span>
+              <Mail className="w-3.5 h-3.5" />
+              <span>بريد (هذا الجدول + مرفقات)</span>
             </button>
 
             <button
@@ -1267,8 +1790,19 @@ export const KasExactReplicaWorkbooksSection: React.FC<
         </div>
 
         {/* Exact Excel Worksheet Grid (Columns C..O, Rows 3..112) */}
-        <div className="overflow-x-auto bg-white">
+        <div
+          className="overflow-x-auto bg-white select-text"
+          onContextMenu={(e) => {
+            e.preventDefault();
+            setMouseContextMenu({
+              x: e.clientX,
+              y: e.clientY,
+              targetTable: 'boq',
+            });
+          }}
+        >
           <table
+            ref={boqTableElementRef}
             dir="rtl"
             data-slot="exact-boq-excel-grid"
             style={{
@@ -1278,6 +1812,7 @@ export const KasExactReplicaWorkbooksSection: React.FC<
               fontFamily: 'Arial, Tahoma, sans-serif',
               fontSize: '12px',
               color: '#000000',
+              userSelect: 'text',
             }}
           >
             {/* Excel Column Letters Header Row (C .. O) */}
@@ -1706,11 +2241,32 @@ export const KasExactReplicaWorkbooksSection: React.FC<
                  =============================================================== */}
               {currentItems.map((item, idx) => {
                 const excelRow = 6 + idx;
+                const isBoqRowSelected =
+                  selectedBoqRowRange !== null &&
+                  idx >= Math.min(selectedBoqRowRange.start, selectedBoqRowRange.end) &&
+                  idx <= Math.max(selectedBoqRowRange.start, selectedBoqRowRange.end);
+
                 return (
                   <tr
                     key={item.id}
+                    onMouseDown={(e) => {
+                      if (e.button === 0 && (mouseSelectMode || e.shiftKey)) {
+                        setIsDraggingBoqRows(true);
+                        setSelectedBoqRowRange({ start: idx, end: idx });
+                      }
+                    }}
+                    onMouseEnter={() => {
+                      if (isDraggingBoqRows) {
+                        setSelectedBoqRowRange((prev) =>
+                          prev ? { ...prev, end: idx } : { start: idx, end: idx }
+                        );
+                      }
+                    }}
                     className="hover:bg-[#f2f9ee] transition-colors"
-                    style={{ minHeight: '32px' }}
+                    style={{
+                      minHeight: '32px',
+                      backgroundColor: isBoqRowSelected ? '#D9E1F2' : undefined,
+                    }}
                   >
                     {/* Excel Row Number */}
                     <td
@@ -1746,24 +2302,33 @@ export const KasExactReplicaWorkbooksSection: React.FC<
                       style={{
                         border: '1px solid #000000',
                         padding: '2px 4px',
-                        backgroundColor: '#ffffff',
+                        backgroundColor: isBoqRowSelected ? '#D9E1F2' : '#ffffff',
                       }}
                     >
-                      <input
-                        type="text"
-                        value={item.description}
-                        onFocus={() =>
-                          setActiveFormulaInfo({
-                            cellRef: `D${excelRow}`,
-                            formulaText: item.description,
-                          })
-                        }
-                        onChange={(e) =>
-                          onItemChange(idx, 'description', e.target.value)
-                        }
-                        aria-label={`وصف البند ${idx + 1}`}
-                        className="w-full bg-transparent px-1 py-1 text-xs font-bold text-black outline-none focus:bg-[#fffef0]"
-                      />
+                      {mouseSelectMode ? (
+                        <span
+                          onDoubleClick={() => setMouseSelectMode(false)}
+                          className="block px-1 py-1 text-xs font-bold text-black select-text"
+                        >
+                          {item.description}
+                        </span>
+                      ) : (
+                        <input
+                          type="text"
+                          value={item.description}
+                          onFocus={() =>
+                            setActiveFormulaInfo({
+                              cellRef: `D${excelRow}`,
+                              formulaText: item.description,
+                            })
+                          }
+                          onChange={(e) =>
+                            onItemChange(idx, 'description', e.target.value)
+                          }
+                          aria-label={`وصف البند ${idx + 1}`}
+                          className="w-full bg-transparent px-1 py-1 text-xs font-bold text-black outline-none focus:bg-[#fffef0]"
+                        />
+                      )}
                     </td>
 
                     {/* Col E: وحدة القياس */}
@@ -1771,22 +2336,32 @@ export const KasExactReplicaWorkbooksSection: React.FC<
                       style={{
                         border: '1px solid #000000',
                         padding: '2px 4px',
-                        backgroundColor: '#ffffff',
+                        backgroundColor: isBoqRowSelected ? '#D9E1F2' : '#ffffff',
+                        textAlign: 'center',
                       }}
                     >
-                      <input
-                        type="text"
-                        value={item.unit}
-                        onFocus={() =>
-                          setActiveFormulaInfo({
-                            cellRef: `E${excelRow}`,
-                            formulaText: item.unit,
-                          })
-                        }
-                        onChange={(e) => onItemChange(idx, 'unit', e.target.value)}
-                        aria-label={`وحدة القياس ${idx + 1}`}
-                        className="w-full bg-transparent text-center px-1 py-1 text-xs font-bold text-black outline-none focus:bg-[#fffef0]"
-                      />
+                      {mouseSelectMode ? (
+                        <span
+                          onDoubleClick={() => setMouseSelectMode(false)}
+                          className="block px-1 py-1 text-xs font-bold text-black select-text"
+                        >
+                          {item.unit}
+                        </span>
+                      ) : (
+                        <input
+                          type="text"
+                          value={item.unit}
+                          onFocus={() =>
+                            setActiveFormulaInfo({
+                              cellRef: `E${excelRow}`,
+                              formulaText: item.unit,
+                            })
+                          }
+                          onChange={(e) => onItemChange(idx, 'unit', e.target.value)}
+                          aria-label={`وحدة القياس ${idx + 1}`}
+                          className="w-full bg-transparent text-center px-1 py-1 text-xs font-bold text-black outline-none focus:bg-[#fffef0]"
+                        />
+                      )}
                     </td>
 
                     {/* Col F: الكمية */}
@@ -1794,24 +2369,34 @@ export const KasExactReplicaWorkbooksSection: React.FC<
                       style={{
                         border: '1px solid #000000',
                         padding: '2px 4px',
-                        backgroundColor: '#ffffff',
+                        backgroundColor: isBoqRowSelected ? '#D9E1F2' : '#ffffff',
+                        textAlign: 'center',
                       }}
                     >
-                      <input
-                        type="number"
-                        value={item.quantity}
-                        onFocus={() =>
-                          setActiveFormulaInfo({
-                            cellRef: `F${excelRow}`,
-                            formulaText: String(item.quantity),
-                          })
-                        }
-                        onChange={(e) =>
-                          onItemChange(idx, 'quantity', e.target.value)
-                        }
-                        aria-label={`الكمية ${idx + 1}`}
-                        className="w-full bg-transparent text-center px-1 py-1 text-xs font-mono font-extrabold text-black outline-none focus:bg-[#fffef0]"
-                      />
+                      {mouseSelectMode ? (
+                        <span
+                          onDoubleClick={() => setMouseSelectMode(false)}
+                          className="block px-1 py-1 text-xs font-mono font-extrabold text-black select-text"
+                        >
+                          {item.quantity}
+                        </span>
+                      ) : (
+                        <input
+                          type="number"
+                          value={item.quantity}
+                          onFocus={() =>
+                            setActiveFormulaInfo({
+                              cellRef: `F${excelRow}`,
+                              formulaText: String(item.quantity),
+                            })
+                          }
+                          onChange={(e) =>
+                            onItemChange(idx, 'quantity', e.target.value)
+                          }
+                          aria-label={`الكمية ${idx + 1}`}
+                          className="w-full bg-transparent text-center px-1 py-1 text-xs font-mono font-extrabold text-black outline-none focus:bg-[#fffef0]"
+                        />
+                      )}
                     </td>
 
                     {/* Col G: سعر الوحدة */}
@@ -1819,24 +2404,34 @@ export const KasExactReplicaWorkbooksSection: React.FC<
                       style={{
                         border: '1px solid #000000',
                         padding: '2px 4px',
-                        backgroundColor: '#ffffff',
+                        backgroundColor: isBoqRowSelected ? '#D9E1F2' : '#ffffff',
+                        textAlign: 'center',
                       }}
                     >
-                      <input
-                        type="number"
-                        value={item.unitPrice}
-                        onFocus={() =>
-                          setActiveFormulaInfo({
-                            cellRef: `G${excelRow}`,
-                            formulaText: String(item.unitPrice),
-                          })
-                        }
-                        onChange={(e) =>
-                          onItemChange(idx, 'unitPrice', e.target.value)
-                        }
-                        aria-label={`سعر الوحدة ${idx + 1}`}
-                        className="w-full bg-transparent text-center px-1 py-1 text-xs font-mono font-extrabold text-black outline-none focus:bg-[#fffef0]"
-                      />
+                      {mouseSelectMode ? (
+                        <span
+                          onDoubleClick={() => setMouseSelectMode(false)}
+                          className="block px-1 py-1 text-xs font-mono font-extrabold text-black select-text"
+                        >
+                          {item.unitPrice.toFixed(2)}
+                        </span>
+                      ) : (
+                        <input
+                          type="number"
+                          value={item.unitPrice}
+                          onFocus={() =>
+                            setActiveFormulaInfo({
+                              cellRef: `G${excelRow}`,
+                              formulaText: String(item.unitPrice),
+                            })
+                          }
+                          onChange={(e) =>
+                            onItemChange(idx, 'unitPrice', e.target.value)
+                          }
+                          aria-label={`سعر الوحدة ${idx + 1}`}
+                          className="w-full bg-transparent text-center px-1 py-1 text-xs font-mono font-extrabold text-black outline-none focus:bg-[#fffef0]"
+                        />
+                      )}
                     </td>
 
                     {/* Col H: سعر الوحدة كتابة (=AhmedHelmi2(G)) */}
@@ -2624,6 +3219,171 @@ export const KasExactReplicaWorkbooksSection: React.FC<
           </div>
         </div>
       </div>
+
+      {/* Right-Click Mouse Context Menu for Instant Table / Range Copying */}
+      {mouseContextMenu && (
+        <div
+          data-no-copy="true"
+          style={{
+            position: 'fixed',
+            top: Math.min(mouseContextMenu.y, window.innerHeight - 310),
+            left: Math.min(mouseContextMenu.x, window.innerWidth - 320),
+            zIndex: 100080,
+          }}
+          className="bg-white border-2 border-black rounded-xl shadow-2xl p-2 w-[310px] space-y-1 font-sans text-right"
+          dir="rtl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-2.5 py-1 bg-[#4472C4] text-white rounded-lg text-xs font-extrabold flex items-center justify-between border border-black">
+            <span>🖱️ قائمة النسخ والتحكم بالماوس</span>
+            <button
+              type="button"
+              onClick={() => setMouseContextMenu(null)}
+              className="text-white text-xs font-bold cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              void handleCopyExactEstablishments();
+              setMouseContextMenu(null);
+            }}
+            className="w-full px-3 py-1.5 rounded-lg hover:bg-[#D9E1F2] text-xs font-bold text-black flex items-center gap-2 cursor-pointer"
+          >
+            <Copy className="w-3.5 h-3.5 text-[#4472C4]" />
+            <span>نسخ جدول (المؤسسات) كما هو بالماوس</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              void handleCopyMacroO3Table();
+              setMouseContextMenu(null);
+            }}
+            className="w-full px-3 py-1.5 rounded-lg hover:bg-[#A9D18E] text-xs font-bold text-black flex items-center gap-2 cursor-pointer"
+          >
+            <Copy className="w-3.5 h-3.5 text-[#006600]" />
+            <span>نسخ جدول الكميات (C3:O112) كما هو بالماوس</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              void handleCopyBothTablesTogether('kas-original-xlsm');
+              setMouseContextMenu(null);
+            }}
+            className="w-full px-3 py-1.5 rounded-lg bg-[#00CC00]/20 hover:bg-[#00CC00] text-xs font-extrabold text-black flex items-center gap-2 cursor-pointer border border-black/30"
+          >
+            <MousePointerClick className="w-3.5 h-3.5 text-[#006600]" />
+            <span>نسخ الجدولين معاً (المؤسسات + الجدول) كما هما</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              void handleCopyBothTablesTogether('company-corporate');
+              setMouseContextMenu(null);
+            }}
+            className="w-full px-3 py-1.5 rounded-lg hover:bg-[#D9E1F2] text-xs font-bold text-black flex items-center gap-2 cursor-pointer"
+          >
+            <Palette className="w-3.5 h-3.5 text-[#0F3A60]" />
+            <span>نسخ الجدولين بثيم الشركة الرسمي الآخر</span>
+          </button>
+
+          <div className="border-t border-black/20 my-1" />
+
+          <button
+            type="button"
+            onClick={() => {
+              setShareModal({
+                isOpen: true,
+                mode: 'whatsapp',
+                scope: mouseContextMenu.targetTable,
+              });
+              setMouseContextMenu(null);
+            }}
+            className="w-full px-3 py-1.5 rounded-lg hover:bg-[#A9D18E] text-xs font-bold text-black flex items-center gap-2 cursor-pointer"
+          >
+            <MessageCircle className="w-3.5 h-3.5 text-[#006600]" />
+            <span>
+              إرسال واتساب (
+              {mouseContextMenu.targetTable === 'establishments'
+                ? 'تضمين وإرفاق جدول المؤسسات'
+                : mouseContextMenu.targetTable === 'boq'
+                  ? 'تضمين وإرفاق جدول الكميات'
+                  : 'تضمين وإرفاق الجدولين'}
+              )
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShareModal({
+                isOpen: true,
+                mode: 'email',
+                scope: mouseContextMenu.targetTable,
+              });
+              setMouseContextMenu(null);
+            }}
+            className="w-full px-3 py-1.5 rounded-lg hover:bg-[#00B0F0]/30 text-xs font-bold text-black flex items-center gap-2 cursor-pointer"
+          >
+            <Mail className="w-3.5 h-3.5 text-[#0284c7]" />
+            <span>
+              إرسال بريد (
+              {mouseContextMenu.targetTable === 'establishments'
+                ? 'تضمين وإرفاق جدول المؤسسات'
+                : mouseContextMenu.targetTable === 'boq'
+                  ? 'تضمين وإرفاق جدول الكميات'
+                  : 'تضمين وإرفاق الجدولين'}
+              )
+            </span>
+          </button>
+
+          <div className="border-t border-black/20 my-1" />
+
+          <div className="grid grid-cols-2 gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                onUndo();
+                setMouseContextMenu(null);
+              }}
+              className="px-2 py-1.5 rounded-lg bg-[#F8CBAD] text-[#9C0006] border border-black text-[11px] font-extrabold flex items-center justify-center gap-1 cursor-pointer"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>تراجع عن تعديل</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                handleUndoRevertLatest();
+                setMouseContextMenu(null);
+              }}
+              className="px-2 py-1.5 rounded-lg bg-[#00CC00] text-black border border-black text-[11px] font-extrabold flex items-center justify-center gap-1 cursor-pointer"
+            >
+              <RotateCw className="w-3 h-3" />
+              <span>التراجع عن الإرجاع</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      <KasShareAndExportModal
+        isOpen={shareModal.isOpen}
+        onClose={() => setShareModal((s) => ({ ...s, isOpen: false }))}
+        initialMode={shareModal.mode}
+        initialTheme={exportTheme}
+        initialScope={shareModal.scope}
+        tender={selectedTender}
+        items={currentItems}
+        establishments={enrichedEstablishments}
+        allTenders={tendersList}
+      />
 
       <ExportPreviewModal
         isOpen={previewModal.isOpen}

@@ -7,6 +7,9 @@ import {
   CheckCircle2,
   ClipboardPaste,
   Percent,
+  History,
+  RotateCcw,
+  RotateCw,
 } from 'lucide-react';
 import {
   BOQItem,
@@ -17,6 +20,7 @@ import {
 import {
   kasNovemberWorkbooksService,
   KasWorkbookSystemSnapshot,
+  KasModificationActionType,
 } from '../services/kasNovemberWorkbooksService';
 import { RealBoqEngine } from '../services/realBoqEngine';
 import { tafqeet } from '../services/tafqeetService';
@@ -27,6 +31,7 @@ import {
 } from '../services/exportService';
 import { shareViaEmail, shareViaWhatsApp } from '../services/quickShareService';
 import { KasExactReplicaWorkbooksSection } from '../components/tenders/KasExactReplicaWorkbooksSection';
+import { KasModificationAuditLogSection } from '../components/tenders/KasModificationAuditLogSection';
 
 export const KasExactReplicaTablesPage: React.FC = () => {
   const { setActiveTab: setGlobalTab, addNotification } = useAppStore();
@@ -62,6 +67,10 @@ export const KasExactReplicaTablesPage: React.FC = () => {
   // Undo / Redo Stack (50 steps)
   const [undoStack, setUndoStack] = useState<KasWorkbookSystemSnapshot[]>([]);
   const [redoStack, setRedoStack] = useState<KasWorkbookSystemSnapshot[]>([]);
+  const [pageSectionView, setPageSectionView] = useState<'tables' | 'audit'>('tables');
+  const [modLogsCount, setModLogsCount] = useState<number>(
+    () => kasNovemberWorkbooksService.getModificationLogs().length
+  );
 
   // Modals for Independent Section
   const [showNewSheetModal, setShowNewSheetModal] = useState<boolean>(false);
@@ -97,6 +106,7 @@ export const KasExactReplicaTablesPage: React.FC = () => {
         setSelectedTender(target);
         setCurrentItems(target.items || []);
       }
+      setModLogsCount(kasNovemberWorkbooksService.getModificationLogs().length);
     });
 
     const unsubscribe = kasNovemberWorkbooksService.subscribe((payload) => {
@@ -113,6 +123,7 @@ export const KasExactReplicaTablesPage: React.FC = () => {
         setSelectedTender(updatedSelected);
         setCurrentItems(updatedSelected.items || []);
       }
+      setModLogsCount(kasNovemberWorkbooksService.getModificationLogs().length);
       setLastSyncTimestamp(
         new Date(payload.timestamp).toLocaleTimeString('ar-SA')
       );
@@ -149,20 +160,39 @@ export const KasExactReplicaTablesPage: React.FC = () => {
     (
       nextTenders: TenderRecord[],
       nextEstablishments?: KasEstablishmentRow[],
-      nextSelectedId?: string
+      nextSelectedId?: string,
+      auditMeta?: {
+        actionType?: KasModificationActionType;
+        targetLabel?: string;
+        actionSummary?: string;
+      }
     ) => {
       kasNovemberWorkbooksService.saveState(
         nextTenders,
         nextEstablishments || establishments,
         nextSelectedId || selectedTender?.id,
-        'kas-exact-sheets'
+        'قسم جداول كاس المطابق للأصل',
+        auditMeta
       );
+      setModLogsCount(kasNovemberWorkbooksService.getModificationLogs().length);
     },
     [establishments, selectedTender?.id]
   );
 
   const handleUndo = useCallback(() => {
-    if (undoStack.length === 0) return;
+    if (undoStack.length === 0) {
+      const reverted = kasNovemberWorkbooksService.revertLatestActiveModification(
+        'قسم جداول كاس المطابق للأصل'
+      );
+      if (reverted) {
+        addNotification({
+          title: 'تم التراجع عن آخر تعديل مسجل',
+          message: `تم التراجع عن: "${reverted.actionSummary}" (${reverted.actorName}).`,
+          type: 'info',
+        });
+      }
+      return;
+    }
     const prevSnap = undoStack[undoStack.length - 1];
     const currentSnap: KasWorkbookSystemSnapshot = {
       actionLabel: prevSnap.actionLabel,
@@ -192,7 +222,12 @@ export const KasExactReplicaTablesPage: React.FC = () => {
     persistAndBroadcast(
       prevSnap.tenders,
       prevSnap.establishments,
-      restored?.id
+      restored?.id,
+      {
+        actionType: 'edit',
+        targetLabel: 'تراجع (Undo)',
+        actionSummary: `التراجع عن: ${prevSnap.actionLabel}`,
+      }
     );
     addNotification({
       title: 'تم التراجع (Undo)',
@@ -209,7 +244,19 @@ export const KasExactReplicaTablesPage: React.FC = () => {
   ]);
 
   const handleRedo = useCallback(() => {
-    if (redoStack.length === 0) return;
+    if (redoStack.length === 0) {
+      const restored = kasNovemberWorkbooksService.undoLatestRevertedModification(
+        'قسم جداول كاس المطابق للأصل'
+      );
+      if (restored) {
+        addNotification({
+          title: 'تم التراجع عن الإرجاع واستعادة الإجراء',
+          message: `تمت استعادة: "${restored.actionSummary}" (${restored.actorName}).`,
+          type: 'success',
+        });
+      }
+      return;
+    }
     const nextSnap = redoStack[redoStack.length - 1];
     const currentSnap: KasWorkbookSystemSnapshot = {
       actionLabel: nextSnap.actionLabel,
@@ -239,10 +286,15 @@ export const KasExactReplicaTablesPage: React.FC = () => {
     persistAndBroadcast(
       nextSnap.tenders,
       nextSnap.establishments,
-      restored?.id
+      restored?.id,
+      {
+        actionType: 'edit',
+        targetLabel: 'إعادة الإجراء (Redo)',
+        actionSummary: `استعادة الإجراء: ${nextSnap.actionLabel}`,
+      }
     );
     addNotification({
-      title: 'تمت الإعادة (Redo)',
+      title: 'تمت الإعادة واستعادة الإجراء (Redo)',
       message: `تمت إعادة: ${nextSnap.actionLabel} ومزامنة القسم الآخر.`,
       type: 'info',
     });
@@ -975,6 +1027,57 @@ export const KasExactReplicaTablesPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap shrink-0">
+          <div className="inline-flex rounded-xl bg-[#262626] p-1 border border-white/20">
+            <button
+              type="button"
+              onClick={() => setPageSectionView('tables')}
+              style={
+                pageSectionView === 'tables'
+                  ? { backgroundColor: '#00CC00', color: '#000000' }
+                  : undefined
+              }
+              className="px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <span>الجداول المطابقة للأصل</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPageSectionView('audit')}
+              style={
+                pageSectionView === 'audit'
+                  ? { backgroundColor: '#4472C4', color: '#FFFFFF' }
+                  : undefined
+              }
+              className="px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
+            >
+              <History className="w-3.5 h-3.5" />
+              <span>قسم سجل التعديلات ومن قام بها ({modLogsCount})</span>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleUndo}
+            style={{ backgroundColor: '#F8CBAD', color: '#9C0006' }}
+            className="px-3 py-2 rounded-xl font-extrabold text-xs border border-black flex items-center gap-1 cursor-pointer"
+            title="التراجع عن آخر تعديل"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>تراجع عن التعديل</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleRedo}
+            style={{ backgroundColor: '#A9D18E', color: '#000000' }}
+            className="px-3 py-2 rounded-xl font-extrabold text-xs border border-black flex items-center gap-1 cursor-pointer"
+            title="زر التراجع عن الإرجاع — استعادة الإجراء المتراجع عنه"
+          >
+            <RotateCw className="w-3.5 h-3.5" />
+            <span>زر التراجع عن الإجراء</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setShowNewSheetModal(true)}
@@ -1017,8 +1120,17 @@ export const KasExactReplicaTablesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Exact Replica Workbooks & Establishments Component */}
-      {selectedTender && (
+      {/* Main Exact Replica Workbooks & Establishments Component OR Dedicated Modification Audit Log Section */}
+      {pageSectionView === 'audit' ? (
+        <KasModificationAuditLogSection
+          onStateRestored={() => {
+            setEstablishments([...kasNovemberWorkbooksService.getEstablishments()]);
+            setTendersList([...kasNovemberWorkbooksService.getTenders()]);
+            setModLogsCount(kasNovemberWorkbooksService.getModificationLogs().length);
+          }}
+        />
+      ) : (
+        selectedTender && (
         <KasExactReplicaWorkbooksSection
           establishments={establishments}
           tendersList={tendersList}
@@ -1068,6 +1180,7 @@ export const KasExactReplicaTablesPage: React.FC = () => {
           otherSectionLabel="قسم منافسات اعتماد وجداول الكميات (BOQ)"
           lastSyncTimestamp={lastSyncTimestamp}
         />
+        )
       )}
 
       {/* Modal 1: Create New Sheet */}

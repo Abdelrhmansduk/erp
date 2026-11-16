@@ -10,6 +10,18 @@ import {
 } from '../exportService';
 import { findAllowedKasEmployee } from '../../config/kasAllowedEmails';
 import { authService } from '../authService';
+import {
+  buildThemedEstablishmentsHtml,
+  buildThemedBoqTableHtml,
+  buildInteractiveStandaloneHtmlDocument,
+  buildExactKasCsvContent,
+  buildKasStudioPreviewHtml,
+  executeKasExactExport,
+  composeKasShareMessageText,
+  buildSelectedAttachmentsBundle,
+  buildMultiAttachmentEmlDraft,
+  copyBothKasTablesAsIs,
+} from '../kasExactExportAndShareEngine';
 
 describe('KAS November Workbooks, Establishments Tracker & Live Excel Engine', () => {
   it('loads the 6 active KAS establishments and real November tenders from شهر 11 (نسخة 1..4)', () => {
@@ -305,5 +317,184 @@ describe('KAS November Workbooks, Establishments Tracker & Live Excel Engine', (
       expect(authService.isTabAuthorizedForUser(profile as any, 'kas-exact-sheets')).toBe(true);
       expect(authService.isTabAuthorizedForUser(profile as any, 'kas-replica-tables')).toBe(true);
     }
+  });
+
+  it('exports across all formats (Excel, PDF, Word, Interactive HTML with live formulas, CSV with formulas, TSV, JSON, XML, Markdown) in both Original KAS XLSM and Corporate Company themes', async () => {
+    const tenders = kasNovemberWorkbooksService.getTenders();
+    const establishments = kasNovemberWorkbooksService.getEstablishments();
+    const sampleTender = tenders[0];
+
+    // 1. Interactive HTML with embedded live JS formula engine
+    const htmlOriginal = buildInteractiveStandaloneHtmlDocument({
+      scope: 'both',
+      tender: sampleTender,
+      items: sampleTender.items,
+      establishments,
+      theme: 'kas-original-xlsm',
+      hideHoldingGroupBrand: true,
+    });
+    expect(htmlOriginal).toContain('#4472C4');
+    expect(htmlOriginal).toContain('#00CC00');
+    expect(htmlOriginal).toContain('data-formula="=F6*G6"');
+    expect(htmlOriginal).toContain('data-formula="=I6*0.15"');
+    expect(htmlOriginal).toContain('data-formula="=I6*1.15"');
+    expect(htmlOriginal).toContain('data-formula="=C2+D2"');
+    expect(htmlOriginal).toContain('recalcAll');
+
+    // 2. Corporate Company Theme HTML
+    const htmlCorporate = buildThemedBoqTableHtml(
+      sampleTender,
+      sampleTender.items,
+      'company-corporate',
+      { hideHoldingGroupBrand: true }
+    );
+    expect(htmlCorporate).toContain('#0F3A60');
+    expect(htmlCorporate).toContain('#B45309');
+
+    // 3. CSV with working Excel formulas (=F6*G6, =I6*0.15, =SUBTOTAL, =C2+D2)
+    const csvFormulas = buildExactKasCsvContent({
+      scope: 'boq',
+      tender: sampleTender,
+      items: sampleTender.items,
+      establishments,
+      includeFormulas: true,
+    });
+    expect(csvFormulas).toContain('=F6*G6');
+    expect(csvFormulas).toContain('=I6*0.15');
+    expect(csvFormulas).toContain('=I6*1.15');
+    expect(csvFormulas).toContain('=SUBTOTAL(109,I6:I');
+
+    const estCsvFormulas = buildExactKasCsvContent({
+      scope: 'establishments',
+      tender: sampleTender,
+      items: sampleTender.items,
+      establishments,
+      includeFormulas: true,
+    });
+    expect(estCsvFormulas).toContain('=C2+D2');
+
+    // 4. Studio A4 Preview HTML (`buildKasStudioPreviewHtml`) matching the new section
+    const studioHtml = buildKasStudioPreviewHtml({
+      scope: 'both',
+      tender: sampleTender,
+      items: sampleTender.items,
+      establishments,
+      theme: 'kas-original-xlsm',
+      preparerName: 'احمد جمال احمد البشير',
+    });
+    expect(studioHtml).toContain('kas-studio-selectable-root');
+    expect(studioHtml).toContain('KAS_STUDIO_BOQ_ROW_EDIT');
+    expect(studioHtml).toContain('KAS_STUDIO_EST_ROW_EDIT');
+    expect(studioHtml).toContain('#00CC00');
+    expect(studioHtml).toContain('#4472C4');
+
+    // 5. Execute all formats via executeKasExactExport
+    for (const fmt of [
+      'xlsx',
+      'pdf',
+      'word',
+      'html',
+      'csv_formulas',
+      'tsv',
+      'json',
+      'xml',
+      'markdown',
+    ] as const) {
+      const res = await executeKasExactExport({
+        format: fmt,
+        scope: 'both',
+        tender: sampleTender,
+        items: sampleTender.items,
+        establishments,
+        theme: 'kas-original-xlsm',
+      });
+      expect(res.fileName).toContain('طبق_الأصل');
+    }
+  });
+
+  it('supports WhatsApp & Email multi-attachment bundling, text section selection, EML generation, Mouse Table Copy, and Modification Audit Log Rollback + Undo-Revert', async () => {
+    const tenders = kasNovemberWorkbooksService.getTenders();
+    const establishments = kasNovemberWorkbooksService.getEstablishments();
+    const sampleTender = tenders[0];
+
+    // 1. WhatsApp & Email Attachment Bundle + Customizable Text
+    const files = await buildSelectedAttachmentsBundle({
+      selectedTypes: ['excel_boq', 'pdf_exact', 'word_exact', 'excel_establishments', 'csv_formulas'],
+      tender: sampleTender,
+      items: sampleTender.items,
+      establishments,
+      theme: 'kas-original-xlsm',
+    });
+    expect(files.length).toBe(5);
+    expect(files[0].name).toContain('.xlsx');
+
+    const msgText = composeKasShareMessageText({
+      tender: sampleTender,
+      items: sampleTender.items,
+      establishments,
+      options: {
+        includeHeaderO4: true,
+        includeFinancialSummary: true,
+        includeItemsTableO3: true,
+        includeTerms111_112: true,
+        includeEstablishmentsSummary: true,
+        includeAttachmentNamesList: true,
+      },
+      attachmentNames: files.map((f) => f.name),
+    });
+    expect(msgText).toContain(sampleTender.referenceNumber);
+    expect(msgText).toContain('المستندات والملفات المرفقة مع الرسالة (5)');
+
+    const eml = await buildMultiAttachmentEmlDraft({
+      recipientEmail: 'a.albashir.trade@kas.sa',
+      subject: `عرض أسعار ${sampleTender.referenceNumber}`,
+      messageText: msgText,
+      tender: sampleTender,
+      items: sampleTender.items,
+      establishments,
+      theme: 'kas-original-xlsm',
+      attachments: files.slice(0, 2),
+    });
+    expect(eml).toContain('Content-Disposition: attachment');
+    expect(eml).toContain('multipart/mixed');
+
+    // 2. Mouse Copy of Both Tables as they are
+    const copied = await copyBothKasTablesAsIs({
+      establishments,
+      tender: sampleTender,
+      items: sampleTender.items,
+      theme: 'kas-original-xlsm',
+    });
+    expect(typeof copied).toBe('boolean');
+
+    // 3. Modification Audit Log + Revert (التراجع عن التعديل) + Undo-Revert (زر التراجع عن الإرجاع)
+    const estsBefore = kasNovemberWorkbooksService.getEstablishments();
+    const oldVal = estsBefore[0].endingToday;
+    const modifiedEsts = estsBefore.map((e, idx) =>
+      idx === 0 ? { ...e, endingToday: 77 } : e
+    );
+    kasNovemberWorkbooksService.saveEstablishments(modifiedEsts, {
+      actionType: 'edit',
+      sourceSection: 'قسم جداول كاس المطابق للأصل',
+      targetLabel: `جدول المؤسسات — ${estsBefore[0].name}`,
+      actionSummary: 'تعديل اختباري لانتهاء اليوم إلى 77',
+    });
+    expect(kasNovemberWorkbooksService.getEstablishments()[0].endingToday).toBe(77);
+
+    const logs = kasNovemberWorkbooksService.getModificationLogs();
+    expect(logs.length).toBeGreaterThan(0);
+    const latestLog = logs[0];
+    expect(latestLog.actionSummary).toBe('تعديل اختباري لانتهاء اليوم إلى 77');
+    expect(latestLog.reverted).toBe(false);
+
+    // Revert the modification (التراجع عن التعديل)
+    const revertedEntry = kasNovemberWorkbooksService.revertModificationById(latestLog.id);
+    expect(revertedEntry?.reverted).toBe(true);
+    expect(kasNovemberWorkbooksService.getEstablishments()[0].endingToday).toBe(oldVal);
+
+    // Undo the revert (زر التراجع عن الإرجاع — استعادة الإجراء)
+    const restoredEntry = kasNovemberWorkbooksService.undoRevertModificationById(latestLog.id);
+    expect(restoredEntry?.reverted).toBe(false);
+    expect(kasNovemberWorkbooksService.getEstablishments()[0].endingToday).toBe(77);
   });
 });

@@ -28,6 +28,11 @@ import {
   getActiveCompanyInfo,
 } from '../../services/exportService';
 import { shareViaWhatsApp } from '../../services/quickShareService';
+import { kasNovemberWorkbooksService } from '../../services/kasNovemberWorkbooksService';
+import {
+  executeKasExactExport,
+  KasExportFileFormat,
+} from '../../services/kasExactExportAndShareEngine';
 import { useAppStore } from '../../stores/appStore';
 import { ExportPreviewModal } from './ExportPreviewModal';
 
@@ -169,6 +174,60 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
     setIsExporting(true);
 
     try {
+      const isKasExact =
+        sectionKey === 'kas_boq_items' ||
+        sectionKey === 'kas_establishments_tracker' ||
+        sectionKey === 'kas_november_tenders';
+      if (isKasExact && format !== 'wps') {
+        const allTenders = kasNovemberWorkbooksService.getAllTenders();
+        const establishments = kasNovemberWorkbooksService.getEstablishments();
+        const matchedTender =
+          allTenders.find(
+            (t) =>
+              (customTitle &&
+                t.referenceNumber &&
+                customTitle.includes(t.referenceNumber)) ||
+              (customTitle && t.title && customTitle.includes(t.title))
+          ) || allTenders[0];
+        if (matchedTender) {
+          const formatMap: Record<string, KasExportFileFormat> = {
+            excel: 'xlsx',
+            pdf: 'pdf',
+            word: 'word',
+            print: 'print',
+            png: 'png',
+            html: 'html',
+            xml: 'xml',
+            csv: 'csv_formulas',
+            tsv: 'tsv',
+            json: 'json',
+            markdown: 'markdown',
+          };
+          const res = await executeKasExactExport({
+            format: formatMap[format] || 'xlsx',
+            scope:
+              sectionKey === 'kas_establishments_tracker'
+                ? 'establishments'
+                : 'both',
+            tender: matchedTender,
+            items:
+              sectionKey === 'kas_boq_items' && Array.isArray(targetData) && targetData.length > 0
+                ? targetData
+                : matchedTender.items || [],
+            establishments,
+            allTenders,
+            theme: 'kas-original-xlsm',
+            hideHoldingGroupBrand: true,
+          });
+          addNotification({
+            title: 'تصدير مطابق لقسم كاس الجديد بالملي وبالمعادلات',
+            message: `تم إصدار الملف (${res.fileName}) بنفس الشكل والألوان والمعادلات بنجاح.`,
+            type: 'success',
+          });
+          return;
+        }
+      }
+
       await exportData(sectionKey, targetData, format, customTitle);
       addNotification({
         title: 'تصدير الوثيقة المؤسسية المعتمدة',

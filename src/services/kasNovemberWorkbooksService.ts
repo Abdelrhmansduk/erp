@@ -1,8 +1,12 @@
 /**
- * KAS November Workbooks & Establishments Service
- * Manages the 4 KAS XLSM workbooks (شهر 11 نسخة 1..4 — 241 real BOQ sheets)
- * and the Establishments table (المؤسسات) with persistent storage,
- * real-time bi-directional cross-section synchronization, and a 50-step Undo/Redo stack.
+ * KAS November Workbooks, Establishments & Modification Audit/Rollback Service
+ * Manages:
+ * 1. The 4 KAS XLSM workbooks (شهر 11 نسخة 1..4 — 241 real BOQ sheets) & المؤسسات table
+ * 2. Real-time bi-directional cross-section synchronization (`subscribe`, `BroadcastChannel`, DOM events)
+ * 3. Persistent Modification Audit Log (`سجل التعديلات ومن قام بها`) with:
+ *    - Actor tracking (Name, Email, Role, Source Section, Timestamp, Action Type, Before/After Snapshots)
+ *    - Per-entry Rollback (`التراجع عن التعديل / الإرجاع`)
+ *    - Undo Rollback (`زر التراجع عن الإرجاع / استعادة الإجراء`)
  */
 
 import seedPayload from '../data/kasNovemberSeedData.json';
@@ -13,6 +17,7 @@ import { tafqeet } from './tafqeetService';
 const STORAGE_KEY_TENDERS = 'kas_november_boq_tenders_v2';
 const STORAGE_KEY_ESTABLISHMENTS = 'kas_november_establishments_v2';
 const STORAGE_KEY_SELECTED_TENDER_ID = 'kas_november_selected_tender_id_v2';
+const STORAGE_KEY_MODIFICATION_LOGS = 'kas_november_modification_logs_v2';
 
 export const KAS_WORKBOOKS_SYNC_EVENT = 'kas-workbooks-state-synced';
 export const KAS_ESTABLISHMENTS_UPDATED_EVENT = 'kas-establishments-updated';
@@ -38,10 +43,44 @@ export interface KasWorkbookSystemSnapshot {
   selectedTenderId: string;
 }
 
+export type KasModificationActionType =
+  | 'add'
+  | 'edit'
+  | 'delete'
+  | 'duplicate'
+  | 'import'
+  | 'reset'
+  | 'revert'
+  | 'undo_revert';
+
+export interface KasModificationSnapshot {
+  establishments: KasEstablishmentRow[];
+  tenders: TenderRecord[];
+  selectedTenderId: string;
+}
+
+export interface KasModificationLogEntry {
+  id: string;
+  timestamp: string;
+  actorName: string;
+  actorEmail: string;
+  actorRole: string;
+  sourceSection: string;
+  actionType: KasModificationActionType;
+  targetLabel: string;
+  actionSummary: string;
+  beforeSnapshot: KasModificationSnapshot;
+  afterSnapshot: KasModificationSnapshot;
+  reverted: boolean;
+  revertedAt?: string;
+  revertedBy?: string;
+}
+
 export interface KasWorkbooksSyncPayload {
   establishments: KasEstablishmentRow[];
   tenders: TenderRecord[];
   workbooks: KasWorkbookMeta[];
+  modificationLogs: KasModificationLogEntry[];
   selectedTenderId?: string;
   source?: string;
   actionLabel?: string;
@@ -49,6 +88,58 @@ export interface KasWorkbooksSyncPayload {
 }
 
 export type KasWorkbooksSyncListener = (payload: KasWorkbooksSyncPayload) => void;
+
+function resolveActiveKasActor(): {
+  actorName: string;
+  actorEmail: string;
+  actorRole: string;
+} {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const raw =
+        localStorage.getItem('ALSULAIM_AUTH_USER_V1') ||
+        localStorage.getItem('erp_current_user');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && (parsed.full_name || parsed.email)) {
+          return {
+            actorName: String(parsed.full_name || parsed.name || 'موظف كاس المعتمد'),
+            actorEmail: String(parsed.email || 'a.albashir.trade@kas.sa'),
+            actorRole: String(
+              parsed.role || 'مسؤول المنافسات — شركة كاس للتجارة والمنافسات'
+            ),
+          };
+        }
+      }
+    }
+  } catch {
+    // ignore storage read error
+  }
+  return {
+    actorName: 'احمد جمال احمد البشير',
+    actorEmail: 'a.albashir.trade@kas.sa',
+    actorRole: 'مسؤول المنافسات — شركة كاس للتجارة والمنافسات',
+  };
+}
+
+function cloneSnapshot(
+  establishments: KasEstablishmentRow[],
+  tenders: TenderRecord[],
+  selectedTenderId: string
+): KasModificationSnapshot {
+  return {
+    establishments: establishments.map((e) => ({
+      ...e,
+      aliases: [...(e.aliases || [])],
+    })),
+    // Keep up to 45 tenders in per-entry snapshot for fast memory/storage footprint
+    tenders: tenders.slice(0, 45).map((t) => ({
+      ...t,
+      items: (t.items || []).map((it) => ({ ...it })),
+    })),
+    selectedTenderId,
+  };
+}
 
 export function normalizeTenderRecord(raw: any, fallbackIdx = 0): TenderRecord {
   const rawItems: any[] = Array.isArray(raw.items) ? raw.items : [];
@@ -155,6 +246,7 @@ class KasNovemberWorkbooksService {
   private workbooks: KasWorkbookMeta[] = (seedPayload.workbooks || []) as KasWorkbookMeta[];
   private establishments: KasEstablishmentRow[] = [];
   private tenders: TenderRecord[] = [];
+  private modificationLogs: KasModificationLogEntry[] = [];
   private selectedTenderId = '';
   private fullLoaded = false;
   private loadingPromise: Promise<void> | null = null;
@@ -210,7 +302,6 @@ class KasNovemberWorkbooksService {
       STORAGE_KEY_TENDERS,
       seedTenders
     );
-    // Ensure all 4 workbooks from seed are represented if storedTenders only had a partial subset
     const mergedInitialTenders = [...storedTenders];
     for (const st of seedTenders) {
       if (!mergedInitialTenders.some((m) => m.id === st.id)) {
@@ -231,6 +322,10 @@ class KasNovemberWorkbooksService {
       ) ||
       this.tenders[0]?.id ||
       '';
+    this.modificationLogs = erpIndexedStorage.getSync<KasModificationLogEntry[]>(
+      STORAGE_KEY_MODIFICATION_LOGS,
+      []
+    );
   }
 
   private initCrossTabSync() {
@@ -248,6 +343,9 @@ class KasNovemberWorkbooksService {
           if (Array.isArray(data.workbooks) && data.workbooks.length > 0) {
             this.workbooks = data.workbooks;
           }
+          if (Array.isArray(data.modificationLogs)) {
+            this.modificationLogs = data.modificationLogs;
+          }
           if (data.selectedTenderId) {
             this.selectedTenderId = data.selectedTenderId;
           }
@@ -255,7 +353,7 @@ class KasNovemberWorkbooksService {
         };
       }
     } catch {
-      // BroadcastChannel may not be supported in some environments
+      // ignore BroadcastChannel error
     }
   }
 
@@ -286,6 +384,7 @@ class KasNovemberWorkbooksService {
       establishments: this.establishments,
       tenders: this.tenders,
       workbooks: this.workbooks,
+      modificationLogs: this.modificationLogs,
       selectedTenderId: this.selectedTenderId,
       source,
       actionLabel,
@@ -299,11 +398,205 @@ class KasNovemberWorkbooksService {
     }
   }
 
+  private appendModificationLog(params: {
+    sourceSection: string;
+    actionType: KasModificationActionType;
+    targetLabel: string;
+    actionSummary: string;
+    beforeSnapshot: KasModificationSnapshot;
+    afterSnapshot: KasModificationSnapshot;
+    customActor?: { actorName?: string; actorEmail?: string; actorRole?: string };
+  }): KasModificationLogEntry {
+    const actor = resolveActiveKasActor();
+    const entry: KasModificationLogEntry = {
+      id: `KAS-LOG-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      timestamp: new Date().toISOString(),
+      actorName: params.customActor?.actorName || actor.actorName,
+      actorEmail: params.customActor?.actorEmail || actor.actorEmail,
+      actorRole: params.customActor?.actorRole || actor.actorRole,
+      sourceSection:
+        params.sourceSection === 'kas-exact-sheets'
+          ? 'قسم الجداول المطابقة للأصل بالملي (شهر 11)'
+          : params.sourceSection === 'tenders-boq'
+            ? 'قسم منافسات وجداول الكميات (BOQ)'
+            : params.sourceSection,
+      actionType: params.actionType,
+      targetLabel: params.targetLabel,
+      actionSummary: params.actionSummary,
+      beforeSnapshot: params.beforeSnapshot,
+      afterSnapshot: params.afterSnapshot,
+      reverted: false,
+    };
+    this.modificationLogs = [entry, ...this.modificationLogs].slice(0, 60);
+    erpIndexedStorage.setSync(STORAGE_KEY_MODIFICATION_LOGS, this.modificationLogs, {
+      maxLocalStorageBytes: 350_000,
+    });
+    return entry;
+  }
+
   public subscribe(listener: KasWorkbooksSyncListener): () => void {
     this.listeners.add(listener);
     return () => {
       this.listeners.delete(listener);
     };
+  }
+
+  public getModificationLogs(): KasModificationLogEntry[] {
+    return this.modificationLogs;
+  }
+
+  /**
+   * Reverts a specific modification entry from the Audit Log (`التراجع عن التعديل`)
+   * and broadcasts the restored state across all KAS sections.
+   */
+  public revertModificationById(
+    logId: string,
+    sourceSection = 'kas-audit-log'
+  ): KasModificationLogEntry | null {
+    const target = this.modificationLogs.find((l) => l.id === logId);
+    if (!target || target.reverted) return null;
+
+    const actor = resolveActiveKasActor();
+    const restoredSelectedId =
+      target.beforeSnapshot.selectedTenderId || this.selectedTenderId;
+
+    // Merge restored snapshot tenders with full 241 list
+    const beforeMap = new Map(
+      target.beforeSnapshot.tenders.map((t) => [t.id, t])
+    );
+    const afterIds = new Set(target.afterSnapshot.tenders.map((t) => t.id));
+    const beforeIds = new Set(target.beforeSnapshot.tenders.map((t) => t.id));
+
+    // Remove tenders that were added in that action, and restore tenders that were modified/deleted
+    let nextTenders = this.tenders
+      .filter((t) => !(afterIds.has(t.id) && !beforeIds.has(t.id)))
+      .map((t) => beforeMap.get(t.id) || t);
+
+    for (const bt of target.beforeSnapshot.tenders) {
+      if (!nextTenders.some((nt) => nt.id === bt.id)) {
+        nextTenders = [bt, ...nextTenders];
+      }
+    }
+
+    this.tenders = nextTenders;
+    this.establishments = this.recomputeEstablishmentsStats(
+      target.beforeSnapshot.establishments,
+      this.tenders
+    );
+    this.selectedTenderId = restoredSelectedId;
+
+    this.modificationLogs = this.modificationLogs.map((l) =>
+      l.id === logId
+        ? {
+            ...l,
+            reverted: true,
+            revertedAt: new Date().toISOString(),
+            revertedBy: actor.actorName,
+          }
+        : l
+    );
+
+    erpIndexedStorage.setSync(STORAGE_KEY_TENDERS, this.tenders, {
+      maxLocalStorageBytes: 450_000,
+    });
+    erpIndexedStorage.setSync(STORAGE_KEY_ESTABLISHMENTS, this.establishments, {
+      maxLocalStorageBytes: 250_000,
+    });
+    erpIndexedStorage.setSync(STORAGE_KEY_MODIFICATION_LOGS, this.modificationLogs, {
+      maxLocalStorageBytes: 350_000,
+    });
+
+    this.broadcastStateChange(
+      sourceSection,
+      `تم التراجع عن التعديل: ${target.actionSummary}`
+    );
+    return this.modificationLogs.find((l) => l.id === logId) || null;
+  }
+
+  /**
+   * Undoes a previous revert (`زر التراجع عن الإرجاع / استعادة التعديل`)
+   * re-applying `afterSnapshot` and syncing across all KAS sections!
+   */
+  public undoRevertModificationById(
+    logId: string,
+    sourceSection = 'kas-audit-log'
+  ): KasModificationLogEntry | null {
+    const target = this.modificationLogs.find((l) => l.id === logId);
+    if (!target || !target.reverted) return null;
+
+    const afterMap = new Map(
+      target.afterSnapshot.tenders.map((t) => [t.id, t])
+    );
+    const beforeIds = new Set(target.beforeSnapshot.tenders.map((t) => t.id));
+    const afterIds = new Set(target.afterSnapshot.tenders.map((t) => t.id));
+
+    let nextTenders = this.tenders
+      .filter((t) => !(beforeIds.has(t.id) && !afterIds.has(t.id)))
+      .map((t) => afterMap.get(t.id) || t);
+
+    for (const at of target.afterSnapshot.tenders) {
+      if (!nextTenders.some((nt) => nt.id === at.id)) {
+        nextTenders = [at, ...nextTenders];
+      }
+    }
+
+    this.tenders = nextTenders;
+    this.establishments = this.recomputeEstablishmentsStats(
+      target.afterSnapshot.establishments,
+      this.tenders
+    );
+    if (target.afterSnapshot.selectedTenderId) {
+      this.selectedTenderId = target.afterSnapshot.selectedTenderId;
+    }
+
+    this.modificationLogs = this.modificationLogs.map((l) =>
+      l.id === logId
+        ? {
+            ...l,
+            reverted: false,
+            revertedAt: undefined,
+            revertedBy: undefined,
+          }
+        : l
+    );
+
+    erpIndexedStorage.setSync(STORAGE_KEY_TENDERS, this.tenders, {
+      maxLocalStorageBytes: 450_000,
+    });
+    erpIndexedStorage.setSync(STORAGE_KEY_ESTABLISHMENTS, this.establishments, {
+      maxLocalStorageBytes: 250_000,
+    });
+    erpIndexedStorage.setSync(STORAGE_KEY_MODIFICATION_LOGS, this.modificationLogs, {
+      maxLocalStorageBytes: 350_000,
+    });
+
+    this.broadcastStateChange(
+      sourceSection,
+      `تم التراجع عن الإرجاع واستعادة: ${target.actionSummary}`
+    );
+    return this.modificationLogs.find((l) => l.id === logId) || null;
+  }
+
+  /**
+   * Reverts the most recent active (non-reverted) modification.
+   */
+  public revertLatestActiveModification(
+    sourceSection = 'kas'
+  ): KasModificationLogEntry | null {
+    const latestActive = this.modificationLogs.find((l) => !l.reverted);
+    if (!latestActive) return null;
+    return this.revertModificationById(latestActive.id, sourceSection);
+  }
+
+  /**
+   * Undoes the most recent reverted modification (`زر التراجع عن الإرجاع`).
+   */
+  public undoLatestRevertedModification(
+    sourceSection = 'kas'
+  ): KasModificationLogEntry | null {
+    const latestReverted = this.modificationLogs.find((l) => l.reverted);
+    if (!latestReverted) return null;
+    return this.undoRevertModificationById(latestReverted.id, sourceSection);
   }
 
   public getWorkbooksMeta(): KasWorkbookMeta[] {
@@ -344,6 +637,11 @@ class KasNovemberWorkbooksService {
         (e.aliases && e.aliases.some((a) => a.trim() === clean))
     );
     if (existing) return existing;
+    const beforeSnap = cloneSnapshot(
+      this.establishments,
+      this.tenders,
+      this.selectedTenderId
+    );
     const newRow: KasEstablishmentRow = {
       id: `est-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       name: clean,
@@ -357,7 +655,24 @@ class KasNovemberWorkbooksService {
       [...this.establishments, newRow],
       this.tenders
     );
-    this.saveEstablishments(nextEsts, 'add_establishment');
+    this.establishments = nextEsts;
+    erpIndexedStorage.setSync(STORAGE_KEY_ESTABLISHMENTS, this.establishments, {
+      maxLocalStorageBytes: 250_000,
+    });
+    const afterSnap = cloneSnapshot(
+      this.establishments,
+      this.tenders,
+      this.selectedTenderId
+    );
+    this.appendModificationLog({
+      sourceSection: 'kas-exact-sheets',
+      actionType: 'add',
+      targetLabel: `جدول المؤسسات — ${clean}`,
+      actionSummary: `إضافة مؤسسة جديدة إلى جدول المؤسسات: "${clean}"`,
+      beforeSnapshot: beforeSnap,
+      afterSnapshot: afterSnap,
+    });
+    this.broadcastStateChange('add_establishment', `إضافة مؤسسة: ${clean}`);
     return newRow;
   }
 
@@ -365,15 +680,104 @@ class KasNovemberWorkbooksService {
     return this.tenders;
   }
 
-  public saveEstablishments(rows: KasEstablishmentRow[], source = 'kas'): void {
+  public getAllTenders(): TenderRecord[] {
+    return this.tenders;
+  }
+
+  public saveTender(
+    tender: TenderRecord,
+    auditMeta?: {
+      actionType?: KasModificationActionType;
+      sourceSection?: string;
+      targetLabel?: string;
+      actionSummary?: string;
+    }
+  ): void {
+    const exists = this.tenders.some((t) => t.id === tender.id);
+    const nextList = exists
+      ? this.tenders.map((t) => (t.id === tender.id ? tender : t))
+      : [tender, ...this.tenders];
+    this.saveState(
+      nextList,
+      this.establishments,
+      tender.id,
+      auditMeta?.sourceSection || 'kas',
+      {
+        actionType: auditMeta?.actionType || (exists ? 'edit' : 'add'),
+        targetLabel:
+          auditMeta?.targetLabel ||
+          `ورقة: ${tender.sheetName || 'الجدول'} (${tender.referenceNumber})`,
+        actionSummary:
+          auditMeta?.actionSummary ||
+          `تحديث ورقة (${tender.sheetName || 'الجدول'} — ${tender.referenceNumber})`,
+      }
+    );
+  }
+
+  public saveEstablishments(
+    rows: KasEstablishmentRow[],
+    sourceOrMeta:
+      | string
+      | {
+          actionType?: KasModificationActionType;
+          sourceSection?: string;
+          targetLabel?: string;
+          actionSummary?: string;
+        } = 'kas',
+    actionSummary = 'تحديث بيانات جدول المؤسسات'
+  ): void {
+    const beforeSnap = cloneSnapshot(
+      this.establishments,
+      this.tenders,
+      this.selectedTenderId
+    );
     this.establishments = this.recomputeEstablishmentsStats(rows, this.tenders);
     erpIndexedStorage.setSync(STORAGE_KEY_ESTABLISHMENTS, this.establishments, {
       maxLocalStorageBytes: 250_000,
     });
-    this.broadcastStateChange(source, 'تحديث جدول المؤسسات');
+    const afterSnap = cloneSnapshot(
+      this.establishments,
+      this.tenders,
+      this.selectedTenderId
+    );
+    const resolvedSource =
+      typeof sourceOrMeta === 'string'
+        ? sourceOrMeta
+        : sourceOrMeta.sourceSection || 'kas';
+    const resolvedSummary =
+      typeof sourceOrMeta === 'string'
+        ? actionSummary
+        : sourceOrMeta.actionSummary || actionSummary;
+    const resolvedTarget =
+      typeof sourceOrMeta === 'string'
+        ? 'ورقة: المؤسسات'
+        : sourceOrMeta.targetLabel || 'ورقة: المؤسسات';
+    const resolvedType =
+      typeof sourceOrMeta === 'string'
+        ? 'edit'
+        : sourceOrMeta.actionType || 'edit';
+
+    this.appendModificationLog({
+      sourceSection: resolvedSource,
+      actionType: resolvedType,
+      targetLabel: resolvedTarget,
+      actionSummary: resolvedSummary,
+      beforeSnapshot: beforeSnap,
+      afterSnapshot: afterSnap,
+    });
+    this.broadcastStateChange(resolvedSource, resolvedSummary);
   }
 
-  public saveTenders(rows: TenderRecord[], source = 'kas'): void {
+  public saveTenders(
+    rows: TenderRecord[],
+    source = 'kas',
+    actionSummary = 'تحديث بيانات أوراق الجداول'
+  ): void {
+    const beforeSnap = cloneSnapshot(
+      this.establishments,
+      this.tenders,
+      this.selectedTenderId
+    );
     this.tenders = rows;
     this.establishments = this.recomputeEstablishmentsStats(
       this.establishments,
@@ -385,15 +789,39 @@ class KasNovemberWorkbooksService {
     erpIndexedStorage.setSync(STORAGE_KEY_ESTABLISHMENTS, this.establishments, {
       maxLocalStorageBytes: 250_000,
     });
-    this.broadcastStateChange(source, 'تحديث أوراق الكراسات');
+    const afterSnap = cloneSnapshot(
+      this.establishments,
+      this.tenders,
+      this.selectedTenderId
+    );
+    this.appendModificationLog({
+      sourceSection: source,
+      actionType: 'edit',
+      targetLabel: `ورقة: ${rows[0]?.sheetName || 'الجدول'}`,
+      actionSummary,
+      beforeSnapshot: beforeSnap,
+      afterSnapshot: afterSnap,
+    });
+    this.broadcastStateChange(source, actionSummary);
   }
 
   public saveState(
     nextTenders: TenderRecord[],
     nextEstablishments?: KasEstablishmentRow[],
     selectedId?: string,
-    source = 'kas'
+    source = 'kas',
+    auditMeta?: {
+      actionType?: KasModificationActionType;
+      targetLabel?: string;
+      actionSummary?: string;
+      customActor?: { actorName?: string; actorEmail?: string; actorRole?: string };
+    }
   ): void {
+    const beforeSnap = cloneSnapshot(
+      this.establishments,
+      this.tenders,
+      this.selectedTenderId
+    );
     this.tenders = nextTenders;
     const baseEsts = nextEstablishments || this.establishments;
     this.establishments = this.recomputeEstablishmentsStats(baseEsts, this.tenders);
@@ -407,7 +835,32 @@ class KasNovemberWorkbooksService {
     erpIndexedStorage.setSync(STORAGE_KEY_ESTABLISHMENTS, this.establishments, {
       maxLocalStorageBytes: 250_000,
     });
-    this.broadcastStateChange(source, 'مزامنة شاملة لمصنفات ومؤسسات كاس');
+
+    const activeSheet =
+      this.tenders.find((t) => t.id === this.selectedTenderId) || this.tenders[0];
+    const afterSnap = cloneSnapshot(
+      this.establishments,
+      this.tenders,
+      this.selectedTenderId
+    );
+
+    const summary =
+      auditMeta?.actionSummary ||
+      `تعديل في ورقة (${activeSheet?.sheetName || 'الجدول'} — ${activeSheet?.referenceNumber || ''})`;
+
+    this.appendModificationLog({
+      sourceSection: source,
+      actionType: auditMeta?.actionType || 'edit',
+      targetLabel:
+        auditMeta?.targetLabel ||
+        `ورقة: ${activeSheet?.sheetName || 'الجدول'} (${activeSheet?.referenceNumber || ''})`,
+      actionSummary: summary,
+      beforeSnapshot: beforeSnap,
+      afterSnapshot: afterSnap,
+      customActor: auditMeta?.customActor,
+    });
+
+    this.broadcastStateChange(source, summary);
   }
 
   public async ensureFullWorkbooksLoaded(): Promise<{
@@ -441,7 +894,6 @@ class KasNovemberWorkbooksService {
           STORAGE_KEY_ESTABLISHMENTS
         );
         if (cachedTenders && cachedTenders.length > 100) {
-          // Merge any newer in-memory modifications on top of cachedTenders
           const inMemoryMap = new Map(this.tenders.map((t) => [t.id, t]));
           const merged = cachedTenders.map((ct) => inMemoryMap.get(ct.id) || ct);
           for (const memT of this.tenders) {
@@ -478,7 +930,6 @@ class KasNovemberWorkbooksService {
                 (t: any, idx: number) => normalizeTenderRecord(t, idx)
               );
               const inMemoryMap = new Map(this.tenders.map((t) => [t.id, t]));
-              // Preserve user modifications to existing sheets & custom added sheets
               const mergedFull = normalizedFull.map(
                 (nf) => inMemoryMap.get(nf.id) || nf
               );

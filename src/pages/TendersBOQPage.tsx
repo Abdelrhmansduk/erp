@@ -1,10 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Badge } from '../components/ui/Badge';
-import {
-  exportData,
-  buildExecutivePdfFileName,
-  generateExecutivePdfArtifact,
-} from '../services/exportService';
+import { exportData } from '../services/exportService';
 import { useCompany } from '../contexts/CompanyContext';
 import { useAppStore } from '../stores/appStore';
 import { tafqeet } from '../services/tafqeetService';
@@ -19,9 +15,10 @@ import {
   KasWorkbookSystemSnapshot,
 } from '../services/kasNovemberWorkbooksService';
 import { KasEstablishmentsAndWorkbookBar } from '../components/tenders/KasEstablishmentsAndWorkbookBar';
+import { KasShareAndExportModal } from '../components/tenders/KasShareAndExportModal';
+import type { KasExportTargetScope } from '../services/kasExactExportAndShareEngine';
 import { ExportDropdown } from '../components/common/ExportDropdown';
 import { ExportPreviewModal } from '../components/common/ExportPreviewModal';
-import { shareViaEmail, shareViaWhatsApp } from '../services/quickShareService';
 const KasMonafasatSpreadsheetView = React.lazy(() => 
   import('../components/tenders/KasMonafasatSpreadsheetView').then(m => ({ default: m.KasMonafasatSpreadsheetView }))
 );
@@ -288,6 +285,15 @@ export const TendersBOQPage: React.FC = () => {
     sectionKey: 'kas_boq_items',
     data: [],
     customTitle: '',
+  });
+  const [kasShareModal, setKasShareModal] = useState<{
+    isOpen: boolean;
+    mode: 'whatsapp' | 'email' | 'export';
+    scope: KasExportTargetScope;
+  }>({
+    isOpen: false,
+    mode: 'whatsapp',
+    scope: 'both',
   });
 
   // 50-Step Undo / Redo History Engine
@@ -718,54 +724,11 @@ export const TendersBOQPage: React.FC = () => {
   };
 
   const handleShareEstablishments = (channel: 'email' | 'whatsapp') => {
-    const title = 'جدول متابعة مؤسسات وشركات كاس للمنافسات (المؤسسات)';
-    const pdfName = buildExecutivePdfFileName(title);
-    const enriched = establishments.map((est) => {
-      const matching = tendersList.filter(
-        (t) =>
-          t.entityName === est.name ||
-          (est.aliases &&
-            est.aliases.some((a) => t.entityName.includes(a) || a.includes(t.entityName)))
-      );
-      return {
-        ...est,
-        totalTenders: matching.length,
-        totalValueWithVat: Number(
-          matching.reduce((s, t) => s + (Number(t.grandTotal) || 0), 0).toFixed(2)
-        ),
-      };
+    setKasShareModal({
+      isOpen: true,
+      mode: channel,
+      scope: 'establishments',
     });
-    const totalVal = enriched.reduce((s, e) => s + (e.totalValueWithVat || 0), 0);
-    const payload = {
-      title,
-      entityCode: 'KAS' as const,
-      moduleName: 'kas_establishments_tracker',
-      summaryLines: [
-        { label: 'عدد المؤسسات والكيانات', value: `${enriched.length} مؤسسات` },
-        { label: 'إجمالي الكراسات المرتبطة', value: `${tendersList.length} كراسة منافسة` },
-        {
-          label: 'إجمالي قيمة العروض شامل الضريبة',
-          value: `\u200E\u20C1 ${totalVal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-        },
-      ],
-      bodyText: enriched
-        .map(
-          (e, i) =>
-            `${i + 1}. ${e.name} | انتهاء اليوم: ${e.endingToday || '-'} | انتهاء بعد اليوم: ${e.endingAfterToday || '-'} | الإجمالي: ${(e.endingToday || 0) + (e.endingAfterToday || 0) || '-'} | الكراسات: ${e.totalTenders} (\u200E\u20C1 ${e.totalValueWithVat.toLocaleString('en-US', { minimumFractionDigits: 2 })})`
-        )
-        .join('\n'),
-      attachmentFileName: pdfName,
-      attachmentFilePromise: generateExecutivePdfArtifact(
-        'kas_establishments_tracker',
-        enriched,
-        title
-      ).then((a) => a?.file ?? null),
-    };
-    if (channel === 'whatsapp') {
-      shareViaWhatsApp(payload);
-    } else {
-      shareViaEmail(payload);
-    }
   };
 
   const handleExportEstablishmentsExcel = () => {
@@ -1163,59 +1126,17 @@ export const TendersBOQPage: React.FC = () => {
     });
   };
 
-  // Share active BOQ Tender via Email or WhatsApp
+  // Share active BOQ Tender via Email or WhatsApp (opens the unified KAS Share & Attachment Studio)
   const handleShareActiveBoq = (channel: 'email' | 'whatsapp', targetTender?: TenderRecord) => {
-    const t = targetTender || selectedTender;
-    const itemsToUse = targetTender ? targetTender.items : currentItems;
-    const docTitle = `جدول الكميات والأسعار لمنافسة: ${t.title} (${t.referenceNumber})`;
-    const pdfName = buildExecutivePdfFileName(docTitle);
-
-    const payload = {
-      title: docTitle,
-      entityCode: 'KAS' as const,
-      customCompanyNameAr: t.entityName,
-      moduleName: 'kas_boq_items',
-      summaryLines: [
-        { label: 'اسم المؤسسة', value: t.entityName },
-        { label: 'الرقم المرجعي (اعتماد)', value: t.referenceNumber },
-        { label: 'عنوان المنافسة', value: t.title },
-        { label: 'عدد البنود', value: `${itemsToUse.length} بند` },
-        {
-          label: 'السعر الإجمالي (قبل الضريبة)',
-          value: `\u200E\u20C1 ${t.subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${t.subtotalInWords})`,
-        },
-        {
-          label: 'ضريبة القيمة المضافة (15%)',
-          value: `\u200E\u20C1 ${t.vatAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${t.vatInWords})`,
-        },
-        {
-          label: 'الإجمالي شامل الضريبة',
-          value: `\u200E\u20C1 ${t.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${t.grandTotalInWords})`,
-        },
-        { label: 'مدة التوريد', value: t.supplyDuration },
-        {
-          label: 'مدة الالتزام بالعرض',
-          value: t.validityDuration || `${t.commitmentDays || 180} يوم`,
-        },
-      ],
-      bodyText: itemsToUse
-        .map(
-          (it, idx) =>
-            `• بند (${idx + 1}): ${it.description} | الوحدة: ${it.unit} | الكمية: ${it.quantity} | سعر الوحدة: \u200E\u20C1 ${it.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })} | شامل الضريبة: \u200E\u20C1 ${it.totalWithVat.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${it.totalWithVatInWords})`
-        )
-        .join('\n'),
-      attachmentFileName: pdfName,
-      attachmentFilePromise: generateExecutivePdfArtifact('kas_boq_items', itemsToUse, docTitle, {
-        entityCode: 'KAS',
-        customCompanyNameAr: t.entityName,
-      }).then((a) => a?.file ?? null),
-    };
-
-    if (channel === 'whatsapp') {
-      shareViaWhatsApp(payload);
-    } else {
-      shareViaEmail(payload);
+    if (targetTender && targetTender.id !== selectedTender.id) {
+      setSelectedTender(targetTender);
+      setCurrentItems(targetTender.items || []);
     }
+    setKasShareModal({
+      isOpen: true,
+      mode: channel,
+      scope: 'boq',
+    });
   };
 
   const handleOpenPreviewStudio = (

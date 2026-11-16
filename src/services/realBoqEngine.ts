@@ -576,6 +576,9 @@ export class RealBoqEngine {
       z: '#,##0.00',
     });
     setCell(`J${rSub}`, { t: 's', v: totals.subtotalInWords });
+    for (const col of ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']) {
+      if (!ws[`${col}${rSub}`]) setCell(`${col}${rSub}`, { t: 's', v: '' });
+    }
 
     setCell(`D${rVat}`, { t: 's', v: 'الضريبة' });
     setCell(`E${rVat}`, {
@@ -585,6 +588,9 @@ export class RealBoqEngine {
       z: '#,##0.00',
     });
     setCell(`J${rVat}`, { t: 's', v: totals.vatInWords });
+    for (const col of ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']) {
+      if (!ws[`${col}${rVat}`]) setCell(`${col}${rVat}`, { t: 's', v: '' });
+    }
 
     setCell(`C${rGrand}`, { t: 's', v: 'الإجمالى شامل الضريبة' });
     setCell(`E${rGrand}`, {
@@ -594,6 +600,9 @@ export class RealBoqEngine {
       z: '#,##0.00',
     });
     setCell(`J${rGrand}`, { t: 's', v: totals.grandTotalInWords });
+    for (const col of ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']) {
+      if (!ws[`${col}${rGrand}`]) setCell(`${col}${rGrand}`, { t: 's', v: '' });
+    }
 
     // Supply & Validity Terms Rows (matching Rows 111 & 112)
     const rSupply = subtotalRowNum + 5;

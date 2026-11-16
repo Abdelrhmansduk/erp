@@ -29,10 +29,14 @@ import {
   Plus,
   Trash2,
   RotateCcw,
+  RotateCw,
   MessageCircle,
   Mail,
   Type,
   Copy,
+  MousePointerClick,
+  Palette,
+  History,
 } from 'lucide-react';
 import {
   exportData,
@@ -56,6 +60,21 @@ import {
   setEntityHideHoldingPreference,
 } from '../../services/entityBrandingService';
 import { kasNovemberWorkbooksService } from '../../services/kasNovemberWorkbooksService';
+import { RealBoqEngine } from '../../services/realBoqEngine';
+import {
+  KasVisualExportTheme,
+  KasExportTargetScope,
+  KasExportFileFormat,
+  buildKasStudioPreviewHtml,
+  buildThemedEstablishmentsHtml,
+  buildThemedBoqTableHtml,
+  executeKasExactExport,
+  copyBothKasTablesAsIs,
+  copyHtmlAndTextToClipboard,
+  handleNativeMouseTableCopyEvent,
+} from '../../services/kasExactExportAndShareEngine';
+import { KasShareAndExportModal } from '../tenders/KasShareAndExportModal';
+import { KasModificationAuditLogSection } from '../tenders/KasModificationAuditLogSection';
 import { shareViaEmail, shareViaWhatsApp } from '../../services/quickShareService';
 import { isHrDocumentSection } from '../hr/ReemHrDocumentSignatureBlock';
 import { useAppStore } from '../../stores/appStore';
@@ -123,10 +142,69 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
   const [activeExportingFormat, setActiveExportingFormat] = useState<ExportFormat | null>(null);
 
   // Interactive Pre-Export Field & Cell Editor States
-  const [studioMode, setStudioMode] = useState<'preview' | 'editor'>('preview');
+  const [studioMode, setStudioMode] = useState<'preview' | 'editor' | 'audit'>('preview');
   const [editableHeaders, setEditableHeaders] = useState<Record<number, string>>({});
   const [hasEditedCells, setHasEditedCells] = useState<boolean>(false);
   const [editedRowsMatrix, setEditedRowsMatrix] = useState<(string | number)[][]>([]);
+
+  // KAS Exact Replica Studio States (`مطابق للقسم الجديد بالملي`)
+  const isKasSection = useMemo(
+    () =>
+      sectionKey === 'kas_boq_items' ||
+      sectionKey === 'kas_establishments_tracker' ||
+      sectionKey === 'kas_november_tenders' ||
+      entityCode === 'KAS',
+    [sectionKey, entityCode]
+  );
+  const [kasVisualTheme, setKasVisualTheme] =
+    useState<KasVisualExportTheme>('kas-original-xlsm');
+  const [kasTargetScope, setKasTargetScope] = useState<KasExportTargetScope>(
+    () =>
+      sectionKey === 'kas_establishments_tracker'
+        ? 'establishments'
+        : 'both'
+  );
+  const [kasLiveVersion, setKasLiveVersion] = useState<number>(0);
+  const [kasShareModal, setKasShareModal] = useState<{
+    isOpen: boolean;
+    mode: 'whatsapp' | 'email' | 'export';
+  }>({
+    isOpen: false,
+    mode: 'whatsapp',
+  });
+
+  const kasStateSnapshot = useMemo(() => {
+    const allTenders = kasNovemberWorkbooksService.getAllTenders();
+    const establishments = kasNovemberWorkbooksService.getEstablishments();
+    const logs = kasNovemberWorkbooksService.getModificationLogs();
+    // Match active tender from titleInput or data if possible
+    const matchedTender =
+      allTenders.find(
+        (t) =>
+          (titleInput &&
+            t.referenceNumber &&
+            titleInput.includes(t.referenceNumber)) ||
+          (titleInput && t.title && titleInput.includes(t.title))
+      ) ||
+      allTenders[0];
+    const items =
+      sectionKey === 'kas_boq_items' &&
+      Array.isArray(data) &&
+      data.length > 0 &&
+      data[0]?.description !== undefined &&
+      !kasLiveVersion
+        ? data
+        : matchedTender?.items || [];
+    return {
+      allTenders,
+      establishments,
+      activeTender: matchedTender,
+      items,
+      logs,
+      activeModCount: logs.filter((l) => !l.reverted).length,
+      revertedModCount: logs.filter((l) => l.reverted).length,
+    };
+  }, [sectionKey, data, titleInput, kasLiveVersion, isOpen]);
 
   // Sync when modal opens or section/data changes
   useEffect(() => {
@@ -146,7 +224,24 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
     setCustomCrNumber('');
     setCustomTaxNumber('');
     setKasEstablishmentsList(kasNovemberWorkbooksService.getEstablishmentNames());
+    if (sectionKey === 'kas_establishments_tracker') {
+      setKasTargetScope('establishments');
+    } else if (
+      sectionKey === 'kas_boq_items' ||
+      sectionKey === 'kas_november_tenders'
+    ) {
+      setKasTargetScope('both');
+    }
   }, [customTitle, baseConfig.sectionTitle, baseConfig.headers.length, sectionKey, isOpen]);
+
+  // Subscribe to real-time KAS workbook updates so changes reflect across both sections
+  useEffect(() => {
+    const unsub = kasNovemberWorkbooksService.subscribe(() => {
+      setKasLiveVersion((v) => v + 1);
+      setKasEstablishmentsList(kasNovemberWorkbooksService.getEstablishmentNames());
+    });
+    return () => unsub();
+  }, []);
 
   // Keep fresh base matrix whenever columns or source data change (unless user already edited cells)
   const rawMappedMatrix = useMemo(() => {
@@ -172,7 +267,65 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
     if (!isOpen) return;
     const handlePreviewMessage = (ev: MessageEvent) => {
       const msg = ev.data;
-      if (!msg || msg.type !== 'ERP_PREVIEW_INLINE_EDIT') return;
+      if (!msg) return;
+
+      if (msg.type === 'KAS_STUDIO_BOQ_ROW_EDIT' && kasStateSnapshot.activeTender) {
+        const rowIdx = Number(msg.rowIdx);
+        const currentItems = [...(kasStateSnapshot.activeTender.items || [])];
+        if (currentItems[rowIdx]) {
+          currentItems[rowIdx] = RealBoqEngine.calculateItem(
+            rowIdx + 1,
+            String(msg.description ?? currentItems[rowIdx].description),
+            String(msg.unit ?? currentItems[rowIdx].unit),
+            Number(msg.quantity ?? currentItems[rowIdx].quantity) || 0,
+            Number(msg.unitPrice ?? currentItems[rowIdx].unitPrice) || 0,
+            currentItems[rowIdx].id
+          );
+          const recalc = RealBoqEngine.recalculateTender(currentItems);
+          kasNovemberWorkbooksService.saveTender(
+            {
+              ...kasStateSnapshot.activeTender,
+              items: currentItems,
+              subtotal: recalc.subtotal,
+              vatAmount: recalc.vatAmount,
+              grandTotal: recalc.grandTotal,
+              subtotalInWords: recalc.subtotalInWords,
+              vatInWords: recalc.vatInWords,
+              grandTotalInWords: recalc.grandTotalInWords,
+            },
+            {
+              actionType: 'edit',
+              sourceSection: 'استوديو المعاينة والتصدير A4',
+              targetLabel: `${kasStateSnapshot.activeTender.sheetName || 'الجدول'} — البند #${rowIdx + 1}`,
+              actionSummary: `تعديل مباشر للبند #${rowIdx + 1} داخل معاينة A4 (${kasStateSnapshot.activeTender.referenceNumber})`,
+            }
+          );
+          setKasLiveVersion((v) => v + 1);
+        }
+        return;
+      }
+
+      if (msg.type === 'KAS_STUDIO_EST_ROW_EDIT') {
+        const rowIdx = Number(msg.rowIdx);
+        const ests = [...kasStateSnapshot.establishments];
+        if (ests[rowIdx]) {
+          ests[rowIdx] = {
+            ...ests[rowIdx],
+            endingToday: Number(msg.endingToday) || 0,
+            endingAfterToday: Number(msg.endingAfterToday) || 0,
+          };
+          kasNovemberWorkbooksService.saveEstablishments(ests, {
+            actionType: 'edit',
+            sourceSection: 'استوديو المعاينة والتصدير A4',
+            targetLabel: `جدول المؤسسات — ${ests[rowIdx].name}`,
+            actionSummary: `تعديل أعداد المؤسسة (${ests[rowIdx].name}) من داخل معاينة A4`,
+          });
+          setKasLiveVersion((v) => v + 1);
+        }
+        return;
+      }
+
+      if (msg.type !== 'ERP_PREVIEW_INLINE_EDIT') return;
       if (msg.kind === 'field') {
         const val = String(msg.value || '').trim();
         if (msg.field === 'customTitle' && val) setTitleInput(val);
@@ -206,7 +359,7 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
     };
     window.addEventListener('message', handlePreviewMessage);
     return () => window.removeEventListener('message', handlePreviewMessage);
-  }, [isOpen, rawMappedMatrix]);
+  }, [isOpen, rawMappedMatrix, kasStateSnapshot]);
 
   useEffect(() => {
     if (!hasEditedCells) {
@@ -307,11 +460,71 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
 
   const previewHtml = useMemo(() => {
     if (!isOpen) return '';
+    if (isKasSection && kasStateSnapshot.activeTender) {
+      return buildKasStudioPreviewHtml({
+        scope: kasTargetScope,
+        tender: {
+          ...kasStateSnapshot.activeTender,
+          entityName:
+            customCompanyNameAr.trim() ||
+            kasStateSnapshot.activeTender.entityName,
+          title: titleInput.trim()
+            ? titleInput
+                .replace(/^جدول الكميات والأسعار لمنافسة:\s*/i, '')
+                .replace(/\s*\([0-9]+\)\s*$/, '')
+            : kasStateSnapshot.activeTender.title,
+        },
+        items: kasStateSnapshot.items,
+        establishments: kasStateSnapshot.establishments,
+        theme: kasVisualTheme,
+        companyNameAr:
+          customCompanyNameAr.trim() ||
+          kasStateSnapshot.activeTender.entityName ||
+          companyInfo.nameAr,
+        crNumber: customCrNumber.trim() || companyInfo.crNumber,
+        taxNumber: customTaxNumber.trim() || companyInfo.taxNumber,
+        preparerName: customPreparerName.trim() || exporterInfo.name,
+        preparerRole: customPreparerRole.trim() || exporterInfo.role,
+        branchName: customBranchName.trim() || exporterInfo.branch,
+        executiveNote: executiveNote.trim() || undefined,
+        showSignatures,
+        showQrCode,
+        hideHoldingGroupBrand,
+        fontScale,
+        financeSignatory: customFinanceSignatory.trim() || undefined,
+        executiveSignatory: customExecutiveSignatory.trim() || undefined,
+      });
+    }
     return generateExecutiveReportHtml(sectionKey, data, titleInput, false, {
       ...customizationOptions,
       embedPreview: true,
     });
-  }, [isOpen, sectionKey, data, titleInput, customizationOptions]);
+  }, [
+    isOpen,
+    isKasSection,
+    kasStateSnapshot,
+    kasTargetScope,
+    kasVisualTheme,
+    customCompanyNameAr,
+    customCrNumber,
+    customTaxNumber,
+    customPreparerName,
+    customPreparerRole,
+    customBranchName,
+    customFinanceSignatory,
+    customExecutiveSignatory,
+    executiveNote,
+    showSignatures,
+    showQrCode,
+    hideHoldingGroupBrand,
+    fontScale,
+    companyInfo,
+    exporterInfo,
+    sectionKey,
+    data,
+    titleInput,
+    customizationOptions,
+  ]);
 
   const syncIframeHeight = useCallback(() => {
     const iframe = iframeRef.current;
@@ -452,7 +665,128 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
     setEditedRowsMatrix(rawMappedMatrix);
   };
 
+  const handleMouseCopyStudioTables = async (
+    target: 'both' | 'boq' | 'establishments' = 'both'
+  ) => {
+    if (isKasSection && kasStateSnapshot.activeTender) {
+      // Visually highlight inside the preview iframe if visible
+      try {
+        const doc = iframeRef.current?.contentDocument;
+        const win = iframeRef.current?.contentWindow;
+        if (doc && win) {
+          const root = doc.getElementById('kas-studio-selectable-root') || doc.body;
+          const range = doc.createRange();
+          range.selectNodeContents(root);
+          const sel = win.getSelection();
+          sel?.removeAllRanges();
+          sel?.addRange(range);
+        }
+      } catch {
+        // ignore cross-frame selection errors
+      }
+
+      if (target === 'establishments') {
+        const html = buildThemedEstablishmentsHtml(
+          kasStateSnapshot.establishments,
+          kasVisualTheme,
+          {
+            entityName:
+              customCompanyNameAr.trim() ||
+              kasStateSnapshot.activeTender.entityName,
+            hideHoldingGroupBrand: true,
+          }
+        );
+        const plain = [
+          ['المؤسسات', 'انتهاء اليوم', 'انتهاء بعد اليوم', 'الإجمالى'].join('\t'),
+          ...kasStateSnapshot.establishments.map((e) => {
+            const t = Number(e.endingToday) || 0;
+            const a = Number(e.endingAfterToday) || 0;
+            const s = t + a;
+            return [e.name, t === 0 ? '' : t, a === 0 ? '' : a, s === 0 ? '-' : s].join('\t');
+          }),
+        ].join('\n');
+        await copyHtmlAndTextToClipboard(html, plain);
+      } else if (target === 'boq') {
+        const html = buildThemedBoqTableHtml(
+          kasStateSnapshot.activeTender,
+          kasStateSnapshot.items,
+          kasVisualTheme,
+          { hideHoldingGroupBrand: true }
+        );
+        const plain = RealBoqEngine.formatKasTableClipboardText(
+          kasStateSnapshot.activeTender,
+          kasStateSnapshot.items
+        );
+        await copyHtmlAndTextToClipboard(html, plain);
+      } else {
+        await copyBothKasTablesAsIs({
+          establishments: kasStateSnapshot.establishments,
+          tender: kasStateSnapshot.activeTender,
+          items: kasStateSnapshot.items,
+          theme: kasVisualTheme,
+        });
+      }
+
+      addNotification({
+        title: 'تم تحديد ونسخ الجداول كما هي بالماوس',
+        message: 'تم نسخ الجداول بنفس الألوان والحدود والمعادلات جاهزة للصق في Excel أو Word أو الواتساب.',
+        type: 'success',
+      });
+      return;
+    }
+
+    // Non-KAS fallback
+    await copyHtmlAndTextToClipboard(
+      previewHtml,
+      activeMatrixForKpis.map((r) => r.join('\t')).join('\n')
+    );
+    addNotification({
+      title: 'تم نسخ الجدول كما هو للحافظة',
+      message: 'يمكنك لصق الجدول مباشرة في Excel أو Word.',
+      type: 'success',
+    });
+  };
+
+  const handleStudioUndo = () => {
+    const reverted = kasNovemberWorkbooksService.revertLatestActiveModification();
+    if (reverted) {
+      setKasLiveVersion((v) => v + 1);
+      addNotification({
+        title: 'تم التراجع عن آخر تعديل',
+        message: `تم التراجع عن: "${reverted.actionSummary}" (${reverted.actorName}).`,
+        type: 'success',
+      });
+    } else if (hasEditedCells || Object.keys(editableHeaders).length > 0) {
+      handleResetEdits();
+      addNotification({
+        title: 'تم التراجع عن التعديلات المؤقتة',
+        message: 'تمت استعادة البيانات الأصلية.',
+        type: 'info',
+      });
+    }
+  };
+
+  const handleStudioUndoRevert = () => {
+    const restored = kasNovemberWorkbooksService.undoLatestRevertedModification();
+    if (restored) {
+      setKasLiveVersion((v) => v + 1);
+      addNotification({
+        title: 'تم التراجع عن الإرجاع (استعادة الإجراء)',
+        message: `تمت استعادة الإجراء المتراجع عنه: "${restored.actionSummary}" (${restored.actorName}).`,
+        type: 'success',
+      });
+    }
+  };
+
   const handleShareSummary = (channel: 'whatsapp' | 'email') => {
+    if (isKasSection && kasStateSnapshot.activeTender) {
+      setKasShareModal({
+        isOpen: true,
+        mode: channel,
+      });
+      return;
+    }
+
     const pdfFileName = buildExecutivePdfFileName(titleInput);
     const formattedReportRowsLines = activeMatrixForKpis.slice(0, 30).map((row, rIdx) => {
       const pairs = customizedConfig.headers
@@ -523,6 +857,44 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
       setActiveExportingFormat(format);
     }
     try {
+      if (isKasSection && kasStateSnapshot.activeTender && format !== 'wps') {
+        const formatMap: Record<string, KasExportFileFormat> = {
+          excel: 'xlsx',
+          pdf: 'pdf',
+          word: 'word',
+          print: 'print',
+          png: 'png',
+          html: 'html',
+          xml: 'xml',
+          csv: 'csv_formulas',
+          tsv: 'tsv',
+          json: 'json',
+          markdown: 'markdown',
+        };
+        const mappedFormat = formatMap[format] || 'xlsx';
+        const res = await executeKasExactExport({
+          format: mappedFormat,
+          scope: kasTargetScope,
+          tender: {
+            ...kasStateSnapshot.activeTender,
+            entityName:
+              customCompanyNameAr.trim() ||
+              kasStateSnapshot.activeTender.entityName,
+          },
+          items: kasStateSnapshot.items,
+          establishments: kasStateSnapshot.establishments,
+          allTenders: kasStateSnapshot.allTenders,
+          theme: kasVisualTheme,
+          hideHoldingGroupBrand,
+        });
+        addNotification({
+          title: 'تم إصدار الوثيقة المطابقة للقسم الجديد بالملي وبالمعادلات',
+          message: `تم تصدير (${res.fileName}) بالثيم المحدد ومعادلات إكسل الفعّالة.`,
+          type: 'success',
+        });
+        return;
+      }
+
       await exportData(sectionKey, data, format, titleInput, customizationOptions);
       addNotification({
         title: 'تم إصدار الوثيقة المؤسسية المعتمدة',
@@ -653,7 +1025,41 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {isKasSection && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => void handleMouseCopyStudioTables('both')}
+                  style={{ backgroundColor: '#00CC00', color: '#000000' }}
+                  className="px-3 py-1.5 rounded-full border border-[#000000] text-xs font-extrabold inline-flex items-center gap-1.5 cursor-pointer"
+                  title="تحديد ونسخ الجداول كما هي بالماوس بألوانها وحدودها ومعادلاتها"
+                >
+                  <MousePointerClick className="w-3.5 h-3.5" />
+                  <span>نسخ الجداول بالماوس</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleStudioUndo}
+                  style={{ backgroundColor: '#F8CBAD', color: '#9C0006' }}
+                  className="px-2.5 py-1.5 rounded-full border border-[#000000] text-xs font-bold inline-flex items-center gap-1 cursor-pointer"
+                  title="التراجع عن آخر تعديل"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>تراجع ({kasStateSnapshot.activeModCount})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleStudioUndoRevert}
+                  style={{ backgroundColor: '#A9D18E', color: '#000000' }}
+                  className="px-2.5 py-1.5 rounded-full border border-[#000000] text-xs font-bold inline-flex items-center gap-1 cursor-pointer"
+                  title="زر التراجع عن الإرجاع — استعادة الإجراء المتراجع عنه"
+                >
+                  <RotateCw className="w-3.5 h-3.5" />
+                  <span>التراجع عن الإجراء ({kasStateSnapshot.revertedModCount})</span>
+                </button>
+              </>
+            )}
             <button
               type="button"
               disabled={Boolean(activeExportingFormat)}
@@ -678,19 +1084,19 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
               type="button"
               onClick={() => handleShareSummary('whatsapp')}
               className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-              title="إرسال ملف PDF الرسمي مع النص المعتمد عبر واتساب"
+              title="إرسال عبر الواتساب مع تحديد المرفقات وأجزاء النص"
             >
               <MessageCircle className="w-3.5 h-3.5" />
-              <span>واتساب (PDF + نص)</span>
+              <span>واتساب (مرفقات + نص)</span>
             </button>
             <button
               type="button"
               onClick={() => handleShareSummary('email')}
               className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#141414] text-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-              title="إرسال ملخص التقرير عبر البريد الإلكتروني"
+              title="إرسال عبر البريد الإلكتروني مع تحديد المرفقات وأجزاء النص"
             >
               <Mail className="w-3.5 h-3.5" />
-              <span>بريد</span>
+              <span>بريد (مرفقات + نص)</span>
             </button>
             <span className="px-3 py-1 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-semibold text-[#141414]">
               {activeMatrixForKpis.length} سجل
@@ -716,6 +1122,85 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                 هوية الشركة وتخصيص مقاسات وحقول التصدير
               </h3>
             </div>
+
+            {/* KAS Exact Replica Visual Theme & Scope Selector (`مطابق للقسم الجديد بالملي`) */}
+            {isKasSection && (
+              <div
+                style={{ backgroundColor: '#D9E1F2', borderColor: '#000000' }}
+                className="p-3 rounded-[16px] border-2 space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-extrabold text-[#000000] flex items-center gap-1">
+                    <Palette className="w-3.5 h-3.5 text-[#006600]" />
+                    <span>ثيم وهيئة جداول كاس في المعاينة والتصدير:</span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setKasVisualTheme('kas-original-xlsm')}
+                    style={{
+                      backgroundColor:
+                        kasVisualTheme === 'kas-original-xlsm' ? '#00CC00' : '#FFFFFF',
+                      color: '#000000',
+                    }}
+                    className="w-full px-2.5 py-1.5 rounded-[10px] border border-[#000000] text-right text-[11px] font-extrabold cursor-pointer"
+                  >
+                    1. مطابق للقسم الجديد بالملي (ألوان إكسيل كاس #00CC00 / #A9D18E / #4472C4)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setKasVisualTheme('company-corporate')}
+                    style={{
+                      backgroundColor:
+                        kasVisualTheme === 'company-corporate' ? '#0F3A60' : '#FFFFFF',
+                      color:
+                        kasVisualTheme === 'company-corporate' ? '#FFFFFF' : '#000000',
+                    }}
+                    className="w-full px-2.5 py-1.5 rounded-[10px] border border-[#000000] text-right text-[11px] font-extrabold cursor-pointer"
+                  >
+                    2. ثيم الشركة الرسمي الآخر (هوية الشركة / المؤسسة المختارة)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setKasVisualTheme('monochrome')}
+                    style={{
+                      backgroundColor:
+                        kasVisualTheme === 'monochrome' ? '#141414' : '#FFFFFF',
+                      color: kasVisualTheme === 'monochrome' ? '#FFFFFF' : '#000000',
+                    }}
+                    className="w-full px-2.5 py-1.5 rounded-[10px] border border-[#000000] text-right text-[11px] font-extrabold cursor-pointer"
+                  >
+                    3. الثيم التنفيذي الأحادي (Monochrome)
+                  </button>
+                </div>
+
+                <div className="pt-1">
+                  <label className="block text-[10.5px] font-bold text-[#000000] mb-1">
+                    نطاق الجداول المعروضة والمصدّرة:
+                  </label>
+                  <select
+                    value={kasTargetScope}
+                    onChange={(e) =>
+                      setKasTargetScope(e.target.value as KasExportTargetScope)
+                    }
+                    className="w-full px-2.5 py-1.5 rounded-[10px] border border-[#000000] bg-[#ffffff] text-[11px] font-extrabold text-[#000000]"
+                  >
+                    <option value="both">
+                      الجدول النشط (C3:O112) + ورقة المؤسسات (B1:E9) معاً
+                    </option>
+                    <option value="boq">ورقة الجدول النشطة فقط (C3:O112)</option>
+                    <option value="establishments">
+                      ورقة متابعة المؤسسات فقط (B1:E9)
+                    </option>
+                    <option value="full_workbook">
+                      المصنف الكامل متعدد الأوراق
+                    </option>
+                  </select>
+                </div>
+              </div>
+            )}
 
             {/* 0. Issuing Entity & Removing Parent Group Phrase */}
             <div className="p-3 rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] space-y-2.5">
@@ -1124,7 +1609,46 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                     />
                     <span>تحرير الحقول والخلايا قبل الطباعة ({activeMatrixForKpis.length})</span>
                   </button>
+                  {isKasSection && (
+                    <button
+                      type="button"
+                      onClick={() => setStudioMode('audit')}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-colors cursor-pointer ${
+                        studioMode === 'audit'
+                          ? 'bg-[#4472C4] text-[#ffffff]'
+                          : 'text-[#707070] hover:text-[#141414]'
+                      }`}
+                    >
+                      <History className="w-3.5 h-3.5" />
+                      <span>سجل التعديلات ومن قام بها ({kasStateSnapshot.logs.length})</span>
+                    </button>
+                  )}
                 </div>
+
+                {isKasSection && (
+                  <div className="inline-flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => void handleMouseCopyStudioTables('establishments')}
+                      style={{ backgroundColor: '#4472C4', color: '#FFFFFF' }}
+                      className="px-2.5 py-1 rounded-full border border-[#000000] text-[10.5px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                      title="نسخ جدول المؤسسات كما هو بالماوس"
+                    >
+                      <Copy className="w-3 h-3" />
+                      <span>نسخ المؤسسات بالماوس</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleMouseCopyStudioTables('boq')}
+                      style={{ backgroundColor: '#92D050', color: '#000000' }}
+                      className="px-2.5 py-1 rounded-full border border-[#000000] text-[10.5px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                      title="نسخ جدول الكميات (C3:O112) كما هو بالماوس"
+                    >
+                      <Copy className="w-3 h-3" />
+                      <span>نسخ الجدول بالماوس</span>
+                    </button>
+                  </div>
+                )}
 
                 {kpis.hasFinancials && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] text-[11px] font-semibold">
@@ -1269,8 +1793,35 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                   </div>
                 </div>
               </div>
-            ) : (
+            ) : studioMode === 'audit' ? (
               <div className="flex-1 overflow-auto p-4">
+                <KasModificationAuditLogSection
+                  onStateRestored={() => {
+                    setKasLiveVersion((v) => v + 1);
+                  }}
+                />
+              </div>
+            ) : (
+              <div
+                className="flex-1 overflow-auto p-4 select-text"
+                onCopy={(e) => {
+                  if (isKasSection && kasStateSnapshot.activeTender) {
+                    const handled = handleNativeMouseTableCopyEvent(e, {
+                      establishments: kasStateSnapshot.establishments,
+                      tender: kasStateSnapshot.activeTender,
+                      items: kasStateSnapshot.items,
+                      theme: kasVisualTheme,
+                    });
+                    if (handled) {
+                      addNotification({
+                        title: 'تم نسخ التحديد بالماوس كما هو',
+                        message: 'تم نسخ الخلايا/الصفوف المحددة بالماوس بنفس ألوان وحدود الجدول.',
+                        type: 'success',
+                      });
+                    }
+                  }
+                }}
+              >
                 <div className="bg-[#ffffff] rounded-[20px] border border-[#e0e0e0] overflow-hidden">
                   <div className="px-4 py-2.5 bg-[#f3f3f3] border-b border-[#e0e0e0] flex items-center justify-between flex-wrap gap-2">
                     <span className="text-xs font-bold text-[#141414]">
@@ -1282,36 +1833,92 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                   </div>
                   <div className="overflow-x-auto max-h-[620px]">
                     <table className="w-full border-collapse text-right text-xs">
-                      <thead className="sticky top-0 z-10 bg-[#141414] text-[#ffffff]">
+                      <thead
+                        style={
+                          isKasSection
+                            ? { backgroundColor: '#A9D18E', color: '#000000' }
+                            : undefined
+                        }
+                        className="sticky top-0 z-10 bg-[#141414] text-[#ffffff]"
+                      >
                         <tr>
-                          <th className="p-2 border border-[#262626] w-10 text-center">#</th>
+                          <th
+                            style={
+                              isKasSection
+                                ? { backgroundColor: '#00CC00', color: '#000000', borderColor: '#000000' }
+                                : undefined
+                            }
+                            className="p-2 border border-[#262626] w-10 text-center"
+                          >
+                            #
+                          </th>
                           {customizedConfig.headers.map((hdr, colIdx) => (
-                            <th key={colIdx} className="p-1.5 border border-[#262626] min-w-[130px]">
+                            <th
+                              key={colIdx}
+                              style={
+                                isKasSection
+                                  ? { borderColor: '#000000', backgroundColor: '#A9D18E', color: '#000000' }
+                                  : undefined
+                              }
+                              className="p-1.5 border border-[#262626] min-w-[130px]"
+                            >
                               <input
                                 type="text"
                                 value={hdr}
                                 onChange={(e) => handleHeaderLabelEdit(colIdx, e.target.value)}
+                                style={
+                                  isKasSection
+                                    ? { backgroundColor: '#ffffff', color: '#000000', borderColor: '#000000' }
+                                    : undefined
+                                }
                                 className="w-full px-2 py-1 rounded-[8px] bg-[#262626] text-[#ffffff] text-[11px] font-bold border border-transparent focus:border-[#ffffff] focus:outline-none"
                                 title="تعديل عنوان العمود"
                               />
                             </th>
                           ))}
-                          <th className="p-2 border border-[#262626] w-12 text-center">حذف</th>
+                          <th
+                            style={
+                              isKasSection
+                                ? { backgroundColor: '#F8CBAD', color: '#9C0006', borderColor: '#000000' }
+                                : undefined
+                            }
+                            className="p-2 border border-[#262626] w-12 text-center"
+                          >
+                            حذف
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
                         {activeMatrixForKpis.map((row, rIdx) => (
                           <tr
                             key={rIdx}
+                            style={
+                              isKasSection
+                                ? { backgroundColor: rIdx % 2 === 0 ? '#FFFFFF' : '#D9E1F2' }
+                                : undefined
+                            }
                             className={rIdx % 2 === 0 ? 'bg-[#ffffff]' : 'bg-[#ffffff]'}
                           >
-                            <td className="p-2 border border-[#e0e0e0] text-center font-mono font-bold text-[#707070]">
+                            <td
+                              style={
+                                isKasSection
+                                  ? { backgroundColor: '#00CC00', color: '#000000', borderColor: '#000000' }
+                                  : undefined
+                              }
+                              className="p-2 border border-[#e0e0e0] text-center font-mono font-bold text-[#707070]"
+                            >
                               {rIdx + 1}
                             </td>
                             {customizedConfig.headers.map((hdrLabel, cIdx) => {
                               const isEstCol = /مؤسس|جهة|شركة|الكيان/i.test(hdrLabel);
                               return (
-                                <td key={cIdx} className="p-1 border border-[#e0e0e0]">
+                                <td
+                                  key={cIdx}
+                                  style={
+                                    isKasSection ? { borderColor: '#000000' } : undefined
+                                  }
+                                  className="p-1 border border-[#e0e0e0]"
+                                >
                                   <input
                                     type="text"
                                     list={isEstCol ? 'export-studio-establishments-list' : undefined}
@@ -1322,7 +1929,12 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
                                 </td>
                               );
                             })}
-                            <td className="p-1 border border-[#e0e0e0] text-center">
+                            <td
+                              style={
+                                isKasSection ? { borderColor: '#000000' } : undefined
+                              }
+                              className="p-1 border border-[#e0e0e0] text-center"
+                            >
                               <div className="flex items-center justify-center gap-1">
                                 <button
                                   type="button"
@@ -1447,6 +2059,20 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
           </div>
         </div>
       </div>
+
+      {isKasSection && kasStateSnapshot.activeTender && (
+        <KasShareAndExportModal
+          isOpen={kasShareModal.isOpen}
+          onClose={() => setKasShareModal((s) => ({ ...s, isOpen: false }))}
+          initialMode={kasShareModal.mode}
+          initialTheme={kasVisualTheme}
+          initialScope={kasTargetScope}
+          tender={kasStateSnapshot.activeTender}
+          items={kasStateSnapshot.items}
+          establishments={kasStateSnapshot.establishments}
+          allTenders={kasStateSnapshot.allTenders}
+        />
+      )}
     </div>,
     document.body
   );
