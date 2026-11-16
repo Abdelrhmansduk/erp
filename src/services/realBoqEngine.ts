@@ -672,6 +672,19 @@ export class RealBoqEngine {
       }
     }
     ws['!rows'] = wsRows;
+    ws['!merges'] = [
+      { s: { c: 2, r: 2 }, e: { c: 3, r: 2 } }, // C3:D3
+      { s: { c: 4, r: 2 }, e: { c: 10, r: 2 } }, // E3:K3
+      { s: { c: 2, r: 3 }, e: { c: 3, r: 3 } }, // C4:D4
+      { s: { c: 4, r: 3 }, e: { c: 10, r: 3 } }, // E4:K4
+      { s: { c: 4, r: rSub - 1 }, e: { c: 7, r: rSub - 1 } }, // E107:H107
+      { s: { c: 9, r: rSub - 1 }, e: { c: 12, r: rSub - 1 } }, // J107:M107
+      { s: { c: 4, r: rVat - 1 }, e: { c: 7, r: rVat - 1 } }, // E108:H108
+      { s: { c: 9, r: rVat - 1 }, e: { c: 12, r: rVat - 1 } }, // J108:M108
+      { s: { c: 2, r: rGrand - 1 }, e: { c: 3, r: rGrand - 1 } }, // C109:D109
+      { s: { c: 4, r: rGrand - 1 }, e: { c: 7, r: rGrand - 1 } }, // E109:H109
+      { s: { c: 9, r: rGrand - 1 }, e: { c: 12, r: rGrand - 1 } }, // J109:M109
+    ];
 
     return ws;
   }
@@ -986,5 +999,225 @@ export class RealBoqEngine {
       `مدة التوريد : خلال (${tender.supplyDuration}) من تاريخ استلام التعميد.`,
       `مدة الالتزام بالعرض : (${tender.validityDuration || `${tender.commitmentDays || 180} يوم`}) من تاريخ التقديم على المنافسة.`,
     ].join('\n');
+  }
+
+  /**
+   * Exports a single BOQ sheet + المؤسسات sheet styled with the EXACT original KAS XLSM
+   * colors, merges, borders, and formulas (`#4472C4`, `#F8CBAD`, `#A9D18E`, `#00B0F0`, `#D9E1F2`, `#00CC00`, `#006600`, `#92D050`).
+   */
+  public static exportExactReplicaToExcelWithFormulas(
+    tender: TenderRecord,
+    items: BOQItem[],
+    establishments?: KasEstablishmentRow[]
+  ): Uint8Array {
+    return this.exportToExcelWithFormulas(tender, items, establishments, {
+      uiTheme: 'kas-original-xlsm',
+      entityCode: 'KAS',
+    });
+  }
+
+  /**
+   * Exports the full Multi-Sheet KAS Workbook (`الجدول` + `المؤسسات` + `الجدول (N)`)
+   * with the EXACT original KAS XLSM visual layout, colors, merges, and formulas.
+   */
+  public static exportExactReplicaMultiSheetWorkbook(
+    establishments: KasEstablishmentRow[],
+    tenders: TenderRecord[]
+  ): Uint8Array {
+    return this.exportKasMultiSheetWorkbookWithFormulas(establishments, tenders, {
+      uiTheme: 'kas-original-xlsm',
+      entityCode: 'KAS',
+    });
+  }
+
+  /**
+   * Exports the 4-column `المؤسسات` table (`المؤسسات | انتهاء اليوم | انتهاء بعد اليوم | الإجمالى`)
+   * matching the exact colors and layout of the WhatsApp image & `شهر11 نسخة 1..4.xlsm`.
+   */
+  public static exportExactEstablishmentsOnlyExcel(
+    establishments: KasEstablishmentRow[],
+    tenders?: TenderRecord[]
+  ): Uint8Array {
+    const workbook = XLSX.utils.book_new();
+    workbook.Workbook = { Views: [{ RTL: true }] };
+    const estSheet = this.buildEstablishmentsWorksheet(establishments, tenders);
+    XLSX.utils.book_append_sheet(workbook, estSheet, 'المؤسسات');
+    return applyThemedBoqWorkbookStyles(
+      workbook,
+      [{ kind: 'establishments', totalsRowNum: establishments.length + 2 }],
+      { uiTheme: 'kas-original-xlsm', entityCode: 'KAS' }
+    );
+  }
+
+  /**
+   * Builds a rich HTML table for `المؤسسات` with exact inline styles (`#4472C4`, `#F8CBAD`, `#A9D18E`, `#00B0F0`, `#D9E1F2`)
+   * so pasting into Excel, Word, or Outlook preserves the exact visual look.
+   */
+  public static formatExactEstablishmentsHtmlTable(
+    establishments: KasEstablishmentRow[]
+  ): string {
+    const rowsHtml = establishments
+      .map((est) => {
+        const t = Number(est.endingToday) || 0;
+        const a = Number(est.endingAfterToday) || 0;
+        const sum = t + a;
+        return `<tr>
+          <td style="background:#D9E1F2;border:1px solid #000000;padding:6px 12px;font-weight:bold;text-align:right;font-family:Arial,sans-serif;font-size:14px;color:#000000;">${est.name}</td>
+          <td style="background:#D9E1F2;border:1px solid #000000;padding:6px 10px;font-weight:bold;text-align:center;font-family:Arial,sans-serif;font-size:14px;color:#000000;">${t === 0 ? '' : t}</td>
+          <td style="background:#D9E1F2;border:1px solid #000000;padding:6px 10px;font-weight:bold;text-align:center;font-family:Arial,sans-serif;font-size:14px;color:#000000;">${a === 0 ? '' : a}</td>
+          <td style="background:#D9E1F2;border:1px solid #000000;padding:6px 10px;font-weight:bold;text-align:center;font-family:Arial,sans-serif;font-size:14px;color:#000000;">${sum === 0 ? '-' : sum}</td>
+        </tr>`;
+      })
+      .join('');
+
+    return `<div dir="rtl" style="direction:rtl;font-family:Arial,sans-serif;">
+      <table dir="rtl" style="border-collapse:collapse;direction:rtl;font-family:Arial,sans-serif;">
+        <thead>
+          <tr>
+            <th style="background:#4472C4;border:1px solid #000000;padding:8px 16px;font-weight:bold;text-align:center;font-size:14px;color:#000000;min-width:260px;">المؤسسات</th>
+            <th style="background:#F8CBAD;border:1px solid #000000;padding:8px 12px;font-weight:bold;text-align:center;font-size:13px;color:#9C0006;min-width:95px;">انتهاء اليوم</th>
+            <th style="background:#A9D18E;border:1px solid #000000;padding:8px 12px;font-weight:bold;text-align:center;font-size:13px;color:#000000;min-width:95px;">انتهاء بعد اليوم</th>
+            <th style="background:#00B0F0;border:1px solid #000000;padding:8px 12px;font-weight:bold;text-align:center;font-size:14px;color:#000000;min-width:95px;">الإجمالى</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>`;
+  }
+
+  /**
+   * Builds a rich HTML table for `الجدول (N)` (`C3:M112`) with exact inline colors (`#A9D18E`, `#00CC00`, `#006600`, `#92D050`, `#00B0F0`)
+   * for pasting into Excel/Word/Outlook or printing A4 with exact original fidelity.
+   */
+  public static formatExactBoqHtmlTable(tender: TenderRecord, items?: BOQItem[]): string {
+    const activeItems = (items && items.length > 0 ? items : tender.items || []).filter(
+      (it) => it.description || it.quantity > 0 || it.unitPrice > 0
+    );
+    const totals = this.recalculateTender(activeItems);
+
+    const itemRowsHtml = activeItems
+      .map(
+        (it, idx) => `<tr>
+          <td style="background:#00CC00;border:1px solid #000;padding:5px 8px;text-align:center;font-weight:bold;">${idx + 1}</td>
+          <td style="background:#FFFFFF;border:1px solid #000;padding:5px 8px;text-align:right;font-weight:bold;">${it.description}</td>
+          <td style="background:#FFFFFF;border:1px solid #000;padding:5px 8px;text-align:center;font-weight:bold;">${it.unit}</td>
+          <td style="background:#FFFFFF;border:1px solid #000;padding:5px 8px;text-align:center;font-weight:bold;">${it.quantity}</td>
+          <td style="background:#FFFFFF;border:1px solid #000;padding:5px 8px;text-align:center;font-weight:bold;">${it.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+          <td style="background:#FFFFFF;border:1px solid #000;padding:5px 8px;text-align:right;font-size:11px;">${it.unitPriceInWords}</td>
+          <td style="background:#FFFFFF;border:1px solid #000;padding:5px 8px;text-align:center;font-weight:bold;">${it.totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+          <td style="background:#FFFFFF;border:1px solid #000;padding:5px 8px;text-align:right;font-size:11px;">${it.totalPriceInWords}</td>
+          <td style="background:#FFFFFF;border:1px solid #000;padding:5px 8px;text-align:center;font-weight:bold;">${it.vat.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+          <td style="background:#FFFFFF;border:1px solid #000;padding:5px 8px;text-align:center;font-weight:bold;">${it.totalWithVat.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+          <td style="background:#FFFFFF;border:1px solid #000;padding:5px 8px;text-align:right;font-size:11px;">${it.totalWithVatInWords}</td>
+        </tr>`
+      )
+      .join('');
+
+    return `<div dir="rtl" style="direction:rtl;font-family:Arial,sans-serif;font-size:12px;color:#000;">
+      <table dir="rtl" style="border-collapse:collapse;width:100%;direction:rtl;font-family:Arial,sans-serif;">
+        <tbody>
+          <tr>
+            <td colspan="2" style="background:#A9D18E;border:1px solid #000;padding:6px 10px;font-weight:bold;">اسم المؤسسة : </td>
+            <td colspan="7" style="background:#A9D18E;border:1px solid #000;padding:6px 10px;font-weight:bold;text-align:center;">${tender.entityName}</td>
+            <td style="background:#A9D18E;border:1px solid #000;padding:6px 10px;font-weight:bold;"> - رقم مرجعي : </td>
+            <td style="background:#A9D18E;border:1px solid #000;padding:6px 10px;font-weight:bold;text-align:center;">${tender.referenceNumber}</td>
+          </tr>
+          <tr>
+            <td colspan="2" style="background:#00CC00;border:1px solid #000;padding:6px 10px;font-weight:bold;"> جدول الكميات والاسعار لمنافسة : </td>
+            <td colspan="7" style="background:#00CC00;border:1px solid #000;padding:6px 10px;font-weight:bold;text-align:center;">${tender.title}</td>
+            <td style="background:#00CC00;border:1px solid #000;padding:6px 10px;font-weight:bold;"> - الإجمالى شامل الضريبه : </td>
+            <td style="background:#00CC00;border:1px solid #000;padding:6px 10px;font-weight:bold;text-align:center;">${totals.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+          </tr>
+          <tr>
+            <th style="background:#00CC00;border:1px solid #000;padding:6px;font-weight:bold;">الرقم التسلسلي</th>
+            <th style="background:#A9D18E;border:1px solid #000;padding:6px;font-weight:bold;">وصف البند</th>
+            <th style="background:#A9D18E;border:1px solid #000;padding:6px;font-weight:bold;">وحدة القياس</th>
+            <th style="background:#A9D18E;border:1px solid #000;padding:6px;font-weight:bold;">الكمية </th>
+            <th style="background:#A9D18E;border:1px solid #000;padding:6px;font-weight:bold;">سعر الوحدة </th>
+            <th style="background:#A9D18E;border:1px solid #000;padding:6px;font-weight:bold;">سعر الوحدة كتابة </th>
+            <th style="background:#A9D18E;border:1px solid #000;padding:6px;font-weight:bold;">السعر الإجمالي </th>
+            <th style="background:#A9D18E;border:1px solid #000;padding:6px;font-weight:bold;">السعر الإجمالي كتابة</th>
+            <th style="background:#A9D18E;border:1px solid #000;padding:6px;font-weight:bold;">الضريبة</th>
+            <th style="background:#A9D18E;border:1px solid #000;padding:6px;font-weight:bold;">السعر الإجمالي شامل الضريبة </th>
+            <th style="background:#A9D18E;border:1px solid #000;padding:6px;font-weight:bold;">السعر الإجمالي شامل الضريبة كتابة</th>
+          </tr>
+          ${itemRowsHtml}
+          <tr>
+            <td style="background:#00CC00;border:1px solid #000;padding:6px;font-weight:bold;text-align:center;">الإجمالي</td>
+            <td colspan="5" style="background:#006600;border:1px solid #000;padding:6px;color:#fff;font-weight:bold;">SUBTOTAL(109)</td>
+            <td style="background:#006600;border:1px solid #000;padding:6px;color:#fff;font-weight:bold;text-align:center;">${totals.subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+            <td style="background:#006600;border:1px solid #000;padding:6px;color:#fff;"></td>
+            <td style="background:#006600;border:1px solid #000;padding:6px;color:#fff;font-weight:bold;text-align:center;">${totals.vatAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+            <td style="background:#006600;border:1px solid #000;padding:6px;color:#fff;font-weight:bold;text-align:center;">${totals.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+            <td style="background:#006600;border:1px solid #000;padding:6px;color:#fff;font-weight:bold;text-align:center;">${activeItems.length}</td>
+          </tr>
+          <tr>
+            <td style="background:#00CC00;border:1px solid #000;padding:6px;"></td>
+            <td style="background:#A9D18E;border:1px solid #000;padding:6px;font-weight:bold;text-align:center;">السعر الإجمالي</td>
+            <td colspan="4" style="background:#A9D18E;border:1px solid #000;padding:6px;font-weight:bold;text-align:center;">${totals.subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+            <td style="background:#A9D18E;border:1px solid #000;padding:6px;"></td>
+            <td colspan="4" style="background:#A9D18E;border:1px solid #000;padding:6px;font-weight:bold;text-align:center;">${totals.subtotalInWords}</td>
+          </tr>
+          <tr>
+            <td style="background:#00CC00;border:1px solid #000;padding:6px;"></td>
+            <td style="background:#A9D18E;border:1px solid #000;padding:6px;font-weight:bold;text-align:center;">الضريبة</td>
+            <td colspan="4" style="background:#A9D18E;border:1px solid #000;padding:6px;font-weight:bold;text-align:center;">${totals.vatAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+            <td style="background:#A9D18E;border:1px solid #000;padding:6px;"></td>
+            <td colspan="4" style="background:#A9D18E;border:1px solid #000;padding:6px;font-weight:bold;text-align:center;">${totals.vatInWords}</td>
+          </tr>
+          <tr>
+            <td colspan="2" style="background:#00CC00;border:1px solid #000;padding:6px;font-weight:bold;text-align:center;">الإجمالى شامل الضريبة</td>
+            <td colspan="4" style="background:#00CC00;border:1px solid #000;padding:6px;font-weight:bold;text-align:center;">${totals.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+            <td style="background:#00CC00;border:1px solid #000;padding:6px;"></td>
+            <td colspan="4" style="background:#00CC00;border:1px solid #000;padding:6px;font-weight:bold;text-align:center;">${totals.grandTotalInWords}</td>
+          </tr>
+          <tr>
+            <td colspan="11" style="padding:8px 4px;font-weight:bold;">مــــدة الـتـــــوريـــد : خـــــلال ( ${tender.supplyDuration || '15 يوم'} ) مــن تـاريـــخ اســــــتـلام الـتـعـــــمـيـد.</td>
+          </tr>
+          <tr>
+            <td colspan="11" style="padding:4px;font-weight:bold;">مــــدة الالــــتزام بـالــــعــرض ( ${tender.validityDuration || `${tender.commitmentDays || 180} يوم`} ) مــن تـاريـــخ الـتـقـديم على المنافسة.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>`;
+  }
+
+  /**
+   * Copies both Rich HTML (`text/html`) and Plain TSV (`text/plain`) to the system clipboard
+   * so pasting into Excel/Word/Outlook retains exact cell colors, borders, and merges.
+   */
+  public static async copyRichTableToClipboard(
+    htmlContent: string,
+    plainTextContent: string
+  ): Promise<boolean> {
+    try {
+      if (
+        typeof navigator !== 'undefined' &&
+        navigator.clipboard &&
+        typeof (globalThis as any).ClipboardItem !== 'undefined' &&
+        typeof navigator.clipboard.write === 'function'
+      ) {
+        const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
+        const textBlob = new Blob([plainTextContent], { type: 'text/plain' });
+        const item = new (globalThis as any).ClipboardItem({
+          'text/html': htmlBlob,
+          'text/plain': textBlob,
+        });
+        await navigator.clipboard.write([item]);
+        return true;
+      }
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(plainTextContent);
+        return true;
+      }
+    } catch {
+      try {
+        await navigator.clipboard?.writeText(plainTextContent);
+        return true;
+      } catch {
+        // ignore fallback clipboard error
+      }
+    }
+    return false;
   }
 }

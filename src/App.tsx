@@ -123,6 +123,7 @@ const SmaccInventoryAssetsPage = lazyWithRetry(() => import('./pages/SmaccInvent
 const SmaccEmployeesSettingsPage = lazyWithRetry(() => import('./pages/SmaccEmployeesSettingsPage').then(m => ({ default: m.SmaccEmployeesSettingsPage })));
 const LegalCompliancePage = lazyWithRetry(() => import('./pages/LegalCompliancePage').then(m => ({ default: m.LegalCompliancePage })));
 const TendersBOQPage = lazyWithRetry(() => import('./pages/TendersBOQPage').then(m => ({ default: m.TendersBOQPage })));
+const KasExactReplicaTablesPage = lazyWithRetry(() => import('./pages/KasExactReplicaTablesPage').then(m => ({ default: m.KasExactReplicaTablesPage })));
 const KasEtimadCloudPage = lazyWithRetry(() => import('./pages/KasEtimadCloudPage').then(m => ({ default: m.KasEtimadCloudPage })));
 const KasSuitePortalPage = lazyWithRetry(() => import('./pages/KasSuitePortalPage').then(m => ({ default: m.KasSuitePortalPage })));
 const KasCommercialDivisionsPage = lazyWithRetry(() => import('./pages/KasCommercialDivisionsPage').then(m => ({ default: m.KasCommercialDivisionsPage })));
@@ -900,6 +901,10 @@ const MainContent: React.FC = () => {
       case 'kas-spreadsheet':
       case 'boq-analytics':
         return <TendersBOQPage />;
+
+      case 'kas-exact-sheets':
+      case 'kas-replica-tables':
+        return <KasExactReplicaTablesPage />;
 
       case 'kas-commercial':
         return <KasCommercialDivisionsPage />;

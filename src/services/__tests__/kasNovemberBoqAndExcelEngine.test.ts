@@ -9,6 +9,7 @@ import {
   generateExecutiveReportHtml,
 } from '../exportService';
 import { findAllowedKasEmployee } from '../../config/kasAllowedEmails';
+import { authService } from '../authService';
 
 describe('KAS November Workbooks, Establishments Tracker & Live Excel Engine', () => {
   it('loads the 6 active KAS establishments and real November tenders from شهر 11 (نسخة 1..4)', () => {
@@ -207,5 +208,102 @@ describe('KAS November Workbooks, Establishments Tracker & Live Excel Engine', (
     expect(monoStyles).toContain('FF141414');
     expect(monoStyles).toContain('FFF3F3F3');
     expect(monoStyles).not.toContain('FFB45309');
+  });
+
+  it('exports Exact Replica Excel (.xlsx) and Rich HTML Clipboard matching شهر11 نسخة 1..4.xlsm and ورقة المؤسسات colors & merges', () => {
+    const tenders = kasNovemberWorkbooksService.getTenders();
+    const establishments = kasNovemberWorkbooksService.getEstablishments();
+    const sampleTender = tenders[0];
+    const decoder = new TextDecoder('utf-8');
+
+    // Verify all 4 workbook copies (نسخة 1..4) are loaded in seed
+    for (const wbId of ['nov11_v1', 'nov11_v2', 'nov11_v3', 'nov11_v4']) {
+      expect(tenders.some((t) => t.workbookId === wbId)).toBe(true);
+    }
+
+    const exactBuf = RealBoqEngine.exportExactReplicaToExcelWithFormulas(
+      sampleTender,
+      sampleTender.items,
+      establishments
+    );
+    const exactCfb = XLSX.CFB.read(exactBuf, { type: 'array' });
+    const exactStyles = decoder.decode(
+      XLSX.CFB.find(exactCfb, 'Root Entry/xl/styles.xml')!.content as Uint8Array
+    );
+    expect(exactStyles).toContain('FF4472C4'); // المؤسسات Royal Blue header
+    expect(exactStyles).toContain('FFF8CBAD'); // انتهاء اليوم Soft Pink header
+    expect(exactStyles).toContain('FFA9D18E'); // انتهاء بعد اليوم & BOQ Sage Green
+    expect(exactStyles).toContain('FF00B0F0'); // الإجمالى & O4 النص Sky Cyan
+    expect(exactStyles).toContain('FFD9E1F2'); // المؤسسات Lavender Blue rows
+    expect(exactStyles).toContain('FF00CC00'); // BOQ Bright Green
+    expect(exactStyles).toContain('FF92D050'); // O3 الجدول Lime Green
+    expect(exactStyles).toContain('FF006600'); // Row 106 Dark Green SUBTOTAL
+
+    const estOnlyBuf = RealBoqEngine.exportExactEstablishmentsOnlyExcel(
+      establishments,
+      tenders
+    );
+    const estOnlyWb = XLSX.read(estOnlyBuf, { type: 'array', cellFormula: true });
+    expect(estOnlyWb.SheetNames).toEqual(['المؤسسات']);
+    expect(estOnlyWb.Sheets['المؤسسات']['E2']?.f).toBe('C2+D2');
+
+    const estHtml = RealBoqEngine.formatExactEstablishmentsHtmlTable(establishments);
+    expect(estHtml).toContain('#4472C4');
+    expect(estHtml).toContain('#F8CBAD');
+    expect(estHtml).toContain('#D9E1F2');
+
+    const boqHtml = RealBoqEngine.formatExactBoqHtmlTable(
+      sampleTender,
+      sampleTender.items
+    );
+    expect(boqHtml).toContain('#00CC00');
+    expect(boqHtml).toContain('#006600');
+    expect(boqHtml).toContain(sampleTender.referenceNumber);
+  });
+
+  it('synchronizes edits and additions in real time between the Exact Replica section and other KAS sections, and authorizes Ahmed, Hatem, and all KAS staff', () => {
+    const events: string[] = [];
+    const unsubscribe = kasNovemberWorkbooksService.subscribe((payload) => {
+      events.push(payload.source || 'unknown');
+    });
+
+    const initialEsts = kasNovemberWorkbooksService.getEstablishments();
+    const updatedEsts = initialEsts.map((e, i) =>
+      i === 0 ? { ...e, endingToday: 3, endingAfterToday: 5 } : e
+    );
+    kasNovemberWorkbooksService.saveEstablishments(updatedEsts, 'kas-exact-sheets');
+
+    expect(events).toContain('kas-exact-sheets');
+    expect(kasNovemberWorkbooksService.getEstablishments()[0].endingToday).toBe(3);
+    expect(kasNovemberWorkbooksService.getEstablishments()[0].endingAfterToday).toBe(5);
+
+    unsubscribe();
+
+    // Verify Ahmed Al-Bashir, Hatem Salman, Mohammed Ismail, Firas Al-Hassan, Galal, Karim are authorized for kas-exact-sheets
+    for (const email of [
+      'a.albashir.trade@kas.sa',
+      'h.salman.trade@kas.sa',
+      'm.ismail.trade@kas.sa',
+      'f.alhassan.trade@kas.sa',
+      'g.ahmed.trade@kas.sa',
+      'k.alshennawy.trade@kas.sa',
+      'm.alata.trade@kas.sa',
+    ]) {
+      const emp = findAllowedKasEmployee(email)!;
+      expect(emp).toBeDefined();
+      const profile = {
+        id: emp.id,
+        username: emp.username,
+        email: emp.email,
+        full_name: emp.nameAr,
+        role: emp.titleAr,
+        department_id: emp.department_id,
+        company_id: emp.company_id,
+        default_tab: emp.defaultTab,
+        default_tab_title: emp.defaultTabTitle,
+      };
+      expect(authService.isTabAuthorizedForUser(profile as any, 'kas-exact-sheets')).toBe(true);
+      expect(authService.isTabAuthorizedForUser(profile as any, 'kas-replica-tables')).toBe(true);
+    }
   });
 });

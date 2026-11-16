@@ -236,7 +236,7 @@ const DEFAULT_MOCK_TENDERS: TenderRecord[] = [
 
 export const TendersBOQPage: React.FC = () => {
   const { activeCompany } = useCompany();
-  const { activeTab: storeActiveTab, addNotification } = useAppStore();
+  const { activeTab: storeActiveTab, setActiveTab: setGlobalTab, addNotification } = useAppStore();
 
   const mapStoreTabToTenderTab = (
     tabKey: string
@@ -264,7 +264,10 @@ export const TendersBOQPage: React.FC = () => {
     kasNovemberWorkbooksService.getWorkbooksMeta()
   );
   const [tendersList, setTendersList] = useState<TenderRecord[]>(initialSeedTenders);
-  const [selectedTender, setSelectedTender] = useState<TenderRecord>(initialSeedTenders[0]);
+  const [selectedTender, setSelectedTender] = useState<TenderRecord>(() => {
+    const savedId = kasNovemberWorkbooksService.getSelectedTenderId();
+    return initialSeedTenders.find((t) => t.id === savedId) || initialSeedTenders[0];
+  });
   const [activeTab, setActiveTab] = useState<'kas-sheet' | 'etmad-cloud' | 'excel-boq' | 'directory' | 'awards' | 'suppliers' | 'analytics'>(() =>
     mapStoreTabToTenderTab(storeActiveTab)
   );
@@ -435,11 +438,13 @@ export const TendersBOQPage: React.FC = () => {
   );
 
   const persistWorkbookState = useCallback(
-    (nextTenders: TenderRecord[], nextEstablishments?: KasEstablishmentRow[]) => {
-      kasNovemberWorkbooksService.saveTenders(nextTenders);
-      if (nextEstablishments) {
-        kasNovemberWorkbooksService.saveEstablishments(nextEstablishments);
-      }
+    (nextTenders: TenderRecord[], nextEstablishments?: KasEstablishmentRow[], nextSelectedId?: string) => {
+      kasNovemberWorkbooksService.saveState(
+        nextTenders,
+        nextEstablishments,
+        nextSelectedId,
+        'tenders-boq'
+      );
     },
     []
   );
@@ -576,14 +581,40 @@ export const TendersBOQPage: React.FC = () => {
       }
     };
     void fetchRealData();
+
+    const unsubscribe = kasNovemberWorkbooksService.subscribe((payload) => {
+      if (!isMounted) return;
+      setEstablishments([...payload.establishments]);
+      const merged = [...payload.tenders];
+      DEFAULT_MOCK_TENDERS.forEach((mockT) => {
+        if (!merged.some((t) => t.id === mockT.id)) {
+          merged.push(mockT);
+        }
+      });
+      setTendersList(merged);
+      if (payload.workbooks && payload.workbooks.length > 0) {
+        setWorkbooksMeta([...payload.workbooks]);
+      }
+      setSelectedTender((prev) => {
+        const targetId = payload.selectedTenderId || prev.id;
+        const found = merged.find((t) => t.id === targetId) || merged[0];
+        if (found) {
+          setCurrentItems(found.items || []);
+        }
+        return found || prev;
+      });
+    });
+
     return () => {
       isMounted = false;
+      unsubscribe();
     };
   }, []);
 
   const handleSelectTender = (tender: TenderRecord) => {
     setSelectedTender(tender);
     setCurrentItems(tender.items || []);
+    kasNovemberWorkbooksService.setSelectedTenderId(tender.id, 'tenders-boq');
   };
 
   // --- Establishments Table (ورقة المؤسسات) Handlers ---
@@ -2042,6 +2073,31 @@ export const TendersBOQPage: React.FC = () => {
             >
               <MessageCircle className="w-3.5 h-3.5 ml-1" />
               <span>واتساب</span>
+            </button>
+
+            <button
+              type="button"
+              data-slot="goto-exact-replica-section-btn"
+              onClick={() =>
+                setGlobalTab(
+                  'kas-exact-sheets',
+                  'قسم جداول ومصنفات كاس المطابقة للأصل (شهر 11 — النسخ 1..4)'
+                )
+              }
+              className="button-outline-on-dark"
+              style={{
+                fontSize: '12px',
+                padding: '6px 14px',
+                minHeight: '38px',
+                backgroundColor: '#00CC00',
+                color: '#000000',
+                borderColor: '#000000',
+                fontWeight: 800,
+              }}
+              title="فتح القسم المستقل المطابق للأصل بالملي (شهر 11 — النسخ 1..4 وورقة المؤسسات) مع المزامنة اللحظية"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 ml-1 text-black" />
+              <span>القسم المطابق للأصل بالملي (شهر 11)</span>
             </button>
 
             <button

@@ -11,6 +11,7 @@ export type KasDepartmentId =
   | 'command-center'
   | 'monafasat'
   | 'boq-editor'
+  | 'kas-exact-sheets'
   | 'suppliers'
   | 'purchase-orders'
   | 'contracts-projects'
@@ -61,6 +62,15 @@ export const KAS_DEPARTMENTS: {
     badgeColor: 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]',
     icon: Calculator,
     description: 'تسعير البنود، حساب الهامش، الضريبة 15%، التفقيط، والتصدير 10 صيغ',
+  },
+  {
+    id: 'kas-exact-sheets',
+    title: 'قسم جداول ومصنفات كاس المطابقة للأصل (شهر 11)',
+    titleEn: 'Exact Replica KAS XLSM Workbooks (Copies 1..4)',
+    badge: 'طبق الأصل بالملي',
+    badgeColor: 'bg-[#00CC00] text-[#000000] border border-[#000000]',
+    icon: FileSpreadsheet,
+    description: 'نسخة طبق الأصل بالملي من شهر 11 (نسخة 1..4) وورقة المؤسسات مع التصدير والنسخ والمزامنة اللحظية',
   },
   {
     id: 'suppliers',

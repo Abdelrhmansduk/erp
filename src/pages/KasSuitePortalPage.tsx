@@ -19,6 +19,7 @@ import { useAppStore } from '../stores/appStore';
 import { kasEtmadSuiteService } from '../services/kasEtmadSuiteService';
 import { tafqeet } from '../services/tafqeetService';
 import { realErpDataStore } from '../services/realErpDataStore';
+import { KasExactReplicaTablesPage } from './KasExactReplicaTablesPage';
 
 interface KasSuitePortalPageProps {
   onReturnToErp?: () => void;
@@ -268,6 +269,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
     { id: 'command-center', label: 'المركز التنفيذي للمنافسات', icon: <BarChart3 className="w-3.5 h-3.5" /> },
     { id: 'monafasat', label: 'منافسات منصة اعتماد', icon: <Layers className="w-3.5 h-3.5" />, badge: '2,651' },
     { id: 'boq-editor', label: 'محرر جداول الكميات BOQ', icon: <Calculator className="w-3.5 h-3.5" /> },
+    { id: 'kas-exact-sheets', label: 'قسم الجداول المطابقة للأصل بالملي (شهر 11 — النسخ 1..4)', icon: <FileSpreadsheet className="w-3.5 h-3.5" />, badge: 'طبق الأصل' },
     { id: 'suppliers', label: 'سجل الموردين والمقاولين', icon: <Store className="w-3.5 h-3.5" />, badge: String(suppliers.length) },
     { id: 'purchase-orders', label: 'أوامر التوريد والصرف PO', icon: <Truck className="w-3.5 h-3.5" />, badge: String(purchaseOrders.length) },
     { id: 'contracts-projects', label: 'ترسية المشاريع والعقود', icon: <Award className="w-3.5 h-3.5" />, badge: '12' },
@@ -492,7 +494,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                             {t.title}
                           </div>
                           <div className="text-[10.5px] text-[#707070] mt-0.5">
-                            الميزانية: <strong className="text-[#141414] font-mono">{t.budget.toLocaleString()} ⃁</strong> • الموعد: {t.deadline}
+                            الميزانية: <strong className="text-[#141414] font-mono">{(Number(t.budget) || 0).toLocaleString()} ⃁</strong> • الموعد: {t.deadline}
                           </div>
                         </div>
 
@@ -532,7 +534,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                             <span className="text-xs font-bold text-[#141414]">{inv.client}</span>
                           </div>
                           <div className="text-[10.5px] text-[#707070] mt-1 font-mono">
-                            الإجمالي: <strong className="text-[#141414]">{inv.total.toLocaleString()} ⃁</strong> (شامل الضريبة 15%: {inv.vat.toLocaleString()} ⃁)
+                            الإجمالي: <strong className="text-[#141414]">{(Number(inv.total) || 0).toLocaleString()} ⃁</strong> (شامل الضريبة 15%: {(Number(inv.vat) || 0).toLocaleString()} ⃁)
                           </div>
                         </div>
 
@@ -605,13 +607,13 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                     <tbody className="divide-y divide-[#e0e0e0]">
                       {tenders
                         .filter(t => statusFilter === 'all' || t.status === statusFilter)
-                        .filter(t => !searchQuery || t.title.includes(searchQuery) || t.referenceNumber.includes(searchQuery) || t.entity.includes(searchQuery))
+                        .filter(t => !searchQuery || String(t.title || '').includes(searchQuery) || String(t.referenceNumber || '').includes(searchQuery) || String(t.entity || '').includes(searchQuery))
                         .map(t => (
                           <tr key={t.id} className="hover:bg-[#f3f3f3] transition-colors">
                             <td className="p-3.5 font-mono font-bold text-[#141414]">{t.referenceNumber}</td>
                             <td className="p-3.5 font-bold text-[#141414] max-w-xs truncate">{t.title}</td>
                             <td className="p-3.5 text-[#141414]">{t.entity}</td>
-                            <td className="p-3.5 font-mono font-bold text-[#141414]">{t.budget.toLocaleString()} ⃁</td>
+                            <td className="p-3.5 font-mono font-bold text-[#141414]">{(Number(t.budget) || 0).toLocaleString()} ⃁</td>
                             <td className="p-3.5 text-[#707070]">{t.deadline}</td>
                             <td className="p-3.5 text-[#707070]">{t.itemsCount} صنف</td>
                             <td className="p-3.5">
@@ -744,6 +746,13 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
           )}
 
           {/* ========================================================================= */}
+          {/* DEPT 3.5: EXACT REPLICA KAS XLSM WORKBOOKS (شهر 11 — النسخ 1..4 وورقة المؤسسات) */}
+          {/* ========================================================================= */}
+          {activeDept === 'kas-exact-sheets' && (
+            <KasExactReplicaTablesPage />
+          )}
+
+          {/* ========================================================================= */}
           {/* DEPT 4: SUPPLIERS & SUBCONTRACTORS REGISTRY */}
           {/* ========================================================================= */}
           {activeDept === 'suppliers' && (
@@ -777,7 +786,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                       </div>
                       <div className="flex items-center justify-between text-[#707070]">
                         <span>إجمالي التعاملات:</span>
-                        <span className="text-[#141414] font-mono font-bold">{sup.totalVolume.toLocaleString()} ⃁</span>
+                        <span className="text-[#141414] font-mono font-bold">{(Number(sup.totalVolume) || 0).toLocaleString()} ⃁</span>
                       </div>
                     </div>
 
@@ -822,7 +831,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                           <td className="p-3.5 font-mono font-bold text-[#141414]">{po.poNumber}</td>
                           <td className="p-3.5 font-bold text-[#141414]">{po.supplierName}</td>
                           <td className="p-3.5 text-[#141414]">{po.project}</td>
-                          <td className="p-3.5 font-mono font-bold text-[#141414]">{po.amount.toLocaleString()} ⃁</td>
+                          <td className="p-3.5 font-mono font-bold text-[#141414]">{(Number(po.amount) || 0).toLocaleString()} ⃁</td>
                           <td className="p-3.5 text-[#707070]">{po.date}</td>
                           <td className="p-3.5">
                             <span className="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]">
@@ -914,9 +923,9 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
                         <tr key={inv.id} className="hover:bg-[#f3f3f3]">
                           <td className="p-3.5 font-bold text-[#141414]">{inv.number}</td>
                           <td className="p-3.5 font-sans font-bold text-[#141414]">{inv.client}</td>
-                          <td className="p-3.5 text-[#141414]">{inv.amount.toLocaleString()} ⃁</td>
-                          <td className="p-3.5 text-[#141414]">{inv.vat.toLocaleString()} ⃁</td>
-                          <td className="p-3.5 text-[#141414] font-bold">{inv.total.toLocaleString()} ⃁</td>
+                          <td className="p-3.5 text-[#141414]">{(Number(inv.amount) || 0).toLocaleString()} ⃁</td>
+                          <td className="p-3.5 text-[#141414]">{(Number(inv.vat) || 0).toLocaleString()} ⃁</td>
+                          <td className="p-3.5 text-[#141414] font-bold">{(Number(inv.total) || 0).toLocaleString()} ⃁</td>
                           <td className="p-3.5 text-[#707070] font-sans">{inv.date}</td>
                           <td className="p-3.5 text-center">
                             {inv.qr ? (

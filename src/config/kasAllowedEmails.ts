@@ -918,7 +918,7 @@ export const KAS_ALLOWED_EMPLOYEES: KasAllowedEmployee[] = [
     defaultTabTitle: 'منظومة شركة كاس للتجارة والمنافسات المستقلة',
     branch: 'المقر الرئيسي لشركة كاس للتجارة - الرياض',
     suffixCode: 'trade',
-    allowedTabsOverride: ['kas-suite', 'kas-commercial', 'tenders-boq', 'kas-etmad', 'smacc-inventory', 'zatca', 'invoices', 'profile'],
+    allowedTabsOverride: ['kas-suite', 'kas-exact-sheets', 'kas-replica-tables', 'kas-commercial', 'tenders-boq', 'kas-etmad', 'smacc-inventory', 'zatca', 'invoices', 'profile'],
   },
   {
     serial: 8,
@@ -950,7 +950,7 @@ export const KAS_ALLOWED_EMPLOYEES: KasAllowedEmployee[] = [
     defaultTabTitle: 'منظومة شركة كاس للتجارة والمنافسات المستقلة (Data Entry)',
     branch: 'المقر الرئيسي لشركة كاس للتجارة - الرياض',
     suffixCode: 'trade',
-    allowedTabsOverride: ['kas-suite', 'tenders-boq', 'kas-etmad', 'smacc-inventory', 'profile'],
+    allowedTabsOverride: ['kas-suite', 'kas-exact-sheets', 'kas-replica-tables', 'tenders-boq', 'kas-etmad', 'smacc-inventory', 'profile'],
   },
   {
     serial: 30,
@@ -966,7 +966,7 @@ export const KAS_ALLOWED_EMPLOYEES: KasAllowedEmployee[] = [
     defaultTabTitle: 'منظومة شركة كاس للتجارة والمنافسات المستقلة (Data Entry)',
     branch: 'المقر الرئيسي لشركة كاس للتجارة - الرياض',
     suffixCode: 'trade',
-    allowedTabsOverride: ['kas-suite', 'tenders-boq', 'kas-etmad', 'smacc-inventory', 'profile'],
+    allowedTabsOverride: ['kas-suite', 'kas-exact-sheets', 'kas-replica-tables', 'tenders-boq', 'kas-etmad', 'smacc-inventory', 'profile'],
   },
   {
     serial: 31,
@@ -982,7 +982,7 @@ export const KAS_ALLOWED_EMPLOYEES: KasAllowedEmployee[] = [
     defaultTabTitle: 'منظومة شركة كاس للتجارة والمنافسات المستقلة (مسؤول المنافسات)',
     branch: 'المقر الرئيسي لشركة كاس للتجارة - الرياض',
     suffixCode: 'trade',
-    allowedTabsOverride: ['kas-suite', 'tenders-boq', 'kas-etmad', 'smacc-inventory', 'profile'],
+    allowedTabsOverride: ['kas-suite', 'kas-exact-sheets', 'kas-replica-tables', 'tenders-boq', 'kas-etmad', 'smacc-inventory', 'profile'],
   },
   {
     serial: 54,
@@ -998,7 +998,7 @@ export const KAS_ALLOWED_EMPLOYEES: KasAllowedEmployee[] = [
     defaultTabTitle: 'منظومة شركة كاس للتجارة والمشتريات المستقلة',
     branch: 'المقر الرئيسي لشركة كاس للتجارة - الرياض',
     suffixCode: 'trade',
-    allowedTabsOverride: ['kas-suite', 'tenders-boq', 'kas-etmad', 'smacc-inventory', 'profile'],
+    allowedTabsOverride: ['kas-suite', 'kas-exact-sheets', 'kas-replica-tables', 'tenders-boq', 'kas-etmad', 'smacc-inventory', 'profile'],
   },
   {
     serial: 55,
@@ -1014,7 +1014,7 @@ export const KAS_ALLOWED_EMPLOYEES: KasAllowedEmployee[] = [
     defaultTabTitle: 'منظومة شركة كاس للتجارة والمشتريات المستقلة',
     branch: 'المقر الرئيسي لشركة كاس للتجارة - الرياض',
     suffixCode: 'trade',
-    allowedTabsOverride: ['kas-suite', 'tenders-boq', 'kas-etmad', 'smacc-inventory', 'profile'],
+    allowedTabsOverride: ['kas-suite', 'kas-exact-sheets', 'kas-replica-tables', 'tenders-boq', 'kas-etmad', 'smacc-inventory', 'profile'],
   },
   {
     serial: 61,

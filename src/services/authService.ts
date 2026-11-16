@@ -445,6 +445,8 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'kas-portal',
       'kas-standalone',
       'kas-company',
+      'kas-exact-sheets',
+      'kas-replica-tables',
       'tenders-boq',
       'tenders',
       'boq',
@@ -1395,6 +1397,8 @@ export const authService = {
       'kas-standalone',
       'kas-company',
       'kas-commercial',
+      'kas-exact-sheets',
+      'kas-replica-tables',
       'tenders-boq',
       'tenders',
       'boq',
@@ -1412,6 +1416,8 @@ export const authService = {
       'kas-portal',
       'kas-standalone',
       'kas-company',
+      'kas-exact-sheets',
+      'kas-replica-tables',
       'tenders-boq',
       'tenders',
       'boq',
@@ -1433,6 +1439,18 @@ export const authService = {
     if (effectiveCompany === 'KAS') {
       if (RECRUITMENT_AND_SHELTER_ONLY_TABS.has(tabHref)) {
         return false;
+      }
+      // Allow all authorized KAS employees (Ahmed Al-Bashir, Hatem Salman, Mohammed Ismail, Firas Al-Hassan,
+      // Galal, Karim, and KAS Accountants) to work in `kas-exact-sheets` / `kas-replica-tables`
+      if (tabHref === 'kas-exact-sheets' || tabHref === 'kas-replica-tables') {
+        if (effectiveOverride && effectiveOverride.length > 0) {
+          return (
+            effectiveOverride.includes(tabHref) ||
+            effectiveOverride.includes('tenders-boq') ||
+            effectiveOverride.includes('kas-suite')
+          );
+        }
+        return effectiveDept === 'tenders' || effectiveDept === 'finance';
       }
       // Within KAS Company: KAS Competitions (`kas-suite`, `tenders-boq`, `kas-etmad`) are restricted to
       // `tenders` (.trade) staff and KAS Trade Accountants (`finance` on KAS), NOT `.imal`/`.showroom` sales

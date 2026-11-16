@@ -208,6 +208,7 @@ export const SIDEBAR_MENU: NavItem[] = [
     exclusiveToCompany: 'KAS',
     children: [
       { id: 'kas-suite', title: 'منظومة شركة كاس للتجارة والمنافسات (اعتماد)', icon: 'Briefcase', href: 'kas-suite', badge: 'KAS', badgeType: 'success', exclusiveToCompany: 'KAS' },
+      { id: 'kas-exact-sheets', title: 'جداول ومصنفات كاس المطابقة للأصل (شهر 11 — النسخ 1..4)', icon: 'FileSpreadsheet', href: 'kas-exact-sheets', badge: 'طبق الأصل', badgeType: 'success', exclusiveToCompany: 'KAS' },
       { id: 'kas-commercial-sub', title: 'منظومة المعرض التجاري وقطاع الأميال (كاس)', icon: 'Package', href: 'kas-commercial', exclusiveToCompany: 'KAS' },
       { id: 'tenders-boq', title: 'منافسات اعتماد وجداول الكميات (BOQ)', icon: 'Scale', href: 'tenders-boq', exclusiveToCompany: 'KAS' },
       { id: 'kas-etmad', title: 'إدارة الضمانات البنكية والعطاءات (اعتماد)', icon: 'ShieldCheck', href: 'kas-etmad', exclusiveToCompany: 'KAS' },

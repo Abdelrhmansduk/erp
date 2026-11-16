@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 
-export type ExcelUiThemeMode = 'corporate-color' | 'monochrome';
+export type ExcelUiThemeMode = 'corporate-color' | 'monochrome' | 'kas-original-xlsm';
 
 export interface ExcelThemePalette {
   uiTheme: ExcelUiThemeMode;
@@ -89,7 +89,11 @@ export function normalizeThemeEntityCode(raw?: string | null): string {
 }
 
 export function resolveActiveUiTheme(override?: ExcelUiThemeMode): ExcelUiThemeMode {
-  if (override === 'monochrome' || override === 'corporate-color') {
+  if (
+    override === 'monochrome' ||
+    override === 'corporate-color' ||
+    override === 'kas-original-xlsm'
+  ) {
     return override;
   }
   try {
@@ -320,6 +324,89 @@ export interface BoqStyledSheetMeta {
 }
 
 /**
+ * Builds an OpenXML SpreadsheetML `xl/styles.xml` that reproduces the exact
+ * cell colors, borders, fonts, and number formats of `شهر11 نسخة 1..4.xlsm`
+ * and the `المؤسسات` table (`#4472C4`, `#F8CBAD`, `#A9D18E`, `#00B0F0`, `#D9E1F2`, `#00CC00`, `#006600`, `#92D050`).
+ */
+export function buildKasOriginalXlsmStylesXml(): string {
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <numFmts count="4">
+    <numFmt numFmtId="164" formatCode="#,##0.00"/>
+    <numFmt numFmtId="165" formatCode="#,##0;(#,##0);&quot;-&quot;"/>
+    <numFmt numFmtId="166" formatCode="#,##0.##"/>
+    <numFmt numFmtId="167" formatCode="#,##0"/>
+  </numFmts>
+  <fonts count="6">
+    <font><sz val="11"/><color rgb="FF000000"/><name val="Arial"/><family val="2"/></font>
+    <font><b/><sz val="12"/><color rgb="FF000000"/><name val="Arial"/><family val="2"/></font>
+    <font><b/><sz val="11"/><color rgb="FF9C0006"/><name val="Arial"/><family val="2"/></font>
+    <font><b/><sz val="11"/><color rgb="FF000000"/><name val="Arial"/><family val="2"/></font>
+    <font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Arial"/><family val="2"/></font>
+    <font><b/><sz val="10.5"/><color rgb="FF000000"/><name val="Arial"/><family val="2"/></font>
+  </fonts>
+  <fills count="11">
+    <fill><patternFill patternType="none"/></fill>
+    <fill><patternFill patternType="gray125"/></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FF4472C4"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFF8CBAD"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFA9D18E"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FF00B0F0"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFD9E1F2"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FF00CC00"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FF92D050"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FF006600"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFFFFFFF"/><bgColor indexed="64"/></patternFill></fill>
+  </fills>
+  <borders count="3">
+    <border><left/><right/><top/><bottom/><diagonal/></border>
+    <border>
+      <left style="thin"><color rgb="FF000000"/></left>
+      <right style="thin"><color rgb="FF000000"/></right>
+      <top style="thin"><color rgb="FF000000"/></top>
+      <bottom style="thin"><color rgb="FF000000"/></bottom>
+      <diagonal/>
+    </border>
+    <border>
+      <left style="medium"><color rgb="FF000000"/></left>
+      <right style="medium"><color rgb="FF000000"/></right>
+      <top style="medium"><color rgb="FF000000"/></top>
+      <bottom style="medium"><color rgb="FF000000"/></bottom>
+      <diagonal/>
+    </border>
+  </borders>
+  <cellStyleXfs count="1">
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="0"/>
+  </cellStyleXfs>
+  <cellXfs count="18">
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+    <xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" readingOrder="2"/></xf>
+    <xf numFmtId="0" fontId="2" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1" readingOrder="2"/></xf>
+    <xf numFmtId="0" fontId="3" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1" readingOrder="2"/></xf>
+    <xf numFmtId="0" fontId="1" fillId="5" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" readingOrder="2"/></xf>
+    <xf numFmtId="0" fontId="1" fillId="6" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf>
+    <xf numFmtId="165" fontId="1" fillId="6" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="3" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1" readingOrder="2"/></xf>
+    <xf numFmtId="0" fontId="3" fillId="7" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1" readingOrder="2"/></xf>
+    <xf numFmtId="0" fontId="3" fillId="8" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" readingOrder="2"/></xf>
+    <xf numFmtId="0" fontId="3" fillId="5" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" readingOrder="2"/></xf>
+    <xf numFmtId="0" fontId="5" fillId="10" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center" wrapText="1" readingOrder="2"/></xf>
+    <xf numFmtId="166" fontId="3" fillId="10" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="164" fontId="3" fillId="10" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="164" fontId="4" fillId="9" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="164" fontId="1" fillId="7" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="164" fontId="3" fillId="4" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf>
+  </cellXfs>
+  <cellStyles count="1">
+    <cellStyle name="Normal" xfId="0" builtinId="0"/>
+  </cellStyles>
+  <dxfs count="0"/>
+  <tableStyles count="0" defaultTableStyle="TableStyleMedium2" defaultPivotStyle="PivotStyleLight16"/>
+</styleSheet>`;
+}
+
+/**
  * Injects theme-aware OpenXML SpreadsheetML styling into `RealBoqEngine` workbooks
  * while strictly preserving every Excel formula (`=F*G`, `=I*0.15`, `=SUBTOTAL`, `=C+D`, `=SUM`).
  */
@@ -333,12 +420,16 @@ export function applyThemedBoqWorkbookStyles(
   if (!cfbLib) return new Uint8Array(rawBuffer);
 
   try {
+    const isOriginalKasXlsm = themeOptions?.uiTheme === 'kas-original-xlsm';
     const palette = resolveExcelThemePalette(themeOptions);
     const cfb = cfbLib.read(new Uint8Array(rawBuffer), { type: 'array' });
 
     const stylesEntry = cfbLib.find(cfb, 'Root Entry/xl/styles.xml');
     if (stylesEntry) {
-      stylesEntry.content = toUtf8Bytes(buildThemedEnterpriseStylesXml(palette));
+      const stylesXml = isOriginalKasXlsm
+        ? buildKasOriginalXlsmStylesXml()
+        : buildThemedEnterpriseStylesXml(palette);
+      stylesEntry.content = toUtf8Bytes(stylesXml);
       stylesEntry.size = stylesEntry.content.length;
     }
 
@@ -366,7 +457,65 @@ export function applyThemedBoqWorkbookStyles(
             const isNumeric = !/\bt="(?:str|s|inlineStr|b)"/.test(cleanAttrs);
             let styleIdx = 5;
 
-            if (meta.kind === 'establishments') {
+            if (isOriginalKasXlsm) {
+              if (meta.kind === 'establishments') {
+                const totalRow = meta.totalsRowNum || 99999;
+                if (rNum === 1) {
+                  if (colLet === 'B') styleIdx = 1; // Royal Blue #4472C4
+                  else if (colLet === 'C') styleIdx = 2; // Soft Pink #F8CBAD
+                  else if (colLet === 'D') styleIdx = 3; // Sage Green #A9D18E
+                  else if (colLet === 'E') styleIdx = 4; // Sky Cyan #00B0F0
+                  else if (colLet === 'F' || colLet === 'G') styleIdx = 3;
+                  else styleIdx = 0;
+                } else if (rNum >= 2 && rNum <= totalRow) {
+                  if (colLet === 'B') styleIdx = 5; // Lavender Blue #D9E1F2 right-aligned
+                  else if (colLet >= 'C' && colLet <= 'E') styleIdx = 6; // Lavender Blue #D9E1F2 with "-" for zero
+                  else if (colLet === 'F') styleIdx = 12;
+                  else if (colLet === 'G') styleIdx = 13;
+                  else styleIdx = 0;
+                } else {
+                  styleIdx = 0;
+                }
+              } else {
+                const subRow = meta.subtotalRowNum || 106;
+                const grandRow = meta.grandTotalRowNum || subRow + 3;
+                if (rNum === 3) {
+                  if (colLet === 'O') styleIdx = 9; // O3 الجدول Lime Green #92D050
+                  else if (colLet >= 'C' && colLet <= 'M') styleIdx = 7; // Sage Green #A9D18E
+                  else styleIdx = 0;
+                } else if (rNum === 4) {
+                  if (colLet === 'O') styleIdx = 10; // O4 النص Sky Cyan #00B0F0
+                  else if (colLet === 'M') styleIdx = 15; // Bright Green #00CC00 currency
+                  else if (colLet >= 'C' && colLet <= 'M') styleIdx = 8; // Bright Green #00CC00
+                  else styleIdx = 0;
+                } else if (rNum === 5) {
+                  if (colLet === 'C') styleIdx = 8; // C5 الرقم التسلسلي #00CC00
+                  else if (colLet >= 'D' && colLet <= 'M') styleIdx = 7; // D5:M5 #A9D18E
+                  else styleIdx = 0;
+                } else if (rNum >= 6 && rNum < subRow) {
+                  if (colLet === 'C') styleIdx = 8; // C6:C105 #00CC00
+                  else if (colLet === 'F') styleIdx = 12;
+                  else if (colLet === 'G' || colLet === 'I' || colLet === 'K' || colLet === 'L') styleIdx = 13;
+                  else if (colLet >= 'D' && colLet <= 'M') styleIdx = 11;
+                  else styleIdx = 0;
+                } else if (rNum === subRow) {
+                  if (colLet === 'C') styleIdx = 8; // C106 #00CC00
+                  else if (colLet >= 'D' && colLet <= 'M') styleIdx = 14; // D106:M106 Dark Green #006600
+                  else styleIdx = 0;
+                } else if (rNum === subRow + 1 || rNum === subRow + 2) {
+                  if (colLet === 'C') styleIdx = 8; // C107/C108 #00CC00
+                  else if (colLet === 'E' && isNumeric) styleIdx = 16; // E107/E108 #A9D18E currency
+                  else if (colLet >= 'D' && colLet <= 'M') styleIdx = 7; // #A9D18E
+                  else styleIdx = 0;
+                } else if (rNum === grandRow) {
+                  if (colLet === 'E' && isNumeric) styleIdx = 15; // E109 #00CC00 currency
+                  else if (colLet >= 'C' && colLet <= 'M') styleIdx = 8; // C109:M109 #00CC00
+                  else styleIdx = 0;
+                } else if (rNum > grandRow) {
+                  styleIdx = colLet >= 'C' && colLet <= 'M' ? 17 : 0;
+                }
+              }
+            } else if (meta.kind === 'establishments') {
               const totalRow = meta.totalsRowNum || 99999;
               if (rNum === 1) {
                 styleIdx = colLet === 'A' ? 0 : 4;

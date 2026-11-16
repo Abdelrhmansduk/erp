@@ -93,6 +93,8 @@ export const SLUG_ARABIC_TITLES: Record<string, string> = {
   'deportation-stage': 'إجراءات السفر والترحيل النظامي',
   'shelter-archive': 'أرشيف الخروج النهائي والمخالصات',
   'kas-suite': 'منظومة شركة كاس للمنافسات والمشاريع (KAS Suite)',
+  'kas-exact-sheets': 'قسم جداول ومصنفات كاس المطابقة للأصل (شهر 11 — النسخ 1..4)',
+  'kas-replica-tables': 'قسم جداول ومصنفات كاس المطابقة للأصل بالملي',
   'tenders-boq': 'منافسات اعتماد وجداول الكميات (BOQ)',
   'kas-etmad-cloud': 'سحابة منافسات اعتماد (2,650+ منافسة)',
   'kas-etmad': 'سحابة منافسات اعتماد (KAS Etimad Cloud)',

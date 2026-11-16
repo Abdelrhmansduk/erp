@@ -4203,7 +4203,7 @@ function resolveExportUiTheme(explicit?: 'corporate-color' | 'monochrome'): 'cor
   } catch {
     // ignore in isolated test states
   }
-  return resolveExcelThemePalette().uiTheme;
+  return resolveExcelThemePalette().uiTheme === 'monochrome' ? 'monochrome' : 'corporate-color';
 }
 
 /**

@@ -10,7 +10,7 @@ import {
   SlidersHorizontal, GitPullRequest, Radio, FolderSync,
   Cloud, UploadCloud, Clock, UserCog, Settings,
   MessageSquare, Send, Globe, PackageCheck, LucideIcon, Scale, Briefcase,
-  LogOut, Lock, Fingerprint
+  LogOut, Lock, Fingerprint, FileSpreadsheet
 } from 'lucide-react';
 import {
   authService,
@@ -723,6 +723,20 @@ const ALL_SYSTEM_APPS: AppTile[] = [
     categoryLabel: 'شركة كاس للتجارة • جداول الكميات',
     smaccCode: 'KAS-02',
     metricBadge: 'تسعير BOQ'
+  },
+  {
+    id: 'kas-exact-sheets',
+    titleKey: 'kas-exact-sheets',
+    defaultTitle: '٣-ب. قسم جداول ومصنفات كاس المطابقة للأصل بالملي (شهر 11 — النسخ 1..4 والمؤسسات)',
+    subKey: 'kasExactSheetsSub',
+    defaultSubtitle: 'قسم مستقل مطابق 100% لملفات إكسيل كاس (شهر11 نسخة 1..4.xlsm وورقة المؤسسات) مع التصدير والنسخ بنفس الشكل والمزامنة اللحظية.',
+    icon: FileText,
+    emoji: '',
+    href: 'kas-exact-sheets',
+    category: 'governance',
+    categoryLabel: 'شركة كاس للتجارة • قسم مستقل مطابق للأصل',
+    smaccCode: 'KAS-XLSM',
+    metricBadge: 'طبق الأصل بالملي'
   },
   {
     id: 'group-command-center',

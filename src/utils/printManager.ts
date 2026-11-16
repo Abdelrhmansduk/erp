@@ -496,7 +496,7 @@ export function clearModalPrintIsolation(doc: Document = document): void {
  */
 export function printSpecificElement(
   element: HTMLElement | null,
-  doc: Document = document
+  docOrOptions: Document | { orientation?: 'portrait' | 'landscape'; doc?: Document } = document
 ): void {
   if (!element) {
     if (typeof window !== 'undefined' && typeof window.print === 'function') {
@@ -505,11 +505,70 @@ export function printSpecificElement(
     return;
   }
 
+  let doc: Document = document;
+  if (docOrOptions && 'nodeType' in docOrOptions) {
+    doc = docOrOptions;
+  } else if (docOrOptions && typeof docOrOptions === 'object') {
+    if (docOrOptions.orientation) {
+      element.setAttribute('data-print-orientation', docOrOptions.orientation);
+    }
+    if (docOrOptions.doc) {
+      doc = docOrOptions.doc;
+    }
+  }
+
   explicitPrintTarget = element;
   applyModalPrintIsolation(doc);
 
   if (typeof window !== 'undefined' && typeof window.print === 'function') {
     window.print();
+  }
+}
+
+/**
+ * Prints an arbitrary HTML fragment in an isolated A4 Landscape window / hidden iframe fallback.
+ */
+export function printArbitraryHtml(htmlContent: string, docTitle = 'مصنف_كاس_طبق_الأصل'): void {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  const fullDoc = `<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <title>${docTitle}</title>
+  <style>
+    @page { size: A4 landscape; margin: 8mm; }
+    body { margin: 0; padding: 12px; font-family: Arial, 'Tajawal', sans-serif; direction: rtl; background: #fff; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
+    tr { page-break-inside: avoid; break-inside: avoid; }
+  </style>
+</head>
+<body>${htmlContent}</body>
+</html>`;
+  const w = window.open('', '_blank', 'width=1200,height=850');
+  if (w && w.document) {
+    w.document.open();
+    w.document.write(fullDoc);
+    w.document.close();
+    setTimeout(() => {
+      try {
+        w.focus();
+        w.print();
+      } catch {
+        // ignore
+      }
+    }, 200);
+    return;
+  }
+  const container = document.createElement('div');
+  container.setAttribute('data-print-orientation', 'landscape');
+  container.innerHTML = htmlContent;
+  document.body.appendChild(container);
+  try {
+    printSpecificElement(container, document);
+  } finally {
+    setTimeout(() => {
+      if (document.body.contains(container)) document.body.removeChild(container);
+    }, 2000);
   }
 }
 
