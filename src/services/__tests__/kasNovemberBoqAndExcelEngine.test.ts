@@ -13,6 +13,7 @@ import { authService } from '../authService';
 import {
   buildThemedEstablishmentsHtml,
   buildThemedBoqTableHtml,
+  buildEmbeddedTablesHtmlForShare,
   buildInteractiveStandaloneHtmlDocument,
   buildExactKasCsvContent,
   buildKasStudioPreviewHtml,
@@ -20,6 +21,9 @@ import {
   composeKasShareMessageText,
   buildSelectedAttachmentsBundle,
   buildMultiAttachmentEmlDraft,
+  buildExactReplicaPngFile,
+  downloadFilesSequentially,
+  dispatchKasEmailWithEmbeddedTablesAndAttachments,
   copyBothKasTablesAsIs,
 } from '../kasExactExportAndShareEngine';
 
@@ -496,5 +500,129 @@ describe('KAS November Workbooks, Establishments Tracker & Live Excel Engine', (
     const restoredEntry = kasNovemberWorkbooksService.undoRevertModificationById(latestLog.id);
     expect(restoredEntry?.reverted).toBe(false);
     expect(kasNovemberWorkbooksService.getEstablishments()[0].endingToday).toBe(77);
+  });
+
+  it('embeds the exact selected table(s) (Establishments only vs BOQ only vs Multi-Sheet BOQ vs Both) and attaches all selected & uploaded documents in WhatsApp & Email', async () => {
+    const tenders = kasNovemberWorkbooksService.getTenders();
+    const establishments = kasNovemberWorkbooksService.getEstablishments();
+    const firstTender = tenders[0];
+    const secondTender = tenders[1] || tenders[0];
+
+    // 1. Selecting Establishments Table ONLY (`scope = 'establishments'`)
+    const estOnlyHtml = buildEmbeddedTablesHtmlForShare({
+      scope: 'establishments',
+      tender: firstTender,
+      items: firstTender.items,
+      establishments,
+      theme: 'kas-original-xlsm',
+      hideHoldingGroupBrand: true,
+    });
+    expect(estOnlyHtml).toContain('ورقة: المؤسسات');
+    expect(estOnlyHtml).toContain('#4472C4');
+    expect(estOnlyHtml).not.toContain('الرقم التسلسلي');
+
+    const estOnlyText = composeKasShareMessageText({
+      scope: 'establishments',
+      tender: firstTender,
+      items: firstTender.items,
+      establishments,
+      options: {
+        includeHeaderO4: false,
+        includeFinancialSummary: false,
+        includeItemsTableO3: false,
+        includeTerms111_112: false,
+        includeEstablishmentsSummary: true,
+        includeAttachmentNamesList: true,
+      },
+      attachmentNames: ['جدول_المؤسسات_طبق_الأصل.xlsx', 'وثيقة_جدول_المؤسسات_طبق_الأصل.pdf'],
+    });
+    expect(estOnlyText).toContain('جدول متابعة المؤسسات المضمّن');
+    expect(estOnlyText).toContain('الإجمالي الكلي للمؤسسات');
+    expect(estOnlyText).toContain('جدول_المؤسسات_طبق_الأصل.xlsx');
+
+    // 2. Selecting Multiple BOQ Tables (`selectedTenders = [firstTender, secondTender]`)
+    const multiBoqHtml = buildEmbeddedTablesHtmlForShare({
+      scope: 'boq',
+      tender: firstTender,
+      items: firstTender.items,
+      establishments,
+      selectedTenders: [firstTender, secondTender],
+      theme: 'kas-original-xlsm',
+      hideHoldingGroupBrand: true,
+    });
+    expect(multiBoqHtml).toContain(firstTender.referenceNumber);
+    expect(multiBoqHtml).toContain(secondTender.referenceNumber);
+    expect(multiBoqHtml).not.toContain('جدول متابعة المؤسسات B1:E9');
+
+    const multiBoqText = composeKasShareMessageText({
+      scope: 'boq',
+      tender: firstTender,
+      items: firstTender.items,
+      establishments,
+      selectedTenders: [firstTender, secondTender],
+      options: {
+        includeHeaderO4: true,
+        includeFinancialSummary: true,
+        includeItemsTableO3: true,
+        includeTerms111_112: true,
+        includeEstablishmentsSummary: false,
+        includeAttachmentNamesList: true,
+      },
+      attachmentNames: ['الجدول_2_جداول_طبق_الأصل.xlsx'],
+    });
+    expect(multiBoqText).toContain(firstTender.referenceNumber);
+    expect(multiBoqText).toContain(secondTender.referenceNumber);
+
+    // 3. Attachments Bundle with `image_png`, `pdf_exact` (%PDF-1.4), and user-uploaded extra document
+    const extraCustomDoc = new File(['custom catalog content'], 'كتالوج_العرض_الفني.pdf', {
+      type: 'application/pdf',
+    });
+    const bundledFiles = await buildSelectedAttachmentsBundle({
+      scope: 'both',
+      selectedTypes: ['excel_boq', 'excel_establishments', 'pdf_exact', 'image_png', 'word_exact'],
+      tender: firstTender,
+      items: firstTender.items,
+      establishments,
+      selectedTenders: [firstTender, secondTender],
+      theme: 'kas-original-xlsm',
+      hideHoldingGroupBrand: true,
+      extraUploadedFiles: [extraCustomDoc],
+    });
+    expect(bundledFiles.length).toBe(6);
+    expect(bundledFiles.some((f) => f.name === 'كتالوج_العرض_الفني.pdf')).toBe(true);
+    expect(bundledFiles.some((f) => f.name.endsWith('.png'))).toBe(true);
+    const pdfAttachment = bundledFiles.find((f) => f.name.startsWith('وثيقة_') && f.name.endsWith('.pdf'))!;
+    expect(pdfAttachment).toBeDefined();
+    const pdfHeaderText = new TextDecoder().decode(new Uint8Array(await pdfAttachment.arrayBuffer()).slice(0, 8));
+    expect(pdfHeaderText).toContain('%PDF-1.4');
+
+    const pngFile = await buildExactReplicaPngFile({
+      scope: 'establishments',
+      tender: firstTender,
+      items: firstTender.items,
+      establishments,
+      theme: 'kas-original-xlsm',
+    });
+    expect(pngFile.name).toContain('.png');
+
+    // 4. Sequential Download & Email Dispatch with Embedded Colored Tables and Attachments
+    const downloadedNames = await downloadFilesSequentially(bundledFiles, 0);
+    expect(downloadedNames.length).toBe(6);
+
+    const emailDispatchResult = await dispatchKasEmailWithEmbeddedTablesAndAttachments({
+      scope: 'both',
+      recipientEmail: 'a.albashir.trade@kas.sa',
+      subject: 'اختبار تضمين الجداول وإرفاق المستندات',
+      messageText: multiBoqText,
+      tender: firstTender,
+      items: firstTender.items,
+      establishments,
+      selectedTenders: [firstTender, secondTender],
+      theme: 'kas-original-xlsm',
+      hideHoldingGroupBrand: true,
+      attachments: bundledFiles,
+    });
+    expect(emailDispatchResult.emlFileName).toContain('.eml');
+    expect(emailDispatchResult.attachmentNames).toContain('كتالوج_العرض_الفني.pdf');
   });
 });
