@@ -1673,43 +1673,197 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
   // 36. المنافسات الحكومية وجداول الكميات (شركة كاس - اعتماد)
   tenders_boq: {
     sectionTitle: 'كشف المنافسات الحكومية وجداول الكميات والتسعير (منصة اعتماد - كاس)',
-    headers: ['رقم المنافسة / الكراسة', 'اسم المشروع / المنافسة', 'الجهة الحكومية', 'قيمة العطاء (⃁)', 'الضريبة 15% (⃁)', 'الإجمالي شامل الضريبة (⃁)', 'قيمة الضمان الابتدائي (⃁)', 'نسبة الإنجاز / الترسية', 'المهندس المسؤول', 'الحالة'],
+    headers: ['رقم المنافسة / الكراسة', 'اسم المشروع / المنافسة', 'الجهة / المؤسسة', 'قيمة العطاء (⃁)', 'الضريبة 15% (⃁)', 'الإجمالي شامل الضريبة (⃁)', 'قيمة الضمان الابتدائي (⃁)', 'نسبة الإنجاز / الترسية', 'المهندس المسؤول', 'الحالة'],
     dataMapper: (r: any) => {
-      const val = Number(r.total_value || r.amount || r.bid_amount || r.budget || 0);
-      const vat = Number(r.vat_amount || Math.round(val * 0.15));
+      const val = Number(r.subtotal ?? r.total_value ?? r.bidValue ?? r.amount ?? r.bid_amount ?? r.budget ?? 0);
+      const vat = Number(r.vatAmount ?? r.vat_amount ?? +(val * 0.15).toFixed(2));
+      const grand = Number(r.grandTotal ?? +(val + vat).toFixed(2));
       return [
-        r.reference_number || r.tender_no || r.code || r.id || '',
+        r.referenceNumber || r.reference_number || r.tenderCode || r.tender_no || r.code || r.id || '',
         r.title || r.project_name || r.name || '',
-        r.entity_name || r.client || r.agency || 'جهة حكومية - منصة اعتماد',
+        r.entityName || r.company || r.entity_name || r.clientName || r.client || r.agency || 'مؤسسة خالد عبدالعزيز السليم للتجارة',
         val,
         vat,
-        val + vat,
+        grand,
         r.bond_amount || Math.round(val * 0.02),
-        r.progress ? `${r.progress}%` : (r.award_probability || 'قيد التقييم'),
-        r.engineer || r.manager || 'م. راشد العجمي',
-        r.status || 'مقدم عبر اعتماد'
+        r.progress ? `${r.progress}%` : (r.award_probability || r.supplyDuration || 'قيد التقييم'),
+        r.engineer || r.managerName || r.manager || 'م. أحمد البشير',
+        r.status || r.notes || 'مقدم عبر اعتماد'
       ];
     }
   },
   'tenders-boq': {
     sectionTitle: 'كشف المنافسات الحكومية وجداول الكميات والتسعير (منصة اعتماد - كاس)',
-    headers: ['رقم المنافسة / الكراسة', 'اسم المشروع / المنافسة', 'الجهة الحكومية', 'قيمة العطاء (⃁)', 'الضريبة 15% (⃁)', 'الإجمالي شامل الضريبة (⃁)', 'قيمة الضمان الابتدائي (⃁)', 'نسبة الإنجاز / الترسية', 'المهندس المسؤول', 'الحالة'],
+    headers: ['رقم المنافسة / الكراسة', 'اسم المشروع / المنافسة', 'الجهة / المؤسسة', 'قيمة العطاء (⃁)', 'الضريبة 15% (⃁)', 'الإجمالي شامل الضريبة (⃁)', 'قيمة الضمان الابتدائي (⃁)', 'نسبة الإنجاز / الترسية', 'المهندس المسؤول', 'الحالة'],
     dataMapper: (r: any) => {
-      const val = Number(r.total_value || r.amount || r.bid_amount || r.budget || 0);
-      const vat = Number(r.vat_amount || Math.round(val * 0.15));
+      const val = Number(r.subtotal ?? r.total_value ?? r.bidValue ?? r.amount ?? r.bid_amount ?? r.budget ?? 0);
+      const vat = Number(r.vatAmount ?? r.vat_amount ?? +(val * 0.15).toFixed(2));
+      const grand = Number(r.grandTotal ?? +(val + vat).toFixed(2));
       return [
-        r.reference_number || r.tender_no || r.code || r.id || '',
+        r.referenceNumber || r.reference_number || r.tenderCode || r.tender_no || r.code || r.id || '',
         r.title || r.project_name || r.name || '',
-        r.entity_name || r.client || r.agency || 'جهة حكومية - منصة اعتماد',
+        r.entityName || r.company || r.entity_name || r.clientName || r.client || r.agency || 'مؤسسة خالد عبدالعزيز السليم للتجارة',
         val,
         vat,
-        val + vat,
+        grand,
         r.bond_amount || Math.round(val * 0.02),
-        r.progress ? `${r.progress}%` : (r.award_probability || 'قيد التقييم'),
-        r.engineer || r.manager || 'م. راشد العجمي',
-        r.status || 'مقدم عبر اعتماد'
+        r.progress ? `${r.progress}%` : (r.award_probability || r.supplyDuration || 'قيد التقييم'),
+        r.engineer || r.managerName || r.manager || 'م. أحمد البشير',
+        r.status || r.notes || 'مقدم عبر اعتماد'
       ];
     }
+  },
+  kas_boq_items: {
+    sectionTitle: 'جدول الكميات والأسعار المعتمد للمنافسة (KAS Official BOQ)',
+    headers: [
+      'الرقم التسلسلي',
+      'وصف البند',
+      'وحدة القياس',
+      'الكمية',
+      'سعر الوحدة (⃁)',
+      'سعر الوحدة كتابة',
+      'السعر الإجمالي (⃁)',
+      'السعر الإجمالي كتابة',
+      'الضريبة 15% (⃁)',
+      'السعر الإجمالي شامل الضريبة (⃁)',
+      'السعر الإجمالي شامل الضريبة كتابة',
+    ],
+    dataMapper: (r: any) => [
+      r.itemNumber ?? r.seq ?? 1,
+      r.description || '',
+      r.unit || 'عدد',
+      Number(r.quantity ?? 0),
+      Number(r.unitPrice ?? 0),
+      r.unitPriceInWords || 'صفر',
+      Number(r.totalPrice ?? 0),
+      r.totalPriceInWords || 'صفر',
+      Number(r.vat ?? 0),
+      Number(r.totalWithVat ?? 0),
+      r.totalWithVatInWords || 'صفر',
+    ],
+  },
+  kas_establishments_tracker: {
+    sectionTitle: 'جدول متابعة مؤسسات وشركات كاس للمنافسات (المؤسسات)',
+    headers: [
+      'المؤسسات',
+      'انتهاء اليوم',
+      'انتهاء بعد اليوم',
+      'الإجمالى',
+      'عدد الكراسات المسعرة',
+      'إجمالي القيمة شامل الضريبة (⃁)',
+    ],
+    dataMapper: (r: any) => {
+      const today = Number(r.endingToday ?? 0);
+      const after = Number(r.endingAfterToday ?? 0);
+      const total = today + after;
+      return [
+        r.name || '',
+        today === 0 ? '-' : today,
+        after === 0 ? '-' : after,
+        total === 0 ? '-' : total,
+        Number(r.totalTenders ?? 0),
+        Number(r.totalValueWithVat ?? 0),
+      ];
+    },
+  },
+  kas_november_tenders: {
+    sectionTitle: 'سجل كراسات جداول الكميات والأسعار — منافسات كاس (شهر 11)',
+    headers: [
+      'المصنف / النسخة',
+      'ورقة الإكسيل',
+      'اسم المؤسسة',
+      'الرقم المرجعي',
+      'جدول الكميات والأسعار لمنافسة',
+      'عدد البنود',
+      'السعر الإجمالي (⃁)',
+      'الضريبة 15% (⃁)',
+      'الإجمالي شامل الضريبة (⃁)',
+      'الإجمالي شامل الضريبة كتابة',
+      'مدة التوريد',
+      'مدة الالتزام بالعرض',
+    ],
+    dataMapper: (r: any) => [
+      r.workbookLabel || 'شهر 11',
+      r.sheetName || 'الجدول',
+      r.entityName || 'مؤسسة خالد عبدالعزيز السليم للتجارة',
+      r.referenceNumber || '',
+      r.title || '',
+      Number(r.itemsCount ?? (Array.isArray(r.items) ? r.items.length : 0)),
+      Number(r.subtotal ?? 0),
+      Number(r.vatAmount ?? 0),
+      Number(r.grandTotal ?? 0),
+      r.grandTotalInWords || '',
+      r.supplyDuration || '15 يوم',
+      r.validityDuration || `${r.commitmentDays || 180} يوم`,
+    ],
+  },
+  kas_suppliers: {
+    sectionTitle: 'سجل الموردين والمقاولين المعتمدين — مؤسسة خالد عبدالعزيز السليم للتجارة (كاس)',
+    headers: [
+      'كود المورد',
+      'اسم المورد / المنشأة',
+      'فئة التوريد',
+      'المدينة',
+      'المسؤول',
+      'رقم الجوال',
+      'البريد الإلكتروني',
+      'الجودة %',
+      'الالتزام %',
+      'تنافسية السعر %',
+      'عدد التعاملات',
+      'إجمالي التعاملات (⃁)',
+      'الحالة',
+    ],
+    dataMapper: (r: any) => [
+      r.id || '',
+      r.name || '',
+      r.category || '',
+      r.city || '',
+      r.contactPerson || '',
+      r.phone || '',
+      r.email || '',
+      `${Number(r.qualityScore ?? 90)}%`,
+      `${Number(r.commitmentScore ?? 90)}%`,
+      `${Number(r.priceCompetitiveness ?? 90)}%`,
+      Number(r.totalDeals ?? 0),
+      Number(r.totalValue ?? 0),
+      r.status || 'معتمد',
+    ],
+  },
+  kas_monafasat_master: {
+    sectionTitle: 'سجل منافسات كاس الحكومية الشامل (منصة اعتماد)',
+    headers: [
+      'العدد',
+      'اسم المؤسسة',
+      'كود المنافسة',
+      'اسم المنافسة',
+      'الرقم المرجعي',
+      'الجهة الحكومية',
+      'اسم المسؤول',
+      'تاريخ انتهاء التقديم',
+      'مدة التنفيذ',
+      'قيمة عرض كاس (⃁)',
+      'المبلغ الفائز (⃁)',
+      'الحالة والملاحظات',
+      'سبب الترسية / الاستبعاد',
+      'المدينة',
+    ],
+    dataMapper: (r: any) => [
+      r.seq || '',
+      r.company || 'مؤسسة خالد السليم للتجارة',
+      r.tenderCode || '',
+      r.title || '',
+      r.referenceNumber || r.tenderNumber || '',
+      r.entity || '',
+      r.managerName || '',
+      r.deadlineDate || '',
+      r.executionDuration || '',
+      Number(r.bidValue ?? 0),
+      Number(r.winningBidValue ?? 0),
+      r.notes || '',
+      r.rejectionReason || '',
+      r.city || '',
+    ],
   },
 
   // 37. المكاتب والوكالات الخارجية الدولية

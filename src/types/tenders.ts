@@ -41,6 +41,7 @@ export interface TenderRecord {
   status: TenderStatus;
   submissionDate: string;
   supplyDuration: string;
+  validityDuration?: string;
   commitmentDays: number;
   itemsCount: number;
   subtotal: number;
@@ -50,6 +51,27 @@ export interface TenderRecord {
   grandTotal: number;
   grandTotalInWords: string;
   items: BOQItem[];
+  workbookId?: string;
+  workbookLabel?: string;
+  sourceFileName?: string;
+  sheetName?: string;
+}
+
+export interface KasEstablishmentRow {
+  id: string;
+  name: string;
+  aliases: string[];
+  endingToday: number;
+  endingAfterToday: number;
+  totalTenders?: number;
+  totalValueWithVat?: number;
+}
+
+export interface KasWorkbookMeta {
+  id: string;
+  label: string;
+  fileName: string;
+  sheetsCount: number;
 }
 
 export interface SupplierRecord {

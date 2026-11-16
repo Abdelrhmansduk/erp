@@ -1,15 +1,16 @@
 /**
- * Real BOQ Processing & Excel Engineering Service
+ * Real BOQ Processing & KAS Excel Engineering Service
  * Features:
- * 1. Real XLSX / CSV file parsing with automatic column header detection
- * 2. Excel Formulas injection (=Quantity * UnitPrice, =SUM, =15% VAT)
- * 3. Arabic Tafqeet financial verbalizer
- * 4. Profit margin simulation & bulk markup calculation
- * 5. Multi-format export (Excel with styles, CSV, JSON)
+ * 1. Real XLSX / XLSM / CSV file parsing (single-sheet & multi-sheet KAS workbooks)
+ * 2. Automatic detection of KAS layout (C3:M4 metadata, C5:M105 BOQ items, E111:E112 terms, and المؤسسات sheet)
+ * 3. Excel Formulas injection (=F*G, =I*0.15, =I*1.15, =SUBTOTAL(109,...), =C+D) with zero formula errors
+ * 4. Arabic Tafqeet financial verbalizer matching AhmedHelmi2 VBA macro
+ * 5. Clipboard formatters matching KAS Excel macro triggers ($O$3 الجدول and $O$4 النص)
+ * 6. Single-sheet and Multi-sheet full workbook export (.xlsx) fully editable in Microsoft Excel
  */
 
 import * as XLSX from 'xlsx';
-import { BOQItem, TenderRecord } from '../types/tenders';
+import { BOQItem, KasEstablishmentRow, TenderRecord } from '../types/tenders';
 import { tafqeet } from './tafqeetService';
 
 export interface ParsedBoqResult {
@@ -20,19 +21,32 @@ export interface ParsedBoqResult {
   subtotalInWords: string;
   vatInWords: string;
   grandTotalInWords: string;
+  entityName?: string;
+  referenceNumber?: string;
+  title?: string;
+  supplyDuration?: string;
+  validityDuration?: string;
+  errors: string[];
+}
+
+export interface ParsedKasWorkbookResult {
+  fileName: string;
+  establishments: KasEstablishmentRow[];
+  tenders: TenderRecord[];
   errors: string[];
 }
 
 export class RealBoqEngine {
   /**
-   * Recalculates all item line totals, VAT, and Tafqeet text
+   * Recalculates all item line totals, VAT, and Tafqeet text (matching AhmedHelmi2)
    */
   public static calculateItem(
     itemNumber: number,
     description: string,
     unit: string,
     quantity: number,
-    unitPrice: number
+    unitPrice: number,
+    existingId?: string
   ): BOQItem {
     const safeQty = Number(quantity) || 0;
     const safePrice = Number(unitPrice) || 0;
@@ -41,18 +55,18 @@ export class RealBoqEngine {
     const totalWithVat = Number((totalPrice + vat).toFixed(2));
 
     return {
-      id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      id: existingId || `item-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       itemNumber,
-      description: description.trim() || `بند توريد ${itemNumber}`,
-      unit: unit.trim() || 'عدد',
+      description: String(description ?? '').trim() || `بند توريد ${itemNumber}`,
+      unit: String(unit ?? '').trim() || 'عدد',
       quantity: safeQty,
       unitPrice: safePrice,
-      unitPriceInWords: tafqeet(safePrice),
+      unitPriceInWords: safePrice > 0 ? tafqeet(safePrice) : 'صفر',
       totalPrice,
-      totalPriceInWords: tafqeet(totalPrice),
+      totalPriceInWords: totalPrice > 0 ? tafqeet(totalPrice) : 'صفر',
       vat,
       totalWithVat,
-      totalWithVatInWords: tafqeet(totalWithVat),
+      totalWithVatInWords: totalWithVat > 0 ? tafqeet(totalWithVat) : 'صفر',
     };
   }
 
@@ -67,7 +81,7 @@ export class RealBoqEngine {
     vatInWords: string;
     grandTotalInWords: string;
   } {
-    const subtotal = Number(items.reduce((sum, it) => sum + (it.totalPrice || 0), 0).toFixed(2));
+    const subtotal = Number(items.reduce((sum, it) => sum + (Number(it.totalPrice) || 0), 0).toFixed(2));
     const vatAmount = Number((subtotal * 0.15).toFixed(2));
     const grandTotal = Number((subtotal + vatAmount).toFixed(2));
 
@@ -75,221 +89,815 @@ export class RealBoqEngine {
       subtotal,
       vatAmount,
       grandTotal,
-      subtotalInWords: tafqeet(subtotal),
-      vatInWords: tafqeet(vatAmount),
-      grandTotalInWords: tafqeet(grandTotal),
+      subtotalInWords: subtotal > 0 ? tafqeet(subtotal) : 'صفر',
+      vatInWords: vatAmount > 0 ? tafqeet(vatAmount) : 'صفر',
+      grandTotalInWords: grandTotal > 0 ? tafqeet(grandTotal) : 'صفر',
     };
   }
 
   /**
-   * Parses binary Excel or text data into structured BOQ items
+   * Parses a single KAS sheet (الجدول / الجدول (N)) or generic BOQ worksheet
    */
-  public static parseExcelFile(fileData: ArrayBuffer | Uint8Array): ParsedBoqResult {
+  public static parseSingleWorksheet(
+    worksheet: XLSX.WorkSheet,
+    sheetName = 'الجدول'
+  ): ParsedBoqResult {
     const errors: string[] = [];
     const items: BOQItem[] = [];
 
-    try {
-      const workbook = XLSX.read(fileData, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const rows: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+    const cellStr = (addr: string): string => {
+      const c = worksheet[addr];
+      return c && c.v !== undefined && c.v !== null ? String(c.v).trim() : '';
+    };
 
-      if (!rows || rows.length === 0) {
+    // Check if this worksheet uses the KAS C3:M112 template structure
+    const c3Val = cellStr('C3');
+    const c4Val = cellStr('C4');
+    const c5Val = cellStr('C5');
+    const d5Val = cellStr('D5');
+    const isKasTemplate =
+      c3Val.includes('اسم المؤسسة') ||
+      c4Val.includes('جدول الكميات') ||
+      (c5Val.includes('الرقم التسلسلي') && d5Val.includes('وصف البند'));
+
+    if (isKasTemplate) {
+      const entityName = cellStr('E3') || 'مؤسسة خالد عبدالعزيز السليم للتجارة';
+      const referenceNumber = cellStr('M3');
+      const title = cellStr('E4');
+      const supplyDuration = cellStr('E111') || 'خلال 15 يوم من تاريخ استلام التعميد';
+      const validityDuration = cellStr('E112') || '180 يوم';
+
+      for (let r = 6; r <= 105; r++) {
+        const desc = cellStr(`D${r}`);
+        const unit = cellStr(`E${r}`);
+        const qtyRaw = worksheet[`F${r}`]?.v;
+        const priceRaw = worksheet[`G${r}`]?.v;
+        const qty = qtyRaw !== undefined && qtyRaw !== '' ? Number(qtyRaw) || 0 : 0;
+        const price = priceRaw !== undefined && priceRaw !== '' ? Number(priceRaw) || 0 : 0;
+
+        if (desc || qty > 0 || price > 0) {
+          const itemObj = this.calculateItem(
+            items.length + 1,
+            desc || `بند رقم ${items.length + 1}`,
+            unit || 'عدد',
+            qty,
+            price
+          );
+          const existingUnitWords = cellStr(`H${r}`);
+          const existingTotalWords = cellStr(`J${r}`);
+          const existingVatWords = cellStr(`M${r}`);
+          if (existingUnitWords && existingUnitWords !== 'صفر') itemObj.unitPriceInWords = existingUnitWords;
+          if (existingTotalWords && existingTotalWords !== 'صفر') itemObj.totalPriceInWords = existingTotalWords;
+          if (existingVatWords && existingVatWords !== 'صفر') itemObj.totalWithVatInWords = existingVatWords;
+          items.push(itemObj);
+        }
+      }
+
+      const totals = this.recalculateTender(items);
+      return {
+        items,
+        ...totals,
+        entityName,
+        referenceNumber,
+        title: title || `كراسة كميات وأسعار (${sheetName})`,
+        supplyDuration,
+        validityDuration,
+        errors,
+      };
+    }
+
+    // Generic BOQ worksheet fallback
+    const rows: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+    if (!rows || rows.length === 0) {
+      return {
+        items: [],
+        subtotal: 0,
+        vatAmount: 0,
+        grandTotal: 0,
+        subtotalInWords: 'صفر',
+        vatInWords: 'صفر',
+        grandTotalInWords: 'صفر',
+        errors: ['الورقة فارغة.'],
+      };
+    }
+
+    let headerRowIdx = 0;
+    for (let i = 0; i < Math.min(rows.length, 12); i++) {
+      const rowStr = rows[i].join(' ').toLowerCase();
+      if (
+        rowStr.includes('وصف') ||
+        rowStr.includes('بند') ||
+        rowStr.includes('كمية') ||
+        rowStr.includes('سعر') ||
+        rowStr.includes('description') ||
+        rowStr.includes('item')
+      ) {
+        headerRowIdx = i;
+        break;
+      }
+    }
+
+    const headers = (rows[headerRowIdx] || []).map((h) => String(h).trim().toLowerCase());
+    let descIdx = headers.findIndex(
+      (h) => h.includes('وصف') || h.includes('بيان') || h.includes('description') || h.includes('name') || h.includes('بند')
+    );
+    let unitIdx = headers.findIndex((h) => h.includes('وحدة') || h.includes('unit'));
+    let qtyIdx = headers.findIndex((h) => h.includes('كمية') || h.includes('qty') || h.includes('quantity'));
+    let priceIdx = headers.findIndex(
+      (h) => (h.includes('سعر') || h.includes('price') || h.includes('تكلفة')) && !h.includes('إجمالي') && !h.includes('total') && !h.includes('كتابة')
+    );
+
+    if (descIdx === -1) descIdx = 1;
+    if (unitIdx === -1) unitIdx = 2;
+    if (qtyIdx === -1) qtyIdx = 3;
+    if (priceIdx === -1) priceIdx = 4;
+
+    let itemCounter = 1;
+    for (let r = headerRowIdx + 1; r < rows.length; r++) {
+      const row = rows[r];
+      if (!row || row.length === 0) continue;
+
+      const rawDesc = String(row[descIdx] || '').trim();
+      if (
+        !rawDesc ||
+        rawDesc.includes('الإجمالي') ||
+        rawDesc.includes('السعر الإجمالي') ||
+        rawDesc.includes('total') ||
+        rawDesc.includes('الضريبة') ||
+        rawDesc.includes('مدة التوريد') ||
+        rawDesc.includes('مدة الالتزام')
+      ) {
+        continue;
+      }
+
+      const rawUnit = String(row[unitIdx] || 'عدد').trim();
+      const rawQty = parseFloat(String(row[qtyIdx]).replace(/[^0-9.-]/g, '')) || 1;
+      const rawPrice = parseFloat(String(row[priceIdx]).replace(/[^0-9.-]/g, '')) || 0;
+
+      items.push(this.calculateItem(itemCounter, rawDesc, rawUnit, rawQty, rawPrice));
+      itemCounter++;
+    }
+
+    const tenderTotals = this.recalculateTender(items);
+    return {
+      items,
+      ...tenderTotals,
+      title: sheetName,
+      errors,
+    };
+  }
+
+  /**
+   * Parses binary Excel (.xlsx / .xlsm / .xls / .csv) into BOQ items
+   * Supports both single-sheet BOQ files and multi-sheet KAS workbooks (picking the first populated BOQ sheet)
+   */
+  public static parseExcelFile(fileData: ArrayBuffer | Uint8Array): ParsedBoqResult {
+    try {
+      const workbook = XLSX.read(fileData, { type: 'array', cellFormula: true });
+      if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
         return {
           items: [],
           subtotal: 0,
           vatAmount: 0,
           grandTotal: 0,
-          subtotalInWords: '',
-          vatInWords: '',
-          grandTotalInWords: '',
+          subtotalInWords: 'صفر',
+          vatInWords: 'صفر',
+          grandTotalInWords: 'صفر',
           errors: ['الملف فارغ أو لا يحتوي على أوراق عمل صالحة.'],
         };
       }
 
-      // Find header row
-      let headerRowIdx = 0;
-      for (let i = 0; i < Math.min(rows.length, 10); i++) {
-        const rowStr = rows[i].join(' ').toLowerCase();
-        if (
-          rowStr.includes('وصف') ||
-          rowStr.includes('بند') ||
-          rowStr.includes('كمية') ||
-          rowStr.includes('سعر') ||
-          rowStr.includes('description') ||
-          rowStr.includes('item')
-        ) {
-          headerRowIdx = i;
-          break;
+      // Iterate sheets to find the first sheet that actually has populated items
+      for (const sName of workbook.SheetNames) {
+        if (sName === 'المؤسسات') continue;
+        const ws = workbook.Sheets[sName];
+        const parsed = this.parseSingleWorksheet(ws, sName);
+        if (parsed.items.length > 0 && (parsed.grandTotal > 0 || parsed.referenceNumber || parsed.title)) {
+          return parsed;
         }
       }
 
-      const headers = rows[headerRowIdx].map(h => String(h).trim().toLowerCase());
-      
-      // Identify column indices
-      let descIdx = headers.findIndex(h => h.includes('وصف') || h.includes('بيان') || h.includes('description') || h.includes('name'));
-      let unitIdx = headers.findIndex(h => h.includes('وحدة') || h.includes('unit'));
-      let qtyIdx = headers.findIndex(h => h.includes('كمية') || h.includes('qty') || h.includes('quantity'));
-      let priceIdx = headers.findIndex(h => (h.includes('سعر') || h.includes('price')) && !h.includes('إجمالي') && !h.includes('total'));
-
-      // Fallbacks if headers not detected
-      if (descIdx === -1) descIdx = 1;
-      if (unitIdx === -1) unitIdx = 2;
-      if (qtyIdx === -1) qtyIdx = 3;
-      if (priceIdx === -1) priceIdx = 4;
-
-      // Extract data rows
-      let itemCounter = 1;
-      for (let r = headerRowIdx + 1; r < rows.length; r++) {
-        const row = rows[r];
-        if (!row || row.length === 0) continue;
-
-        const rawDesc = String(row[descIdx] || '').trim();
-        if (!rawDesc || rawDesc.includes('الإجمالي') || rawDesc.includes('total') || rawDesc.includes('الضريبة')) {
-          continue;
-        }
-
-        const rawUnit = String(row[unitIdx] || 'عدد').trim();
-        const rawQty = parseFloat(String(row[qtyIdx]).replace(/[^0-9.-]/g, '')) || 1;
-        const rawPrice = parseFloat(String(row[priceIdx]).replace(/[^0-9.-]/g, '')) || 0;
-
-        const calculated = this.calculateItem(itemCounter, rawDesc, rawUnit, rawQty, rawPrice);
-        items.push(calculated);
-        itemCounter++;
-      }
-
-      const tenderTotals = this.recalculateTender(items);
-      return {
-        items,
-        ...tenderTotals,
-        errors,
-      };
+      // Fallback to first sheet
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      return this.parseSingleWorksheet(firstSheet, workbook.SheetNames[0]);
     } catch (err: any) {
       return {
         items: [],
         subtotal: 0,
         vatAmount: 0,
         grandTotal: 0,
-        subtotalInWords: '',
-        vatInWords: '',
-        grandTotalInWords: '',
+        subtotalInWords: 'صفر',
+        vatInWords: 'صفر',
+        grandTotalInWords: 'صفر',
         errors: [`فشل في قراءة ملف الإكسيل: ${err?.message || 'خطأ غير معروف'}`],
       };
     }
   }
 
   /**
+   * Parses an entire multi-sheet KAS Workbook (.xlsm / .xlsx) into a live editable system state:
+   * - Extracts the `المؤسسات` sheet (if present)
+   * - Extracts ALL populated `الجدول (N)` tender sheets with their items, formulas, and terms
+   */
+  public static parseKasMultiSheetWorkbook(
+    fileData: ArrayBuffer | Uint8Array,
+    fileName = 'KAS_Workbook.xlsm'
+  ): ParsedKasWorkbookResult {
+    const errors: string[] = [];
+    const establishments: KasEstablishmentRow[] = [];
+    const tenders: TenderRecord[] = [];
+    const workbookId = `wb-${Date.now()}`;
+    const cleanLabel = fileName.replace(/\.(xlsm|xlsx|xls|csv)$/i, '');
+
+    try {
+      const workbook = XLSX.read(fileData, { type: 'array', cellFormula: true });
+
+      // 1. Check for المؤسسات sheet
+      if (workbook.Sheets['المؤسسات']) {
+        const instWs = workbook.Sheets['المؤسسات'];
+        const rows: any[][] = XLSX.utils.sheet_to_json(instWs, { header: 1, defval: '' });
+        for (let r = 1; r < rows.length; r++) {
+          const row = rows[r];
+          if (!row || row.length === 0) continue;
+          // In KAS المؤسسات sheet, B is col 1 (or A is col 0)
+          const nameCol = String(row[1] || row[0] || '').trim();
+          if (
+            !nameCol ||
+            nameCol === 'المؤسسات' ||
+            nameCol.includes('الإجمالي') ||
+            nameCol.includes('الإجمالى')
+          ) {
+            continue;
+          }
+          const endingToday = Number(row[2] ?? row[1] ?? 0) || 0;
+          const endingAfterToday = Number(row[3] ?? row[2] ?? 0) || 0;
+          establishments.push({
+            id: `est-import-${r}-${Date.now()}`,
+            name: nameCol,
+            aliases: [nameCol],
+            endingToday,
+            endingAfterToday,
+          });
+        }
+      }
+
+      // 2. Parse all BOQ sheets
+      for (let sIdx = 0; sIdx < workbook.SheetNames.length; sIdx++) {
+        const sheetName = workbook.SheetNames[sIdx];
+        if (sheetName === 'المؤسسات') continue;
+
+        const ws = workbook.Sheets[sheetName];
+        const parsed = this.parseSingleWorksheet(ws, sheetName);
+
+        // Skip empty template sheet if there are other sheets in the workbook
+        const isBlankTemplate =
+          !parsed.referenceNumber &&
+          parsed.grandTotal === 0 &&
+          parsed.items.every((it) => it.unitPrice === 0);
+
+        if (isBlankTemplate && workbook.SheetNames.length > 2) {
+          continue;
+        }
+
+        if (parsed.items.length === 0 && !parsed.referenceNumber && !parsed.title) {
+          continue;
+        }
+
+        const commitmentDays = parseInt(String(parsed.validityDuration || '180'), 10) || 180;
+
+        tenders.push({
+          id: `KAS-IMP-${workbookId}-${sIdx + 1}`,
+          workbookId,
+          workbookLabel: cleanLabel,
+          sourceFileName: fileName,
+          sheetName,
+          referenceNumber:
+            parsed.referenceNumber || `25113900${String(sIdx + 1).padStart(4, '0')}`,
+          title: parsed.title || `منافسة ${sheetName}`,
+          entityName: parsed.entityName || 'مؤسسة خالد عبدالعزيز السليم للتجارة',
+          clientName: 'الجهة الحكومية المستفيدة (منصة اعتماد)',
+          category: 'توريدات حكومية وتجهيزات',
+          status: 'مقدمة ومسعرة',
+          submissionDate: new Date().toISOString().split('T')[0],
+          supplyDuration: parsed.supplyDuration || 'خلال 15 يوم من استلام التعميد',
+          validityDuration: parsed.validityDuration || '180 يوم',
+          commitmentDays,
+          itemsCount: parsed.items.length,
+          subtotal: parsed.subtotal,
+          subtotalInWords: parsed.subtotalInWords,
+          vatAmount: parsed.vatAmount,
+          vatInWords: parsed.vatInWords,
+          grandTotal: parsed.grandTotal,
+          grandTotalInWords: parsed.grandTotalInWords,
+          items: parsed.items,
+        });
+      }
+
+      if (tenders.length === 0) {
+        errors.push('لم يتم العثور على أوراق جداول كميات معبأة في الملف المرفوع.');
+      }
+    } catch (err: any) {
+      errors.push(`تعذر تحليل المصنف: ${err?.message || 'خطأ غير معروف'}`);
+    }
+
+    return {
+      fileName,
+      establishments,
+      tenders,
+      errors,
+    };
+  }
+
+  /**
    * Applies margin percentage to all items
    */
   public static applyMargin(items: BOQItem[], marginPercentage: number): BOQItem[] {
-    const factor = 1 + (marginPercentage / 100);
+    const factor = 1 + marginPercentage / 100;
     return items.map((it, idx) => {
       const newPrice = Number((it.unitPrice * factor).toFixed(2));
-      return this.calculateItem(idx + 1, it.description, it.unit, it.quantity, newPrice);
+      return this.calculateItem(idx + 1, it.description, it.unit, it.quantity, newPrice, it.id);
     });
   }
 
   /**
-   * Generates a fully formatted Excel Sheet with official styling and live formulas
+   * Builds a single KAS BOQ Worksheet matching the exact C3:M112 layout of شهر11 نسخة 1..4.xlsm
+   * with live editable Excel formulas (=F*G, =I*0.15, =I*1.15, =SUBTOTAL(109,...))
    */
-  public static exportToExcelWithFormulas(tender: TenderRecord, items: BOQItem[]): Uint8Array {
-    const rows: any[][] = [];
+  public static buildKasBoqWorksheet(tender: TenderRecord, items?: BOQItem[]): XLSX.WorkSheet {
+    const activeItems = (items && items.length > 0 ? items : tender.items || []).filter(
+      (it) => it.description || it.quantity > 0 || it.unitPrice > 0
+    );
+    const totals = this.recalculateTender(activeItems);
+    const itemRowsCount = Math.max(activeItems.length, 1);
+    const subtotalRowNum = 6 + itemRowsCount; // 1-indexed Excel row for SUBTOTAL
 
-    // Header info rows
-    rows.push(['مؤسسة خالد عبدالعزيز السليم للتجارة (كاس)']);
-    rows.push(['كراسة جدول الكميات والأسعار (BOQ Official Document)']);
-    rows.push([`رقم المنافسة: ${tender.referenceNumber}`, `الجهة الطالبة: ${tender.clientName}`]);
-    rows.push([`اسم المنافسة: ${tender.title}`]);
-    rows.push([]); // Empty spacing
+    const ws: XLSX.WorkSheet = {};
 
-    // Table Header Row
-    const tableHeader = [
-      'الرقم',
-      'وصف البند',
-      'وحدة القياس',
-      'الكمية',
-      'سعر الوحدة (⃁)',
-      'سعر الوحدة كتابة',
-      'السعر الإجمالي (⃁)',
-      'السعر الإجمالي كتابة',
-      'ضريبة القيمة المضافة 15%',
-      'الإجمالي شامل الضريبة (⃁)',
-      'الإجمالي شامل الضريبة كتابة'
+    const setCell = (addr: string, cell: XLSX.CellObject) => {
+      ws[addr] = cell;
+    };
+
+    // Row 3: Establishment & Reference Number + O3 Macro Label
+    setCell('C3', { t: 's', v: 'اسم المؤسسة : ' });
+    setCell('E3', { t: 's', v: tender.entityName || 'مؤسسة خالد عبدالعزيز السليم للتجارة' });
+    setCell('L3', { t: 's', v: ' - رقم مرجعي : ' });
+    setCell('M3', { t: 's', v: tender.referenceNumber || '' });
+    setCell('O3', { t: 's', v: 'الجدول' });
+
+    // Row 4: Competition Title & Grand Total formula + O4 Macro Label
+    setCell('C4', { t: 's', v: ' جدول الكميات والاسعار لمنافسة : ' });
+    setCell('E4', { t: 's', v: tender.title || '' });
+    setCell('L4', { t: 's', v: ' - الإجمالى شامل الضريبه : ' });
+    setCell('M4', {
+      t: 'n',
+      f: `L${subtotalRowNum}`,
+      v: totals.grandTotal,
+      z: '#,##0.00',
+    });
+    setCell('O4', { t: 's', v: ' النص' });
+
+    // Row 5: 11 Column Headers (C5:M5)
+    const headers = [
+      { col: 'C', text: 'الرقم التسلسلي' },
+      { col: 'D', text: 'وصف البند' },
+      { col: 'E', text: 'وحدة القياس' },
+      { col: 'F', text: 'الكمية ' },
+      { col: 'G', text: 'سعر الوحدة ' },
+      { col: 'H', text: 'سعر الوحدة كتابة ' },
+      { col: 'I', text: 'السعر الإجمالي ' },
+      { col: 'J', text: 'السعر الإجمالي كتابة' },
+      { col: 'K', text: 'الضريبة' },
+      { col: 'L', text: 'السعر الإجمالي شامل الضريبة ' },
+      { col: 'M', text: 'السعر الإجمالي شامل الضريبة كتابة' },
     ];
-    rows.push(tableHeader);
+    for (const h of headers) {
+      setCell(`${h.col}5`, { t: 's', v: h.text });
+    }
 
-    // Item Rows with Excel formulas
-    items.forEach((it, idx) => {
-      const rowNumber = idx + 7; // Accounting for top header lines
-      rows.push([
-        it.itemNumber,
-        it.description,
-        it.unit,
-        it.quantity,
-        it.unitPrice,
-        it.unitPriceInWords,
-        { f: `D${rowNumber}*E${rowNumber}` }, // Total Price = Qty * Unit Price
-        it.totalPriceInWords,
-        { f: `G${rowNumber}*0.15` }, // VAT = Total * 0.15
-        { f: `G${rowNumber}+I${rowNumber}` }, // Total with VAT
-        it.totalWithVatInWords
-      ]);
+    // Rows 6 .. 6 + itemRowsCount - 1: Editable Line Items with Live Excel Formulas
+    for (let idx = 0; idx < itemRowsCount; idx++) {
+      const r = 6 + idx;
+      const it = activeItems[idx] || {
+        itemNumber: idx + 1,
+        description: '',
+        unit: 'عدد',
+        quantity: 0,
+        unitPrice: 0,
+        unitPriceInWords: 'صفر',
+        totalPrice: 0,
+        totalPriceInWords: 'صفر',
+        vat: 0,
+        totalWithVat: 0,
+        totalWithVatInWords: 'صفر',
+      };
+
+      setCell(`C${r}`, { t: 'n', v: idx + 1 });
+      setCell(`D${r}`, { t: 's', v: it.description || '' });
+      setCell(`E${r}`, { t: 's', v: it.unit || 'عدد' });
+      setCell(`F${r}`, { t: 'n', v: Number(it.quantity) || 0, z: '#,##0.##' });
+      setCell(`G${r}`, { t: 'n', v: Number(it.unitPrice) || 0, z: '#,##0.00' });
+      setCell(`H${r}`, { t: 's', v: it.unitPriceInWords || tafqeet(Number(it.unitPrice) || 0) });
+      setCell(`I${r}`, {
+        t: 'n',
+        f: `F${r}*G${r}`,
+        v: Number(it.totalPrice) || 0,
+        z: '#,##0.00',
+      });
+      setCell(`J${r}`, { t: 's', v: it.totalPriceInWords || tafqeet(Number(it.totalPrice) || 0) });
+      setCell(`K${r}`, {
+        t: 'n',
+        f: `I${r}*0.15`,
+        v: Number(it.vat) || 0,
+        z: '#,##0.00',
+      });
+      setCell(`L${r}`, {
+        t: 'n',
+        f: `I${r}*1.15`,
+        v: Number(it.totalWithVat) || 0,
+        z: '#,##0.00',
+      });
+      setCell(`M${r}`, {
+        t: 's',
+        v: it.totalWithVatInWords || tafqeet(Number(it.totalWithVat) || 0),
+      });
+    }
+
+    // SUBTOTAL Row (matching Row 106 in KAS .xlsm)
+    const lastItemRow = subtotalRowNum - 1;
+    setCell(`C${subtotalRowNum}`, { t: 's', v: 'الإجمالي' });
+    setCell(`I${subtotalRowNum}`, {
+      t: 'n',
+      f: `SUBTOTAL(109,I6:I${lastItemRow})`,
+      v: totals.subtotal,
+      z: '#,##0.00',
+    });
+    setCell(`K${subtotalRowNum}`, {
+      t: 'n',
+      f: `SUBTOTAL(109,K6:K${lastItemRow})`,
+      v: totals.vatAmount,
+      z: '#,##0.00',
+    });
+    setCell(`L${subtotalRowNum}`, {
+      t: 'n',
+      f: `SUBTOTAL(109,L6:L${lastItemRow})`,
+      v: totals.grandTotal,
+      z: '#,##0.00',
+    });
+    setCell(`M${subtotalRowNum}`, {
+      t: 'n',
+      f: `SUBTOTAL(103,D6:D${lastItemRow})`,
+      v: activeItems.length,
     });
 
-    // Summary Rows
-    const startRow = 7;
-    const endRow = 6 + items.length;
-    rows.push([]);
-    rows.push([
-      'السعر الإجمالي (قبل الضريبة):',
-      '',
-      '',
-      '',
-      '',
-      '',
-      { f: `SUM(G${startRow}:G${endRow})` },
-      tender.subtotalInWords
-    ]);
-    rows.push([
-      'ضريبة القيمة المضافة (15%):',
-      '',
-      '',
-      '',
-      '',
-      '',
-      { f: `SUM(I${startRow}:I${endRow})` },
-      tender.vatInWords
-    ]);
-    rows.push([
-      'الإجمالي النهائي شامل الضريبة (15%):',
-      '',
-      '',
-      '',
-      '',
-      '',
-      { f: `SUM(J${startRow}:J${endRow})` },
-      tender.grandTotalInWords
-    ]);
+    // Summary Footer Rows (matching Rows 107, 108, 109)
+    const rSub = subtotalRowNum + 1;
+    const rVat = subtotalRowNum + 2;
+    const rGrand = subtotalRowNum + 3;
 
-    const worksheet = XLSX.utils.aoa_to_sheet(rows);
+    setCell(`D${rSub}`, { t: 's', v: 'السعر الإجمالي' });
+    setCell(`E${rSub}`, {
+      t: 'n',
+      f: `I${subtotalRowNum}`,
+      v: totals.subtotal,
+      z: '#,##0.00',
+    });
+    setCell(`J${rSub}`, { t: 's', v: totals.subtotalInWords });
 
-    // Set Column Widths
-    worksheet['!cols'] = [
-      { wch: 8 },  // Number
-      { wch: 45 }, // Description
-      { wch: 12 }, // Unit
-      { wch: 12 }, // Quantity
-      { wch: 16 }, // Unit Price
-      { wch: 30 }, // Price in words
-      { wch: 18 }, // Total Price
-      { wch: 32 }, // Total in words
-      { wch: 16 }, // VAT
-      { wch: 22 }, // Total with VAT
-      { wch: 35 }, // Total with VAT words
+    setCell(`D${rVat}`, { t: 's', v: 'الضريبة' });
+    setCell(`E${rVat}`, {
+      t: 'n',
+      f: `K${subtotalRowNum}`,
+      v: totals.vatAmount,
+      z: '#,##0.00',
+    });
+    setCell(`J${rVat}`, { t: 's', v: totals.vatInWords });
+
+    setCell(`C${rGrand}`, { t: 's', v: 'الإجمالى شامل الضريبة' });
+    setCell(`E${rGrand}`, {
+      t: 'n',
+      f: `L${subtotalRowNum}`,
+      v: totals.grandTotal,
+      z: '#,##0.00',
+    });
+    setCell(`J${rGrand}`, { t: 's', v: totals.grandTotalInWords });
+
+    // Supply & Validity Terms Rows (matching Rows 111 & 112)
+    const rSupply = subtotalRowNum + 5;
+    const rValidity = subtotalRowNum + 6;
+    setCell(`D${rSupply}`, { t: 's', v: 'مــــدة الـتـــــوريـــد : خـــــلال (  ' });
+    setCell(`E${rSupply}`, { t: 's', v: tender.supplyDuration || '15 يوم' });
+    setCell(`F${rSupply}`, { t: 's', v: ') مــن تـاريـــخ اســــــتـلام الـتـعـــــمـيـد.' });
+
+    setCell(`D${rValidity}`, { t: 's', v: 'مــــدة الالــــتزام بـالــــعــرض (  ' });
+    setCell(`E${rValidity}`, {
+      t: 's',
+      v: tender.validityDuration || `${tender.commitmentDays || 180} يوم`,
+    });
+    setCell(`F${rValidity}`, { t: 's', v: ') مــن تـاريـــخ الـتـقـديم على المنافسة.' });
+
+    ws['!ref'] = `A1:O${rValidity + 1}`;
+    ws['!sheetViews'] = [{ rightToLeft: true }];
+    ws['!cols'] = [
+      { wch: 3 },  // A
+      { wch: 3 },  // B
+      { wch: 14 }, // C: الرقم التسلسلي
+      { wch: 48 }, // D: وصف البند
+      { wch: 14 }, // E: وحدة القياس
+      { wch: 12 }, // F: الكمية
+      { wch: 16 }, // G: سعر الوحدة
+      { wch: 34 }, // H: سعر الوحدة كتابة
+      { wch: 18 }, // I: السعر الإجمالي
+      { wch: 36 }, // J: السعر الإجمالي كتابة
+      { wch: 16 }, // K: الضريبة
+      { wch: 22 }, // L: السعر الإجمالي شامل الضريبة
+      { wch: 38 }, // M: السعر الإجمالي شامل الضريبة كتابة
+      { wch: 4 },  // N
+      { wch: 12 }, // O: الجدول / النص
     ];
 
+    return ws;
+  }
+
+  /**
+   * Builds the Establishments Tracking Worksheet (`المؤسسات`) with live formulas (`=C2+D2`)
+   */
+  public static buildEstablishmentsWorksheet(
+    establishments: KasEstablishmentRow[],
+    tenders?: TenderRecord[]
+  ): XLSX.WorkSheet {
+    const ws: XLSX.WorkSheet = {};
+    const setCell = (addr: string, cell: XLSX.CellObject) => {
+      ws[addr] = cell;
+    };
+
+    // Row 1 Headers matching WhatsApp Image & KAS المؤسسات Sheet
+    setCell('B1', { t: 's', v: 'المؤسسات' });
+    setCell('C1', { t: 's', v: 'انتهاء اليوم' });
+    setCell('D1', { t: 's', v: 'انتهاء بعد اليوم' });
+    setCell('E1', { t: 's', v: 'الإجمالى' });
+    setCell('F1', { t: 's', v: 'عدد الكراسات المسعرة' });
+    setCell('G1', { t: 's', v: 'إجمالي القيمة شامل الضريبة (⃁)' });
+
+    establishments.forEach((est, idx) => {
+      const r = idx + 2;
+      const endToday = Number(est.endingToday) || 0;
+      const endAfter = Number(est.endingAfterToday) || 0;
+      const totalEnding = endToday + endAfter;
+
+      const matchingTenders = (tenders || []).filter(
+        (t) =>
+          t.entityName === est.name ||
+          (est.aliases && est.aliases.some((a) => t.entityName.includes(a) || a.includes(t.entityName)))
+      );
+      const tendersCount = est.totalTenders ?? matchingTenders.length;
+      const totalVal =
+        est.totalValueWithVat ??
+        Number(matchingTenders.reduce((s, t) => s + (t.grandTotal || 0), 0).toFixed(2));
+
+      setCell(`B${r}`, { t: 's', v: est.name });
+      setCell(`C${r}`, { t: 'n', v: endToday, z: '#,##0;(#,##0);"-"' });
+      setCell(`D${r}`, { t: 'n', v: endAfter, z: '#,##0;(#,##0);"-"' });
+      setCell(`E${r}`, {
+        t: 'n',
+        f: `C${r}+D${r}`,
+        v: totalEnding,
+        z: '#,##0;(#,##0);"-"',
+      });
+      setCell(`F${r}`, { t: 'n', v: tendersCount, z: '#,##0' });
+      setCell(`G${r}`, { t: 'n', v: totalVal, z: '#,##0.00' });
+    });
+
+    const totalRow = establishments.length + 2;
+    const lastRow = Math.max(establishments.length + 1, 2);
+    setCell(`B${totalRow}`, { t: 's', v: 'الإجمالي الكلي للمجموعة' });
+    setCell(`C${totalRow}`, {
+      t: 'n',
+      f: `SUM(C2:C${lastRow})`,
+      v: establishments.reduce((s, e) => s + (Number(e.endingToday) || 0), 0),
+      z: '#,##0;(#,##0);"-"',
+    });
+    setCell(`D${totalRow}`, {
+      t: 'n',
+      f: `SUM(D2:D${lastRow})`,
+      v: establishments.reduce((s, e) => s + (Number(e.endingAfterToday) || 0), 0),
+      z: '#,##0;(#,##0);"-"',
+    });
+    setCell(`E${totalRow}`, {
+      t: 'n',
+      f: `SUM(E2:E${lastRow})`,
+      v: establishments.reduce(
+        (s, e) => s + (Number(e.endingToday) || 0) + (Number(e.endingAfterToday) || 0),
+        0
+      ),
+      z: '#,##0;(#,##0);"-"',
+    });
+    setCell(`F${totalRow}`, {
+      t: 'n',
+      f: `SUM(F2:F${lastRow})`,
+      v: establishments.reduce((s, e) => s + (Number(e.totalTenders) || 0), 0),
+      z: '#,##0',
+    });
+    setCell(`G${totalRow}`, {
+      t: 'n',
+      f: `SUM(G2:G${lastRow})`,
+      v: Number(
+        establishments.reduce((s, e) => s + (Number(e.totalValueWithVat) || 0), 0).toFixed(2)
+      ),
+      z: '#,##0.00',
+    });
+
+    ws['!ref'] = `A1:G${totalRow}`;
+    ws['!sheetViews'] = [{ rightToLeft: true }];
+    ws['!cols'] = [
+      { wch: 4 },  // A
+      { wch: 42 }, // B: المؤسسات
+      { wch: 16 }, // C: انتهاء اليوم
+      { wch: 18 }, // D: انتهاء بعد اليوم
+      { wch: 16 }, // E: الإجمالي
+      { wch: 20 }, // F: عدد الكراسات
+      { wch: 28 }, // G: إجمالي القيمة
+    ];
+
+    return ws;
+  }
+
+  /**
+   * Generates a single-tender Excel workbook with live formulas & المؤسسات summary sheet
+   */
+  public static exportToExcelWithFormulas(
+    tender: TenderRecord,
+    items: BOQItem[],
+    establishments?: KasEstablishmentRow[]
+  ): Uint8Array {
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'جدول الكميات والأسعار');
+    workbook.Workbook = { Views: [{ RTL: true }] };
+
+    const boqSheet = this.buildKasBoqWorksheet(tender, items);
+    const safeSheetName = (tender.sheetName || `الجدول_${tender.referenceNumber || '1'}`).slice(0, 31);
+    XLSX.utils.book_append_sheet(workbook, boqSheet, safeSheetName);
+
+    if (establishments && establishments.length > 0) {
+      const estSheet = this.buildEstablishmentsWorksheet(establishments, [
+        { ...tender, items },
+      ]);
+      XLSX.utils.book_append_sheet(workbook, estSheet, 'المؤسسات');
+    }
+
     return XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  }
+
+  /**
+   * Generates a full Multi-Sheet KAS Workbook (.xlsx) containing:
+   * - Sheet 1: `الجدول` (Blank editable template with formulas)
+   * - Sheet 2: `المؤسسات` (Establishments table with live `=C+D` & `=SUM` formulas)
+   * - Sheets 3..N: `الجدول (N)` for each tender with live formulas
+   */
+  public static exportKasMultiSheetWorkbookWithFormulas(
+    establishments: KasEstablishmentRow[],
+    tenders: TenderRecord[]
+  ): Uint8Array {
+    const workbook = XLSX.utils.book_new();
+    workbook.Workbook = { Views: [{ RTL: true }] };
+
+    // 1. Blank Template Sheet `الجدول`
+    const templateTender: TenderRecord = {
+      id: 'TEMPLATE',
+      referenceNumber: '',
+      title: '',
+      entityName: 'مؤسسة خالد عبدالعزيز السليم للتجارة',
+      clientName: '',
+      category: 'توريدات حكومية وتجهيزات',
+      status: 'مسودة قيد الدراسة',
+      submissionDate: new Date().toISOString().split('T')[0],
+      supplyDuration: '15 يوم',
+      validityDuration: '180 يوم',
+      commitmentDays: 180,
+      itemsCount: 5,
+      subtotal: 0,
+      subtotalInWords: 'صفر',
+      vatAmount: 0,
+      vatInWords: 'صفر',
+      grandTotal: 0,
+      grandTotalInWords: 'صفر',
+      items: Array.from({ length: 5 }, (_, i) =>
+        this.calculateItem(i + 1, '', 'عدد', 0, 0)
+      ),
+    };
+    XLSX.utils.book_append_sheet(workbook, this.buildKasBoqWorksheet(templateTender), 'الجدول');
+
+    // 2. Establishments Sheet `المؤسسات`
+    XLSX.utils.book_append_sheet(
+      workbook,
+      this.buildEstablishmentsWorksheet(establishments, tenders),
+      'المؤسسات'
+    );
+
+    // 3. Populated Tender Sheets
+    const usedNames = new Set<string>(['الجدول', 'المؤسسات']);
+    tenders.forEach((tender, idx) => {
+      let candidateName = (tender.sheetName || `الجدول (${tenders.length - idx})`).slice(0, 31);
+      if (usedNames.has(candidateName)) {
+        candidateName = `الجدول (${idx + 2})`.slice(0, 31);
+      }
+      let suffix = 1;
+      while (usedNames.has(candidateName)) {
+        candidateName = `جدول_${idx + 1}_${suffix++}`.slice(0, 31);
+      }
+      usedNames.add(candidateName);
+      XLSX.utils.book_append_sheet(
+        workbook,
+        this.buildKasBoqWorksheet(tender, tender.items),
+        candidateName
+      );
+    });
+
+    return XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  }
+
+  /**
+   * Reproduces the KAS Excel `$O$3` (`الجدول`) macro:
+   * Formats the active non-zero BOQ table + totals as tab-separated text ready to paste into Excel/Word/Etimad
+   */
+  public static formatKasTableClipboardText(tender: TenderRecord, items?: BOQItem[]): string {
+    const activeItems = (items && items.length > 0 ? items : tender.items || []).filter(
+      (it) => it.description || it.quantity > 0 || it.unitPrice > 0
+    );
+    const totals = this.recalculateTender(activeItems);
+
+    const lines: string[] = [];
+    lines.push(
+      `اسم المؤسسة :\t${tender.entityName}\tرقم مرجعي :\t${tender.referenceNumber}`
+    );
+    lines.push(
+      `جدول الكميات والأسعار لمنافسة :\t${tender.title}\tالإجمالي شامل الضريبة :\t\u200E\u20C1 ${totals.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+    );
+    lines.push(
+      [
+        'الرقم التسلسلي',
+        'وصف البند',
+        'وحدة القياس',
+        'الكمية',
+        'سعر الوحدة (⃁)',
+        'سعر الوحدة كتابة',
+        'السعر الإجمالي (⃁)',
+        'السعر الإجمالي كتابة',
+        'الضريبة 15% (⃁)',
+        'السعر الإجمالي شامل الضريبة (⃁)',
+        'السعر الإجمالي شامل الضريبة كتابة',
+      ].join('\t')
+    );
+
+    activeItems.forEach((it, idx) => {
+      lines.push(
+        [
+          idx + 1,
+          it.description,
+          it.unit,
+          it.quantity,
+          it.unitPrice.toFixed(2),
+          it.unitPriceInWords,
+          it.totalPrice.toFixed(2),
+          it.totalPriceInWords,
+          it.vat.toFixed(2),
+          it.totalWithVat.toFixed(2),
+          it.totalWithVatInWords,
+        ].join('\t')
+      );
+    });
+
+    lines.push(
+      `السعر الإجمالي (قبل الضريبة)\t${totals.subtotal.toFixed(2)}\t${totals.subtotalInWords}`
+    );
+    lines.push(
+      `ضريبة القيمة المضافة (15%)\t${totals.vatAmount.toFixed(2)}\t${totals.vatInWords}`
+    );
+    lines.push(
+      `الإجمالي شامل الضريبة\t${totals.grandTotal.toFixed(2)}\t${totals.grandTotalInWords}`
+    );
+    lines.push(`مدة التوريد : خلال (${tender.supplyDuration}) من تاريخ استلام التعميد.`);
+    lines.push(
+      `مدة الالتزام بالعرض (${tender.validityDuration || `${tender.commitmentDays || 180} يوم`}) من تاريخ التقديم على المنافسة.`
+    );
+
+    return lines.join('\n');
+  }
+
+  /**
+   * Reproduces the KAS Excel `$O$4` (`النص`) macro:
+   * Formats the E3:M4 header summary text block for quick pasting
+   */
+  public static formatKasHeaderSummaryClipboardText(tender: TenderRecord, items?: BOQItem[]): string {
+    const activeItems = items && items.length > 0 ? items : tender.items || [];
+    const totals = this.recalculateTender(activeItems);
+
+    return [
+      `اسم المؤسسة : ${tender.entityName} — رقم مرجعي : ${tender.referenceNumber}`,
+      `جدول الكميات والأسعار لمنافسة : ${tender.title}`,
+      `الإجمالي قبل الضريبة : \u200E\u20C1 ${totals.subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${totals.subtotalInWords})`,
+      `ضريبة القيمة المضافة (15%) : \u200E\u20C1 ${totals.vatAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${totals.vatInWords})`,
+      `الإجمالي شامل الضريبة : \u200E\u20C1 ${totals.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${totals.grandTotalInWords})`,
+      `مدة التوريد : خلال (${tender.supplyDuration}) من تاريخ استلام التعميد.`,
+      `مدة الالتزام بالعرض : (${tender.validityDuration || `${tender.commitmentDays || 180} يوم`}) من تاريخ التقديم على المنافسة.`,
+    ].join('\n');
   }
 }

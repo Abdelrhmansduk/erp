@@ -1,6 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Badge } from '../components/ui/Badge';
-import { exportData } from '../services/exportService';
+import {
+  exportData,
+  buildExecutivePdfFileName,
+  generateExecutivePdfArtifact,
+} from '../services/exportService';
 import { useCompany } from '../contexts/CompanyContext';
 import { useAppStore } from '../stores/appStore';
 import { tafqeet } from '../services/tafqeetService';
@@ -10,6 +14,14 @@ import { kasEtmadRealService } from '../services/kasEtmadRealService';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { RealBoqEngine } from '../services/realBoqEngine';
 import { RealZatcaEngine } from '../services/realZatcaEngine';
+import {
+  kasNovemberWorkbooksService,
+  KasWorkbookSystemSnapshot,
+} from '../services/kasNovemberWorkbooksService';
+import { KasEstablishmentsAndWorkbookBar } from '../components/tenders/KasEstablishmentsAndWorkbookBar';
+import { ExportDropdown } from '../components/common/ExportDropdown';
+import { ExportPreviewModal } from '../components/common/ExportPreviewModal';
+import { shareViaEmail, shareViaWhatsApp } from '../services/quickShareService';
 const KasMonafasatSpreadsheetView = React.lazy(() => 
   import('../components/tenders/KasMonafasatSpreadsheetView').then(m => ({ default: m.KasMonafasatSpreadsheetView }))
 );
@@ -17,7 +29,13 @@ const KasEtimadCloudPage = React.lazy(() =>
   import('./KasEtimadCloudPage').then(m => ({ default: m.KasEtimadCloudPage }))
 );
 import { KasTenderItem } from '../types/kasMonafasat';
-import { BOQItem, TenderRecord, SupplierRecord } from '../types/tenders';
+import {
+  BOQItem,
+  TenderRecord,
+  SupplierRecord,
+  KasEstablishmentRow,
+  KasWorkbookMeta,
+} from '../types/tenders';
 import { KasKpiCard, KasTenderCard, KasSupplierCard } from '../components/kas/KasCards';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
@@ -28,7 +46,7 @@ import {
   ShieldCheck, X, RefreshCw, Landmark, Tag, Check, Award, BarChart3,
   Users, Star, MapPin, Phone, Mail, PieChart, Activity, Copy,
   Upload, FileUp, QrCode, Percent, ArrowUpRight, Shield, CheckSquare,
-  CloudLightning, LayoutGrid, List
+  CloudLightning, LayoutGrid, List, RotateCcw, RotateCw, MessageCircle, ClipboardPaste
 } from 'lucide-react';
 
 const DEFAULT_MOCK_TENDERS: TenderRecord[] = [
@@ -225,19 +243,53 @@ export const TendersBOQPage: React.FC = () => {
   ): 'kas-sheet' | 'etmad-cloud' | 'excel-boq' | 'directory' | 'awards' | 'suppliers' | 'analytics' => {
     switch (tabKey) {
       case 'boq':
+      case 'tenders':
         return 'excel-boq';
       case 'boq-analytics':
         return 'analytics';
       default:
-        return 'kas-sheet';
+        return 'excel-boq';
     }
   };
 
-  const [tendersList, setTendersList] = useState<TenderRecord[]>(DEFAULT_MOCK_TENDERS);
-  const [selectedTender, setSelectedTender] = useState<TenderRecord>(DEFAULT_MOCK_TENDERS[0]);
+  const initialSeedTenders = useMemo<TenderRecord[]>(() => {
+    const novTenders = kasNovemberWorkbooksService.getTenders();
+    return novTenders.length > 0 ? [...novTenders, ...DEFAULT_MOCK_TENDERS] : DEFAULT_MOCK_TENDERS;
+  }, []);
+
+  const [establishments, setEstablishments] = useState<KasEstablishmentRow[]>(() =>
+    kasNovemberWorkbooksService.getEstablishments()
+  );
+  const [workbooksMeta, setWorkbooksMeta] = useState<KasWorkbookMeta[]>(() =>
+    kasNovemberWorkbooksService.getWorkbooksMeta()
+  );
+  const [tendersList, setTendersList] = useState<TenderRecord[]>(initialSeedTenders);
+  const [selectedTender, setSelectedTender] = useState<TenderRecord>(initialSeedTenders[0]);
   const [activeTab, setActiveTab] = useState<'kas-sheet' | 'etmad-cloud' | 'excel-boq' | 'directory' | 'awards' | 'suppliers' | 'analytics'>(() =>
     mapStoreTabToTenderTab(storeActiveTab)
   );
+
+  // Workbook & Sheet Filters
+  const [activeWorkbookFilter, setActiveWorkbookFilter] = useState<string>('all');
+  const [activeEstablishmentFilter, setActiveEstablishmentFilter] = useState<string>('all');
+  const [sheetSearchQuery, setSheetSearchQuery] = useState<string>('');
+
+  // Preview Studio Modal State
+  const [previewStudioState, setPreviewStudioState] = useState<{
+    isOpen: boolean;
+    sectionKey: string;
+    data: any[];
+    customTitle: string;
+  }>({
+    isOpen: false,
+    sectionKey: 'kas_boq_items',
+    data: [],
+    customTitle: '',
+  });
+
+  // 50-Step Undo / Redo History Engine
+  const [undoStack, setUndoStack] = useState<KasWorkbookSystemSnapshot[]>([]);
+  const [redoStack, setRedoStack] = useState<KasWorkbookSystemSnapshot[]>([]);
 
   useEffect(() => {
     setActiveTab(mapStoreTabToTenderTab(storeActiveTab));
@@ -301,20 +353,157 @@ export const TendersBOQPage: React.FC = () => {
   // Computed KPIs
   const kpis = useMemo(() => computeTenderKPIs(tendersList), [tendersList]);
 
-  // Real Database Data Loading from Supabase
+  // Push a snapshot before any mutation so the user can Undo / Redo up to 50 steps
+  const pushUndoSnapshot = useCallback(
+    (actionLabel: string) => {
+      const snap: KasWorkbookSystemSnapshot = {
+        actionLabel,
+        timestamp: new Date().toISOString(),
+        establishments: establishments.map((e) => ({ ...e, aliases: [...(e.aliases || [])] })),
+        tenders: tendersList.map((t) => ({
+          ...t,
+          items: (t.items || []).map((it) => ({ ...it })),
+        })),
+        selectedTenderId: selectedTender.id,
+      };
+      setUndoStack((prev) => [...prev.slice(-49), snap]);
+      setRedoStack([]);
+    },
+    [establishments, tendersList, selectedTender.id]
+  );
+
+  const persistWorkbookState = useCallback(
+    (nextTenders: TenderRecord[], nextEstablishments?: KasEstablishmentRow[]) => {
+      kasNovemberWorkbooksService.saveTenders(nextTenders);
+      if (nextEstablishments) {
+        kasNovemberWorkbooksService.saveEstablishments(nextEstablishments);
+      }
+    },
+    []
+  );
+
+  const handleUndo = useCallback(() => {
+    if (undoStack.length === 0) return;
+    const prevSnap = undoStack[undoStack.length - 1];
+    const currentSnap: KasWorkbookSystemSnapshot = {
+      actionLabel: prevSnap.actionLabel,
+      timestamp: new Date().toISOString(),
+      establishments: establishments.map((e) => ({ ...e, aliases: [...(e.aliases || [])] })),
+      tenders: tendersList.map((t) => ({
+        ...t,
+        items: (t.items || []).map((it) => ({ ...it })),
+      })),
+      selectedTenderId: selectedTender.id,
+    };
+    setRedoStack((r) => [...r, currentSnap]);
+    setUndoStack((u) => u.slice(0, -1));
+
+    setEstablishments(prevSnap.establishments);
+    setTendersList(prevSnap.tenders);
+    const restoredSelected =
+      prevSnap.tenders.find((t) => t.id === prevSnap.selectedTenderId) || prevSnap.tenders[0];
+    if (restoredSelected) {
+      setSelectedTender(restoredSelected);
+      setCurrentItems(restoredSelected.items || []);
+    }
+    persistWorkbookState(prevSnap.tenders, prevSnap.establishments);
+    addNotification({
+      title: 'تم التراجع (Undo)',
+      message: `تم التراجع عن: ${prevSnap.actionLabel}`,
+      type: 'info',
+    });
+  }, [undoStack, establishments, tendersList, selectedTender.id, persistWorkbookState, addNotification]);
+
+  const handleRedo = useCallback(() => {
+    if (redoStack.length === 0) return;
+    const nextSnap = redoStack[redoStack.length - 1];
+    const currentSnap: KasWorkbookSystemSnapshot = {
+      actionLabel: nextSnap.actionLabel,
+      timestamp: new Date().toISOString(),
+      establishments: establishments.map((e) => ({ ...e, aliases: [...(e.aliases || [])] })),
+      tenders: tendersList.map((t) => ({
+        ...t,
+        items: (t.items || []).map((it) => ({ ...it })),
+      })),
+      selectedTenderId: selectedTender.id,
+    };
+    setUndoStack((u) => [...u, currentSnap]);
+    setRedoStack((r) => r.slice(0, -1));
+
+    setEstablishments(nextSnap.establishments);
+    setTendersList(nextSnap.tenders);
+    const restoredSelected =
+      nextSnap.tenders.find((t) => t.id === nextSnap.selectedTenderId) || nextSnap.tenders[0];
+    if (restoredSelected) {
+      setSelectedTender(restoredSelected);
+      setCurrentItems(restoredSelected.items || []);
+    }
+    persistWorkbookState(nextSnap.tenders, nextSnap.establishments);
+    addNotification({
+      title: 'تمت الإعادة (Redo)',
+      message: `تمت إعادة: ${nextSnap.actionLabel}`,
+      type: 'info',
+    });
+  }, [redoStack, establishments, tendersList, selectedTender.id, persistWorkbookState, addNotification]);
+
+  // Global keyboard shortcuts Ctrl+Z / Ctrl+Y when on excel-boq or directory
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isInput =
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable);
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey && !isInput) {
+        if (undoStack.length > 0) {
+          e.preventDefault();
+          handleUndo();
+        }
+      } else if (
+        (e.ctrlKey || e.metaKey) &&
+        (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z')) &&
+        !isInput
+      ) {
+        if (redoStack.length > 0) {
+          e.preventDefault();
+          handleRedo();
+        }
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [undoStack.length, redoStack.length, handleUndo, handleRedo]);
+
+  // Hydrate full 241 November tenders from /data/kasNovemberBoqWorkbooks.json + Supabase suppliers
   useEffect(() => {
     let isMounted = true;
     const fetchRealData = async () => {
       try {
-        const [realTenders, realSuppliers] = await Promise.all([
-          kasEtmadRealService.getTenders(),
-          kasEtmadRealService.getSuppliers(),
+        const [fullNovData, realSuppliers] = await Promise.all([
+          kasNovemberWorkbooksService.ensureFullWorkbooksLoaded(),
+          kasEtmadRealService.getSuppliers().catch(() => []),
         ]);
         if (isMounted) {
-          if (realTenders && realTenders.length > 0) {
-            setTendersList(realTenders);
-            setSelectedTender(realTenders[0]);
-            setCurrentItems(realTenders[0].items || []);
+          if (fullNovData.tenders && fullNovData.tenders.length > 0) {
+            const merged = [...fullNovData.tenders];
+            DEFAULT_MOCK_TENDERS.forEach((mockT) => {
+              if (!merged.some((t) => t.id === mockT.id)) {
+                merged.push(mockT);
+              }
+            });
+            setTendersList(merged);
+            setSelectedTender((prev) => merged.find((t) => t.id === prev.id) || merged[0]);
+            setCurrentItems((prev) => {
+              const found = merged.find((t) => t.id === selectedTender.id) || merged[0];
+              return found ? found.items : prev;
+            });
+          }
+          if (fullNovData.establishments && fullNovData.establishments.length > 0) {
+            setEstablishments(fullNovData.establishments);
+          }
+          if (fullNovData.workbooks && fullNovData.workbooks.length > 0) {
+            setWorkbooksMeta(fullNovData.workbooks);
           }
           if (realSuppliers && realSuppliers.length > 0) {
             setSuppliers(realSuppliers);
@@ -324,8 +513,10 @@ export const TendersBOQPage: React.FC = () => {
         console.warn('Real data loading fallback:', err);
       }
     };
-    fetchRealData();
-    return () => { isMounted = false; };
+    void fetchRealData();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleSelectTender = (tender: TenderRecord) => {
@@ -333,7 +524,405 @@ export const TendersBOQPage: React.FC = () => {
     setCurrentItems(tender.items || []);
   };
 
+  // --- Establishments Table (ورقة المؤسسات) Handlers ---
+  const handleUpdateEstablishment = (
+    index: number,
+    field: 'name' | 'endingToday' | 'endingAfterToday',
+    value: string | number
+  ) => {
+    pushUndoSnapshot(`تعديل جدول المؤسسات (${establishments[index]?.name || ''})`);
+    const updated = establishments.map((est, idx) => {
+      if (idx !== index) return est;
+      if (field === 'name') {
+        const newName = String(value);
+        return {
+          ...est,
+          name: newName,
+          aliases: Array.from(new Set([...(est.aliases || []), newName])),
+        };
+      }
+      return {
+        ...est,
+        [field]: Math.max(0, Number(value) || 0),
+      };
+    });
+    setEstablishments(updated);
+    persistWorkbookState(tendersList, updated);
+  };
+
+  const handleAddEstablishment = () => {
+    pushUndoSnapshot('إضافة مؤسسة جديدة إلى جدول المؤسسات');
+    const newEst: KasEstablishmentRow = {
+      id: `est-${Date.now()}`,
+      name: `مؤسسة كاس الجديدة (${establishments.length + 1})`,
+      aliases: [],
+      endingToday: 0,
+      endingAfterToday: 0,
+    };
+    const updated = [...establishments, newEst];
+    setEstablishments(updated);
+    persistWorkbookState(tendersList, updated);
+    addNotification({
+      title: 'إضافة مؤسسة إلى الجدول',
+      message: `تمت إضافة "${newEst.name}" إلى جدول المؤسسات بنجاح.`,
+      type: 'success',
+    });
+  };
+
+  const handleDuplicateEstablishment = (index: number) => {
+    const target = establishments[index];
+    if (!target) return;
+    pushUndoSnapshot(`نسخ مؤسسة: ${target.name}`);
+    const cloned: KasEstablishmentRow = {
+      ...target,
+      id: `est-clone-${Date.now()}`,
+      name: `${target.name} (نسخة)`,
+    };
+    const updated = [
+      ...establishments.slice(0, index + 1),
+      cloned,
+      ...establishments.slice(index + 1),
+    ];
+    setEstablishments(updated);
+    persistWorkbookState(tendersList, updated);
+    addNotification({
+      title: 'نسخ صف المؤسسة',
+      message: `تم تكرار صف "${target.name}" بنجاح.`,
+      type: 'success',
+    });
+  };
+
+  const handleDeleteEstablishment = (index: number) => {
+    if (establishments.length <= 1) return;
+    const target = establishments[index];
+    if (!target) return;
+    pushUndoSnapshot(`حذف مؤسسة: ${target.name}`);
+    const updated = establishments.filter((_, idx) => idx !== index);
+    setEstablishments(updated);
+    persistWorkbookState(tendersList, updated);
+    addNotification({
+      title: 'حذف مؤسسة من الجدول',
+      message: `تم حذف "${target.name}" (يمكنك استعادتها بزر التراجع Undo).`,
+      type: 'info',
+    });
+  };
+
+  const handleCopyEstablishmentsTable = () => {
+    const header = ['المؤسسات', 'انتهاء اليوم', 'انتهاء بعد اليوم', 'الإجمالي'].join('\t');
+    const rows = establishments.map((e) => {
+      const t = Number(e.endingToday) || 0;
+      const a = Number(e.endingAfterToday) || 0;
+      const sum = t + a;
+      return [e.name, t === 0 ? '-' : t, a === 0 ? '-' : a, sum === 0 ? '-' : sum].join('\t');
+    });
+    const text = [header, ...rows].join('\n');
+    void navigator.clipboard?.writeText(text);
+    addNotification({
+      title: 'نسخ جدول المؤسسات',
+      message: 'تم نسخ جدول المؤسسات بالكامل إلى الحافظة جاهزاً للصق في Excel أو Word.',
+      type: 'success',
+    });
+  };
+
+  const handleShareEstablishments = (channel: 'email' | 'whatsapp') => {
+    const title = 'جدول متابعة مؤسسات وشركات كاس للمنافسات (المؤسسات)';
+    const pdfName = buildExecutivePdfFileName(title);
+    const enriched = establishments.map((est) => {
+      const matching = tendersList.filter(
+        (t) =>
+          t.entityName === est.name ||
+          (est.aliases &&
+            est.aliases.some((a) => t.entityName.includes(a) || a.includes(t.entityName)))
+      );
+      return {
+        ...est,
+        totalTenders: matching.length,
+        totalValueWithVat: Number(
+          matching.reduce((s, t) => s + (Number(t.grandTotal) || 0), 0).toFixed(2)
+        ),
+      };
+    });
+    const totalVal = enriched.reduce((s, e) => s + (e.totalValueWithVat || 0), 0);
+    const payload = {
+      title,
+      entityCode: 'KAS' as const,
+      moduleName: 'kas_establishments_tracker',
+      summaryLines: [
+        { label: 'عدد المؤسسات والكيانات', value: `${enriched.length} مؤسسات` },
+        { label: 'إجمالي الكراسات المرتبطة', value: `${tendersList.length} كراسة منافسة` },
+        {
+          label: 'إجمالي قيمة العروض شامل الضريبة',
+          value: `\u200E\u20C1 ${totalVal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+        },
+      ],
+      bodyText: enriched
+        .map(
+          (e, i) =>
+            `${i + 1}. ${e.name} | انتهاء اليوم: ${e.endingToday || '-'} | انتهاء بعد اليوم: ${e.endingAfterToday || '-'} | الإجمالي: ${(e.endingToday || 0) + (e.endingAfterToday || 0) || '-'} | الكراسات: ${e.totalTenders} (\u200E\u20C1 ${e.totalValueWithVat.toLocaleString('en-US', { minimumFractionDigits: 2 })})`
+        )
+        .join('\n'),
+      attachmentFileName: pdfName,
+      attachmentFilePromise: generateExecutivePdfArtifact(
+        'kas_establishments_tracker',
+        enriched,
+        title
+      ).then((a) => a?.file ?? null),
+    };
+    if (channel === 'whatsapp') {
+      shareViaWhatsApp(payload);
+    } else {
+      shareViaEmail(payload);
+    }
+  };
+
+  const handleExportEstablishmentsExcel = () => {
+    const buffer = RealBoqEngine.exportKasMultiSheetWorkbookWithFormulas(
+      establishments,
+      tendersList.slice(0, 30)
+    );
+    const blob = new Blob([buffer as any], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `جدول_المؤسسات_وكراسات_كاس_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    addNotification({
+      title: 'تصدير جدول المؤسسات والكراسات (.xlsx)',
+      message: 'تم تصدير مصنف Excel تفاعلي قابل للتحرير الكامل مع معادلات الجمع التلقائي.',
+      type: 'success',
+    });
+  };
+
+  const handleExportFullMultiSheetWorkbook = () => {
+    const activeSheets = tendersList.filter((t) => {
+      if (activeWorkbookFilter !== 'all' && t.workbookId !== activeWorkbookFilter) return false;
+      return true;
+    });
+    const buffer = RealBoqEngine.exportKasMultiSheetWorkbookWithFormulas(
+      establishments,
+      activeSheets
+    );
+    const blob = new Blob([buffer as any], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `مصنف_منافسات_كاس_الشامل_${activeWorkbookFilter}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    addNotification({
+      title: 'تصدير المصنف الكامل متعدد الأوراق (.xlsx)',
+      message: `تم توليد وتصدير مصنف إكسيل يضم ورقة القالب (الجدول) + ورقة (المؤسسات) + (${activeSheets.length}) ورقة كراسة قابلة للتحرير الكامل بالمعادلات.`,
+      type: 'success',
+    });
+  };
+
+  const handleUploadExcelWorkbook = async (file: File) => {
+    try {
+      const arrayBuf = await file.arrayBuffer();
+      const parsed = RealBoqEngine.parseKasMultiSheetWorkbook(arrayBuf, file.name);
+      if (parsed.tenders.length === 0 && parsed.establishments.length === 0) {
+        addNotification({
+          title: 'تنبيه تحويل ملف الإكسيل',
+          message: parsed.errors[0] || 'لم يتم العثور على جداول كميات صالحة داخل الملف.',
+          type: 'warning',
+        });
+        return;
+      }
+
+      pushUndoSnapshot(`تحويل ملف إكسيل إلى النظام: ${file.name}`);
+
+      let nextEstablishments = establishments;
+      if (parsed.establishments.length > 0) {
+        nextEstablishments = parsed.establishments;
+        setEstablishments(nextEstablishments);
+      }
+
+      if (parsed.tenders.length > 0) {
+        const wbId = parsed.tenders[0].workbookId || `wb-${Date.now()}`;
+        const wbLabel = parsed.tenders[0].workbookLabel || file.name.replace(/\.[^.]+$/, '');
+        setWorkbooksMeta((prev) => [
+          {
+            id: wbId,
+            label: wbLabel,
+            fileName: file.name,
+            sheetsCount: parsed.tenders.length,
+          },
+          ...prev.filter((w) => w.id !== wbId),
+        ]);
+        const nextTenders = [...parsed.tenders, ...tendersList];
+        setTendersList(nextTenders);
+        setSelectedTender(parsed.tenders[0]);
+        setCurrentItems(parsed.tenders[0].items);
+        setActiveWorkbookFilter(wbId);
+        persistWorkbookState(nextTenders, nextEstablishments);
+      }
+
+      addNotification({
+        title: 'تم تحويل ملف الإكسيل إلى نظام تفاعلي قابل للتحرير',
+        message: `تم استيراد (${parsed.tenders.length}) ورقة كراسة كميات من "${file.name}" مع تفعيل كافة المعادلات والتفقيط والتراجع.`,
+        type: 'success',
+      });
+    } catch (err: any) {
+      addNotification({
+        title: 'خطأ في قراءة ملف الإكسيل',
+        message: err?.message || 'تعذر تحويل ملف الإكسيل.',
+        type: 'error',
+      });
+    }
+  };
+
+  const handleResetToDefaults = () => {
+    pushUndoSnapshot('استعادة البيانات الأصلية لمصنفات شهر 11');
+    const defaults = kasNovemberWorkbooksService.getDefaultSeedSnapshot();
+    const merged = [...defaults.tenders, ...DEFAULT_MOCK_TENDERS];
+    setEstablishments(defaults.establishments);
+    setTendersList(merged);
+    setSelectedTender(merged[0]);
+    setCurrentItems(merged[0].items);
+    setActiveWorkbookFilter('all');
+    setActiveEstablishmentFilter('all');
+    setSheetSearchQuery('');
+    persistWorkbookState(merged, defaults.establishments);
+    void kasNovemberWorkbooksService.ensureFullWorkbooksLoaded().then((full) => {
+      if (full.tenders.length > 0) {
+        const fullMerged = [...full.tenders, ...DEFAULT_MOCK_TENDERS];
+        setTendersList(fullMerged);
+        setSelectedTender(fullMerged[0]);
+        setCurrentItems(fullMerged[0].items);
+      }
+    });
+    addNotification({
+      title: 'تمت استعادة الأصل',
+      message: 'تمت استعادة مصنفات شهر 11 وجدول المؤسسات إلى حالتها الأصلية.',
+      type: 'info',
+    });
+  };
+
+  // Update inline tender header metadata (E3, M3, E4, E111, E112)
+  const handleInlineTenderHeaderChange = (
+    field:
+      | 'entityName'
+      | 'referenceNumber'
+      | 'title'
+      | 'clientName'
+      | 'supplyDuration'
+      | 'validityDuration',
+    val: string
+  ) => {
+    pushUndoSnapshot(`تعديل ترويسة الورقة (${selectedTender.sheetName || selectedTender.referenceNumber})`);
+    const updatedTender: TenderRecord = {
+      ...selectedTender,
+      [field]: val,
+      ...(field === 'validityDuration'
+        ? { commitmentDays: parseInt(val, 10) || selectedTender.commitmentDays || 180 }
+        : {}),
+    };
+    setSelectedTender(updatedTender);
+    const nextList = tendersList.map((t) => (t.id === updatedTender.id ? updatedTender : t));
+    setTendersList(nextList);
+    persistWorkbookState(nextList);
+  };
+
+  // Macro O3 (`الجدول`) & O4 (`النص`) Quick Copy Handlers
+  const handleCopyKasTableMacro = () => {
+    const text = RealBoqEngine.formatKasTableClipboardText(selectedTender, currentItems);
+    void navigator.clipboard?.writeText(text);
+    addNotification({
+      title: 'نسخ الجدول (O3 Macro)',
+      message: `تم نسخ جدول الكميات والأسعار (${currentItems.length} بند) مع الإجماليات والتفقيط إلى الحافظة.`,
+      type: 'success',
+    });
+  };
+
+  const handleCopyKasTextMacro = () => {
+    const text = RealBoqEngine.formatKasHeaderSummaryClipboardText(selectedTender, currentItems);
+    void navigator.clipboard?.writeText(text);
+    addNotification({
+      title: 'نسخ النص الملخص (O4 Macro)',
+      message: `تم نسخ ملخص المنافسة (${selectedTender.referenceNumber} — ${selectedTender.entityName}) والإجمالي شامل الضريبة إلى الحافظة.`,
+      type: 'success',
+    });
+  };
+
+  // Share active BOQ Tender via Email or WhatsApp
+  const handleShareActiveBoq = (channel: 'email' | 'whatsapp', targetTender?: TenderRecord) => {
+    const t = targetTender || selectedTender;
+    const itemsToUse = targetTender ? targetTender.items : currentItems;
+    const docTitle = `جدول الكميات والأسعار لمنافسة: ${t.title} (${t.referenceNumber})`;
+    const pdfName = buildExecutivePdfFileName(docTitle);
+
+    const payload = {
+      title: docTitle,
+      entityCode: 'KAS' as const,
+      customCompanyNameAr: t.entityName,
+      moduleName: 'kas_boq_items',
+      summaryLines: [
+        { label: 'اسم المؤسسة', value: t.entityName },
+        { label: 'الرقم المرجعي (اعتماد)', value: t.referenceNumber },
+        { label: 'عنوان المنافسة', value: t.title },
+        { label: 'عدد البنود', value: `${itemsToUse.length} بند` },
+        {
+          label: 'السعر الإجمالي (قبل الضريبة)',
+          value: `\u200E\u20C1 ${t.subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${t.subtotalInWords})`,
+        },
+        {
+          label: 'ضريبة القيمة المضافة (15%)',
+          value: `\u200E\u20C1 ${t.vatAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${t.vatInWords})`,
+        },
+        {
+          label: 'الإجمالي شامل الضريبة',
+          value: `\u200E\u20C1 ${t.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${t.grandTotalInWords})`,
+        },
+        { label: 'مدة التوريد', value: t.supplyDuration },
+        {
+          label: 'مدة الالتزام بالعرض',
+          value: t.validityDuration || `${t.commitmentDays || 180} يوم`,
+        },
+      ],
+      bodyText: itemsToUse
+        .map(
+          (it, idx) =>
+            `• بند (${idx + 1}): ${it.description} | الوحدة: ${it.unit} | الكمية: ${it.quantity} | سعر الوحدة: \u200E\u20C1 ${it.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })} | شامل الضريبة: \u200E\u20C1 ${it.totalWithVat.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${it.totalWithVatInWords})`
+        )
+        .join('\n'),
+      attachmentFileName: pdfName,
+      attachmentFilePromise: generateExecutivePdfArtifact('kas_boq_items', itemsToUse, docTitle, {
+        entityCode: 'KAS',
+        customCompanyNameAr: t.entityName,
+      }).then((a) => a?.file ?? null),
+    };
+
+    if (channel === 'whatsapp') {
+      shareViaWhatsApp(payload);
+    } else {
+      shareViaEmail(payload);
+    }
+  };
+
+  const handleOpenPreviewStudio = (
+    sectionKey: string,
+    dataRows: any[],
+    customTitle: string
+  ) => {
+    setPreviewStudioState({
+      isOpen: true,
+      sectionKey,
+      data: dataRows,
+      customTitle,
+    });
+  };
+
   const handleItemChange = (index: number, field: 'description' | 'unit' | 'quantity' | 'unitPrice', val: any) => {
+    pushUndoSnapshot(`تعديل البند #${index + 1} (${field})`);
     const updated = [...currentItems];
     const item = { ...updated[index] };
 
@@ -343,18 +932,18 @@ export const TendersBOQPage: React.FC = () => {
     if (field === 'unitPrice') item.unitPrice = parseFloat(val) || 0;
 
     // Recalculate values
-    item.unitPriceInWords = tafqeet(item.unitPrice);
-    item.totalPrice = item.quantity * item.unitPrice;
-    item.totalPriceInWords = tafqeet(item.totalPrice);
+    item.unitPriceInWords = item.unitPrice > 0 ? tafqeet(item.unitPrice) : 'صفر';
+    item.totalPrice = Number((item.quantity * item.unitPrice).toFixed(2));
+    item.totalPriceInWords = item.totalPrice > 0 ? tafqeet(item.totalPrice) : 'صفر';
     item.vat = Number((item.totalPrice * 0.15).toFixed(2));
     item.totalWithVat = Number((item.totalPrice + item.vat).toFixed(2));
-    item.totalWithVatInWords = tafqeet(item.totalWithVat);
+    item.totalWithVatInWords = item.totalWithVat > 0 ? tafqeet(item.totalWithVat) : 'صفر';
 
     updated[index] = item;
     setCurrentItems(updated);
 
     // Recalculate tender totals
-    const newSubtotal = updated.reduce((sum, it) => sum + it.totalPrice, 0);
+    const newSubtotal = Number(updated.reduce((sum, it) => sum + it.totalPrice, 0).toFixed(2));
     const newVat = Number((newSubtotal * 0.15).toFixed(2));
     const newGrandTotal = Number((newSubtotal + newVat).toFixed(2));
 
@@ -363,33 +952,38 @@ export const TendersBOQPage: React.FC = () => {
       items: updated,
       itemsCount: updated.length,
       subtotal: newSubtotal,
-      subtotalInWords: tafqeet(newSubtotal),
+      subtotalInWords: newSubtotal > 0 ? tafqeet(newSubtotal) : 'صفر',
       vatAmount: newVat,
-      vatInWords: tafqeet(newVat),
+      vatInWords: newVat > 0 ? tafqeet(newVat) : 'صفر',
       grandTotal: newGrandTotal,
-      grandTotalInWords: tafqeet(newGrandTotal),
+      grandTotalInWords: newGrandTotal > 0 ? tafqeet(newGrandTotal) : 'صفر',
     };
 
     setSelectedTender(updatedTender);
-    setTendersList(tendersList.map(t => t.id === updatedTender.id ? updatedTender : t));
+    const nextList = tendersList.map(t => t.id === updatedTender.id ? updatedTender : t);
+    setTendersList(nextList);
+    persistWorkbookState(nextList);
   };
 
   const handleConvertKasItemToBOQ = (kasItem: KasTenderItem) => {
+    pushUndoSnapshot(`تحويل منافسة إلى كراسة BOQ: ${kasItem.title}`);
     const rawVal = kasItem.bidValue || 10000;
     const vatVal = Number((rawVal * 0.15).toFixed(2));
     const totalVal = Number((rawVal + vatVal).toFixed(2));
 
     const newTender: TenderRecord = {
       id: `TND-${Date.now()}`,
+      sheetName: `الجدول (${tendersList.length + 1})`,
       referenceNumber: kasItem.referenceNumber || kasItem.tenderCode || `2608${Math.floor(10000000 + Math.random() * 90000000)}`,
       title: kasItem.title,
-      entityName: kasItem.company || 'مؤسسة خالد عبدالعزيز السليم للتجارة (شركة كاس للتجارة)',
+      entityName: kasItem.company || 'مؤسسة خالد عبدالعزيز السليم للتجارة',
       clientName: kasItem.entity || 'الجهة الحكومية المعتمدة',
       category: 'توريدات حكومية وتجهيزات',
       status: (kasItem.notes || '').includes('تم الترسية') ? 'ترسية واعتماد' : 'مسودة قيد الدراسة',
       submissionDate: kasItem.deadlineDate || new Date().toISOString().split('T')[0],
       supplyDuration: kasItem.executionDuration || 'خلال 14 يوم من استلام التعميد',
-      commitmentDays: 90,
+      validityDuration: '180 يوم',
+      commitmentDays: 180,
       itemsCount: 1,
       subtotal: rawVal,
       subtotalInWords: tafqeet(rawVal),
@@ -415,10 +1009,12 @@ export const TendersBOQPage: React.FC = () => {
       ]
     };
 
-    setTendersList(prev => [newTender, ...prev]);
+    const nextList = [newTender, ...tendersList];
+    setTendersList(nextList);
     setSelectedTender(newTender);
     setCurrentItems(newTender.items);
     setActiveTab('excel-boq');
+    persistWorkbookState(nextList);
     addNotification({
       title: 'تم تحويل المنافسة إلى كراسة BOQ',
       message: `تم فتح كراسة المنافسة "${kasItem.title}" في محرر جداول الكميات والتفقيط بنجاح.`,
@@ -427,6 +1023,7 @@ export const TendersBOQPage: React.FC = () => {
   };
 
   const handleAddNewItem = () => {
+    pushUndoSnapshot('إضافة بند جديد إلى جدول الكميات');
     const nextNum = currentItems.length + 1;
     const newItem: BOQItem = {
       id: `item-${Date.now()}`,
@@ -446,7 +1043,7 @@ export const TendersBOQPage: React.FC = () => {
     const updated = [...currentItems, newItem];
     setCurrentItems(updated);
 
-    const newSubtotal = updated.reduce((sum, it) => sum + it.totalPrice, 0);
+    const newSubtotal = Number(updated.reduce((sum, it) => sum + it.totalPrice, 0).toFixed(2));
     const newVat = Number((newSubtotal * 0.15).toFixed(2));
     const newGrandTotal = Number((newSubtotal + newVat).toFixed(2));
 
@@ -463,7 +1060,9 @@ export const TendersBOQPage: React.FC = () => {
     };
 
     setSelectedTender(updatedTender);
-    setTendersList(tendersList.map(t => t.id === updatedTender.id ? updatedTender : t));
+    const nextList = tendersList.map(t => t.id === updatedTender.id ? updatedTender : t);
+    setTendersList(nextList);
+    persistWorkbookState(nextList);
 
     addNotification({
       title: 'إضافة بند كميات',
@@ -474,10 +1073,11 @@ export const TendersBOQPage: React.FC = () => {
 
   const handleDeleteItem = (index: number) => {
     if (currentItems.length <= 1) return;
+    pushUndoSnapshot(`حذف البند #${index + 1} (${currentItems[index]?.description || ''})`);
     const updated = currentItems.filter((_, idx) => idx !== index).map((it, idx) => ({ ...it, itemNumber: idx + 1 }));
     setCurrentItems(updated);
 
-    const newSubtotal = updated.reduce((sum, it) => sum + it.totalPrice, 0);
+    const newSubtotal = Number(updated.reduce((sum, it) => sum + it.totalPrice, 0).toFixed(2));
     const newVat = Number((newSubtotal * 0.15).toFixed(2));
     const newGrandTotal = Number((newSubtotal + newVat).toFixed(2));
 
@@ -486,20 +1086,52 @@ export const TendersBOQPage: React.FC = () => {
       items: updated,
       itemsCount: updated.length,
       subtotal: newSubtotal,
-      subtotalInWords: tafqeet(newSubtotal),
+      subtotalInWords: newSubtotal > 0 ? tafqeet(newSubtotal) : 'صفر',
       vatAmount: newVat,
-      vatInWords: tafqeet(newVat),
+      vatInWords: newVat > 0 ? tafqeet(newVat) : 'صفر',
       grandTotal: newGrandTotal,
-      grandTotalInWords: tafqeet(newGrandTotal),
+      grandTotalInWords: newGrandTotal > 0 ? tafqeet(newGrandTotal) : 'صفر',
     };
 
     setSelectedTender(updatedTender);
-    setTendersList(tendersList.map(t => t.id === updatedTender.id ? updatedTender : t));
+    const nextList = tendersList.map(t => t.id === updatedTender.id ? updatedTender : t);
+    setTendersList(nextList);
+    persistWorkbookState(nextList);
+    addNotification({
+      title: 'حذف البند',
+      message: 'تم حذف البند بنجاح (يمكنك استعادته بزر التراجع Undo).',
+      type: 'info',
+    });
+  };
+
+  const handleRemoveZeroItems = () => {
+    const nonZero = currentItems.filter((it) => it.quantity > 0 && it.unitPrice > 0);
+    if (nonZero.length === currentItems.length || nonZero.length === 0) return;
+    pushUndoSnapshot('حذف البنود الصفرية من الجدول');
+    const reindexed = nonZero.map((it, idx) => ({ ...it, itemNumber: idx + 1 }));
+    setCurrentItems(reindexed);
+    const totals = RealBoqEngine.recalculateTender(reindexed);
+    const updatedTender: TenderRecord = {
+      ...selectedTender,
+      items: reindexed,
+      itemsCount: reindexed.length,
+      ...totals,
+    };
+    setSelectedTender(updatedTender);
+    const nextList = tendersList.map((t) => (t.id === updatedTender.id ? updatedTender : t));
+    setTendersList(nextList);
+    persistWorkbookState(nextList);
+    addNotification({
+      title: 'تنظيف البنود الصفرية',
+      message: `تم حذف البنود الصفرية والإبقاء على (${reindexed.length}) بند فعلي.`,
+      type: 'success',
+    });
   };
 
   const handleCreateTender = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTenderForm.title || !newTenderForm.clientName) return;
+    pushUndoSnapshot(`إنشاء كراسة جديدة: ${newTenderForm.title}`);
 
     const initialItem: BOQItem = {
       id: `item-${Date.now()}`,
@@ -518,14 +1150,21 @@ export const TendersBOQPage: React.FC = () => {
 
     const newTender: TenderRecord = {
       id: `TND-${new Date().getFullYear()}-${String(tendersList.length + 1).padStart(3, '0')}`,
+      sheetName: `الجدول (${tendersList.length + 1})`,
+      workbookId: activeWorkbookFilter === 'all' ? 'nov11_v1' : activeWorkbookFilter,
+      workbookLabel: 'كراسة جديدة',
       referenceNumber: newTenderForm.referenceNumber,
       title: newTenderForm.title,
-      entityName: 'مؤسسة خالد عبدالعزيز السليم للتجارة (شركة كاس للتجارة)',
+      entityName:
+        activeEstablishmentFilter !== 'all'
+          ? activeEstablishmentFilter
+          : 'مؤسسة خالد عبدالعزيز السليم للتجارة',
       clientName: newTenderForm.clientName,
       category: newTenderForm.category,
       status: 'مسودة قيد الدراسة',
       submissionDate: newTenderForm.submissionDate,
       supplyDuration: newTenderForm.supplyDuration,
+      validityDuration: `${newTenderForm.commitmentDays} يوم`,
       commitmentDays: newTenderForm.commitmentDays,
       itemsCount: 1,
       subtotal: 50000,
@@ -537,11 +1176,13 @@ export const TendersBOQPage: React.FC = () => {
       items: [initialItem],
     };
 
-    setTendersList([newTender, ...tendersList]);
+    const nextList = [newTender, ...tendersList];
+    setTendersList(nextList);
     setSelectedTender(newTender);
     setCurrentItems(newTender.items);
     setShowNewTenderModal(false);
     setActiveTab('excel-boq');
+    persistWorkbookState(nextList);
 
     addNotification({
       title: 'إنشاء كراسة منافسة جديدة',
@@ -584,20 +1225,24 @@ export const TendersBOQPage: React.FC = () => {
   };
 
   const handleDuplicateTender = () => {
+    pushUndoSnapshot(`نسخ كراسة المنافسة: ${selectedTender.title}`);
     const clonedId = `TND-${new Date().getFullYear()}-${String(tendersList.length + 1).padStart(3, '0')}`;
-    const clonedRef = `2608${Math.floor(10000000 + Math.random() * 90000000)}`;
+    const clonedRef = `2511${Math.floor(10000000 + Math.random() * 90000000)}`;
     const cloned: TenderRecord = {
       ...selectedTender,
       id: clonedId,
+      sheetName: `${selectedTender.sheetName || 'الجدول'} (نسخة)`,
       referenceNumber: clonedRef,
       title: `${selectedTender.title} (نسخة معدلة)`,
       status: 'مسودة قيد الدراسة',
       items: selectedTender.items.map((it, idx) => ({ ...it, id: `item-clone-${idx}-${Date.now()}` })),
     };
 
-    setTendersList([cloned, ...tendersList]);
+    const nextList = [cloned, ...tendersList];
+    setTendersList(nextList);
     setSelectedTender(cloned);
     setCurrentItems(cloned.items);
+    persistWorkbookState(nextList);
 
     addNotification({
       title: 'نسخ المنافسة',
@@ -638,7 +1283,11 @@ export const TendersBOQPage: React.FC = () => {
 
   const handleExportBOQExcel = () => {
     try {
-      const buffer = RealBoqEngine.exportToExcelWithFormulas(selectedTender, currentItems);
+      const buffer = RealBoqEngine.exportToExcelWithFormulas(
+        selectedTender,
+        currentItems,
+        establishments
+      );
       const blob = new Blob([buffer as any], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -648,33 +1297,27 @@ export const TendersBOQPage: React.FC = () => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      addNotification({ title: 'تصدير مصنف Excel تفاعلي بالمعادلات', message: 'تم توليد وتصدير ملف Excel رسمي يتضمن كافة المعادلات والصيغ الحسابية والتفقيط بنجاح.', type: 'success' });
+      addNotification({ title: 'تصدير مصنف Excel تفاعلي بالمعادلات', message: 'تم توليد وتصدير ملف Excel رسمي قابل للتحرير الكامل يتضمن المعادلات والصيغ الحسابية والتفقيط وورقة المؤسسات بنجاح.', type: 'success' });
     } catch (err: any) {
       handleExportBOQCSV();
     }
   };
 
   const handleExportBOQJSON = () => {
-    const payload = JSON.stringify({ tender: selectedTender, items: currentItems, exportedAt: new Date().toISOString() }, null, 2);
+    const payload = JSON.stringify({ tender: selectedTender, items: currentItems, establishments, exportedAt: new Date().toISOString() }, null, 2);
     downloadFile(payload, `BOQ_${selectedTender.referenceNumber}_KAS_Trading.json`, 'application/json');
     addNotification({ title: 'تصدير JSON', message: 'تم تصدير بيانات المنافسة وجدول الكميات بصيغة JSON بنجاح.', type: 'success' });
   };
 
-  // 2. Suppliers Registry Exports
+  // 2. Suppliers Registry Exports (Real XLSX + CSV + JSON)
   const handleExportSuppliersCSV = () => {
-    const headers = ['اسم المورد', 'الفئة', 'المدينة', 'المسؤول', 'الهاتف', 'البريد الإلكتروني', 'التقييم', 'الجودة', 'الالتزام', 'السعر', 'التعاملات', 'إجمالي القيمة (⃁)', 'الحالة'];
-    const rows = suppliers.map(s => [
-      `"${s.name}"`, `"${s.category}"`, `"${s.city}"`, `"${s.contactPerson}"`, `"${s.phone}"`, `"${s.email}"`,
-      s.rating, `${s.qualityScore}%`, `${s.commitmentScore}%`, `${s.priceCompetitiveness}%`, s.totalDeals, s.totalValue, `"${s.status}"`
-    ]);
-    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    downloadFile(csv, `KAS_Suppliers_Registry_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
+    exportData('kas_suppliers', suppliers, 'csv', 'سجل_الموردين_المعتمدين_كاس');
     addNotification({ title: 'تصدير سجل الموردين CSV', message: 'تم تصدير قائمة الموردين المعتمدين بنجاح.', type: 'success' });
   };
 
   const handleExportSuppliersExcel = () => {
-    handleExportSuppliersCSV();
-    addNotification({ title: 'تصدير سجل الموردين Excel', message: 'تم تصدير سجل الموردين بصيغة إكسيل بنجاح.', type: 'success' });
+    exportData('kas_suppliers', suppliers, 'excel', 'سجل_الموردين_المعتمدين_كاس');
+    addNotification({ title: 'تصدير سجل الموردين Excel (.xlsx)', message: 'تم تصدير مصنف سجل الموردين بصيغة Excel حقيقية بنجاح.', type: 'success' });
   };
 
   const handleExportSuppliersJSON = () => {
@@ -683,25 +1326,19 @@ export const TendersBOQPage: React.FC = () => {
     addNotification({ title: 'تصدير JSON', message: 'تم تصدير سجل الموردين بصيغة JSON بنجاح.', type: 'success' });
   };
 
-  // 3. Tenders Directory Exports
+  // 3. Tenders Directory Exports (Real Multi-Sheet XLSX + CSV + JSON)
   const handleExportDirectoryCSV = () => {
-    const headers = ['الرقم المرجعي', 'عنوان المنافسة', 'الجهة المستفيدة', 'التصنيف', 'تاريخ التقديم', 'مدة التوريد', 'مدة الالتزام', 'عدد البنود', 'الإجمالي قبل الضريبة', 'الضريبة (15%)', 'الإجمالي شامل الضريبة', 'الحالة'];
-    const rows = tendersList.map(t => [
-      `"${t.referenceNumber}"`, `"${t.title}"`, `"${t.clientName}"`, `"${t.category}"`, t.submissionDate, `"${t.supplyDuration}"`,
-      t.commitmentDays, t.itemsCount, t.subtotal.toFixed(2), t.vatAmount.toFixed(2), t.grandTotal.toFixed(2), `"${t.status}"`
-    ]);
-    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    downloadFile(csv, `KAS_Tenders_Directory_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
+    exportData('kas_november_tenders', tendersList, 'csv', 'سجل_كراسات_منافسات_كاس');
     addNotification({ title: 'تصدير سجل المنافسات CSV', message: 'تم تصدير سجل المنافسات والعقود بنجاح.', type: 'success' });
   };
 
   const handleExportDirectoryExcel = () => {
-    handleExportDirectoryCSV();
-    addNotification({ title: 'تصدير سجل المنافسات Excel', message: 'تم تصدير سجل المنافسات بصيغة إكسيل بنجاح.', type: 'success' });
+    exportData('kas_november_tenders', tendersList, 'excel', 'سجل_كراسات_منافسات_كاس');
+    addNotification({ title: 'تصدير سجل المنافسات Excel (.xlsx)', message: 'تم تصدير سجل كراسات المنافسات بصيغة Excel حقيقية بنجاح.', type: 'success' });
   };
 
   const handleExportDirectoryJSON = () => {
-    const payload = JSON.stringify({ company: 'مؤسسة خالد عبدالعزيز السليم للتجارة (كاس)', tenders: tendersList, exportedAt: new Date().toISOString() }, null, 2);
+    const payload = JSON.stringify({ company: 'مؤسسة خالد عبدالعزيز السليم للتجارة (كاس)', establishments, tenders: tendersList, exportedAt: new Date().toISOString() }, null, 2);
     downloadFile(payload, `KAS_Tenders_Directory_${new Date().toISOString().split('T')[0]}.json`, 'application/json');
     addNotification({ title: 'تصدير JSON', message: 'تم تصدير سجل المنافسات بصيغة JSON بنجاح.', type: 'success' });
   };
@@ -709,6 +1346,8 @@ export const TendersBOQPage: React.FC = () => {
   // --- Item Level CRUD ---
   const handleDuplicateItem = (index: number) => {
     const target = currentItems[index];
+    if (!target) return;
+    pushUndoSnapshot(`تكرار البند #${target.itemNumber}`);
     const nextNum = currentItems.length + 1;
     const cloned: BOQItem = {
       ...target,
@@ -719,7 +1358,7 @@ export const TendersBOQPage: React.FC = () => {
     const updated = [...currentItems, cloned];
     setCurrentItems(updated);
 
-    const newSubtotal = updated.reduce((sum, it) => sum + it.totalPrice, 0);
+    const newSubtotal = Number(updated.reduce((sum, it) => sum + it.totalPrice, 0).toFixed(2));
     const newVat = Number((newSubtotal * 0.15).toFixed(2));
     const newGrandTotal = Number((newSubtotal + newVat).toFixed(2));
 
@@ -736,7 +1375,9 @@ export const TendersBOQPage: React.FC = () => {
     };
 
     setSelectedTender(updatedTender);
-    setTendersList(tendersList.map(t => t.id === updatedTender.id ? updatedTender : t));
+    const nextList = tendersList.map(t => t.id === updatedTender.id ? updatedTender : t);
+    setTendersList(nextList);
+    persistWorkbookState(nextList);
 
     addNotification({
       title: 'نسخ البند',
@@ -747,6 +1388,7 @@ export const TendersBOQPage: React.FC = () => {
 
   const handleClearAllItems = () => {
     if (!confirm('هل أنت متأكد من تفريغ كافة بنود جدول الكميات للمنافسة الحالية؟')) return;
+    pushUndoSnapshot(`تفريغ بنود المنافسة (${selectedTender.referenceNumber})`);
     const initialItem: BOQItem = {
       id: `item-${Date.now()}`,
       itemNumber: 1,
@@ -754,12 +1396,12 @@ export const TendersBOQPage: React.FC = () => {
       unit: 'عدد',
       quantity: 1,
       unitPrice: 0,
-      unitPriceInWords: 'صفر ريال',
+      unitPriceInWords: 'صفر',
       totalPrice: 0,
-      totalPriceInWords: 'صفر ريال',
+      totalPriceInWords: 'صفر',
       vat: 0,
       totalWithVat: 0,
-      totalWithVatInWords: 'صفر ريال',
+      totalWithVatInWords: 'صفر',
     };
     setCurrentItems([initialItem]);
     const updatedTender: TenderRecord = {
@@ -767,17 +1409,19 @@ export const TendersBOQPage: React.FC = () => {
       items: [initialItem],
       itemsCount: 1,
       subtotal: 0,
-      subtotalInWords: 'صفر ريال',
+      subtotalInWords: 'صفر',
       vatAmount: 0,
-      vatInWords: 'صفر ريال',
+      vatInWords: 'صفر',
       grandTotal: 0,
-      grandTotalInWords: 'صفر ريال',
+      grandTotalInWords: 'صفر',
     };
     setSelectedTender(updatedTender);
-    setTendersList(tendersList.map(t => t.id === updatedTender.id ? updatedTender : t));
+    const nextList = tendersList.map(t => t.id === updatedTender.id ? updatedTender : t);
+    setTendersList(nextList);
+    persistWorkbookState(nextList);
     addNotification({
       title: 'تفريغ الجدول',
-      message: 'تم تفريغ بنود جدول الكميات بنجاح.',
+      message: 'تم تفريغ بنود جدول الكميات بنجاح (يمكنك استعادتها بزر التراجع Undo).',
       type: 'info'
     });
   };
@@ -825,11 +1469,14 @@ export const TendersBOQPage: React.FC = () => {
   const handleUpdateTender = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingTender) return;
+    pushUndoSnapshot(`تعديل بيانات كراسة المنافسة (${editingTender.referenceNumber})`);
     const updated: TenderRecord = { ...editingTender };
-    setTendersList(tendersList.map(t => t.id === updated.id ? updated : t));
+    const nextList = tendersList.map(t => t.id === updated.id ? updated : t);
+    setTendersList(nextList);
     if (selectedTender.id === updated.id) {
       setSelectedTender(updated);
     }
+    persistWorkbookState(nextList);
     setShowEditTenderModal(false);
     addNotification({
       title: 'تعديل بيانات المنافسة',
@@ -849,24 +1496,29 @@ export const TendersBOQPage: React.FC = () => {
       return;
     }
     const target = tendersList.find(t => t.id === idToDelete);
-    if (!confirm(`هل أنت متأكد من حذف المنافسة (${target?.referenceNumber} - ${target?.title}) نهائياً؟`)) return;
+    if (!confirm(`هل أنت متأكد من حذف المنافسة (${target?.referenceNumber} - ${target?.title})؟`)) return;
+    pushUndoSnapshot(`حذف كراسة المنافسة (${target?.referenceNumber})`);
     const remaining = tendersList.filter(t => t.id !== idToDelete);
     setTendersList(remaining);
     if (selectedTender.id === idToDelete) {
       setSelectedTender(remaining[0]);
       setCurrentItems(remaining[0].items);
     }
+    persistWorkbookState(remaining);
     addNotification({
       title: 'حذف المنافسة',
-      message: `تم حذف المنافسة (${target?.referenceNumber}) بنجاح.`,
+      message: `تم حذف المنافسة (${target?.referenceNumber}) بنجاح (يمكنك استعادتها بزر التراجع Undo).`,
       type: 'info',
     });
   };
 
   const handleStatusChange = (newStatus: TenderRecord['status']) => {
+    pushUndoSnapshot(`تغيير حالة المنافسة (${selectedTender.referenceNumber})`);
     const updated: TenderRecord = { ...selectedTender, status: newStatus };
     setSelectedTender(updated);
-    setTendersList(tendersList.map(t => t.id === updated.id ? updated : t));
+    const nextList = tendersList.map(t => t.id === updated.id ? updated : t);
+    setTendersList(nextList);
+    persistWorkbookState(nextList);
     addNotification({
       title: 'تحديث حالة المنافسة',
       message: `تم تغيير حالة المنافسة (${selectedTender.referenceNumber}) إلى (${newStatus}).`,
@@ -876,6 +1528,7 @@ export const TendersBOQPage: React.FC = () => {
 
   const handleImportBOQFromText = () => {
     if (!importText.trim()) return;
+    pushUndoSnapshot('استيراد ولصق بنود في جدول الكميات');
     const lines = importText.trim().split('\n');
     const imported: BOQItem[] = [];
     lines.forEach((line, idx) => {
@@ -895,12 +1548,12 @@ export const TendersBOQPage: React.FC = () => {
           unit: unit,
           quantity: qty,
           unitPrice: price,
-          unitPriceInWords: tafqeet(price),
+          unitPriceInWords: price > 0 ? tafqeet(price) : 'صفر',
           totalPrice: total,
-          totalPriceInWords: tafqeet(total),
+          totalPriceInWords: total > 0 ? tafqeet(total) : 'صفر',
           vat: vat,
           totalWithVat: totalWithVat,
-          totalWithVatInWords: tafqeet(totalWithVat),
+          totalWithVatInWords: totalWithVat > 0 ? tafqeet(totalWithVat) : 'صفر',
         });
       }
     });
@@ -908,7 +1561,7 @@ export const TendersBOQPage: React.FC = () => {
     if (imported.length > 0) {
       const updated = [...currentItems, ...imported];
       setCurrentItems(updated);
-      const newSubtotal = updated.reduce((sum, it) => sum + it.totalPrice, 0);
+      const newSubtotal = Number(updated.reduce((sum, it) => sum + it.totalPrice, 0).toFixed(2));
       const newVat = Number((newSubtotal * 0.15).toFixed(2));
       const newGrandTotal = Number((newSubtotal + newVat).toFixed(2));
       const updatedTender: TenderRecord = {
@@ -923,7 +1576,9 @@ export const TendersBOQPage: React.FC = () => {
         grandTotalInWords: tafqeet(newGrandTotal),
       };
       setSelectedTender(updatedTender);
-      setTendersList(tendersList.map(t => t.id === updatedTender.id ? updatedTender : t));
+      const nextList = tendersList.map(t => t.id === updatedTender.id ? updatedTender : t);
+      setTendersList(nextList);
+      persistWorkbookState(nextList);
       setShowImportModal(false);
       setImportText('');
       addNotification({
@@ -935,6 +1590,7 @@ export const TendersBOQPage: React.FC = () => {
   };
 
   const handleApplyMargin = () => {
+    pushUndoSnapshot(`تطبيق هامش الربح (+${targetMarginPct}%)`);
     const margin = parseFloat(targetMarginPct) || 0;
     const factor = 1 + (margin / 100);
     const updated = currentItems.map(it => {
@@ -945,17 +1601,17 @@ export const TendersBOQPage: React.FC = () => {
       return {
         ...it,
         unitPrice: newUnitPrice,
-        unitPriceInWords: tafqeet(newUnitPrice),
+        unitPriceInWords: newUnitPrice > 0 ? tafqeet(newUnitPrice) : 'صفر',
         totalPrice: newTotal,
-        totalPriceInWords: tafqeet(newTotal),
+        totalPriceInWords: newTotal > 0 ? tafqeet(newTotal) : 'صفر',
         vat: newVat,
         totalWithVat: newTotalWithVat,
-        totalWithVatInWords: tafqeet(newTotalWithVat),
+        totalWithVatInWords: newTotalWithVat > 0 ? tafqeet(newTotalWithVat) : 'صفر',
       };
     });
 
     setCurrentItems(updated);
-    const newSubtotal = updated.reduce((sum, it) => sum + it.totalPrice, 0);
+    const newSubtotal = Number(updated.reduce((sum, it) => sum + it.totalPrice, 0).toFixed(2));
     const newVat = Number((newSubtotal * 0.15).toFixed(2));
     const newGrandTotal = Number((newSubtotal + newVat).toFixed(2));
     const updatedTender: TenderRecord = {
@@ -969,7 +1625,9 @@ export const TendersBOQPage: React.FC = () => {
       grandTotalInWords: tafqeet(newGrandTotal),
     };
     setSelectedTender(updatedTender);
-    setTendersList(tendersList.map(t => t.id === updatedTender.id ? updatedTender : t));
+    const nextList = tendersList.map(t => t.id === updatedTender.id ? updatedTender : t);
+    setTendersList(nextList);
+    persistWorkbookState(nextList);
     setShowMarginModal(false);
     addNotification({
       title: 'تطبيق هامش الربح',
@@ -1073,44 +1731,48 @@ export const TendersBOQPage: React.FC = () => {
             </button>
 
             <button
-              onClick={() => setShowPrintModal(true)}
+              onClick={() => handleShareActiveBoq('email')}
               className="button-outline-on-dark"
-              style={{ fontSize: '12px', padding: '6px 14px', minHeight: '38px' }}
+              style={{ fontSize: '12px', padding: '6px 12px', minHeight: '38px' }}
+              title="إرسال الكراسة النشطة عبر البريد الإلكتروني (Outlook)"
             >
-              <Printer className="w-3.5 h-3.5 ml-1 text-[#141414]" />
-              <span>طباعة العرض</span>
+              <Mail className="w-3.5 h-3.5 ml-1" />
+              <span>بريد</span>
             </button>
 
-            {/* Multi-Format Export Group */}
-            <div className="flex items-center bg-[#f3f3f3] rounded-full p-1 border border-[#e0e0e0]">
-              <span className="text-[10px] text-[#141414] font-bold px-2 flex items-center gap-1">
-                <Download className="w-3 h-3" />
-                <span>تصدير:</span>
-              </span>
-              <button
-                onClick={handleExportBOQExcel}
-                className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-full transition-colors flex items-center gap-1 cursor-pointer"
-                title="تصدير بصيغة Excel"
-              >
-                <FileSpreadsheet className="w-3 h-3" />
-                <span>Excel</span>
-              </button>
-              <button
-                onClick={handleExportBOQCSV}
-                className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-full transition-colors flex items-center gap-1 cursor-pointer"
-                title="تصدير بصيغة CSV"
-              >
-                <FileText className="w-3 h-3" />
-                <span>CSV</span>
-              </button>
-              <button
-                onClick={handleExportBOQJSON}
-                className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-full transition-colors flex items-center gap-1 cursor-pointer"
-                title="تصدير بصيغة JSON"
-              >
-                <span>JSON</span>
-              </button>
-            </div>
+            <button
+              onClick={() => handleShareActiveBoq('whatsapp')}
+              className="button-outline-on-dark"
+              style={{ fontSize: '12px', padding: '6px 12px', minHeight: '38px' }}
+              title="إرسال الكراسة النشطة عبر الواتساب"
+            >
+              <MessageCircle className="w-3.5 h-3.5 ml-1" />
+              <span>واتساب</span>
+            </button>
+
+            <button
+              onClick={() =>
+                handleOpenPreviewStudio(
+                  'kas_boq_items',
+                  currentItems,
+                  `جدول الكميات والأسعار لمنافسة: ${selectedTender.title} (${selectedTender.referenceNumber})`
+                )
+              }
+              className="button-outline-on-dark"
+              style={{ fontSize: '12px', padding: '6px 14px', minHeight: '38px' }}
+              title="استوديو معاينة وتخصيص الكراسة بكافة الخيارات"
+            >
+              <Eye className="w-3.5 h-3.5 ml-1" />
+              <span>معاينة التصدير</span>
+            </button>
+
+            <ExportDropdown
+              sectionKey="kas_boq_items"
+              data={currentItems}
+              customTitle={`جدول الكميات والأسعار لمنافسة: ${selectedTender.title} (${selectedTender.referenceNumber})`}
+              buttonLabel="تصدير الكراسة"
+              variant="outline-dark"
+            />
           </div>
         </div>
       </div>
@@ -1264,10 +1926,10 @@ export const TendersBOQPage: React.FC = () => {
       <div className="card-pricing" style={{ padding: '12px 18px', borderRadius: '16px', background: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
         <span className="text-xs font-semibold text-[#707070] ml-1">طرق العرض:</span>
         {[
+          { id: 'excel-boq', label: `مصنفات وجداول كميات كاس والمؤسسات — Excel Live (${tendersList.length} ورقة)`, icon: Calculator },
           { id: 'kas-sheet', label: 'سجل منافسات كاس الشامل (11,700+ منافسة Google Sheet)', icon: FileSpreadsheet },
           { id: 'etmad-cloud', label: 'منظومة سحابة اعتماد (Inova Etmad Cloud Suite)', icon: CloudLightning },
-          { id: 'excel-boq', label: 'محرر جدول الكميات والأسعار (Excel Live)', icon: Calculator },
-          { id: 'directory', label: `كراسات BOQ النشطة (${tendersList.length})`, icon: Layers },
+          { id: 'directory', label: `دليل الكراسات النشطة (${tendersList.length})`, icon: Layers },
           { id: 'analytics', label: 'لوحة مؤشرات المناقصات (KPIs)', icon: BarChart3 },
           { id: 'suppliers', label: `سجل الموردين المعتمدين (${suppliers.length})`, icon: Users },
           { id: 'awards', label: 'محاضر الترسية والربط المالي', icon: Award },
@@ -1325,120 +1987,296 @@ export const TendersBOQPage: React.FC = () => {
         </React.Suspense>
       )}
 
-      {/* Tab 1: Live Interactive Excel-Style BOQ Table */}
+      {/* Tab 1: Live Interactive Excel-Style BOQ Table + Establishments Table + November Workbooks */}
       {activeTab === 'excel-boq' && (
-        <div className="space-y-4">
-          {/* Header Specs Card matching Excel File */}
-          <div className="border border-[#e0e0e0] rounded-2xl overflow-hidden ">
-            {/* Header Green Strip */}
-            <div className="bg-[#f3f3f3] text-[#141414] border-b border-[#e0e0e0] p-3.5 flex items-center justify-between flex-wrap gap-2 font-bold text-xs">
-              <div className="flex items-center gap-2">
-                <span className="bg-[#141414] px-2.5 py-1 rounded text-[11px] font-mono">رقم مرجعي: {selectedTender.referenceNumber}</span>
-                <span className="text-sm">{selectedTender.entityName}</span>
+        <div className="space-y-5">
+          {/* Establishments Table (المؤسسات) + November Workbooks Switcher (شهر 11 نسخة 1..4) + Excel Converter */}
+          <KasEstablishmentsAndWorkbookBar
+            establishments={establishments}
+            tendersList={tendersList}
+            selectedTender={selectedTender}
+            workbooksMeta={workbooksMeta}
+            activeWorkbookFilter={activeWorkbookFilter}
+            onWorkbookFilterChange={setActiveWorkbookFilter}
+            activeEstablishmentFilter={activeEstablishmentFilter}
+            onEstablishmentFilterChange={setActiveEstablishmentFilter}
+            sheetSearchQuery={sheetSearchQuery}
+            onSheetSearchQueryChange={setSheetSearchQuery}
+            onSelectTender={handleSelectTender}
+            onUpdateEstablishment={handleUpdateEstablishment}
+            onAddEstablishment={handleAddEstablishment}
+            onDuplicateEstablishment={handleDuplicateEstablishment}
+            onDeleteEstablishment={handleDeleteEstablishment}
+            onCopyEstablishmentsTable={handleCopyEstablishmentsTable}
+            onShareEstablishments={handleShareEstablishments}
+            onExportEstablishmentsExcel={handleExportEstablishmentsExcel}
+            onExportFullMultiSheetWorkbook={handleExportFullMultiSheetWorkbook}
+            onUploadExcelWorkbook={handleUploadExcelWorkbook}
+            onCreateNewSheet={() => setShowNewTenderModal(true)}
+            onDuplicateCurrentSheet={handleDuplicateTender}
+            onDeleteCurrentSheet={() => handleDeleteTender()}
+            canUndo={undoStack.length > 0}
+            canRedo={redoStack.length > 0}
+            undoCount={undoStack.length}
+            redoCount={redoStack.length}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            onResetDefaults={handleResetToDefaults}
+          />
+
+          {/* Live KAS Excel Sheet Card (الجدول N — النطاق C3:M112) */}
+          <div className="border border-[#e0e0e0] rounded-2xl overflow-hidden bg-[#ffffff]">
+            {/* Row C3:M4 Editable Header Block + O3 (الجدول) & O4 (النص) Macro Buttons */}
+            <div className="bg-[#f3f3f3] text-[#141414] border-b border-[#e0e0e0] p-4 space-y-3">
+              {/* Row 3 in Excel: C3 (اسم المؤسسة) | E3 | L3 (رقم مرجعي) | M3 | O3 (الجدول) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
+                <div className="lg:col-span-5 flex items-center gap-2">
+                  <span className="text-xs font-extrabold text-[#141414] shrink-0">
+                    اسم المؤسسة (E3):
+                  </span>
+                  <input
+                    type="text"
+                    list="kas-establishments-datalist"
+                    value={selectedTender.entityName}
+                    onChange={(e) =>
+                      handleInlineTenderHeaderChange('entityName', e.target.value)
+                    }
+                    aria-label="اسم المؤسسة"
+                    className="w-full px-3 py-1.5 rounded-xl bg-[#ffffff] border border-[#e0e0e0] focus:border-[#141414] text-xs font-bold text-[#141414] outline-none"
+                  />
+                  <datalist id="kas-establishments-datalist">
+                    {establishments.map((est) => (
+                      <option key={est.id} value={est.name} />
+                    ))}
+                  </datalist>
+                </div>
+
+                <div className="lg:col-span-4 flex items-center gap-2">
+                  <span className="text-xs font-extrabold text-[#141414] shrink-0">
+                    رقم مرجعي (M3):
+                  </span>
+                  <input
+                    type="text"
+                    dir="ltr"
+                    value={selectedTender.referenceNumber}
+                    onChange={(e) =>
+                      handleInlineTenderHeaderChange('referenceNumber', e.target.value)
+                    }
+                    aria-label="الرقم المرجعي للمنافسة"
+                    className="w-full px-3 py-1.5 rounded-xl bg-[#ffffff] border border-[#e0e0e0] focus:border-[#141414] text-xs font-mono font-bold text-[#141414] outline-none"
+                  />
+                </div>
+
+                {/* O3 & O4 Macro Quick Copy Triggers matching KAS XLSM */}
+                <div className="lg:col-span-3 flex items-center justify-end gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleCopyKasTableMacro}
+                    className="px-3 py-1.5 rounded-xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                    title="ماكرو الخلية O3 (الجدول): نسخ جدول الكميات الفعلي مع الإجماليات للحافظة"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>الجدول (O3)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyKasTextMacro}
+                    className="px-3 py-1.5 rounded-xl bg-[#ffffff] hover:bg-[#e0e0e0] text-[#141414] border border-[#141414] text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                    title="ماكرو الخلية O4 (النص): نسخ ملخص الترويسة E3:M4 والإجمالي للحافظة"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>النص (O4)</span>
+                  </button>
+                </div>
               </div>
-              <div className="text-sm">
-                <span>{selectedTender.title}</span>
+
+              {/* Row 4 in Excel: C4 (جدول الكميات والاسعار لمنافسة) | E4 | L4 (الإجمالى شامل الضريبه) | M4 */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center pt-2 border-t border-[#e0e0e0]">
+                <div className="lg:col-span-8 flex items-center gap-2">
+                  <span className="text-xs font-extrabold text-[#141414] shrink-0">
+                    جدول الكميات والأسعار لمنافسة (E4):
+                  </span>
+                  <input
+                    type="text"
+                    value={selectedTender.title}
+                    onChange={(e) =>
+                      handleInlineTenderHeaderChange('title', e.target.value)
+                    }
+                    aria-label="عنوان المنافسة"
+                    className="w-full px-3 py-1.5 rounded-xl bg-[#ffffff] border border-[#e0e0e0] focus:border-[#141414] text-xs font-bold text-[#141414] outline-none"
+                  />
+                </div>
+
+                <div className="lg:col-span-4 flex items-center justify-between bg-[#141414] text-[#ffffff] px-3.5 py-2 rounded-xl">
+                  <span className="text-[11px] font-bold text-[#adadad]">
+                    الإجمالي شامل الضريبة (M4):
+                  </span>
+                  <span className="font-mono font-extrabold text-sm text-[#ffffff]">
+                    {selectedTender.grandTotal.toLocaleString('en-US', {
+                      minimumFractionDigits: 2,
+                    })}{' '}
+                    ⃁
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* Quick Details Sub-strip & Action Toolbar */}
-            <div className="bg-[#f3f3f3] text-[#141414] px-4 py-2.5 flex items-center justify-between text-xs border-b border-[#e0e0e0] flex-wrap gap-2 font-semibold">
-              <div className="flex items-center gap-4 flex-wrap">
-                <div>
-                  <span>الجهة الطالبة: </span>
-                  <span className="font-bold text-[#141414]">{selectedTender.clientName}</span>
-                </div>
-                <div>
-                  <span>مدة التوريد: </span>
-                  <span className="font-bold text-[#141414]">{selectedTender.supplyDuration}</span>
-                </div>
-                <div>
-                  <span>مدة الالتزام بالعرض: </span>
-                  <span className="font-bold text-[#141414]">{selectedTender.commitmentDays} يوماً</span>
-                </div>
-              </div>
+            {/* Action Toolbar: Add / Paste / Margin / Undo / Redo / Share / Preview / Export */}
+            <div className="bg-[#ffffff] text-[#141414] px-4 py-3 flex items-center justify-between text-xs border-b border-[#e0e0e0] flex-wrap gap-2">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="px-2.5 py-1 rounded-lg bg-[#f3f3f3] border border-[#e0e0e0] font-bold text-[11px] text-[#141414]">
+                  الورقة النشطة: {selectedTender.sheetName || 'الجدول'} ({currentItems.length} بند)
+                </span>
 
-              {/* Action Buttons for Items & Export */}
-              <div className="flex items-center gap-2 flex-wrap">
                 <button
-                  onClick={handleAddNewItem}
-                  className="bg-[#141414] text-[#ffffff] text-white px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-[#262626] flex items-center gap-1 cursor-pointer transition-all"
+                  type="button"
+                  onClick={handleUndo}
+                  disabled={undoStack.length === 0}
+                  className="px-2.5 py-1.5 rounded-xl bg-[#f3f3f3] hover:bg-[#e0e0e0] disabled:opacity-40 text-[#141414] border border-[#e0e0e0] font-bold flex items-center gap-1 cursor-pointer"
+                  title="التراجع عن آخر تعديل (Ctrl+Z)"
                 >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>+ إضافة بند جديد</span>
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>تراجع ({undoStack.length})</span>
                 </button>
 
                 <button
-                  onClick={() => setShowMarginModal(true)}
-                  className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-[#f3f3f3] flex items-center gap-1 cursor-pointer"
+                  type="button"
+                  onClick={handleRedo}
+                  disabled={redoStack.length === 0}
+                  className="px-2.5 py-1.5 rounded-xl bg-[#f3f3f3] hover:bg-[#e0e0e0] disabled:opacity-40 text-[#141414] border border-[#e0e0e0] font-bold flex items-center gap-1 cursor-pointer"
+                  title="إعادة التعديل (Ctrl+Y)"
                 >
-                  <Percent className="w-3.5 h-3.5 text-[#141414]" />
+                  <RotateCw className="w-3.5 h-3.5" />
+                  <span>إعادة ({redoStack.length})</span>
+                </button>
+              </div>
+
+              {/* Action Buttons for Items, Share, Preview & Export */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleAddNewItem}
+                  className="bg-[#141414] text-[#ffffff] px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-[#262626] flex items-center gap-1 cursor-pointer transition-all"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ إضافة بند</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowImportModal(true)}
+                  className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-[#e0e0e0] flex items-center gap-1 cursor-pointer"
+                  title="لصق واستيراد أسطر بنود من إكسيل"
+                >
+                  <ClipboardPaste className="w-3.5 h-3.5" />
+                  <span>لصق بنود</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowMarginModal(true)}
+                  className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-[#e0e0e0] flex items-center gap-1 cursor-pointer"
+                >
+                  <Percent className="w-3.5 h-3.5" />
                   <span>هامش الربح</span>
                 </button>
 
                 <button
+                  type="button"
+                  onClick={handleRemoveZeroItems}
+                  className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-[#e0e0e0] flex items-center gap-1 cursor-pointer"
+                  title="حذف الأسطر ذات الكمية أو السعر الصفري"
+                >
+                  <CheckSquare className="w-3.5 h-3.5" />
+                  <span>حذف الصفرية</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={handleClearAllItems}
-                  className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-[#f3f3f3] flex items-center gap-1 cursor-pointer"
+                  className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-[#e0e0e0] flex items-center gap-1 cursor-pointer"
                   title="تفريغ كافة بنود الجدول"
                 >
-                  <Trash2 className="w-3 h-3 text-[#141414]" />
+                  <Trash2 className="w-3 h-3" />
                   <span>تفريغ</span>
                 </button>
 
-                {/* Export Buttons Group */}
-                <div className="flex items-center bg-white border border-[#e0e0e0] rounded-xl p-0.5 shadow-2xs">
-                  <button
-                    onClick={handleExportBOQExcel}
-                    className="px-2 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-lg flex items-center gap-1 cursor-pointer"
-                    title="تصدير جدول الكميات كـ Excel"
-                  >
-                    <FileSpreadsheet className="w-3 h-3 text-[#141414]" />
-                    <span>Excel</span>
-                  </button>
-                  <button
-                    onClick={handleExportBOQCSV}
-                    className="px-2 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-lg flex items-center gap-1 cursor-pointer"
-                    title="تصدير كـ CSV"
-                  >
-                    <FileText className="w-3 h-3 text-[#141414]" />
-                    <span>CSV</span>
-                  </button>
-                  <button
-                    onClick={handleExportBOQJSON}
-                    className="px-2 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-lg flex items-center gap-1 cursor-pointer"
-                    title="تصدير كـ JSON"
-                  >
-                    <span>JSON</span>
-                  </button>
-                  <button
-                    onClick={() => setShowPrintModal(true)}
-                    className="px-2 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-lg flex items-center gap-1 cursor-pointer"
-                    title="طباعة / تصدير PDF"
-                  >
-                    <Printer className="w-3 h-3 text-[#141414]" />
-                    <span>PDF</span>
-                  </button>
-                </div>
+                {/* Share via Email & WhatsApp */}
+                <button
+                  type="button"
+                  onClick={() => handleShareActiveBoq('email')}
+                  className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-[#e0e0e0] flex items-center gap-1 cursor-pointer"
+                  title="إرسال الكراسة عبر البريد الإلكتروني (Outlook)"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>إرسال بالبريد</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleShareActiveBoq('whatsapp')}
+                  className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-[#e0e0e0] flex items-center gap-1 cursor-pointer"
+                  title="إرسال الكراسة عبر الواتساب"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>إرسال واتساب</span>
+                </button>
+
+                {/* Direct Excel with Formulas + Preview Studio + Unified ExportDropdown */}
+                <button
+                  type="button"
+                  onClick={handleExportBOQExcel}
+                  className="bg-[#141414] text-[#ffffff] px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-[#262626] flex items-center gap-1 cursor-pointer"
+                  title="تصدير هذه الكراسة إلى ملف Excel (.xlsx) قابل للتحرير الكامل بالمعادلات الحية"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  <span>Excel بالمعادلات</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleOpenPreviewStudio(
+                      'kas_boq_items',
+                      currentItems,
+                      `جدول الكميات والأسعار لمنافسة: ${selectedTender.title} (${selectedTender.referenceNumber})`
+                    )
+                  }
+                  className="bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-[#e0e0e0] flex items-center gap-1 cursor-pointer"
+                  title="فتح استوديو المعاينة الشامل بكافة خيارات التخصيص والتصدير"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>معاينة وتخصيص</span>
+                </button>
+
+                <ExportDropdown
+                  sectionKey="kas_boq_items"
+                  data={currentItems}
+                  customTitle={`جدول الكميات والأسعار لمنافسة: ${selectedTender.title} (${selectedTender.referenceNumber})`}
+                  buttonLabel="كافة الصيغ"
+                  variant="compact"
+                />
               </div>
             </div>
 
-            {/* Live Excel Table */}
+            {/* Live Excel Table (C5:M105) */}
             <div className="overflow-x-auto bg-white">
               <table className="w-full text-right text-xs text-[#141414] border-collapse">
                 <thead>
                   <tr className="bg-[#e0e0e0] text-[#141414] font-bold border-b border-[#e0e0e0] text-center">
-                    <th className="p-2 border-r border-[#e0e0e0] w-10">الرقم</th>
-                    <th className="p-2 border-r border-[#e0e0e0] min-w-[220px]">وصف البند</th>
-                    <th className="p-2 border-r border-[#e0e0e0] w-20">وحدة القياس</th>
-                    <th className="p-2 border-r border-[#e0e0e0] w-20">الكمية</th>
-                    <th className="p-2 border-r border-[#e0e0e0] w-24">سعر الوحدة</th>
-                    <th className="p-2 border-r border-[#e0e0e0] min-w-[160px]">سعر الوحدة كتابة</th>
-                    <th className="p-2 border-r border-[#e0e0e0] w-24">السعر الإجمالي</th>
-                    <th className="p-2 border-r border-[#e0e0e0] min-w-[180px]">السعر الإجمالي كتابة</th>
-                    <th className="p-2 border-r border-[#e0e0e0] w-20">الضريبة (15%)</th>
-                    <th className="p-2 border-r border-[#e0e0e0] w-28">الإجمالي شامل الضريبة</th>
-                    <th className="p-2 border-r border-[#e0e0e0] min-w-[200px]">السعر شامل الضريبة كتابة</th>
-                    <th className="p-2 w-16 text-center">الإجراءات</th>
+                    <th className="p-2 border-r border-[#e0e0e0] w-12">الرقم التسلسلي (C)</th>
+                    <th className="p-2 border-r border-[#e0e0e0] min-w-[240px]">وصف البند (D)</th>
+                    <th className="p-2 border-r border-[#e0e0e0] w-20">وحدة القياس (E)</th>
+                    <th className="p-2 border-r border-[#e0e0e0] w-20">الكمية (F)</th>
+                    <th className="p-2 border-r border-[#e0e0e0] w-24">سعر الوحدة (G)</th>
+                    <th className="p-2 border-r border-[#e0e0e0] min-w-[160px]">سعر الوحدة كتابة (H)</th>
+                    <th className="p-2 border-r border-[#e0e0e0] w-24">السعر الإجمالي (=F*G)</th>
+                    <th className="p-2 border-r border-[#e0e0e0] min-w-[180px]">السعر الإجمالي كتابة (J)</th>
+                    <th className="p-2 border-r border-[#e0e0e0] w-20">الضريبة (=I*0.15)</th>
+                    <th className="p-2 border-r border-[#e0e0e0] w-28">شامل الضريبة (=I*1.15)</th>
+                    <th className="p-2 border-r border-[#e0e0e0] min-w-[200px]">السعر شامل الضريبة كتابة (M)</th>
+                    <th className="p-2 w-20 text-center">الإجراءات</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1478,56 +2316,114 @@ export const TendersBOQPage: React.FC = () => {
                         />
                       </td>
                       <td className="p-2 border-r border-[#e0e0e0] text-[11px] text-[#707070] leading-snug">{item.unitPriceInWords}</td>
-                      <td className="p-2 border-r border-[#e0e0e0] font-mono font-bold text-[#141414] text-center">{item.totalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td className="p-2 border-r border-[#e0e0e0] font-mono font-bold text-[#141414] text-center">{item.totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                       <td className="p-2 border-r border-[#e0e0e0] text-[11px] text-[#707070] leading-snug">{item.totalPriceInWords}</td>
-                      <td className="p-2 border-r border-[#e0e0e0] font-mono text-[#141414] font-bold text-center">{item.vat.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                      <td className="p-2 border-r border-[#e0e0e0] font-mono font-bold text-[#141414] bg-[#f3f3f3] text-center">{item.totalWithVat.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td className="p-2 border-r border-[#e0e0e0] font-mono text-[#141414] font-bold text-center">{item.vat.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                      <td className="p-2 border-r border-[#e0e0e0] font-mono font-bold text-[#141414] bg-[#f3f3f3] text-center">{item.totalWithVat.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                       <td className="p-2 border-r border-[#e0e0e0] text-[11px] text-[#141414] font-medium leading-snug">{item.totalWithVatInWords}</td>
                       <td className="p-1 text-center">
                         <div className="flex items-center justify-center gap-1">
                           <button
+                            type="button"
                             onClick={() => handleDuplicateItem(idx)}
                             className="p-1 text-[#707070] hover:text-[#141414] rounded-full hover:bg-[#f3f3f3] transition-colors cursor-pointer"
-                            title="نسخ البند"
+                            title="نسخ وتكرار البند"
                           >
-                            <Copy className="w-3 h-3" />
+                            <Copy className="w-3.5 h-3.5" />
                           </button>
                           <button
+                            type="button"
                             onClick={() => handleDeleteItem(idx)}
                             className="p-1 text-[#707070] hover:text-[#141414] rounded-full hover:bg-[#f3f3f3] transition-colors cursor-pointer"
                             title="حذف البند"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
-                {/* Excel Footer Calculations (Matching Image Exactly) */}
+
+                {/* Excel Footer Calculations (Row 106 SUBTOTAL + Rows 107..109 Summary) */}
                 <tfoot className="font-bold">
-                  {/* Row 1: Subtotal */}
-                  <tr className="bg-[#f3f3f3] border-t-2 border-[#e0e0e0] text-[#141414]">
-                    <td colSpan={6} className="p-2.5 text-left border-r border-[#e0e0e0] font-bold">السعر الإجمالي (قبل الضريبة):</td>
-                    <td colSpan={2} className="p-2.5 text-center font-mono font-bold text-sm border-r border-[#e0e0e0]">{selectedTender.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })} ريال سعودي</td>
+                  {/* Row 106 in Excel: SUBTOTAL(109) & SUBTOTAL(103) */}
+                  <tr className="bg-[#e0e0e0]/70 border-t-2 border-[#141414] text-[#141414] text-center font-mono">
+                    <td colSpan={6} className="p-2 text-left border-r border-[#e0e0e0] font-extrabold font-sans">
+                      صف الإجماليات التلقائي (SUBTOTAL 109 / 103):
+                    </td>
+                    <td className="p-2 border-r border-[#e0e0e0]">
+                      {selectedTender.subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })} ⃁
+                    </td>
+                    <td className="p-2 border-r border-[#e0e0e0] font-sans text-[11px] text-[#707070]">—</td>
+                    <td className="p-2 border-r border-[#e0e0e0]">
+                      {selectedTender.vatAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} ⃁
+                    </td>
+                    <td className="p-2 border-r border-[#e0e0e0] bg-[#f3f3f3]">
+                      {selectedTender.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })} ⃁
+                    </td>
+                    <td className="p-2 border-r border-[#e0e0e0] font-sans text-xs">
+                      عدد البنود الفعلي: {currentItems.filter((i) => i.description || i.quantity > 0).length}
+                    </td>
+                    <td className="p-2">—</td>
+                  </tr>
+
+                  {/* Row 107: Subtotal */}
+                  <tr className="bg-[#f3f3f3] border-t border-[#e0e0e0] text-[#141414]">
+                    <td colSpan={6} className="p-2.5 text-left border-r border-[#e0e0e0] font-bold">السعر الإجمالي (قبل الضريبة - E107):</td>
+                    <td colSpan={2} className="p-2.5 text-center font-mono font-bold text-sm border-r border-[#e0e0e0]">{selectedTender.subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })} ⃁</td>
                     <td colSpan={4} className="p-2.5 text-xs text-[#141414] font-medium">{selectedTender.subtotalInWords}</td>
                   </tr>
 
-                  {/* Row 2: VAT 15% */}
+                  {/* Row 108: VAT 15% */}
                   <tr className="bg-[#f3f3f3] border-t border-[#e0e0e0] text-[#141414]">
-                    <td colSpan={6} className="p-2.5 text-left border-r border-[#e0e0e0] font-bold">ضريبة القيمة المضافة (15%):</td>
-                    <td colSpan={2} className="p-2.5 text-center font-mono font-bold text-sm border-r border-[#e0e0e0] text-[#141414]">{selectedTender.vatAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ريال سعودي</td>
+                    <td colSpan={6} className="p-2.5 text-left border-r border-[#e0e0e0] font-bold">ضريبة القيمة المضافة (15% - E108):</td>
+                    <td colSpan={2} className="p-2.5 text-center font-mono font-bold text-sm border-r border-[#e0e0e0] text-[#141414]">{selectedTender.vatAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} ⃁</td>
                     <td colSpan={4} className="p-2.5 text-xs text-[#141414] font-medium">{selectedTender.vatInWords}</td>
                   </tr>
 
-                  {/* Row 3: Grand Total */}
-                  <tr className="bg-[#141414] text-[#ffffff] text-white border-t-2 border-[#e0e0e0]">
-                    <td colSpan={6} className="p-3 text-left border-r border-[#e0e0e0] font-bold text-sm">الإجمالي شامل الضريبة:</td>
-                    <td colSpan={2} className="p-3 text-center font-mono font-bold text-base border-r border-[#e0e0e0] bg-[#141414] text-[#ffffff]">{selectedTender.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })} ريال سعودي</td>
+                  {/* Row 109: Grand Total */}
+                  <tr className="bg-[#141414] text-[#ffffff] border-t-2 border-[#e0e0e0]">
+                    <td colSpan={6} className="p-3 text-left border-r border-[#262626] font-bold text-sm">الإجمالي شامل الضريبة (E109):</td>
+                    <td colSpan={2} className="p-3 text-center font-mono font-bold text-base border-r border-[#262626] bg-[#141414] text-[#ffffff]">{selectedTender.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })} ⃁</td>
                     <td colSpan={4} className="p-3 text-xs font-semibold leading-relaxed">{selectedTender.grandTotalInWords}</td>
                   </tr>
                 </tfoot>
               </table>
+            </div>
+
+            {/* Rows 111 & 112: Editable Supply Duration & Offer Validity Terms */}
+            <div className="bg-[#f3f3f3] border-t border-[#e0e0e0] p-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-bold text-[#141414]">
+              <div className="flex items-center gap-2 flex-wrap bg-[#ffffff] p-2.5 rounded-xl border border-[#e0e0e0]">
+                <span>مــــدة الـتـــــوريـــد : خـــــلال (</span>
+                <input
+                  type="text"
+                  value={selectedTender.supplyDuration}
+                  onChange={(e) =>
+                    handleInlineTenderHeaderChange('supplyDuration', e.target.value)
+                  }
+                  aria-label="مدة التوريد"
+                  className="px-2.5 py-1 rounded-lg bg-[#f3f3f3] border border-[#e0e0e0] focus:bg-[#ffffff] focus:border-[#141414] text-xs font-extrabold text-[#141414] w-44 text-center outline-none"
+                />
+                <span>) مــن تـاريـــخ اســــــتـلام الـتـعـــــمـيـد.</span>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap bg-[#ffffff] p-2.5 rounded-xl border border-[#e0e0e0]">
+                <span>مــــدة الالــــتزام بـالــــعــرض (</span>
+                <input
+                  type="text"
+                  value={
+                    selectedTender.validityDuration ||
+                    `${selectedTender.commitmentDays || 180} يوم`
+                  }
+                  onChange={(e) =>
+                    handleInlineTenderHeaderChange('validityDuration', e.target.value)
+                  }
+                  aria-label="مدة الالتزام بالعرض"
+                  className="px-2.5 py-1 rounded-lg bg-[#f3f3f3] border border-[#e0e0e0] focus:bg-[#ffffff] focus:border-[#141414] text-xs font-extrabold text-[#141414] w-32 text-center outline-none"
+                />
+                <span>) مــن تـاريـــخ الـتـقـديم على المنافسة.</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1589,36 +2485,41 @@ export const TendersBOQPage: React.FC = () => {
                 <span>استيراد كراسة BOQ</span>
               </button>
 
-              {/* Multi-Format Export Group */}
-              <div className="flex items-center bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl p-1">
-                <span className="text-[10px] text-[#707070] font-bold px-1.5 flex items-center gap-1">
-                  <Download className="w-3 h-3 text-[#707070]" />
-                  <span>تصدير:</span>
-                </span>
+              {/* Multi-Format Export & Preview Studio Group */}
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <button
-                  onClick={handleExportDirectoryExcel}
-                  className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-xl flex items-center gap-1"
-                  title="تصدير كـ Excel"
+                  type="button"
+                  onClick={() =>
+                    handleOpenPreviewStudio(
+                      'kas_november_tenders',
+                      tendersList,
+                      'سجل كراسات جداول الكميات والأسعار — منافسات كاس'
+                    )
+                  }
+                  className="px-3 py-2 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-xs font-bold rounded-2xl flex items-center gap-1.5 cursor-pointer"
+                  title="معاينة وتخصيص سجل الكراسات بكافة الخيارات"
                 >
-                  <FileSpreadsheet className="w-3 h-3 text-[#141414]" />
-                  <span>Excel</span>
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>معاينة السجل</span>
                 </button>
+
                 <button
-                  onClick={handleExportDirectoryCSV}
-                  className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-xl flex items-center gap-1"
-                  title="تصدير كـ CSV"
+                  type="button"
+                  onClick={handleExportFullMultiSheetWorkbook}
+                  className="px-3 py-2 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-xs font-bold rounded-2xl flex items-center gap-1.5 cursor-pointer"
+                  title="تصدير المصنف الكامل متعدد الأوراق بالمعادلات (.xlsx)"
                 >
-                  <FileText className="w-3 h-3 text-[#141414]" />
-                  <span>CSV</span>
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  <span>مصنف متعدد الأوراق (.xlsx)</span>
                 </button>
-                <button
-                  onClick={() => window.print()}
-                  className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-xl flex items-center gap-1"
-                  title="طباعة السجل / PDF"
-                >
-                  <Printer className="w-3 h-3 text-[#141414]" />
-                  <span>PDF</span>
-                </button>
+
+                <ExportDropdown
+                  sectionKey="kas_november_tenders"
+                  data={tendersList}
+                  customTitle="سجل كراسات جداول الكميات والأسعار — منافسات كاس"
+                  buttonLabel="تصدير بجميع الصيغ"
+                  variant="outline-light"
+                />
               </div>
             </div>
           </div>
@@ -1692,15 +2593,29 @@ export const TendersBOQPage: React.FC = () => {
                               handleSelectTender(t);
                               setActiveTab('excel-boq');
                             }}
-                            className="px-2.5 py-1 bg-[#f3f3f3] text-[#141414] hover:bg-[#f3f3f3] rounded-xl text-xs font-bold"
+                            className="px-2.5 py-1 bg-[#f3f3f3] text-[#141414] hover:bg-[#e0e0e0] rounded-xl text-xs font-bold cursor-pointer"
                             title="فتح محرر جدول الكميات"
                           >
                             <Eye className="w-3.5 h-3.5 ml-1 inline" />
                             <span>فتح BOQ</span>
                           </button>
                           <button
+                            onClick={() => handleShareActiveBoq('email', t)}
+                            className="p-1.5 hover:bg-[#f3f3f3] text-[#141414] rounded-lg cursor-pointer"
+                            title="إرسال عبر البريد الإلكتروني (Outlook)"
+                          >
+                            <Mail className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleShareActiveBoq('whatsapp', t)}
+                            className="p-1.5 hover:bg-[#f3f3f3] text-[#141414] rounded-lg cursor-pointer"
+                            title="إرسال عبر الواتساب"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5" />
+                          </button>
+                          <button
                             onClick={() => handleOpenEditTender(t)}
-                            className="p-1.5 hover:bg-[#f3f3f3] text-[#141414] rounded-lg"
+                            className="p-1.5 hover:bg-[#f3f3f3] text-[#141414] rounded-lg cursor-pointer"
                             title="تعديل بيانات المنافسة"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -1710,7 +2625,7 @@ export const TendersBOQPage: React.FC = () => {
                               handleSelectTender(t);
                               setShowPrintModal(true);
                             }}
-                            className="p-1.5 hover:bg-[#f3f3f3] text-[#141414] rounded-lg"
+                            className="p-1.5 hover:bg-[#f3f3f3] text-[#141414] rounded-lg cursor-pointer"
                             title="طباعة العرض الرسمي"
                           >
                             <Printer className="w-3.5 h-3.5" />
@@ -1720,17 +2635,16 @@ export const TendersBOQPage: React.FC = () => {
                               handleSelectTender(t);
                               handleDuplicateTender();
                             }}
-                            className="p-1.5 hover:bg-[#f3f3f3] text-[#707070] rounded-lg"
+                            className="p-1.5 hover:bg-[#f3f3f3] text-[#707070] rounded-lg cursor-pointer"
                             title="نسخ المنافسة"
                           >
                             <Copy className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => {
-                              handleSelectTender(t);
-                              handleDeleteTender();
+                              handleDeleteTender(t.id);
                             }}
-                            className="p-1.5 hover:bg-[#f3f3f3] text-[#141414] rounded-lg"
+                            className="p-1.5 hover:bg-[#f3f3f3] text-[#141414] rounded-lg cursor-pointer"
                             title="حذف المنافسة"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1915,36 +2829,30 @@ export const TendersBOQPage: React.FC = () => {
                   <span>+ إضافة مورد معتمد جديد</span>
                 </button>
 
-                {/* Multi-Format Export Group */}
-                <div className="flex items-center bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl p-1">
-                  <span className="text-[10px] text-[#707070] font-bold px-1.5 flex items-center gap-1">
-                    <Download className="w-3 h-3 text-[#707070]" />
-                    <span>تصدير:</span>
-                  </span>
+                {/* Multi-Format Export & Preview Studio Group */}
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <button
-                    onClick={handleExportSuppliersExcel}
-                    className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-xl flex items-center gap-1"
-                    title="تصدير كـ Excel"
+                    type="button"
+                    onClick={() =>
+                      handleOpenPreviewStudio(
+                        'kas_suppliers',
+                        suppliers,
+                        'سجل الموردين والمقاولين المعتمدين — كاس للتجارة'
+                      )
+                    }
+                    className="px-3 py-2 bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] border border-[#e0e0e0] text-xs font-bold rounded-2xl flex items-center gap-1.5 cursor-pointer"
                   >
-                    <FileSpreadsheet className="w-3 h-3 text-[#141414]" />
-                    <span>Excel</span>
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>معاينة السجل</span>
                   </button>
-                  <button
-                    onClick={handleExportSuppliersCSV}
-                    className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-xl flex items-center gap-1"
-                    title="تصدير كـ CSV"
-                  >
-                    <FileText className="w-3 h-3 text-[#141414]" />
-                    <span>CSV</span>
-                  </button>
-                  <button
-                    onClick={() => window.print()}
-                    className="px-2.5 py-1 text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] rounded-xl flex items-center gap-1"
-                    title="طباعة سجل الموردين / PDF"
-                  >
-                    <Printer className="w-3 h-3 text-[#141414]" />
-                    <span>PDF</span>
-                  </button>
+
+                  <ExportDropdown
+                    sectionKey="kas_suppliers"
+                    data={suppliers}
+                    customTitle="سجل الموردين والمقاولين المعتمدين — كاس للتجارة"
+                    buttonLabel="تصدير الموردين"
+                    variant="outline-light"
+                  />
                 </div>
               </div>
             </div>
@@ -3201,6 +4109,15 @@ export const TendersBOQPage: React.FC = () => {
           </div>
         </div>
       )}
+      <ExportPreviewModal
+        isOpen={previewStudioState.isOpen}
+        onClose={() =>
+          setPreviewStudioState((prev) => ({ ...prev, isOpen: false }))
+        }
+        sectionKey={previewStudioState.sectionKey}
+        data={previewStudioState.data}
+        customTitle={previewStudioState.customTitle}
+      />
     </div>
   );
 };

@@ -8,7 +8,8 @@ import {
   Users, Star, MapPin, Phone, Mail, PieChart, Activity, Copy,
   Upload, FileUp, QrCode, Percent, ArrowUpRight, Shield, CheckSquare,
   Filter, ChevronRight, ChevronLeft, Calendar, FileCheck, HelpCircle,
-  Clock, Hash, ExternalLink, FolderSync, LayoutGrid, Table as TableIcon
+  Clock, Hash, ExternalLink, FolderSync, LayoutGrid, Table as TableIcon,
+  RotateCcw, RotateCw, MessageCircle
 } from 'lucide-react';
 import { KasTenderItem, SheetCategory, KasSheetMeta } from '../../types/kasMonafasat';
 import { kasMonafasatService, KAS_SHEETS_META } from '../../services/kasMonafasatService';
@@ -16,6 +17,10 @@ import { generateZatcaQR } from '../../services/zatcaPhase2Service';
 import { useAppStore } from '../../stores/appStore';
 import { tafqeet } from '../../services/tafqeetService';
 import { KasKpiCard, KasTenderCard } from '../kas/KasCards';
+import { ExportDropdown } from '../common/ExportDropdown';
+import { ExportPreviewModal } from '../common/ExportPreviewModal';
+import { shareViaEmail, shareViaWhatsApp } from '../../services/quickShareService';
+import { buildExecutivePdfFileName, generateExecutivePdfArtifact } from '../../services/exportService';
 
 interface Props {
   onConvertToBOQ?: (tender: KasTenderItem) => void;
@@ -50,7 +55,43 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState<boolean>(false);
+  const [isExportPreviewOpen, setIsExportPreviewOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<Partial<KasTenderItem>>({});
+
+  // Undo / Redo History Stack
+  const [undoStack, setUndoStack] = useState<{ label: string; rows: KasTenderItem[] }[]>([]);
+  const [redoStack, setRedoStack] = useState<{ label: string; rows: KasTenderItem[] }[]>([]);
+
+  const pushUndoSnapshot = (label: string) => {
+    setUndoStack((prev) => [...prev.slice(-39), { label, rows: tenders.map((r) => ({ ...r })) }]);
+    setRedoStack([]);
+  };
+
+  const handleUndo = () => {
+    if (undoStack.length === 0) return;
+    const last = undoStack[undoStack.length - 1];
+    setRedoStack((prev) => [...prev, { label: last.label, rows: tenders.map((r) => ({ ...r })) }]);
+    setUndoStack((prev) => prev.slice(0, -1));
+    setTenders(last.rows);
+    addNotification({
+      title: 'تم التراجع (Undo)',
+      message: `تم التراجع عن: ${last.label}`,
+      type: 'info',
+    });
+  };
+
+  const handleRedo = () => {
+    if (redoStack.length === 0) return;
+    const next = redoStack[redoStack.length - 1];
+    setUndoStack((prev) => [...prev, { label: next.label, rows: tenders.map((r) => ({ ...r })) }]);
+    setRedoStack((prev) => prev.slice(0, -1));
+    setTenders(next.rows);
+    addNotification({
+      title: 'تمت الإعادة (Redo)',
+      message: `تمت إعادة: ${next.label}`,
+      type: 'info',
+    });
+  };
 
   // Column visibility
   const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
@@ -271,6 +312,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
       });
       return;
     }
+    pushUndoSnapshot(`إضافة منافسة: ${formData.title}`);
     const targetSheet = formData.sheetName || selectedSheetName || 'تجارة';
     const newItem = kasMonafasatService.addTender(targetSheet, formData as any);
     addNotification({
@@ -284,6 +326,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
 
   const handleSaveEdit = () => {
     if (!selectedItem || !selectedItem.id) return;
+    pushUndoSnapshot(`تعديل منافسة: ${selectedItem.title}`);
     const targetSheet = selectedItem.sheetName || selectedSheetName || 'تجارة';
     const success = kasMonafasatService.updateTender(targetSheet, selectedItem.id, formData);
     if (success) {
@@ -297,16 +340,87 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
     }
   };
 
+  const handleDuplicateRow = (item: KasTenderItem) => {
+    pushUndoSnapshot(`نسخ منافسة: ${item.title}`);
+    const targetSheet = item.sheetName || selectedSheetName || 'تجارة';
+    const cloned = kasMonafasatService.addTender(targetSheet, {
+      ...item,
+      title: `${item.title} (نسخة)`,
+      referenceNumber: item.referenceNumber ? `${item.referenceNumber}-C` : '',
+    });
+    addNotification({
+      title: 'تم نسخ المنافسة',
+      message: `تم إنشاء نسخة مطابقة: "${cloned.title}" (يمكنك التراجع بزر التراجع).`,
+      type: 'success',
+    });
+    loadData();
+  };
+
   const handleDelete = (item: KasTenderItem) => {
     if (confirm(`هل أنت متأكد من حذف المنافسة: "${item.title}"؟`)) {
+      pushUndoSnapshot(`حذف منافسة: ${item.title}`);
       const targetSheet = item.sheetName || selectedSheetName || 'تجارة';
       kasMonafasatService.deleteTender(targetSheet, item.id);
       addNotification({
         title: 'تم الحذف',
-        message: 'تم حذف المنافسة بنجاح من السجل المحلي.',
+        message: 'تم حذف المنافسة بنجاح (يمكنك استعادتها عبر زر التراجع Undo).',
         type: 'info',
       });
       loadData();
+    }
+  };
+
+  const handleShareItem = (item: KasTenderItem, channel: 'email' | 'whatsapp') => {
+    const title = `منافسة كاس: ${item.title}`;
+    const pdfName = buildExecutivePdfFileName(title);
+    const payload = {
+      title,
+      entityCode: 'KAS' as const,
+      moduleName: 'kas_monafasat_master',
+      summaryLines: [
+        { label: 'المؤسسة', value: item.company || 'مؤسسة خالد عبدالعزيز السليم للتجارة (كاس)' },
+        { label: 'الرقم المرجعي (اعتماد)', value: item.referenceNumber || item.tenderCode || '-' },
+        { label: 'الجهة الحكومية', value: item.entity || '-' },
+        { label: 'قيمة عرض كاس', value: `\u200E\u20C1 ${(Number(item.bidValue) || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` },
+        { label: 'المبلغ الفائز', value: `\u200E\u20C1 ${(Number(item.winningBidValue) || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` },
+        { label: 'الحالة والملاحظات', value: item.notes || item.rejectionReason || 'قيد الدراسة' },
+      ],
+      attachmentFileName: pdfName,
+      attachmentFilePromise: generateExecutivePdfArtifact('kas_monafasat_master', [item], title).then(
+        (a) => a?.file ?? null
+      ),
+    };
+    if (channel === 'whatsapp') {
+      shareViaWhatsApp(payload);
+    } else {
+      shareViaEmail(payload);
+    }
+  };
+
+  const handleShareSheet = (channel: 'email' | 'whatsapp') => {
+    const title = `سجل منافسات كاس المعتمد — شيت ${selectedSheetName}`;
+    const pdfName = buildExecutivePdfFileName(title);
+    const payload = {
+      title,
+      entityCode: 'KAS' as const,
+      moduleName: 'kas_monafasat_master',
+      summaryLines: [
+        { label: 'الشيت النشط', value: selectedSheetName },
+        { label: 'إجمالي المنافسات', value: `${filteredTenders.length} منافسة` },
+        { label: 'إجمالي قيمة العروض', value: `\u200E\u20C1 ${kpis.totalBidValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}` },
+        { label: 'عدد الترسيات المعتمدة', value: `${kpis.wonCount} ترسية (${kpis.winRate}%)` },
+      ],
+      attachmentFileName: pdfName,
+      attachmentFilePromise: generateExecutivePdfArtifact(
+        'kas_monafasat_master',
+        filteredTenders.slice(0, 100),
+        title
+      ).then((a) => a?.file ?? null),
+    };
+    if (channel === 'whatsapp') {
+      shareViaWhatsApp(payload);
+    } else {
+      shareViaEmail(payload);
     }
   };
 
@@ -429,6 +543,28 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
             </button>
 
             <button
+              onClick={handleUndo}
+              disabled={undoStack.length === 0}
+              className="button-outline-on-dark disabled:opacity-40"
+              style={{ fontSize: '12px', padding: '6px 12px', minHeight: '38px' }}
+              title="التراجع عن آخر تعديل أو حذف (Undo)"
+            >
+              <RotateCcw className="w-3.5 h-3.5 ml-1" />
+              <span>تراجع ({undoStack.length})</span>
+            </button>
+
+            <button
+              onClick={handleRedo}
+              disabled={redoStack.length === 0}
+              className="button-outline-on-dark disabled:opacity-40"
+              style={{ fontSize: '12px', padding: '6px 12px', minHeight: '38px' }}
+              title="إعادة التعديل (Redo)"
+            >
+              <RotateCw className="w-3.5 h-3.5 ml-1" />
+              <span>إعادة ({redoStack.length})</span>
+            </button>
+
+            <button
               onClick={() => setIsImportModalOpen(true)}
               className="button-outline-on-dark"
               style={{ fontSize: '12px', padding: '6px 14px', minHeight: '38px' }}
@@ -438,23 +574,42 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
             </button>
 
             <button
-              onClick={handleExport}
+              onClick={() => handleShareSheet('email')}
               className="button-outline-on-dark"
-              style={{ fontSize: '12px', padding: '6px 14px', minHeight: '38px' }}
+              style={{ fontSize: '12px', padding: '6px 12px', minHeight: '38px' }}
+              title="إرسال السجل عبر البريد الإلكتروني (Outlook)"
             >
-              <Download className="w-3.5 h-3.5 ml-1 text-[#141414]" />
-              <span>تصدير XLSX</span>
+              <Mail className="w-3.5 h-3.5 ml-1" />
+              <span>بريد</span>
             </button>
 
             <button
-              onClick={() => setIsPrintModalOpen(true)}
+              onClick={() => handleShareSheet('whatsapp')}
+              className="button-outline-on-dark"
+              style={{ fontSize: '12px', padding: '6px 12px', minHeight: '38px' }}
+              title="إرسال السجل عبر الواتساب"
+            >
+              <MessageCircle className="w-3.5 h-3.5 ml-1" />
+              <span>واتساب</span>
+            </button>
+
+            <button
+              onClick={() => setIsExportPreviewOpen(true)}
               className="button-outline-on-dark"
               style={{ fontSize: '12px', padding: '6px 14px', minHeight: '38px' }}
-              title="طباعة كشف المنافسات"
+              title="معاينة التصدير الشاملة بكافة خياراتها"
             >
-              <Printer className="w-3.5 h-3.5 ml-1 text-[#141414]" />
-              <span>طباعة كشف</span>
+              <Eye className="w-3.5 h-3.5 ml-1" />
+              <span>معاينة وتخصيص</span>
             </button>
+
+            <ExportDropdown
+              sectionKey="kas_monafasat_master"
+              data={filteredTenders}
+              customTitle={`سجل منافسات كاس — شيت ${selectedSheetName}`}
+              buttonLabel="تصدير الكشوفات"
+              variant="outline-dark"
+            />
           </div>
         </div>
       </div>
@@ -950,7 +1105,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                             className="p-3 text-center sticky left-0 bg-white group-hover:bg-[#f3f3f3] z-10 border-r border-[#e0e0e0] "
                             onClick={e => e.stopPropagation()}
                           >
-                            <div className="flex items-center justify-center gap-1.5">
+                            <div className="flex items-center justify-center gap-1">
                               <button
                                 onClick={() => {
                                   setSelectedItem(item);
@@ -959,7 +1114,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                                 className="p-1.5 rounded-xl hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] cursor-pointer transition"
                                 title="معاينة التفاصيل"
                               >
-                                <Eye className="w-4 h-4" />
+                                <Eye className="w-3.5 h-3.5" />
                               </button>
 
                               <button
@@ -967,7 +1122,31 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                                 className="p-1.5 rounded-xl hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] cursor-pointer transition"
                                 title="تعديل"
                               >
-                                <Edit3 className="w-4 h-4" />
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+
+                              <button
+                                onClick={() => handleDuplicateRow(item)}
+                                className="p-1.5 rounded-xl hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] cursor-pointer transition"
+                                title="نسخ وتكرار السجل"
+                              >
+                                <Copy className="w-3.5 h-3.5" />
+                              </button>
+
+                              <button
+                                onClick={() => handleShareItem(item, 'email')}
+                                className="p-1.5 rounded-xl hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] cursor-pointer transition"
+                                title="إرسال عبر البريد الإلكتروني"
+                              >
+                                <Mail className="w-3.5 h-3.5" />
+                              </button>
+
+                              <button
+                                onClick={() => handleShareItem(item, 'whatsapp')}
+                                className="p-1.5 rounded-xl hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] cursor-pointer transition"
+                                title="إرسال عبر الواتساب"
+                              >
+                                <MessageCircle className="w-3.5 h-3.5" />
                               </button>
 
                               {onConvertToBOQ && (
@@ -976,7 +1155,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                                   className="p-1.5 rounded-xl hover:bg-[#f3f3f3] text-[#141414] cursor-pointer transition"
                                   title="تحويل لكراسة BOQ والتفقيط"
                                 >
-                                  <Calculator className="w-4 h-4" />
+                                  <Calculator className="w-3.5 h-3.5" />
                                 </button>
                               )}
 
@@ -985,7 +1164,7 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
                                 className="p-1.5 rounded-xl hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] cursor-pointer transition"
                                 title="حذف"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
                           </td>
@@ -1539,6 +1718,13 @@ export const KasMonafasatSpreadsheetView: React.FC<Props> = ({ onConvertToBOQ })
           </div>
         </div>
       )}
+      <ExportPreviewModal
+        isOpen={isExportPreviewOpen}
+        onClose={() => setIsExportPreviewOpen(false)}
+        sectionKey="kas_monafasat_master"
+        data={filteredTenders}
+        customTitle={`سجل منافسات كاس — شيت ${selectedSheetName}`}
+      />
     </div>
   );
 };
