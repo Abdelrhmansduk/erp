@@ -1,0 +1,27 @@
+# ============================================================================
+# GitHub Pro CODEOWNERS — Khalid Al-Sulaim Holding Group ERP (KAS ERP)
+# Automatically requests review from the lead owner on critical modules.
+# ============================================================================
+
+# Default repository owner
+* @khalid-group-12
+
+# CI/CD Workflows, Governance & Security
+/.github/ @khalid-group-12
+/vite.config.ts @khalid-group-12
+/package.json @khalid-group-12
+
+# Authentication, RBAC Whitelist & Multi-Company Isolation
+/src/config/kasAllowedEmails.ts @khalid-group-12
+/src/config/kasEmployeePasswordHashes.ts @khalid-group-12
+/src/services/authService.ts @khalid-group-12
+/src/services/iamPolicyEngine.ts @khalid-group-12
+/src/services/kasTradeScope.ts @khalid-group-12
+
+# Database Migrations & Strict RLS Policies
+/supabase/migrations/ @khalid-group-12
+
+# Accounting Engine (IFRS / ZATCA / GL) & KAS Enterprise WMS
+/src/services/accounting/ @khalid-group-12
+/src/services/wms/ @khalid-group-12
+/src/pages/KasWarehouseManagementPage.tsx @khalid-group-12

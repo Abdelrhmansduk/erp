@@ -1,15 +1,25 @@
 name: 13-Phase Production QA Validator
 
 on:
-  push:
-    branches: [main, master]
   pull_request:
     branches: [main, master]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-qa-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   production-qa:
     name: Typecheck, Unit Tests & Production Build
     runs-on: ubuntu-latest
+    timeout-minutes: 12
 
     steps:
       - name: Checkout Repository

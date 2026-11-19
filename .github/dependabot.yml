@@ -1,0 +1,44 @@
+# ============================================================================
+# Dependabot Automated Security & Dependency Maintenance (GitHub Pro)
+# Weekly grouped updates to keep Actions minutes efficient (< 3,000 mins/mo)
+# ============================================================================
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "03:00"
+      timezone: "Asia/Riyadh"
+    open-pull-requests-limit: 5
+    groups:
+      production-minor-patch:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      dev-tooling:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "dependencies"
+      - "automated"
+    commit-message:
+      prefix: "chore(deps)"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "sunday"
+      time: "04:00"
+      timezone: "Asia/Riyadh"
+    open-pull-requests-limit: 3
+    labels:
+      - "ci-cd"
+      - "automated"
+    commit-message:
+      prefix: "chore(ci)"

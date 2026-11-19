@@ -1,0 +1,107 @@
+name: Main Branch CI Gate (GitHub Pro Optimized)
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+# Least-privilege token permissions (Security Best Practice)
+permissions:
+  contents: read
+
+# Cancel superseded runs on the same branch/PR to preserve GitHub Pro minutes (3,000/mo)
+concurrency:
+  group: ci-main-gate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck-and-secrets-guard:
+    name: Typecheck & Secrets Guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22 (with npm cache)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Strict TypeScript Check (tsc --noEmit)
+        run: npx tsc --noEmit
+
+      - name: Static Secrets Leakage Guard
+        run: |
+          if git ls-files | grep -E '^\.env(\.local|\.production)?$'; then
+            echo "::error::Tracked .env file detected in repository!"
+            exit 1
+          fi
+          if grep -rnE '(sb_secret_|SUPABASE_SERVICE_ROLE_KEY\s*=\s*["'\'']eyJ|-----BEGIN (RSA |EC )?PRIVATE KEY-----)' src/; then
+            echo "::error::Potential hardcoded secret detected in src/!"
+            exit 1
+          fi
+          echo "Secrets guard passed cleanly."
+
+  unit-tests-suite:
+    name: Full Vitest Suite (RBAC + Accounting + WMS + HR)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22 (with npm cache)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run Full Automated Test Suite
+        run: npx vitest run
+
+  production-build:
+    name: Production Build Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    needs: [typecheck-and-secrets-guard]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22 (with npm cache)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build Production Bundle
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+      - name: Verify Core Dist Artifacts
+        run: |
+          test -f dist/index.html
+          test -f dist/manifest.json
+          test -f dist/robots.txt
+          echo "All production artifacts verified."
