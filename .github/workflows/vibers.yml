@@ -20,6 +20,6 @@ jobs:
       - name: Run Vibers Code Review Action
         uses: marsiandeployer/vibers-action@v1
         with:
-          spec_url: ${{ vars.VIBERS_SPEC_URL || 'https://erp.alsulaim.sa/erp-site-architecture-plan.md' }}
+          spec_url: ${{ vars.VIBERS_SPEC_URL || 'https://kas-erp.com/erp-site-architecture-plan.md' }}
           review_scope: 'full'
           telegram_contact: ${{ vars.VIBERS_TELEGRAM_CONTACT || '' }}

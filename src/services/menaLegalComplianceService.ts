@@ -303,7 +303,7 @@ export async function recordMarketingConsent(params: {
   }
 
   const token = `unsub_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://erp.alsulaim.sa';
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://kas-erp.com';
   const unsubscribeUrl = `${origin}/?unsubscribe=${encodeURIComponent(cleanRecipient)}&token=${encodeURIComponent(token)}`;
 
   const record: MarketingConsentRecord = {
@@ -411,7 +411,7 @@ export function buildCompliantMarketingMessage(params: {
   bodyText: string;
   channel: 'email' | 'sms' | 'whatsapp';
 }): string {
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://erp.alsulaim.sa';
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://kas-erp.com';
   const unsubLink = `${origin}/?unsubscribe=${encodeURIComponent(params.recipient.trim().toLowerCase())}`;
 
   return [

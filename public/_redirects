@@ -1,0 +1,3 @@
+# Cloudflare Pages SPA Fallback for KAS Enterprise ERP (kas-erp.com)
+# Static assets (/assets/*, /logo.png, etc.) and Pages Functions (/api/*) are served automatically first.
+/* /index.html 200

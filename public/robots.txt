@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
-Disallow: /api/private/
+Disallow: /api/
+Disallow: /iclock/
 
-Sitemap: https://erp.alsulaim.sa/sitemap.xml
+Sitemap: https://kas-erp.com/sitemap.xml
