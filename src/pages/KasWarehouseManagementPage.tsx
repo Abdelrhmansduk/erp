@@ -65,6 +65,7 @@ import {
   WmsSerialsSamplesTab,
 } from '../components/wms/WmsSubTabs';
 import { WmsScannerAndLabelHubTab } from '../components/wms/WmsScannerAndLabelHubTab';
+import { WmsInteractiveAvatar } from '../components/wms/WmsInteractiveAvatar';
 
 type WmsTabId =
   | 'overview'
@@ -433,6 +434,23 @@ export const KasWarehouseManagementPage: React.FC = () => {
             <p className="text-sm text-[#707070] font-light">
               دليل أصناف موحّد (Multi-UoM) • دفتر أستاذ مخزني مزدوج • باركود وQR • تتبع تسلسلي وعهد وصلاحية • جرد أعمى • ترحيل كامل لـ 116 حركة إكسل.
             </p>
+            <div className="pt-1">
+              <WmsInteractiveAvatar
+                activeTab={activeTab}
+                actorName={actor.name}
+                totalItems={state.items.length}
+                lowStockCount={alerts.lowStockItems.length}
+                pendingDiscrepancies={alerts.pendingDiscrepancies}
+                onQuickAction={(action) => {
+                  if (action === 'scan') setActiveTab('scanner-labels');
+                  else if (action === 'excel') setIsExcelImportOpen(true);
+                  else if (action === 'reconcile') setActiveTab('reconciliation');
+                  else if (action === 'guide') setIsGuideOpen(true);
+                  else if (action === 'grn') setVoucherModalState({ open: true, type: 'GRN' });
+                  else if (action === 'gin') setVoucherModalState({ open: true, type: 'GIN' });
+                }}
+              />
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
