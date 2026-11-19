@@ -3,6 +3,7 @@ import { wmsEngineService, WmsActor } from './wmsEngineService';
 import { wmsExcelImporter } from './wmsExcelImporter';
 import { buildMultiSheetWmsExcelFile, wmsExportAndSendService } from './wmsExportAndSendService';
 import { wmsScannerAndBarcodeService } from './wmsScannerAndBarcodeService';
+import { wmsAdvancedOpsService } from './wmsAdvancedOpsService';
 
 const HATEM: WmsActor = {
   email: 'h.salman.trade@kas.sa',
@@ -364,5 +365,83 @@ describe('KAS Enterprise WMS Engine (116-Row Excel Migration + Global WMS Standa
     expect(parsed[0].qty).toBe(2);
     expect(parsed[1].qty).toBe(3);
     expect(parsed[0].resolution.matchedType).toBe('SERIAL_ASSET');
+  });
+
+  it('supports World-Class Phase 2 Ops: MRQ -> GIN, Auto-PR -> GRN, Warranty, 2D Heatmap, Dead Stock Forecast, and Digital Signature', () => {
+    wmsAdvancedOpsService.resetForTesting();
+
+    const item = wmsEngineService.createItem(
+      {
+        nameAr: 'كشاف عالمي اختبار',
+        categoryId: 'CAT-MEP',
+        baseUom: 'حبة',
+        uomConversions: [{ uomName: 'حبة', factorToBase: 1 }],
+        trackingMode: 'NONE',
+        valuationMethod: 'AVCO',
+        avgUnitCost: 50,
+        lastPurchaseCost: 50,
+        minQty: 5,
+        reorderPoint: 10,
+        maxQty: 50,
+        defaultWarehouseId: 'WH-MAIN',
+        defaultLocationCode: 'Z-MEP-R1-B1',
+        isCustodyEligible: false,
+        isFastConsumable: false,
+        isSampleItem: false,
+        initialQty: 4,
+        status: 'نشط',
+      },
+      HATEM
+    );
+
+    // 1) Internal Requisition -> 1-Click GIN
+    const req = wmsAdvancedOpsService.createRequisition({
+      requestedBy: 'رجاء الجبر',
+      beneficiaryEntity: 'سكن العاملات (مركز الإيواء)',
+      costCenterCode: 'CC-SHL-01',
+      priority: 'عاجل',
+      itemId: item.id,
+      qty: 2,
+    })!;
+    const conv = wmsAdvancedOpsService.convertRequisitionToGin(req.id, 'WH-MAIN', HATEM);
+    expect(conv.ok).toBe(true);
+    expect(wmsEngineService.getItemStockSummary(item.id).onHand).toBe(2);
+
+    // 2) Digital Handover Signature saved on the generated GIN voucher
+    const ginVoucher = wmsEngineService.getState().vouchers.find((v) => v.voucherNo === conv.voucherNo)!;
+    const signed = wmsAdvancedOpsService.saveVoucherDigitalSignature(
+      ginVoucher.id,
+      'data:image/png;base64,iVBORw0KGgo=',
+      'رجاء الجبر',
+      HATEM
+    );
+    expect(signed).toBe(true);
+    expect(
+      wmsEngineService.getState().vouchers.find((v) => v.id === ginVoucher.id)?.handoverSignatureDataUrl
+    ).toContain('data:image/png');
+
+    // 3) Auto-PR from Low Stock Radar -> Receive as GRN
+    const prs = wmsAdvancedOpsService.generateAutoPurchaseRequestsFromLowStock();
+    const myPr = prs.find((p) => p.itemId === item.id);
+    expect(myPr).toBeDefined();
+    const rec = wmsAdvancedOpsService.receivePurchaseRequestAsGrn(myPr!.id, 10, 50, AHMED_GAMAL);
+    expect(rec.ok).toBe(true);
+    expect(wmsEngineService.getItemStockSummary(item.id).onHand).toBe(12);
+
+    // 4) Warranty + Maintenance + 2D Heatmap + Aging Forecast
+    const wrn = wmsAdvancedOpsService.createWarrantyRecord({
+      assetName: 'مبرد مياه اختبار',
+      serialNumber: 'WTR-991',
+      locationOrCustodian: 'مكتب إدارة العاملات',
+      vendorName: 'اكسترا',
+      purchaseDate: '2026-11-17',
+      warrantyEndDate: '2028-11-17',
+    });
+    expect(wmsAdvancedOpsService.logMaintenanceEvent(wrn.id, { issue: 'تبديل فلتر', vendorOrTech: 'فني الصيانة', cost: 120, status: 'مكتمل' })).toBe(true);
+
+    const heatmap = wmsAdvancedOpsService.computeWarehouseHeatmap();
+    expect(heatmap.length).toBeGreaterThanOrEqual(5);
+    const forecast = wmsAdvancedOpsService.computeAgingAndForecast();
+    expect(forecast.length).toBeGreaterThan(50);
   });
 });

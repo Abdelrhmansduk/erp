@@ -1107,9 +1107,18 @@ export const WmsVoucherPrintModal: React.FC<{
               </div>
             </div>
             <div>
-              <div className="text-[#707070] mb-6">توقيع المستلم</div>
+              <div className="text-[#707070] mb-2">توقيع المستلم</div>
+              {voucher.handoverSignatureDataUrl ? (
+                <img
+                  src={voucher.handoverSignatureDataUrl}
+                  alt="توقيع المستلم الإلكتروني"
+                  className="h-12 mx-auto object-contain mb-1"
+                />
+              ) : (
+                <div className="h-8" />
+              )}
               <div className="font-bold text-[#141414] border-t border-[#e0e0e0] pt-1.5">
-                {voucher.recipientName || '.........................'}
+                {voucher.handoverSignerName || voucher.recipientName || '.........................'}
               </div>
             </div>
           </div>

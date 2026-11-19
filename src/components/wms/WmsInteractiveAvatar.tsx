@@ -17,6 +17,7 @@ export type WmsAvatarMood =
   | 'catalog'
   | 'vouchers'
   | 'scanner-labels'
+  | 'world-class'
   | 'quick-consumables'
   | 'serials-samples'
   | 'cycle-counts'

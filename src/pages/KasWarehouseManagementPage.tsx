@@ -34,6 +34,8 @@ import {
   Redo2,
   ArchiveRestore,
   MessageCircle,
+  Sparkles,
+  PenTool,
 } from 'lucide-react';
 import { useAuthContext } from '../contexts/AuthContext';
 import { useAppStore } from '../stores/appStore';
@@ -66,12 +68,16 @@ import {
 } from '../components/wms/WmsSubTabs';
 import { WmsScannerAndLabelHubTab } from '../components/wms/WmsScannerAndLabelHubTab';
 import { WmsInteractiveAvatar } from '../components/wms/WmsInteractiveAvatar';
+import { WmsWorldClassSuiteTab } from '../components/wms/WmsWorldClassSuiteTab';
+import { WmsSignaturePadModal } from '../components/wms/WmsSignaturePadModal';
+import { wmsAdvancedOpsService } from '../services/wms/wmsAdvancedOpsService';
 
 type WmsTabId =
   | 'overview'
   | 'catalog'
   | 'vouchers'
   | 'scanner-labels'
+  | 'world-class'
   | 'quick-consumables'
   | 'serials-samples'
   | 'cycle-counts'
@@ -111,6 +117,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
   const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<WmsItem | null>(null);
   const [editingVoucher, setEditingVoucher] = useState<WmsStockVoucher | null>(null);
+  const [signingVoucher, setSigningVoucher] = useState<WmsStockVoucher | null>(null);
   const [mediaTarget, setMediaTarget] = useState<
     { kind: 'ITEM'; id: string } | { kind: 'VOUCHER'; id: string } | null
   >(null);
@@ -390,6 +397,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
     { id: 'catalog', label: 'دليل الأصناف والأرصدة', icon: <Package className="w-3.5 h-3.5" />, badge: state.items.length },
     { id: 'vouchers', label: 'دفتر الأذونات (وارد/صادر/مرتجع)', icon: <FileText className="w-3.5 h-3.5" />, badge: state.vouchers.length },
     { id: 'scanner-labels', label: 'أجهزة الجرد والباركود التسلسلي', icon: <ScanBarcode className="w-3.5 h-3.5" />, badge: 'USB/PDA' },
+    { id: 'world-class', label: 'العمليات العالمية (طلبات/خريطة/ضمان/راكد)', icon: <Sparkles className="w-3.5 h-3.5" />, badge: 'PRO' },
     { id: 'quick-consumables', label: 'الصرف السريع (حجارة ومستهلكات)', icon: <BatteryCharging className="w-3.5 h-3.5" />, badge: state.fastConsumables.length },
     { id: 'serials-samples', label: 'الأصول المسلسلة والعهد والعينات', icon: <ShieldCheck className="w-3.5 h-3.5" />, badge: state.serialLots.length },
     { id: 'cycle-counts', label: 'الجرد الدوري الأعمى', icon: <ClipboardList className="w-3.5 h-3.5" /> },
@@ -1173,6 +1181,18 @@ export const KasWarehouseManagementPage: React.FC = () => {
                         </button>
                         <button
                           type="button"
+                          onClick={() => setSigningVoucher(v)}
+                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+                            v.handoverSignatureDataUrl
+                              ? 'bg-[#141414] text-white'
+                              : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#141414] hover:text-white'
+                          }`}
+                          title={v.handoverSignatureDataUrl ? 'موقّع إلكترونياً — اضغط للتحديث' : 'التوقيع الإلكتروني على السند'}
+                        >
+                          <PenTool className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => setMediaTarget({ kind: 'VOUCHER', id: v.id })}
                           className="px-2 h-7 rounded-full bg-[#f3f3f3] flex items-center justify-center gap-1 text-[10px] font-bold text-[#141414] hover:bg-[#141414] hover:text-white transition-colors"
                           title="صور الفاتورة وسند الاستلام والوسائط"
@@ -1262,6 +1282,16 @@ export const KasWarehouseManagementPage: React.FC = () => {
 
       {activeTab === 'scanner-labels' && (
         <WmsScannerAndLabelHubTab
+          items={state.items}
+          warehouses={state.warehouses}
+          actor={actor}
+          onStateChanged={refresh}
+          onNotify={(title, message, type = 'success') => addNotification({ title, message, type })}
+        />
+      )}
+
+      {activeTab === 'world-class' && (
+        <WmsWorldClassSuiteTab
           items={state.items}
           warehouses={state.warehouses}
           actor={actor}
@@ -1462,6 +1492,20 @@ export const KasWarehouseManagementPage: React.FC = () => {
       <WmsBarcodeLabelModal item={barcodeItem} onClose={() => setBarcodeItem(null)} />
 
       <WmsVoucherPrintModal voucher={printVoucher} onClose={() => setPrintVoucher(null)} />
+
+      <WmsSignaturePadModal
+        voucher={signingVoucher}
+        onClose={() => setSigningVoucher(null)}
+        onSaveSignature={(voucherId, dataUrl, signerName) => {
+          wmsAdvancedOpsService.saveVoucherDigitalSignature(voucherId, dataUrl, signerName, actor);
+          refresh();
+          addNotification({
+            title: 'تم حفظ التوقيع الإلكتروني',
+            message: `تم توثيق توقيع (${signerName}) وإدراجه في سند PDF الرسمي.`,
+            type: 'success',
+          });
+        }}
+      />
 
       <WmsExportAndSendModal
         open={exportSendModal.open}

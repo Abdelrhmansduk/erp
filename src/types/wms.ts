@@ -166,6 +166,8 @@ export interface WmsStockVoucher {
   journalEntryId?: string;
   handoverSigned: boolean;
   handoverSignedAt?: string;
+  handoverSignatureDataUrl?: string;
+  handoverSignerName?: string;
   createdByEmail: string;
   createdByName: string;
   postedByEmail?: string;
@@ -346,6 +348,75 @@ export interface WmsRecycleBinEntry {
   deletedAt: string;
   reason?: string;
   payload: unknown;
+}
+
+export interface WmsMaterialRequisition {
+  id: string;
+  company_id: 'KAS';
+  reqNo: string;
+  requestDate: string;
+  requestedBy: string;
+  beneficiaryEntity: string;
+  costCenterCode: string;
+  roomOrSite?: string;
+  priority: 'عاجل' | 'عادي';
+  status: 'جديد' | 'تم الصرف' | 'مرفوض';
+  lines: Array<{
+    itemId: string;
+    sku: string;
+    itemName: string;
+    requestedQty: number;
+    uom: string;
+  }>;
+  convertedVoucherNo?: string;
+  notes?: string;
+  processedBy?: string;
+  processedAt?: string;
+}
+
+export interface WmsPurchaseRequest {
+  id: string;
+  company_id: 'KAS';
+  prNo: string;
+  createdDate: string;
+  itemId: string;
+  sku: string;
+  itemName: string;
+  currentAvailableQty: number;
+  reorderPoint: number;
+  suggestedOrderQty: number;
+  uom: string;
+  estimatedUnitCost: number;
+  assignedBuyer: string;
+  preferredSupplier?: string;
+  status: 'مفتوح للمشتريات' | 'قيد التوريد' | 'تم الاستلام (GRN)';
+  receivedVoucherNo?: string;
+  notes?: string;
+}
+
+export interface WmsMaintenanceLog {
+  id: string;
+  date: string;
+  issue: string;
+  vendorOrTech: string;
+  cost: number;
+  status: 'مكتمل' | 'قيد الإصلاح';
+}
+
+export interface WmsWarrantyRecord {
+  id: string;
+  company_id: 'KAS';
+  itemId?: string;
+  sku: string;
+  assetName: string;
+  serialNumber: string;
+  locationOrCustodian: string;
+  vendorName: string;
+  purchaseDate: string;
+  warrantyEndDate: string;
+  status: 'ساري' | 'قريب الانتهاء' | 'منتهي' | 'تحت الصيانة';
+  maintenanceLogs: WmsMaintenanceLog[];
+  notes?: string;
 }
 
 export interface WmsSettings {
