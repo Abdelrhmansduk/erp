@@ -28,6 +28,12 @@ gh api --method PUT "repos/$Repo/vulnerability-alerts" | Out-Null
 gh api --method PUT "repos/$Repo/automated-security-fixes" | Out-Null
 Write-Host "[OK] Enabled Dependabot Vulnerability Alerts & Security Fixes." -ForegroundColor Green
 
+# 2.5 Create GitHub Pro Environments (staging & production)
+foreach ($envName in @("staging", "production")) {
+  gh api --method PUT "repos/$Repo/environments/$envName" | Out-Null
+  Write-Host "[OK] Provisioned GitHub Environment: $envName" -ForegroundColor Green
+}
+
 # 3. Protect `main` branch with required CI status checks (allows Admin emergency bypass if needed)
 $protectionPayload = @{
   required_status_checks = @{
@@ -44,13 +50,20 @@ $protectionPayload = @{
     require_code_owner_reviews      = $true
     required_approving_review_count = 1
   }
-  restrictions        = $null
-  allow_force_pushes  = $false
-  allow_deletions     = $false
+  restrictions            = $null
+  allow_force_pushes      = $false
+  allow_deletions         = $false
   required_linear_history = $true
 } | ConvertTo-Json -Depth 6
 
-$protectionPayload | gh api --method PUT "repos/$Repo/branches/$Branch/protection" --input - | Out-Null
-Write-Host "[OK] Protected branch '$Branch' (No Force-Push, Linear History, Required CI Checks, CODEOWNERS)." -ForegroundColor Green
+$tmpJson = [System.IO.Path]::GetTempFileName()
+try {
+  [System.IO.File]::WriteAllText($tmpJson, $protectionPayload, (New-Object System.Text.UTF8Encoding($false)))
+  gh api --method PUT "repos/$Repo/branches/$Branch/protection" --input $tmpJson | Out-Null
+  if ($LASTEXITCODE -ne 0) { throw "Failed to apply branch protection on $Repo/$Branch" }
+  Write-Host "[OK] Protected branch '$Branch' (No Force-Push, Linear History, Required CI Checks, CODEOWNERS)." -ForegroundColor Green
+} finally {
+  if (Test-Path $tmpJson) { Remove-Item $tmpJson -Force }
+}
 
 Write-Host "`nDone! Your GitHub Pro ($4/mo) repository '$Repo' is now enterprise-hardened." -ForegroundColor Cyan

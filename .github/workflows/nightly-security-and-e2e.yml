@@ -1,0 +1,42 @@
+name: Weekly Security, RLS & Full Regression Audit
+
+on:
+  schedule:
+    # Every Sunday at 02:00 Asia/Riyadh (23:00 UTC Saturday) — lightweight on GitHub Pro minutes
+    - cron: '0 23 * * 6'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: weekly-audit
+  cancel-in-progress: true
+
+jobs:
+  security-and-regression:
+    name: Security Audit, RBAC & Full Regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: TypeScript Strict Check
+        run: npx tsc --noEmit
+
+      - name: Full Vitest Regression Suite
+        run: npx vitest run
+
+      - name: High-Severity Dependency Audit (Advisory)
+        continue-on-error: true
+        run: npm audit --audit-level=high
