@@ -56,6 +56,8 @@ import {
 import { RecordQuickActions, RecycleBinModal } from '../components/common/RecordQuickActions';
 import { PerEmployeeBiometricVerificationHub } from '../components/hr/PerEmployeeBiometricVerificationHub';
 import { AttendanceCutoffAndAdmsHub } from '../components/hr/AttendanceCutoffAndAdmsHub';
+import { NetworkBiometricDevicesHub } from '../components/hr/NetworkBiometricDevicesHub';
+import { useAppStore } from '../stores/appStore';
 import {
   archiveRecordBeforeSoftDelete,
   recordFieldLevelChanges,
@@ -64,6 +66,7 @@ import {
 
 type AttendanceHubTab =
   | 'logs'
+  | 'network-biometrics'
   | 'shifts'
   | 'geofence-kiosk'
   | 'corrections'
@@ -371,9 +374,28 @@ const normalizeEmployeeOption = (
 export const AttendancesPage: React.FC = () => {
   useModalEscape();
   const { activeCompanyId } = useCompany();
+  const globalActiveTab = useAppStore((s) => s.activeTab);
   const effectiveCompanyId = activeCompanyId !== 'all' ? activeCompanyId : 'SAF';
 
-  const [activeTab, setActiveTab] = useState<AttendanceHubTab>('logs');
+  const [activeTab, setActiveTab] = useState<AttendanceHubTab>(() => {
+    if (
+      globalActiveTab === 'network-biometrics' ||
+      globalActiveTab === 'biometric-devices'
+    ) {
+      return 'network-biometrics';
+    }
+    if (typeof window !== 'undefined') {
+      const sub = new URLSearchParams(window.location.search).get('subtab');
+      if (sub === 'network-biometrics') return 'network-biometrics';
+    }
+    return 'logs';
+  });
+
+  useEffect(() => {
+    if (globalActiveTab === 'network-biometrics' || globalActiveTab === 'biometric-devices') {
+      setActiveTab('network-biometrics');
+    }
+  }, [globalActiveTab]);
   const [employees, setEmployees] = useState<CompanyEmployeeOption[]>(DEFAULT_EMPLOYEES_DIRECTORY);
   const [attendances, setAttendances] = useState<AttendanceRecordExtended[]>(INITIAL_ATTENDANCES);
   const [shifts, setShifts] = useState<HrShiftSchedule[]>(DEFAULT_HR_SHIFTS);
@@ -1826,6 +1848,14 @@ export const AttendancesPage: React.FC = () => {
           <button
             type="button"
             className="button-primary-pill text-xs px-4 py-2 min-h-[38px]"
+            onClick={() => setActiveTab('network-biometrics')}
+          >
+            <Fingerprint className="w-4 h-4 ml-1" />
+            <span>البصمات الموصولة بالشبكة (LAN)</span>
+          </button>
+          <button
+            type="button"
+            className="button-outline-on-light text-xs px-4 py-2 min-h-[38px]"
             onClick={() => setShowZktModal(true)}
           >
             <Upload className="w-4 h-4 ml-1" />
@@ -1898,6 +1928,11 @@ export const AttendancesPage: React.FC = () => {
             id: 'logs' as const,
             label: `1. سجل الحضور اللحظي (${attendances.length})`,
             icon: Clock,
+          },
+          {
+            id: 'network-biometrics' as const,
+            label: 'البصمات الموصولة بالشبكة (LAN Live)',
+            icon: Wifi,
           },
           {
             id: 'shifts' as const,
@@ -3030,6 +3065,14 @@ export const AttendancesPage: React.FC = () => {
             name: e.name,
             grossSalary: e.salary,
           }))}
+        />
+      )}
+
+      {/* TAB: NETWORK-CONNECTED BIOMETRIC FINGERPRINT DEVICES (LAN / TCP 4370 / HIKVISION / ADMS) */}
+      {activeTab === 'network-biometrics' && (
+        <NetworkBiometricDevicesHub
+          companyId={effectiveCompanyId}
+          employees={employees.map((e) => ({ id: e.id, name: e.name }))}
         />
       )}
 

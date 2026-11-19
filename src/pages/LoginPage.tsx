@@ -528,6 +528,21 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       return;
     }
 
+    if (authService.isExternalAgency(result.user)) {
+      const agComp = (result.user?.company_id || 'SAF').toUpperCase();
+      setActiveCompanyId(agComp as any);
+      useAppStore.getState().setActiveCompanyId(agComp as any);
+      const agTab = 'foreign-agency-portal';
+      const agTitle = result.user?.default_tab_title || 'بوابة الوكيل الخارجي المعتمدة';
+      useAppStore.getState().setActiveTab(agTab, agTitle);
+      if (onLoginSuccess) {
+        onLoginSuccess(agTab, agTitle);
+      } else {
+        setFlowState('workspace');
+      }
+      return;
+    }
+
     const resolvedCorporateEmail = result.user?.email || authService.resolveEmail(finalId);
     const kasEmp = findAllowedKasEmployee(resolvedCorporateEmail);
     const routeInfo = resolveDepartmentAndCompany(resolvedCorporateEmail);

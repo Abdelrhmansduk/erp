@@ -120,6 +120,7 @@ export const SIDEBAR_MENU: NavItem[] = [
     icon: 'UserCheck',
     href: 'ats-pipeline',
     children: [
+      { id: 'transactions-followup', title: 'مركز متابعة المعاملات والوكلاء (مساند)', icon: 'ClipboardCheck', href: 'transactions-followup', badge: 'SLA', badgeType: 'primary' },
       { id: 'ats-pipeline', title: 'مسار الفرز والتوظيف المؤسسي (ATS)', icon: 'GitPullRequest', href: 'ats-pipeline', badge: 'Kanban', badgeType: 'primary' },
       { id: 'cvs-recruitment', title: 'بنك سير ذاتية الاستقدام المعتمدة', icon: 'UserCheck', href: 'cvs-recruitment', badge: 163, badgeType: 'primary' },
       { id: 'cvs-rental', title: 'بنك سير ذاتية التأجير والتشغيل', icon: 'Handshake', href: 'cvs-rental', badge: 13, badgeType: 'info' },
@@ -142,6 +143,7 @@ export const SIDEBAR_MENU: NavItem[] = [
     children: [
       { id: 'employees', title: 'سجل الموظفين والملفات الوظيفية', icon: 'UserCheck', href: 'employees' },
       { id: 'welcome-screens', title: 'شاشات العرض الموصولة بالشبكة (رادار البث الذكي)', icon: 'Tv', href: 'welcome-screens', badge: 'LAN Live', badgeType: 'success' },
+      { id: 'network-biometrics', title: 'البصمات الموصولة بالشبكة (رادار أجهزة البصمة)', icon: 'Fingerprint', href: 'network-biometrics', badge: 'LAN Live', badgeType: 'success' },
       { id: 'hr-welcome-signage', title: 'الترحيب بالموظف الجديد وشاشات العرض الذكية', icon: 'Sparkles', href: 'hr-welcome-signage', badge: 'TV Live', badgeType: 'primary' },
       { id: 'reem-hr-emails', title: 'مراسلات وقوالب بريد الموارد البشرية (HR@kas.sa)', icon: 'MailCheck', href: 'reem-hr-emails' },
       { id: 'profile', title: 'بوابة الخدمة الذاتية للموظف والمدير (ESS)', icon: 'UserCheck', href: 'profile' },
@@ -208,6 +210,7 @@ export const SIDEBAR_MENU: NavItem[] = [
     exclusiveToCompany: 'KAS',
     children: [
       { id: 'kas-suite', title: 'منظومة شركة كاس للتجارة والمنافسات (اعتماد)', icon: 'Briefcase', href: 'kas-suite', badge: 'KAS', badgeType: 'success', exclusiveToCompany: 'KAS' },
+      { id: 'kas-warehouse', title: 'إدارة المستودعات والمخزون الذكي (WMS)', icon: 'Package', href: 'kas-warehouse', badge: 'WMS Pro', badgeType: 'primary', exclusiveToCompany: 'KAS' },
       { id: 'kas-exact-sheets', title: 'جداول ومصنفات كاس المطابقة للأصل (شهر 11 — النسخ 1..4)', icon: 'FileSpreadsheet', href: 'kas-exact-sheets', badge: 'طبق الأصل', badgeType: 'success', exclusiveToCompany: 'KAS' },
       { id: 'kas-commercial-sub', title: 'منظومة المعرض التجاري وقطاع الأميال (كاس)', icon: 'Package', href: 'kas-commercial', exclusiveToCompany: 'KAS' },
       { id: 'tenders-boq', title: 'منافسات اعتماد وجداول الكميات (BOQ)', icon: 'Scale', href: 'tenders-boq', exclusiveToCompany: 'KAS' },

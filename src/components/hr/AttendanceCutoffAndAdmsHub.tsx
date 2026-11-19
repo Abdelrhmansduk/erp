@@ -37,8 +37,8 @@ export const AttendanceCutoffAndAdmsHub: React.FC<AttendanceCutoffAndAdmsHubProp
   const [requestedHours, setRequestedHours] = useState<number>(2.5);
   const [sampleSalary, setSampleSalary] = useState<number>(9600);
 
-  // ZKTeco ADMS cloud push simulator & event log
-  const [deviceSn, setDeviceSn] = useState<string>('ZK-ADMS-RUH-01');
+  // ZKTeco UA760 ADMS cloud push receiver & event log
+  const [deviceSn, setDeviceSn] = useState<string>('BZD5253300723');
   const [rawAttlog, setRawAttlog] = useState<string>(DEFAULT_SAMPLE_ATTLOG);
   const [admsEvents, setAdmsEvents] = useState<AdmsPunchEventRecord[]>([]);
 

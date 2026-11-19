@@ -134,6 +134,24 @@ describe('KAS Official Email Whitelist & 9-Department / Standalone KAS Trade RBA
     expect(authService.isTabAuthorizedForUser(kasOfficeHelper, 'profile')).toBe(true);
     expect(authService.isTabAuthorizedForUser(kasOfficeHelper, 'kas-suite')).toBe(false);
     expect(authService.isTabAuthorizedForUser(kasOfficeHelper, 'settings')).toBe(false);
+
+    // Exclusive KAS Enterprise WMS (`kas-warehouse`): ONLY Hatem, Ahmed Gamal, Firas (+ Executive)
+    const hatem = buildProfileForKasEmail('h.salman.trade@kas.sa');
+    const ahmedGamal = buildProfileForKasEmail('a.albashir.trade@kas.sa');
+    const mohammedIsmail = buildProfileForKasEmail('m.ismail.trade@kas.sa');
+    const chairman = buildProfileForKasEmail('khalid@kas.sa');
+
+    expect(authService.isTabAuthorizedForUser(hatem, 'kas-warehouse')).toBe(true);
+    expect(authService.isTabAuthorizedForUser(ahmedGamal, 'kas-warehouse')).toBe(true);
+    expect(authService.isTabAuthorizedForUser(kasTradeDirector, 'kas-warehouse')).toBe(true);
+    expect(authService.isTabAuthorizedForUser(chairman, 'kas-warehouse')).toBe(true);
+    // Blocked for other .trade, .showroom, .imal, accountants, office helpers
+    expect(authService.isTabAuthorizedForUser(mohammedIsmail, 'kas-warehouse')).toBe(false);
+    expect(authService.isTabAuthorizedForUser(kasProcurement, 'kas-warehouse')).toBe(false);
+    expect(authService.isTabAuthorizedForUser(kasShowroom, 'kas-warehouse')).toBe(false);
+    expect(authService.isTabAuthorizedForUser(kasImal, 'kas-warehouse')).toBe(false);
+    expect(authService.isTabAuthorizedForUser(kasAccountant, 'kas-warehouse')).toBe(false);
+    expect(authService.isTabAuthorizedForUser(kasOfficeHelper, 'kas-warehouse')).toBe(false);
   });
 
   it('provides KAS Trade Company with a 100% Commercial/Trade Chart of Accounts free of Musaned/Recruitment terms', () => {

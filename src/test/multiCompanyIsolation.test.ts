@@ -42,6 +42,7 @@ describe('Multi-Company Isolation & KAS Standalone Security', () => {
 
     const ids = kasItems.map(i => i.id);
     expect(ids).toContain('kas-suite');
+    expect(ids).toContain('kas-warehouse');
     expect(ids).toContain('tenders-boq');
     expect(ids).toContain('kas-etmad');
   });
@@ -69,13 +70,15 @@ describe('Multi-Company Isolation & KAS Standalone Security', () => {
     expect(kasItems.length).toBe(3);
   });
 
-  it('should verify KAS standalone portal has 9 distinct specialized departments', () => {
-    expect(KAS_DEPARTMENTS.length).toBe(9);
+  it('should verify KAS standalone portal has 11 distinct specialized departments including WMS', () => {
+    expect(KAS_DEPARTMENTS.length).toBe(11);
 
     const deptIds = KAS_DEPARTMENTS.map(d => d.id);
     expect(deptIds).toContain('command-center');
     expect(deptIds).toContain('monafasat');
     expect(deptIds).toContain('boq-editor');
+    expect(deptIds).toContain('kas-exact-sheets');
+    expect(deptIds).toContain('warehouse-wms');
     expect(deptIds).toContain('suppliers');
     expect(deptIds).toContain('purchase-orders');
     expect(deptIds).toContain('contracts-projects');

@@ -18,7 +18,10 @@ export type OperationalTransactionType =
   | 'FOREIGN_AGENT_SETTLEMENT'
   | 'COST_CENTER_EXPENSE'
   | 'FINANCIAL_REQUEST_APPROVAL'
-  | 'EOSB_SETTLEMENT';
+  | 'EOSB_SETTLEMENT'
+  | 'WMS_GOODS_RECEIPT'
+  | 'WMS_GOODS_ISSUE'
+  | 'WMS_STOCK_ADJUSTMENT';
 
 export interface OperationalTransactionPayload {
   companyId: CompanyId | string;
@@ -1046,6 +1049,66 @@ export const journalEngine = {
           debit: 0,
           credit: grossAmount,
           costCenterCode: payload.costCenterCode,
+        });
+        break;
+      }
+
+      case 'WMS_GOODS_RECEIPT': {
+        lines.push({
+          accountCode: '114101',
+          accountName: 'المخزون التجاري ومواد المستودعات (IAS 2)',
+          description: payload.description || 'استلام بضاعة ومواد بالمستودع (GRN)',
+          debit: grossAmount,
+          credit: 0,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+        });
+        lines.push({
+          accountCode: '210101',
+          accountName: 'ذمم الموردين ومشتريات قيد الفوترة',
+          description: payload.description || 'التزام توريد مستودع (GRN)',
+          debit: 0,
+          credit: grossAmount,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+        });
+        break;
+      }
+
+      case 'WMS_GOODS_ISSUE': {
+        lines.push({
+          accountCode: '510101',
+          accountName: 'تكلفة المواد والمستهلكات المصروفة (COGS / تشغيل)',
+          description: payload.description || 'صرف مخزني إلى مركز تكلفة (GIN)',
+          debit: grossAmount,
+          credit: 0,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+        });
+        lines.push({
+          accountCode: '114101',
+          accountName: 'المخزون التجاري ومواد المستودعات (IAS 2)',
+          description: payload.description || 'تخفيض رصيد المخزون بالصرف (GIN)',
+          debit: 0,
+          credit: grossAmount,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+        });
+        break;
+      }
+
+      case 'WMS_STOCK_ADJUSTMENT': {
+        lines.push({
+          accountCode: '520901',
+          accountName: 'فروقات وتسويات الجرد المخزني (IAS 2)',
+          description: payload.description || 'تسوية جرد دوري للمستودع',
+          debit: grossAmount,
+          credit: 0,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+        });
+        lines.push({
+          accountCode: '114101',
+          accountName: 'المخزون التجاري ومواد المستودعات (IAS 2)',
+          description: payload.description || 'تعديل رصيد المخزون بالتسوية',
+          debit: 0,
+          credit: grossAmount,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
         });
         break;
       }

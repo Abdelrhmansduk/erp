@@ -184,7 +184,9 @@ export const realErpDataStore = {
       'hr_dependents', 'hr_overtime_records', 'hr_company_circulars',
       'hr_final_settlements', 'hr_attendance_payroll_sync', 'hr_employee_documents',
       'hr_payroll_cutoff_configs', 'hr_retroactive_adjustments', 'hr_exit_interviews',
-      'hr_onboarding_journeys', 'hr_digital_signage_screens', 'hr_welcome_broadcasts'
+      'hr_onboarding_journeys', 'hr_digital_signage_screens', 'hr_welcome_broadcasts',
+      'external_agencies_master', 'external_agency_accounts', 'musaned_followup_transactions',
+      'office_cv_export_presets', 'agency_candidates', 'sent_messages'
     ];
     try {
       localStorage.setItem(EXPLICIT_PURGE_KEY, 'true');

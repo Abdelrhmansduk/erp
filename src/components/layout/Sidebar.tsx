@@ -342,6 +342,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     if (
       effectiveProfile &&
       !isAdminUser &&
+      !authService.isExternalAgency(effectiveProfile) &&
       !hasProfileEntry &&
       (!query || 'بوابة الخدمة الذاتية للموظف'.includes(query))
     ) {

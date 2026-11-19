@@ -4,7 +4,7 @@ import {
   Building2, Briefcase, FileSpreadsheet, Layers, ShieldCheck, 
   Users, Truck, Receipt, CloudLightning, ShieldAlert, ArrowRight,
   ChevronLeft, Award, Sparkles, MapPin, PhoneCall, ExternalLink,
-  CheckCircle2, Flame, Calculator, Store
+  CheckCircle2, Flame, Calculator, Store, Package
 } from 'lucide-react';
 
 export type KasDepartmentId = 
@@ -12,6 +12,7 @@ export type KasDepartmentId =
   | 'monafasat'
   | 'boq-editor'
   | 'kas-exact-sheets'
+  | 'warehouse-wms'
   | 'suppliers'
   | 'purchase-orders'
   | 'contracts-projects'
@@ -71,6 +72,15 @@ export const KAS_DEPARTMENTS: {
     badgeColor: 'bg-[#00CC00] text-[#000000] border border-[#000000]',
     icon: FileSpreadsheet,
     description: 'نسخة طبق الأصل بالملي من شهر 11 (نسخة 1..4) وورقة المؤسسات مع التصدير والنسخ والمزامنة اللحظية',
+  },
+  {
+    id: 'warehouse-wms',
+    title: 'إدارة المستودعات والمخزون الذكي (WMS)',
+    titleEn: 'Enterprise Warehouse & Inventory Management',
+    badge: 'حاتم • أحمد جمال',
+    badgeColor: 'bg-[#141414] text-white border border-[#141414]',
+    icon: Package,
+    description: 'نظام مستودعات عالمي (الوارد، الصادر، المرتجع، الحجارة، الباركود، العهد، الجرد الأعمى، IAS 2)',
   },
   {
     id: 'suppliers',

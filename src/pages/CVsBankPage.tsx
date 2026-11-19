@@ -5,7 +5,10 @@ import { realErpDataStore } from '../services/realErpDataStore';
 import { journalEngine } from '../services/accounting/journalEngine';
 import { useAppStore } from '../stores/appStore';
 import { useCompany } from '../contexts/CompanyContext';
-import { DualBrandingDocumentGenerator } from '../components/common/DualBrandingDocumentGenerator';
+import { useAuthContext } from '../contexts/AuthContext';
+import { authService } from '../services/authService';
+import { ProfessionalAgencyCvTemplate } from '../components/cvs/ProfessionalAgencyCvTemplate';
+import { SmartCvExtractorModal } from '../components/cvs/SmartCvExtractorModal';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import {
@@ -52,6 +55,19 @@ export interface CVRecord {
   experience_country?: string;
   skills: string[];
   status: 'متاح' | 'محجوز' | 'مؤجر' | 'بانتظار الاعتماد' | 'تراجع' | 'محذوف';
+  approval_status?: string;
+  target_company_scope?: string;
+  agency_id?: string;
+  hold_expires_at?: string;
+  held_by_name?: string;
+  held_by_email?: string;
+  labour_id?: string;
+  living_town?: string;
+  english_stars?: number;
+  arabic_stars?: number;
+  portrait_url?: string;
+  full_image_url?: string;
+  passport_image_url?: string;
   video_url?: string;
   views_count?: number;
   created_at: string;
@@ -501,30 +517,56 @@ export const CVsBankPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [selectedCVForPrint, setSelectedCVForPrint] = useState<CVRecord | null>(null);
   const [bookingCV, setBookingCV] = useState<CVRecord | null>(null);
+  const [showSmartCvExtractor, setShowSmartCvExtractor] = useState(false);
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
+  const { user } = useAuthContext();
+  const currentUserProfile = user || authService.getCurrentUser();
+  const canAuditAndApproveCvs =
+    authService.isAdmin(currentUserProfile) || currentUserProfile?.department_id === 'ats';
 
-  // Load CV records from realErpDataStore
-  const normalizeCV = (r: any, idx: number): CVRecord => ({
-    id: r.id || `cv-${idx}`,
-    cv_code: r.cv_code || `#CV-${2026}-${100 + idx}`,
-    maid_name: r.maid_name || r.name || 'WORKER',
-    maid_name_ar: r.maid_name_ar || r.name || r.maid_name || 'عاملة منزلية',
-    nationality: r.nationality || 'الفلبين',
-    job: r.job || r.profession || 'عاملة منزلية شاملة',
-    type: r.type === 'تأجير' ? 'تأجير' : 'استقدام',
-    age: Number(r.age) || 26,
-    religion: r.religion || 'مسلمة',
-    marital_status: r.marital_status || 'عزباء',
-    experience_years: Number(r.experience_years) || 2,
-    experience_country: r.experience_country || r.experience || 'السعودية - سنتان',
-    salary: Number(r.salary) || 1500,
-    passport_number: r.passport_number || r.passport || 'P9982011',
-    external_office: r.external_office || r.office_name || "PLATINUM BROTHERS INT'L",
-    status: r.status === 'متاح للتعاقد' || !r.status ? 'متاح' : r.status,
-    skills: Array.isArray(r.skills) && r.skills.length > 0 ? r.skills : ['تنظيف شامل', 'رعاية أطفال', 'إدارة منزلية'],
-    created_at: r.created_at || new Date().toISOString().slice(0, 10),
-  });
+  // Load CV records from realErpDataStore (auto-releasing expired 24-hour holds)
+  const normalizeCV = (r: any, idx: number): CVRecord => {
+    const rawHoldExp = r.hold_expires_at ? new Date(r.hold_expires_at).getTime() : 0;
+    const isHoldActive = rawHoldExp > Date.now();
+    let effectiveStatus = r.status === 'متاح للتعاقد' || !r.status ? 'متاح' : r.status;
+    if (r.hold_expires_at && !isHoldActive && effectiveStatus === 'محجوز') {
+      effectiveStatus = 'متاح';
+    }
+    return {
+      id: r.id || `cv-${idx}`,
+      cv_code: r.cv_code || `#CV-${2026}-${100 + idx}`,
+      maid_name: r.maid_name || r.name || 'WORKER',
+      maid_name_ar: r.maid_name_ar || r.name || r.maid_name || 'عاملة منزلية',
+      nationality: r.nationality || 'الفلبين',
+      job: r.job || r.profession || 'عاملة منزلية شاملة',
+      type: r.type === 'تأجير' ? 'تأجير' : 'استقدام',
+      age: Number(r.age) || 26,
+      religion: r.religion || 'مسلمة',
+      marital_status: r.marital_status || 'عزباء',
+      experience_years: Number(r.experience_years) || 2,
+      experience_country: r.experience_country || r.experience || 'السعودية - سنتان',
+      salary: Number(r.salary) || 1500,
+      passport_number: r.passport_number || r.passport || 'P9982011',
+      external_office: r.external_office || r.office_name || "PLATINUM BROTHERS INT'L",
+      status: effectiveStatus,
+      approval_status: r.approval_status,
+      target_company_scope: r.target_company_scope || 'ALL',
+      agency_id: r.agency_id,
+      hold_expires_at: isHoldActive ? r.hold_expires_at : undefined,
+      held_by_name: isHoldActive ? r.held_by_name : undefined,
+      labour_id: r.labour_id,
+      living_town: r.living_town,
+      english_stars: r.english_stars,
+      arabic_stars: r.arabic_stars,
+      portrait_url: r.portrait_url,
+      full_image_url: r.full_image_url,
+      passport_image_url: r.passport_image_url,
+      video_url: r.video_url,
+      skills: Array.isArray(r.skills) && r.skills.length > 0 ? r.skills : ['تنظيف شامل', 'رعاية أطفال', 'إدارة منزلية'],
+      created_at: r.created_at || new Date().toISOString().slice(0, 10),
+    };
+  };
 
   useEffect(() => {
     const loadCvs = () => {
@@ -537,9 +579,25 @@ export const CVsBankPage: React.FC = () => {
     return () => window.removeEventListener('erp-data-updated', loadCvs);
   }, []);
 
-  // Filtered list based on tab, nationality, and search query
+  // Filtered list based on tab, mandatory Follow-up approval gate, company scope, nationality, and search query
   const filteredCVs = useMemo(() => {
+    const userCompUpper = (currentUserProfile?.company_id || activeCompany?.id || 'SAF').toUpperCase();
     return cvs.filter(cv => {
+      // Mandatory Approval Gate: Sales departments NEVER see unapproved agency uploads!
+      if (!canAuditAndApproveCvs && cv.status === 'بانتظار الاعتماد') {
+        return false;
+      }
+      // Company Scope Gate: respect dedicated subsidiary allocation when set
+      if (
+        !canAuditAndApproveCvs &&
+        cv.target_company_scope &&
+        cv.target_company_scope !== 'ALL' &&
+        userCompUpper !== 'ALL' &&
+        cv.target_company_scope.toUpperCase() !== userCompUpper
+      ) {
+        return false;
+      }
+
       // Category filter
       if (activeCategory === 'rental' && cv.type !== 'تأجير') return false;
       if (activeCategory === 'recruitment' && cv.type !== 'استقدام' && cv.type !== 'توسط') return false;
@@ -566,7 +624,31 @@ export const CVsBankPage: React.FC = () => {
 
       return true;
     });
-  }, [cvs, activeCategory, nationalityFilter, searchQuery]);
+  }, [cvs, activeCategory, nationalityFilter, searchQuery, canAuditAndApproveCvs, currentUserProfile?.company_id, activeCompany?.id]);
+
+  // 24-Hour Smart Hold Timer for Sales
+  const handlePlace24HourHold = async (cv: CVRecord) => {
+    if (cv.status !== 'متاح') return;
+    const expiresIso = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const holderName = currentUserProfile?.full_name || 'موظف المبيعات';
+    const updated = await realErpDataStore.updateRecord<CVRecord>(
+      'cvs',
+      cv.id,
+      {
+        status: 'محجوز',
+        hold_expires_at: expiresIso,
+        held_by_name: holderName,
+        held_by_email: currentUserProfile?.email,
+      },
+      INITIAL_CVS
+    );
+    setCvs(updated.map(normalizeCV));
+    addNotification({
+      title: 'تم تفعيل الحجز المؤقت (24 ساعة)',
+      message: `تم قفل السيرة (${cv.cv_code}) لمدة 24 ساعة باسم (${holderName}) ريثما يتم سداد عقد مساند، وستعود متاحة تلقائياً عند انتهاء المهلة.`,
+      type: 'success',
+    });
+  };
 
   // Counts for each category tab
   const counts = useMemo(() => {
@@ -777,12 +859,12 @@ export const CVsBankPage: React.FC = () => {
         <div className="flex items-center gap-2.5 flex-wrap">
           <button
             type="button"
-            onClick={() => window.dispatchEvent(new CustomEvent('open-document-extractor'))}
+            onClick={() => setShowSmartCvExtractor(true)}
             className="button-outline-on-dark flex items-center gap-1.5"
             style={{ fontSize: '12px', padding: '6px 16px', minHeight: '40px', borderColor: '#e0e0e0', background: '#ffffff', color: '#141414', fontWeight: 700 }}
           >
             <Sparkles className="w-4 h-4 text-[#141414]" />
-            <span>استخلاص سير ذاتية (PDF / Word / صور)</span>
+            <span>استخلاص ذكي للسيفهات (PDF / MRZ / QR)</span>
           </button>
 
           <button
@@ -1098,14 +1180,32 @@ export const CVsBankPage: React.FC = () => {
                   }`}
                 >
                   <Sparkles className={`w-3.5 h-3.5 ${cv.status === 'متاح' ? 'text-white' : 'text-[#707070]'}`} />
-                  <span>{cv.type === 'تأجير' ? 'حجز وتأجير فوري' : 'حجز وتعاقد'}</span>
+                  <span>
+                    {cv.hold_expires_at
+                      ? 'محجوز مؤقتاً (24س)'
+                      : cv.type === 'تأجير'
+                      ? 'حجز وتأجير فوري'
+                      : 'حجز وتعاقد'}
+                  </span>
                 </button>
+
+                {cv.status === 'متاح' && (
+                  <button
+                    type="button"
+                    onClick={() => void handlePlace24HourHold(cv)}
+                    className="px-2.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                    title="حجز مؤقت لمدة 24 ساعة ريثما يسدد العميل عقد مساند"
+                  >
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>24س</span>
+                  </button>
+                )}
 
                 <button
                   type="button"
                   onClick={() => setSelectedCVForPrint(cv)}
                   className="button-outline-on-light p-2 rounded-full text-[#707070] hover:text-[#141414]"
-                  title="معاينة وطباعة كرت السيرة"
+                  title="معاينة وتصدير القالب الاحترافي بهوية المكتب (PDF / كرت واتساب / بريد)"
                 >
                   <Printer className="w-4 h-4" />
                 </button>
@@ -1295,7 +1395,20 @@ export const CVsBankPage: React.FC = () => {
         </div>
       )}
 
-      {/* ─── Official CV Card Print Modal ─── */}
+      {/* ─── Smart CV & Passport Extractor Modal ─── */}
+      <SmartCvExtractorModal
+        isOpen={showSmartCvExtractor}
+        onClose={() => setShowSmartCvExtractor(false)}
+        agencyName="وكالة خارجية معتمدة"
+        isExternalAgentSession={false}
+        onSaved={() => {
+          realErpDataStore.getRecords<CVRecord>('cvs', INITIAL_CVS).then((list) => {
+            setCvs(list.map(normalizeCV));
+          });
+        }}
+      />
+
+      {/* ─── Official 2-Page SHEGER-Grade Per-Office CV Print & Export Modal ─── */}
       {selectedCVForPrint && (
         <div
           onClick={() => setSelectedCVForPrint(null)}
@@ -1303,82 +1416,16 @@ export const CVsBankPage: React.FC = () => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-4xl max-h-[92vh] bg-white border border-[#e0e0e0] rounded-3xl  overflow-y-auto p-6 font-sans custom-scrollbar"
+            className="w-full max-w-5xl max-h-[92vh] bg-white border border-[#e0e0e0] rounded-3xl overflow-y-auto p-6 font-sans custom-scrollbar"
           >
-            <div className="flex justify-between items-center mb-4 border-b border-[#e0e0e0] pb-3 sticky top-0 bg-white z-10">
-              <h3 className="font-bold text-[#141414] text-base">
-                معاينة كرت السيرة الذاتية المعتمدة للطباعة
-              </h3>
-              <button
-                onClick={() => setSelectedCVForPrint(null)}
-                className="p-1.5 rounded-full text-[#707070] hover:text-[#141414] hover:bg-[#f3f3f3]"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <DualBrandingDocumentGenerator
-              documentTitle={`بطاقة سيرة ذاتية معتمدة (${selectedCVForPrint.type})`}
-              documentNumber={selectedCVForPrint.cv_code}
-              date={new Date().toISOString().slice(0, 10)}
-            >
-              <div className="space-y-4 text-xs font-sans text-[#141414]">
-                {/* Worker Identity Row */}
-                <div className="p-4 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] flex items-center justify-between">
-                  <div>
-                    <h2 className="text-base font-bold text-[#141414]">
-                      {selectedCVForPrint.maid_name_ar}
-                    </h2>
-                    <div className="text-xs text-[#707070] font-mono">
-                      {selectedCVForPrint.maid_name}
-                    </div>
-                    <div className="text-xs text-[#141414] font-bold mt-1">
-                      {selectedCVForPrint.job} | {selectedCVForPrint.nationality}
-                    </div>
-                  </div>
-
-                  <div className="text-left font-mono">
-                    <div className="text-xs text-[#707070]">رقم الجواز:</div>
-                    <div className="text-sm font-bold text-[#141414]">{selectedCVForPrint.passport_number}</div>
-                    <div className="text-xs text-[#141414] font-bold">{selectedCVForPrint.salary} ⃁ / شهرياً</div>
-                  </div>
-                </div>
-
-                {/* Personal Information Table */}
-                <table className="w-full text-right text-xs border border-[#e0e0e0] rounded-xl overflow-hidden">
-                  <tbody>
-                    <tr className="border-b border-[#e0e0e0]">
-                      <td className="p-2.5 bg-[#f3f3f3] font-bold text-[#707070] w-1/4">العمر:</td>
-                      <td className="p-2.5">{selectedCVForPrint.age} سنة</td>
-                      <td className="p-2.5 bg-[#f3f3f3] font-bold text-[#707070] w-1/4">الديانة:</td>
-                      <td className="p-2.5">{selectedCVForPrint.religion}</td>
-                    </tr>
-                    <tr className="border-b border-[#e0e0e0]">
-                      <td className="p-2.5 bg-[#f3f3f3] font-bold text-[#707070]">الحالة الاجتماعية:</td>
-                      <td className="p-2.5">{selectedCVForPrint.marital_status}</td>
-                      <td className="p-2.5 bg-[#f3f3f3] font-bold text-[#707070]">المكتب الخارجي:</td>
-                      <td className="p-2.5">{selectedCVForPrint.external_office}</td>
-                    </tr>
-                    <tr>
-                      <td className="p-2.5 bg-[#f3f3f3] font-bold text-[#707070]">الخبرة السابقة:</td>
-                      <td colSpan={3} className="p-2.5 font-medium">{selectedCVForPrint.experience_country || 'جديدة'}</td>
-                    </tr>
-                  </tbody>
-                </table>
-
-                {/* Skills Section */}
-                <div className="p-3 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0]">
-                  <div className="text-xs font-bold text-[#141414] mb-2">المهارات والقدرات الموثقة:</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedCVForPrint.skills.map((sk, idx) => (
-                      <span key={idx} className="bg-white border border-[#e0e0e0] text-[#141414] px-2.5 py-1 rounded-lg text-xs font-medium">
-                        {sk}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </DualBrandingDocumentGenerator>
+            <ProfessionalAgencyCvTemplate
+              cv={selectedCVForPrint}
+              defaultOfficeCode={
+                activeCompany?.id && activeCompany.id !== 'all' ? activeCompany.id : 'SAF'
+              }
+              canViewInternalAudit={canAuditAndApproveCvs}
+              onClose={() => setSelectedCVForPrint(null)}
+            />
           </div>
         </div>
       )}

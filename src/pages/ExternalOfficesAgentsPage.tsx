@@ -23,6 +23,12 @@ import {
 } from 'lucide-react';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
+import {
+  resolveCanonicalAgency,
+  upsertUnifiedAgency,
+  provisionExternalAgencyAccount,
+  dispatchViaEmailAndWhatsApp,
+} from '../services/externalAgencyMasterService';
 
 export interface OfficeUser {
   id: string;
@@ -268,6 +274,56 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
 
     const updated = await realErpDataStore.addRecord<OfficeUser>('external_office_users', newUser, INITIAL_OFFICE_USERS);
     setOfficeUsers(updated);
+
+    // Provision real isolated External Agency Portal Account from Unified Agent Master + dispatch via Email & WhatsApp
+    let canonicalAg = resolveCanonicalAgency(selectedOffice);
+    if (!canonicalAg) {
+      canonicalAg = await upsertUnifiedAgency({
+        company_id: 'SAF',
+        canonical_code: `EXT_${Date.now().toString().slice(-4)}`,
+        name_en: selectedOffice,
+        name_ar: selectedOffice,
+        country: newUser.nationality,
+        country_code: 'INT',
+        license_no: 'LIC-INT',
+        manager_name: newUser.name,
+        email: newUser.email,
+        phone: newUser.phone,
+        whatsapp: newUser.phone,
+        aliases: [selectedOffice],
+        authorized_companies: ['SAF', 'TOP', 'YAQ', 'DAR'],
+        assigned_coordinator_email: 'i.mahmoud.followup@kas.sa',
+        assigned_coordinator_name: 'إسلام أحمد عرفة',
+        default_commission_usd: 1050,
+        sla_assign_days: 10,
+        avg_days_to_assign: 8,
+        avg_days_to_arrival: 35,
+        historical_total_contracts: 0,
+        historical_arrived_count: 0,
+        historical_backout_count: 0,
+        historical_runaway_count: 0,
+        historical_cancelled_count: 0,
+        quality_score: 92,
+        status: 'نشط',
+      });
+    }
+    const provisioned = await provisionExternalAgencyAccount({
+      agencyId: canonicalAg.id,
+      email: newUser.email,
+      contactPerson: newUser.name,
+    });
+    await dispatchViaEmailAndWhatsApp({
+      recipientName: `${newUser.name} (${selectedOffice})`,
+      recipientPhone: newUser.phone,
+      recipientEmail: provisioned.account.email,
+      subject: `بيانات الدخول الرسمية لبوابة الوكلاء — ${selectedOffice}`,
+      bodyText: `مرحباً (${newUser.name}),\nتم تفعيل حسابكم المعزول على بوابة الوكلاء الخارجيين:\nالبريد: ${provisioned.account.email}\nاسم المستخدم: ${provisioned.account.username}\nكلمة المرور المشفرة: ${provisioned.generatedPassword}`,
+      channel: 'both',
+      templateName: 'تفعيل حساب مستخدم وكيل خارجي',
+      companyId: 'SAF',
+      openExternalClient: false,
+    });
+
     setShowAddUserModal(false);
     setUserForm({
       name: '',
@@ -278,8 +334,8 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
     });
 
     addNotification({
-      title: 'إضافة مستخدم وكيل',
-      message: `تم إنشاء حساب المستخدم (${newUser.name}) وربطه بالمكتب (${newUser.linked_office}) بنجاح.`,
+      title: 'تفعيل حساب بوابة الوكيل وإرسال البيانات',
+      message: `تم إنشاء الحساب المعزول للمستخدم (${newUser.name}) على وكالة (${newUser.linked_office}) وإرسال بيانات الدخول عبر البريد الإلكتروني والواتساب.`,
       type: 'success'
     });
   };

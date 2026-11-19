@@ -2248,6 +2248,44 @@ aliasSection('sponsorship_transfers', ['sponsorship_transfer', 'sponsorship-tran
 aliasSection('shelter', ['shelter_workers', 'shelter-workers']);
 aliasSection('cvs', ['cvs_recruitment', 'cvs_rental', 'cvs_bank', 'cvs-recruitment', 'cvs-rental', 'cvs-bank']);
 aliasSection('agency_candidates', ['agency-candidates', 'foreign-agency-portal', 'foreign_agency_portal']);
+
+// KAS Enterprise WMS (Warehouse & Inventory Management) official section configs
+defineSection(
+  'دليل أصناف وأرصدة مستودعات شركة كاس (KAS WMS)',
+  [
+    ['رمز SKU', ['sku', 'رمز SKU']],
+    ['الباركود', ['barcode', 'الباركود']],
+    ['اسم الصنف', ['nameAr', 'اسم الصنف', 'name']],
+    ['الفئة', ['category', 'الفئة', 'categoryId']],
+    ['المستودع', ['warehouse', 'المستودع', 'defaultWarehouseId']],
+    ['الرف / الموقع', ['location', 'الرف', 'defaultLocationCode']],
+    ['وحدة الأساس', ['baseUom', 'وحدة الأساس', 'unit']],
+    ['الرصيد الفعلي', ['onHand', 'الرصيد الفعلي', 'currentStock'], 'num'],
+    ['المحجوز', ['reserved', 'المحجوز'], 'num'],
+    ['المتاح', ['available', 'المتاح'], 'num'],
+    ['نقطة إعادة الطلب', ['reorderPoint', 'نقطة الطلب'], 'num'],
+    ['متوسط التكلفة (⃁)', ['avgUnitCost', 'متوسط التكلفة (⃁)'], 'num'],
+  ],
+  ['kas_wms_inventory', 'kas-warehouse', 'kas_warehouse', 'warehouse_wms']
+);
+
+defineSection(
+  'دفتر أذونات حركات مستودعات كاس (وارد / صادر / مرتجع / تحويل)',
+  [
+    ['رقم الإذن', ['voucherNo', 'رقم الإذن']],
+    ['النوع', ['voucherType', 'النوع']],
+    ['التاريخ', ['voucherDate', 'التاريخ']],
+    ['المستودع', ['warehouseId', 'المستودع']],
+    ['الجهة المستفيدة / المورد', ['beneficiaryEntity', 'الجهة المستفيدة / المورد', 'supplierName']],
+    ['المستلم', ['recipientName', 'المستلم']],
+    ['الأصناف والكميات', ['itemsSummary', 'الأصناف']],
+    ['إجمالي الكمية', ['totalQtyBase', 'إجمالي بوحدة الأساس'], 'num'],
+    ['القيمة (⃁)', ['totalValue', 'القيمة (⃁)'], 'num'],
+    ['الحالة', ['status', 'الحالة']],
+    ['بواسطة', ['postedByName', 'بواسطة', 'createdByName']],
+  ],
+  ['kas_wms_vouchers', 'kas-wms-vouchers']
+);
 aliasSection('ats_candidates', ['ats-pipeline', 'ats_pipeline', 'ats-candidates']);
 aliasSection('payroll', ['wps', 'wps-generator', 'wps_generator']);
 aliasSection('attendances', ['attendance', 'attendance-logs']);

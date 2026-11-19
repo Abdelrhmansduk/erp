@@ -258,6 +258,18 @@ function resolveInitialRouteFromUrl(): {
     return { flowState: 'login', activeTab: 'dashboard', loginPortalCode: subCode };
   }
 
+  const isStandaloneHardwareOrPublicRoute =
+    path === 'careers' ||
+    path === 'biometrics-lan' ||
+    path.startsWith('iclock/cdata') ||
+    Boolean(searchParams.get('signage_screen')) ||
+    Boolean(searchParams.get('biometric_network')) ||
+    searchParams.get('portal') === 'careers';
+
+  if (isStandaloneHardwareOrPublicRoute) {
+    return { flowState: 'login', activeTab: 'network-biometrics', loginPortalCode: null };
+  }
+
   // Always open Login directly on root '/' or when first opening the website without an active login session
   if (!path || path === 'login' || !hasActiveBrowserLogin) {
     try {

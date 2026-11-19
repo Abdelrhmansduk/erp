@@ -14,7 +14,8 @@ export type AccountType =
   | 'Shared Services'
   | 'Shelter Supervisor'
   | 'KAS General Manager'
-  | 'KAS Tenders Specialist';
+  | 'KAS Tenders Specialist'
+  | 'External Agency Partner';
 
 export type UserStatus = 'نشط' | 'معلق' | 'موقوف' | 'منتهي الصلاحية';
 

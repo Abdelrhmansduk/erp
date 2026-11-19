@@ -30,6 +30,10 @@ import {
   isVisibilityControllerUser,
   useModuleVisibilityStore,
 } from './moduleVisibility';
+import {
+  verifyExternalAgencyCredentials,
+  getExternalAgencyAccountsSync,
+} from './externalAgencyMasterService';
 
 export {
   KAS_ALLOWED_EMPLOYEES,
@@ -187,6 +191,8 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'current-contracts',
       'completed-contracts',
       'returned-contracts',
+      'cvs-recruitment',
+      'cvs-reserved',
       'dispatches',
       'contract-extension-requests',
       'contract-return-requests',
@@ -273,6 +279,7 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
     allowedSections: ['operations-section', 'cvs-group', 'offices-group'],
     allowedTabs: [
       'ats-pipeline',
+      'transactions-followup',
       'create-cv',
       'cvs-recruitment',
       'cvs-rental',
@@ -346,6 +353,8 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'hr-welcome-signage',
       'welcome-screens',
       'signage-screens',
+      'network-biometrics',
+      'biometric-devices',
       'hr-shifts-overtime',
       'hr-arrears-b2b',
       'hr-cards-rollover',
@@ -447,6 +456,9 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'kas-company',
       'kas-exact-sheets',
       'kas-replica-tables',
+      'kas-warehouse',
+      'kas-wms',
+      'warehouse-wms',
       'tenders-boq',
       'tenders',
       'boq',
@@ -493,7 +505,11 @@ export interface UserProfile {
   allowed_tabs_override?: string[];
   extra_allowed_departments?: DepartmentId[];
   linked_google_email?: string;
-  authenticated_via?: 'strong_password' | 'approved_google' | 'supabase';
+  authenticated_via?: 'strong_password' | 'approved_google' | 'supabase' | 'external_agency_key';
+  account_type?: 'corporate_staff' | 'external_agency';
+  agency_id?: string;
+  agency_name?: string;
+  authorized_companies?: string[];
   status?: string;
   created_at?: string;
 }
@@ -1319,6 +1335,16 @@ export const authService = {
     if (!tabHref) return false;
     if (tabHref === 'logout') return true;
     if (!profile) return false;
+
+    // Strict isolation for External Agency Partners: ONLY their isolated Foreign Agency Portal is permitted
+    if (this.isExternalAgency(profile)) {
+      return (
+        tabHref === 'foreign-agency-portal' ||
+        tabHref === 'agency-portal' ||
+        tabHref === 'agent-portal'
+      );
+    }
+
     if (
       tabHref === 'profile' ||
       tabHref === 'ess-self-service' ||
@@ -1399,6 +1425,9 @@ export const authService = {
       'kas-commercial',
       'kas-exact-sheets',
       'kas-replica-tables',
+      'kas-warehouse',
+      'kas-wms',
+      'warehouse-wms',
       'tenders-boq',
       'tenders',
       'boq',
@@ -1418,6 +1447,9 @@ export const authService = {
       'kas-company',
       'kas-exact-sheets',
       'kas-replica-tables',
+      'kas-warehouse',
+      'kas-wms',
+      'warehouse-wms',
       'tenders-boq',
       'tenders',
       'boq',
@@ -1439,6 +1471,11 @@ export const authService = {
     if (effectiveCompany === 'KAS') {
       if (RECRUITMENT_AND_SHELTER_ONLY_TABS.has(tabHref)) {
         return false;
+      }
+      // Exclusive KAS Enterprise WMS (`kas-warehouse` / `kas-wms` / `warehouse-wms`):
+      // Strictly restricted to Hatem Salman, Ahmed Gamal Al-Bashir, and Firas Al-Hassan (plus Executive/Admin above)
+      if (tabHref === 'kas-warehouse' || tabHref === 'kas-wms' || tabHref === 'warehouse-wms') {
+        return Boolean(effectiveOverride && effectiveOverride.includes('kas-warehouse'));
       }
       // Allow all authorized KAS employees (Ahmed Al-Bashir, Hatem Salman, Mohammed Ismail, Firas Al-Hassan,
       // Galal, Karim, and KAS Accountants) to work in `kas-exact-sheets` / `kas-replica-tables`
@@ -1504,6 +1541,26 @@ export const authService = {
 
     const normalizedTarget = targetCompanyId.trim().toUpperCase();
     const normalizedUserCompany = (profile.company_id || 'SAF').trim().toUpperCase();
+
+    if (this.isExternalAgency(profile)) {
+      if (normalizedTarget === 'KAS' || normalizedTarget === 'ALL') {
+        return {
+          allowed: false,
+          reason: 'رفض أمني (عزل الوكلاء): حسابات الوكلاء الخارجيين معزولة ولا تملك صلاحية الدخول لهذا الكيان.',
+        };
+      }
+      const allowedAgComps = (profile.authorized_companies || [normalizedUserCompany]).map((c) =>
+        c.trim().toUpperCase()
+      );
+      if (allowedAgComps.includes(normalizedTarget)) {
+        return { allowed: true };
+      }
+      return {
+        allowed: false,
+        reason: `رفض أمني: هذا الوكيل الخارجي غير مصرح له بالتعامل مع الشركة (${normalizedTarget}).`,
+      };
+    }
+
     const isGroupAdmin = this.isAdmin(profile);
 
     if (normalizedTarget === 'ALL') {
@@ -1574,6 +1631,68 @@ export const authService = {
     }
 
     const cleanId = identifier.trim();
+
+    // 0. Check Isolated External Agency Partner Account (provisioned from Unified Agent Master)
+    const matchingExtAccount = getExternalAgencyAccountsSync().find(
+      (a) =>
+        a.email.toLowerCase() === cleanId.toLowerCase() ||
+        a.username.toLowerCase() === cleanId.toLowerCase()
+    );
+    if (matchingExtAccount) {
+      const extThrottle = checkThrottle(matchingExtAccount.email);
+      if (extThrottle.blocked) {
+        return {
+          data: null,
+          error: {
+            message: `تم إيقاف المحاولة مؤقتاً بسبب محاولات فاشلة متعددة. حاول بعد ${extThrottle.remainingSeconds} ثانية.`,
+          },
+          mfa: 'none',
+        };
+      }
+      const extVerify = verifyExternalAgencyCredentials(cleanId, password);
+      if (!extVerify.valid || !extVerify.account) {
+        recordFailedAttempt(matchingExtAccount.email);
+        return {
+          data: null,
+          error: {
+            message: extVerify.reasonAr || 'رفض أمني: بيانات دخول الوكيل الخارجي غير صحيحة.',
+          },
+          mfa: 'none',
+        };
+      }
+      clearFailedAttempts(matchingExtAccount.email);
+      markBrowserSessionAuthenticated();
+      const acc = extVerify.account;
+      const agencyProfile: UserProfile = {
+        id: acc.id,
+        username: acc.username,
+        full_name: `${acc.agency_name_ar} (${acc.contact_person})`,
+        email: acc.email,
+        role: 'External Agency Partner — شريك وكالة خارجية معتمدة',
+        branch: `${acc.country} — بوابة الوكيل الخارجي`,
+        company_id: acc.authorized_companies[0] || 'SAF',
+        department_id: 'ats',
+        department_name_ar: 'بوابة الوكيل الخارجي المعتمدة',
+        default_tab: 'foreign-agency-portal',
+        default_tab_title: `بوابة الوكيل الخارجي — ${acc.agency_name_ar}`,
+        allowed_tabs_override: ['foreign-agency-portal'],
+        authenticated_via: 'external_agency_key',
+        account_type: 'external_agency',
+        agency_id: acc.agency_id,
+        agency_name: acc.agency_name_ar,
+        authorized_companies: acc.authorized_companies,
+        status: acc.status,
+        created_at: acc.created_at,
+      };
+      setLockedSessionCompany(agencyProfile.company_id || 'SAF');
+      setLockedSessionDepartment('ats');
+      cacheProfile(agencyProfile);
+      window.dispatchEvent(
+        new CustomEvent('alsulaim-auth-updated', { detail: { profile: agencyProfile } })
+      );
+      return { data: agencyProfile, error: null, mfa: 'none' };
+    }
+
     const allowCheck = validateAllowedCorporateEmail(cleanId);
     if (!allowCheck.allowed) {
       return {
@@ -2205,8 +2324,18 @@ export const authService = {
     });
   },
 
+  isExternalAgency(user: UserProfile | null | undefined): boolean {
+    if (!user) return false;
+    return (
+      user.account_type === 'external_agency' ||
+      Boolean(user.agency_id) ||
+      user.authenticated_via === 'external_agency_key'
+    );
+  },
+
   isAdmin(user: UserProfile | null): boolean {
     if (!user) return false;
+    if (this.isExternalAgency(user)) return false;
     const lowerEmail = user.email?.toLowerCase() || '';
     return (
       user.department_id === 'executive' ||

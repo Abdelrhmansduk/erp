@@ -14,6 +14,16 @@ import {
 import { KasKpiCard, KasSupplierCard } from '../components/kas/KasCards';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
+import {
+  upsertUnifiedAgency,
+  resolveCanonicalAgency,
+  provisionExternalAgencyAccount,
+  getExternalAgencyAccountsSync,
+  resetExternalAgencyPassword,
+  toggleExternalAgencyAccountStatus,
+  dispatchViaEmailAndWhatsApp,
+  type ExternalAgencyAccount,
+} from '../services/externalAgencyMasterService';
 
 export interface ForeignOffice {
   id: string;
@@ -158,6 +168,63 @@ export const OfficesPage: React.FC = () => {
   useEffect(() => {
     realErpDataStore.getRecords<ForeignOffice>('offices', MOCK_OFFICES).then(data => setOffices(data));
   }, []);
+
+  const [provisionedCreds, setProvisionedCreds] = useState<{
+    account: ExternalAgencyAccount;
+    plainPassword?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!selectedOfficeCredentials) {
+      setProvisionedCreds(null);
+      return;
+    }
+    const syncAgencyAccount = async () => {
+      let master = resolveCanonicalAgency(selectedOfficeCredentials.name);
+      if (!master) {
+        master = await upsertUnifiedAgency({
+          company_id: 'SAF',
+          canonical_code: `OFF_${selectedOfficeCredentials.account_code || selectedOfficeCredentials.id}`,
+          name_en: selectedOfficeCredentials.name,
+          name_ar: selectedOfficeCredentials.name,
+          country: selectedOfficeCredentials.nationality,
+          country_code: 'INT',
+          license_no: selectedOfficeCredentials.license_no,
+          manager_name: selectedOfficeCredentials.manager,
+          email: selectedOfficeCredentials.email,
+          phone: selectedOfficeCredentials.phone,
+          whatsapp: selectedOfficeCredentials.phone,
+          aliases: [selectedOfficeCredentials.name],
+          authorized_companies: ['SAF', 'TOP', 'YAQ', 'DAR'],
+          assigned_coordinator_email: 'i.mahmoud.followup@kas.sa',
+          assigned_coordinator_name: 'إسلام أحمد عرفة',
+          default_commission_usd: selectedOfficeCredentials.cost_usd || 1050,
+          sla_assign_days: 10,
+          avg_days_to_assign: 8,
+          avg_days_to_arrival: 35,
+          historical_total_contracts: selectedOfficeCredentials.contracts_count || 0,
+          historical_arrived_count: selectedOfficeCredentials.contracts_count || 0,
+          historical_backout_count: 0,
+          historical_runaway_count: 0,
+          historical_cancelled_count: 0,
+          quality_score: 93,
+          status: 'نشط',
+        });
+      }
+      const existingAcc = getExternalAgencyAccountsSync().find((a) => a.agency_id === master!.id);
+      if (existingAcc) {
+        setProvisionedCreds({ account: existingAcc });
+      } else {
+        const created = await provisionExternalAgencyAccount({
+          agencyId: master.id,
+          email: selectedOfficeCredentials.email,
+          contactPerson: selectedOfficeCredentials.manager,
+        });
+        setProvisionedCreds({ account: created.account, plainPassword: created.generatedPassword });
+      }
+    };
+    void syncAgencyAccount();
+  }, [selectedOfficeCredentials]);
 
   useEffect(() => {
     if (storeActiveTab === 'add-office') {
@@ -797,16 +864,17 @@ export const OfficesPage: React.FC = () => {
           </div>
         </div>
       )}
-      {/* AGENT PORTAL CREDENTIALS MODAL */}
+      {/* AGENT PORTAL CREDENTIALS MODAL (Real Isolated Provisioning + Email & WhatsApp Dispatch) */}
       {selectedOfficeCredentials && (
-        <div role="dialog" aria-modal="true" onClick={() => setSelectedOfficeCredentials(null)} className="fixed inset-0 z-50 bg-[#141414] backdrop-blur-md flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" onClick={() => setSelectedOfficeCredentials(null)} className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-[24px] border border-[#e0e0e0] text-[#141414] relative max-h-[90vh] overflow-y-auto">
             <div className="p-5 border-b border-[#e0e0e0] flex items-center justify-between">
               <h3 className="font-bold text-base text-[#141414] flex items-center gap-2">
                 <Key className="w-4 h-4 text-[#141414]" />
-                <span>بيانات دخول بوابة الوكيل الخارجي</span>
+                <span>إدارة حساب بوابة الوكيل الخارجي المعزول</span>
               </h3>
               <button
+                type="button"
                 onClick={() => setSelectedOfficeCredentials(null)}
                 className="text-[#adadad] hover:text-[#707070]"
               >
@@ -815,53 +883,117 @@ export const OfficesPage: React.FC = () => {
             </div>
             <div className="p-6 space-y-4 text-xs font-sans">
               <div className="p-3.5 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0]">
-                <div className="text-[#707070] mb-1">الوكالة المعتمدة:</div>
+                <div className="text-[#707070] mb-1">الوكالة المعتمدة في السجل الموحد:</div>
                 <div className="font-bold text-sm text-[#141414]">{selectedOfficeCredentials.name}</div>
-                <div className="text-[11px] text-[#707070] font-mono mt-0.5">الدولة: {selectedOfficeCredentials.nationality} | كود الحساب: {selectedOfficeCredentials.account_code}</div>
+                <div className="text-[11px] text-[#707070] font-mono mt-0.5">
+                  الدولة: {selectedOfficeCredentials.nationality} | حالة الحساب:{' '}
+                  <strong>{provisionedCreds?.account.status || 'نشط'}</strong>
+                </div>
               </div>
 
               <div className="space-y-3">
                 <div>
-                  <label className="block text-[#707070] font-semibold mb-1">اسم المستخدم / البريد المعتمد للبوابة</label>
+                  <label className="block text-[#707070] font-semibold mb-1">اسم المستخدم / البريد الفعلي للدخول</label>
                   <input
                     type="text"
                     readOnly
-                    value={`agent.${(selectedOfficeCredentials.account_code || 'ext').toLowerCase()}@alsulaim-portal.com`}
+                    value={provisionedCreds?.account.email || selectedOfficeCredentials.email}
                     className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 font-mono font-bold text-[#141414]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#707070] font-semibold mb-1">رمز الدخول المشفر (Access Key)</label>
+                  <label className="block text-[#707070] font-semibold mb-1">كلمة المرور المشفرة (SHA-256)</label>
                   <input
                     type="text"
                     readOnly
-                    value={`AGNT-SEC-${selectedOfficeCredentials.account_code || 'KEY'}-2026`}
+                    value={provisionedCreds?.plainPassword || 'محفوظة بتشفير SHA-256 — اضغط إعادة تعيين لتوليد كلمة جديدة'}
                     className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 font-mono font-bold text-[#141414]"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#e0e0e0]">
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#e0e0e0]">
+                {provisionedCreds?.account && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await dispatchViaEmailAndWhatsApp({
+                          recipientName: selectedOfficeCredentials.name,
+                          recipientPhone: selectedOfficeCredentials.phone,
+                          recipientEmail: provisionedCreds.account.email,
+                          subject: `بيانات دخول بوابة الوكلاء الخارجيين — ${selectedOfficeCredentials.name}`,
+                          bodyText: `مرحباً (${selectedOfficeCredentials.manager}),\nتم تفعيل حسابكم المعزول على بوابة الوكلاء الخارجيين:\nالبريد: ${provisionedCreds.account.email}\nاسم المستخدم: ${provisionedCreds.account.username}\nكلمة المرور: ${provisionedCreds.plainPassword || '(استخدم كلمة المرور المرسلة أو اطلب تحديثها)'}`,
+                          channel: 'both',
+                          templateName: 'بيانات دخول بوابة الوكيل الخارجي',
+                          companyId: 'SAF',
+                          openExternalClient: false,
+                        });
+                        addNotification({
+                          title: 'تم الإرسال عبر البريد والواتساب',
+                          message: 'تم إرسال وتوثيق بيانات دخول البوابة للوكيل عبر البريد الإلكتروني والواتساب.',
+                          type: 'success',
+                        });
+                      }}
+                      className="button-primary-pill text-xs py-2 px-4 cursor-pointer"
+                    >
+                      إرسال (بريد + واتساب)
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const resetRes = await resetExternalAgencyPassword(provisionedCreds.account.id);
+                        if (resetRes) {
+                          setProvisionedCreds({ account: resetRes.account, plainPassword: resetRes.newPassword });
+                          addNotification({
+                            title: 'تم تصفير وتوليد كلمة مرور جديدة',
+                            message: 'تم توليد كلمة مرور قوية جديدة لحساب الوكيل.',
+                            type: 'success',
+                          });
+                        }
+                      }}
+                      className="button-outline-on-light text-xs py-2 px-3 cursor-pointer"
+                    >
+                      توليد كلمة مرور
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const next = provisionedCreds.account.status === 'نشط' ? 'مجمّد' : 'نشط';
+                        const updatedAcc = await toggleExternalAgencyAccountStatus(provisionedCreds.account.id, next);
+                        if (updatedAcc) {
+                          setProvisionedCreds({ ...provisionedCreds, account: updatedAcc });
+                          addNotification({
+                            title: next === 'مجمّد' ? 'تم تجميد الحساب' : 'تم تنشيط الحساب',
+                            message: `حالة دخول الوكيل الآن: ${next}.`,
+                            type: 'info',
+                          });
+                        }
+                      }}
+                      className="button-outline-on-light text-xs py-2 px-3 cursor-pointer"
+                    >
+                      {provisionedCreds.account.status === 'نشط' ? 'تجميد' : 'تنشيط'}
+                    </button>
+                  </>
+                )}
+
                 <button
                   type="button"
                   onClick={() => {
-                    navigator.clipboard.writeText(`اسم المستخدم: agent.${(selectedOfficeCredentials.account_code || 'ext').toLowerCase()}@alsulaim-portal.com\nرمز الدخول: AGNT-SEC-${selectedOfficeCredentials.account_code || 'KEY'}-2026`);
+                    navigator.clipboard.writeText(
+                      `البريد: ${provisionedCreds?.account.email || selectedOfficeCredentials.email}\nكلمة المرور: ${provisionedCreds?.plainPassword || '(مشفرة)'}`
+                    );
                     addNotification({
                       title: 'تم نسخ بيانات الدخول',
-                      message: 'تم نسخ اسم المستخدم ورمز الدخول إلى الحافظة بنجاح.',
-                      type: 'success'
+                      message: 'تم نسخ بيانات الدخول إلى الحافظة بنجاح.',
+                      type: 'success',
                     });
                   }}
-                  className="button-primary-pill text-xs py-2 px-4"
+                  className="button-outline-on-light text-xs py-2 px-3 cursor-pointer"
                 >
-                  نسخ البيانات
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedOfficeCredentials(null)}
-                  className="button-outline-on-light text-xs py-2 px-4"
-                >
-                  إغلاق
+                  نسخ
                 </button>
               </div>
             </div>

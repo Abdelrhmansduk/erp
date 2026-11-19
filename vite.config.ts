@@ -44,6 +44,76 @@ const ttsPlugin = () => ({
         }
       }
 
+      if (req.url && req.url.startsWith('/api/biometric-scan')) {
+        try {
+          // @ts-ignore - Dynamic import of pure ESM Node helper
+          const { handleBiometricNetworkScanHttpRequest } = await import(
+            './src/services/biometricNetworkScannerServer.mjs'
+          );
+          await handleBiometricNetworkScanHttpRequest(req, res);
+          return;
+        } catch (err: any) {
+          if (!res.headersSent) {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(
+              JSON.stringify({
+                ok: false,
+                errorAr: err?.message || 'Biometric LAN scanner server error',
+              })
+            );
+          }
+          return;
+        }
+      }
+
+      if (req.url && req.url.startsWith('/api/biometric-live-punches')) {
+        try {
+          // @ts-ignore - Dynamic import of pure ESM Node helper
+          const { handleLiveBiometricPunchesHttpRequest } = await import(
+            './src/services/biometricNetworkScannerServer.mjs'
+          );
+          await handleLiveBiometricPunchesHttpRequest(req, res);
+          return;
+        } catch (err: any) {
+          if (!res.headersSent) {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ ok: false, errorAr: err?.message || 'Live punches API error' }));
+          }
+          return;
+        }
+      }
+
+      if (
+        req.url &&
+        (req.url.startsWith('/iclock/cdata') ||
+          req.url.startsWith('/iclock/getrequest') ||
+          req.url.startsWith('/iclock/devicecmd'))
+      ) {
+        const acceptHeader = String(req.headers?.accept || '').toLowerCase();
+        // If opened by a human in a web browser (Chrome/Edge/Safari sends Accept: text/html),
+        // fall through to Vite SPA index.html so the Arabic Network Biometrics UI renders directly!
+        if (req.method === 'GET' && acceptHeader.includes('text/html') && req.url.startsWith('/iclock/cdata')) {
+          next();
+          return;
+        }
+
+        try {
+          // @ts-ignore - Dynamic import of pure ESM Node helper
+          const { handleZktecoAdmsIclockHttpRequest } = await import(
+            './src/services/biometricNetworkScannerServer.mjs'
+          );
+          await handleZktecoAdmsIclockHttpRequest(req, res);
+          return;
+        } catch {
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+          res.end('OK');
+          return;
+        }
+      }
+
       if (req.url && req.url.startsWith('/api/health')) {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');

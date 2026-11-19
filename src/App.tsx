@@ -124,6 +124,7 @@ const SmaccEmployeesSettingsPage = lazyWithRetry(() => import('./pages/SmaccEmpl
 const LegalCompliancePage = lazyWithRetry(() => import('./pages/LegalCompliancePage').then(m => ({ default: m.LegalCompliancePage })));
 const TendersBOQPage = lazyWithRetry(() => import('./pages/TendersBOQPage').then(m => ({ default: m.TendersBOQPage })));
 const KasExactReplicaTablesPage = lazyWithRetry(() => import('./pages/KasExactReplicaTablesPage').then(m => ({ default: m.KasExactReplicaTablesPage })));
+const KasWarehouseManagementPage = lazyWithRetry(() => import('./pages/KasWarehouseManagementPage').then(m => ({ default: m.KasWarehouseManagementPage })));
 const KasEtimadCloudPage = lazyWithRetry(() => import('./pages/KasEtimadCloudPage').then(m => ({ default: m.KasEtimadCloudPage })));
 const KasSuitePortalPage = lazyWithRetry(() => import('./pages/KasSuitePortalPage').then(m => ({ default: m.KasSuitePortalPage })));
 const KasCommercialDivisionsPage = lazyWithRetry(() => import('./pages/KasCommercialDivisionsPage').then(m => ({ default: m.KasCommercialDivisionsPage })));
@@ -131,6 +132,7 @@ const EmployeeSelfServicePage = lazyWithRetry(() => import('./pages/EmployeeSelf
 const IdentityAccessManagementPage = lazyWithRetry(() => import('./pages/IdentityAccessManagementPage').then(m => ({ default: m.IdentityAccessManagementPage })));
 const ClientPortalPage = lazyWithRetry(() => import('./pages/ClientPortalPage').then(m => ({ default: m.ClientPortalPage })));
 const ForeignAgencyPortalPage = lazyWithRetry(() => import('./pages/ForeignAgencyPortalPage').then(m => ({ default: m.ForeignAgencyPortalPage })));
+const TransactionsFollowupCenterPage = lazyWithRetry(() => import('./pages/TransactionsFollowupCenterPage').then(m => ({ default: m.TransactionsFollowupCenterPage })));
 const EmployeeMonitoringPage = lazyWithRetry(() => import('./pages/EmployeeMonitoringPage').then(m => ({ default: m.EmployeeMonitoringPage })));
 const AICopilotWidget = lazyWithRetry(() => import('./components/common/AICopilotWidget').then(m => ({ default: m.AICopilotWidget })));
 const QuickSearchModal = lazyWithRetry(() => import('./components/common/QuickSearchModal').then(m => ({ default: m.QuickSearchModal })));
@@ -150,6 +152,11 @@ const PublicCareerPortalView = lazyWithRetry(() =>
 const CorporateDigitalSignagePlayer = lazyWithRetry(() =>
   import('./components/hr/CorporateDigitalSignagePlayer').then((m) => ({
     default: m.CorporateDigitalSignagePlayer,
+  }))
+);
+const NetworkBiometricDevicesHub = lazyWithRetry(() =>
+  import('./components/hr/NetworkBiometricDevicesHub').then((m) => ({
+    default: m.NetworkBiometricDevicesHub,
   }))
 );
 
@@ -244,7 +251,13 @@ const MainContent: React.FC = () => {
   // their personal Google account for 2nd-time Google Sign-In when no Google account is bound yet.
   useEffect(() => {
     const activeProfile = user || authService.getCurrentUser();
-    if (!isProtectedFlow || !activeProfile?.email || !legalCheckDone || showLegalModal) {
+    if (
+      !isProtectedFlow ||
+      !activeProfile?.email ||
+      authService.isExternalAgency(activeProfile) ||
+      !legalCheckDone ||
+      showLegalModal
+    ) {
       if (!isProtectedFlow && !googleBindingModalForced) {
         setShowGoogleBindingModal(false);
       }
@@ -281,7 +294,7 @@ const MainContent: React.FC = () => {
   // Mandatory Biometric + Live Camera (+ Barcode Fallback) Gate upon opening Launcher or Workspace
   useEffect(() => {
     const activeProfile = user || authService.getCurrentUser();
-    if (!isProtectedFlow || !activeProfile) {
+    if (!isProtectedFlow || !activeProfile || authService.isExternalAgency(activeProfile)) {
       setAttendanceGate((prev) => (prev.open ? { open: false, mode: 'CHECK_IN' } : prev));
       return;
     }
@@ -345,7 +358,12 @@ const MainContent: React.FC = () => {
 
   const handleLogout = async () => {
     const activeProfile = user || authService.getCurrentUser();
-    if (isProtectedFlow && activeProfile && !showLegalModal) {
+    if (
+      isProtectedFlow &&
+      activeProfile &&
+      !authService.isExternalAgency(activeProfile) &&
+      !showLegalModal
+    ) {
       setAttendanceGate({ open: true, mode: 'CHECK_OUT' });
       return;
     }
@@ -516,6 +534,9 @@ const MainContent: React.FC = () => {
 
       case 'ats-pipeline':
         return <EnterpriseATSPipelinePage />;
+
+      case 'transactions-followup':
+        return <TransactionsFollowupCenterPage />;
 
       case 'external-offices':
       case 'offices-agents':
@@ -876,6 +897,8 @@ const MainContent: React.FC = () => {
 
       case 'attendances':
       case 'daily-work-reports':
+      case 'network-biometrics':
+      case 'biometric-devices':
         return <AttendancesPage />;
 
       case 'employee-monitoring':
@@ -905,6 +928,11 @@ const MainContent: React.FC = () => {
       case 'kas-exact-sheets':
       case 'kas-replica-tables':
         return <KasExactReplicaTablesPage />;
+
+      case 'kas-warehouse':
+      case 'kas-wms':
+      case 'warehouse-wms':
+        return <KasWarehouseManagementPage />;
 
       case 'kas-commercial':
         return <KasCommercialDivisionsPage />;
@@ -1140,6 +1168,11 @@ export const App: React.FC = () => {
     typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const signageScreen = signageParams?.get('signage_screen');
   const signageCompany = signageParams?.get('company') || undefined;
+  const biometricNetworkConsole =
+    (typeof window !== 'undefined' &&
+      (window.location.pathname === '/biometrics-lan' ||
+        window.location.pathname.startsWith('/iclock/cdata'))) ||
+    Boolean(signageParams?.get('biometric_network'));
 
   if (signageScreen) {
     return (
@@ -1150,6 +1183,25 @@ export const App: React.FC = () => {
             companyCode={signageCompany}
             standaloneMode
           />
+        </Suspense>
+      </LanguageProvider>
+    );
+  }
+
+  if (biometricNetworkConsole) {
+    return (
+      <LanguageProvider>
+        <Suspense fallback={<PageFallback />}>
+          <NetworkBiometricDevicesHub
+            companyId={signageCompany || 'SAF'}
+            standaloneMode
+            onEnterErpWorkspace={() => {
+              if (typeof window !== 'undefined') {
+                window.location.assign(window.location.origin + '/');
+              }
+            }}
+          />
+          <UniversalNotificationToaster onNavigate={() => {}} />
         </Suspense>
       </LanguageProvider>
     );

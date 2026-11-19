@@ -7,19 +7,22 @@ import {
   Download, Printer, Eye, Edit3, Trash2, Check, X, RefreshCw,
   QrCode, Calendar, Clock, DollarSign, TrendingUp, AlertCircle,
   FileCheck, Shield, ChevronDown, CheckCheck, Send, BarChart3,
-  Percent, FileText, ArrowUpRight
+  Percent, FileText, ArrowUpRight, Package
 } from 'lucide-react';
 import { KasNavigationSidebar, KasDepartmentId, KAS_BRANCHES } from '../components/kas/KasNavigationSidebar';
 import { ExportDropdown } from '../components/common/ExportDropdown';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import { useCompany } from '../contexts/CompanyContext';
+import { useAuthContext } from '../contexts/AuthContext';
 import { useIamSession } from '../contexts/IamSessionContext';
 import { useAppStore } from '../stores/appStore';
+import { authService } from '../services/authService';
 import { kasEtmadSuiteService } from '../services/kasEtmadSuiteService';
 import { tafqeet } from '../services/tafqeetService';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { KasExactReplicaTablesPage } from './KasExactReplicaTablesPage';
+import { KasWarehouseManagementPage } from './KasWarehouseManagementPage';
 
 interface KasSuitePortalPageProps {
   onReturnToErp?: () => void;
@@ -27,8 +30,10 @@ interface KasSuitePortalPageProps {
 
 export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturnToErp }) => {
   const { setActiveCompanyId } = useCompany();
+  const { user } = useAuthContext();
   const { currentUser } = useIamSession();
   const { addNotification } = useAppStore();
+  const canAccessKasWms = authService.isTabAuthorizedForUser(user, 'kas-warehouse');
 
   // Active Department
   const [activeDept, setActiveDept] = useState<KasDepartmentId>('command-center');
@@ -270,6 +275,9 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
     { id: 'monafasat', label: 'منافسات منصة اعتماد', icon: <Layers className="w-3.5 h-3.5" />, badge: '2,651' },
     { id: 'boq-editor', label: 'محرر جداول الكميات BOQ', icon: <Calculator className="w-3.5 h-3.5" /> },
     { id: 'kas-exact-sheets', label: 'قسم الجداول المطابقة للأصل بالملي (شهر 11 — النسخ 1..4)', icon: <FileSpreadsheet className="w-3.5 h-3.5" />, badge: 'طبق الأصل' },
+    ...(canAccessKasWms
+      ? [{ id: 'warehouse-wms' as KasDepartmentId, label: 'إدارة المستودعات والمخزون الذكي (WMS)', icon: <Package className="w-3.5 h-3.5" />, badge: 'WMS Pro' }]
+      : []),
     { id: 'suppliers', label: 'سجل الموردين والمقاولين', icon: <Store className="w-3.5 h-3.5" />, badge: String(suppliers.length) },
     { id: 'purchase-orders', label: 'أوامر التوريد والصرف PO', icon: <Truck className="w-3.5 h-3.5" />, badge: String(purchaseOrders.length) },
     { id: 'contracts-projects', label: 'ترسية المشاريع والعقود', icon: <Award className="w-3.5 h-3.5" />, badge: '12' },
@@ -750,6 +758,14 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
           {/* ========================================================================= */}
           {activeDept === 'kas-exact-sheets' && (
             <KasExactReplicaTablesPage />
+          )}
+
+          {/* ========================================================================= */}
+          {/* DEPT 3.6: KAS ENTERPRISE WAREHOUSE & INVENTORY MANAGEMENT (WMS)           */}
+          {/* Exclusive to Hatem Salman, Ahmed Gamal Al-Bashir, Firas & Executive       */}
+          {/* ========================================================================= */}
+          {activeDept === 'warehouse-wms' && canAccessKasWms && (
+            <KasWarehouseManagementPage />
           )}
 
           {/* ========================================================================= */}

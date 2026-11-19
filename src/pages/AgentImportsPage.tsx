@@ -1,20 +1,42 @@
 import i18n from '../i18n/config';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Badge } from '../components/ui/Badge';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { useAppStore } from '../stores/appStore';
+import { useAuthContext } from '../contexts/AuthContext';
 import { IMPORT_TEMPLATES, downloadTemplate } from '../services/importEngine';
-import { 
-  UploadCloud, Download, FileSpreadsheet, Check, Search, Plus, 
-  Eye, X, Trash2, Globe, Building2, FileText, CheckCircle2, UserCheck
+import {
+  UploadCloud,
+  Download,
+  FileSpreadsheet,
+  Check,
+  Search,
+  Plus,
+  Eye,
+  X,
+  Trash2,
+  FileText,
+  MessageCircle,
+  Sparkles,
+  RotateCcw,
 } from 'lucide-react';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
+import { SmartCvExtractorModal } from '../components/cvs/SmartCvExtractorModal';
+import {
+  ProfessionalAgencyCvTemplate,
+  type PrintableAgencyCvData,
+} from '../components/cvs/ProfessionalAgencyCvTemplate';
+import {
+  getUnifiedAgenciesSync,
+  dispatchViaEmailAndWhatsApp,
+} from '../services/externalAgencyMasterService';
 
 export interface ImportBatch {
   id: string;
   batch_code: string;
   office_name: string;
+  agency_id?: string;
   country: string;
   cvs_count: number;
   status: 'بانتظار الاعتماد' | 'مستوردة بالكامل' | 'مرفوضة';
@@ -22,6 +44,7 @@ export interface ImportBatch {
   notes?: string;
   candidates?: Array<{
     id: string;
+    cv_id?: string;
     name: string;
     passport: string;
     age: number;
@@ -33,118 +56,212 @@ export interface ImportBatch {
 }
 
 const MOCK_BATCHES: ImportBatch[] = [
-  { 
-    id: '1', 
-    batch_code: '#IMP-2026-08', 
-    office_name: 'DAMAS FOREIGN AGENCY', 
-    country: 'اثيوبيا', 
-    cvs_count: 15, 
-    status: 'بانتظار الاعتماد', 
-    created_at: '2026-07-29',
-    notes: 'دفعة طاهيات وعاملات منزليات مدربات بمعهد دماس بأديس أبابا',
+  {
+    id: '1',
+    batch_code: '#IMP-2026-08',
+    office_name: 'وكالة شيجر الدولية للاستقدام',
+    agency_id: 'AGY-ETH-SHEGER',
+    country: 'أثيوبيا',
+    cvs_count: 3,
+    status: 'بانتظار الاعتماد',
+    created_at: '2026-11-16',
+    notes: 'دفعة عاملات منزليات مرفوعة بالاستخلاص الذكي (SHEGER PDF + MRZ) بانتظار اعتماد المتابعة',
     candidates: [
-      { id: 'c-1', name: 'سارة أديس كيبيدي', passport: 'EP8894120', age: 26, profession: 'عاملة منزلية', experience: 'سنتين بالسعودية', medical: 'لائق', status: 'قيد المراجعة' },
-      { id: 'c-2', name: 'حليمة جبري تسفاي', passport: 'EP9920140', age: 24, profession: 'عاملة منزلية', experience: 'أول مرة', medical: 'لائق', status: 'قيد المراجعة' },
-      { id: 'c-3', name: 'فاطمة محمد نور', passport: 'EP7731209', age: 29, profession: 'طباخة منزلية', experience: '4 سنوات بالإمارات', medical: 'لائق', status: 'قيد المراجعة' },
-    ]
+      { id: 'c-1', name: 'MOMINA KEDIR GURMU', passport: 'EP9249575', age: 25, profession: 'عاملة منزلية', experience: 'أول مرة', medical: 'لائق', status: 'قيد المراجعة' },
+      { id: 'c-2', name: 'HALIMA GEBRE TESFAYE', passport: 'EP9920140', age: 24, profession: 'عاملة منزلية', experience: 'أول مرة', medical: 'لائق', status: 'قيد المراجعة' },
+      { id: 'c-3', name: 'FATUMA MOHAMMED NUR', passport: 'EP7731209', age: 29, profession: 'طباخة منزلية', experience: 'سنتان بالسعودية', medical: 'لائق', status: 'قيد المراجعة' },
+    ],
   },
-  { 
-    id: '2', 
-    batch_code: '#IMP-2026-07', 
-    office_name: "PLATINUM BROTHERS INT'L", 
-    country: 'الفلبين', 
-    cvs_count: 22, 
-    status: 'مستوردة بالكامل', 
-    created_at: '2026-07-20',
-    notes: 'دفعة كوادر رعاية كبار سن وتمريض منزلي معتمدة من POEA',
+  {
+    id: '2',
+    batch_code: '#IMP-2026-07',
+    office_name: 'وكالة يوشي بروموشنز — الفلبين',
+    agency_id: 'AGY-PHL-YOSHI',
+    country: 'الفلبين',
+    cvs_count: 2,
+    status: 'مستوردة بالكامل',
+    created_at: '2026-11-10',
+    notes: 'دفعة كوادر فلبينية معتمدة ومطابقة لمنصة مساند',
     candidates: [
-      { id: 'c-4', name: 'ماريا سانتوس كورتيز', passport: 'P9982710B', age: 31, profession: 'رعاية كبار سن', experience: '3 سنوات في الكويت', medical: 'لائق', status: 'معتمد' },
-      { id: 'c-5', name: 'جويس فلوريس', passport: 'P8871625A', age: 27, profession: 'عاملة منزلية', experience: 'أول مرة', medical: 'لائق', status: 'معتمد' }
-    ]
-  },
-  { 
-    id: '3', 
-    batch_code: '#IMP-2026-06', 
-    office_name: "AL-MANAR RECRUITMENT", 
-    country: 'أوغندا', 
-    cvs_count: 18, 
-    status: 'مستوردة بالكامل', 
-    created_at: '2026-07-15',
-    notes: 'كوادر إجادة تامة للغة الإنجليزية وإدارة المنازل',
-    candidates: [
-      { id: 'c-6', name: 'فلورنس ناباتانزي', passport: 'UG1102938', age: 28, profession: 'مدبرة منزل', experience: 'سنتين بالأردن', medical: 'لائق', status: 'معتمد' }
-    ]
+      { id: 'c-4', name: 'MARIA SANTOS CORTEZ', passport: 'P9982710B', age: 31, profession: 'رعاية كبار سن', experience: '3 سنوات', medical: 'لائق', status: 'معتمد' },
+      { id: 'c-5', name: 'JOYCE FLORES', passport: 'P8871625A', age: 27, profession: 'عاملة منزلية', experience: 'أول مرة', medical: 'لائق', status: 'معتمد' },
+    ],
   },
 ];
 
 export const AgentImportsPage: React.FC = () => {
-  const [batches, setBatches] = useState<ImportBatch[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showAddBatchModal, setShowAddBatchModal] = useState(false);
-  const [selectedBatch, setSelectedBatch] = useState<ImportBatch | null>(null);
+  const { user } = useAuthContext();
   const { setActiveTab, addNotification } = useAppStore();
 
-  // Form State for new batch
-  const [batchForm, setBatchForm] = useState({
-    office_name: 'DAMAS FOREIGN AGENCY',
-    country: 'إثيوبيا',
-    cvs_count: '10',
-    batch_code: `#IMP-${new Date().getFullYear()}-${String(Math.floor(10 + Math.random() * 90))}`,
-    notes: ''
-  });
+  const [batches, setBatches] = useState<ImportBatch[]>([]);
+  const [pendingCvs, setPendingCvs] = useState<Record<string, any>[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSmartExtractor, setShowSmartExtractor] = useState(false);
+  const [selectedBatch, setSelectedBatch] = useState<ImportBatch | null>(null);
+  const [previewCv, setPreviewCv] = useState<PrintableAgencyCvData | null>(null);
+  const [revisionTargetCv, setRevisionTargetCv] = useState<Record<string, any> | null>(null);
+  const [revisionNote, setRevisionNote] = useState('');
+  const [targetScopeByCv, setTargetScopeByCv] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    realErpDataStore.getRecords<ImportBatch>('agent_imports', MOCK_BATCHES).then(data => setBatches(data));
+  const agencies = getUnifiedAgenciesSync();
+
+  const refreshQueue = useCallback(async () => {
+    const batchData = await realErpDataStore.getRecords<ImportBatch>('agent_imports', MOCK_BATCHES);
+    setBatches(batchData);
+    const allCvs = await realErpDataStore.getRecords<any>('cvs', []);
+    setPendingCvs(allCvs.filter((c) => c.status === 'بانتظار الاعتماد'));
   }, []);
 
-  const handleApprove = async (batchId: string) => {
-    const target = batches.find(b => b.id === batchId);
-    const updated = await realErpDataStore.updateRecord<ImportBatch>('agent_imports', batchId, {
-      status: 'مستوردة بالكامل'
-    }, MOCK_BATCHES);
-    setBatches(updated);
+  useEffect(() => {
+    void refreshQueue();
+    window.addEventListener('erp-data-updated', refreshQueue);
+    return () => window.removeEventListener('erp-data-updated', refreshQueue);
+  }, [refreshQueue]);
 
-    // If batch has candidates, register them in cvs table
-    if (target && target.candidates) {
+  const handleApproveSingleCv = async (cv: Record<string, any>) => {
+    const chosenScope = targetScopeByCv[cv.id] || cv.target_company_scope || 'ALL';
+    const approverName = user?.full_name || 'إسلام أحمد عرفة';
+
+    await realErpDataStore.updateRecord<any>('cvs', cv.id, {
+      status: 'متاح',
+      approval_status: 'APPROVED',
+      approved_by: approverName,
+      approved_at: new Date().toISOString(),
+      target_company_scope: chosenScope,
+      revision_note: '',
+    });
+
+    const ag = agencies.find((a) => a.id === cv.agency_id);
+    await dispatchViaEmailAndWhatsApp({
+      recipientName: cv.external_office || ag?.name_ar || 'الوكيل الخارجي',
+      recipientPhone: ag?.whatsapp || ag?.phone,
+      recipientEmail: ag?.email,
+      subject: `اعتماد ونشر السيرة الذاتية (${cv.cv_code}) للمبيعات`,
+      bodyText: `تم اعتماد السيرة الذاتية للمرشحة (${cv.maid_name}) جواز (${cv.passport_number}) من قبل (${approverName}) وإتاحتها الآن لأقسام المبيعات (${chosenScope === 'ALL' ? 'مشترك لجميع الشركات' : chosenScope}).`,
+      channel: 'both',
+      templateName: 'إشعار اعتماد سيرة ذاتية للمبيعات',
+      companyId: chosenScope === 'ALL' ? 'SAF' : chosenScope,
+      openExternalClient: false,
+    });
+
+    await refreshQueue();
+    addNotification({
+      title: 'تم اعتماد السيرة ونشرها للمبيعات',
+      message: `أصبحت السيرة (${cv.cv_code}) بحالة «متاح» لدى المبيعات وتم إشعار الوكيل عبر البريد والواتساب.`,
+      type: 'success',
+    });
+  };
+
+  const handleRequestRevisionOnCv = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!revisionTargetCv || !revisionNote.trim()) return;
+
+    await realErpDataStore.updateRecord<any>('cvs', revisionTargetCv.id, {
+      approval_status: 'REVISION_REQUESTED',
+      revision_note: revisionNote.trim(),
+    });
+
+    const ag = agencies.find((a) => a.id === revisionTargetCv.agency_id);
+    await dispatchViaEmailAndWhatsApp({
+      recipientName: revisionTargetCv.external_office || ag?.name_ar || 'الوكيل الخارجي',
+      recipientPhone: ag?.whatsapp || ag?.phone,
+      recipientEmail: ag?.email,
+      subject: `ملاحظة تعديل على السيرة (${revisionTargetCv.cv_code})`,
+      bodyText: `يرجى من الوكالة استكمال الملاحظة التالية على السيرة (${revisionTargetCv.maid_name} — ${revisionTargetCv.passport_number}):\n"${revisionNote.trim()}"`,
+      channel: 'both',
+      templateName: 'طلب استكمال/تعديل سيرة من الوكيل',
+      companyId: 'SAF',
+      openExternalClient: false,
+    });
+
+    setRevisionTargetCv(null);
+    setRevisionNote('');
+    await refreshQueue();
+    addNotification({
+      title: 'تم إرجاع السيرة بملاحظة للوكيل',
+      message: 'ظهرت الملاحظة في بوابة الوكيل الخارجي وتم إرسالها عبر البريد الإلكتروني والواتساب.',
+      type: 'info',
+    });
+  };
+
+  const handleApproveBatch = async (batchId: string) => {
+    const target = batches.find((b) => b.id === batchId);
+    await realErpDataStore.updateRecord<ImportBatch>(
+      'agent_imports',
+      batchId,
+      { status: 'مستوردة بالكامل' },
+      MOCK_BATCHES
+    );
+
+    if (target?.candidates) {
+      const existingCvs = await realErpDataStore.getRecords<any>('cvs', []);
       for (const cand of target.candidates) {
-        await realErpDataStore.addRecord('cvs', {
-          id: `CV-${Date.now()}-${cand.id}`,
-          cv_code: `#CV-2026-${Math.floor(100 + Math.random() * 899)}`,
-          name: cand.name,
-          maid_name: cand.name,
-          maid_name_ar: cand.name,
-          passport_number: cand.passport,
-          nationality: target.country,
-          profession: cand.profession,
-          job: cand.profession,
-          type: 'استقدام',
-          age: cand.age,
-          religion: 'مسلمة',
-          marital_status: 'عزباء',
-          experience_years: 2,
-          experience_country: cand.experience,
-          experience: cand.experience,
-          salary: 1500,
-          office_name: target.office_name,
-          external_office: target.office_name,
-          skills: ['تنظيف شامل', 'رعاية أطفال', 'إدارة منزلية'],
-          status: 'متاح',
-          created_at: new Date().toISOString().slice(0, 10)
-        });
+        const matchedExisting = existingCvs.find(
+          (c) =>
+            c.id === cand.cv_id ||
+            String(c.passport_number || '').toUpperCase() === cand.passport.toUpperCase()
+        );
+        if (matchedExisting) {
+          await realErpDataStore.updateRecord<any>('cvs', matchedExisting.id, {
+            status: 'متاح',
+            approval_status: 'APPROVED',
+            approved_by: user?.full_name || 'قسم المتابعة الخارجية',
+          });
+        } else {
+          await realErpDataStore.addRecord('cvs', {
+            id: `CV-${Date.now()}-${cand.id}`,
+            cv_code: `#CV-2026-${Math.floor(100 + Math.random() * 899)}`,
+            agency_id: target.agency_id,
+            target_company_scope: 'ALL',
+            maid_name: cand.name,
+            maid_name_ar: cand.name,
+            passport_number: cand.passport,
+            nationality: target.country,
+            job: cand.profession,
+            type: 'استقدام',
+            age: cand.age,
+            religion: 'مسلمة',
+            marital_status: 'عزباء',
+            experience_years: 2,
+            experience_country: cand.experience,
+            salary: 1200,
+            external_office: target.office_name,
+            skills: ['تنظيف شامل', 'رعاية أطفال', 'إدارة منزلية'],
+            status: 'متاح',
+            approval_status: 'APPROVED',
+            created_at: new Date().toISOString().slice(0, 10),
+          });
+        }
       }
     }
 
+    const ag = agencies.find((a) => a.id === target?.agency_id);
+    if (target) {
+      await dispatchViaEmailAndWhatsApp({
+        recipientName: target.office_name,
+        recipientPhone: ag?.whatsapp || ag?.phone,
+        recipientEmail: ag?.email,
+        subject: `اعتماد دفعة السير (${target.batch_code})`,
+        bodyText: `تم اعتماد دفعة السير (${target.batch_code}) المرفوعة من (${target.office_name}) ونشرها لأقسام المبيعات.`,
+        channel: 'both',
+        templateName: 'اعتماد دفعة سير من الوكيل',
+        companyId: 'SAF',
+        openExternalClient: false,
+      });
+    }
+
+    await refreshQueue();
     addNotification({
-      title: 'اعتماد ونشر دفعة السير',
-      message: `تم اعتماد الدفعة (${target?.batch_code || batchId}) بنجاح وإتاحة سيرها في جدول السير الذاتية بالـ ERP.`,
+      title: 'تم اعتماد الدفعة ونشر السير للمبيعات',
+      message: `تم اعتماد الدفعة (${target?.batch_code || batchId}) وإشعار الوكيل عبر البريد والواتساب.`,
       type: 'success',
     });
   };
 
   const handleDeleteBatch = async (batchId: string) => {
     if (window.confirm('هل أنت متأكد من حذف سجل هذه الدفعة؟')) {
-      const updated = await realErpDataStore.deleteRecord<ImportBatch>('agent_imports', batchId, MOCK_BATCHES);
-      setBatches(updated);
+      await realErpDataStore.deleteRecord<ImportBatch>('agent_imports', batchId, MOCK_BATCHES);
+      await refreshQueue();
       addNotification({
         title: 'حذف الدفعة',
         message: 'تم حذف الدفعة بنجاح من سجلات الاستيراد.',
@@ -153,147 +270,173 @@ export const AgentImportsPage: React.FC = () => {
     }
   };
 
-  const handleCreateBatch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!batchForm.office_name || !batchForm.batch_code) return;
-
-    const count = parseInt(batchForm.cvs_count) || 10;
-    const newBatch: ImportBatch = {
-      id: `batch-${Date.now()}`,
-      batch_code: batchForm.batch_code,
-      office_name: batchForm.office_name,
-      country: batchForm.country,
-      cvs_count: count,
-      status: 'بانتظار الاعتماد',
-      created_at: new Date().toISOString().slice(0, 10),
-      notes: batchForm.notes || 'دفعة جديدة تم رفعها من وكيل خارجي',
-      candidates: Array.from({ length: Math.min(count, 5) }).map((_, i) => ({
-        id: `gen-${i + 1}`,
-        name: `مرشحة جديدة ${i + 1} (${batchForm.country})`,
-        passport: `PP${Math.floor(1000000 + Math.random() * 9000000)}`,
-        age: 23 + (i * 2),
-        profession: 'عاملة منزلية',
-        experience: i % 2 === 0 ? 'سنتين خبرة' : 'أول مرة',
-        medical: 'لائق',
-        status: 'قيد المراجعة'
-      }))
-    };
-
-    const updated = await realErpDataStore.addRecord<ImportBatch>('agent_imports', newBatch, MOCK_BATCHES);
-    setBatches(updated);
-    setShowAddBatchModal(false);
-    setBatchForm({
-      office_name: 'DAMAS FOREIGN AGENCY',
-      country: 'إثيوبيا',
-      cvs_count: '10',
-      batch_code: `#IMP-${new Date().getFullYear()}-${String(Math.floor(10 + Math.random() * 90))}`,
-      notes: ''
-    });
-
-    addNotification({
-      title: 'تسجيل دفعة استيراد جديدة',
-      message: `تم تسجيل الدفعة (${newBatch.batch_code}) بواقع ${count} سيرة ذاتية بنجاح وحفظها بقاعدة البيانات.`,
-      type: 'success',
-    });
-  };
-
   const handleDownloadCVTemplate = () => {
-    const cvTemplate = IMPORT_TEMPLATES.find(t => t.entityKey === 'cvs');
-    if (cvTemplate) {
-      downloadTemplate(cvTemplate);
-    }
+    const cvTemplate = IMPORT_TEMPLATES.find((t) => t.entityKey === 'cvs');
+    if (cvTemplate) downloadTemplate(cvTemplate);
   };
 
-  const filteredBatches = (batches.length > 0 ? batches : MOCK_BATCHES).filter((b) =>
-    (b.batch_code || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (b.office_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (b.country || '').includes(searchQuery)
+  const filteredBatches = (batches.length > 0 ? batches : MOCK_BATCHES).filter(
+    (b) =>
+      (b.batch_code || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (b.office_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (b.country || '').includes(searchQuery)
   );
 
   return (
     <div className="space-y-6 text-right dir-rtl">
-      {/* Top Banner with Quick Actions */}
-      <div
-        className="card-feature-cinematic"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: '#141414',
-          color: '#ffffff',
-          padding: '28px',
-          borderRadius: '16px',
-          boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
-          flexWrap: 'wrap',
-          gap: '16px',
-        }}
-      >
-        <div className="flex items-center gap-3">
+      {/* Top Banner */}
+      <div className="bg-[#141414] text-[#ffffff] rounded-[24px] p-6 sm:p-7 border border-[#262626] flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center gap-3.5">
           <BusinessIllustration type="foreign-agencies" size="sm" />
-          <div style={{ width: '44px', height: '44px', borderRadius: '9999px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff' }}>
-            <UploadCloud className="w-5 h-5" />
-          </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span className="pill-tag-mint" style={{ fontSize: '11px' }}>
-                {i18n.t("ats.agentBatchImports", "استيراد دفعات الوكلاء")}
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-3 py-0.5 rounded-full bg-[#262626] text-[#ffffff] text-[11px] font-semibold">
+                {i18n.t('ats.agentBatchImports', 'بوابة الاعتماد الإلزامي — إسلام عرفة ومحمود فودة')}
               </span>
-              <span style={{ color: '#adadad', fontSize: '12px' }}>استيراد السير الذاتية والمكاتب الدولية</span>
             </div>
-            <h1 className="display-sm" style={{ fontSize: '24px', fontWeight: 330, margin: '6px 0 0 0', letterSpacing: '-0.02em', color: '#ffffff', fontFamily: 'var(--font-family-display)' }}>
-              ملفات السير المرفوعة من الوكلاء بالخارج
+            <h1 className="text-xl sm:text-2xl font-bold text-[#ffffff]">
+              طابور تدقيق واعتماد سير الوكلاء بالخارج.
             </h1>
-            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#adadad', fontWeight: 420 }}>
-              مراجعة واعتماد السير الذاتية المرفوعة بالجملة من مكاتب الاستقدام الخارجية أو استيراد ملفات Excel/CSV جديدة
+            <p className="text-xs text-[#adadad] mt-1">
+              لا تظهر أي سيرة يرفعها الوكيل الخارجي لقسم المبيعات إلا بعد مراجعتها واعتمادها هنا مع إشعار البريد والواتساب.
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={() => setShowAddBatchModal(true)}
-            className="button-white-pill flex items-center gap-1.5"
-            style={{ fontSize: '12.5px', padding: '8px 18px', minHeight: '38px', background: '#141414', color: '#ffffff' }}
+            type="button"
+            onClick={() => setShowSmartExtractor(true)}
+            className="px-4 py-2.5 rounded-full bg-[#ffffff] hover:bg-[#f3f3f3] text-[#141414] text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
-            <span>تسجيل دفعة سير جديدة</span>
+            <Sparkles className="w-4 h-4" />
+            <span>رفع واستخلاص سيرة ذكي (PDF / MRZ)</span>
           </button>
           <button
+            type="button"
             onClick={handleDownloadCVTemplate}
-            className="button-white-pill"
-            style={{ fontSize: '12.5px', padding: '6px 16px', minHeight: '38px' }}
+            className="px-4 py-2.5 rounded-full bg-[#262626] hover:bg-[#333333] text-[#ffffff] border border-[#404040] text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
           >
-            <Download className="w-4 h-4 ml-1" />
+            <Download className="w-4 h-4" />
             <span>تحميل نموذج Excel</span>
           </button>
           <button
-            onClick={() => setActiveTab('data-import', 'معالج استيراد البيانات الشامل (Excel / CSV)')}
-            className="button-outline-on-light"
-            style={{ fontSize: '12.5px', padding: '6px 18px', minHeight: '38px', background: '#ffffff' }}
+            type="button"
+            onClick={() => setActiveTab('transactions-followup', 'مركز متابعة المعاملات والوكلاء (مساند)')}
+            className="px-4 py-2.5 rounded-full bg-[#262626] hover:bg-[#333333] text-[#ffffff] border border-[#404040] text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
           >
-            <FileSpreadsheet className="w-4 h-4 ml-1 text-[#141414]" />
-            <span>معالج الاستيراد</span>
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>مركز متابعة المعاملات</span>
           </button>
         </div>
       </div>
 
-      {/* Batches Table Card */}
-      <div className="card-pricing" style={{ padding: 0, borderRadius: '24px', background: '#ffffff', overflow: 'hidden' }}>
-        <div className="flex items-center justify-between p-4 border-b border-[#e0e0e0] bg-white flex-wrap gap-3">
+      {/* Individual CVs Awaiting Mandatory Follow-up Approval */}
+      {pendingCvs.length > 0 && (
+        <div className="bg-[#ffffff] border border-[#141414] rounded-[24px] overflow-hidden">
+          <div className="p-4 bg-[#f3f3f3] border-b border-[#e0e0e0] flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <h2 className="text-sm font-bold text-[#141414]">
+                سير ذاتية مرفوعة من الوكلاء بانتظار الاعتماد الإلزامي ({pendingCvs.length})
+              </h2>
+              <p className="text-[11px] text-[#707070]">
+                افحص القالب ثنائي الصفحات وحدد شركة المبيعات المستهدفة (أو البنك المشترك) ثم اعتمدها أو اطلب تعديلاً من الوكيل.
+              </p>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-right text-xs">
+              <thead className="bg-[#ffffff] border-b border-[#e0e0e0] font-bold text-[#141414]">
+                <tr>
+                  <th className="p-3.5">كود السيرة</th>
+                  <th className="p-3.5">المرشحة والجواز</th>
+                  <th className="p-3.5">الوكيل الخارجي</th>
+                  <th className="p-3.5">نطاق الإتاحة للمبيعات</th>
+                  <th className="p-3.5 text-center">قرار المتابعة (إسلام / محمود)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#e0e0e0]">
+                {pendingCvs.map((cv) => (
+                  <tr key={cv.id} className="hover:bg-[#f3f3f3]">
+                    <td className="p-3.5 font-mono font-bold">{cv.cv_code}</td>
+                    <td className="p-3.5">
+                      <div className="font-bold text-[#141414]">{cv.maid_name}</div>
+                      <div className="font-mono text-[11px] text-[#707070]">
+                        {cv.passport_number} ({cv.nationality} • {cv.salary} ⃁)
+                      </div>
+                    </td>
+                    <td className="p-3.5 font-semibold">{cv.external_office}</td>
+                    <td className="p-3.5">
+                      <select
+                        aria-label={`نطاق شركة المبيعات للسيرة ${cv.cv_code}`}
+                        value={targetScopeByCv[cv.id] || cv.target_company_scope || 'ALL'}
+                        onChange={(e) =>
+                          setTargetScopeByCv({ ...targetScopeByCv, [cv.id]: e.target.value })
+                        }
+                        className="px-3 py-1.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-xs font-bold text-[#141414]"
+                      >
+                        <option value="ALL">بنك مشترك (SAF + TOP + YAQ + DAR)</option>
+                        <option value="SAF">السفير الماسي فقط (SAF)</option>
+                        <option value="TOP">توباز فقط (TOP)</option>
+                        <option value="YAQ">ياقوت نجد فقط (YAQ)</option>
+                        <option value="DAR">دار الرواد فقط (DAR)</option>
+                      </select>
+                    </td>
+                    <td className="p-3.5 text-center">
+                      <div className="inline-flex items-center gap-1.5 flex-wrap justify-center">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewCv(cv as PrintableAgencyCvData)}
+                          className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>فحص القالب</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleApproveSingleCv(cv)}
+                          className="px-3.5 py-1.5 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>اعتماد ونشر + بريد/واتس</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRevisionTargetCv(cv);
+                            setRevisionNote(cv.revision_note || '');
+                          }}
+                          className="px-3 py-1.5 rounded-full bg-[#ffffff] hover:bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          <span>طلب تعديل من الوكيل</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Batches Table */}
+      <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b border-[#e0e0e0] flex-wrap gap-3">
           <div className="relative w-full md:w-80">
-            <Search className="w-4 h-4 absolute right-3 top-3 text-[#707070]" />
+            <Search className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-[#707070]" />
             <input
               type="text"
               aria-label="ابحث بكود الدفعة، المكتب، أو الدولة"
               placeholder="ابحث بكود الدفعة، المكتب، أو الدولة..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="text-input"
-              style={{ width: '100%', height: '36px', minHeight: '36px', borderRadius: '9999px', paddingRight: '36px', fontSize: '12px' }}
+              className="w-full pr-10 pl-4 py-2 rounded-full bg-[#f0f0f0] text-xs text-[#141414]"
             />
           </div>
-          <span className="pill-tag-mint" style={{ fontSize: '11px' }}>
-            العدد: {filteredBatches.length} دفعة
+          <span className="px-3 py-1 rounded-full bg-[#f3f3f3] text-xs font-bold text-[#141414]">
+            الدفعات: {filteredBatches.length}
           </span>
         </div>
 
@@ -303,7 +446,7 @@ export const AgentImportsPage: React.FC = () => {
               <tr>
                 <th className="p-3.5">كود الدفعة</th>
                 <th className="p-3.5">المكتب الخارجي والدولة</th>
-                <th className="p-3.5">عدد السير المرفوعة</th>
+                <th className="p-3.5">عدد السير</th>
                 <th className="p-3.5">التاريخ</th>
                 <th className="p-3.5">الحالة</th>
                 <th className="p-3.5 text-center">الإجراءات</th>
@@ -322,41 +465,44 @@ export const AgentImportsPage: React.FC = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="p-3.5">
-                    <span className="pill-tag-shade" style={{ fontSize: '10.5px' }}>
-                      {row.cvs_count} سيرة ذاتية
-                    </span>
-                  </td>
+                  <td className="p-3.5 font-semibold">{row.cvs_count} سيرة ذاتية</td>
                   <td className="p-3.5 font-mono text-[#707070]">{row.created_at}</td>
                   <td className="p-3.5">
                     <Badge
                       text={row.status}
-                      type={row.status === 'مستوردة بالكامل' ? 'success' : row.status === 'مرفوضة' ? 'danger' : 'warning'}
+                      type={
+                        row.status === 'مستوردة بالكامل'
+                          ? 'success'
+                          : row.status === 'مرفوضة'
+                          ? 'danger'
+                          : 'warning'
+                      }
                     />
                   </td>
                   <td className="p-3.5 text-center">
                     <div className="flex items-center justify-center gap-1.5">
                       <button
+                        type="button"
                         onClick={() => setSelectedBatch(row)}
-                        className="px-2.5 py-1 rounded-lg bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] font-bold text-[11px] inline-flex items-center gap-1 transition-all"
-                        title="معاينة وفحص السير الذاتية في هذه الدفعة"
+                        className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer"
                       >
-                        <Eye className="w-3.5 h-3.5 text-[#141414]" />
-                        <span>فحص السير</span>
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>فحص الدفعة</span>
                       </button>
                       {row.status === 'بانتظار الاعتماد' && (
                         <button
-                          onClick={() => handleApprove(row.id)}
-                          className="button-primary-pill"
-                          style={{ padding: '3px 10px', fontSize: '11px', minHeight: '26px' }}
+                          type="button"
+                          onClick={() => handleApproveBatch(row.id)}
+                          className="px-3.5 py-1.5 rounded-full bg-[#141414] text-[#ffffff] font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer"
                         >
-                          <Check className="w-3 h-3 ml-1" />
+                          <Check className="w-3.5 h-3.5" />
                           <span>اعتماد ونشر</span>
                         </button>
                       )}
                       <button
+                        type="button"
                         onClick={() => handleDeleteBatch(row.id)}
-                        className="p-1.5 rounded-lg hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] transition-colors"
+                        className="p-1.5 rounded-full hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] cursor-pointer"
                         title="حذف الدفعة"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -370,103 +516,63 @@ export const AgentImportsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Add New Batch Modal */}
-      {showAddBatchModal && (
-        <div role="dialog" aria-modal="true" onClick={() => setShowAddBatchModal(false)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white rounded-[24px] p-6 max-w-md w-full border border-[#e0e0e0] space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-[#e0e0e0]">
-              <div className="flex items-center gap-2">
-                <UploadCloud className="w-5 h-5 text-[#141414]" />
-                <h3 className="font-bold text-[#141414] text-base">
-                  تسجيل دفعة استيراد سير جديدة
-                </h3>
-              </div>
-              <button 
+      {/* Smart CV Extractor Modal */}
+      <SmartCvExtractorModal
+        isOpen={showSmartExtractor}
+        onClose={() => setShowSmartExtractor(false)}
+        agencyName={agencies[0]?.name_ar || 'وكالة خارجية معتمدة'}
+        agencyId={agencies[0]?.id}
+        isExternalAgentSession={false}
+        onSaved={() => void refreshQueue()}
+      />
+
+      {/* Revision Request Modal */}
+      {revisionTargetCv && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setRevisionTargetCv(null)}
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-6 max-w-md w-full space-y-4"
+          >
+            <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
+              <h3 className="font-bold text-sm text-[#141414]">
+                طلب تعديل / استكمال من الوكيل — {revisionTargetCv.cv_code}
+              </h3>
+              <button
                 type="button"
-                onClick={() => setShowAddBatchModal(false)}
-                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070] flex items-center justify-center cursor-pointer"
-                aria-label="إغلاق"
+                onClick={() => setRevisionTargetCv(null)}
+                className="w-7 h-7 rounded-full bg-[#f3f3f3] flex items-center justify-center cursor-pointer"
               >
                 ✕
               </button>
             </div>
-
-            <form onSubmit={handleCreateBatch} className="space-y-3">
-              <div>
-                <label className="block text-[11px] font-bold text-[#707070] mb-1">المكتب الخارجي / الوكالة</label>
-                <select
-                  value={batchForm.office_name}
-                  onChange={(e) => setBatchForm({ ...batchForm, office_name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-xs text-[#141414]"
-                >
-                  <option value="DAMAS FOREIGN AGENCY">DAMAS FOREIGN AGENCY (إثيوبيا)</option>
-                  <option value="PLATINUM BROTHERS INT'L">PLATINUM BROTHERS INT'L (الفلبين)</option>
-                  <option value="VERSATILE OVERSEAS LTD">VERSATILE OVERSEAS LTD (الهند)</option>
-                  <option value="AL-MANAR RECRUITMENT">AL-MANAR RECRUITMENT (أوغندا)</option>
-                  <option value="COLOMBO MANPOWER BUREAU">COLOMBO MANPOWER BUREAU (سريلانكا)</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold text-[#707070] mb-1">الدولة</label>
-                  <input
-                    type="text"
-                    required
-                    value={batchForm.country}
-                    onChange={(e) => setBatchForm({ ...batchForm, country: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-xs text-[#141414]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-[#707070] mb-1">عدد السير المرفوعة</label>
-                  <input
-                    type="number"
-                    required
-                    value={batchForm.cvs_count}
-                    onChange={(e) => setBatchForm({ ...batchForm, cvs_count: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-xs text-[#141414] font-mono"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-[#707070] mb-1">كود الدفعة</label>
-                <input
-                  type="text"
-                  required
-                  value={batchForm.batch_code}
-                  onChange={(e) => setBatchForm({ ...batchForm, batch_code: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-xs text-[#141414] font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-[#707070] mb-1">ملاحظات واعتمادات السفارة</label>
-                <textarea
-                  rows={2}
-                  placeholder="ملاحظات حول الفحوصات الطبية أو التخصصات..."
-                  value={batchForm.notes}
-                  onChange={(e) => setBatchForm({ ...batchForm, notes: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-[#e0e0e0] bg-[#f3f3f3] text-xs text-[#141414] resize-none"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#e0e0e0]">
+            <form onSubmit={handleRequestRevisionOnCv} className="space-y-3 text-xs">
+              <textarea
+                rows={3}
+                required
+                placeholder="مثال: يرجى إرفاق صورة جواز سفر أوضح أو تحديث رابط فيديو المقابلة..."
+                value={revisionNote}
+                onChange={(e) => setRevisionNote(e.target.value)}
+                className="w-full p-3 rounded-[16px] bg-[#f0f0f0] text-[#141414]"
+              />
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowAddBatchModal(false)}
-                  className="button-outline-on-light text-xs font-bold"
-                  style={{ padding: '8px 20px' }}
+                  onClick={() => setRevisionTargetCv(null)}
+                  className="px-4 py-2 rounded-full bg-[#f3f3f3] text-[#141414] font-bold cursor-pointer"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="button-primary-pill text-xs font-bold"
-                  style={{ padding: '8px 22px', background: '#141414', color: '#ffffff' }}
+                  className="px-5 py-2 rounded-full bg-[#141414] text-[#ffffff] font-bold inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  حفظ الدفعة بقاعدة البيانات
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>إرسال الملاحظة للوكيل (بريد + واتس)</span>
                 </button>
               </div>
             </form>
@@ -474,31 +580,40 @@ export const AgentImportsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Batch Details Inspection Modal */}
+      {/* Batch Inspection Modal */}
       {selectedBatch && (
-        <div role="dialog" aria-modal="true" onClick={() => setSelectedBatch(null)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div onClick={(e) => e.stopPropagation()} className="card-pricing bg-white rounded-[24px] p-6 max-w-2xl w-full border border-[#e0e0e0] space-y-4 max-h-[90vh] overflow-y-auto">
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setSelectedBatch(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#ffffff] rounded-[24px] p-6 max-w-2xl w-full border border-[#e0e0e0] space-y-4 max-h-[90vh] overflow-y-auto"
+          >
             <div className="flex items-center justify-between pb-3 border-b border-[#e0e0e0]">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#141414]" />
                 <div>
                   <h3 className="font-bold text-[#141414] text-base">
-                    فحص السير الذاتية - الدفعة ({selectedBatch.batch_code})
+                    فحص السير الذاتية — الدفعة ({selectedBatch.batch_code})
                   </h3>
-                  <p className="text-[11px] text-[#707070]">{selectedBatch.office_name} • {selectedBatch.country}</p>
+                  <p className="text-[11px] text-[#707070]">
+                    {selectedBatch.office_name} • {selectedBatch.country}
+                  </p>
                 </div>
               </div>
-              <button 
+              <button
                 type="button"
                 onClick={() => setSelectedBatch(null)}
-                className="w-8 h-8 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#707070] flex items-center justify-center cursor-pointer"
-                aria-label="إغلاق"
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] flex items-center justify-center cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <div className="overflow-x-auto max-h-72 border border-[#e0e0e0] rounded-2xl">
+            <div className="overflow-x-auto border border-[#e0e0e0] rounded-[16px]">
               <table className="w-full text-right text-xs">
                 <thead className="bg-[#f3f3f3] font-bold border-b border-[#e0e0e0] text-[#141414]">
                   <tr>
@@ -506,62 +621,68 @@ export const AgentImportsPage: React.FC = () => {
                     <th className="p-3">رقم الجواز</th>
                     <th className="p-3">العمر والمهنة</th>
                     <th className="p-3">الخبرة</th>
-                    <th className="p-3">الفحص الطبي</th>
                     <th className="p-3">الحالة</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#e0e0e0]">
                   {(selectedBatch.candidates || []).map((c) => (
                     <tr key={c.id} className="hover:bg-[#f3f3f3]">
-                      <td className="p-3 font-bold text-[#141414]">
-                        <div className="flex items-center gap-2">
-                          <CorporateAvatar name={c.name} profession={c.profession} isCandidate size="sm" />
-                          <span>{c.name}</span>
-                        </div>
-                      </td>
+                      <td className="p-3 font-bold text-[#141414]">{c.name}</td>
                       <td className="p-3 font-mono text-[#141414]">{c.passport}</td>
-                      <td className="p-3 text-[#707070]">{c.profession} ({c.age} سنة)</td>
+                      <td className="p-3 text-[#707070]">
+                        {c.profession} ({c.age} سنة)
+                      </td>
                       <td className="p-3 text-[#707070]">{c.experience}</td>
-                      <td className="p-3">
-                        <span className="pill-tag-mint text-[11px]">{c.medical}</span>
-                      </td>
-                      <td className="p-3">
-                        <span className={c.status === 'معتمد' ? 'pill-tag-mint text-[11px]' : 'pill-tag-shade text-[11px]'}>
-                          {c.status}
-                        </span>
-                      </td>
+                      <td className="p-3 font-bold">{c.status}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            <div className="flex justify-between items-center pt-2 border-t border-[#e0e0e0] flex-wrap gap-2">
-              <span className="text-xs text-[#707070] font-mono">
-                إجمالي السير المسجلة بالدفعة: {selectedBatch.cvs_count}
-              </span>
-              <div className="flex gap-2">
-                {selectedBatch.status === 'بانتظار الاعتماد' && (
-                  <button
-                    onClick={() => {
-                      handleApprove(selectedBatch.id);
-                      setSelectedBatch(null);
-                    }}
-                    className="button-primary-pill text-xs font-bold inline-flex items-center gap-1"
-                    style={{ padding: '6px 18px', background: '#141414', color: '#ffffff' }}
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                    <span>اعتماد ونقل كافة السير للـ ERP</span>
-                  </button>
-                )}
+            <div className="flex justify-end gap-2 pt-2">
+              {selectedBatch.status === 'بانتظار الاعتماد' && (
                 <button
-                  onClick={() => setSelectedBatch(null)}
-                  className="px-4 py-2 rounded-xl bg-[#141414] text-white hover:bg-[#262626] font-bold text-xs"
+                  type="button"
+                  onClick={() => {
+                    void handleApproveBatch(selectedBatch.id);
+                    setSelectedBatch(null);
+                  }}
+                  className="px-5 py-2 rounded-full bg-[#141414] text-[#ffffff] text-xs font-bold cursor-pointer"
                 >
-                  إغلاق
+                  اعتماد الدفعة ونشرها للمبيعات
                 </button>
-              </div>
+              )}
+              <button
+                type="button"
+                onClick={() => setSelectedBatch(null)}
+                className="px-4 py-2 rounded-full bg-[#f3f3f3] text-[#141414] text-xs font-bold cursor-pointer"
+              >
+                إغلاق
+              </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2-Page SHEGER Preview Modal */}
+      {previewCv && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setPreviewCv(null)}
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-6 max-w-5xl w-full max-h-[92vh] overflow-y-auto"
+          >
+            <ProfessionalAgencyCvTemplate
+              cv={previewCv}
+              defaultOfficeCode="INTERNAL_AUDIT"
+              canViewInternalAudit={true}
+              onClose={() => setPreviewCv(null)}
+            />
           </div>
         </div>
       )}
