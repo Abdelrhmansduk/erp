@@ -303,6 +303,12 @@ if ($ConfigureEmailProtection) {
 }
 
 if ($ConfigureEmailRouting -and -not [string]::IsNullOrWhiteSpace($ForwardToEmail)) {
+  if ($accountId) {
+    $destRes = Invoke-CfApi -Method "POST" -Path "/accounts/$accountId/email/routing/addresses" -Body @{ email = $ForwardToEmail }
+    if ($destRes.success) {
+      Write-Host "  [OK] Registered Email Routing destination address: $ForwardToEmail (check inbox to click Cloudflare verification link)" -ForegroundColor Green
+    }
+  }
   $erEnable = Invoke-CfApi -Method "POST" -Path "/zones/$zoneId/email/routing/enable" -Body @{}
   if ($erEnable.success) { Write-Host "  [OK] Cloudflare Email Routing enabled" -ForegroundColor Green }
 
@@ -355,9 +361,8 @@ if ($CreateTurnstileWidget -and $accountId) {
   }
   if ($tsRes.success -and $tsRes.result) {
     Write-Host "`n  [OK] Cloudflare Turnstile Widget Created!" -ForegroundColor Green
-    Write-Host "  Add these 2 environment variables in Cloudflare Pages -> kas-erp -> Settings -> Environment Variables:" -ForegroundColor Yellow
-    Write-Host "    VITE_CLOUDFLARE_TURNSTILE_SITE_KEY = $($tsRes.result.sitekey)" -ForegroundColor Green
-    Write-Host "    TURNSTILE_SECRET_KEY               = $($tsRes.result.secret)" -ForegroundColor Green
+    Write-Host "    Site Key (public) : $($tsRes.result.sitekey)" -ForegroundColor Green
+    Write-Host "    Secret Key        : [GENERATED - masked in console; stored securely via Cloudflare API if configured]" -ForegroundColor Yellow
   }
 }
 
