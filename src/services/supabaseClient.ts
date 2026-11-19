@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { resolveSupabaseEdgeUrl } from './cloudflareEdgeService';
 
 /**
  * Supabase client — single connection point for the ERP.
@@ -42,7 +43,8 @@ const resolveConfig = (): ResolvedConfig => {
   const overrideUrl = readDevOverride('CUSTOM_SUPABASE_URL');
   const overrideKey = readDevOverride('CUSTOM_SUPABASE_KEY');
 
-  const url = (overrideUrl && overrideUrl.startsWith('http') ? overrideUrl : import.meta.env.VITE_SUPABASE_URL) || '';
+  const rawUrl = (overrideUrl && overrideUrl.startsWith('http') ? overrideUrl : import.meta.env.VITE_SUPABASE_URL) || '';
+  const url = resolveSupabaseEdgeUrl(rawUrl);
   const anonKey = overrideKey || import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
   if (!url || !url.startsWith('http')) {

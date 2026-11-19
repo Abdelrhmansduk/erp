@@ -33,12 +33,18 @@ import {
   type LoginTwoFactorChallenge,
 } from '../services/googleTwoFactorService';
 import { DEMO_AUTH_ENABLED } from '../config/authMode';
+import { resolvePortalContextFromHostname } from '../config/kasErpDomainConfig';
 import {
   VERIFIED_FIREBASE_GOOGLE_ACCOUNTS,
   getCachedGoogleProfile,
   isFirebaseConfigured,
 } from '../services/firebaseClient';
 import { EmployeePhotoAvatar } from '../components/auth/EmployeePhotoAvatar';
+import { CloudflareTurnstileWidget } from '../components/auth/CloudflareTurnstileWidget';
+import {
+  isTurnstileEnabled,
+  verifyTurnstileTokenAtEdge,
+} from '../services/cloudflareEdgeService';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import {
   DATA_PROCESSORS_ABROAD_MANIFEST,
@@ -313,8 +319,17 @@ const MOBBIN_SECTOR_CHIPS: Array<{
 ];
 
 function getDefaultEmailForPortalCode(code?: string | null): string {
-  const norm = (code || '').trim().toUpperCase();
+  const hostCtx =
+    typeof window !== 'undefined'
+      ? resolvePortalContextFromHostname(window.location?.hostname)
+      : null;
+  if (!code && hostCtx?.mode === 'EXTERNAL_AGENCY') {
+    return '';
+  }
+  const norm = (code || hostCtx?.portalCode || '').trim().toUpperCase();
   switch (norm) {
+    case 'AGENTS':
+      return '';
     case 'YAQ':
       return 'h.yousef.yaqoot@kas.sa';
     case 'TOP':
@@ -332,7 +347,11 @@ function getDefaultEmailForPortalCode(code?: string | null): string {
 }
 
 function getInitialCompanyFilterForPortalCode(code?: string | null): string {
-  const norm = (code || '').trim().toUpperCase();
+  const hostCtx =
+    typeof window !== 'undefined'
+      ? resolvePortalContextFromHostname(window.location?.hostname)
+      : null;
+  const norm = (code || hostCtx?.portalCode || '').trim().toUpperCase();
   if (['SAF', 'YAQ', 'TOP', 'KAS', 'DAR'].includes(norm)) return norm;
   if (norm === 'SHELTER') return 'DAR';
   if (norm === 'ADMIN' || norm === 'ALL') return 'ALL';
@@ -384,6 +403,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     () => getApprovedGoogleBindings()
   );
   const [loading, setLoading] = useState<boolean>(false);
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
+  const [turnstileResetTick, setTurnstileResetTick] = useState<number>(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
@@ -600,6 +621,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     setLoading(true);
 
     try {
+      if (isTurnstileEnabled()) {
+        const tsCheck = await verifyTurnstileTokenAtEdge(turnstileToken);
+        if (!tsCheck.ok) {
+          setErrorMsg(tsCheck.errorAr || 'يرجى إكمال التحقق الأمني (Cloudflare Turnstile) أولاً.');
+          setTurnstileResetTick((t) => t + 1);
+          setLoading(false);
+          return;
+        }
+      }
+
       const allowCheck = validateAllowedCorporateEmail(finalId);
       const candidateEmail = authService.resolveEmail(finalId);
       const twoFactorChallenge = getLoginChallengeForUser(candidateEmail);
@@ -1809,6 +1840,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                       </button>
                     </div>
                   </div>
+
+                  {/* Cloudflare Turnstile Anti-Bot Verification */}
+                  <CloudflareTurnstileWidget
+                    onTokenChange={setTurnstileToken}
+                    resetSignal={turnstileResetTick}
+                  />
 
                   {/* Primary Submit Button */}
                   <button

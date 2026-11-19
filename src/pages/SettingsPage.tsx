@@ -15,6 +15,7 @@ import {
 import { ModuleVisibilityManager } from '../components/settings/ModuleVisibilityManager';
 import { AppearanceDisplayCustomizer } from '../components/settings/AppearanceDisplayCustomizer';
 import { GoogleTwoFactorHub } from '../components/settings/GoogleTwoFactorHub';
+import { CloudflareEdgeStatusCard } from '../components/settings/CloudflareEdgeStatusCard';
 import { authService } from '../services/authService';
 import {
   loadGlobalTwoFactorPolicy,
@@ -611,6 +612,7 @@ export const SettingsPage: React.FC = () => {
           {/* 1. Security & 2FA */}
           {activeSection === 'security-2fa' && (
             <div className="space-y-5">
+              <CloudflareEdgeStatusCard />
               <GoogleTwoFactorHub />
               <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3 pt-2">
                 <div>
