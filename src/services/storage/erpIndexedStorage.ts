@@ -3,6 +3,8 @@
  * Prevents 5MB Browser LocalStorage QuotaExceededError on large ledgers, trial balances, and BOQ sheets.
  */
 
+import { decryptStoragePayload, encryptStoragePayload } from '../../utils/securitySanitizers';
+
 const IDB_DATABASE_NAME = 'ALSULAIM_ERP_IDB_V1';
 const IDB_DATABASE_VERSION = 1;
 const IDB_STORE_NAME = 'erp_kv_store';
@@ -99,7 +101,7 @@ class ErpIndexedStorageEngine {
     // Fallback to localStorage
     try {
       if (typeof localStorage !== 'undefined') {
-        const raw = localStorage.getItem(key);
+        const raw = decryptStoragePayload(localStorage.getItem(key));
         if (raw !== null) {
           const parsed = JSON.parse(raw) as T;
           this.memoryCache.set(key, parsed);
@@ -205,7 +207,7 @@ class ErpIndexedStorageEngine {
 
     try {
       if (typeof localStorage !== 'undefined') {
-        const raw = localStorage.getItem(key);
+        const raw = decryptStoragePayload(localStorage.getItem(key));
         if (raw !== null) {
           const parsed = JSON.parse(raw) as T;
           this.memoryCache.set(key, parsed);
@@ -255,7 +257,7 @@ class ErpIndexedStorageEngine {
       if (typeof localStorage !== 'undefined') {
         const serialized = JSON.stringify(value);
         if (serialized.length <= maxBytes) {
-          localStorage.setItem(key, serialized);
+          localStorage.setItem(key, encryptStoragePayload(serialized));
           storedInLocalStorage = true;
           this.localStorageMirroredKeys.add(key);
         } else {

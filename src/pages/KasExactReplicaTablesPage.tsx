@@ -32,6 +32,7 @@ import {
 import { shareViaEmail, shareViaWhatsApp } from '../services/quickShareService';
 import { KasExactReplicaWorkbooksSection } from '../components/tenders/KasExactReplicaWorkbooksSection';
 import { KasModificationAuditLogSection } from '../components/tenders/KasModificationAuditLogSection';
+import { cryptoRandomAlphanumeric, cryptoRandomInt } from '../utils/securitySanitizers';
 
 export const KasExactReplicaTablesPage: React.FC = () => {
   const { setActiveTab: setGlobalTab, addNotification } = useAppStore();
@@ -80,7 +81,7 @@ export const KasExactReplicaTablesPage: React.FC = () => {
   const [marginPct, setMarginPct] = useState<string>('15');
   const [newSheetForm, setNewSheetForm] = useState({
     sheetName: '',
-    referenceNumber: `25113900${Math.floor(1000 + Math.random() * 9000)}`,
+    referenceNumber: `25113900${cryptoRandomInt(1000, 10000)}`,
     title: '',
     entityName: 'مؤسسة خالد عبدالعزيز السليم للتجارة',
     clientName: 'منصة اعتماد الحكومية — المنافسات والمشتريات',
@@ -569,7 +570,7 @@ export const KasExactReplicaTablesPage: React.FC = () => {
     pushUndoSnapshot(`نسخ البند #${index + 1}`);
     const cloned: BOQItem = {
       ...target,
-      id: `item-dup-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      id: `item-dup-${Date.now()}-${cryptoRandomAlphanumeric(4).toLowerCase()}`,
       description: `${target.description} (نسخة)`,
     };
     const updated = [
@@ -745,7 +746,7 @@ export const KasExactReplicaTablesPage: React.FC = () => {
       ...selectedTender,
       id: `KAS-CLONE-${Date.now()}`,
       sheetName: `${selectedTender.sheetName || 'الجدول'} (نسخة)`,
-      referenceNumber: `2511${Math.floor(10000000 + Math.random() * 90000000)}`,
+      referenceNumber: `2511${cryptoRandomInt(10000000, 100000000)}`,
       title: `${selectedTender.title} (نسخة)`,
       items: selectedTender.items.map((it, idx) => ({
         ...it,

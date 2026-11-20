@@ -10,6 +10,7 @@ import { CareerApplicationRecord } from '../services/hrGovernanceTalentPulseEngi
 import { Users, UserPlus, Calendar, ArrowRight, ArrowLeft, Video, X, CheckCircle2, Tv, FileCheck } from 'lucide-react';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
+import { cryptoRandomInt } from '../utils/securitySanitizers';
 
 type CandidateCategoryFilter =
   | 'كافة المرشحين'
@@ -304,15 +305,15 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
         .replace(/[^a-z0-9]/g, '')
         .slice(-6);
       const empId = `emp-ats-${cleanToken}`;
-      const empCode = `EMP-${targetCompanyId}-${Math.floor(100 + Math.random() * 899)}`;
+      const empCode = `EMP-${targetCompanyId}-${cryptoRandomInt(100, 1000)}`;
       const corporateEmail =
         candidate.email && candidate.email.endsWith('@kas.sa')
           ? candidate.email
           : `emp.${cleanToken}@kas.sa`;
       const isSaudi = candidate.nationality === 'سعودي' || candidate.nationality === 'السعودية';
       const generatedNationalId = isSaudi
-        ? `10${Math.floor(10000000 + Math.random() * 89999999)}`
-        : `24${Math.floor(10000000 + Math.random() * 89999999)}`;
+        ? `10${cryptoRandomInt(10000000, 100000000)}`
+        : `24${cryptoRandomInt(10000000, 100000000)}`;
 
       // 1. Persist unified employee profile across both `hr_employees` and `employees`
       const unifiedProfile = await saveUnifiedEmployeeProfile(
@@ -1031,7 +1032,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
                   id: isInternalTrack
                     ? `APP-${Date.now().toString().slice(-6)}`
                     : `CND-${Date.now().toString().slice(-4)}`,
-                  candidateCode: `C-2026-${Math.floor(100 + Math.random() * 900)}`,
+                  candidateCode: `C-2026-${cryptoRandomInt(100, 1000)}`,
                   name: newCandidateForm.name,
                   email: `${newCandidateForm.name.replace(/\s+/g, '.').toLowerCase()}@kas-careers.sa`,
                   phone: newCandidateForm.phone,
@@ -1040,7 +1041,7 @@ export const EnterpriseATSPipelinePage: React.FC = () => {
                   targetCompanyId: activeCompany.id,
                   targetBranch: newCandidateForm.targetBranch,
                   stage: 'تقديم جديد',
-                  aiScore: Math.floor(88 + Math.random() * 11),
+                  aiScore: cryptoRandomInt(88, 99),
                   experienceYears: Number(newCandidateForm.experienceYears),
                   education: newCandidateForm.education,
                   expectedSalary: Number(newCandidateForm.expectedSalary),

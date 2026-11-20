@@ -23,6 +23,7 @@ import {
   type AttendanceVerificationMethod,
 } from './hrShiftAttendanceEngine';
 import { normalizeCanonicalEntityCode } from './entityBrandingService';
+import { decryptStoragePayload, encryptStoragePayload } from '../utils/securitySanitizers';
 
 export type GateDirection = 'CHECK_IN' | 'CHECK_OUT';
 export type GateVerificationChannel =
@@ -460,7 +461,7 @@ export function getSessionCheckInStamp(
   try {
     if (typeof sessionStorage === 'undefined') return null;
     const expectedKey = resolveUserGateKey(user);
-    const raw = sessionStorage.getItem(getSessionStorageKey(user, now));
+    const raw = decryptStoragePayload(sessionStorage.getItem(getSessionStorageKey(user, now)));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as SessionAttendanceStamp;
     if (!parsed || !parsed.checkInTime || parsed.userKey !== expectedKey) {
@@ -905,7 +906,10 @@ export async function recordGateAttendanceAction(params: {
 
     try {
       if (typeof sessionStorage !== 'undefined') {
-        sessionStorage.setItem(getSessionStorageKey(params.user, now), JSON.stringify(stamp));
+        sessionStorage.setItem(
+          getSessionStorageKey(params.user, now),
+          encryptStoragePayload(JSON.stringify(stamp))
+        );
       }
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('erp-attendance-session-updated', { detail: stamp }));

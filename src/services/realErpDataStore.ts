@@ -9,6 +9,7 @@
  */
 import { supabase, isDummySupabase } from './supabaseClient';
 import { journalEngine } from './accounting/journalEngine';
+import { decryptStoragePayload, encryptStoragePayload } from '../utils/securitySanitizers';
 
 const STORAGE_PREFIX = 'ALSULAIM_ERP_DB_V1_';
 const DATA_MODE_KEY = 'ALSULAIM_ERP_DATA_MODE';
@@ -41,17 +42,23 @@ export function setDataMode(mode: ErpDataMode): void {
 function getLocalStore<T>(key: string, initialSeed: T[] = []): T[] {
   try {
     const isExplicitlyPurged = localStorage.getItem(EXPLICIT_PURGE_KEY) === 'true';
-    const raw = localStorage.getItem(STORAGE_PREFIX + key);
+    const raw = decryptStoragePayload(localStorage.getItem(STORAGE_PREFIX + key));
     if (!raw) {
       const defaultData = isExplicitlyPurged ? [] : initialSeed;
       if (defaultData.length > 0 || isExplicitlyPurged) {
-        localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(defaultData));
+        localStorage.setItem(
+          STORAGE_PREFIX + key,
+          encryptStoragePayload(JSON.stringify(defaultData))
+        );
       }
       return defaultData;
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length === 0 && initialSeed.length > 0 && !isExplicitlyPurged) {
-      localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(initialSeed));
+      localStorage.setItem(
+        STORAGE_PREFIX + key,
+        encryptStoragePayload(JSON.stringify(initialSeed))
+      );
       return initialSeed;
     }
     return Array.isArray(parsed) ? parsed : initialSeed;
@@ -62,7 +69,7 @@ function getLocalStore<T>(key: string, initialSeed: T[] = []): T[] {
 
 function saveLocalStore<T>(key: string, data: T[]): void {
   try {
-    localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(data));
+    localStorage.setItem(STORAGE_PREFIX + key, encryptStoragePayload(JSON.stringify(data)));
   } catch (e) {
     // Gracefully handle storage quota or privacy mode limits
   }
@@ -92,7 +99,7 @@ const PENDING_SYNC_PREFIX = 'ALSULAIM_ERP_PENDING_V1_';
 function getPendingSyncIds(tableName: string): Set<string> {
   if (typeof window === 'undefined' || !window.localStorage) return new Set();
   try {
-    const raw = window.localStorage.getItem(PENDING_SYNC_PREFIX + tableName);
+    const raw = decryptStoragePayload(window.localStorage.getItem(PENDING_SYNC_PREFIX + tableName));
     if (!raw) return new Set();
     const arr = JSON.parse(raw);
     return Array.isArray(arr) ? new Set(arr.map((x) => String(x))) : new Set();
@@ -104,7 +111,10 @@ function getPendingSyncIds(tableName: string): Set<string> {
 function setPendingSyncIds(tableName: string, ids: Set<string>): void {
   if (typeof window === 'undefined' || !window.localStorage) return;
   try {
-    window.localStorage.setItem(PENDING_SYNC_PREFIX + tableName, JSON.stringify(Array.from(ids)));
+    window.localStorage.setItem(
+      PENDING_SYNC_PREFIX + tableName,
+      encryptStoragePayload(JSON.stringify(Array.from(ids)))
+    );
   } catch {
     // ignore storage quota errors
   }
@@ -219,7 +229,7 @@ export const realErpDataStore = {
 
     if (!isDummySupabase) {
       try {
-        await supabase.from(entityKey).upsert(records as any);
+        await supabase.from(resolveSupabaseTableName(entityKey)).upsert(records as any);
       } catch (e) {
         console.warn(`Supabase upsert for ${entityKey}:`, e);
       }
@@ -258,7 +268,9 @@ export const realErpDataStore = {
   ): Promise<T[]> {
     const activeCompany =
       companyId ||
-      (typeof window !== 'undefined' ? localStorage.getItem('alsulaim_active_company') : null) ||
+      (typeof window !== 'undefined'
+        ? decryptStoragePayload(localStorage.getItem('alsulaim_active_company'))
+        : null) ||
       undefined;
 
     const isTestOrDemo = import.meta.env.MODE === 'test' || getDataMode() === 'demo_preview';
@@ -266,9 +278,25 @@ export const realErpDataStore = {
 
     if (!isDummySupabase && !isTestOrDemo && entityKey !== 'employee_executed_ops') {
       try {
+        const uuidScopedTables = new Set([
+          'iam_roles',
+          'iam_delegations',
+          'iam_departments',
+          'iam_access_reviews',
+          'iam_audit_logs',
+          'iam_branches',
+          'iam_access_requests',
+          'kas_boq_items',
+          'kas_tenders',
+        ]);
+        const isUuid = (val: string) =>
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+
         let query = supabase.from(supabaseTable).select('*').order('created_at', { ascending: false });
         if (activeCompany && activeCompany !== 'all') {
-          query = query.eq('company_id', activeCompany);
+          if (!uuidScopedTables.has(supabaseTable) || isUuid(activeCompany)) {
+            query = query.eq('company_id', activeCompany);
+          }
         }
         const { data, error } = await query;
         if (!error && Array.isArray(data) && data.length > 0) {
@@ -312,8 +340,9 @@ export const realErpDataStore = {
     initialSeed: T[] = []
   ): Promise<T[]> {
     const activeCompany =
-      (typeof window !== 'undefined' ? localStorage.getItem('alsulaim_active_company') : null) ||
-      'SAF';
+      (typeof window !== 'undefined'
+        ? decryptStoragePayload(localStorage.getItem('alsulaim_active_company'))
+        : null) || 'SAF';
     const recAny = newRecord as Record<string, any>;
     const scopedRecord: T =
       recAny.company_id || recAny.companyId || entityKey === 'test_entities'
@@ -459,7 +488,10 @@ export const realErpDataStore = {
       let actorName = 'نظام العمليات الآلي';
       let actorBranch = record.branch || 'الفرع الرئيسي';
       try {
-        const rawUser = typeof window !== 'undefined' ? localStorage.getItem('ALSULAIM_AUTH_USER') : null;
+        const rawUser =
+          typeof window !== 'undefined'
+            ? decryptStoragePayload(localStorage.getItem('ALSULAIM_AUTH_USER'))
+            : null;
         if (rawUser) {
           const parsed = JSON.parse(rawUser);
           if (parsed?.full_name) {

@@ -27,4 +27,12 @@ console.log(`Found ${panels.length} panel divs.`);
 
 // Look for headings and widgets titles
 const widgetTitles = dashboardHtml.match(/<(?:h1|h2|h3|h4|h5|p|span)[^>]*class="[^"]*(?:widget-title|panel-title|heading|stat-title|title)[^"]*"[^>]*>([\s\S]*?)<\/(?:h1|h2|h3|h4|h5|p|span)>/gi) || [];
-widgetTitles.forEach(w => console.log('Widget Heading:', w.replace(/<[^>]+>/g, '').trim()));
+widgetTitles.forEach((w) => {
+  let text = String(w);
+  let prev = '';
+  do {
+    prev = text;
+    text = text.replace(/<[^>]*>/g, '');
+  } while (text !== prev);
+  console.log('Widget Heading:', text.replace(/[<>]/g, '').trim());
+});

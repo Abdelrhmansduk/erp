@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54521';
@@ -84,7 +85,7 @@ async function runIamVerification() {
       .from('iam_users')
       .insert([
         {
-          employee_number: `EMP-${Math.floor(1000 + Math.random() * 9000)}`,
+          employee_number: `EMP-${crypto.randomInt(1000, 10000)}`,
           full_name: 'مدقق الأمان الرقابي المستقل',
           email: testEmail,
           phone: '0555555555',

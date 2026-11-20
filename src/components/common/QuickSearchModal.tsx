@@ -20,6 +20,7 @@ import { authService } from '../../services/authService';
 import { BusinessIllustration } from './BusinessIllustration';
 import { CorporateAvatar } from './CorporateAvatar';
 import { resolveIllustrationForTab } from '../../services/visualAssetsRegistry';
+import { decryptStoragePayload } from '../../utils/securitySanitizers';
 
 import {
   getPinnedTabs,
@@ -377,7 +378,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ onNavigate }
 
     const readTable = (tableKey: string): any[] => {
       try {
-        const raw = localStorage.getItem(`ALSULAIM_ERP_DB_V1_${tableKey}`);
+        const raw = decryptStoragePayload(localStorage.getItem(`ALSULAIM_ERP_DB_V1_${tableKey}`));
         if (!raw) return [];
         const parsed = JSON.parse(raw);
         return Array.isArray(parsed) ? parsed : [];

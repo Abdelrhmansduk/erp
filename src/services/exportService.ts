@@ -25,6 +25,12 @@ import {
   resolveExcelThemePalette,
   toUtf8Bytes,
 } from './excelThemeEngine';
+import {
+  cryptoRandomInt,
+  decryptStoragePayload,
+  encryptStoragePayload,
+  sanitizeHtmlMarkup,
+} from '../utils/securitySanitizers';
 
 export interface SectionExportConfig {
   sectionTitle: string;
@@ -2910,9 +2916,10 @@ export function getActiveCompanyInfo(
 export function getAuthenticatedExporterInfo(): ExportingEmployeeInfo {
   try {
     if (typeof localStorage !== 'undefined') {
-      const raw =
+      const raw = decryptStoragePayload(
         localStorage.getItem('ALSULAIM_AUTH_USER') ||
-        localStorage.getItem('alsulaim_erp_current_user');
+          localStorage.getItem('alsulaim_erp_current_user')
+      );
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed && (parsed.full_name || parsed.name)) {
@@ -3402,7 +3409,7 @@ export function generateExecutiveReportHtml(
   });
   const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
   const isoDate = now.toISOString().slice(0, 10);
-  const serialNumber = `${company.code}-${now.getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+  const serialNumber = `${company.code}-${now.getFullYear()}-${cryptoRandomInt(100000, 1000000)}`;
   const verificationHash = `SHA256:${Array.from({ length: 20 }, (_, i) => ((now.getTime() + i * 31) % 16).toString(16)).join('').toUpperCase()}`;
 
   const mappedRows = resolveEffectiveMappedRows(config, data, options);
@@ -4422,7 +4429,7 @@ export function buildStyledExcelBuffer(
   });
   const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
   const isoDate = now.toISOString().slice(0, 10);
-  const serialNo = `${company.code}-XLS-${now.getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+  const serialNo = `${company.code}-XLS-${now.getFullYear()}-${cryptoRandomInt(10000, 100000)}`;
 
   // 1. Data Mapping with Smart Numeric & SAMA ⃁ Recognition
   const rawSourceRows = resolveEffectiveMappedRows(config, data, options);
@@ -4766,7 +4773,7 @@ export function buildMultiSheetExcelBuffer(
   });
   const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
   const isoDate = now.toISOString().slice(0, 10);
-  const serialNo = `${company.code}-WB-${now.getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+  const serialNo = `${company.code}-WB-${now.getFullYear()}-${cryptoRandomInt(10000, 100000)}`;
 
   const wb = XLSX.utils.book_new();
   if (!wb.Workbook) wb.Workbook = {};
@@ -5299,7 +5306,7 @@ export async function generateExecutivePdfArtifact(
     const usableHeight = pageHeight - margin * 2;
 
     for (let idx = 0; idx < pageChunks.length; idx++) {
-      container.innerHTML = pageChunks[idx];
+      container.innerHTML = sanitizeHtmlMarkup(pageChunks[idx]);
       container.querySelectorAll('.no-print, script').forEach((el) => el.remove());
 
       const canvas = await html2canvas(container, {
@@ -5412,7 +5419,7 @@ export async function exportToPNG(
   container.style.zIndex = '-9999';
 
   const html = generateExecutiveReportHtml(sectionKey, data, customTitle, false, options);
-  container.innerHTML = html;
+  container.innerHTML = sanitizeHtmlMarkup(html);
   container.querySelectorAll('.no-print, script').forEach((el) => el.remove());
   document.body.appendChild(container);
 
@@ -6238,7 +6245,7 @@ function recordExportAuditTrail(
     const company = getActiveCompanyInfo(targetData, options);
     const nowFormatted = new Date().toISOString().replace('T', ' ').slice(0, 16);
     const key = 'ALSULAIM_ERP_DB_V1_activity_log';
-    const existingRaw = localStorage.getItem(key);
+    const existingRaw = decryptStoragePayload(localStorage.getItem(key));
     const existing = existingRaw ? JSON.parse(existingRaw) : [];
     const newEntry = {
       id: `EXP-${Date.now().toString().slice(-5)}`,
@@ -6253,7 +6260,10 @@ function recordExportAuditTrail(
       created_at: nowFormatted,
     };
     if (Array.isArray(existing)) {
-      localStorage.setItem(key, JSON.stringify([newEntry, ...existing.slice(0, 199)]));
+      localStorage.setItem(
+        key,
+        encryptStoragePayload(JSON.stringify([newEntry, ...existing.slice(0, 199)]))
+      );
       window.dispatchEvent(new CustomEvent('erp-data-updated'));
       window.dispatchEvent(
         new CustomEvent('erp_data_exported', {

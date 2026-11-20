@@ -14,6 +14,7 @@ import {
   User,
   UserCredential,
 } from 'firebase/auth';
+import { decryptStoragePayload, encryptStoragePayload } from '../utils/securitySanitizers';
 
 export interface FirebaseConfig {
   apiKey?: string;
@@ -105,7 +106,7 @@ function extractFirebaseUserFields(user: User, idToken = ''): FirebaseGoogleUser
 
 export function getCachedGoogleProfile(): FirebaseGoogleUser | null {
   try {
-    const raw = localStorage.getItem(GOOGLE_SYNC_STORAGE_KEY);
+    const raw = decryptStoragePayload(localStorage.getItem(GOOGLE_SYNC_STORAGE_KEY));
     if (raw) {
       return JSON.parse(raw) as FirebaseGoogleUser;
     }
@@ -118,7 +119,7 @@ export function getCachedGoogleProfile(): FirebaseGoogleUser | null {
 export function cacheGoogleProfile(profile: FirebaseGoogleUser | null): void {
   try {
     if (profile) {
-      localStorage.setItem(GOOGLE_SYNC_STORAGE_KEY, JSON.stringify(profile));
+      localStorage.setItem(GOOGLE_SYNC_STORAGE_KEY, encryptStoragePayload(JSON.stringify(profile)));
     } else {
       localStorage.removeItem(GOOGLE_SYNC_STORAGE_KEY);
     }

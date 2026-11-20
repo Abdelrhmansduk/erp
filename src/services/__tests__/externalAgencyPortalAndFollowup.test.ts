@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as XLSX from 'xlsx';
 import {
   resolveCanonicalAgency,
@@ -14,6 +14,24 @@ import {
   updateMusanedTransactionStage,
   dispatchViaEmailAndWhatsApp,
   getMusanedTransactions,
+  resolveCoordinatorForAgencyOrTx,
+  saveCoordinatorContact,
+  getCoordinatorProfiles,
+  computeExternalAgencyPasswordDigest,
+  verifyExternalAgencyCredentialsAsync,
+  syncContractToMusanedFollowup,
+  syncIngazDelegationToFollowup,
+  softDeleteMusanedTransaction,
+  restoreMusanedTransaction,
+  permanentlyDeleteMusanedTransaction,
+  bulkUpdateTransactionsStage,
+  reassignTransactionsCoordinator,
+  buildBulkAgencyReminderDigest,
+  addTransactionAttachment,
+  removeTransactionAttachment,
+  addTransactionThreadMessage,
+  computeDynamicAgencyScorecards,
+  normalizeAgencyCandidate,
 } from '../externalAgencyMasterService';
 import {
   parsePassportMrz,
@@ -21,6 +39,10 @@ import {
   checkCandidateDuplicateAndBlacklist,
   maskPassportForClientPreview,
   getOfficeCvPresets,
+  extractJpegsAndTextFromPdfBytesAsync,
+  extractSmartCvsBatchFromFiles,
+  saveCustomOfficeCvPreset,
+  loadOfficeCvPresets,
 } from '../cvSmartExtractorService';
 import {
   authService,
@@ -28,6 +50,8 @@ import {
   saveCustomEmployeePassword,
 } from '../authService';
 import { realErpDataStore } from '../realErpDataStore';
+import { supabase } from '../supabaseClient';
+import { inferToolCallFromArabicPrompt, executeToolCall } from '../aiToolExecutor';
 
 describe('External Agencies Portal, 5-Sheet Musaned Follow-up Engine, Smart MRZ Extractor & Multi-Channel Dispatch', () => {
   beforeEach(() => {
@@ -322,5 +346,241 @@ describe('External Agencies Portal, 5-Sheet Musaned Follow-up Engine, Smart MRZ 
     const sentLogs = await realErpDataStore.getRecords<any>('sent_messages', []);
     expect(sentLogs.some((m) => m.id === dispatchRes.loggedIds[0] && m.channel === 'WhatsApp')).toBe(true);
     expect(sentLogs.some((m) => m.id === dispatchRes.loggedIds[1] && m.channel === 'Email (HR@kas.sa)')).toBe(true);
+  });
+
+  it('routes coordinator alerts smartly to Mahmoud Fouda & Islam Arafa and persists coordinator contact overrides', () => {
+    const coordMahmoud = resolveCoordinatorForAgencyOrTx({ agencyId: 'AGY-INT-NUHIMAN' });
+    expect(coordMahmoud.email).toBe('m.fouda.followup@kas.sa');
+
+    const coordIslam = resolveCoordinatorForAgencyOrTx({ agencyId: 'AGY-ETH-MZAIN' });
+    expect(coordIslam.email).toBe('i.mahmoud.followup@kas.sa');
+
+    saveCoordinatorContact({
+      email: 'm.fouda.followup@kas.sa',
+      nameAr: 'محمود فودة (محدث)',
+      phone: '0551112233',
+      whatsapp: '966551112233',
+    });
+    const profiles = getCoordinatorProfiles();
+    const updatedMahmoud = profiles.find((c) => c.email === 'm.fouda.followup@kas.sa');
+    expect(updatedMahmoud?.whatsapp).toBe('966551112233');
+    expect(updatedMahmoud?.phone).toBe('0551112233');
+  });
+
+  it('authenticates isolated external agencies remotely via Supabase RPC even with an empty local cache', async () => {
+    const email = 'remote.partner@agency.alsulaim.sa';
+    const pass = 'AgencyPass#2026!';
+    const digest = computeExternalAgencyPasswordDigest(email, pass);
+
+      const rpcSpy = vi.spyOn(supabase, 'rpc').mockImplementation((async (fnName: string, args: any) => {
+      if (fnName === 'resolve_external_agency_email') {
+        return { data: [{ email, status: 'نشط' }], error: null } as any;
+      }
+      if (fnName === 'verify_external_agency_login' && args?.p_password_digest === digest) {
+        return {
+          data: [
+            {
+              id: 'EXT-ACC-REMOTE-1',
+              company_id: 'SAF',
+              agency_id: 'AGY-ETH-MZAIN',
+              agency_name: 'MZAIN ETHIOPIA',
+              agency_name_ar: 'مزاين إثيوبيا',
+              country: 'أثيوبيا',
+              username: 'mzain.remote',
+              email,
+              contact_person: 'Abebe',
+              phone: '+251911000111',
+              whatsapp: '+251911000111',
+              authorized_companies: ['SAF', 'TOP'],
+              status: 'نشط',
+            },
+          ],
+          error: null,
+        } as any;
+      }
+      return { data: [], error: null } as any;
+    }) as any);
+
+    try {
+      const check = await verifyExternalAgencyCredentialsAsync('mzain.remote', pass);
+      expect(check.valid).toBe(true);
+      expect(check.account?.agency_id).toBe('AGY-ETH-MZAIN');
+
+      // Reset cache to test end-to-end authService.signIn remote resolution
+      localStorage.clear();
+      const login = await authService.signIn(email, pass);
+      expect(login.error).toBeNull();
+      expect(login.data?.account_type).toBe('external_agency');
+      expect(login.data?.default_tab).toBe('foreign-agency-portal');
+    } finally {
+      rpcSpy.mockRestore();
+    }
+  });
+
+  it('syncs Recruitment contracts & Ingaz delegations, computes 90-day warranty & Backout clawbacks, and supports full CRUD/Trash/Bulk/Drawer/Scorecard', async () => {
+    const tx = await syncContractToMusanedFollowup({
+      musanedContractNo: '2026999888',
+      internalContractNo: 'SAF-RC-2026-9998',
+      companyId: 'SAF',
+      clientName: 'عبدالله بن فهد السبيعي',
+      clientPhone: '0550001122',
+      visaNumber: 'V-889900',
+      maidName: 'SELAM TESFAYE',
+      passportNumber: 'EP8899001',
+      nationality: 'أثيوبيا',
+      externalOfficeName: 'النحيمان',
+      paidAmountSar: 7500,
+    });
+    expect(tx.assigned_coordinator_email).toBe('m.fouda.followup@kas.sa');
+    expect(tx.stage).toBe('ASSIGNED');
+
+    // Ingaz verification advances stage to DELEGATED
+    const afterIngaz = await syncIngazDelegationToFollowup({
+      visaNumber: 'V-889900',
+      status: 'تم التوثيق',
+      actorName: 'بوابة إنجاز',
+    });
+    expect(afterIngaz?.stage).toBe('DELEGATED');
+
+    // Arrival sets 90-day warranty_end_date
+    const arrivedTx = await updateMusanedTransactionStage({
+      transactionId: tx.id,
+      nextStage: 'ARRIVED',
+      actorName: 'محمود فودة',
+    });
+    expect(arrivedTx?.warranty_end_date).toBeTruthy();
+
+    // Backout triggers commission clawback deduction in agency_candidates (normalized helper)
+    const backoutTx = await updateMusanedTransactionStage({
+      transactionId: tx.id,
+      nextStage: 'BACKOUT',
+      actorName: 'محمود فودة',
+    });
+    expect((backoutTx?.deduction_usd || 0) > 0).toBe(true);
+
+    const rawCands = await realErpDataStore.getRecords<any>('agency_candidates', [], 'all');
+    const matchedCand = rawCands
+      .map(normalizeAgencyCandidate)
+      .find((c) => c?.passportNumber === 'EP8899001');
+    expect((matchedCand?.deductionUsd || 0) > 0).toBe(true);
+
+    // Attachments & Thread Messaging
+    const withAtt = await addTransactionAttachment(tx.id, {
+      name: 'medical_fit.pdf',
+      fileName: 'medical_fit.pdf',
+      category: 'فحص طبي',
+      mimeType: 'application/pdf',
+      fileSizeLabel: '2 KB',
+      sizeBytes: 2048,
+      dataUrl: 'data:application/pdf;base64,JVBERi0=',
+      uploadedBy: 'محمود فودة',
+      uploadedByRole: 'internal_coordinator',
+    });
+    expect(withAtt?.attachments?.length).toBe(1);
+
+    const withMsg = await addTransactionThreadMessage(tx.id, {
+      senderName: 'محمود فودة',
+      senderRole: 'internal_coordinator',
+      body: 'يرجى تأكيد موعد الفحص النهائي.',
+    });
+    expect(withMsg?.messages_thread?.length).toBe(1);
+
+    const attId = withAtt!.attachments![0].id;
+    const afterRemoveAtt = await removeTransactionAttachment(tx.id, attId);
+    expect(afterRemoveAtt?.attachments?.length).toBe(0);
+
+    // Bulk ops & Digest
+    const reassigned = await reassignTransactionsCoordinator([tx.id], 'i.mahmoud.followup@kas.sa');
+    expect(reassigned).toBe(1);
+    const bulkMoved = await bulkUpdateTransactionsStage([tx.id], 'VISA_STAMPED', 'محمود فودة');
+    expect(bulkMoved).toBe(1);
+    const allTxsNow = await getMusanedTransactions();
+    const digests = buildBulkAgencyReminderDigest(allTxsNow, [resolveCanonicalAgency('النحيمان')!]);
+    expect(digests.length).toBeGreaterThan(0);
+
+    // Dynamic Scorecard
+    const scorecards = computeDynamicAgencyScorecards(allTxsNow, [resolveCanonicalAgency('النحيمان')!]);
+    expect(scorecards.length).toBeGreaterThanOrEqual(1);
+    expect(scorecards.some((s) => typeof s.computedScore === 'number')).toBe(true);
+
+    // Soft Delete -> Restore -> Permanent Delete
+    await softDeleteMusanedTransaction(tx.id, 'm.fouda.followup@kas.sa');
+    expect((await getMusanedTransactions(false)).some((t) => t.id === tx.id)).toBe(false);
+    expect((await getMusanedTransactions(true)).some((t) => t.id === tx.id && t.is_deleted)).toBe(true);
+
+    await restoreMusanedTransaction(tx.id);
+    expect((await getMusanedTransactions(false)).some((t) => t.id === tx.id)).toBe(true);
+
+    await permanentlyDeleteMusanedTransaction(tx.id);
+    expect((await getMusanedTransactions(true)).some((t) => t.id === tx.id)).toBe(false);
+  });
+
+  it('extracts multi-PDF batch CVs, supports cloud presets persistence, and executes Follow-up AI Copilot tools', async () => {
+    // Cloud Preset Persistence Round-trip
+    await saveCustomOfficeCvPreset({
+      id: 'PRESET-TEST-CLOUD',
+      officeCode: 'SAF',
+      presetNameAr: 'قالب تجريبي سحابي',
+      presetNameEn: 'Cloud Preset',
+      companyNameAr: 'السفير الماسي',
+      companyNameEn: 'AL-SAFEER AL-MASI',
+      musanedLicenseNo: '390102',
+      crNumber: '1010000001',
+      salesPhones: ['0500000000'],
+      salesWhatsapp: '966500000000',
+      salesEmail: 'info@kas.sa',
+      addressAr: 'الرياض',
+      headerBgHex: '#141414',
+      accentBandHex: '#262626',
+      hideForeignAgencyIdentity: true,
+      maskPassportBeforeContract: true,
+      pricingDisplayMode: 'RECRUITMENT_SALARY',
+      warrantyClauseAr: 'ضمان 90 يوماً',
+    });
+    const loadedPresets = await loadOfficeCvPresets();
+    expect(loadedPresets.some((p) => p.id === 'PRESET-TEST-CLOUD')).toBe(true);
+
+    // Async PDF + Multi-PDF Batch Extraction
+    const fakePdfBytes = new TextEncoder().encode(
+      '%PDF-1.4\nNAME: HALIMA AHMED MOHAMMED\nPASSPORT: EP7766554\nSALARY: 1100 SAR\n%%EOF'
+    );
+    const asyncPdfRes = await extractJpegsAndTextFromPdfBytesAsync(fakePdfBytes.buffer);
+    expect(asyncPdfRes.extractedText).toContain('HALIMA AHMED MOHAMMED');
+
+    const file1 = {
+      name: 'cv1.pdf',
+      type: 'application/pdf',
+      arrayBuffer: async () => fakePdfBytes.buffer,
+    } as unknown as File;
+    const file2 = {
+      name: 'cv2.pdf',
+      type: 'application/pdf',
+      arrayBuffer: async () =>
+        new TextEncoder().encode('%PDF-1.4\nNAME: SARA BEKELE\nPASSPORT: EP1122339\n%%EOF').buffer,
+    } as unknown as File;
+    const batch = await extractSmartCvsBatchFromFiles([file1, file2]);
+    expect(batch).toHaveLength(2);
+    expect(batch[0].draft?.passportNumber || batch[0].fileName).toBeTruthy();
+
+    // AI Copilot Follow-up Tools
+    const mahmoudPass = generateStrongClientPassword();
+    saveCustomEmployeePassword('m.fouda.followup@kas.sa', mahmoudPass);
+    await authService.signIn('m.fouda.followup@kas.sa', mahmoudPass);
+
+    const slaCall = inferToolCallFromArabicPrompt('افحص رادار المتابعة والمعاملات المتأخرة في مساند', 'SAF');
+    expect(slaCall?.tool.id).toBe('get_followup_sla_radar');
+    const slaExec = await executeToolCall(slaCall!, 'SAF', 'm.fouda.followup@kas.sa');
+    expect(slaExec.success).toBe(true);
+
+    const scoreCall = inferToolCallFromArabicPrompt('اعرض بطاقة تقييم أداء الوكلاء الخارجيين', 'SAF');
+    expect(scoreCall?.tool.id).toBe('get_external_agency_scorecard');
+    const scoreExec = await executeToolCall(scoreCall!, 'SAF', 'm.fouda.followup@kas.sa');
+    expect(scoreExec.success).toBe(true);
+    expect(Array.isArray(scoreExec.data)).toBe(true);
+
+    const remindCall = inferToolCallFromArabicPrompt('استعجل وكالة مزايا برسالة متابعة', 'SAF');
+    expect(remindCall?.tool.id).toBe('dispatch_agency_sla_followup');
+    const remindExec = await executeToolCall(remindCall!, 'SAF', 'm.fouda.followup@kas.sa');
+    expect(remindExec.success).toBe(true);
   });
 });

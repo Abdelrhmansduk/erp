@@ -15,6 +15,7 @@ import {
   REEM_HR_SIGNATORY,
 } from './reemHrEmailTemplatesEngine';
 import { dispatchComposedHrEmailDirect } from './hrDirectEmailDispatchService';
+import { encryptStoragePayload } from '../utils/securitySanitizers';
 
 export const KAS_SIGNAGE_BROADCAST_CHANNEL = 'kas_digital_signage_v1';
 export const KAS_SIGNAGE_STORAGE_PING_KEY = 'KAS_SIGNAGE_LAST_PING_V1';
@@ -540,7 +541,10 @@ export function emitLiveSignageSignal(payload: {
     // Fallback to storage & custom event below
   }
   try {
-    window.localStorage.setItem(KAS_SIGNAGE_STORAGE_PING_KEY, JSON.stringify(payload));
+    window.localStorage.setItem(
+      KAS_SIGNAGE_STORAGE_PING_KEY,
+      encryptStoragePayload(JSON.stringify(payload))
+    );
   } catch {
     // ignore storage quota errors
   }

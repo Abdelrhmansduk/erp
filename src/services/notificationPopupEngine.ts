@@ -56,6 +56,7 @@ class NotificationPopupEngine {
     this.swListenerAttached = true;
 
     window.addEventListener('message', (event) => {
+      if (event.origin !== window.location.origin) return;
       const data = event.data;
       if (data && typeof data === 'object' && data.type === 'MOBILE_STUDIO_TRIGGER_NOTIFICATION' && data.payload) {
         this.show(data.payload);

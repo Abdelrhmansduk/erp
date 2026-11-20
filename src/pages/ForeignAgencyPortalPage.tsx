@@ -15,6 +15,11 @@ import {
   AlertTriangle,
   X,
   ClipboardCheck,
+  Paperclip,
+  MessageSquare,
+  Edit3,
+  Languages,
+  Send,
 } from 'lucide-react';
 import { useCompany } from '../contexts/CompanyContext';
 import { useAuthContext } from '../contexts/AuthContext';
@@ -32,12 +37,20 @@ import {
 } from '../components/cvs/ProfessionalAgencyCvTemplate';
 import {
   getUnifiedAgenciesSync,
+  loadUnifiedAgencies,
   getMusanedTransactions,
   sanitizeTransactionForExternalAgent,
   updateMusanedTransactionStage,
   getStageLabelAr,
   dispatchViaEmailAndWhatsApp,
-  FOLLOWUP_COORDINATORS,
+  resolveCoordinatorForAgencyOrTx,
+  normalizeAgencyCandidate,
+  addTransactionAttachment,
+  removeTransactionAttachment,
+  addTransactionThreadMessage,
+  type UnifiedExternalAgency,
+  type NormalizedAgencyCandidate,
+  type MusanedFollowupTransaction,
   type SanitizedAgencyTransaction,
   type TransactionStage,
 } from '../services/externalAgencyMasterService';
@@ -54,6 +67,8 @@ export interface AgencyCandidate {
   visaStatus: 'ISSUED' | 'APPLIED' | 'READY';
   ticketStatus: 'BOOKED' | 'PENDING';
   commissionUsd: number;
+  deductionUsd?: number;
+  deductionReason?: string;
   paymentStatus: 'PAID' | 'UNPAID';
   uploadedAt: string;
   agencyName?: string;
@@ -121,7 +136,13 @@ export const ForeignAgencyPortalPage: React.FC = () => {
   const isExternalPartner = authService.isExternalAgency(currentProfile);
   const canSettleCommissions = !isExternalPartner && authService.isFinance(currentProfile);
 
-  const unifiedAgencies = useMemo(() => getUnifiedAgenciesSync(), []);
+  const [portalLang, setPortalLang] = useState<'ar' | 'en'>('ar');
+  const [unifiedAgencies, setUnifiedAgencies] = useState<UnifiedExternalAgency[]>(() =>
+    getUnifiedAgenciesSync()
+  );
+  useEffect(() => {
+    void loadUnifiedAgencies().then(setUnifiedAgencies);
+  }, []);
 
   const [selectedAgencyId, setSelectedAgencyId] = useState<string>(() => {
     if (currentProfile?.agency_id) return currentProfile.agency_id;
@@ -141,7 +162,10 @@ export const ForeignAgencyPortalPage: React.FC = () => {
     [unifiedAgencies, selectedAgencyId]
   );
 
-  const activeAgencyLabel = activeAgencyObj?.name_ar || currentProfile?.agency_name || 'وكالة دولية معتمدة';
+  const activeAgencyLabel =
+    portalLang === 'en'
+      ? activeAgencyObj?.name_en || currentProfile?.agency_name || 'Authorized Foreign Agency'
+      : activeAgencyObj?.name_ar || currentProfile?.agency_name || 'وكالة دولية معتمدة';
 
   const [portalTab, setPortalTab] = useState<PortalViewTab>('contracts');
   const [searchQuery, setSearchQuery] = useState('');
@@ -151,8 +175,23 @@ export const ForeignAgencyPortalPage: React.FC = () => {
   const [previewCv, setPreviewCv] = useState<PrintableAgencyCvData | null>(null);
 
   const [sanitizedContracts, setSanitizedContracts] = useState<SanitizedAgencyTransaction[]>([]);
+  const [rawScopedTxsMap, setRawScopedTxsMap] = useState<Record<string, MusanedFollowupTransaction>>({});
   const [agencyCvs, setAgencyCvs] = useState<Record<string, any>[]>([]);
   const [candidates, setCandidates] = useState<AgencyCandidate[]>([]);
+  const [txDrawerId, setTxDrawerId] = useState<string | null>(null);
+  const [txAttachCat, setTxAttachCat] = useState<
+    'مستند مرحلة' | 'تذكرة طيران' | 'تأشيرة' | 'فحص طبي' | 'تفويض' | 'أخرى'
+  >('مستند مرحلة');
+  const [txThreadText, setTxThreadText] = useState('');
+  const [resubmitCvTarget, setResubmitCvTarget] = useState<Record<string, any> | null>(null);
+  const [resubmitForm, setResubmitForm] = useState({
+    maid_name: '',
+    maid_name_ar: '',
+    passport_number: '',
+    salary: '1000',
+    age: '26',
+    video_url: '',
+  });
 
   const [flightBookingTarget, setFlightBookingTarget] = useState<SanitizedAgencyTransaction | null>(null);
   const [ticketForm, setTicketForm] = useState({
@@ -169,9 +208,13 @@ export const ForeignAgencyPortalPage: React.FC = () => {
 
     // 1. Load & sanitize Musaned contracts strictly for THIS agency (PDPL safe!)
     const allTxs = await getMusanedTransactions();
-    const scopedTxs = allTxs
-      .filter((t) => !t.is_archive && t.agency_id === targetAgId)
-      .map((t) => sanitizeTransactionForExternalAgent(t, unifiedAgencies));
+    const scopedRawTxs = allTxs.filter((t) => !t.is_archive && !t.is_deleted && t.agency_id === targetAgId);
+    const txMap: Record<string, MusanedFollowupTransaction> = {};
+    scopedRawTxs.forEach((t) => {
+      txMap[t.id] = t;
+    });
+    setRawScopedTxsMap(txMap);
+    const scopedTxs = scopedRawTxs.map((t) => sanitizeTransactionForExternalAgent(t, unifiedAgencies));
     setSanitizedContracts(scopedTxs);
 
     // 2. Load CVs uploaded by THIS agency
@@ -179,25 +222,28 @@ export const ForeignAgencyPortalPage: React.FC = () => {
     const scopedCvs = allCvs.filter(
       (c) =>
         c.agency_id === targetAgId ||
-        String(c.external_office || '').toLowerCase() === activeAgencyLabel.toLowerCase() ||
+        String(c.external_office || '').toLowerCase() === String(activeAgencyObj?.name_ar || '').toLowerCase() ||
         (activeAgencyObj &&
           String(c.external_office || '').toLowerCase() === activeAgencyObj.name_en.toLowerCase())
     );
     setAgencyCvs(scopedCvs);
 
-    // 3. Load Financial Commission Statement strictly for THIS agency
-    const allCands = await realErpDataStore.getRecords<AgencyCandidate>(
+    // 3. Load Financial Commission Statement strictly for THIS agency (with deduction normalization)
+    const allCands = await realErpDataStore.getRecords<any>(
       'agency_candidates',
       INITIAL_AGENCY_CANDIDATES
     );
-    const scopedCands = allCands.filter(
-      (c) =>
-        c.agency_id === targetAgId ||
-        c.agencyName === activeAgencyLabel ||
-        (activeAgencyObj && c.agencyName === activeAgencyObj.name_en)
-    );
-    setCandidates(scopedCands);
-  }, [isExternalPartner, currentProfile?.agency_id, selectedAgencyId, unifiedAgencies, activeAgencyLabel, activeAgencyObj]);
+    const scopedCands = allCands
+      .map(normalizeAgencyCandidate)
+      .filter((c): c is NormalizedAgencyCandidate => Boolean(c))
+      .filter(
+        (c) =>
+          c.agency_id === targetAgId ||
+          (activeAgencyObj &&
+            (c.agencyName === activeAgencyObj.name_ar || c.agencyName === activeAgencyObj.name_en))
+      );
+    setCandidates(scopedCands as AgencyCandidate[]);
+  }, [isExternalPartner, currentProfile?.agency_id, selectedAgencyId, unifiedAgencies, activeAgencyObj]);
 
   useEffect(() => {
     void loadAgencyScopedData();
@@ -206,7 +252,10 @@ export const ForeignAgencyPortalPage: React.FC = () => {
   }, [loadAgencyScopedData]);
 
   const totalUsdBalance = candidates.reduce(
-    (sum, c) => (c.paymentStatus === 'UNPAID' ? sum + c.commissionUsd : sum),
+    (sum, c) =>
+      c.paymentStatus === 'UNPAID'
+        ? sum + Math.max(0, c.commissionUsd - (c.deductionUsd || 0))
+        : sum,
     0
   );
   const totalPaidUsd = candidates.reduce(
@@ -229,7 +278,11 @@ export const ForeignAgencyPortalPage: React.FC = () => {
       actorName: `بوابة الوكيل (${activeAgencyLabel})`,
     });
 
-    const coord = FOLLOWUP_COORDINATORS[0];
+    const coord = resolveCoordinatorForAgencyOrTx({
+      agencyId: activeAgencyObj?.id,
+      nationality: tx.nationality,
+      explicitEmail: tx.assigned_coordinator_email,
+    });
     await dispatchViaEmailAndWhatsApp({
       recipientName: coord.nameAr,
       recipientPhone: coord.phone,
@@ -244,8 +297,8 @@ export const ForeignAgencyPortalPage: React.FC = () => {
 
     await loadAgencyScopedData();
     addNotification({
-      title: 'تم تحديث مرحلة العقد وإشعار قسم المتابعة',
-      message: `تم تحديث العقد #${tx.musaned_contract_no} إلى (${getStageLabelAr(nextStage)}) وإشعار المتابعة والمبيعات.`,
+      title: portalLang === 'en' ? 'Stage Updated & Coordinator Notified' : 'تم تحديث مرحلة العقد وإشعار قسم المتابعة',
+      message: `تم تحديث العقد #${tx.musaned_contract_no} إلى (${getStageLabelAr(nextStage)}) وإشعار المتابعة (${coord.nameAr}).`,
       type: 'success',
     });
   };
@@ -264,7 +317,11 @@ export const ForeignAgencyPortalPage: React.FC = () => {
       arrivalDestination: ticketForm.arrivalDestination,
     });
 
-    const coord = FOLLOWUP_COORDINATORS[0];
+    const coord = resolveCoordinatorForAgencyOrTx({
+      agencyId: activeAgencyObj?.id,
+      nationality: flightBookingTarget.nationality,
+      explicitEmail: flightBookingTarget.assigned_coordinator_email,
+    });
     await dispatchViaEmailAndWhatsApp({
       recipientName: `${coord.nameAr} + قسم استقبال المطار`,
       recipientPhone: coord.phone,
@@ -358,8 +415,51 @@ export const ForeignAgencyPortalPage: React.FC = () => {
     });
   };
 
+  const handleResubmitRevisedCv = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resubmitCvTarget) return;
+    await realErpDataStore.updateRecord<any>('cvs', resubmitCvTarget.id, {
+      maid_name: resubmitForm.maid_name.toUpperCase(),
+      maid_name_ar: resubmitForm.maid_name_ar || resubmitForm.maid_name,
+      passport_number: resubmitForm.passport_number.toUpperCase(),
+      salary: Number(resubmitForm.salary) || 1000,
+      age: Number(resubmitForm.age) || 26,
+      video_url: resubmitForm.video_url,
+      status: 'بانتظار مراجعة القسم',
+      approval_status: 'PENDING_REVIEW',
+      revision_note: '',
+    });
+
+    const coord = resolveCoordinatorForAgencyOrTx({
+      agencyId: activeAgencyObj?.id,
+      nationality: resubmitCvTarget.nationality,
+    });
+    await dispatchViaEmailAndWhatsApp({
+      recipientName: coord.nameAr,
+      recipientPhone: coord.phone,
+      recipientEmail: coord.email,
+      subject: `إعادة إرسال السيرة المعدلة #${resubmitCvTarget.cv_code} — (${activeAgencyLabel})`,
+      bodyText: `قامت وكالة (${activeAgencyLabel}) بتعديل السيرة #${resubmitCvTarget.cv_code} (${resubmitForm.maid_name}) وإعادة إرسالها لاعتماد قسم المتابعة.`,
+      channel: 'both',
+      templateName: 'إشعار إعادة إرسال سيرة بعد التعديل',
+      companyId: 'SAF',
+      openExternalClient: false,
+    });
+
+    setResubmitCvTarget(null);
+    await loadAgencyScopedData();
+    addNotification({
+      title: portalLang === 'en' ? 'CV Resubmitted for Approval' : 'تمت إعادة إرسال السيرة للاعتماد',
+      message:
+        portalLang === 'en'
+          ? `CV #${resubmitCvTarget.cv_code} sent back to ${coord.nameAr}.`
+          : `تم حفظ التعديلات وإشعار (${coord.nameAr}) للمراجعة.`,
+      type: 'success',
+    });
+  };
+
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-6" dir={portalLang === 'en' ? 'ltr' : 'rtl'}>
       {/* Top Pitch-Black Mobbin Header */}
       <div className="bg-[#141414] text-[#ffffff] rounded-[24px] p-6 sm:p-7 border border-[#262626]">
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -368,23 +468,39 @@ export const ForeignAgencyPortalPage: React.FC = () => {
             <div>
               <div className="flex items-center gap-2 flex-wrap mb-1">
                 <span className="px-3 py-0.5 rounded-full bg-[#262626] text-[#ffffff] text-[11px] font-semibold">
-                  {i18n.t('ats.internationalAgencyPortal', 'بوابة الوكيل الخارجي المعزولة')}
+                  {portalLang === 'en'
+                    ? 'Isolated Foreign Agency Portal'
+                    : i18n.t('ats.internationalAgencyPortal', 'بوابة الوكيل الخارجي المعزولة')}
                 </span>
                 <span className="px-3 py-0.5 rounded-full bg-[#ffffff] text-[#141414] text-[11px] font-bold inline-flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>عزل كامل للبيانات وحماية خصوصية العملاء (PDPL)</span>
+                  <span>
+                    {portalLang === 'en'
+                      ? 'Strict Tenant & PDPL PII Isolation'
+                      : 'عزل كامل للبيانات وحماية خصوصية العملاء (PDPL)'}
+                  </span>
                 </span>
               </div>
               <h1 className="text-xl sm:text-2xl font-bold text-[#ffffff]">
                 {activeAgencyLabel}.
               </h1>
               <p className="text-xs text-[#adadad] mt-1">
-                متابعة عقود مساند المسندة للوكالة، رفع السير الذاتية بالاستخلاص الذكي (PDF + MRZ)، وإدخال الفحص الطبي والتأشيرات وتذاكر السفر.
+                {portalLang === 'en'
+                  ? 'Manage assigned Musaned contracts, upload bilingual CVs (PDF/MRZ), track medical/visa/flight stages, and reconcile USD commissions.'
+                  : 'متابعة عقود مساند المسندة للوكالة، رفع السير الذاتية بالاستخلاص الذكي (PDF + MRZ)، وإدخال الفحص الطبي والتأشيرات وتذاكر السفر.'}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setPortalLang((prev) => (prev === 'ar' ? 'en' : 'ar'))}
+              className="px-3.5 py-2 rounded-full bg-[#262626] hover:bg-[#333333] text-[#ffffff] border border-[#404040] text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
+            >
+              <Languages className="w-3.5 h-3.5" />
+              <span>{portalLang === 'ar' ? 'English' : 'العربية'}</span>
+            </button>
             {!isExternalPartner && (
               <select
                 aria-label="معاينة بوابة وكالة محددة (للمتابعة والإدارة)"
@@ -594,10 +710,22 @@ export const ForeignAgencyPortalPage: React.FC = () => {
                                 className="px-3 py-1.5 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
                               >
                                 <Plane className="w-3 h-3" />
-                                <span>إدخال تذكرة الطيران</span>
+                                <span>{portalLang === 'en' ? 'Book Flight' : 'إدخال تذكرة الطيران'}</span>
                               </button>
                             </>
                           )}
+                          <button
+                            type="button"
+                            onClick={() => setTxDrawerId(tx.id)}
+                            className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                            title={portalLang === 'en' ? 'Documents & Chat' : 'المرفقات ومحادثة المتابعة'}
+                          >
+                            <Paperclip className="w-3 h-3" />
+                            <span>
+                              {(rawScopedTxsMap[tx.id]?.attachments?.length || 0) +
+                                (rawScopedTxsMap[tx.id]?.messages_thread?.length || 0)}
+                            </span>
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -678,14 +806,36 @@ export const ForeignAgencyPortalPage: React.FC = () => {
                         )}
                       </td>
                       <td className="p-3.5 text-center">
-                        <button
-                          type="button"
-                          onClick={() => setPreviewCv(cv as PrintableAgencyCvData)}
-                          className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>معاينة A4</span>
-                        </button>
+                        <div className="inline-flex items-center gap-1.5">
+                          {cv.revision_note && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setResubmitCvTarget(cv);
+                                setResubmitForm({
+                                  maid_name: cv.maid_name || '',
+                                  maid_name_ar: cv.maid_name_ar || '',
+                                  passport_number: cv.passport_number || '',
+                                  salary: String(cv.salary || 1000),
+                                  age: String(cv.age || 26),
+                                  video_url: cv.video_url || '',
+                                });
+                              }}
+                              className="px-3 py-1.5 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              <span>{portalLang === 'en' ? 'Edit & Resubmit' : 'تعديل وإعادة إرسال'}</span>
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setPreviewCv(cv as PrintableAgencyCvData)}
+                            className="px-3 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>{portalLang === 'en' ? 'Preview A4' : 'معاينة A4'}</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -718,14 +868,19 @@ export const ForeignAgencyPortalPage: React.FC = () => {
                   <th className="p-4">اسم العاملة</th>
                   <th className="p-4">رقم الجواز</th>
                   <th className="p-4">التأشيرة</th>
-                  <th className="p-4">التذكرة</th>
-                  <th className="p-4">العمولة ($ USD)</th>
-                  <th className="p-4">حالة السداد</th>
+                  <th className="p-4">{portalLang === 'en' ? 'Ticket' : 'التذكرة'}</th>
+                  <th className="p-4">{portalLang === 'en' ? 'Commission ($ USD)' : 'العمولة ($ USD)'}</th>
+                  <th className="p-4">{portalLang === 'en' ? 'Clawback / Deduction' : 'الخصم / المسبب'}</th>
+                  <th className="p-4">{portalLang === 'en' ? 'Net ($)' : 'الصافي ($)'}</th>
+                  <th className="p-4">{portalLang === 'en' ? 'Status' : 'حالة السداد'}</th>
                   {canSettleCommissions && <th className="p-4 text-center">تسوية المالية</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e0e0e0]">
-                {candidates.map((cand) => (
+                {candidates.map((cand) => {
+                  const ded = Number(cand.deductionUsd || 0);
+                  const netUsd = Math.max(0, Number(cand.commissionUsd || 0) - ded);
+                  return (
                   <tr key={cand.id} className="hover:bg-[#f3f3f3]">
                     <td className="p-4 font-bold text-[#141414]">
                       <div className="flex items-center gap-2">
@@ -741,8 +896,18 @@ export const ForeignAgencyPortalPage: React.FC = () => {
                       {cand.ticketStatus === 'BOOKED' ? 'مؤكدة' : 'بانتظار الحجز'}
                     </td>
                     <td className="p-4 font-mono font-bold">${cand.commissionUsd.toLocaleString()}</td>
+                    <td className="p-4 font-mono text-[11px] text-[#707070]">
+                      {ded > 0 ? `-$${ded.toLocaleString()} (${cand.deductionReason || 'Backout'})` : '—'}
+                    </td>
+                    <td className="p-4 font-mono font-bold text-[#141414]">${netUsd.toLocaleString()}</td>
                     <td className="p-4 font-bold">
-                      {cand.paymentStatus === 'PAID' ? 'مسددة' : 'مستحقة'}
+                      {cand.paymentStatus === 'PAID'
+                        ? portalLang === 'en'
+                          ? 'Paid'
+                          : 'مسددة'
+                        : portalLang === 'en'
+                        ? 'Unpaid'
+                        : 'مستحقة'}
                     </td>
                     {canSettleCommissions && (
                       <td className="p-4 text-center">
@@ -758,7 +923,7 @@ export const ForeignAgencyPortalPage: React.FC = () => {
                       </td>
                     )}
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>
@@ -945,6 +1110,277 @@ export const ForeignAgencyPortalPage: React.FC = () => {
               >
                 تأكيد السداد المجمع وإصدار السند
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Edit & Resubmit CV with Revision Note */}
+      {resubmitCvTarget && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setResubmitCvTarget(null)}
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-6 max-w-md w-full space-y-4"
+          >
+            <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
+              <h3 className="font-bold text-sm text-[#141414]">
+                {portalLang === 'en' ? 'Edit & Resubmit CV' : 'تعديل وإعادة إرسال السيرة'}{' '}
+                {resubmitCvTarget.cv_code}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setResubmitCvTarget(null)}
+                className="w-7 h-7 rounded-full bg-[#f3f3f3] flex items-center justify-center cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            {resubmitCvTarget.revision_note && (
+              <div className="bg-[#f3f3f3] border border-[#141414] rounded-[14px] p-3 text-xs font-semibold text-[#141414]">
+                {portalLang === 'en' ? 'Coordinator Note: ' : 'ملاحظة قسم المتابعة: '}
+                {resubmitCvTarget.revision_note}
+              </div>
+            )}
+            <form onSubmit={handleResubmitRevisedCv} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-[#707070] mb-1">Full Name (EN)</label>
+                <input
+                  type="text"
+                  required
+                  value={resubmitForm.maid_name}
+                  onChange={(e) => setResubmitForm({ ...resubmitForm, maid_name: e.target.value })}
+                  className="w-full px-3 py-2 rounded-[14px] bg-[#f0f0f0] text-[#141414] font-mono"
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="block font-bold text-[#707070] mb-1">Passport</label>
+                  <input
+                    type="text"
+                    required
+                    value={resubmitForm.passport_number}
+                    onChange={(e) =>
+                      setResubmitForm({ ...resubmitForm, passport_number: e.target.value.toUpperCase() })
+                    }
+                    className="w-full px-3 py-2 rounded-[14px] bg-[#f0f0f0] text-[#141414] font-mono"
+                    dir="ltr"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-[#707070] mb-1">Salary</label>
+                  <input
+                    type="number"
+                    value={resubmitForm.salary}
+                    onChange={(e) => setResubmitForm({ ...resubmitForm, salary: e.target.value })}
+                    className="w-full px-3 py-2 rounded-[14px] bg-[#f0f0f0] text-[#141414] font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-[#707070] mb-1">Age</label>
+                  <input
+                    type="number"
+                    value={resubmitForm.age}
+                    onChange={(e) => setResubmitForm({ ...resubmitForm, age: e.target.value })}
+                    className="w-full px-3 py-2 rounded-[14px] bg-[#f0f0f0] text-[#141414] font-mono"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block font-bold text-[#707070] mb-1">Video Link</label>
+                <input
+                  type="text"
+                  value={resubmitForm.video_url}
+                  onChange={(e) => setResubmitForm({ ...resubmitForm, video_url: e.target.value })}
+                  className="w-full px-3 py-2 rounded-[14px] bg-[#f0f0f0] text-[#141414] font-mono"
+                  dir="ltr"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setResubmitCvTarget(null)}
+                  className="px-4 py-2 rounded-full bg-[#f3f3f3] text-[#141414] font-bold cursor-pointer"
+                >
+                  {portalLang === 'en' ? 'Cancel' : 'إلغاء'}
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-full bg-[#141414] text-[#ffffff] font-bold cursor-pointer"
+                >
+                  {portalLang === 'en' ? 'Resubmit to Follow-up' : 'حفظ وإعادة الإرسال للاعتماد'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Drawer: Stage Document Attachments & Contract Messaging (Isolated from Customer PII) */}
+      {txDrawerId && rawScopedTxsMap[txDrawerId] && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setTxDrawerId(null)}
+          className="fixed inset-0 z-50 bg-black/60 flex justify-end"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#ffffff] border-r border-[#e0e0e0] w-full max-w-lg h-full overflow-y-auto p-6 space-y-5"
+          >
+            <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
+              <div>
+                <h3 className="font-bold text-sm text-[#141414]">
+                  {portalLang === 'en' ? 'Documents & Coordinator Chat' : 'المرفقات ومحادثة المتابعة'} — #
+                  {rawScopedTxsMap[txDrawerId].musaned_contract_no}
+                </h3>
+                <p className="text-[11px] text-[#707070]">
+                  {rawScopedTxsMap[txDrawerId].maid_name || '—'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTxDrawerId(null)}
+                className="w-8 h-8 rounded-full bg-[#f3f3f3] flex items-center justify-center cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="text-xs font-bold text-[#141414]">
+                {portalLang === 'en' ? 'Stage Attachments' : 'مرفقات المرحلة (فحص طبي / تأشيرة / تذكرة)'}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap bg-[#f3f3f3] p-3 rounded-[16px] border border-[#e0e0e0]">
+                <select
+                  value={txAttachCat}
+                  onChange={(e) => setTxAttachCat(e.target.value as any)}
+                  className="px-3 py-1.5 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-xs font-bold text-[#141414]"
+                >
+                  <option value="فحص طبي">فحص طبي / Medical</option>
+                  <option value="تأشيرة">تأشيرة / Visa</option>
+                  <option value="تذكرة طيران">تذكرة طيران / Ticket</option>
+                  <option value="مستند مرحلة">مستند مرحلة / Stage Doc</option>
+                </select>
+                <label className="px-3.5 py-1.5 rounded-full bg-[#141414] text-[#ffffff] text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer">
+                  <UploadCloud className="w-3.5 h-3.5" />
+                  <span>{portalLang === 'en' ? 'Upload File' : 'رفع ملف'}</span>
+                  <input
+                    type="file"
+                    accept=".pdf,image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 1_500_000) return;
+                      const reader = new FileReader();
+                      reader.onload = async () => {
+                        await addTransactionAttachment(txDrawerId, {
+                          name: file.name,
+                          category: txAttachCat,
+                          mimeType: file.type || 'application/octet-stream',
+                          sizeBytes: file.size,
+                          dataUrl: String(reader.result || ''),
+                          uploadedBy: activeAgencyLabel,
+                          uploadedByRole: 'external_agency',
+                        });
+                        await loadAgencyScopedData();
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                </label>
+              </div>
+              <div className="space-y-2">
+                {(rawScopedTxsMap[txDrawerId].attachments || []).map((att) => (
+                  <div
+                    key={att.id}
+                    className="flex items-center justify-between gap-2 p-2.5 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] text-xs"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-bold text-[#141414] truncate">{att.name}</div>
+                      <div className="text-[10.5px] text-[#707070]">{att.category}</div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <a
+                        href={att.dataUrl}
+                        download={att.name}
+                        className="px-2.5 py-1 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[11px] font-bold text-[#141414]"
+                      >
+                        Download
+                      </a>
+                      {att.uploadedByRole === 'external_agency' && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await removeTransactionAttachment(txDrawerId, att.id);
+                            await loadAgencyScopedData();
+                          }}
+                          className="px-2 py-1 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[10.5px] font-bold cursor-pointer"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-4 border-t border-[#e0e0e0]">
+              <div className="text-xs font-bold text-[#141414]">
+                {portalLang === 'en' ? 'Direct Messages with Follow-up Desk' : 'المحادثة المباشرة مع قسم المتابعة'}
+              </div>
+              <div className="space-y-2 max-h-56 overflow-y-auto bg-[#f3f3f3] p-3 rounded-[16px] border border-[#e0e0e0]">
+                {(rawScopedTxsMap[txDrawerId].messages_thread || []).map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`p-2.5 rounded-[12px] text-xs ${
+                      msg.senderRole === 'agency'
+                        ? 'bg-[#141414] text-[#ffffff]'
+                        : 'bg-[#ffffff] text-[#141414] border border-[#e0e0e0]'
+                    }`}
+                  >
+                    <div className="text-[10px] opacity-75 mb-1">
+                      {msg.senderName} • {msg.sentAt.slice(0, 16).replace('T', ' ')}
+                    </div>
+                    <p className="whitespace-pre-wrap">{msg.body}</p>
+                  </div>
+                ))}
+              </div>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!txThreadText.trim()) return;
+                  await addTransactionThreadMessage(txDrawerId, {
+                    senderName: activeAgencyLabel,
+                    senderRole: 'agency',
+                    body: txThreadText.trim(),
+                  });
+                  setTxThreadText('');
+                  await loadAgencyScopedData();
+                }}
+                className="flex items-center gap-2"
+              >
+                <input
+                  type="text"
+                  placeholder={portalLang === 'en' ? 'Write message to coordinator...' : 'اكتب رسالة لقسم المتابعة...'}
+                  value={txThreadText}
+                  onChange={(e) => setTxThreadText(e.target.value)}
+                  className="flex-1 px-3.5 py-2 rounded-full bg-[#f0f0f0] text-xs text-[#141414]"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-full bg-[#141414] text-[#ffffff] text-xs font-bold inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <Send className="w-3 h-3" />
+                  <span>{portalLang === 'en' ? 'Send' : 'إرسال'}</span>
+                </button>
+              </form>
             </div>
           </div>
         </div>

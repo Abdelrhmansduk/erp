@@ -28,6 +28,7 @@ import {
   Database,
   UploadCloud,
   Activity,
+  Mail,
   Sparkles,
   Maximize2,
   Minimize2,
@@ -611,6 +612,18 @@ export const Header: React.FC<HeaderProps> = ({
             aria-label="بطاقة الباركود الوظيفي وحالة البصمة"
           >
             <Fingerprint className="w-4 h-4 text-[#707070]" data-colored-icon="true" />
+          </button>
+
+          {/* Internal Corporate Mail Quick Button (Available to every employee in every department) */}
+          <button
+            type="button"
+            data-slot="header-internal-mail-btn"
+            onClick={() => navigateGuarded('corporate-mail', 'البريد المؤسسي الداخلي')}
+            className="w-9 h-9 rounded-full bg-[#f3f3f3] hover:bg-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] flex items-center justify-center text-[#141414] transition-colors shrink-0 cursor-pointer"
+            title="البريد الداخلي المباشر — إرسال واستقبال رسائل من داخل النظام"
+            aria-label="البريد الداخلي المباشر"
+          >
+            <Mail className="w-4 h-4" />
           </button>
 
           {/* Smart Notifications & Proactive Compliance Bell */}

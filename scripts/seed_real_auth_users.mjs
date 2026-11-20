@@ -30,9 +30,8 @@ const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 function generateSecurePassword() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%^&*';
   let pwd = '';
-  const bytes = crypto.randomBytes(16);
   for (let i = 0; i < 16; i++) {
-    pwd += chars[bytes[i] % chars.length];
+    pwd += chars[crypto.randomInt(0, chars.length)];
   }
   return pwd + 'A1!';
 }
@@ -187,7 +186,7 @@ async function seedAuthUsers() {
       }
       authUserId = created.user.id;
       if (!DEFAULT_PASSWORD) {
-        console.log(`🔑 Generated credentials for ${user.email}: username=${user.username} | password=${password}`);
+        console.log(`🔑 Provisioned credentials for ${user.email}: username=${user.username} (password redacted from logs)`);
       }
     }
 

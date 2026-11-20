@@ -236,6 +236,52 @@ export const AI_TOOL_REGISTRY: AiToolDefinition[] = [
   },
 
   // ═══════════════════════════════════════════════════════════
+  {
+    id: 'get_followup_sla_radar',
+    nameAr: 'رادار متابعة عقود مساند وتنبيهات الـ SLA',
+    descriptionAr: 'فحص كافة معاملات مساند الجارية وكشف العقود المتأخرة أو التي أوشكت تأشيراتها على الانتهاء وتوزيع المهام على المنسقين.',
+    companyScope: [],
+    departmentScope: ['ats', 'recruitment', 'executive'],
+    requiredPermission: 'ats.followup.read',
+    riskLevel: 'low',
+    category: 'recruitment',
+    isMutating: false,
+    parameters: [
+      { name: 'coordinator_email', type: 'string', description: 'تصفية حسب بريد منسق المتابعة (اختياري)', required: false },
+      { name: 'company_id', type: 'string', description: 'رمز الشركة التابعة (SAF/TOP/YAQ/DAR)', required: false },
+    ],
+  },
+  {
+    id: 'get_external_agency_scorecard',
+    nameAr: 'بطاقة تقييم أداء الوكلاء الخارجيين (Dynamic Scorecard)',
+    descriptionAr: 'حساب ترتيب وأداء الوكلاء الخارجيين الـ 20 من واقع العقود النشطة والأرشيف، نسب Backout والهروب، ومتوسط أيام الوصول.',
+    companyScope: [],
+    departmentScope: ['ats', 'recruitment', 'executive'],
+    requiredPermission: 'ats.agency.read',
+    riskLevel: 'low',
+    category: 'recruitment',
+    isMutating: false,
+    parameters: [
+      { name: 'country', type: 'string', description: 'تصفية حسب الدولة (اختياري)', required: false },
+      { name: 'agency_name', type: 'string', description: 'اسم وكالة محددة (اختياري)', required: false },
+    ],
+  },
+  {
+    id: 'dispatch_agency_sla_followup',
+    nameAr: 'إرسال استعجال SLA رسمي للوكيل الخارجي (بريد + واتساب)',
+    descriptionAr: 'تجميع كافة العقود المعلقة أو المتأخرة لوكالة خارجية محددة وإرسال رسالة تذكير موحدة عبر البريد والواتساب مع التوثيق.',
+    companyScope: [],
+    departmentScope: ['ats', 'recruitment', 'executive'],
+    requiredPermission: 'ats.followup.dispatch',
+    riskLevel: 'medium',
+    category: 'recruitment',
+    isMutating: true,
+    parameters: [
+      { name: 'agency_name', type: 'string', description: 'اسم الوكالة الخارجية المطلوب استعجالها', required: true },
+      { name: 'note', type: 'string', description: 'ملاحظة إضافية للمتابعة (اختياري)', required: false },
+    ],
+  },
+
   //  5. HR, WPS PAYROLL & MONITORING (قسم الموارد البشرية والرواتب)
   // ═══════════════════════════════════════════════════════════
   {

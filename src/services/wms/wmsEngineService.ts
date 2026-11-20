@@ -1,22 +1,34 @@
 /**
- * KAS Enterprise WMS Engine Service
- * - Persistent storage (localStorage + realErpDataStore / Supabase sync)
- * - Immediate voucher posting by Hatem Salman & Ahmed Gamal with full immutable Audit Trail
- * - Dual Costing Policy toggle ('optional' | 'mandatory') + IAS 2 AVCO valuation + GL Journal Posting
- * - Multi-UoM conversion, Double-Entry Stock Card, Negative Stock Protection
- * - Tender Stock Reservation, Blind Cycle Counting, Auto-Custody Bridge, Fast-Issue Consumables
- * - Opening Discrepancy Reconciliation for the 116-row Excel migration
+ * KAS Enterprise WMS Engine Service (v2 Enterprise Cloud + IAS 2 + FEFO + FIFO + QC + Maker/Checker)
+ * - Multi-Company state partitioning (KAS default + SAF, YAQ, TOP, DAR) with Supabase Cloud Hydration & Atomic RPC
+ * - Strict Warehouse-level stock validation (eliminates cross-warehouse silent spillover)
+ * - IAS 2 AVCO & True FIFO Cost Layers + Landed Cost capitalization + Full Double-Entry GL Posting
+ *   (GRN, GIN, SRN Returns, ADJ Surplus vs Shortage, SCRAP Write-off, Reversal GL, Per-Category GL accounts)
+ * - Multi-Bin & Lot Quants with automatic FEFO (First-Expired-First-Out) & Expired-Lot Blocking
+ * - QC Hold Quarantine Inspection Gate & 2-Step In-Transit Transfers (STR)
+ * - Maker ≠ Checker Approval Thresholds & Optional Strict Immutability on Posted Vouchers
+ * - Kits / BOM Explosion + Unlimited Scoped Blind Cycle Counting
  */
+import { decryptStoragePayload, encryptStoragePayload } from '../../utils/securitySanitizers';
 import {
   WmsAbcClass,
+  WmsApprovalRequest,
   WmsAuditLog,
+  WmsBinLotQuant,
   WmsCategory,
+  WmsCompanyId,
+  WmsCostLayer,
   WmsCycleCountSession,
   WmsDiscrepancyItem,
   WmsFastConsumableLog,
+  WmsInTransitTransfer,
   WmsIssuePurpose,
   WmsItem,
+  WmsKitBom,
+  WmsLandedCostCharge,
+  WmsLandedCostRecord,
   WmsMediaAttachment,
+  WmsQcInspection,
   WmsRecycleBinEntry,
   WmsSampleLoan,
   WmsSerialLotRecord,
@@ -30,8 +42,10 @@ import {
   WmsWarehouse,
 } from '../../types/wms';
 import { buildInitialWmsDataset, WMS_CATEGORIES, WMS_WAREHOUSES } from './wmsExcelMigrationSeed';
-import { journalEngine } from '../accounting/journalEngine';
+import { journalEngine, OperationalTransactionType } from '../accounting/journalEngine';
 import { realErpDataStore } from '../realErpDataStore';
+import { wmsCloudSyncService } from './wmsCloudSyncService';
+import { hasSupabaseSession } from '../supabaseSessionBridge';
 
 const WMS_STORAGE_KEY = 'KAS_ENTERPRISE_WMS_STATE_V1';
 
@@ -54,6 +68,13 @@ export interface WmsStateSnapshot {
   discrepancies: WmsDiscrepancyItem[];
   auditLogs: WmsAuditLog[];
   recycleBin: WmsRecycleBinEntry[];
+  binLotQuants: WmsBinLotQuant[];
+  costLayers: WmsCostLayer[];
+  landedCosts: WmsLandedCostRecord[];
+  qcInspections: WmsQcInspection[];
+  inTransitTransfers: WmsInTransitTransfer[];
+  approvalRequests: WmsApprovalRequest[];
+  kittingBoms: WmsKitBom[];
   settings: WmsSettings;
 }
 
@@ -62,6 +83,9 @@ export interface WmsAlertsSummary {
   expiringLots: Array<{ record: WmsSerialLotRecord; daysRemaining: number }>;
   overdueSamples: WmsSampleLoan[];
   pendingDiscrepancies: number;
+  pendingQcCount: number;
+  pendingApprovalsCount: number;
+  inTransitCount: number;
 }
 
 export interface CreateVoucherInput {
@@ -81,11 +105,15 @@ export interface CreateVoucherInput {
   referenceVoucherNo?: string;
   notes?: string;
   saveAsDraft?: boolean;
+  requireQc?: boolean;
+  twoStepTransit?: boolean;
+  requireApproval?: boolean;
   lines: Array<{
     itemId: string;
     enteredQty: number;
     enteredUom: string;
     unitCost?: number;
+    locationCode?: string;
     serialNumbers?: string[];
     lotNumber?: string;
     expiryDate?: string;
@@ -94,18 +122,240 @@ export interface CreateVoucherInput {
   }>;
 }
 
-const DEFAULT_SETTINGS: WmsSettings = {
-  company_id: 'KAS',
-  costingMode: 'optional',
-  valuationMethod: 'AVCO',
-  autoPostGlWhenCostPresent: true,
-  allowNegativeStock: false,
-  autoCustodyPrompt: true,
-  updatedBy: 'إعدادات افتراضية — منظومة كاس WMS',
-  updatedAt: '2026-11-19T09:00:00Z',
+const COMPANY_DISPLAY_NAMES: Record<WmsCompanyId, string> = {
+  KAS: 'شركة كاس للتجارة والمنافسات',
+  SAF: 'شركة السفير الماسي للاستقدام',
+  YAQ: 'شركة ياقوت نجد للاستقدام والتشغيل',
+  TOP: 'شركة توباز للاستقدام والخدمات العمالية',
+  DAR: 'مراكز دار الرواد للإيواء والتسكين',
 };
 
-function createDefaultState(): WmsStateSnapshot {
+function makeDefaultSettings(companyId: WmsCompanyId): WmsSettings {
+  return {
+    company_id: companyId,
+    costingMode: 'optional',
+    valuationMethod: 'AVCO',
+    autoPostGlWhenCostPresent: true,
+    allowNegativeStock: false,
+    autoCustodyPrompt: true,
+    strictImmutablePostedVouchers: false,
+    enforceFefo: true,
+    blockExpiredLots: true,
+    requireQcOnGrn: false,
+    enableInTransitTransfers: false,
+    approvalThresholdSar: 10000,
+    cycleCountVarianceApprovalPct: 5,
+    enforceMakerChecker: false,
+    updatedBy: `إعدادات افتراضية — ${COMPANY_DISPLAY_NAMES[companyId]}`,
+    updatedAt: '2026-11-19T09:00:00Z',
+  };
+}
+
+function getStorageKeyForCompany(companyId: WmsCompanyId): string {
+  return companyId === 'KAS' ? WMS_STORAGE_KEY : `${WMS_STORAGE_KEY}_${companyId}`;
+}
+
+function buildInitialBinLotQuants(
+  quants: WmsStockQuant[],
+  items: WmsItem[],
+  serialLots: WmsSerialLotRecord[]
+): WmsBinLotQuant[] {
+  const result: WmsBinLotQuant[] = [];
+  const itemMap = new Map(items.map((i) => [i.id, i]));
+
+  for (const sn of serialLots) {
+    if (sn.status !== 'IN_STOCK' || (!sn.lotNumber && !sn.expiryDate)) continue;
+    const lotNo = sn.lotNumber || sn.id;
+    const qMatch = quants.find((q) => q.itemId === sn.itemId && q.warehouseId === sn.warehouseId);
+    if (!qMatch || qMatch.onHandQty <= 0) continue;
+    const exists = result.some(
+      (b) => b.itemId === sn.itemId && b.warehouseId === sn.warehouseId && b.lotNumber === lotNo
+    );
+    if (!exists) {
+      const item = itemMap.get(sn.itemId);
+      result.push({
+        id: `BLQ-${sn.itemId}-${sn.warehouseId}-${lotNo}`,
+        company_id: qMatch.company_id,
+        itemId: sn.itemId,
+        warehouseId: sn.warehouseId,
+        locationCode: item?.defaultLocationCode || qMatch.locationCode || 'Z1-R1-B1',
+        lotNumber: lotNo,
+        expiryDate: sn.expiryDate,
+        qcStatus: 'APPROVED',
+        onHandQty: qMatch.onHandQty,
+        reservedQty: qMatch.reservedQty,
+        inTransitQty: 0,
+        updatedAt: qMatch.updatedAt,
+      });
+    }
+  }
+
+  for (const q of quants) {
+    if (q.onHandQty <= 0) continue;
+    const hasLotEntry = result.some((b) => b.itemId === q.itemId && b.warehouseId === q.warehouseId);
+    if (!hasLotEntry) {
+      result.push({
+        id: `BLQ-${q.itemId}-${q.warehouseId}-${q.locationCode || 'Z1-R1-B1'}`,
+        company_id: q.company_id,
+        itemId: q.itemId,
+        warehouseId: q.warehouseId,
+        locationCode: q.locationCode || 'Z1-R1-B1',
+        lotNumber: '',
+        qcStatus: 'APPROVED',
+        onHandQty: q.onHandQty,
+        reservedQty: q.reservedQty,
+        inTransitQty: 0,
+        updatedAt: q.updatedAt,
+      });
+    }
+  }
+
+  return result;
+}
+
+function buildInitialCostLayers(quants: WmsStockQuant[], items: WmsItem[]): WmsCostLayer[] {
+  const itemMap = new Map(items.map((i) => [i.id, i]));
+  const layers: WmsCostLayer[] = [];
+  for (const q of quants) {
+    if (q.onHandQty <= 0) continue;
+    const item = itemMap.get(q.itemId);
+    if (!item) continue;
+    layers.push({
+      id: `CLY-INIT-${q.itemId}-${q.warehouseId}`,
+      company_id: q.company_id,
+      itemId: q.itemId,
+      warehouseId: q.warehouseId,
+      voucherId: 'SEED-OPENING',
+      voucherNo: 'OPENING-BALANCE',
+      receivedDate: '2026-06-01',
+      originalQty: q.onHandQty,
+      remainingQty: q.onHandQty,
+      unitCost: Number(item.avgUnitCost || 0),
+      landedCostPerUnit: 0,
+      createdAt: '2026-06-01T00:00:00Z',
+    });
+  }
+  return layers;
+}
+
+function buildInitialKits(items: WmsItem[]): WmsKitBom[] {
+  const findByKw = (kw: string) => items.find((i) => i.nameAr.includes(kw));
+  const kitComps1 = [findByKw('شطاف'), findByKw('مفتاح مكيف'), findByKw('كشاف خارجي')].filter(
+    (x): x is WmsItem => Boolean(x)
+  );
+  const kitComps2 = [findByKw('ترمس شاي'), findByKw('فناجين'), findByKw('حجارة')].filter(
+    (x): x is WmsItem => Boolean(x)
+  );
+  const kits: WmsKitBom[] = [];
+  if (kitComps1.length >= 2) {
+    kits.push({
+      id: 'KIT-HOUSING-MAINT',
+      company_id: 'KAS',
+      kitCode: 'KIT-HSG-01',
+      kitNameAr: 'طقم صيانة السكن والإيواء الشامل',
+      defaultWarehouseId: 'WH-NEW',
+      components: kitComps1.map((c) => ({
+        itemId: c.id,
+        sku: c.sku,
+        itemName: c.nameAr,
+        qtyPerKit: 1,
+        uom: c.baseUom,
+      })),
+      createdBy: 'حوكمة المستودع — كاس',
+      createdAt: '2026-11-19T09:00:00Z',
+    });
+  }
+  if (kitComps2.length >= 2) {
+    kits.push({
+      id: 'KIT-OFFICE-PACK',
+      company_id: 'KAS',
+      kitCode: 'KIT-OFF-02',
+      kitNameAr: 'طقم تجهيز مكتب وضيافة موحد',
+      defaultWarehouseId: 'WH-MAIN',
+      components: kitComps2.map((c) => ({
+        itemId: c.id,
+        sku: c.sku,
+        itemName: c.nameAr,
+        qtyPerKit: 1,
+        uom: c.baseUom,
+      })),
+      createdBy: 'حوكمة المستودع — كاس',
+      createdAt: '2026-11-19T09:00:00Z',
+    });
+  }
+  return kits;
+}
+
+function createCompanyBlankState(companyId: WmsCompanyId): WmsStateSnapshot {
+  const whMain: WmsWarehouse = {
+    id: `WH-${companyId}-MAIN`,
+    company_id: companyId,
+    code: `WH-${companyId}-01`,
+    nameAr: `المستودع الرئيسي — ${COMPANY_DISPLAY_NAMES[companyId]}`,
+    nameEn: `${companyId} Central Warehouse`,
+    warehouseType: 'MAIN',
+    branch: COMPANY_DISPLAY_NAMES[companyId],
+    managerName: 'مشرف المستودع والعهد',
+    operatorName: 'أمين المستودع',
+    zones: ['Z1-MAIN (الأصناف التشغيلية)', 'Z2-CUST (العهد والأجهزة)'],
+    isActive: true,
+  };
+  const whRet: WmsWarehouse = {
+    id: 'WH-RET',
+    company_id: companyId,
+    code: `WH-${companyId}-QRT`,
+    nameAr: `منطقة المرتجعات والفحص (${companyId})`,
+    nameEn: `${companyId} Quarantine & Returns`,
+    warehouseType: 'QUARANTINE',
+    branch: COMPANY_DISPLAY_NAMES[companyId],
+    managerName: 'مشرف المستودع والعهد',
+    operatorName: 'أمين المستودع',
+    zones: ['Z-QRT (فحص وجودة)'],
+    isActive: true,
+  };
+
+  return {
+    warehouses: [whMain, whRet],
+    categories: WMS_CATEGORIES.map((c) => ({ ...c, company_id: companyId })),
+    items: [],
+    quants: [],
+    vouchers: [],
+    serialLots: [],
+    sampleLoans: [],
+    fastConsumables: [],
+    cycleCounts: [],
+    reservations: [],
+    discrepancies: [],
+    auditLogs: [
+      {
+        id: `AUD-WMS-INIT-${companyId}`,
+        company_id: companyId,
+        action: 'SETTINGS_UPDATED',
+        entityType: 'COMPANY_WORKSPACE',
+        entityId: companyId,
+        entityLabel: COMPANY_DISPLAY_NAMES[companyId],
+        actorEmail: 'khalid@kas.sa',
+        actorName: 'النظام المؤسسي',
+        details: `تهيئة دفتر مستودع معزول ومستقل لشركة (${companyId}).`,
+        timestamp: new Date().toISOString(),
+      },
+    ],
+    recycleBin: [],
+    binLotQuants: [],
+    costLayers: [],
+    landedCosts: [],
+    qcInspections: [],
+    inTransitTransfers: [],
+    approvalRequests: [],
+    kittingBoms: [],
+    settings: makeDefaultSettings(companyId),
+  };
+}
+
+function createDefaultState(companyId: WmsCompanyId = 'KAS'): WmsStateSnapshot {
+  if (companyId !== 'KAS') {
+    return createCompanyBlankState(companyId);
+  }
   const seed = buildInitialWmsDataset();
   return {
     warehouses: seed.warehouses,
@@ -134,54 +384,123 @@ function createDefaultState(): WmsStateSnapshot {
       },
     ],
     recycleBin: [],
-    settings: { ...DEFAULT_SETTINGS },
+    binLotQuants: buildInitialBinLotQuants(seed.quants, seed.items, seed.serialLots),
+    costLayers: buildInitialCostLayers(seed.quants, seed.items),
+    landedCosts: [],
+    qcInspections: [],
+    inTransitTransfers: [],
+    approvalRequests: [],
+    kittingBoms: buildInitialKits(seed.items),
+    settings: makeDefaultSettings('KAS'),
   };
 }
 
-let memoryState: WmsStateSnapshot | null = null;
-const undoStack: string[] = [];
-const redoStack: string[] = [];
+let activeCompanyId: WmsCompanyId = 'KAS';
+const memoryByCompany = new Map<WmsCompanyId, WmsStateSnapshot>();
+// Undo/Redo history is isolated PER COMPANY so undoing in one entity can never
+// restore another entity's snapshot into the active warehouse ledger.
+const undoStacksByCompany = new Map<WmsCompanyId, string[]>();
+const redoStacksByCompany = new Map<WmsCompanyId, string[]>();
 const MAX_UNDO_STEPS = 30;
 
-function pushUndoSnapshot(state: WmsStateSnapshot): void {
-  undoStack.push(JSON.stringify(state));
-  if (undoStack.length > MAX_UNDO_STEPS) undoStack.shift();
-  redoStack.length = 0;
+function getUndoStack(companyId: WmsCompanyId = activeCompanyId): string[] {
+  let s = undoStacksByCompany.get(companyId);
+  if (!s) {
+    s = [];
+    undoStacksByCompany.set(companyId, s);
+  }
+  return s;
 }
 
-function loadState(): WmsStateSnapshot {
-  if (memoryState) return memoryState;
+function getRedoStack(companyId: WmsCompanyId = activeCompanyId): string[] {
+  let s = redoStacksByCompany.get(companyId);
+  if (!s) {
+    s = [];
+    redoStacksByCompany.set(companyId, s);
+  }
+  return s;
+}
+
+function pushUndoSnapshot(state: WmsStateSnapshot): void {
+  const companyId = (state.settings?.company_id as WmsCompanyId) || activeCompanyId;
+  const undoStack = getUndoStack(companyId);
+  undoStack.push(JSON.stringify(state));
+  if (undoStack.length > MAX_UNDO_STEPS) undoStack.shift();
+  getRedoStack(companyId).length = 0;
+}
+
+function hydrateExtendedDefaults(
+  parsed: Partial<WmsStateSnapshot>,
+  companyId: WmsCompanyId
+): WmsStateSnapshot {
+  const base = createDefaultState(companyId);
+  const items = parsed.items && parsed.items.length ? parsed.items : base.items;
+  const quants = parsed.quants && parsed.quants.length ? parsed.quants : base.quants;
+  const serialLots = parsed.serialLots && parsed.serialLots.length ? parsed.serialLots : base.serialLots;
+  return {
+    ...base,
+    ...parsed,
+    warehouses: parsed.warehouses?.length ? parsed.warehouses : base.warehouses,
+    categories: parsed.categories?.length ? parsed.categories : base.categories,
+    items,
+    quants,
+    serialLots,
+    recycleBin: Array.isArray(parsed.recycleBin) ? parsed.recycleBin : [],
+    binLotQuants:
+      Array.isArray(parsed.binLotQuants) && parsed.binLotQuants.length
+        ? parsed.binLotQuants
+        : buildInitialBinLotQuants(quants, items, serialLots),
+    costLayers:
+      Array.isArray(parsed.costLayers) && parsed.costLayers.length
+        ? parsed.costLayers
+        : buildInitialCostLayers(quants, items),
+    landedCosts: Array.isArray(parsed.landedCosts) ? parsed.landedCosts : [],
+    qcInspections: Array.isArray(parsed.qcInspections) ? parsed.qcInspections : [],
+    inTransitTransfers: Array.isArray(parsed.inTransitTransfers) ? parsed.inTransitTransfers : [],
+    approvalRequests: Array.isArray(parsed.approvalRequests) ? parsed.approvalRequests : [],
+    kittingBoms:
+      Array.isArray(parsed.kittingBoms) && parsed.kittingBoms.length
+        ? parsed.kittingBoms
+        : base.kittingBoms,
+    settings: { ...makeDefaultSettings(companyId), ...(parsed.settings || {}), company_id: companyId },
+  };
+}
+
+function loadState(companyId: WmsCompanyId = activeCompanyId): WmsStateSnapshot {
+  const cached = memoryByCompany.get(companyId);
+  if (cached) return cached;
+
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
-      const raw = window.localStorage.getItem(WMS_STORAGE_KEY);
+      const raw = decryptStoragePayload(
+        window.localStorage.getItem(getStorageKeyForCompany(companyId))
+      );
       if (raw) {
         const parsed = JSON.parse(raw) as WmsStateSnapshot;
-        if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
-          memoryState = {
-            ...createDefaultState(),
-            ...parsed,
-            warehouses: parsed.warehouses?.length ? parsed.warehouses : WMS_WAREHOUSES,
-            categories: parsed.categories?.length ? parsed.categories : WMS_CATEGORIES,
-            recycleBin: Array.isArray(parsed.recycleBin) ? parsed.recycleBin : [],
-            settings: { ...DEFAULT_SETTINGS, ...(parsed.settings || {}) },
-          };
-          return memoryState;
+        if (parsed && Array.isArray(parsed.items) && (companyId !== 'KAS' || parsed.items.length > 0)) {
+          const normalized = hydrateExtendedDefaults(parsed, companyId);
+          memoryByCompany.set(companyId, normalized);
+          return normalized;
         }
       }
     }
   } catch {
     // Fallback to clean seed
   }
-  memoryState = createDefaultState();
-  saveState(memoryState);
-  return memoryState;
+
+  const created = createDefaultState(companyId);
+  saveState(created, companyId);
+  return created;
 }
 
-function saveState(state: WmsStateSnapshot): void {
-  memoryState = state;
+function saveState(state: WmsStateSnapshot, companyId: WmsCompanyId = state.settings.company_id): void {
+  memoryByCompany.set(companyId, state);
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem(WMS_STORAGE_KEY, JSON.stringify(state));
+      window.localStorage.setItem(
+        getStorageKeyForCompany(companyId),
+        encryptStoragePayload(JSON.stringify(state))
+      );
     }
   } catch {
     // Ignore storage quota warning
@@ -198,14 +517,14 @@ function appendAudit(
   details: string
 ): void {
   state.auditLogs.unshift({
-    id: `AUD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    company_id: 'KAS',
+    id: `AUD-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+    company_id: state.settings.company_id || activeCompanyId,
     action,
     entityType,
     entityId,
     entityLabel,
-    actorEmail: actor.email || 'h.salman.trade@kas.sa',
-    actorName: actor.name || 'حاتم سلمان ابوالذهب سلمان',
+    actorEmail: actor.email || 'unknown@kas-erp.com',
+    actorName: actor.name || 'مستخدم غير معرّف',
     details,
     timestamp: new Date().toISOString(),
   });
@@ -216,7 +535,7 @@ function findOrCreateQuant(state: WmsStateSnapshot, item: WmsItem, warehouseId: 
   if (!q) {
     q = {
       id: `QNT-${item.id}-${warehouseId}`,
-      company_id: 'KAS',
+      company_id: state.settings.company_id || activeCompanyId,
       itemId: item.id,
       warehouseId,
       locationCode: item.defaultLocationCode || 'Z1-R1-B1',
@@ -229,6 +548,59 @@ function findOrCreateQuant(state: WmsStateSnapshot, item: WmsItem, warehouseId: 
   return q;
 }
 
+function upsertBinLotQuant(
+  state: WmsStateSnapshot,
+  params: {
+    itemId: string;
+    warehouseId: string;
+    locationCode: string;
+    lotNumber?: string;
+    expiryDate?: string;
+    qcStatus: 'APPROVED' | 'PENDING_QC' | 'QUARANTINE';
+    deltaOnHand?: number;
+    deltaInTransit?: number;
+  }
+): WmsBinLotQuant {
+  const loc = (params.locationCode || 'Z1-R1-B1').trim();
+  const lot = (params.lotNumber || '').trim();
+  let rec = state.binLotQuants.find(
+    (b) =>
+      b.itemId === params.itemId &&
+      b.warehouseId === params.warehouseId &&
+      b.locationCode === loc &&
+      b.lotNumber === lot &&
+      b.qcStatus === params.qcStatus
+  );
+  if (!rec) {
+    rec = {
+      id: `BLQ-${params.itemId}-${params.warehouseId}-${loc}-${lot || 'BASE'}-${params.qcStatus}`,
+      company_id: state.settings.company_id || activeCompanyId,
+      itemId: params.itemId,
+      warehouseId: params.warehouseId,
+      locationCode: loc,
+      lotNumber: lot,
+      expiryDate: params.expiryDate,
+      qcStatus: params.qcStatus,
+      onHandQty: 0,
+      reservedQty: 0,
+      inTransitQty: 0,
+      updatedAt: new Date().toISOString(),
+    };
+    state.binLotQuants.push(rec);
+  }
+  if (params.expiryDate && !rec.expiryDate) {
+    rec.expiryDate = params.expiryDate;
+  }
+  if (params.deltaOnHand) {
+    rec.onHandQty = Math.max(0, Number((rec.onHandQty + params.deltaOnHand).toFixed(3)));
+  }
+  if (params.deltaInTransit) {
+    rec.inTransitQty = Math.max(0, Number((rec.inTransitQty + params.deltaInTransit).toFixed(3)));
+  }
+  rec.updatedAt = new Date().toISOString();
+  return rec;
+}
+
 function getUomFactor(item: WmsItem, uomName: string): number {
   if (!uomName || uomName === item.baseUom) return 1;
   const match = item.uomConversions.find((u) => u.uomName === uomName);
@@ -236,34 +608,269 @@ function getUomFactor(item: WmsItem, uomName: string): number {
 }
 
 function nextVoucherNumber(state: WmsStateSnapshot, type: WmsVoucherType): string {
+  // Max-based sequence (not count-based) so deleting a voucher never re-issues an existing number
   const year = new Date().getFullYear();
-  const count = state.vouchers.filter((v) => v.voucherType === type).length + 1;
-  return `${type}-${year}-${String(count).padStart(4, '0')}`;
+  const prefix = `${type}-${year}-`;
+  let maxSeq = 0;
+  for (const v of state.vouchers) {
+    if (v.voucherType !== type || !v.voucherNo?.startsWith(prefix)) continue;
+    const seq = parseInt(v.voucherNo.slice(prefix.length), 10);
+    if (Number.isFinite(seq) && seq > maxSeq) maxSeq = seq;
+  }
+  for (const entry of state.recycleBin || []) {
+    const no = String((entry as any)?.payload?.voucherNo || (entry as any)?.label || '');
+    if (!no.startsWith(prefix)) continue;
+    const seq = parseInt(no.slice(prefix.length), 10);
+    if (Number.isFinite(seq) && seq > maxSeq) maxSeq = seq;
+  }
+  return `${prefix}${String(maxSeq + 1).padStart(4, '0')}`;
+}
+
+function getCategoryAccounts(state: WmsStateSnapshot, categoryId: string): {
+  glInventoryAccount: string;
+  glExpenseAccount: string;
+} {
+  const cat = state.categories.find((c) => c.id === categoryId);
+  return {
+    glInventoryAccount: cat?.glInventoryAccount || '114101',
+    glExpenseAccount: cat?.glExpenseAccount || '510101',
+  };
+}
+
+function consumeFifoCostLayers(
+  state: WmsStateSnapshot,
+  item: WmsItem,
+  warehouseId: string,
+  qtyToConsume: number
+): { totalCost: number; effectiveUnitCost: number } {
+  const eligible = state.costLayers
+    .filter((l) => l.itemId === item.id && l.remainingQty > 0)
+    .sort((a, b) => {
+      // Prioritize same warehouse first, then chronological FIFO
+      const aWh = a.warehouseId === warehouseId ? 0 : 1;
+      const bWh = b.warehouseId === warehouseId ? 0 : 1;
+      if (aWh !== bWh) return aWh - bWh;
+      return a.receivedDate.localeCompare(b.receivedDate) || a.createdAt.localeCompare(b.createdAt);
+    });
+
+  let remaining = qtyToConsume;
+  let totalCost = 0;
+
+  for (const layer of eligible) {
+    if (remaining <= 0) break;
+    const take = Math.min(layer.remainingQty, remaining);
+    const layerUnitCost = Number(layer.unitCost || 0) + Number(layer.landedCostPerUnit || 0);
+    totalCost += take * layerUnitCost;
+    layer.remainingQty = Number((layer.remainingQty - take).toFixed(3));
+    remaining = Number((remaining - take).toFixed(3));
+  }
+
+  if (remaining > 0) {
+    totalCost += remaining * Number(item.avgUnitCost || 0);
+  }
+
+  const roundedTotal = Number(totalCost.toFixed(2));
+  const effUnit = qtyToConsume > 0 ? Number((roundedTotal / qtyToConsume).toFixed(2)) : item.avgUnitCost;
+  return { totalCost: roundedTotal, effectiveUnitCost: effUnit };
+}
+
+function postVoucherGlEntry(
+  state: WmsStateSnapshot,
+  voucher: WmsStockVoucher,
+  actor: WmsActor
+): string | undefined {
+  if (!state.settings.autoPostGlWhenCostPresent || voucher.totalValue <= 0) {
+    return undefined;
+  }
+
+  let txType: OperationalTransactionType | null = null;
+  if (voucher.voucherType === 'GRN') txType = 'WMS_GOODS_RECEIPT';
+  else if (voucher.voucherType === 'GIN') txType = 'WMS_GOODS_ISSUE';
+  else if (voucher.voucherType === 'SRN') txType = 'WMS_STOCK_RETURN';
+  else if (voucher.voucherType === 'SCRAP') txType = 'WMS_SCRAP_WRITEOFF';
+  else if (voucher.voucherType === 'ADJ') {
+    const signedDelta = voucher.lines.reduce((s, l) => s + l.baseQty, 0);
+    txType = signedDelta > 0 ? 'WMS_STOCK_SURPLUS' : 'WMS_STOCK_ADJUSTMENT';
+  }
+  if (!txType) return undefined;
+
+  const firstItem = state.items.find((i) => i.id === voucher.lines[0]?.itemId);
+  const { glInventoryAccount, glExpenseAccount } = getCategoryAccounts(
+    state,
+    firstItem?.categoryId || ''
+  );
+
+  try {
+    const res = journalEngine.autoPostOperationalTransaction({
+      companyId: state.settings.company_id || activeCompanyId,
+      transactionType: txType,
+      referenceNumber: voucher.voucherNo,
+      referenceId: voucher.id,
+      partyName: voucher.supplierName || voucher.beneficiaryEntity || 'مستودعات المجموعة',
+      description: `قيد مخزني آلي IAS 2 — ${voucher.voucherNo} (${voucher.beneficiaryEntity || voucher.supplierName || 'المستودع'})`,
+      amount: voucher.totalValue,
+      costCenterCode: voucher.costCenterCode || 'CC-KAS-01',
+      createdBy: actor.name,
+      entryDate: voucher.voucherDate,
+      glInventoryAccount,
+      glExpenseAccount,
+    });
+    if (res.entry) {
+      voucher.journalEntryId = res.entry.entryNumber;
+      appendAudit(
+        state,
+        actor,
+        'GL_POSTED',
+        'JOURNAL_ENTRY',
+        res.entry.id,
+        res.entry.entryNumber,
+        `ترحيل قيد محاسبي آلي IAS 2 (${txType}) بقيمة (${voucher.totalValue} ⃁) للإذن (${voucher.voucherNo}).`
+      );
+      return res.entry.entryNumber;
+    }
+  } catch {
+    // Do not block warehouse posting if fiscal period is locked
+  }
+  return undefined;
+}
+
+function rollbackPostedVoucherQuantDelta(state: WmsStateSnapshot, v: WmsStockVoucher): void {
+  for (const line of v.lines) {
+    const item = state.items.find((i) => i.id === line.itemId);
+    if (!item) continue;
+    const srcQ = findOrCreateQuant(state, item, v.warehouseId);
+    if (v.voucherType === 'GRN') {
+      const beforeQty = Math.max(0, srcQ.onHandQty);
+      const afterQty = Math.max(0, Number((srcQ.onHandQty - line.baseQty).toFixed(3)));
+      if (line.unitCost > 0 && afterQty > 0) {
+        const remainingVal = Math.max(0, beforeQty * item.avgUnitCost - line.baseQty * line.unitCost);
+        item.avgUnitCost = Number((remainingVal / afterQty).toFixed(2));
+      }
+      srcQ.onHandQty = afterQty;
+    } else if (v.voucherType === 'SRN' && line.conditionStatus !== 'تالف') {
+      srcQ.onHandQty = Math.max(0, Number((srcQ.onHandQty - line.baseQty).toFixed(3)));
+    } else if (v.voucherType === 'GIN' || v.voucherType === 'RTV' || v.voucherType === 'SCRAP') {
+      srcQ.onHandQty = Number((srcQ.onHandQty + line.baseQty).toFixed(3));
+    } else if (v.voucherType === 'STR' && v.targetWarehouseId) {
+      const tgtQ = findOrCreateQuant(state, item, v.targetWarehouseId);
+      tgtQ.onHandQty = Math.max(0, Number((tgtQ.onHandQty - line.baseQty).toFixed(3)));
+      srcQ.onHandQty = Number((srcQ.onHandQty + line.baseQty).toFixed(3));
+    }
+    srcQ.updatedAt = new Date().toISOString();
+  }
 }
 
 export const wmsEngineService = {
-  getState(): WmsStateSnapshot {
-    return loadState();
+  getActiveCompany(): WmsCompanyId {
+    return activeCompanyId;
   },
 
-  resetToSeedForTesting(): WmsStateSnapshot {
-    undoStack.length = 0;
-    redoStack.length = 0;
-    memoryState = createDefaultState();
-    saveState(memoryState);
-    return memoryState;
+  setActiveCompany(companyId: WmsCompanyId): WmsStateSnapshot {
+    activeCompanyId = companyId;
+    return loadState(companyId);
+  },
+
+  getState(companyId?: WmsCompanyId): WmsStateSnapshot {
+    return loadState(companyId || activeCompanyId);
+  },
+
+  async hydrateFromCloud(companyId: WmsCompanyId = activeCompanyId): Promise<{
+    hydrated: boolean;
+    queuedFlushed: number;
+  }> {
+    const flushed = await wmsCloudSyncService.flushPendingQueue();
+    const remote = await wmsCloudSyncService.hydrateWmsStateFromSupabase(companyId);
+    if (!remote) {
+      return { hydrated: false, queuedFlushed: flushed.flushed };
+    }
+    const local = loadState(companyId);
+
+    // Per-record merge: the cloud decides WHICH records exist, but local-only
+    // fields that the cloud schema does not store (UOM conversions, zones,
+    // attachments, extra metadata) are preserved instead of being wiped.
+    const mergeById = <T extends { id: string }>(localList: T[], remoteList: T[] | undefined, keep: (keyof T)[] = []): T[] | undefined => {
+      if (!remoteList?.length) return undefined;
+      const byId = new Map(localList.map((x) => [x.id, x]));
+      return remoteList.map((r) => {
+        const l = byId.get(r.id);
+        if (!l) return r;
+        const merged: any = { ...l };
+        for (const [k, v] of Object.entries(r)) {
+          if (v !== undefined && v !== null) merged[k] = v;
+        }
+        for (const k of keep) {
+          const lv = (l as any)[k];
+          if (Array.isArray(lv) ? lv.length > 0 : lv !== undefined && lv !== null) merged[k] = lv;
+        }
+        return merged as T;
+      });
+    };
+
+    const mWarehouses = mergeById(local.warehouses, remote.warehouses, ['zones']);
+    const mItems = mergeById(local.items, remote.items, ['uomConversions', 'attachments']);
+    const mVouchers = mergeById(local.vouchers, remote.vouchers, ['attachments' as any, 'handoverSignatureDataUrl' as any]);
+
+    const merged: WmsStateSnapshot = hydrateExtendedDefaults(
+      {
+        ...local,
+        ...(mWarehouses ? { warehouses: mWarehouses } : {}),
+        ...(remote.categories?.length ? { categories: mergeById(local.categories, remote.categories) } : {}),
+        ...(mItems ? { items: mItems } : {}),
+        ...(remote.quants?.length ? { quants: remote.quants } : {}),
+        ...(mVouchers ? { vouchers: mVouchers } : {}),
+        ...(remote.serialLots?.length ? { serialLots: remote.serialLots } : {}),
+        ...(remote.cycleCounts?.length ? { cycleCounts: remote.cycleCounts } : {}),
+        ...(remote.auditLogs?.length ? { auditLogs: remote.auditLogs } : {}),
+        ...(remote.binLotQuants?.length ? { binLotQuants: remote.binLotQuants } : {}),
+        ...(remote.costLayers?.length ? { costLayers: remote.costLayers } : {}),
+        ...(remote.qcInspections?.length ? { qcInspections: remote.qcInspections } : {}),
+        ...(remote.inTransitTransfers?.length ? { inTransitTransfers: remote.inTransitTransfers } : {}),
+        ...(remote.approvalRequests?.length ? { approvalRequests: remote.approvalRequests } : {}),
+        ...(remote.kittingBoms?.length ? { kittingBoms: remote.kittingBoms } : {}),
+        ...(remote.settings ? { settings: { ...local.settings, ...remote.settings } } : {}),
+      },
+      companyId
+    );
+    saveState(merged, companyId);
+    return { hydrated: true, queuedFlushed: flushed.flushed };
+  },
+
+  async syncNowToCloud(
+    companyId: WmsCompanyId = activeCompanyId
+  ): Promise<{ ok: boolean; error?: string; counts?: Record<string, number> }> {
+    if (!(await hasSupabaseSession())) {
+      return {
+        ok: false,
+        error:
+          'لا توجد جلسة سحابية فعّالة لهذا المتصفح. سجّل الخروج ثم سجّل الدخول مجدداً بكلمة مرورك لتفعيل المزامنة السحابية للمخزون.',
+      };
+    }
+    const state = loadState(companyId);
+    await wmsCloudSyncService.flushPendingQueue();
+    return wmsCloudSyncService.syncWmsEntitiesToSupabase(companyId, state);
+  },
+
+  resetToSeedForTesting(companyId: WmsCompanyId = 'KAS'): WmsStateSnapshot {
+    activeCompanyId = companyId;
+    getUndoStack(companyId).length = 0;
+    getRedoStack(companyId).length = 0;
+    const fresh = createDefaultState(companyId);
+    saveState(fresh, companyId);
+    return fresh;
   },
 
   getUndoRedoCounts(): { undoCount: number; redoCount: number } {
-    return { undoCount: undoStack.length, redoCount: redoStack.length };
+    return { undoCount: getUndoStack().length, redoCount: getRedoStack().length };
   },
 
   undo(actor: WmsActor): boolean {
+    const companyId = activeCompanyId;
+    const undoStack = getUndoStack(companyId);
     if (undoStack.length === 0) return false;
-    const current = loadState();
-    redoStack.push(JSON.stringify(current));
+    const current = loadState(companyId);
+    getRedoStack(companyId).push(JSON.stringify(current));
     const prevRaw = undoStack.pop()!;
-    const restored = JSON.parse(prevRaw) as WmsStateSnapshot;
+    const restored = hydrateExtendedDefaults(JSON.parse(prevRaw) as WmsStateSnapshot, companyId);
     appendAudit(
       restored,
       actor,
@@ -273,16 +880,20 @@ export const wmsEngineService = {
       'تراجع (Undo) عن آخر إجراء',
       `تم التراجع عن آخر تعديل بواسطة ${actor.name}`
     );
-    saveState(restored);
+    saveState(restored, companyId);
+    // Propagate the reverted balances to the cloud so other users see the same ledger
+    void wmsCloudSyncService.syncWmsEntitiesToSupabase(companyId, restored);
     return true;
   },
 
   redo(actor: WmsActor): boolean {
+    const companyId = activeCompanyId;
+    const redoStack = getRedoStack(companyId);
     if (redoStack.length === 0) return false;
-    const current = loadState();
-    undoStack.push(JSON.stringify(current));
+    const current = loadState(companyId);
+    getUndoStack(companyId).push(JSON.stringify(current));
     const nextRaw = redoStack.pop()!;
-    const restored = JSON.parse(nextRaw) as WmsStateSnapshot;
+    const restored = hydrateExtendedDefaults(JSON.parse(nextRaw) as WmsStateSnapshot, companyId);
     appendAudit(
       restored,
       actor,
@@ -292,7 +903,8 @@ export const wmsEngineService = {
       'إعادة تنفيذ (Redo)',
       `تمت إعادة تنفيذ التعديل بواسطة ${actor.name}`
     );
-    saveState(restored);
+    saveState(restored, companyId);
+    void wmsCloudSyncService.syncWmsEntitiesToSupabase(companyId, restored);
     return true;
   },
 
@@ -311,12 +923,13 @@ export const wmsEngineService = {
     return { onHand, reserved, available: Math.max(0, onHand - reserved) };
   },
 
-  /** Update dual costing policy ('optional' | 'mandatory') and other WMS settings */
+  /** Update dual costing policy and enterprise WMS governance flags */
   updateSettings(patch: Partial<WmsSettings>, actor: WmsActor): WmsSettings {
     const state = loadState();
     state.settings = {
       ...state.settings,
       ...patch,
+      company_id: state.settings.company_id || activeCompanyId,
       updatedBy: actor.name,
       updatedAt: new Date().toISOString(),
     };
@@ -325,11 +938,12 @@ export const wmsEngineService = {
       actor,
       'SETTINGS_UPDATED',
       'WMS_SETTINGS',
-      'KAS',
-      'إعدادات سياسة التسعير والمخزون',
-      `سياسة التكلفة: ${state.settings.costingMode === 'mandatory' ? 'إلزامي عند كل وارد' : 'اختياري (قيد آلي عند الإدخال)'} • التقييم: ${state.settings.valuationMethod}`
+      state.settings.company_id,
+      'إعدادات سياسة التسعير والرقابة المخزنية',
+      `سياسة التكلفة: ${state.settings.costingMode === 'mandatory' ? 'إلزامي' : 'اختياري'} • التقييم: ${state.settings.valuationMethod} • FEFO: ${state.settings.enforceFefo ? 'نعم' : 'لا'}`
     );
     saveState(state);
+    void wmsCloudSyncService.syncWmsEntitiesToSupabase(activeCompanyId, state);
     return state.settings;
   },
 
@@ -344,11 +958,13 @@ export const wmsEngineService = {
     actor: WmsActor
   ): WmsItem {
     const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
     pushUndoSnapshot(state);
     const cat = state.categories.find((c) => c.id === input.categoryId) || state.categories[0];
     const seq = state.items.filter((i) => i.categoryId === cat.id).length + 1;
-    const sku = (input.sku || '').trim() || `KAS-${cat.code}-${String(seq).padStart(3, '0')}`;
-    const barcode = (input.barcode || '').trim() || `628100${cat.code.charCodeAt(0)}${String(Date.now()).slice(-4)}`;
+    const sku = (input.sku || '').trim() || `${companyId}-${cat.code}-${String(seq).padStart(3, '0')}`;
+    const barcode =
+      (input.barcode || '').trim() || `628100${cat.code.charCodeAt(0)}${String(Date.now()).slice(-4)}`;
 
     const conversions = input.uomConversions?.length
       ? input.uomConversions
@@ -357,9 +973,12 @@ export const wmsEngineService = {
       conversions.unshift({ uomName: input.baseUom, factorToBase: 1 });
     }
 
+    const defaultWh =
+      input.defaultWarehouseId || state.warehouses[0]?.id || 'WH-MAIN';
+
     const newItem: WmsItem = {
-      id: `WMS-ITM-${Date.now().toString().slice(-6)}`,
-      company_id: 'KAS',
+      id: `WMS-ITM-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 100)}`,
+      company_id: companyId,
       sku,
       barcode,
       nameAr: input.nameAr.trim(),
@@ -374,7 +993,7 @@ export const wmsEngineService = {
       minQty: Number(input.minQty ?? 1),
       reorderPoint: Number(input.reorderPoint ?? 3),
       maxQty: Number(input.maxQty ?? 100),
-      defaultWarehouseId: input.defaultWarehouseId || 'WH-MAIN',
+      defaultWarehouseId: defaultWh,
       defaultLocationCode: input.defaultLocationCode || 'Z1-R1-B1',
       isCustodyEligible: Boolean(input.isCustodyEligible),
       isFastConsumable: Boolean(input.isFastConsumable),
@@ -388,8 +1007,30 @@ export const wmsEngineService = {
     state.items.unshift(newItem);
     const quant = findOrCreateQuant(state, newItem, newItem.defaultWarehouseId);
     if (input.initialQty && input.initialQty > 0) {
-      quant.onHandQty = Number(input.initialQty);
+      const initQty = Number(input.initialQty);
+      quant.onHandQty = initQty;
       quant.updatedAt = new Date().toISOString();
+      upsertBinLotQuant(state, {
+        itemId: newItem.id,
+        warehouseId: newItem.defaultWarehouseId,
+        locationCode: newItem.defaultLocationCode,
+        qcStatus: 'APPROVED',
+        deltaOnHand: initQty,
+      });
+      state.costLayers.push({
+        id: `CLY-OPEN-${newItem.id}`,
+        company_id: companyId,
+        itemId: newItem.id,
+        warehouseId: newItem.defaultWarehouseId,
+        voucherId: 'ITEM-OPENING',
+        voucherNo: 'OPENING',
+        receivedDate: new Date().toISOString().slice(0, 10),
+        originalQty: initQty,
+        remainingQty: initQty,
+        unitCost: newItem.avgUnitCost,
+        landedCostPerUnit: 0,
+        createdAt: new Date().toISOString(),
+      });
     }
 
     appendAudit(
@@ -401,8 +1042,123 @@ export const wmsEngineService = {
       `${newItem.sku} — ${newItem.nameAr}`,
       `إضافة صنف جديد بوحدة أساس (${newItem.baseUom}) ومستودع (${newItem.defaultWarehouseId})`
     );
-    saveState(state);
+    saveState(state, companyId);
+    void wmsCloudSyncService.syncWmsEntitiesToSupabase(companyId, state);
     return newItem;
+  },
+
+  /** Create a new classification category inline (e.g. from the Add SKU modal `+` button) */
+  createCategory(
+    input: {
+      nameAr: string;
+      nameEn?: string;
+      code?: string;
+      defaultTrackingMode?: WmsTrackingMode;
+    },
+    actor: WmsActor
+  ): WmsCategory {
+    const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
+    const cleanAr = input.nameAr.trim();
+    const existing = state.categories.find(
+      (c) => c.nameAr.trim().toLowerCase() === cleanAr.toLowerCase()
+    );
+    if (existing) return existing;
+
+    pushUndoSnapshot(state);
+    const rawCode = (input.code || '')
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .slice(0, 6);
+    const seq = state.categories.length + 1;
+    const code = rawCode || `CAT${String(seq).padStart(2, '0')}`;
+    const id = `CAT-${code}-${Date.now().toString().slice(-4)}`;
+
+    const newCategory: WmsCategory = {
+      id,
+      company_id: companyId,
+      code,
+      nameAr: cleanAr,
+      nameEn: (input.nameEn || '').trim() || cleanAr,
+      defaultTrackingMode: input.defaultTrackingMode || 'NONE',
+      defaultCustodyEligible: false,
+      defaultFastConsumable: false,
+      glInventoryAccount: state.settings.defaultGlInventoryAccount || '114101',
+      glExpenseAccount: state.settings.defaultGlExpenseAccount || '521104',
+    };
+
+    state.categories.push(newCategory);
+    appendAudit(
+      state,
+      actor,
+      'CATEGORY_CREATED',
+      'WMS_CATEGORY',
+      newCategory.id,
+      `${newCategory.code} — ${newCategory.nameAr}`,
+      `إضافة فئة تصنيفية جديدة إلى دليل الأصناف (${newCategory.nameAr})`
+    );
+    saveState(state, companyId);
+    void wmsCloudSyncService.syncWmsEntitiesToSupabase(companyId, state);
+    return newCategory;
+  },
+
+  /** Create a new warehouse inline (e.g. from the Add SKU modal `+` button) */
+  createWarehouse(
+    input: {
+      nameAr: string;
+      nameEn?: string;
+      code?: string;
+      warehouseType?: WmsWarehouse['warehouseType'];
+      branch?: string;
+    },
+    actor: WmsActor
+  ): WmsWarehouse {
+    const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
+    const cleanAr = input.nameAr.trim();
+    const existing = state.warehouses.find(
+      (w) => w.nameAr.trim().toLowerCase() === cleanAr.toLowerCase()
+    );
+    if (existing) return existing;
+
+    pushUndoSnapshot(state);
+    const rawCode = (input.code || '')
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .slice(0, 6);
+    const seq = state.warehouses.length + 1;
+    const code = rawCode || `WH${String(seq).padStart(2, '0')}`;
+    const id = `WH-${code}-${Date.now().toString().slice(-4)}`;
+
+    const newWarehouse: WmsWarehouse = {
+      id,
+      company_id: companyId,
+      code,
+      nameAr: cleanAr,
+      nameEn: (input.nameEn || '').trim() || cleanAr,
+      warehouseType: input.warehouseType || 'MAIN',
+      branch: (input.branch || '').trim() || 'الرياض',
+      managerName: actor.name || 'إدارة المستودعات',
+      operatorName: actor.name || 'أمين المستودع',
+      zones: ['Z1-R1-B1'],
+      isActive: true,
+    };
+
+    state.warehouses.push(newWarehouse);
+    appendAudit(
+      state,
+      actor,
+      'WAREHOUSE_CREATED',
+      'WMS_WAREHOUSE',
+      newWarehouse.id,
+      `${newWarehouse.code} — ${newWarehouse.nameAr}`,
+      `إضافة مستودع جديد (${newWarehouse.nameAr} • ${newWarehouse.branch})`
+    );
+    saveState(state, companyId);
+    void wmsCloudSyncService.syncWmsEntitiesToSupabase(companyId, state);
+    return newWarehouse;
   },
 
   /** Update an existing item (cost, thresholds, UoM, etc.) */
@@ -422,10 +1178,11 @@ export const wmsEngineService = {
       'تحديث بيانات الصنف أو حدود الطلب أو التكلفة'
     );
     saveState(state);
+    void wmsCloudSyncService.syncWmsEntitiesToSupabase(activeCompanyId, state);
     return state.items[idx];
   },
 
-  /** Soft-delete an item to the Recycle Bin (can be restored or undone anytime) */
+  /** Soft-delete an item to the Recycle Bin */
   deleteItem(itemId: string, reason: string, actor: WmsActor): boolean {
     const state = loadState();
     const idx = state.items.findIndex((i) => i.id === itemId);
@@ -460,31 +1217,37 @@ export const wmsEngineService = {
   },
 
   /**
-   * Create & immediately post (or save as draft) a multi-line warehouse voucher (GRN / GIN / SRN / STR / ADJ).
-   * Enforces:
-   *  - Dual Costing Policy ('mandatory' blocks GRN without unitCost > 0; 'optional' allows 0 cost)
-   *  - Negative stock guard on GIN/STR (unless allowNegativeStock is enabled)
-   *  - IAS 2 AVCO recalculation on GRN when unitCost > 0
-   *  - Automatic GL Journal posting via journalEngine when totalValue > 0
-   *  - Full immutable Audit Trail
+   * Create & immediately post (or save as draft / hold for QC / In-Transit / Maker-Checker Approval)
+   * a multi-line warehouse voucher (GRN / GIN / SRN / STR / ADJ / RTV / SCRAP).
    */
   createAndPostVoucher(
     input: CreateVoucherInput,
     actor: WmsActor
   ): { voucher: WmsStockVoucher | null; error: string | null } {
     const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
     if (!input.lines || input.lines.length === 0) {
       return { voucher: null, error: 'يجب إضافة صنف واحد على الأقل داخل الإذن المخزني.' };
     }
 
-    if (input.voucherType === 'STR' && (!input.targetWarehouseId || input.targetWarehouseId === input.warehouseId)) {
-      return { voucher: null, error: 'في إذن التحويل (STR) يجب اختيار مستودع مستلم مختلف عن المستودع المصدر.' };
+    if (
+      input.voucherType === 'STR' &&
+      (!input.targetWarehouseId || input.targetWarehouseId === input.warehouseId)
+    ) {
+      return {
+        voucher: null,
+        error: 'في إذن التحويل (STR) يجب اختيار مستودع مستلم مختلف عن المستودع المصدر.',
+      };
     }
 
     if (input.voucherType === 'GIN' && !input.beneficiaryEntity?.trim()) {
-      return { voucher: null, error: 'يجب تحديد الجهة المستفيدة / مركز التكلفة في إذن الصرف المخزني.' };
+      return {
+        voucher: null,
+        error: 'يجب تحديد الجهة المستفيدة / مركز التكلفة في إذن الصرف المخزني.',
+      };
     }
 
+    const voucherDate = input.voucherDate || new Date().toISOString().slice(0, 10);
     const builtLines: WmsVoucherLine[] = [];
 
     for (let i = 0; i < input.lines.length; i++) {
@@ -503,7 +1266,11 @@ export const wmsEngineService = {
       const unitCost =
         rawLine.unitCost !== undefined && rawLine.unitCost > 0
           ? Number(rawLine.unitCost)
-          : input.voucherType === 'GIN' || input.voucherType === 'SRN' || input.voucherType === 'STR'
+          : input.voucherType === 'GIN' ||
+            input.voucherType === 'SRN' ||
+            input.voucherType === 'STR' ||
+            input.voucherType === 'RTV' ||
+            input.voucherType === 'SCRAP'
           ? item.avgUnitCost
           : Number(rawLine.unitCost || 0);
 
@@ -515,21 +1282,64 @@ export const wmsEngineService = {
         };
       }
 
-      // Available stock check on GIN / STR (when posting)
-      if (!input.saveAsDraft && (input.voucherType === 'GIN' || input.voucherType === 'STR') && !state.settings.allowNegativeStock) {
+      // Strict per-warehouse available stock check (NO silent cross-warehouse spillover!)
+      const isOutflow =
+        input.voucherType === 'GIN' ||
+        input.voucherType === 'STR' ||
+        input.voucherType === 'RTV' ||
+        input.voucherType === 'SCRAP';
+
+      if (!input.saveAsDraft && isOutflow && !state.settings.allowNegativeStock) {
         const whStock = this.getItemStockSummary(item.id, input.warehouseId);
-        const totalStock = this.getItemStockSummary(item.id);
-        const usable = Math.max(whStock.available, totalStock.available);
-        if (baseQty > usable) {
+        if (baseQty > whStock.available) {
           return {
             voucher: null,
-            error: `الرصيد المتاح للصنف (${item.nameAr}) هو (${usable} ${item.baseUom}) فقط ولا يكفي لصرف (${baseQty} ${item.baseUom}).`,
+            error: `الرصيد المتاح في المستودع (${input.warehouseId}) للصنف (${item.nameAr}) هو (${whStock.available} ${item.baseUom}) فقط ولا يكفي لصرف (${baseQty} ${item.baseUom}). استخدم إذن تحويل (STR) لنقل الرصيد من مستودع آخر.`,
           };
         }
       }
 
+      // Expired-Lot Guard + Automatic FEFO check on Lot-Tracked outflows
+      let resolvedLot = rawLine.lotNumber;
+      let resolvedExpiry = rawLine.expiryDate;
+
+      if (!input.saveAsDraft && isOutflow && item.trackingMode === 'LOT_EXPIRY') {
+        const whLots = state.binLotQuants.filter(
+          (b) =>
+            b.itemId === item.id &&
+            b.warehouseId === input.warehouseId &&
+            b.qcStatus === 'APPROVED' &&
+            b.onHandQty > 0 &&
+            (b.lotNumber || b.expiryDate)
+        );
+        if (resolvedLot && state.settings.blockExpiredLots !== false) {
+          const explicitMatch = whLots.find((b) => b.lotNumber === resolvedLot);
+          if (explicitMatch?.expiryDate && explicitMatch.expiryDate < voucherDate) {
+            return {
+              voucher: null,
+              error: `منع نظام FEFO صرف التشغيلة (${resolvedLot}) للصنف (${item.nameAr}) لأنها منتهية الصلاحية بتاريخ (${explicitMatch.expiryDate}).`,
+            };
+          }
+        } else if (whLots.length > 0) {
+          const nonExpired = whLots
+            .filter((b) => !b.expiryDate || b.expiryDate >= voucherDate)
+            .sort((a, b) => (a.expiryDate || '9999-12-31').localeCompare(b.expiryDate || '9999-12-31'));
+
+          if (nonExpired.length === 0 && state.settings.blockExpiredLots !== false) {
+            return {
+              voucher: null,
+              error: `جميع دفعات الصنف (${item.nameAr}) في المستودع (${input.warehouseId}) منتهية الصلاحية وتم منع صرفها آلياً.`,
+            };
+          }
+          if (nonExpired.length > 0 && state.settings.enforceFefo !== false) {
+            resolvedLot = nonExpired[0].lotNumber;
+            resolvedExpiry = nonExpired[0].expiryDate;
+          }
+        }
+      }
+
       builtLines.push({
-        id: `VL-${Date.now()}-${i}`,
+        id: `VL-${Date.now()}-${i}-${Math.floor(Math.random() * 100)}`,
         itemId: item.id,
         sku: item.sku,
         itemName: item.nameAr,
@@ -539,9 +1349,10 @@ export const wmsEngineService = {
         baseQty,
         unitCost,
         totalCost: Number((baseQty * unitCost).toFixed(2)),
+        locationCode: rawLine.locationCode || item.defaultLocationCode || 'Z1-R1-B1',
         serialNumbers: rawLine.serialNumbers?.filter(Boolean),
-        lotNumber: rawLine.lotNumber,
-        expiryDate: rawLine.expiryDate,
+        lotNumber: resolvedLot,
+        expiryDate: resolvedExpiry,
         conditionStatus: rawLine.conditionStatus || 'سليم',
         notes: rawLine.notes,
       });
@@ -553,14 +1364,37 @@ export const wmsEngineService = {
     const nowIso = new Date().toISOString();
     pushUndoSnapshot(state);
 
+    // Check Maker/Checker threshold before posting
+    const threshold = state.settings.approvalThresholdSar ?? 10000;
+    const needsApproval =
+      !input.saveAsDraft &&
+      (input.requireApproval === true ||
+        (Boolean(state.settings.enforceMakerChecker) &&
+          (input.voucherType === 'SCRAP' ||
+            (totalValue >= threshold &&
+              (input.voucherType === 'GIN' || input.voucherType === 'ADJ')))));
+
+    const isTwoStepTransit =
+      !input.saveAsDraft &&
+      input.voucherType === 'STR' &&
+      Boolean(input.twoStepTransit ?? state.settings.enableInTransitTransfers);
+
+    const status: WmsStockVoucher['status'] = input.saveAsDraft
+      ? 'DRAFT'
+      : needsApproval
+      ? 'PENDING_APPROVAL'
+      : isTwoStepTransit
+      ? 'IN_TRANSIT'
+      : 'POSTED';
+
     const voucher: WmsStockVoucher = {
       id: `VCH-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      company_id: 'KAS',
+      company_id: companyId,
       voucherNo,
       voucherType: input.voucherType,
-      status: input.saveAsDraft ? 'DRAFT' : 'POSTED',
-      voucherDate: input.voucherDate || nowIso.slice(0, 10),
-      warehouseId: input.warehouseId || 'WH-MAIN',
+      status,
+      voucherDate,
+      warehouseId: input.warehouseId || state.warehouses[0]?.id || 'WH-MAIN',
       targetWarehouseId: input.targetWarehouseId,
       issuePurpose: input.issuePurpose,
       beneficiaryEntity: input.beneficiaryEntity,
@@ -575,34 +1409,79 @@ export const wmsEngineService = {
       lines: builtLines,
       totalQtyBase,
       totalValue,
-      handoverSigned: !input.saveAsDraft,
-      handoverSignedAt: !input.saveAsDraft ? nowIso : undefined,
+      handoverSigned: status === 'POSTED',
+      handoverSignedAt: status === 'POSTED' ? nowIso : undefined,
       createdByEmail: actor.email,
       createdByName: actor.name,
-      postedByEmail: !input.saveAsDraft ? actor.email : undefined,
-      postedByName: !input.saveAsDraft ? actor.name : undefined,
-      postedAt: !input.saveAsDraft ? nowIso : undefined,
+      postedByEmail: status === 'POSTED' ? actor.email : undefined,
+      postedByName: status === 'POSTED' ? actor.name : undefined,
+      postedAt: status === 'POSTED' ? nowIso : undefined,
       notes: input.notes,
       createdAt: nowIso,
     };
 
-    if (!input.saveAsDraft) {
-      this._applyPostedVoucherEffects(state, voucher, actor);
+    if (needsApproval) {
+      const req: WmsApprovalRequest = {
+        id: `APR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        company_id: companyId,
+        requestNo: `APR-2026-${String(state.approvalRequests.length + 1).padStart(4, '0')}`,
+        requestType: voucher.voucherType === 'SCRAP' ? 'SCRAP_WRITEOFF' : 'HIGH_VALUE_VOUCHER',
+        entityId: voucher.id,
+        entityLabel: `${voucher.voucherNo} (${voucher.voucherType})`,
+        amountSar: voucher.totalValue,
+        requestedByEmail: actor.email,
+        requestedByName: actor.name,
+        status: 'PENDING',
+        createdAt: nowIso,
+      };
+      state.approvalRequests.unshift(req);
+      appendAudit(
+        state,
+        actor,
+        'APPROVAL_REQUESTED',
+        'WMS_APPROVAL',
+        req.id,
+        req.requestNo,
+        `إيقاف الإذن (${voucher.voucherNo}) للاعتماد الإداري (Maker/Checker) بقيمة ${voucher.totalValue} ⃁.`
+      );
+    } else if (isTwoStepTransit) {
+      this._applyInTransitDispatch(state, voucher, actor);
+    } else if (status === 'POSTED') {
+      const holdForQc =
+        voucher.voucherType === 'GRN' &&
+        Boolean(input.requireQc ?? state.settings.requireQcOnGrn);
+      this._applyPostedVoucherEffects(state, voucher, actor, { holdForQc });
     }
 
     state.vouchers.unshift(voucher);
     appendAudit(
       state,
       actor,
-      input.saveAsDraft ? 'VOUCHER_DRAFTED' : 'VOUCHER_POSTED',
+      status === 'DRAFT'
+        ? 'VOUCHER_DRAFTED'
+        : voucher.voucherType === 'SCRAP'
+        ? 'SCRAP_POSTED'
+        : 'VOUCHER_POSTED',
       'WMS_VOUCHER',
       voucher.id,
       `${voucher.voucherNo} (${voucher.voucherType})`,
-      `${input.saveAsDraft ? 'حفظ مسودة' : 'اعتماد فوري وترحيل'} إذن بعدد (${builtLines.length}) أصناف وإجمالي كمية (${totalQtyBase}) وقيمة (${totalValue} ⃁)`
+      `${
+        status === 'DRAFT'
+          ? 'حفظ مسودة'
+          : status === 'PENDING_APPROVAL'
+          ? 'بانتظار اعتماد Maker/Checker'
+          : status === 'IN_TRANSIT'
+          ? 'شحن تحويل في الطريق (In-Transit)'
+          : 'اعتماد فوري وترحيل'
+      } إذن بعدد (${builtLines.length}) أصناف وإجمالي كمية (${totalQtyBase}) وقيمة (${voucher.totalValue} ⃁)`
     );
-    saveState(state);
+    saveState(state, companyId);
 
-    // Best-effort cloud sync to stock_vouchers / wms_stock_vouchers
+    void wmsCloudSyncService.syncWmsVoucherToSupabase(
+      companyId,
+      voucher,
+      state.settings.allowNegativeStock
+    );
     void realErpDataStore.addRecord('wms_stock_vouchers', voucher, []).catch(() => {});
 
     return { voucher, error: null };
@@ -613,13 +1492,24 @@ export const wmsEngineService = {
     const state = loadState();
     const v = state.vouchers.find((x) => x.id === voucherId);
     if (!v) return { ok: false, error: 'الإذن غير موجود.' };
-    if (v.status !== 'DRAFT') return { ok: false, error: 'الإذن ليس في حالة مسودة.' };
+    if (v.status !== 'DRAFT' && v.status !== 'PENDING_APPROVAL') {
+      return { ok: false, error: 'الإذن ليس في حالة مسودة أو انتظار اعتماد.' };
+    }
 
-    if ((v.voucherType === 'GIN' || v.voucherType === 'STR') && !state.settings.allowNegativeStock) {
+    const isOutflow =
+      v.voucherType === 'GIN' ||
+      v.voucherType === 'STR' ||
+      v.voucherType === 'RTV' ||
+      v.voucherType === 'SCRAP';
+
+    if (isOutflow && !state.settings.allowNegativeStock) {
       for (const line of v.lines) {
-        const totalAvail = this.getItemStockSummary(line.itemId).available;
-        if (line.baseQty > totalAvail) {
-          return { ok: false, error: `الرصيد المتاح للصنف (${line.itemName}) غير كافٍ للترحيل.` };
+        const whAvail = this.getItemStockSummary(line.itemId, v.warehouseId).available;
+        if (line.baseQty > whAvail) {
+          return {
+            ok: false,
+            error: `الرصيد المتاح في المستودع (${v.warehouseId}) للصنف (${line.itemName}) غير كافٍ للترحيل.`,
+          };
         }
       }
     }
@@ -639,33 +1529,58 @@ export const wmsEngineService = {
       'WMS_VOUCHER',
       v.id,
       v.voucherNo,
-      `ترحيل مسودة الإذن (${v.voucherNo}) وتحديث الأرصدة.`
+      `ترحيل الإذن (${v.voucherNo}) وتحديث الأرصدة.`
     );
     saveState(state);
+    void wmsCloudSyncService.syncWmsVoucherToSupabase(
+      state.settings.company_id || activeCompanyId,
+      v,
+      state.settings.allowNegativeStock
+    );
     return { ok: true };
   },
 
-  /** Reverse a posted voucher (immutable accounting rule — never delete!) */
+  /** Reverse a posted voucher cleanly + create balancing GL Reversal entry */
   reverseVoucher(voucherId: string, reason: string, actor: WmsActor): { ok: boolean; error?: string } {
     const state = loadState();
     const v = state.vouchers.find((x) => x.id === voucherId);
     if (!v) return { ok: false, error: 'الإذن غير موجود.' };
     if (v.status !== 'POSTED') return { ok: false, error: 'لا يمكن عكس إلا الأذونات المعتمدة (POSTED).' };
 
-    for (const line of v.lines) {
-      const item = state.items.find((i) => i.id === line.itemId);
-      if (!item) continue;
-      const srcQ = findOrCreateQuant(state, item, v.warehouseId);
-      if (v.voucherType === 'GRN' || (v.voucherType === 'SRN' && line.conditionStatus !== 'تالف')) {
-        srcQ.onHandQty = Math.max(0, Number((srcQ.onHandQty - line.baseQty).toFixed(3)));
-      } else if (v.voucherType === 'GIN') {
-        srcQ.onHandQty = Number((srcQ.onHandQty + line.baseQty).toFixed(3));
-      } else if (v.voucherType === 'STR' && v.targetWarehouseId) {
-        const tgtQ = findOrCreateQuant(state, item, v.targetWarehouseId);
-        tgtQ.onHandQty = Math.max(0, Number((tgtQ.onHandQty - line.baseQty).toFixed(3)));
-        srcQ.onHandQty = Number((srcQ.onHandQty + line.baseQty).toFixed(3));
+    pushUndoSnapshot(state);
+    rollbackPostedVoucherQuantDelta(state, v);
+
+    // Post accounting reversal entry if original voucher had posted GL value
+    if (v.totalValue > 0 && v.journalEntryId) {
+      const targetType: OperationalTransactionType =
+        v.voucherType === 'GRN'
+          ? 'WMS_GOODS_RECEIPT'
+          : v.voucherType === 'SRN'
+          ? 'WMS_STOCK_RETURN'
+          : 'WMS_GOODS_ISSUE';
+      const firstItem = state.items.find((i) => i.id === v.lines[0]?.itemId);
+      const { glInventoryAccount, glExpenseAccount } = getCategoryAccounts(
+        state,
+        firstItem?.categoryId || ''
+      );
+      try {
+        journalEngine.autoPostOperationalTransaction({
+          companyId: state.settings.company_id || activeCompanyId,
+          transactionType: 'WMS_STOCK_REVERSAL',
+          reversalTargetType: targetType,
+          referenceNumber: `REV-${v.voucherNo}`,
+          referenceId: v.id,
+          partyName: v.supplierName || v.beneficiaryEntity || 'عكس مخزني',
+          description: `قيد عكسي آلي IAS 2 لإلغاء الإذن (${v.voucherNo}) — السبب: ${reason || 'تصحيح تشغيلي'}`,
+          amount: v.totalValue,
+          costCenterCode: v.costCenterCode || 'CC-KAS-01',
+          createdBy: actor.name,
+          glInventoryAccount,
+          glExpenseAccount,
+        });
+      } catch {
+        // Non-blocking fallback
       }
-      srcQ.updatedAt = new Date().toISOString();
     }
 
     v.status = 'REVERSED';
@@ -680,21 +1595,242 @@ export const wmsEngineService = {
       'WMS_VOUCHER',
       v.id,
       v.voucherNo,
-      `عكس الإذن المخزني (${v.voucherNo}) وإرجاع أثره على الأرصدة. السبب: ${reason || 'تصحيح'}`
+      `عكس الإذن المخزني (${v.voucherNo}) وإرجاع أثره على الأرصدة والأستاذ العام. السبب: ${reason || 'تصحيح'}`
     );
     saveState(state);
+    void wmsCloudSyncService.syncWmsEntitiesToSupabase(activeCompanyId, state);
     return { ok: true };
   },
 
-  /** Internal helper applying quant updates, AVCO valuation, serial/lot records, and GL journal entry */
-  _applyPostedVoucherEffects(state: WmsStateSnapshot, voucher: WmsStockVoucher, actor: WmsActor): void {
+  /** Dispatch 2-step In-Transit transfer without crediting destination warehouse until arrival confirmation */
+  _applyInTransitDispatch(
+    state: WmsStateSnapshot,
+    voucher: WmsStockVoucher,
+    actor: WmsActor
+  ): void {
+    const companyId = state.settings.company_id || activeCompanyId;
+    for (const line of voucher.lines) {
+      const item = state.items.find((i) => i.id === line.itemId);
+      if (!item || !voucher.targetWarehouseId) continue;
+      const srcQuant = findOrCreateQuant(state, item, voucher.warehouseId);
+      srcQuant.onHandQty = Math.max(0, Number((srcQuant.onHandQty - line.baseQty).toFixed(3)));
+      srcQuant.updatedAt = new Date().toISOString();
+
+      upsertBinLotQuant(state, {
+        itemId: item.id,
+        warehouseId: voucher.warehouseId,
+        locationCode: line.locationCode || item.defaultLocationCode,
+        lotNumber: line.lotNumber || '',
+        qcStatus: 'APPROVED',
+        deltaOnHand: -line.baseQty,
+      });
+      upsertBinLotQuant(state, {
+        itemId: item.id,
+        warehouseId: voucher.targetWarehouseId,
+        locationCode: item.defaultLocationCode,
+        lotNumber: line.lotNumber || '',
+        qcStatus: 'APPROVED',
+        deltaInTransit: line.baseQty,
+      });
+
+      const transfer: WmsInTransitTransfer = {
+        id: `TRN-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        company_id: companyId,
+        transferNo: `STR-TRN-${String(state.inTransitTransfers.length + 1).padStart(4, '0')}`,
+        voucherId: voucher.id,
+        voucherNo: voucher.voucherNo,
+        sourceWarehouseId: voucher.warehouseId,
+        targetWarehouseId: voucher.targetWarehouseId,
+        itemId: item.id,
+        sku: item.sku,
+        itemName: item.nameAr,
+        dispatchedQty: line.baseQty,
+        receivedQty: 0,
+        varianceQty: 0,
+        status: 'IN_TRANSIT',
+        dispatchedBy: actor.name,
+        dispatchedAt: new Date().toISOString(),
+        notes: voucher.notes,
+      };
+      state.inTransitTransfers.unshift(transfer);
+      appendAudit(
+        state,
+        actor,
+        'TRANSFER_DISPATCHED',
+        'WMS_IN_TRANSIT',
+        transfer.id,
+        transfer.transferNo,
+        `شحن (${line.baseQty} ${item.baseUom}) من (${voucher.warehouseId}) إلى (${voucher.targetWarehouseId}) بانتظار تأكيد الاستلام.`
+      );
+    }
+  },
+
+  /** Confirm arrival & receipt of an In-Transit transfer at destination warehouse */
+  confirmInTransitTransferReceipt(
+    transferId: string,
+    receivedQty: number,
+    notes: string,
+    actor: WmsActor
+  ): { ok: boolean; varianceQty: number; adjustmentVoucherNo?: string; error?: string } {
+    const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
+    const transfer = state.inTransitTransfers.find((t) => t.id === transferId);
+    if (!transfer) return { ok: false, varianceQty: 0, error: 'شحنة التحويل غير موجودة.' };
+    if (transfer.status !== 'IN_TRANSIT') {
+      return { ok: false, varianceQty: 0, error: 'تم تأكيد استلام هذه الشحنة مسبقاً.' };
+    }
+    const cleanReceived = Math.max(0, Math.min(transfer.dispatchedQty, Number(receivedQty || 0)));
+    const varianceQty = Number((transfer.dispatchedQty - cleanReceived).toFixed(3));
+    const item = state.items.find((i) => i.id === transfer.itemId);
+    if (!item) return { ok: false, varianceQty: 0, error: 'الصنف غير موجود.' };
+
+    pushUndoSnapshot(state);
+    const tgtQuant = findOrCreateQuant(state, item, transfer.targetWarehouseId);
+    tgtQuant.onHandQty = Number((tgtQuant.onHandQty + cleanReceived).toFixed(3));
+    tgtQuant.updatedAt = new Date().toISOString();
+
+    upsertBinLotQuant(state, {
+      itemId: item.id,
+      warehouseId: transfer.targetWarehouseId,
+      locationCode: item.defaultLocationCode,
+      qcStatus: 'APPROVED',
+      deltaOnHand: cleanReceived,
+      deltaInTransit: -transfer.dispatchedQty,
+    });
+
+    transfer.receivedQty = cleanReceived;
+    transfer.varianceQty = varianceQty;
+    transfer.status = varianceQty === 0 ? 'RECEIVED' : 'PARTIAL_VARIANCE';
+    transfer.receivedBy = actor.name;
+    transfer.receivedAt = new Date().toISOString();
+    transfer.notes = notes || transfer.notes;
+
+    // Update parent STR voucher if all lines for that voucher are received
+    const siblingPending = state.inTransitTransfers.some(
+      (t) => t.voucherId === transfer.voucherId && t.status === 'IN_TRANSIT'
+    );
+    const voucher = state.vouchers.find((v) => v.id === transfer.voucherId);
+    if (voucher && !siblingPending) {
+      voucher.status = 'POSTED';
+      voucher.postedByEmail = actor.email;
+      voucher.postedByName = actor.name;
+      voucher.postedAt = new Date().toISOString();
+      voucher.handoverSigned = true;
+      voucher.handoverSignedAt = voucher.postedAt;
+    }
+
+    let adjustmentVoucherNo: string | undefined;
+    if (varianceQty > 0) {
+      adjustmentVoucherNo = nextVoucherNumber(state, 'ADJ');
+      const adjVal = Number((varianceQty * item.avgUnitCost).toFixed(2));
+      const adjVoucher: WmsStockVoucher = {
+        id: `VCH-TRN-ADJ-${Date.now()}`,
+        company_id: companyId,
+        voucherNo: adjustmentVoucherNo,
+        voucherType: 'ADJ',
+        status: 'POSTED',
+        voucherDate: new Date().toISOString().slice(0, 10),
+        warehouseId: transfer.targetWarehouseId,
+        beneficiaryEntity: `عجز نقل بضاعة في الطريق (${transfer.transferNo})`,
+        costCenterCode: 'CC-KAS-01',
+        lines: [
+          {
+            id: `VL-TRN-ADJ-${Date.now()}`,
+            itemId: item.id,
+            sku: item.sku,
+            itemName: item.nameAr,
+            enteredQty: varianceQty,
+            enteredUom: item.baseUom,
+            uomFactor: 1,
+            baseQty: -varianceQty,
+            unitCost: item.avgUnitCost,
+            totalCost: adjVal,
+            notes: `مُرسل ${transfer.dispatchedQty} ← مستلم ${cleanReceived}`,
+          },
+        ],
+        totalQtyBase: varianceQty,
+        totalValue: adjVal,
+        handoverSigned: true,
+        createdByEmail: actor.email,
+        createdByName: actor.name,
+        postedByEmail: actor.email,
+        postedByName: actor.name,
+        postedAt: new Date().toISOString(),
+        notes: notes || `تسوية تلقائية لفقد أثناء النقل (${transfer.transferNo})`,
+        createdAt: new Date().toISOString(),
+      };
+      if (adjVal > 0) postVoucherGlEntry(state, adjVoucher, actor);
+      state.vouchers.unshift(adjVoucher);
+    }
+
+    appendAudit(
+      state,
+      actor,
+      'TRANSFER_RECEIVED',
+      'WMS_IN_TRANSIT',
+      transfer.id,
+      transfer.transferNo,
+      `تأكيد استلام (${cleanReceived}) من أصل (${transfer.dispatchedQty}) في (${transfer.targetWarehouseId})${varianceQty > 0 ? ` — عجز نقل: ${varianceQty} (${adjustmentVoucherNo})` : ''}.`
+    );
+    saveState(state, companyId);
+    return { ok: true, varianceQty, adjustmentVoucherNo };
+  },
+
+  /** Internal helper applying quant updates, FIFO/AVCO valuation, FEFO bin-lots, QC hold, and IAS 2 GL entry */
+  _applyPostedVoucherEffects(
+    state: WmsStateSnapshot,
+    voucher: WmsStockVoucher,
+    actor: WmsActor,
+    options?: { holdForQc?: boolean }
+  ): void {
+    const companyId = state.settings.company_id || activeCompanyId;
+    const holdForQc = Boolean(options?.holdForQc);
+
     for (const line of voucher.lines) {
       const item = state.items.find((i) => i.id === line.itemId);
       if (!item) continue;
       const srcQuant = findOrCreateQuant(state, item, voucher.warehouseId);
 
       if (voucher.voucherType === 'GRN') {
-        // IAS 2 Weighted Average Cost (AVCO) recalculation
+        if (holdForQc) {
+          // Route incoming batch to WH-RET quarantine pending Quality Control inspection
+          const qcQuant = findOrCreateQuant(state, item, 'WH-RET');
+          qcQuant.onHandQty = Number((qcQuant.onHandQty + line.baseQty).toFixed(3));
+          qcQuant.updatedAt = new Date().toISOString();
+
+          upsertBinLotQuant(state, {
+            itemId: item.id,
+            warehouseId: 'WH-RET',
+            locationCode: 'QRT-INSP-01',
+            lotNumber: line.lotNumber || `LOT-${voucher.voucherNo}`,
+            expiryDate: line.expiryDate,
+            qcStatus: 'PENDING_QC',
+            deltaOnHand: line.baseQty,
+          });
+
+          const insp: WmsQcInspection = {
+            id: `QCI-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            company_id: companyId,
+            inspectionNo: `QC-2026-${String(state.qcInspections.length + 1).padStart(4, '0')}`,
+            grnVoucherId: voucher.id,
+            grnVoucherNo: voucher.voucherNo,
+            itemId: item.id,
+            sku: item.sku,
+            itemName: item.nameAr,
+            targetWarehouseId: voucher.warehouseId,
+            lotNumber: line.lotNumber || `LOT-${voucher.voucherNo}`,
+            expiryDate: line.expiryDate,
+            receivedQty: line.baseQty,
+            approvedQty: 0,
+            rejectedQty: 0,
+            status: 'PENDING_QC',
+            createdAt: new Date().toISOString(),
+          };
+          state.qcInspections.unshift(insp);
+          continue;
+        }
+
+        // Normal approved GRN: Update IAS 2 AVCO + Push FIFO Cost Layer
         if (line.unitCost > 0) {
           const prevQty = Math.max(0, this.getItemStockSummary(item.id).onHand);
           const prevVal = prevQty * item.avgUnitCost;
@@ -703,15 +1839,40 @@ export const wmsEngineService = {
           item.avgUnitCost = newTotalQty > 0 ? Number((newVal / newTotalQty).toFixed(2)) : line.unitCost;
           item.lastPurchaseCost = line.unitCost;
         }
+
+        state.costLayers.push({
+          id: `CLY-${voucher.id}-${line.id}`,
+          company_id: companyId,
+          itemId: item.id,
+          warehouseId: voucher.warehouseId,
+          voucherId: voucher.id,
+          voucherNo: voucher.voucherNo,
+          receivedDate: voucher.voucherDate,
+          originalQty: line.baseQty,
+          remainingQty: line.baseQty,
+          unitCost: line.unitCost,
+          landedCostPerUnit: 0,
+          createdAt: new Date().toISOString(),
+        });
+
         srcQuant.onHandQty = Number((srcQuant.onHandQty + line.baseQty).toFixed(3));
         srcQuant.updatedAt = new Date().toISOString();
 
-        // Register serial numbers or lot/expiry
+        upsertBinLotQuant(state, {
+          itemId: item.id,
+          warehouseId: voucher.warehouseId,
+          locationCode: line.locationCode || item.defaultLocationCode,
+          lotNumber: line.lotNumber || '',
+          expiryDate: line.expiryDate,
+          qcStatus: 'APPROVED',
+          deltaOnHand: line.baseQty,
+        });
+
         if (line.serialNumbers && line.serialNumbers.length > 0) {
           for (const sn of line.serialNumbers) {
             state.serialLots.unshift({
               id: `SN-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-              company_id: 'KAS',
+              company_id: companyId,
               itemId: item.id,
               sku: item.sku,
               itemName: item.nameAr,
@@ -725,7 +1886,7 @@ export const wmsEngineService = {
         } else if (line.lotNumber || line.expiryDate) {
           state.serialLots.unshift({
             id: `LOT-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-            company_id: 'KAS',
+            company_id: companyId,
             itemId: item.id,
             sku: item.sku,
             itemName: item.nameAr,
@@ -737,32 +1898,49 @@ export const wmsEngineService = {
             notes: `دفعة مرجع ${voucher.voucherNo}`,
           });
         }
-      } else if (voucher.voucherType === 'GIN') {
-        // Deduct from selected warehouse first, spillover to other warehouse quants if needed
-        let remaining = line.baseQty;
-        if (srcQuant.onHandQty >= remaining) {
-          srcQuant.onHandQty = Number((srcQuant.onHandQty - remaining).toFixed(3));
-          remaining = 0;
-        } else {
-          remaining -= srcQuant.onHandQty;
-          srcQuant.onHandQty = 0;
-          for (const otherQ of state.quants) {
-            if (otherQ.itemId === item.id && otherQ.onHandQty > 0 && remaining > 0) {
-              const take = Math.min(otherQ.onHandQty, remaining);
-              otherQ.onHandQty = Number((otherQ.onHandQty - take).toFixed(3));
-              otherQ.updatedAt = new Date().toISOString();
-              remaining -= take;
-            }
-          }
-        }
+      } else if (voucher.voucherType === 'GIN' || voucher.voucherType === 'RTV' || voucher.voucherType === 'SCRAP') {
+        // Strict per-warehouse deduction (NO silent cross-warehouse spillover)
+        srcQuant.onHandQty = Math.max(0, Number((srcQuant.onHandQty - line.baseQty).toFixed(3)));
         srcQuant.updatedAt = new Date().toISOString();
 
-        // Update matching serials if present
+        // Update FIFO cost layers if item or global policy uses FIFO
+        if (item.valuationMethod === 'FIFO' || state.settings.valuationMethod === 'FIFO') {
+          const fifo = consumeFifoCostLayers(state, item, voucher.warehouseId, line.baseQty);
+          line.unitCost = fifo.effectiveUnitCost;
+          line.totalCost = fifo.totalCost;
+        }
+
+        // Deduct from matching Bin/Lot Quants (FEFO earliest expiry first)
+        let remLotQty = line.baseQty;
+        const candidateLots = state.binLotQuants
+          .filter(
+            (b) =>
+              b.itemId === item.id &&
+              b.warehouseId === voucher.warehouseId &&
+              b.qcStatus === 'APPROVED' &&
+              b.onHandQty > 0 &&
+              (!line.lotNumber || b.lotNumber === line.lotNumber)
+          )
+          .sort((a, b) => (a.expiryDate || '9999-12-31').localeCompare(b.expiryDate || '9999-12-31'));
+
+        for (const bl of candidateLots) {
+          if (remLotQty <= 0) break;
+          const take = Math.min(bl.onHandQty, remLotQty);
+          bl.onHandQty = Number((bl.onHandQty - take).toFixed(3));
+          bl.updatedAt = new Date().toISOString();
+          remLotQty = Number((remLotQty - take).toFixed(3));
+        }
+
         if (line.serialNumbers && line.serialNumbers.length > 0) {
           for (const sn of line.serialNumbers) {
             const match = state.serialLots.find((r) => r.serialNumber === sn);
             if (match) {
-              match.status = item.isCustodyEligible ? 'IN_CUSTODY' : 'ISSUED';
+              match.status =
+                voucher.voucherType === 'SCRAP'
+                  ? 'SCRAPPED'
+                  : item.isCustodyEligible
+                  ? 'IN_CUSTODY'
+                  : 'ISSUED';
               match.assignedToName = voucher.recipientName;
               match.assignedToEntity = voucher.beneficiaryEntity;
               match.issuedDate = voucher.voucherDate;
@@ -770,11 +1948,19 @@ export const wmsEngineService = {
           }
         }
       } else if (voucher.voucherType === 'SRN') {
-        // Damaged items route to Quarantine (WH-RET); healthy items return to active stock
         const destWh = line.conditionStatus === 'سليم' ? voucher.warehouseId : 'WH-RET';
         const destQ = findOrCreateQuant(state, item, destWh);
         destQ.onHandQty = Number((destQ.onHandQty + line.baseQty).toFixed(3));
         destQ.updatedAt = new Date().toISOString();
+
+        upsertBinLotQuant(state, {
+          itemId: item.id,
+          warehouseId: destWh,
+          locationCode: line.conditionStatus === 'سليم' ? item.defaultLocationCode : 'QRT-RMA-01',
+          lotNumber: line.lotNumber || '',
+          qcStatus: line.conditionStatus === 'سليم' ? 'APPROVED' : 'QUARANTINE',
+          deltaOnHand: line.baseQty,
+        });
       } else if (voucher.voucherType === 'STR' && voucher.targetWarehouseId) {
         srcQuant.onHandQty = Math.max(0, Number((srcQuant.onHandQty - line.baseQty).toFixed(3)));
         srcQuant.updatedAt = new Date().toISOString();
@@ -787,50 +1973,385 @@ export const wmsEngineService = {
       }
     }
 
-    // Automatic IAS 2 GL Journal Entry Posting when cost > 0 & setting enabled
-    if (
-      state.settings.autoPostGlWhenCostPresent &&
-      voucher.totalValue > 0 &&
-      (voucher.voucherType === 'GRN' || voucher.voucherType === 'GIN' || voucher.voucherType === 'ADJ')
-    ) {
-      const txType =
-        voucher.voucherType === 'GRN'
-          ? 'WMS_GOODS_RECEIPT'
-          : voucher.voucherType === 'GIN'
-          ? 'WMS_GOODS_ISSUE'
-          : 'WMS_STOCK_ADJUSTMENT';
-      try {
-        const res = journalEngine.autoPostOperationalTransaction({
-          companyId: 'KAS',
-          transactionType: txType,
-          referenceNumber: voucher.voucherNo,
-          referenceId: voucher.id,
-          partyName: voucher.supplierName || voucher.beneficiaryEntity || 'مستودعات كاس',
-          description: `قيد مخزني آلي IAS 2 — ${voucher.voucherNo} (${voucher.beneficiaryEntity || voucher.supplierName || 'المستودع'})`,
-          amount: voucher.totalValue,
-          costCenterCode: voucher.costCenterCode || 'CC-KAS-01',
-          createdBy: actor.name,
-          entryDate: voucher.voucherDate,
-        });
-        if (res.entry) {
-          voucher.journalEntryId = res.entry.entryNumber;
-          appendAudit(
-            state,
-            actor,
-            'GL_POSTED',
-            'JOURNAL_ENTRY',
-            res.entry.id,
-            res.entry.entryNumber,
-            `ترحيل قيد محاسبي آلي IAS 2 بقيمة (${voucher.totalValue} ⃁) للإذن (${voucher.voucherNo}).`
-          );
-        }
-      } catch {
-        // Do not block warehouse posting if period is locked
-      }
+    voucher.totalValue = Number(voucher.lines.reduce((s, l) => s + l.totalCost, 0).toFixed(2));
+    if (!holdForQc) {
+      postVoucherGlEntry(state, voucher, actor);
     }
   },
 
-  /** Fast-Issue Consumables Kiosk (e.g. Computer Batteries AA/AAA, Hospitality) */
+  /** Quality Control Gate Completion: Release Approved units to warehouse & Quarantine Rejected units */
+  completeQcInspection(
+    inspectionId: string,
+    decision: { approvedQty: number; rejectedQty: number; notes?: string },
+    actor: WmsActor
+  ): { ok: boolean; error?: string } {
+    const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
+    const insp = state.qcInspections.find((q) => q.id === inspectionId);
+    if (!insp) return { ok: false, error: 'سجل فحص الجودة غير موجود.' };
+    if (insp.status !== 'PENDING_QC') return { ok: false, error: 'تم إغلاق هذا الفحص مسبقاً.' };
+
+    const approvedQty = Math.max(0, Number(decision.approvedQty || 0));
+    const rejectedQty = Math.max(0, Number(decision.rejectedQty || 0));
+    if (Math.abs(approvedQty + rejectedQty - insp.receivedQty) > 0.001) {
+      return {
+        ok: false,
+        error: `يجب أن يساوي مجموع الكمية المقبولة والمرفوضة (${approvedQty + rejectedQty}) الكمية المستلمة (${insp.receivedQty}).`,
+      };
+    }
+
+    const item = state.items.find((i) => i.id === insp.itemId);
+    if (!item) return { ok: false, error: 'الصنف غير موجود.' };
+    pushUndoSnapshot(state);
+
+    const qrtQuant = findOrCreateQuant(state, item, 'WH-RET');
+    qrtQuant.onHandQty = Math.max(0, Number((qrtQuant.onHandQty - approvedQty).toFixed(3)));
+    qrtQuant.updatedAt = new Date().toISOString();
+
+    if (approvedQty > 0) {
+      const targetQ = findOrCreateQuant(state, item, insp.targetWarehouseId);
+      targetQ.onHandQty = Number((targetQ.onHandQty + approvedQty).toFixed(3));
+      targetQ.updatedAt = new Date().toISOString();
+
+      upsertBinLotQuant(state, {
+        itemId: item.id,
+        warehouseId: insp.targetWarehouseId,
+        locationCode: item.defaultLocationCode,
+        lotNumber: insp.lotNumber || '',
+        expiryDate: insp.expiryDate,
+        qcStatus: 'APPROVED',
+        deltaOnHand: approvedQty,
+      });
+
+      const origVoucher = state.vouchers.find((v) => v.id === insp.grnVoucherId);
+      const origLine = origVoucher?.lines.find((l) => l.itemId === item.id);
+      const unitCost = Number(origLine?.unitCost || item.avgUnitCost || 0);
+      if (unitCost > 0) {
+        state.costLayers.push({
+          id: `CLY-QC-${insp.id}`,
+          company_id: companyId,
+          itemId: item.id,
+          warehouseId: insp.targetWarehouseId,
+          voucherId: insp.grnVoucherId,
+          voucherNo: insp.grnVoucherNo,
+          receivedDate: new Date().toISOString().slice(0, 10),
+          originalQty: approvedQty,
+          remainingQty: approvedQty,
+          unitCost,
+          landedCostPerUnit: 0,
+          createdAt: new Date().toISOString(),
+        });
+      }
+    }
+
+    if (rejectedQty > 0) {
+      upsertBinLotQuant(state, {
+        itemId: item.id,
+        warehouseId: 'WH-RET',
+        locationCode: 'QRT-HOLD-01',
+        lotNumber: insp.lotNumber || '',
+        expiryDate: insp.expiryDate,
+        qcStatus: 'QUARANTINE',
+        deltaOnHand: rejectedQty,
+      });
+    }
+
+    insp.approvedQty = approvedQty;
+    insp.rejectedQty = rejectedQty;
+    insp.status = 'COMPLETED';
+    insp.inspectedBy = actor.name;
+    insp.inspectedAt = new Date().toISOString();
+    insp.notes = decision.notes || insp.notes;
+
+    appendAudit(
+      state,
+      actor,
+      'QC_INSPECTED',
+      'WMS_QC_INSPECTION',
+      insp.id,
+      insp.inspectionNo,
+      `نتيجة فحص الجودة (${insp.inspectionNo}): مقبول (${approvedQty}) ← ${insp.targetWarehouseId} | مرفوض (${rejectedQty}) ← حجر WH-RET.`
+    );
+    saveState(state, companyId);
+    return { ok: true };
+  },
+
+  /** IAS 2 Landed Cost Capitalization across GRN lines + Cost Layers + AVCO + GL Journal */
+  applyLandedCost(
+    voucherId: string,
+    charges: WmsLandedCostCharge[],
+    allocationMethod: 'BY_VALUE' | 'BY_QTY',
+    actor: WmsActor
+  ): { ok: boolean; record?: WmsLandedCostRecord; error?: string } {
+    const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
+    const v = state.vouchers.find((x) => x.id === voucherId);
+    if (!v || v.voucherType !== 'GRN' || v.status !== 'POSTED') {
+      return { ok: false, error: 'يجب اختيار إذن وارد (GRN) مُرحّل لتوزيع التكاليف المضافة عليه.' };
+    }
+    const cleanCharges = charges.filter((c) => Number(c.amount || 0) > 0);
+    const totalCharge = Number(
+      cleanCharges.reduce((s, c) => s + Number(c.amount || 0), 0).toFixed(2)
+    );
+    if (totalCharge <= 0) {
+      return { ok: false, error: 'إجمالي رسوم الشحن والجمارك يجب أن يكون أكبر من صفر.' };
+    }
+
+    const totalBaseQty = v.lines.reduce((s, l) => s + l.baseQty, 0);
+    const totalLineVal = v.lines.reduce((s, l) => s + l.totalCost, 0);
+    const effMethod = allocationMethod === 'BY_VALUE' && totalLineVal > 0 ? 'BY_VALUE' : 'BY_QTY';
+
+    pushUndoSnapshot(state);
+    for (const line of v.lines) {
+      const shareRatio =
+        effMethod === 'BY_VALUE'
+          ? line.totalCost / totalLineVal
+          : line.baseQty / Math.max(1, totalBaseQty);
+      const lineAdded = totalCharge * shareRatio;
+      const perUnitAdded = line.baseQty > 0 ? lineAdded / line.baseQty : 0;
+
+      const item = state.items.find((i) => i.id === line.itemId);
+      if (item) {
+        const totalItemQty = Math.max(line.baseQty, this.getItemStockSummary(item.id).onHand);
+        const currentTotalVal = totalItemQty * item.avgUnitCost + lineAdded;
+        item.avgUnitCost = Number((currentTotalVal / totalItemQty).toFixed(2));
+      }
+
+      for (const layer of state.costLayers) {
+        if (layer.voucherId === v.id && layer.itemId === line.itemId) {
+          layer.landedCostPerUnit = Number(
+            (Number(layer.landedCostPerUnit || 0) + perUnitAdded).toFixed(4)
+          );
+        }
+      }
+    }
+
+    const firstItem = state.items.find((i) => i.id === v.lines[0]?.itemId);
+    const { glInventoryAccount } = getCategoryAccounts(state, firstItem?.categoryId || '');
+    let journalEntryId: string | undefined;
+
+    if (state.settings.autoPostGlWhenCostPresent) {
+      try {
+        const res = journalEngine.autoPostOperationalTransaction({
+          companyId,
+          transactionType: 'WMS_LANDED_COST',
+          referenceNumber: `LND-${v.voucherNo}`,
+          referenceId: v.id,
+          partyName: v.supplierName || 'مصاريف شحن وجمارك',
+          description: `رسملة تكاليف مضافة (Landed Cost) على إذن الوارد ${v.voucherNo}`,
+          amount: totalCharge,
+          costCenterCode: v.costCenterCode || 'CC-KAS-01',
+          createdBy: actor.name,
+          glInventoryAccount,
+        });
+        journalEntryId = res.entry?.entryNumber;
+      } catch {
+        // Non-blocking fallback
+      }
+    }
+
+    const rec: WmsLandedCostRecord = {
+      id: `LND-${Date.now().toString().slice(-6)}`,
+      company_id: companyId,
+      voucherId: v.id,
+      voucherNo: v.voucherNo,
+      allocationMethod: effMethod,
+      totalCharge,
+      charges: cleanCharges,
+      journalEntryId,
+      allocatedBy: actor.name,
+      createdAt: new Date().toISOString(),
+    };
+    state.landedCosts.unshift(rec);
+
+    appendAudit(
+      state,
+      actor,
+      'LANDED_COST_APPLIED',
+      'WMS_LANDED_COST',
+      rec.id,
+      v.voucherNo,
+      `توزيع تكاليف مضافة (${totalCharge} ⃁) على الإذن (${v.voucherNo}) بطريقة (${effMethod})${journalEntryId ? ` — قيد #${journalEntryId}` : ''}.`
+    );
+    saveState(state, companyId);
+    return { ok: true, record: rec };
+  },
+
+  /** Maker ≠ Checker Approval & Rejection */
+  approveWmsRequest(requestId: string, actor: WmsActor): { ok: boolean; error?: string } {
+    const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
+    const req = state.approvalRequests.find((r) => r.id === requestId);
+    if (!req) return { ok: false, error: 'طلب الاعتماد غير موجود.' };
+    if (req.status !== 'PENDING') return { ok: false, error: 'تم البت في هذا الطلب مسبقاً.' };
+
+    if (req.requestedByEmail.trim().toLowerCase() === actor.email.trim().toLowerCase()) {
+      return {
+        ok: false,
+        error: 'ضابط الفصل بين المهام (Maker ≠ Checker): لا يمكن لمنشئ الطلب اعتماده بنفسه؛ يلزم اعتماد مستخدم مخوّل آخر.',
+      };
+    }
+
+    if (req.requestType === 'CYCLE_COUNT_VARIANCE') {
+      const res = this.postCycleCountSession(req.entityId, actor, { bypassApprovalCheck: true });
+      if (!res.ok) return { ok: false, error: 'تعذر ترحيل جلسة الجرد.' };
+    } else {
+      const res = this.postDraftVoucher(req.entityId, actor);
+      if (!res.ok) return { ok: false, error: res.error };
+    }
+
+    req.status = 'APPROVED';
+    req.checkerEmail = actor.email;
+    req.checkerName = actor.name;
+    req.decidedAt = new Date().toISOString();
+
+    appendAudit(
+      state,
+      actor,
+      'APPROVAL_DECIDED',
+      'WMS_APPROVAL',
+      req.id,
+      req.requestNo,
+      `اعتماد (Checker: ${actor.name}) للطلب (${req.entityLabel}) المنشأ بواسطة (${req.requestedByName}).`
+    );
+    saveState(state, companyId);
+    return { ok: true };
+  },
+
+  rejectWmsRequest(requestId: string, reason: string, actor: WmsActor): { ok: boolean; error?: string } {
+    const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
+    const req = state.approvalRequests.find((r) => r.id === requestId);
+    if (!req || req.status !== 'PENDING') return { ok: false, error: 'الطلب غير متاح للرفض.' };
+
+    req.status = 'REJECTED';
+    req.checkerEmail = actor.email;
+    req.checkerName = actor.name;
+    req.decidedAt = new Date().toISOString();
+    req.reason = reason || 'مرفوض من المراجع المعتمد';
+
+    if (req.requestType === 'CYCLE_COUNT_VARIANCE') {
+      const cc = state.cycleCounts.find((s) => s.id === req.entityId);
+      if (cc) cc.status = 'قيد الجرد';
+    } else {
+      const v = state.vouchers.find((x) => x.id === req.entityId);
+      if (v && v.status === 'PENDING_APPROVAL') {
+        v.status = 'DRAFT';
+        v.notes = `${v.notes ? v.notes + ' | ' : ''}مرفوض بالرقابة: ${req.reason}`;
+      }
+    }
+
+    appendAudit(
+      state,
+      actor,
+      'APPROVAL_DECIDED',
+      'WMS_APPROVAL',
+      req.id,
+      req.requestNo,
+      `رفض طلب الاعتماد (${req.entityLabel}) بواسطة (${actor.name}). السبب: ${req.reason}`
+    );
+    saveState(state, companyId);
+    return { ok: true };
+  },
+
+  /** Kits / BOM Management & 1-Click Auto-Explosion into Multi-Line GIN */
+  createKitBom(
+    input: {
+      kitCode: string;
+      kitNameAr: string;
+      defaultWarehouseId: string;
+      components: Array<{ itemId: string; qtyPerKit: number }>;
+    },
+    actor: WmsActor
+  ): WmsKitBom | null {
+    const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
+    const comps = input.components
+      .map((c) => {
+        const it = state.items.find((x) => x.id === c.itemId);
+        if (!it || c.qtyPerKit <= 0) return null;
+        return {
+          itemId: it.id,
+          sku: it.sku,
+          itemName: it.nameAr,
+          qtyPerKit: Number(c.qtyPerKit),
+          uom: it.baseUom,
+        };
+      })
+      .filter((x): x is NonNullable<typeof x> => Boolean(x));
+
+    if (comps.length === 0) return null;
+    const kit: WmsKitBom = {
+      id: `KIT-${Date.now().toString().slice(-6)}`,
+      company_id: companyId,
+      kitCode: input.kitCode.trim() || `KIT-${String(state.kittingBoms.length + 1).padStart(3, '0')}`,
+      kitNameAr: input.kitNameAr.trim(),
+      defaultWarehouseId: input.defaultWarehouseId || state.warehouses[0]?.id || 'WH-MAIN',
+      components: comps,
+      createdBy: actor.name,
+      createdAt: new Date().toISOString(),
+    };
+    state.kittingBoms.unshift(kit);
+    saveState(state, companyId);
+    return kit;
+  },
+
+  explodeAndIssueKit(
+    params: {
+      kitId: string;
+      kitQty: number;
+      warehouseId?: string;
+      beneficiaryEntity: string;
+      costCenterCode?: string;
+      recipientName?: string;
+      notes?: string;
+    },
+    actor: WmsActor
+  ): { voucher: WmsStockVoucher | null; error: string | null } {
+    const state = loadState();
+    const kit = state.kittingBoms.find((k) => k.id === params.kitId);
+    if (!kit) return { voucher: null, error: 'الحزمة (Kit/BOM) غير موجودة.' };
+    const qty = Math.max(1, Number(params.kitQty || 1));
+    const whId = params.warehouseId || kit.defaultWarehouseId;
+
+    const lines = kit.components.map((c) => ({
+      itemId: c.itemId,
+      enteredQty: Number((c.qtyPerKit * qty).toFixed(3)),
+      enteredUom: c.uom,
+      notes: `تفكيك حزمة: ${kit.kitNameAr} × ${qty}`,
+    }));
+
+    const res = this.createAndPostVoucher(
+      {
+        voucherType: 'GIN',
+        voucherDate: new Date().toISOString().slice(0, 10),
+        warehouseId: whId,
+        beneficiaryEntity: params.beneficiaryEntity,
+        costCenterCode: params.costCenterCode || 'CC-KAS-01',
+        recipientName: params.recipientName,
+        notes: `صرف آلي بتفكيك حزمة (${kit.kitCode} — ${kit.kitNameAr}) × ${qty}${params.notes ? ` | ${params.notes}` : ''}`,
+        lines,
+      },
+      actor
+    );
+
+    if (res.voucher) {
+      const updatedState = loadState();
+      appendAudit(
+        updatedState,
+        actor,
+        'KIT_EXPLODED',
+        'WMS_KIT_BOM',
+        kit.id,
+        `${kit.kitNameAr} × ${qty}`,
+        `تفكيك وصرف مكونات الحزمة بعدد (${kit.components.length}) أصناف في الإذن (${res.voucher.voucherNo}).`
+      );
+      saveState(updatedState);
+    }
+    return res;
+  },
+
+  /** Fast-Issue Consumables Kiosk */
   issueFastConsumable(
     input: {
       itemId: string;
@@ -843,12 +2364,13 @@ export const wmsEngineService = {
     actor: WmsActor
   ): { log: WmsFastConsumableLog | null; error?: string } {
     const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
     const item = state.items.find((i) => i.id === input.itemId);
     if (!item) return { log: null, error: 'الصنف غير موجود.' };
     const qty = Number(input.qty || 0);
     if (qty <= 0) return { log: null, error: 'الكمية يجب أن تكون أكبر من صفر.' };
 
-    const avail = this.getItemStockSummary(item.id).available;
+    const avail = this.getItemStockSummary(item.id, item.defaultWarehouseId).available;
     if (!state.settings.allowNegativeStock && qty > avail) {
       return { log: null, error: `الرصيد المتاح (${avail} ${item.baseUom}) لا يكفي لصرف (${qty}).` };
     }
@@ -859,7 +2381,7 @@ export const wmsEngineService = {
 
     const log: WmsFastConsumableLog = {
       id: `FCON-${Date.now().toString().slice(-6)}`,
-      company_id: 'KAS',
+      company_id: companyId,
       date: new Date().toISOString().slice(0, 10),
       recipientName: input.recipientName.trim(),
       departmentOrOffice: input.departmentOrOffice.trim() || 'مكتب الشركة',
@@ -883,11 +2405,11 @@ export const wmsEngineService = {
       `${item.nameAr} × ${qty}`,
       `صرف سريع إلى (${log.recipientName} — ${log.departmentOrOffice})`
     );
-    saveState(state);
+    saveState(state, companyId);
     return { log };
   },
 
-  /** Auto-Custody Bridge: Push a serialized/high-value issued item straight into CustodiesPage (`custodies`) */
+  /** Auto-Custody Bridge */
   async bridgeItemToCustody(
     params: {
       serialRecordId: string;
@@ -898,17 +2420,18 @@ export const wmsEngineService = {
     actor: WmsActor
   ): Promise<{ custodyId: string | null; error?: string }> {
     const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
     const sn = state.serialLots.find((r) => r.id === params.serialRecordId);
     if (!sn) return { custodyId: null, error: 'السجل التسلسلي غير موجود.' };
 
     const custodyId = `CUST-WMS-${Date.now().toString().slice(-5)}`;
     const custodyRecord = {
       id: custodyId,
-      company_id: 'KAS',
+      company_id: companyId,
       item_name: `${sn.itemName} (${sn.sku})`,
       employee_name: params.employeeName,
       emp_name: params.employeeName,
-      location: params.location || 'شركة كاس للتجارة — الرياض',
+      location: params.location || COMPANY_DISPLAY_NAMES[companyId],
       received_date: sn.issuedDate || new Date().toISOString().slice(0, 10),
       handover_date: sn.issuedDate || new Date().toISOString().slice(0, 10),
       serial_number: sn.serialNumber || sn.sku,
@@ -917,7 +2440,7 @@ export const wmsEngineService = {
       status: 'في حوزة الموظف',
       acknowledged_by_employee: false,
       acknowledgment_status: 'بانتظار إقرار الموظف',
-      notes: `محولة آلياً من نظام مستودعات كاس (KAS WMS) بواسطة ${actor.name}`,
+      notes: `محولة آلياً من منظومة المستودعات (${companyId} WMS) بواسطة ${actor.name}`,
     };
 
     await realErpDataStore.addRecord('custodies', custodyRecord, []);
@@ -936,11 +2459,11 @@ export const wmsEngineService = {
       `${sn.itemName} — ${sn.serialNumber || sn.sku}`,
       `ترحيل تلقائي إلى سجل العهد (${custodyId}) باسم الموظف (${params.employeeName}).`
     );
-    saveState(state);
+    saveState(state, companyId);
     return { custodyId };
   },
 
-  /** Loan a Commercial/Tender Sample with return deadline */
+  /** Loan a Commercial/Tender Sample */
   createSampleLoan(
     input: {
       itemId: string;
@@ -953,12 +2476,13 @@ export const wmsEngineService = {
     actor: WmsActor
   ): WmsSampleLoan | null {
     const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
     const item = state.items.find((i) => i.id === input.itemId);
     if (!item) return null;
 
     const loan: WmsSampleLoan = {
       id: `SMP-${Date.now().toString().slice(-6)}`,
-      company_id: 'KAS',
+      company_id: companyId,
       loanNo: `SMP-2026-${String(state.sampleLoans.length + 1).padStart(3, '0')}`,
       itemId: item.id,
       sku: item.sku,
@@ -984,7 +2508,7 @@ export const wmsEngineService = {
       `${loan.loanNo} — ${loan.itemName}`,
       `تسليم عينة إلى (${loan.issuedTo}) لمشروع (${loan.projectOrTender}) وموعد إرجاع (${loan.expectedReturnDate})`
     );
-    saveState(state);
+    saveState(state, companyId);
     return loan;
   },
 
@@ -1009,7 +2533,7 @@ export const wmsEngineService = {
     return true;
   },
 
-  /** Reserve stock for a KAS Government Tender / BOQ */
+  /** Reserve stock for a Tender / BOQ */
   reserveStockForTender(
     input: {
       tenderRef: string;
@@ -1022,6 +2546,7 @@ export const wmsEngineService = {
     actor: WmsActor
   ): { reservation: WmsTenderReservation | null; error?: string } {
     const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
     const item = state.items.find((i) => i.id === input.itemId);
     if (!item) return { reservation: null, error: 'الصنف غير موجود.' };
     const avail = this.getItemStockSummary(item.id, input.warehouseId).available;
@@ -1035,7 +2560,7 @@ export const wmsEngineService = {
 
     const reservation: WmsTenderReservation = {
       id: `RES-${Date.now().toString().slice(-6)}`,
-      company_id: 'KAS',
+      company_id: companyId,
       tenderRef: input.tenderRef.trim(),
       tenderTitle: input.tenderTitle.trim(),
       itemId: item.id,
@@ -1059,7 +2584,7 @@ export const wmsEngineService = {
       `${reservation.tenderRef} — ${item.nameAr}`,
       `حجز (${input.qty} ${item.baseUom}) لصالح المنافسة (${reservation.tenderRef})`
     );
-    saveState(state);
+    saveState(state, companyId);
     return { reservation };
   },
 
@@ -1088,11 +2613,31 @@ export const wmsEngineService = {
     return true;
   },
 
-  /** Start a Blind Cycle Count session for a warehouse */
-  createCycleCountSession(warehouseId: string, blindMode: boolean, actor: WmsActor): WmsCycleCountSession {
+  /** Start an Unlimited Scoped Blind Cycle Count session for a warehouse (NO 40-item cap!) */
+  createCycleCountSession(
+    warehouseId: string,
+    blindMode: boolean,
+    actor: WmsActor,
+    options?: { scope?: 'ALL' | 'ABC_A' | 'ABC_B' | 'ABC_C' | 'ZONE'; zoneFilter?: string }
+  ): WmsCycleCountSession {
     const state = loadState();
-    const whItems = state.items.filter((it) => it.defaultWarehouseId === warehouseId || this.getItemStockSummary(it.id, warehouseId).onHand > 0);
-    const lines = whItems.slice(0, 40).map((it) => {
+    const companyId = state.settings.company_id || activeCompanyId;
+    const scope = options?.scope || 'ALL';
+    const zoneFilter = (options?.zoneFilter || '').trim().toLowerCase();
+
+    const whItems = state.items.filter((it) => {
+      const inWh = it.defaultWarehouseId === warehouseId || this.getItemStockSummary(it.id, warehouseId).onHand > 0;
+      if (!inWh) return false;
+      if (scope === 'ABC_A') return it.abcClass === 'A';
+      if (scope === 'ABC_B') return it.abcClass === 'B';
+      if (scope === 'ABC_C') return it.abcClass === 'C';
+      if (scope === 'ZONE' && zoneFilter) {
+        return it.defaultLocationCode.toLowerCase().includes(zoneFilter);
+      }
+      return true;
+    });
+
+    const lines = whItems.map((it) => {
       const sysQty = this.getItemStockSummary(it.id, warehouseId).onHand;
       return {
         itemId: it.id,
@@ -1109,18 +2654,20 @@ export const wmsEngineService = {
 
     const session: WmsCycleCountSession = {
       id: `CC-${Date.now().toString().slice(-6)}`,
-      company_id: 'KAS',
+      company_id: companyId,
       countNo: `CNT-2026-${String(state.cycleCounts.length + 1).padStart(3, '0')}`,
       warehouseId,
       countDate: new Date().toISOString().slice(0, 10),
       blindMode,
+      scope,
+      zoneFilter: options?.zoneFilter,
       status: 'قيد الجرد',
       countedBy: actor.name,
       lines,
     };
 
     state.cycleCounts.unshift(session);
-    saveState(state);
+    saveState(state, companyId);
     return session;
   },
 
@@ -1138,13 +2685,60 @@ export const wmsEngineService = {
     return session;
   },
 
-  /** Post a cycle count session and auto-adjust stock quants + create ADJ voucher */
-  postCycleCountSession(sessionId: string, actor: WmsActor): { ok: boolean; adjustmentVoucherNo?: string } {
+  /** Post a cycle count session and auto-adjust stock quants + create ADJ voucher + IAS 2 Surplus/Shortage GL */
+  postCycleCountSession(
+    sessionId: string,
+    actor: WmsActor,
+    options?: { bypassApprovalCheck?: boolean }
+  ): { ok: boolean; adjustmentVoucherNo?: string; pendingApproval?: boolean } {
     const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
     const session = state.cycleCounts.find((s) => s.id === sessionId);
-    if (!session || session.status !== 'قيد الجرد') return { ok: false };
+    if (!session || (session.status !== 'قيد الجرد' && session.status !== 'بانتظار الاعتماد')) {
+      return { ok: false };
+    }
 
     const diffLines = session.lines.filter((l) => l.countedQty !== null && l.varianceQty !== 0);
+
+    // Optional Maker/Checker variance threshold check
+    if (!options?.bypassApprovalCheck && state.settings.enforceMakerChecker && diffLines.length > 0) {
+      const maxVarPct = diffLines.reduce((mx, d) => {
+        const pct = (Math.abs(d.varianceQty) / Math.max(1, d.systemQty)) * 100;
+        return Math.max(mx, pct);
+      }, 0);
+      const limitPct = state.settings.cycleCountVarianceApprovalPct ?? 5;
+      if (maxVarPct >= limitPct) {
+        const totalAbsVal = Number(diffLines.reduce((s, l) => s + Math.abs(l.varianceValue), 0).toFixed(2));
+        session.status = 'بانتظار الاعتماد';
+        const req: WmsApprovalRequest = {
+          id: `APR-CC-${Date.now()}`,
+          company_id: companyId,
+          requestNo: `APR-2026-${String(state.approvalRequests.length + 1).padStart(4, '0')}`,
+          requestType: 'CYCLE_COUNT_VARIANCE',
+          entityId: session.id,
+          entityLabel: `${session.countNo} (${session.warehouseId})`,
+          amountSar: totalAbsVal,
+          variancePct: Number(maxVarPct.toFixed(1)),
+          requestedByEmail: actor.email,
+          requestedByName: actor.name,
+          status: 'PENDING',
+          createdAt: new Date().toISOString(),
+        };
+        state.approvalRequests.unshift(req);
+        appendAudit(
+          state,
+          actor,
+          'APPROVAL_REQUESTED',
+          'WMS_APPROVAL',
+          req.id,
+          req.requestNo,
+          `تعليق جلسة الجرد (${session.countNo}) لاعتماد فروقات بنسبة ${maxVarPct.toFixed(1)}% (> ${limitPct}%).`
+        );
+        saveState(state, companyId);
+        return { ok: true, pendingApproval: true };
+      }
+    }
+
     let adjNo: string | undefined;
 
     for (const dl of diffLines) {
@@ -1157,12 +2751,16 @@ export const wmsEngineService = {
 
     if (diffLines.length > 0) {
       adjNo = nextVoucherNumber(state, 'ADJ');
+      const netSignedVal = Number(
+        diffLines.reduce((s, l) => s + l.varianceValue, 0).toFixed(2)
+      );
       const totalAbsVal = Number(
         diffLines.reduce((s, l) => s + Math.abs(l.varianceValue), 0).toFixed(2)
       );
+
       const adjVoucher: WmsStockVoucher = {
         id: `VCH-ADJ-${Date.now()}`,
-        company_id: 'KAS',
+        company_id: companyId,
         voucherNo: adjNo,
         voucherType: 'ADJ',
         status: 'POSTED',
@@ -1180,7 +2778,7 @@ export const wmsEngineService = {
           uomFactor: 1,
           baseQty: d.varianceQty,
           unitCost: d.unitCost,
-          totalCost: d.varianceValue,
+          totalCost: Math.abs(d.varianceValue),
           notes: `دفتري ${d.systemQty} ← فعلي ${d.countedQty}`,
         })),
         totalQtyBase: diffLines.reduce((s, l) => s + Math.abs(l.varianceQty), 0),
@@ -1194,6 +2792,62 @@ export const wmsEngineService = {
         notes: `تسوية آلية ناتجة عن جلسة الجرد ${session.countNo}`,
         createdAt: new Date().toISOString(),
       };
+
+      // Post separate IAS 2 GL entries for surplus lines (Cr 420901) vs shortage lines (Dr 520901)
+      if (state.settings.autoPostGlWhenCostPresent) {
+        const surplusVal = Number(
+          diffLines.filter((d) => d.varianceValue > 0).reduce((s, d) => s + d.varianceValue, 0).toFixed(2)
+        );
+        const shortageVal = Number(
+          diffLines.filter((d) => d.varianceValue < 0).reduce((s, d) => s + Math.abs(d.varianceValue), 0).toFixed(2)
+        );
+        const firstItem = state.items.find((i) => i.id === diffLines[0].itemId);
+        const { glInventoryAccount } = getCategoryAccounts(state, firstItem?.categoryId || '');
+
+        if (surplusVal > 0) {
+          try {
+            const glRes = journalEngine.autoPostOperationalTransaction({
+              companyId,
+              transactionType: 'WMS_STOCK_SURPLUS',
+              referenceNumber: `${adjNo}-SURPLUS`,
+              referenceId: adjVoucher.id,
+              partyName: `فائض جرد (${session.countNo})`,
+              description: `إثبات فائض جرد مخزني (${session.countNo}) — IAS 2`,
+              amount: surplusVal,
+              costCenterCode: 'CC-KAS-01',
+              createdBy: actor.name,
+              entryDate: session.countDate,
+              glInventoryAccount,
+            });
+            if (glRes.entry) adjVoucher.journalEntryId = glRes.entry.entryNumber;
+          } catch {
+            // Non-blocking
+          }
+        }
+        if (shortageVal > 0) {
+          try {
+            const glRes = journalEngine.autoPostOperationalTransaction({
+              companyId,
+              transactionType: 'WMS_STOCK_ADJUSTMENT',
+              referenceNumber: netSignedVal >= 0 ? `${adjNo}-SHORT` : adjNo,
+              referenceId: adjVoucher.id,
+              partyName: `عجز جرد (${session.countNo})`,
+              description: `تسوية عجز جرد مخزني (${session.countNo}) — IAS 2`,
+              amount: shortageVal,
+              costCenterCode: 'CC-KAS-01',
+              createdBy: actor.name,
+              entryDate: session.countDate,
+              glInventoryAccount,
+            });
+            if (glRes.entry && !adjVoucher.journalEntryId) {
+              adjVoucher.journalEntryId = glRes.entry.entryNumber;
+            }
+          } catch {
+            // Non-blocking
+          }
+        }
+      }
+
       state.vouchers.unshift(adjVoucher);
     }
 
@@ -1211,11 +2865,11 @@ export const wmsEngineService = {
       session.countNo,
       `اعتماد جلسة الجرد (${session.countNo}) بعدد (${diffLines.length}) فروقات${adjNo ? ` وإصدار إذن تسوية (${adjNo})` : ''}.`
     );
-    saveState(state);
+    saveState(state, companyId);
     return { ok: true, adjustmentVoucherNo: adjNo };
   },
 
-  /** Reconcile an opening Excel migration discrepancy (e.g. DVD DRIVE -100 gap or Auto-fixed dates) */
+  /** Reconcile an opening Excel migration discrepancy */
   resolveDiscrepancy(
     discrepancyId: string,
     mode: 'ADJUST_OPENING_STOCK' | 'CONFIRM_ONLY',
@@ -1224,6 +2878,7 @@ export const wmsEngineService = {
     actor: WmsActor
   ): boolean {
     const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
     const d = state.discrepancies.find((x) => x.id === discrepancyId);
     if (!d) return false;
 
@@ -1238,7 +2893,7 @@ export const wmsEngineService = {
         const adjNo = nextVoucherNumber(state, 'ADJ');
         state.vouchers.unshift({
           id: `VCH-REC-${Date.now()}`,
-          company_id: 'KAS',
+          company_id: companyId,
           voucherNo: adjNo,
           voucherType: 'ADJ',
           status: 'POSTED',
@@ -1280,7 +2935,11 @@ export const wmsEngineService = {
 
     d.resolvedBy = actor.name;
     d.resolvedAt = new Date().toISOString();
-    d.resolutionNote = note || (mode === 'ADJUST_OPENING_STOCK' ? `ضبط الرصيد الفعلي على (${actualShelfQty ?? 0})` : 'تمت المراجعة والتأكيد');
+    d.resolutionNote =
+      note ||
+      (mode === 'ADJUST_OPENING_STOCK'
+        ? `ضبط الرصيد الفعلي على (${actualShelfQty ?? 0})`
+        : 'تمت المراجعة والتأكيد');
 
     appendAudit(
       state,
@@ -1291,11 +2950,11 @@ export const wmsEngineService = {
       d.itemName,
       `${d.status} — ${d.resolutionNote}`
     );
-    saveState(state);
+    saveState(state, companyId);
     return true;
   },
 
-  /** Build chronological Double-Entry Stock Card (كرت الصنف) with running balance */
+  /** Build chronological Double-Entry Stock Card */
   getItemStockCard(itemId: string): WmsStockCardEntry[] {
     const state = loadState();
     const relevant = state.vouchers
@@ -1308,7 +2967,10 @@ export const wmsEngineService = {
     for (const v of relevant) {
       for (const line of v.lines) {
         if (line.itemId !== itemId) continue;
-        const isIn = v.voucherType === 'GRN' || v.voucherType === 'SRN' || (v.voucherType === 'ADJ' && line.baseQty >= 0);
+        const isIn =
+          v.voucherType === 'GRN' ||
+          v.voucherType === 'SRN' ||
+          (v.voucherType === 'ADJ' && line.baseQty >= 0);
         const inQty = isIn ? Math.abs(line.baseQty) : 0;
         const outQty = !isIn ? Math.abs(line.baseQty) : 0;
         running = Number((running + inQty - outQty).toFixed(3));
@@ -1333,7 +2995,7 @@ export const wmsEngineService = {
     return entries.reverse();
   },
 
-  /** Compute live Radar Alerts (Low Stock, Expiring Medical/Consumable Lots, Overdue Samples) */
+  /** Compute live Radar Alerts */
   getAlerts(): WmsAlertsSummary {
     const state = loadState();
     const todayMs = Date.now();
@@ -1362,9 +3024,19 @@ export const wmsEngineService = {
       (s) => s.status === 'متأخرة' || (s.status === 'معارة' && s.expectedReturnDate < todayStr)
     );
 
-    const pendingDiscrepancies = state.discrepancies.filter((d) => d.status === 'بانتظار المراجعة').length;
+    const pendingDiscrepancies = state.discrepancies.filter(
+      (d) => d.status === 'بانتظار المراجعة'
+    ).length;
 
-    return { lowStockItems, expiringLots, overdueSamples, pendingDiscrepancies };
+    return {
+      lowStockItems,
+      expiringLots,
+      overdueSamples,
+      pendingDiscrepancies,
+      pendingQcCount: state.qcInspections.filter((q) => q.status === 'PENDING_QC').length,
+      pendingApprovalsCount: state.approvalRequests.filter((a) => a.status === 'PENDING').length,
+      inTransitCount: state.inTransitTransfers.filter((t) => t.status === 'IN_TRANSIT').length,
+    };
   },
 
   /** Consumption Analytics grouped by Beneficiary / Office / Housing / Cost Center */
@@ -1411,7 +3083,7 @@ export const wmsEngineService = {
       .sort((a, b) => b.vouchersCount - a.vouchersCount);
   },
 
-  /** Edit an existing voucher (date, beneficiary, recipient, notes, and line qty/cost with automatic stock reconciliation) */
+  /** Edit an existing voucher (respects strictImmutablePostedVouchers governance flag) */
   updateVoucher(
     voucherId: string,
     patch: {
@@ -1428,9 +3100,16 @@ export const wmsEngineService = {
     const state = loadState();
     const v = state.vouchers.find((x) => x.id === voucherId);
     if (!v) return { ok: false, error: 'الإذن غير موجود.' };
+
+    if (v.status === 'POSTED' && state.settings.strictImmutablePostedVouchers) {
+      return {
+        ok: false,
+        error: `حوكمة المحاسبة الصارمة مفعّلة: يُمنع تعديل الإذن المُرحّل (${v.voucherNo}). استخدم زر "عكس الإذن (Reverse)" لإصدار قيد عكسي معتمد.`,
+      };
+    }
+
     pushUndoSnapshot(state);
 
-    // If line quantities changed on a POSTED voucher, adjust quants by exact delta
     if (patch.lines && v.status === 'POSTED') {
       for (const upd of patch.lines) {
         const line = v.lines.find((l) => l.id === upd.id);
@@ -1444,7 +3123,7 @@ export const wmsEngineService = {
             const srcQ = findOrCreateQuant(state, item, v.warehouseId);
             if (v.voucherType === 'GRN' || (v.voucherType === 'SRN' && line.conditionStatus !== 'تالف') || v.voucherType === 'ADJ') {
               srcQ.onHandQty = Math.max(0, Number((srcQ.onHandQty + delta).toFixed(3)));
-            } else if (v.voucherType === 'GIN') {
+            } else if (v.voucherType === 'GIN' || v.voucherType === 'RTV' || v.voucherType === 'SCRAP') {
               srcQ.onHandQty = Math.max(0, Number((srcQ.onHandQty - delta).toFixed(3)));
             } else if (v.voucherType === 'STR' && v.targetWarehouseId) {
               const tgtQ = findOrCreateQuant(state, item, v.targetWarehouseId);
@@ -1483,29 +3162,37 @@ export const wmsEngineService = {
     return { ok: true };
   },
 
-  /** Soft-delete a voucher to Recycle Bin (safely rolls back stock impact if POSTED) */
+  /** Soft-delete a voucher to Recycle Bin (blocked on POSTED when strictImmutablePostedVouchers is enabled) */
   deleteVoucher(voucherId: string, reason: string, actor: WmsActor): boolean {
     const state = loadState();
     const idx = state.vouchers.findIndex((x) => x.id === voucherId);
     if (idx < 0) return false;
+    const v = state.vouchers[idx];
+    if (v.status === 'POSTED' && state.settings.strictImmutablePostedVouchers) {
+      return false;
+    }
+
     pushUndoSnapshot(state);
-    const [v] = state.vouchers.splice(idx, 1);
+    state.vouchers.splice(idx, 1);
 
     if (v.status === 'POSTED') {
-      for (const line of v.lines) {
-        const item = state.items.find((i) => i.id === line.itemId);
-        if (!item) continue;
-        const srcQ = findOrCreateQuant(state, item, v.warehouseId);
-        if (v.voucherType === 'GRN' || (v.voucherType === 'SRN' && line.conditionStatus !== 'تالف') || v.voucherType === 'ADJ') {
-          srcQ.onHandQty = Math.max(0, Number((srcQ.onHandQty - line.baseQty).toFixed(3)));
-        } else if (v.voucherType === 'GIN') {
-          srcQ.onHandQty = Number((srcQ.onHandQty + line.baseQty).toFixed(3));
-        } else if (v.voucherType === 'STR' && v.targetWarehouseId) {
-          const tgtQ = findOrCreateQuant(state, item, v.targetWarehouseId);
-          tgtQ.onHandQty = Math.max(0, Number((tgtQ.onHandQty - line.baseQty).toFixed(3)));
-          srcQ.onHandQty = Number((srcQ.onHandQty + line.baseQty).toFixed(3));
+      rollbackPostedVoucherQuantDelta(state, v);
+      if (v.totalValue > 0 && v.journalEntryId) {
+        try {
+          journalEngine.autoPostOperationalTransaction({
+            companyId: state.settings.company_id || activeCompanyId,
+            transactionType: 'WMS_STOCK_REVERSAL',
+            reversalTargetType:
+              v.voucherType === 'GRN' ? 'WMS_GOODS_RECEIPT' : 'WMS_GOODS_ISSUE',
+            referenceNumber: `DEL-REV-${v.voucherNo}`,
+            referenceId: v.id,
+            description: `قيد عكسي عند نقل الإذن (${v.voucherNo}) لسلة المحذوفات`,
+            amount: v.totalValue,
+            createdBy: actor.name,
+          });
+        } catch {
+          // ignore
         }
-        srcQ.updatedAt = new Date().toISOString();
       }
     }
 
@@ -1574,7 +3261,7 @@ export const wmsEngineService = {
     return true;
   },
 
-  /** Add/Remove Photos, Invoices & Media Attachments on Items and Vouchers */
+  /** Add/Remove Photos, Invoices & Media Attachments on Items and Vouchers (with background Supabase Storage upload) */
   addItemAttachment(itemId: string, attachment: WmsMediaAttachment, actor: WmsActor): boolean {
     const state = loadState();
     const item = state.items.find((i) => i.id === itemId);
@@ -1591,6 +3278,24 @@ export const wmsEngineService = {
       `إرفاق ملف وسائط (${attachment.tag}): ${attachment.name}`
     );
     saveState(state);
+
+    if (attachment.dataUrl && !attachment.storagePath) {
+      void wmsCloudSyncService
+        .uploadWmsAttachmentToStorage(
+          state.settings.company_id || activeCompanyId,
+          item.id,
+          attachment.dataUrl,
+          attachment.name,
+          attachment.mimeType
+        )
+        .then((uploaded) => {
+          if (uploaded.storagePath) {
+            attachment.storagePath = uploaded.storagePath;
+            attachment.storageUrl = uploaded.storageUrl;
+            saveState(loadState());
+          }
+        });
+    }
     return true;
   },
 
@@ -1621,6 +3326,24 @@ export const wmsEngineService = {
       `إرفاق ملف وسائط (${attachment.tag}): ${attachment.name}`
     );
     saveState(state);
+
+    if (attachment.dataUrl && !attachment.storagePath) {
+      void wmsCloudSyncService
+        .uploadWmsAttachmentToStorage(
+          state.settings.company_id || activeCompanyId,
+          v.id,
+          attachment.dataUrl,
+          attachment.name,
+          attachment.mimeType
+        )
+        .then((uploaded) => {
+          if (uploaded.storagePath) {
+            attachment.storagePath = uploaded.storagePath;
+            attachment.storageUrl = uploaded.storageUrl;
+            saveState(loadState());
+          }
+        });
+    }
     return true;
   },
 

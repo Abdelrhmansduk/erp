@@ -1,21 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { useAppStore } from '../stores/appStore';
 import { FileText, FileSpreadsheet, ArrowRight, ArrowLeft, Check, Upload, User, Award, Paperclip, Printer, QrCode, X } from 'lucide-react';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
+import {
+  getUnifiedAgenciesSync,
+  loadUnifiedAgencies,
+  type UnifiedExternalAgency,
+} from '../services/externalAgencyMasterService';
 
 export const CreateCVPage: React.FC = () => {
   const { setActiveTab, addNotification } = useAppStore();
   const [activeStep, setActiveStep] = useState<number>(1);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
+  const [unifiedAgencies, setUnifiedAgencies] = useState<UnifiedExternalAgency[]>(() =>
+    getUnifiedAgenciesSync()
+  );
+
+  useEffect(() => {
+    void loadUnifiedAgencies().then(setUnifiedAgencies);
+  }, []);
 
   const [formData, setFormData] = useState({
     // 1. Basic & Agency
     type_id: 'توسط',
     create_shelter_contract: false,
     nationality_id: 'الفلبين',
-    office_id: "PLATINUM BROTHERS INT'L",
+    agency_id: getUnifiedAgenciesSync()[0]?.id || 'AGY-ETH-MZAIN',
+    office_id: getUnifiedAgenciesSync()[0]?.name_ar || "PLATINUM BROTHERS INT'L",
     job_title: 'عاملة منزلية',
     monthly_salary: 1500,
     cost_usd: 1200,
@@ -60,9 +73,32 @@ export const CreateCVPage: React.FC = () => {
 
     // 6. Media & Links
     video_url: '',
+    portrait_url: '',
+    full_image_url: '',
+    passport_image_url: '',
     medical_report_status: 'سليم ولائق طبياً',
     police_clearance: 'سارية وخالية من السوابق',
   });
+
+  const handleCvImageUpload = (
+    field: 'portrait_url' | 'full_image_url' | 'passport_image_url',
+    file?: File
+  ) => {
+    if (!file) return;
+    if (file.size > 1_500_000) {
+      addNotification({
+        title: 'حجم الصورة كبير',
+        message: 'الحد الأقصى لحجم الصورة 1.5 ميجابايت.',
+        type: 'warning',
+      });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFormData((prev) => ({ ...prev, [field]: String(reader.result || '') }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,12 +145,16 @@ export const CreateCVPage: React.FC = () => {
       experience_country: formData.prev_country ? `${formData.prev_country} (${formData.prev_duration})` : formData.experience_type,
       salary: Number(formData.monthly_salary) || 1500,
       cost_usd: Number(formData.cost_usd) || 1200,
+      agency_id: formData.agency_id,
       external_office: formData.office_id,
       type: formData.type_id === 'تأجير' ? 'تأجير' : 'استقدام',
       skills: selectedSkills,
       medical_report_status: formData.medical_report_status,
       police_clearance: formData.police_clearance,
       video_url: formData.video_url,
+      portrait_url: formData.portrait_url || undefined,
+      full_image_url: formData.full_image_url || undefined,
+      passport_image_url: formData.passport_image_url || undefined,
       phone_number: formData.phone_number,
       status: 'متاح',
       created_at: new Date().toISOString().slice(0, 10),
@@ -285,7 +325,7 @@ export const CreateCVPage: React.FC = () => {
                   className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 >
                   <option value="توسط">استقدام (توسط أفراد)</option>
-                  <option value="إيجار">تأجير وتشغيل</option>
+                  <option value="تأجير">تأجير وتشغيل</option>
                   <option value="نقل كفالة">نقل كفالة وتنازل</option>
                 </select>
               </div>
@@ -311,14 +351,27 @@ export const CreateCVPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
-                <label className="text-xs text-[#141414] block mb-1 font-semibold">المكتب / الوكالة المصدرة *</label>
-                <input
-                  type="text"
+                <label className="text-xs text-[#141414] block mb-1 font-semibold">المكتب / الوكالة الخارجية الموحدة *</label>
+                <select
                   aria-label="المكتب / الوكالة المصدرة"
-                  value={formData.office_id}
-                  onChange={(e) => setFormData({ ...formData, office_id: e.target.value })}
+                  value={formData.agency_id}
+                  onChange={(e) => {
+                    const selectedAg = unifiedAgencies.find((a) => a.id === e.target.value);
+                    setFormData({
+                      ...formData,
+                      agency_id: e.target.value,
+                      office_id: selectedAg?.name_ar || e.target.value,
+                    });
+                  }}
                   className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2.5 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
-                />
+                >
+                  {unifiedAgencies.map((ag) => (
+                    <option key={ag.id} value={ag.id}>
+                      {ag.name_ar} — {ag.country}
+                    </option>
+                  ))}
+                  <option value="LEGACY-PLATINUM">PLATINUM BROTHERS INT&apos;L</option>
+                </select>
               </div>
 
               <div>
@@ -567,6 +620,37 @@ export const CreateCVPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Real Image Uploads (Portrait, Full Body, Passport Scan) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              {[
+                { key: 'portrait_url' as const, label: 'الصورة الشخصية (Portrait)' },
+                { key: 'full_image_url' as const, label: 'الصورة الكاملة (Full Body)' },
+                { key: 'passport_image_url' as const, label: 'صورة جواز السفر (Passport)' },
+              ].map((imgField) => (
+                <div key={imgField.key} className="bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl p-3 space-y-2">
+                  <div className="text-xs font-bold text-[#141414]">{imgField.label}</div>
+                  {formData[imgField.key] ? (
+                    <img
+                      src={formData[imgField.key]}
+                      alt={imgField.label}
+                      className="w-full h-28 object-cover rounded-xl border border-[#e0e0e0]"
+                    />
+                  ) : (
+                    <div className="w-full h-20 rounded-xl bg-[#ffffff] border border-dashed border-[#e0e0e0] flex items-center justify-center text-[11px] text-[#707070]">
+                      لم يتم رفع صورة
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    aria-label={imgField.label}
+                    onChange={(e) => handleCvImageUpload(imgField.key, e.target.files?.[0])}
+                    className="w-full text-[11px] text-[#141414]"
+                  />
+                </div>
+              ))}
+            </div>
+
             <div className="flex justify-between pt-4 border-t border-[#e0e0e0]">
               <button
                 type="button"
@@ -625,7 +709,15 @@ export const CreateCVPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Photo Placeholder */}
                 <div className="col-span-1 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] p-3 flex flex-col items-center justify-center min-h-[160px] text-center">
-                  <User className="w-16 h-16 text-[#707070] mb-2" />
+                  {formData.portrait_url ? (
+                    <img
+                      src={formData.portrait_url}
+                      alt={formData.full_name_en || 'Candidate Portrait'}
+                      className="w-24 h-24 rounded-2xl object-cover border border-[#e0e0e0] mb-2"
+                    />
+                  ) : (
+                    <User className="w-16 h-16 text-[#707070] mb-2" />
+                  )}
                   <span className="text-[11px] font-bold text-[#141414]">{formData.full_name_ar || formData.full_name_en || 'اسم العاملة'}</span>
                   <span className="text-[10px] text-[#707070] font-mono">{formData.full_name_en || 'CANDIDATE FULL NAME'}</span>
                   <span className="pill-tag-mint text-[9px] mt-2">لائقة طبياً</span>

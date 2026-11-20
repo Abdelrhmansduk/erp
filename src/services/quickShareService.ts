@@ -20,6 +20,11 @@ import {
   getProviderDisplayNameAr,
 } from './hrDirectEmailDispatchService';
 import { KAS_ALLOWED_EMPLOYEES, EXCLUDED_KAS_EMAILS } from '../config/kasAllowedEmails';
+import {
+  cryptoRandomInt,
+  decryptStoragePayload,
+  encryptStoragePayload,
+} from '../utils/securitySanitizers';
 
 export interface QuickSharePayload {
   title: string;
@@ -1025,7 +1030,7 @@ export async function copyOrWebShareSummary(payload: QuickSharePayload): Promise
 export function listRecycleBinEntries(tableName?: string): RecycleBinEntry[] {
   try {
     if (typeof localStorage === 'undefined') return [];
-    const raw = localStorage.getItem(RECYCLE_BIN_KEY);
+    const raw = decryptStoragePayload(localStorage.getItem(RECYCLE_BIN_KEY));
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
@@ -1054,7 +1059,7 @@ export function archiveRecordBeforeSoftDelete(params: {
   const now = new Date();
   const expires = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
   const entry: RecycleBinEntry = {
-    binId: `BIN-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
+    binId: `BIN-${Date.now()}-${cryptoRandomInt(1000, 10000)}`,
     tableName: params.tableName,
     originalId: String(params.record?.id || params.record?.employee_code || Date.now()),
     recordTitle: params.recordTitle,
@@ -1069,7 +1074,10 @@ export function archiveRecordBeforeSoftDelete(params: {
   try {
     if (typeof localStorage !== 'undefined') {
       const existing = listRecycleBinEntries();
-      localStorage.setItem(RECYCLE_BIN_KEY, JSON.stringify([entry, ...existing].slice(0, 250)));
+      localStorage.setItem(
+        RECYCLE_BIN_KEY,
+        encryptStoragePayload(JSON.stringify([entry, ...existing].slice(0, 250)))
+      );
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('erp-recycle-bin-updated'));
       }
@@ -1088,7 +1096,7 @@ export function popRecycleBinEntryForRestore(binId: string): RecycleBinEntry | n
     const target = existing.find((e) => e.binId === binId) || null;
     if (!target) return null;
     const remaining = existing.filter((e) => e.binId !== binId);
-    localStorage.setItem(RECYCLE_BIN_KEY, JSON.stringify(remaining));
+    localStorage.setItem(RECYCLE_BIN_KEY, encryptStoragePayload(JSON.stringify(remaining)));
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('erp-recycle-bin-updated'));
     }
@@ -1149,7 +1157,10 @@ export function recordFieldLevelChanges(params: {
   if (changes.length > 0 && typeof localStorage !== 'undefined') {
     try {
       const existing = listFieldAuditHistory();
-      localStorage.setItem(FIELD_AUDIT_KEY, JSON.stringify([...changes, ...existing].slice(0, 500)));
+      localStorage.setItem(
+        FIELD_AUDIT_KEY,
+        encryptStoragePayload(JSON.stringify([...changes, ...existing].slice(0, 500)))
+      );
     } catch {
       // non-blocking
     }
@@ -1161,7 +1172,7 @@ export function recordFieldLevelChanges(params: {
 export function listFieldAuditHistory(recordId?: string): FieldAuditChange[] {
   try {
     if (typeof localStorage === 'undefined') return [];
-    const raw = localStorage.getItem(FIELD_AUDIT_KEY);
+    const raw = decryptStoragePayload(localStorage.getItem(FIELD_AUDIT_KEY));
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];

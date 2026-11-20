@@ -6,6 +6,7 @@
 
 import { supabase, isDummySupabase } from './supabaseClient';
 import { KAS_ALLOWED_EMPLOYEES } from '../config/kasAllowedEmails';
+import { cryptoRandomInt, encryptStoragePayload, decryptStoragePayload } from '../utils/securitySanitizers';
 import {
   IamUser,
   IamCompany,
@@ -446,14 +447,14 @@ class IamPolicyEngine {
 
   private getLocalIamList<T>(key: string, fallback: T[]): T[] {
     try {
-      const raw = localStorage.getItem(key);
+      const raw = decryptStoragePayload(localStorage.getItem(key));
       if (!raw) {
-        localStorage.setItem(key, JSON.stringify(fallback));
+        localStorage.setItem(key, encryptStoragePayload(JSON.stringify(fallback)));
         return fallback;
       }
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      localStorage.setItem(key, JSON.stringify(fallback));
+      localStorage.setItem(key, encryptStoragePayload(JSON.stringify(fallback)));
       return fallback;
     } catch {
       return fallback;
@@ -546,7 +547,7 @@ class IamPolicyEngine {
   public async saveUser(user: Partial<IamUser>): Promise<IamUser> {
     const savedLocal: IamUser = {
       id: user.id && !user.id.startsWith('temp-') ? user.id : `usr-${Date.now()}`,
-      employeeNumber: user.employeeNumber || `EMP-${Math.floor(1000 + Math.random() * 9000)}`,
+      employeeNumber: user.employeeNumber || `EMP-${cryptoRandomInt(1000, 10000)}`,
       fullName: user.fullName || 'موظف جديد',
       email: user.email || 'user@alsulaim.sa',
       phone: user.phone || '+966500000000',
@@ -566,7 +567,7 @@ class IamPolicyEngine {
       ? currentList.map((u) => (u.id === savedLocal.id ? { ...u, ...savedLocal } : u))
       : [savedLocal, ...currentList];
     try {
-      localStorage.setItem('ALSULAIM_IAM_USERS', JSON.stringify(nextList));
+      localStorage.setItem('ALSULAIM_IAM_USERS', encryptStoragePayload(JSON.stringify(nextList)));
     } catch {
       // ignore
     }
@@ -615,7 +616,7 @@ class IamPolicyEngine {
     const currentList = this.getLocalIamList('ALSULAIM_IAM_USERS', IamPolicyEngine.DEFAULT_USERS);
     const nextList = currentList.filter((u) => u.id !== userId);
     try {
-      localStorage.setItem('ALSULAIM_IAM_USERS', JSON.stringify(nextList));
+      localStorage.setItem('ALSULAIM_IAM_USERS', encryptStoragePayload(JSON.stringify(nextList)));
     } catch {
       // ignore
     }
@@ -817,7 +818,10 @@ class IamPolicyEngine {
     };
     const current = this.getLocalIamList('ALSULAIM_IAM_DELEGATIONS', IamPolicyEngine.DEFAULT_DELEGATIONS);
     try {
-      localStorage.setItem('ALSULAIM_IAM_DELEGATIONS', JSON.stringify([createdLocal, ...current]));
+      localStorage.setItem(
+        'ALSULAIM_IAM_DELEGATIONS',
+        encryptStoragePayload(JSON.stringify([createdLocal, ...current]))
+      );
     } catch {
       // ignore
     }

@@ -6,10 +6,15 @@ on:
     paths:
       - 'mobile_app/**'
 
+permissions:
+  contents: read
+
 jobs:
   build-android:
     name: Build Android APK (Release)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: mobile_app
@@ -19,7 +24,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           channel: 'stable'
       - name: Install dependencies
@@ -37,12 +42,14 @@ jobs:
   build-ios:
     name: Build iOS IPA (Unsigned for SideLoad / AltStore / Enterprise Sign)
     runs-on: macos-latest
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: mobile_app
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           channel: 'stable'
       - name: Install dependencies

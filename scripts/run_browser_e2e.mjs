@@ -36,17 +36,14 @@ const DASHBOARD_SCREENSHOT_PATH =
 function computeEphemeralPasswordDigest(email, password) {
   const cleanEmail = email.trim().toLowerCase();
   const cleanPass = password.trim();
-  let digest = crypto
-    .createHash('sha256')
-    .update(`KAS-ERP-STRONG-AUTH-2026-V2|${cleanEmail}|${cleanPass}`)
-    .digest('hex');
-  for (let i = 1; i < 256; i++) {
-    digest = crypto
-      .createHash('sha256')
-      .update(`${digest}|${cleanEmail}`)
-      .digest('hex');
-  }
-  return digest;
+  const dk = crypto.pbkdf2Sync(
+    cleanPass,
+    `KAS-PBKDF2-V1|${cleanEmail}`,
+    100000,
+    32,
+    'sha256'
+  );
+  return `pbkdf2:${dk.toString('hex')}`;
 }
 
 function getFreePort() {

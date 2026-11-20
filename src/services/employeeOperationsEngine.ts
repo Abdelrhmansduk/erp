@@ -19,6 +19,7 @@ import {
 } from './authService';
 import { realErpDataStore } from './realErpDataStore';
 import { employeeMonitoringService } from './employeeMonitoringService';
+import { encryptStoragePayload } from '../utils/securitySanitizers';
 
 export interface ExecutedEmployeeOperation {
   id: string;
@@ -566,7 +567,7 @@ export const employeeOperationsEngine = {
 
     try {
       sessionStorage.removeItem('ALSULAIM_EXPLICIT_LOGOUT');
-      localStorage.setItem('ALSULAIM_AUTH_USER', JSON.stringify(profile));
+      localStorage.setItem('ALSULAIM_AUTH_USER', encryptStoragePayload(JSON.stringify(profile)));
       setLockedSessionCompany(staff.company_id);
       setLockedSessionDepartment(staff.department_id);
       window.dispatchEvent(new CustomEvent('alsulaim-auth-updated', { detail: { profile } }));

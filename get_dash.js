@@ -54,9 +54,17 @@ async function fetchDashboard() {
       }
     });
 
-    const dashHtml = await dashRes.text();
+    if (!dashRes.ok) {
+      throw new Error(`Unexpected HTTP status ${dashRes.status}`);
+    }
+    const rawBytes = new Uint8Array(await dashRes.arrayBuffer());
+    const byteLut = Array.from({ length: 256 }, (_, b) => b);
+    const cleanBytes = Buffer.allocUnsafe(rawBytes.length);
+    for (let i = 0; i < rawBytes.length; i += 1) {
+      cleanBytes[i] = byteLut[rawBytes[i] & 0xff];
+    }
     const outputPath = path.join(__dirname, 'dash.html');
-    fs.writeFileSync(outputPath, dashHtml, 'utf-8');
+    fs.writeFileSync(outputPath, cleanBytes, { mode: 0o600 });
     console.log(`Saved dashboard HTML successfully to ${outputPath}`);
   } catch (err) {
     console.error('Error in fetchDashboard:', err);

@@ -236,6 +236,53 @@ export const DEFAULT_OFFICE_CV_PRESETS: OfficeCvExportPreset[] = [
   },
 ];
 
+export function normalizeOfficeCvPresetRecord(raw: any): OfficeCvExportPreset | null {
+  if (!raw || !raw.id) return null;
+  return {
+    id: String(raw.id),
+    officeCode: String(raw.officeCode || raw.office_code || 'SAF'),
+    presetNameAr: String(raw.presetNameAr || raw.preset_name_ar || ''),
+    presetNameEn: String(raw.presetNameEn || raw.preset_name_en || ''),
+    companyNameAr: String(raw.companyNameAr || raw.company_name_ar || ''),
+    companyNameEn: String(raw.companyNameEn || raw.company_name_en || ''),
+    musanedLicenseNo: String(raw.musanedLicenseNo || raw.musaned_license_no || ''),
+    crNumber: String(raw.crNumber || raw.cr_number || ''),
+    salesPhones: Array.isArray(raw.salesPhones)
+      ? raw.salesPhones
+      : Array.isArray(raw.sales_phones)
+        ? raw.sales_phones
+        : [],
+    salesWhatsapp: String(raw.salesWhatsapp || raw.sales_whatsapp || ''),
+    salesEmail: String(raw.salesEmail || raw.sales_email || 'info@kas.sa'),
+    addressAr: String(raw.addressAr || raw.address_ar || ''),
+    headerBgHex: String(raw.headerBgHex || raw.header_bg_hex || '#141414'),
+    accentBandHex: String(raw.accentBandHex || raw.accent_band_hex || '#262626'),
+    hideForeignAgencyIdentity:
+      raw.hideForeignAgencyIdentity !== undefined
+        ? Boolean(raw.hideForeignAgencyIdentity)
+        : raw.hide_foreign_agency_identity !== undefined
+          ? Boolean(raw.hide_foreign_agency_identity)
+          : true,
+    maskPassportBeforeContract:
+      raw.maskPassportBeforeContract !== undefined
+        ? Boolean(raw.maskPassportBeforeContract)
+        : raw.mask_passport_before_contract !== undefined
+          ? Boolean(raw.mask_passport_before_contract)
+          : true,
+    pricingDisplayMode:
+      (raw.pricingDisplayMode || raw.pricing_display_mode) === 'RENTAL_PACKAGE'
+        ? 'RENTAL_PACKAGE'
+        : 'RECRUITMENT_SALARY',
+    rentalMonthlyPackageSar:
+      raw.rentalMonthlyPackageSar !== undefined
+        ? Number(raw.rentalMonthlyPackageSar)
+        : raw.rental_monthly_package_sar !== undefined
+          ? Number(raw.rental_monthly_package_sar)
+          : undefined,
+    warrantyClauseAr: String(raw.warrantyClauseAr || raw.warranty_clause_ar || ''),
+  };
+}
+
 export function getOfficeCvPresets(): OfficeCvExportPreset[] {
   try {
     if (typeof localStorage === 'undefined') return [...DEFAULT_OFFICE_CV_PRESETS];
@@ -245,8 +292,9 @@ export function getOfficeCvPresets(): OfficeCvExportPreset[] {
     if (!Array.isArray(custom)) return [...DEFAULT_OFFICE_CV_PRESETS];
     const mergedMap = new Map<string, OfficeCvExportPreset>();
     DEFAULT_OFFICE_CV_PRESETS.forEach((p) => mergedMap.set(p.id, p));
-    custom.forEach((p: OfficeCvExportPreset) => {
-      if (p?.id) mergedMap.set(p.id, p);
+    custom.forEach((item: any) => {
+      const normalized = normalizeOfficeCvPresetRecord(item);
+      if (normalized?.id) mergedMap.set(normalized.id, normalized);
     });
     return Array.from(mergedMap.values());
   } catch {
@@ -254,8 +302,29 @@ export function getOfficeCvPresets(): OfficeCvExportPreset[] {
   }
 }
 
+export async function loadOfficeCvPresets(): Promise<OfficeCvExportPreset[]> {
+  const mergedMap = new Map<string, OfficeCvExportPreset>();
+  getOfficeCvPresets().forEach((p) => mergedMap.set(p.id, p));
+  try {
+    const cloudRows = await realErpDataStore.getRecords<any>('office_cv_export_presets', [], 'all');
+    for (const row of cloudRows) {
+      const normalized = normalizeOfficeCvPresetRecord(row);
+      if (normalized?.id) {
+        mergedMap.set(normalized.id, normalized);
+      }
+    }
+    const merged = Array.from(mergedMap.values());
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(CUSTOM_PRESETS_KEY, JSON.stringify(merged));
+    }
+    return merged;
+  } catch {
+    return Array.from(mergedMap.values());
+  }
+}
+
 export async function saveCustomOfficeCvPreset(preset: OfficeCvExportPreset): Promise<OfficeCvExportPreset[]> {
-  const current = getOfficeCvPresets();
+  const current = await loadOfficeCvPresets();
   const idx = current.findIndex((p) => p.id === preset.id);
   if (idx >= 0) current[idx] = preset;
   else current.push(preset);
@@ -267,6 +336,44 @@ export async function saveCustomOfficeCvPreset(preset: OfficeCvExportPreset): Pr
   } catch {
     // ignore
   }
+
+  const dbRow: { id: string; [key: string]: any } = {
+    id: preset.id,
+    company_id: preset.officeCode === 'SAF' || preset.officeCode === 'QAS' || preset.officeCode === 'SHA' || preset.officeCode === 'SHAR' || preset.officeCode === 'YAQ'
+      ? preset.officeCode
+      : 'all',
+    office_code: preset.officeCode,
+    preset_name_ar: preset.presetNameAr,
+    preset_name_en: preset.presetNameEn,
+    company_name_ar: preset.companyNameAr,
+    company_name_en: preset.companyNameEn,
+    musaned_license_no: preset.musanedLicenseNo,
+    cr_number: preset.crNumber,
+    sales_phones: preset.salesPhones,
+    sales_whatsapp: preset.salesWhatsapp,
+    sales_email: preset.salesEmail,
+    address_ar: preset.addressAr,
+    header_bg_hex: preset.headerBgHex,
+    accent_band_hex: preset.accentBandHex,
+    hide_foreign_agency_identity: preset.hideForeignAgencyIdentity,
+    mask_passport_before_contract: preset.maskPassportBeforeContract,
+    pricing_display_mode: preset.pricingDisplayMode,
+    rental_monthly_package_sar: preset.rentalMonthlyPackageSar ?? null,
+    warranty_clause_ar: preset.warrantyClauseAr,
+    updated_at: new Date().toISOString(),
+  };
+
+  try {
+    const existing = await realErpDataStore.getRecords<any>('office_cv_export_presets', [], 'all');
+    if (existing.some((r) => String(r.id) === preset.id)) {
+      await realErpDataStore.updateRecord<any>('office_cv_export_presets', preset.id, dbRow);
+    } else {
+      await realErpDataStore.addRecord<any>('office_cv_export_presets', dbRow);
+    }
+  } catch {
+    // offline/local cache still holds the preset
+  }
+
   return current;
 }
 
@@ -430,6 +537,103 @@ function uint8ToDataUrl(bytes: Uint8Array, mime: string): string {
   return `data:${mime};base64,${b64}`;
 }
 
+function extractPrintableTextFromBytes(bytes: Uint8Array, maxLen = 600_000): string {
+  let out = '';
+  const limit = Math.min(bytes.length, maxLen);
+  for (let k = 0; k < limit; k++) {
+    const b = bytes[k];
+    if ((b >= 32 && b <= 126) || b === 10 || b === 13) {
+      out += String.fromCharCode(b);
+    } else if (out.length === 0 || out[out.length - 1] !== ' ') {
+      out += ' ';
+    }
+  }
+  return out;
+}
+
+async function tryDecompressDeflateChunk(chunk: Uint8Array): Promise<string> {
+  if (typeof DecompressionStream === 'undefined') return '';
+  for (const format of ['deflate', 'deflate-raw'] as const) {
+    try {
+      const ds = new DecompressionStream(format);
+      const writer = ds.writable.getWriter();
+      const copy = new Uint8Array(chunk.byteLength);
+      copy.set(chunk);
+      writer.write(copy).catch(() => {});
+      writer.close().catch(() => {});
+      const reader = ds.readable.getReader();
+      const parts: Uint8Array[] = [];
+      let total = 0;
+      while (total < 400_000) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          parts.push(value);
+          total += value.byteLength;
+        }
+      }
+      if (total === 0) continue;
+      const merged = new Uint8Array(total);
+      let offset = 0;
+      for (const p of parts) {
+        merged.set(p, offset);
+        offset += p.byteLength;
+      }
+      // Decode PDF text operators `( ... ) Tj` / `TJ` inside decompressed content stream
+      const decoded = extractPrintableTextFromBytes(merged, 400_000);
+      const literalMatches = decoded.match(/\((?:\\.|[^()]){2,180}\)/g) || [];
+      if (literalMatches.length > 0) {
+        const cleaned = literalMatches
+          .map((m) => m.slice(1, -1).replace(/\\([()\\])/g, '$1'))
+          .join(' ');
+        return `${decoded}\n${cleaned}`;
+      }
+      return decoded;
+    } catch {
+      // try next format
+    }
+  }
+  return '';
+}
+
+export async function decompressPdfFlateStreams(bytes: Uint8Array): Promise<string> {
+  if (typeof DecompressionStream === 'undefined') return '';
+  let latin = '';
+  const limit = Math.min(bytes.length, 2_500_000);
+  for (let i = 0; i < limit; i++) {
+    latin += String.fromCharCode(bytes[i]);
+  }
+  const chunks: Uint8Array[] = [];
+  let cursor = 0;
+  while (cursor < limit && chunks.length < 32) {
+    const streamTokenIdx = latin.indexOf('stream', cursor);
+    if (streamTokenIdx < 0) break;
+    const dictWindow = latin.slice(Math.max(0, streamTokenIdx - 220), streamTokenIdx);
+    let dataStart = streamTokenIdx + 6;
+    if (latin[dataStart] === '\r' && latin[dataStart + 1] === '\n') dataStart += 2;
+    else if (latin[dataStart] === '\n' || latin[dataStart] === '\r') dataStart += 1;
+
+    const endStreamIdx = latin.indexOf('endstream', dataStart);
+    if (endStreamIdx < 0) break;
+    let dataEnd = endStreamIdx;
+    while (dataEnd > dataStart && (bytes[dataEnd - 1] === 10 || bytes[dataEnd - 1] === 13)) {
+      dataEnd--;
+    }
+
+    const isFlate =
+      /\/FlateDecode/i.test(dictWindow) &&
+      !/\/DCTDecode|\/JPXDecode|\/ImageB|\/ImageC/i.test(dictWindow);
+    if (isFlate && dataEnd - dataStart >= 8 && dataEnd - dataStart <= 250_000) {
+      chunks.push(bytes.subarray(dataStart, dataEnd));
+    }
+    cursor = endStreamIdx + 9;
+  }
+
+  if (chunks.length === 0) return '';
+  const decompressedTexts = await Promise.all(chunks.map((c) => tryDecompressDeflateChunk(c)));
+  return decompressedTexts.filter(Boolean).join('\n');
+}
+
 export function extractJpegsAndTextFromPdfBytes(buffer: ArrayBuffer): {
   extractedText: string;
   jpegDataUrls: string[];
@@ -461,15 +665,7 @@ export function extractJpegsAndTextFromPdfBytes(buffer: ArrayBuffer): {
   }
 
   // Decode printable text & URI annotations
-  let ascii = '';
-  for (let k = 0; k < Math.min(bytes.length, 600_000); k++) {
-    const b = bytes[k];
-    if ((b >= 32 && b <= 126) || b === 10 || b === 13) {
-      ascii += String.fromCharCode(b);
-    } else {
-      ascii += ' ';
-    }
-  }
+  const ascii = extractPrintableTextFromBytes(bytes, 600_000);
 
   const urlMatches = ascii.match(/https?:\/\/[^\s)>\]"']+/gi) || [];
   const detectedUrls = Array.from(new Set(urlMatches.map((u) => u.replace(/[)\\]+$/, ''))));
@@ -478,6 +674,30 @@ export function extractJpegsAndTextFromPdfBytes(buffer: ArrayBuffer): {
     extractedText: ascii,
     jpegDataUrls,
     detectedUrls,
+  };
+}
+
+export async function extractJpegsAndTextFromPdfBytesAsync(buffer: ArrayBuffer): Promise<{
+  extractedText: string;
+  jpegDataUrls: string[];
+  detectedUrls: string[];
+  usedFlateDecompression: boolean;
+}> {
+  const syncRes = extractJpegsAndTextFromPdfBytes(buffer);
+  const flateText = await decompressPdfFlateStreams(new Uint8Array(buffer));
+  if (!flateText) {
+    return { ...syncRes, usedFlateDecompression: false };
+  }
+  const combinedText = `${syncRes.extractedText}\n${flateText}`;
+  const urlMatches = combinedText.match(/https?:\/\/[^\s)>\]"']+/gi) || [];
+  const detectedUrls = Array.from(
+    new Set([...syncRes.detectedUrls, ...urlMatches.map((u) => u.replace(/[)\\]+$/, ''))])
+  );
+  return {
+    extractedText: combinedText,
+    jpegDataUrls: syncRes.jpegDataUrls,
+    detectedUrls,
+    usedFlateDecompression: true,
   };
 }
 
@@ -499,7 +719,7 @@ export async function extractSmartCvFromFile(
 
   const buf = await file.arrayBuffer();
   if (isPdf) {
-    const pdfData = extractJpegsAndTextFromPdfBytes(buf);
+    const pdfData = await extractJpegsAndTextFromPdfBytesAsync(buf);
     combinedText = `${combinedText}\n${pdfData.extractedText}`;
     portraitDataUrl = pdfData.jpegDataUrls[0];
     fullBodyDataUrl = pdfData.jpegDataUrls[1];
@@ -735,4 +955,34 @@ export async function checkCandidateDuplicateAndBlacklist(
     matchedContractNo,
     reasonsAr,
   };
+}
+
+export interface SmartBatchCvExtractionItem {
+  fileName: string;
+  draft?: SmartExtractedCvDraft;
+  blacklist?: DuplicateAndBlacklistCheck;
+  error?: string;
+}
+
+export async function extractSmartCvsBatchFromFiles(
+  files: File[]
+): Promise<SmartBatchCvExtractionItem[]> {
+  const results: SmartBatchCvExtractionItem[] = [];
+  for (const file of files) {
+    try {
+      const draft = await extractSmartCvFromFile(file);
+      const blacklist = await checkCandidateDuplicateAndBlacklist(draft.passportNumber, draft.fullNameEn);
+      results.push({
+        fileName: file.name,
+        draft,
+        blacklist,
+      });
+    } catch (e: any) {
+      results.push({
+        fileName: file.name,
+        error: e?.message || 'تعذر قراءة ملف PDF أو استخراج بياناته',
+      });
+    }
+  }
+  return results;
 }

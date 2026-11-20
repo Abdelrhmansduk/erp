@@ -135,14 +135,14 @@ describe('KAS Official Email Whitelist & 9-Department / Standalone KAS Trade RBA
     expect(authService.isTabAuthorizedForUser(kasOfficeHelper, 'kas-suite')).toBe(false);
     expect(authService.isTabAuthorizedForUser(kasOfficeHelper, 'settings')).toBe(false);
 
-    // Exclusive KAS Enterprise WMS (`kas-warehouse`): ONLY Hatem, Ahmed Gamal, Firas (+ Executive)
+    // Exclusive KAS Enterprise WMS (`kas-warehouse`): Hatem Salman & Firas (+ Executive), NOT Ahmed Gamal
     const hatem = buildProfileForKasEmail('h.salman.trade@kas.sa');
     const ahmedGamal = buildProfileForKasEmail('a.albashir.trade@kas.sa');
     const mohammedIsmail = buildProfileForKasEmail('m.ismail.trade@kas.sa');
     const chairman = buildProfileForKasEmail('khalid@kas.sa');
 
     expect(authService.isTabAuthorizedForUser(hatem, 'kas-warehouse')).toBe(true);
-    expect(authService.isTabAuthorizedForUser(ahmedGamal, 'kas-warehouse')).toBe(true);
+    expect(authService.isTabAuthorizedForUser(ahmedGamal, 'kas-warehouse')).toBe(false);
     expect(authService.isTabAuthorizedForUser(kasTradeDirector, 'kas-warehouse')).toBe(true);
     expect(authService.isTabAuthorizedForUser(chairman, 'kas-warehouse')).toBe(true);
     // Blocked for other .trade, .showroom, .imal, accountants, office helpers
@@ -215,5 +215,36 @@ describe('KAS Official Email Whitelist & 9-Department / Standalone KAS Trade RBA
     expect(authService.isAdmin(chairman)).toBe(true);
     expect(authService.isTabAuthorizedForUser(chairman, 'settings')).toBe(true);
     expect(authService.isTabAuthorizedForUser(chairman, 'kas-suite')).toBe(true);
+  });
+
+  it('routes Mahmoud Fouda & Islam Arafa to transactions-followup and authorizes complete follow-up department tools while keeping KAS isolated', () => {
+    const mahmoud = buildProfileForKasEmail('m.fouda.followup@kas.sa');
+    const islam = buildProfileForKasEmail('i.mahmoud.followup@kas.sa');
+    expect(mahmoud.department_id).toBe('ats');
+    expect(mahmoud.default_tab).toBe('transactions-followup');
+    expect(islam.department_id).toBe('ats');
+    expect(islam.default_tab).toBe('transactions-followup');
+
+    for (const tab of [
+      'transactions-followup',
+      'cvs-recruitment',
+      'cvs-rental',
+      'ingaz',
+      'travel',
+      'sent-messages',
+      'data-import',
+      'suppliers-agents',
+    ]) {
+      expect(authService.isTabAuthorizedForUser(mahmoud, tab)).toBe(true);
+      expect(authService.isTabAuthorizedForUser(islam, tab)).toBe(true);
+    }
+
+    expect(authService.isTabAuthorizedForUser(mahmoud, 'kas-suite')).toBe(false);
+
+    // Ensure shared comms/utility tabs added to ats did not break KAS Trade isolation
+    const majedKas = buildProfileForKasEmail('m.alsaleh.imal@kas.sa');
+    expect(authService.isTabAuthorizedForUser(majedKas, 'sent-messages')).toBe(true);
+    expect(authService.isTabAuthorizedForUser(majedKas, 'kas-commercial')).toBe(true);
+    expect(authService.isTabAuthorizedForUser(majedKas, 'transactions-followup')).toBe(false);
   });
 });

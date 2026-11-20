@@ -5,6 +5,7 @@ import {
   VERIFIED_FIREBASE_GOOGLE_ACCOUNTS,
   getCachedGoogleProfile,
 } from '../../services/firebaseClient';
+import { decryptStoragePayload, sanitizeSafeMediaSrc } from '../../utils/securitySanitizers';
 
 export interface EmployeePhotoAvatarProps {
   name: string;
@@ -179,7 +180,7 @@ export const EmployeePhotoAvatar: React.FC<EmployeePhotoAvatarProps> = ({
     }
 
     try {
-      const rawAuth = localStorage.getItem('ALSULAIM_AUTH_USER');
+      const rawAuth = decryptStoragePayload(localStorage.getItem('ALSULAIM_AUTH_USER'));
       if (rawAuth) {
         const parsed = JSON.parse(rawAuth);
         if (
@@ -206,8 +207,9 @@ export const EmployeePhotoAvatar: React.FC<EmployeePhotoAvatarProps> = ({
     [name, email, role, departmentId]
   );
 
+  const safeAvatarUrl = effectiveAvatarUrl ? sanitizeSafeMediaSrc(effectiveAvatarUrl) : '';
   const resolvedSrc =
-    !imgError && effectiveAvatarUrl ? effectiveAvatarUrl : fallbackDataUri;
+    !imgError && safeAvatarUrl ? safeAvatarUrl : fallbackDataUri;
   const dim = SIZE_MAP[size] || SIZE_MAP.md;
   const shouldShowBadge = status === 'none' ? false : showStatusDot ?? showVerifiedBadge;
   const shouldShowOnline = status === 'online' || showOnlinePulse;

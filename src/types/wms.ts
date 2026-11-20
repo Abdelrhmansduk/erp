@@ -4,6 +4,8 @@
  * Scoped exclusively to KAS Trade (Hatem Salman & Ahmed Gamal + Executive/Director Oversight)
  */
 
+export type WmsCompanyId = 'KAS' | 'SAF' | 'YAQ' | 'TOP' | 'DAR';
+
 export type WmsWarehouseType = 'MAIN' | 'TENDERS' | 'SAMPLES' | 'QUARANTINE' | 'PROJECT';
 
 export type WmsTrackingMode = 'NONE' | 'SERIAL' | 'LOT_EXPIRY';
@@ -12,9 +14,9 @@ export type WmsValuationMethod = 'AVCO' | 'FIFO';
 
 export type WmsCostingMode = 'optional' | 'mandatory';
 
-export type WmsVoucherType = 'GRN' | 'GIN' | 'SRN' | 'STR' | 'ADJ' | 'SAMPLE';
+export type WmsVoucherType = 'GRN' | 'GIN' | 'SRN' | 'STR' | 'ADJ' | 'SAMPLE' | 'RTV' | 'SCRAP';
 
-export type WmsVoucherStatus = 'DRAFT' | 'POSTED' | 'REVERSED';
+export type WmsVoucherStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'IN_TRANSIT' | 'POSTED' | 'REVERSED';
 
 export type WmsConditionStatus = 'سليم' | 'يحتاج صيانة' | 'تالف';
 
@@ -27,13 +29,16 @@ export type WmsIssuePurpose =
   | 'توريد منافسة حكومية'
   | 'عهدة شخصية'
   | 'تجارة وشحنات أمازون'
+  | 'صرف قطاع تجاري / معرض'
   | 'ضيافة وبوفيه'
   | 'مستهلكات يومية (حجارة/مكتبية)'
-  | 'عينات تجارية';
+  | 'عينات تجارية'
+  | 'إرجاع لمورد (RTV)'
+  | 'إتلاف وتكهين';
 
 export interface WmsWarehouse {
   id: string;
-  company_id: 'KAS';
+  company_id: WmsCompanyId;
   code: string;
   nameAr: string;
   nameEn: string;
@@ -47,7 +52,7 @@ export interface WmsWarehouse {
 
 export interface WmsCategory {
   id: string;
-  company_id: 'KAS';
+  company_id: WmsCompanyId;
   code: string;
   nameAr: string;
   nameEn: string;
@@ -76,6 +81,8 @@ export interface WmsMediaAttachment {
   mimeType: string;
   sizeBytes: number;
   dataUrl: string;
+  storagePath?: string;
+  storageUrl?: string;
   caption?: string;
   tag: WmsMediaTag;
   uploadedBy: string;
@@ -84,7 +91,7 @@ export interface WmsMediaAttachment {
 
 export interface WmsItem {
   id: string;
-  company_id: 'KAS';
+  company_id: WmsCompanyId;
   sku: string;
   barcode: string;
   nameAr: string;
@@ -113,7 +120,7 @@ export interface WmsItem {
 
 export interface WmsStockQuant {
   id: string;
-  company_id: 'KAS';
+  company_id: WmsCompanyId;
   itemId: string;
   warehouseId: string;
   locationCode: string;
@@ -133,6 +140,7 @@ export interface WmsVoucherLine {
   baseQty: number;
   unitCost: number;
   totalCost: number;
+  locationCode?: string;
   serialNumbers?: string[];
   lotNumber?: string;
   expiryDate?: string;
@@ -143,7 +151,7 @@ export interface WmsVoucherLine {
 
 export interface WmsStockVoucher {
   id: string;
-  company_id: 'KAS';
+  company_id: WmsCompanyId;
   voucherNo: string;
   voucherType: WmsVoucherType;
   status: WmsVoucherStatus;
@@ -186,7 +194,7 @@ export interface WmsStockVoucher {
 
 export interface WmsSerialLotRecord {
   id: string;
-  company_id: 'KAS';
+  company_id: WmsCompanyId;
   itemId: string;
   sku: string;
   itemName: string;
@@ -205,7 +213,7 @@ export interface WmsSerialLotRecord {
 
 export interface WmsSampleLoan {
   id: string;
-  company_id: 'KAS';
+  company_id: WmsCompanyId;
   loanNo: string;
   itemId: string;
   sku: string;
@@ -224,7 +232,7 @@ export interface WmsSampleLoan {
 
 export interface WmsFastConsumableLog {
   id: string;
-  company_id: 'KAS';
+  company_id: WmsCompanyId;
   date: string;
   recipientName: string;
   departmentOrOffice: string;
@@ -253,12 +261,14 @@ export interface WmsCycleCountLine {
 
 export interface WmsCycleCountSession {
   id: string;
-  company_id: 'KAS';
+  company_id: WmsCompanyId;
   countNo: string;
   warehouseId: string;
   countDate: string;
   blindMode: boolean;
-  status: 'قيد الجرد' | 'معتمد ومُرحّل';
+  scope?: 'ALL' | 'ABC_A' | 'ABC_B' | 'ABC_C' | 'ZONE';
+  zoneFilter?: string;
+  status: 'قيد الجرد' | 'بانتظار الاعتماد' | 'معتمد ومُرحّل';
   countedBy: string;
   approvedBy?: string;
   postedAt?: string;
@@ -269,7 +279,7 @@ export interface WmsCycleCountSession {
 
 export interface WmsTenderReservation {
   id: string;
-  company_id: 'KAS';
+  company_id: WmsCompanyId;
   tenderRef: string;
   tenderTitle: string;
   itemId: string;
@@ -305,7 +315,7 @@ export interface WmsDiscrepancyItem {
 
 export interface WmsAuditLog {
   id: string;
-  company_id: 'KAS';
+  company_id: WmsCompanyId;
   action:
     | 'ITEM_CREATED'
     | 'ITEM_UPDATED'
@@ -329,7 +339,19 @@ export interface WmsAuditLog {
     | 'TENDER_RESERVED'
     | 'DISCREPANCY_RESOLVED'
     | 'SETTINGS_UPDATED'
-    | 'GL_POSTED';
+    | 'GL_POSTED'
+    | 'LANDED_COST_APPLIED'
+    | 'QC_INSPECTED'
+    | 'TRANSFER_DISPATCHED'
+    | 'TRANSFER_RECEIVED'
+    | 'APPROVAL_REQUESTED'
+    | 'APPROVAL_DECIDED'
+    | 'KIT_EXPLODED'
+    | 'PO_CREATED'
+    | 'PO_PARTIAL_GRN'
+    | 'INVOICE_3WAY_MATCHED'
+    | 'RTV_DEBIT_NOTE'
+    | 'SCRAP_POSTED';
   entityType: string;
   entityId: string;
   entityLabel: string;
@@ -352,7 +374,7 @@ export interface WmsRecycleBinEntry {
 
 export interface WmsMaterialRequisition {
   id: string;
-  company_id: 'KAS';
+  company_id: WmsCompanyId;
   reqNo: string;
   requestDate: string;
   requestedBy: string;
@@ -376,7 +398,7 @@ export interface WmsMaterialRequisition {
 
 export interface WmsPurchaseRequest {
   id: string;
-  company_id: 'KAS';
+  company_id: WmsCompanyId;
   prNo: string;
   createdDate: string;
   itemId: string;
@@ -405,7 +427,7 @@ export interface WmsMaintenanceLog {
 
 export interface WmsWarrantyRecord {
   id: string;
-  company_id: 'KAS';
+  company_id: WmsCompanyId;
   itemId?: string;
   sku: string;
   assetName: string;
@@ -420,14 +442,270 @@ export interface WmsWarrantyRecord {
 }
 
 export interface WmsSettings {
-  company_id: 'KAS';
+  company_id: WmsCompanyId;
   costingMode: WmsCostingMode; // 'optional' | 'mandatory'
   valuationMethod: WmsValuationMethod; // 'AVCO' | 'FIFO'
   autoPostGlWhenCostPresent: boolean;
   allowNegativeStock: boolean;
   autoCustodyPrompt: boolean;
+  strictImmutablePostedVouchers?: boolean;
+  enforceFefo?: boolean;
+  blockExpiredLots?: boolean;
+  requireQcOnGrn?: boolean;
+  enableInTransitTransfers?: boolean;
+  approvalThresholdSar?: number;
+  cycleCountVarianceApprovalPct?: number;
+  enforceMakerChecker?: boolean;
   updatedBy: string;
   updatedAt: string;
+}
+
+export interface WmsCostLayer {
+  id: string;
+  company_id: WmsCompanyId;
+  itemId: string;
+  warehouseId: string;
+  voucherId: string;
+  voucherNo: string;
+  receivedDate: string;
+  originalQty: number;
+  remainingQty: number;
+  unitCost: number;
+  landedCostPerUnit: number;
+  createdAt: string;
+}
+
+export interface WmsLandedCostCharge {
+  chargeType: 'شحن ونقل' | 'رسوم جمركية' | 'تخليص جمركي' | 'تأمين بضائع' | 'أخرى';
+  description: string;
+  amount: number;
+}
+
+export interface WmsLandedCostRecord {
+  id: string;
+  company_id: WmsCompanyId;
+  voucherId: string;
+  voucherNo: string;
+  allocationMethod: 'BY_VALUE' | 'BY_QTY';
+  totalCharge: number;
+  charges: WmsLandedCostCharge[];
+  journalEntryId?: string;
+  allocatedBy: string;
+  createdAt: string;
+}
+
+export interface WmsBinLotQuant {
+  id: string;
+  company_id: WmsCompanyId;
+  itemId: string;
+  warehouseId: string;
+  locationCode: string;
+  lotNumber: string;
+  expiryDate?: string;
+  qcStatus: 'APPROVED' | 'PENDING_QC' | 'QUARANTINE';
+  onHandQty: number;
+  reservedQty: number;
+  inTransitQty: number;
+  updatedAt: string;
+}
+
+export interface WmsQcInspection {
+  id: string;
+  company_id: WmsCompanyId;
+  inspectionNo: string;
+  grnVoucherId: string;
+  grnVoucherNo: string;
+  itemId: string;
+  sku: string;
+  itemName: string;
+  targetWarehouseId: string;
+  lotNumber?: string;
+  expiryDate?: string;
+  receivedQty: number;
+  approvedQty: number;
+  rejectedQty: number;
+  status: 'PENDING_QC' | 'COMPLETED';
+  inspectedBy?: string;
+  inspectedAt?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface WmsInTransitTransfer {
+  id: string;
+  company_id: WmsCompanyId;
+  transferNo: string;
+  voucherId: string;
+  voucherNo: string;
+  sourceWarehouseId: string;
+  targetWarehouseId: string;
+  itemId: string;
+  sku: string;
+  itemName: string;
+  dispatchedQty: number;
+  receivedQty: number;
+  varianceQty: number;
+  status: 'IN_TRANSIT' | 'RECEIVED' | 'PARTIAL_VARIANCE';
+  dispatchedBy: string;
+  dispatchedAt: string;
+  receivedBy?: string;
+  receivedAt?: string;
+  notes?: string;
+}
+
+export interface WmsApprovalRequest {
+  id: string;
+  company_id: WmsCompanyId;
+  requestNo: string;
+  requestType: 'HIGH_VALUE_VOUCHER' | 'CYCLE_COUNT_VARIANCE' | 'SCRAP_WRITEOFF';
+  entityId: string;
+  entityLabel: string;
+  amountSar: number;
+  variancePct?: number;
+  requestedByEmail: string;
+  requestedByName: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  checkerEmail?: string;
+  checkerName?: string;
+  decidedAt?: string;
+  reason?: string;
+  createdAt: string;
+}
+
+export interface WmsKitBom {
+  id: string;
+  company_id: WmsCompanyId;
+  kitCode: string;
+  kitNameAr: string;
+  defaultWarehouseId: string;
+  components: Array<{
+    itemId: string;
+    sku: string;
+    itemName: string;
+    qtyPerKit: number;
+    uom: string;
+  }>;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface WmsVendor {
+  id: string;
+  company_id: WmsCompanyId;
+  vendorCode: string;
+  nameAr: string;
+  nameEn?: string;
+  vatNumber: string;
+  crNumber?: string;
+  contactPerson?: string;
+  phone?: string;
+  email?: string;
+  leadTimeDays: number;
+  paymentTerms: string;
+  rating: number;
+  status: 'معتمد' | 'موقوف';
+  createdAt: string;
+}
+
+export interface WmsPurchaseOrderLine {
+  id: string;
+  itemId: string;
+  sku: string;
+  itemName: string;
+  uom: string;
+  orderedQty: number;
+  receivedQty: number;
+  backorderQty: number;
+  unitCost: number;
+  lineTotal: number;
+}
+
+export interface WmsPurchaseOrder {
+  id: string;
+  company_id: WmsCompanyId;
+  poNo: string;
+  orderDate: string;
+  expectedDate: string;
+  vendorId: string;
+  vendorName: string;
+  warehouseId: string;
+  prRef?: string;
+  tenderRef?: string;
+  status: 'مفتوح' | 'استلام جزئي' | 'مكتمل الاستلام' | 'ملغى';
+  subtotal: number;
+  vatAmount: number;
+  grandTotal: number;
+  linkedGrnVoucherNos: string[];
+  lines: WmsPurchaseOrderLine[];
+  createdBy: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface WmsSupplierInvoiceMatch {
+  id: string;
+  company_id: WmsCompanyId;
+  internalRef: string;
+  vendorInvoiceNo: string;
+  invoiceDate: string;
+  poId: string;
+  poNo: string;
+  vendorId: string;
+  vendorName: string;
+  grnVoucherIds: string[];
+  subtotal: number;
+  vatAmount: number;
+  grandTotal: number;
+  variancePct: number;
+  matchStatus:
+    | 'مطابق ثلاثياً ومُرحّل (Matched)'
+    | 'معلق للتباين (Variance Hold)'
+    | 'معتمد استثنائياً ومُرحّل';
+  lines: Array<{
+    itemId: string;
+    sku: string;
+    itemName: string;
+    poUnitCost: number;
+    grnReceivedQty: number;
+    invoicedQty: number;
+    invoicedUnitCost: number;
+    lineSubtotal: number;
+    varianceNote?: string;
+  }>;
+  journalEntryId?: string;
+  createdByEmail: string;
+  createdByName: string;
+  approvedBy?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface WmsRtvDebitNote {
+  id: string;
+  company_id: WmsCompanyId;
+  debitNoteNo: string;
+  rtvDate: string;
+  vendorId: string;
+  vendorName: string;
+  poId?: string;
+  warehouseId: string;
+  voucherNo: string;
+  subtotal: number;
+  vatAmount: number;
+  grandTotal: number;
+  journalEntryId?: string;
+  lines: Array<{
+    itemId: string;
+    sku: string;
+    itemName: string;
+    qty: number;
+    unitCost: number;
+    lineTotal: number;
+    reason: string;
+  }>;
+  createdBy: string;
+  notes?: string;
+  createdAt: string;
 }
 
 export interface WmsStockCardEntry {

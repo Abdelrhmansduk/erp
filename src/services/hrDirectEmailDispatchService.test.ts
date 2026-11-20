@@ -418,4 +418,79 @@ describe('Direct Network HR Email Delivery (Zero .eml Downloads)', () => {
     expect(capturedPosts).toHaveLength(2);
     expect(capturedPosts[1].toEmails.join(',').toLowerCase()).not.toContain('o.saeed.hospitality@kas.sa');
   });
+
+  it('supports Resend inter-employee (@kas.sa) and internal-to-external outbound delivery via verified @kas-erp.com domain', async () => {
+    const { dispatchDirectHrEmail } = await loadDirectMailServer();
+    const sentPayloads: any[] = [];
+
+    const mockFetch = async (url: string, init: RequestInit) => {
+      if (url === 'https://api.resend.com/emails') {
+        sentPayloads.push(JSON.parse(String(init.body || '{}')));
+        return new Response(JSON.stringify({ id: `re-msg-${sentPayloads.length}` }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response('{}', { status: 404 });
+    };
+
+    const resendGateway = {
+      provider: 'resend',
+      resendApiKey: 'unit-test-resend-token',
+      resendFromEmail: 'HR@kas-erp.com',
+    };
+
+    // 1) Employee-to-Employee internal mail
+    const internalRes = await dispatchDirectHrEmail(
+      {
+        gatewayConfig: resendGateway,
+        mailScope: 'internal_employees',
+        senderName: 'Akram Al-Kenani - KAS Group',
+        senderEmail: 'a.alkenani@kas.sa',
+        skipMandatoryCc: true,
+        skipHrSignature: true,
+        subject: 'مطابقة عهدة مالية بين الزملاء',
+        toEmails: ['n.alshetwi@kas.sa', 'a.farahat@kas.sa'],
+        ccEmails: [],
+        cidHtmlBody: '<p>تم تحويل المطابقة بنجاح</p>',
+        plainTextBody: 'تم تحويل المطابقة بنجاح',
+      },
+      { fetchFn: mockFetch }
+    );
+
+    expect(internalRes.ok).toBe(true);
+    expect(internalRes.provider).toBe('resend');
+    expect(sentPayloads[0].from).toBe('Akram Al-Kenani - KAS Group <a.alkenani@kas-erp.com>');
+    expect(sentPayloads[0].reply_to).toBe('a.alkenani@kas.sa');
+    expect(sentPayloads[0].to).toEqual(['n.alshetwi@kas.sa', 'a.farahat@kas.sa']);
+    expect(sentPayloads[0].cc).toBeUndefined();
+
+    // 2) Internal-to-External outbound mail (clients / external agencies)
+    const externalRes = await dispatchDirectHrEmail(
+      {
+        gatewayConfig: resendGateway,
+        mailScope: 'outbound_external',
+        senderName: 'Sales Department - KAS Group',
+        senderEmail: 'sales@kas.sa',
+        skipMandatoryCc: false,
+        skipHrSignature: true,
+        subject: 'عرض سعر توريد رسمي — KAS Group',
+        toEmails: ['procurement@client-partner.com', 'director@agency-intl.org'],
+        ccEmails: ['finance-partner@client-partner.com'],
+        cidHtmlBody: '<p>مرفق عرض السعر الرسمي</p>',
+        plainTextBody: 'مرفق عرض السعر الرسمي',
+      },
+      { fetchFn: mockFetch }
+    );
+
+    expect(externalRes.ok).toBe(true);
+    expect(sentPayloads[1].from).toBe('Sales Department - KAS Group <sales@kas-erp.com>');
+    expect(sentPayloads[1].reply_to).toBe('sales@kas.sa');
+    expect(sentPayloads[1].to).toEqual([
+      'procurement@client-partner.com',
+      'director@agency-intl.org',
+    ]);
+    expect(sentPayloads[1].cc).toContain('Khalid@kas.sa');
+    expect(sentPayloads[1].cc).toContain('finance-partner@client-partner.com');
+  });
 });

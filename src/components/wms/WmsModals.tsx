@@ -40,6 +40,12 @@ export const WmsCreateItemModal: React.FC<{
   onClose: () => void;
   categories: WmsCategory[];
   warehouses: WmsWarehouse[];
+  onCreateCategory?: (input: { nameAr: string; code?: string }) => WmsCategory | null;
+  onCreateWarehouse?: (input: {
+    nameAr: string;
+    warehouseType?: WmsWarehouse['warehouseType'];
+    branch?: string;
+  }) => WmsWarehouse | null;
   onSubmit: (payload: {
     nameAr: string;
     nameEn?: string;
@@ -60,10 +66,17 @@ export const WmsCreateItemModal: React.FC<{
     initialQty: number;
     notes?: string;
   }) => void;
-}> = ({ open, onClose, categories, warehouses, onSubmit }) => {
+}> = ({ open, onClose, categories, warehouses, onCreateCategory, onCreateWarehouse, onSubmit }) => {
   const [nameAr, setNameAr] = useState('');
   const [nameEn, setNameEn] = useState('');
   const [categoryId, setCategoryId] = useState(categories[0]?.id || 'CAT-MEP');
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryCode, setNewCategoryCode] = useState('');
+  const [showAddWarehouse, setShowAddWarehouse] = useState(false);
+  const [newWarehouseName, setNewWarehouseName] = useState('');
+  const [newWarehouseType, setNewWarehouseType] = useState<WmsWarehouse['warehouseType']>('MAIN');
+  const [newWarehouseBranch, setNewWarehouseBranch] = useState('الرياض');
   const [baseUom, setBaseUom] = useState('حبة');
   const [secondaryUomName, setSecondaryUomName] = useState('');
   const [secondaryUomFactor, setSecondaryUomFactor] = useState('12');
@@ -153,32 +166,200 @@ export const WmsCreateItemModal: React.FC<{
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[#141414] mb-1">الفئة التصنيفية</label>
-              <select
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full rounded-[16px] bg-[#f0f0f0] px-3 py-2.5 text-xs font-semibold text-[#141414] focus:outline-none focus:ring-2 focus:ring-[#141414]"
-              >
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nameAr}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-[#141414]">الفئة التصنيفية</label>
+                {onCreateCategory && (
+                  <button
+                    type="button"
+                    data-testid="wms-add-category-toggle"
+                    onClick={() => setShowAddCategory((prev) => !prev)}
+                    title="إضافة فئة تصنيفية جديدة إلى القائمة"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold hover:opacity-90 transition-opacity cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>فئة</span>
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5">
+                <select
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className="w-full rounded-[16px] bg-[#f0f0f0] px-3 py-2.5 text-xs font-semibold text-[#141414] focus:outline-none focus:ring-2 focus:ring-[#141414]"
+                >
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nameAr}
+                    </option>
+                  ))}
+                </select>
+                {onCreateCategory && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAddCategory((prev) => !prev)}
+                    title="إضافة فئة جديدة"
+                    aria-label="إضافة فئة تصنيفية جديدة"
+                    className="w-9 h-9 shrink-0 rounded-[14px] bg-[#f3f3f3] hover:bg-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] flex items-center justify-center text-[#141414] transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              {showAddCategory && onCreateCategory && (
+                <div className="mt-2 p-2.5 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] space-y-2">
+                  <div className="text-[11px] font-bold text-[#141414]">إضافة فئة تصنيفية جديدة</div>
+                  <input
+                    type="text"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="اسم الفئة (مثال: أجهزة كهربائية)"
+                    className="w-full rounded-[12px] bg-[#ffffff] border border-[#e0e0e0] px-2.5 py-1.5 text-xs text-[#141414] focus:outline-none focus:ring-1 focus:ring-[#141414]"
+                  />
+                  <input
+                    type="text"
+                    value={newCategoryCode}
+                    onChange={(e) => setNewCategoryCode(e.target.value)}
+                    placeholder="رمز مختصر اختياري (مثال: ELEC)"
+                    className="w-full rounded-[12px] bg-[#ffffff] border border-[#e0e0e0] px-2.5 py-1.5 text-xs font-mono text-[#141414] focus:outline-none focus:ring-1 focus:ring-[#141414]"
+                  />
+                  <div className="flex items-center justify-end gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddCategory(false);
+                        setNewCategoryName('');
+                        setNewCategoryCode('');
+                      }}
+                      className="px-2.5 py-1 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[11px] font-semibold text-[#707070] cursor-pointer"
+                    >
+                      إلغاء
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!newCategoryName.trim()) return;
+                        const created = onCreateCategory({
+                          nameAr: newCategoryName.trim(),
+                          code: newCategoryCode.trim() || undefined,
+                        });
+                        if (created?.id) {
+                          setCategoryId(created.id);
+                        }
+                        setNewCategoryName('');
+                        setNewCategoryCode('');
+                        setShowAddCategory(false);
+                      }}
+                      className="px-3 py-1 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold cursor-pointer"
+                    >
+                      حفظ الفئة
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#141414] mb-1">المستودع الافتراضي</label>
-              <select
-                value={defaultWarehouseId}
-                onChange={(e) => setDefaultWarehouseId(e.target.value)}
-                className="w-full rounded-[16px] bg-[#f0f0f0] px-3 py-2.5 text-xs font-semibold text-[#141414] focus:outline-none focus:ring-2 focus:ring-[#141414]"
-              >
-                {warehouses.map((w) => (
-                  <option key={w.id} value={w.id}>
-                    {w.nameAr}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-[#141414]">المستودع الافتراضي</label>
+                {onCreateWarehouse && (
+                  <button
+                    type="button"
+                    data-testid="wms-add-warehouse-toggle"
+                    onClick={() => setShowAddWarehouse((prev) => !prev)}
+                    title="إضافة مستودع جديد إلى القائمة"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold hover:opacity-90 transition-opacity cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>مستودع</span>
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5">
+                <select
+                  value={defaultWarehouseId}
+                  onChange={(e) => setDefaultWarehouseId(e.target.value)}
+                  className="w-full rounded-[16px] bg-[#f0f0f0] px-3 py-2.5 text-xs font-semibold text-[#141414] focus:outline-none focus:ring-2 focus:ring-[#141414]"
+                >
+                  {warehouses.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.nameAr}
+                    </option>
+                  ))}
+                </select>
+                {onCreateWarehouse && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAddWarehouse((prev) => !prev)}
+                    title="إضافة مستودع جديد"
+                    aria-label="إضافة مستودع جديد"
+                    className="w-9 h-9 shrink-0 rounded-[14px] bg-[#f3f3f3] hover:bg-[#141414] hover:text-[#ffffff] border border-[#e0e0e0] flex items-center justify-center text-[#141414] transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              {showAddWarehouse && onCreateWarehouse && (
+                <div className="mt-2 p-2.5 rounded-[14px] bg-[#f3f3f3] border border-[#e0e0e0] space-y-2">
+                  <div className="text-[11px] font-bold text-[#141414]">إضافة مستودع جديد</div>
+                  <input
+                    type="text"
+                    value={newWarehouseName}
+                    onChange={(e) => setNewWarehouseName(e.target.value)}
+                    placeholder="اسم المستودع (مثال: مستودع الدمام الفرعي)"
+                    className="w-full rounded-[12px] bg-[#ffffff] border border-[#e0e0e0] px-2.5 py-1.5 text-xs text-[#141414] focus:outline-none focus:ring-1 focus:ring-[#141414]"
+                  />
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <select
+                      value={newWarehouseType}
+                      onChange={(e) => setNewWarehouseType(e.target.value as WmsWarehouse['warehouseType'])}
+                      className="rounded-[12px] bg-[#ffffff] border border-[#e0e0e0] px-2 py-1.5 text-[11px] font-semibold text-[#141414]"
+                    >
+                      <option value="MAIN">مستودع رئيسي</option>
+                      <option value="PROJECT">مستودع مشروع</option>
+                      <option value="TENDERS">منافسات وتوريد</option>
+                      <option value="SAMPLES">معرض وعينات</option>
+                      <option value="QUARANTINE">مرتجعات وحجر</option>
+                    </select>
+                    <input
+                      type="text"
+                      value={newWarehouseBranch}
+                      onChange={(e) => setNewWarehouseBranch(e.target.value)}
+                      placeholder="المدينة / الفرع"
+                      className="rounded-[12px] bg-[#ffffff] border border-[#e0e0e0] px-2 py-1.5 text-[11px] text-[#141414]"
+                    />
+                  </div>
+                  <div className="flex items-center justify-end gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddWarehouse(false);
+                        setNewWarehouseName('');
+                      }}
+                      className="px-2.5 py-1 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[11px] font-semibold text-[#707070] cursor-pointer"
+                    >
+                      إلغاء
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!newWarehouseName.trim()) return;
+                        const created = onCreateWarehouse({
+                          nameAr: newWarehouseName.trim(),
+                          warehouseType: newWarehouseType,
+                          branch: newWarehouseBranch.trim() || 'الرياض',
+                        });
+                        if (created?.id) {
+                          setDefaultWarehouseId(created.id);
+                        }
+                        setNewWarehouseName('');
+                        setShowAddWarehouse(false);
+                      }}
+                      className="px-3 py-1 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold cursor-pointer"
+                    >
+                      حفظ المستودع
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#141414] mb-1">موقع الرف / الخانة (Bin)</label>
@@ -495,7 +676,7 @@ export const WmsCreateVoucherModal: React.FC<{
           <div>
             <h3 className="text-lg font-bold text-[#141414]">إنشاء إذن حركة مخزنية متعدد البنود</h3>
             <p className="text-xs text-[#707070] mt-0.5">
-              اعتماد فوري من حاتم أو أحمد جمال مع سجل تدقيق كامل + ترحيل آلي للقيد المحاسبي (IAS 2) عند توفر التكلفة
+              اعتماد فوري من حاتم سلمان مع سجل تدقيق كامل + ترحيل آلي للقيد المحاسبي (IAS 2) عند توفر التكلفة
             </p>
           </div>
           <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-[#f3f3f3] flex items-center justify-center">
@@ -1003,6 +1184,8 @@ export const WmsVoucherPrintModal: React.FC<{
     STR: 'إذن تحويل مخزني بين المستودعات (STR)',
     ADJ: 'إذن تسوية جرد مخزني (ADJ)',
     SAMPLE: 'إذن تسليم عينات تجارية (SAMPLE)',
+    RTV: 'إذن مرتجع مشتريات للمورد (RTV)',
+    SCRAP: 'إذن إتلاف وتكهين معتمد (SCRAP)',
   };
 
   return (
@@ -1103,7 +1286,7 @@ export const WmsVoucherPrintModal: React.FC<{
             <div>
               <div className="text-[#707070] mb-6">اعتماد وترحيل المستودع</div>
               <div className="font-bold text-[#141414] border-t border-[#e0e0e0] pt-1.5">
-                {voucher.postedByName || 'احمد جمال احمد البشير'}
+                {voucher.postedByName || 'حاتم سلمان ابوالذهب سلمان'}
               </div>
             </div>
             <div>

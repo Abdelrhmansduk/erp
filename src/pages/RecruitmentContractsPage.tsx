@@ -18,6 +18,7 @@ import {
 import { realErpDataStore } from '../services/realErpDataStore';
 import { musanedLifecycleEngine } from '../services/musanedLifecycleEngine';
 import { journalEngine } from '../services/accounting/journalEngine';
+import { syncContractToMusanedFollowup } from '../services/externalAgencyMasterService';
 
 export interface RecruitmentContractItem {
   id: string;
@@ -652,6 +653,23 @@ export const RecruitmentContractsPage: React.FC = () => {
     };
 
     await createItem.mutateAsync(newRecord);
+
+    await syncContractToMusanedFollowup({
+      musanedContractNo: newRecord.musaned_number || newRecord.contract_number,
+      internalContractNo: newRecord.contract_number,
+      companyId: companyCode,
+      clientName: newRecord.client_name,
+      clientNationalId: newRecord.client_national_id,
+      clientPhone: newRecord.client_phone,
+      clientCity: newRecord.delivery_city,
+      maidName: newRecord.maid_name,
+      passportNumber: newRecord.maid_passport,
+      nationality: newRecord.nationality,
+      externalOfficeName: newRecord.external_office,
+      paidAmountSar: newRecord.total_amount,
+      branchName: newRecord.branch,
+      salesCreatorName: 'إدارة عقود الاستقدام',
+    });
 
     // 2. Automatically generate ZATCA Tax Invoice
     const totalWithTax = amt + tax;

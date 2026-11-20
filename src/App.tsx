@@ -544,6 +544,7 @@ const MainContent: React.FC = () => {
 
       case 'unified-communication':
       case 'unified-comm':
+      case 'corporate-mail':
         return <UnifiedCommunicationCenterPage />;
 
       case 'microsoft-center':

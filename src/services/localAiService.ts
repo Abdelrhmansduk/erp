@@ -15,6 +15,7 @@ import {
 } from './aiToolExecutor';
 import { authService, CORPORATE_DEPARTMENTS, type DepartmentId } from './authService';
 import { startGenAiSpan } from './appInsightsService';
+import { decryptStoragePayload } from '../utils/securitySanitizers';
 
 export type AssistantPersona = 'faris' | 'noura';
 
@@ -30,6 +31,123 @@ export interface LocalAiGenerateOptions {
   company: CompanyScopeContext;
   conversationHistory?: Array<{ sender: 'ai' | 'user'; text: string }>;
   signal?: AbortSignal;
+  /** Currently open ERP route/section slug (enforces strict active-section scoping for non-privileged users). */
+  activePage?: string;
+}
+
+/**
+ * Privileged roles allowed to query across departments & employees via Faris/Noura:
+ * 1. Top Executive Management (الإدارة العليا)
+ * 2. Human Resources (الموارد البشرية HR)
+ * 3. Eng. Abdulrahman (المهندس عبدالرحمن — a.salif.dev@kas.sa)
+ */
+export function isPrivilegedAiCrossSectionUser(user: any): boolean {
+  if (!user) return false;
+  const email = String(user.email || '').trim().toLowerCase();
+  const id = String(user.id || '').trim().toUpperCase();
+  const dept = String(user.department_id || '').trim().toLowerCase();
+  const role = String(user.role || '').trim();
+
+  if (
+    email === 'a.salif.dev@kas.sa' ||
+    id === 'KAS-EMP-034' ||
+    email === 'khalid@kas.sa' ||
+    email === 'h.alsalim@kas.sa' ||
+    email === 'n.alshetwi@kas.sa' ||
+    email === 'chairman@alsulaim.sa'
+  ) {
+    return true;
+  }
+  if (dept === 'executive' || dept === 'hr') {
+    return true;
+  }
+  if (
+    /رئيس مجلس الإدارة|رئيس المجموعة|مدير نظام|مدير تنفيذي|المدير العام|مطور النظام|مبرمج النظام|الموارد البشرية|موارد بشرية|\bHR\b/i.test(
+      role
+    )
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/** Maps an ERP route/page slug to its owning department for strict active-section scoping. */
+export function mapActivePageToDepartment(activePage?: string, fallbackDept?: string): DepartmentId {
+  const slug = String(activePage || '').trim().toLowerCase();
+  if (/^(hr|payroll|payrolls|attendance|leaves|employees|custody|reem-hr|ess-self-service)/.test(slug)) {
+    return 'hr';
+  }
+  if (/^(finance|smacc|journal|zatca|invoice|vat|bank|voucher|petty|ifrs|trial-balance|income-statement|balance-sheet|odoo-accounting|cost-center)/.test(slug)) {
+    return 'finance';
+  }
+  if (/^(wms|kas-warehouse|tenders|boq|monafasat|kas-commercial|kas-etmad|kas-suite|suppliers|inventory)/.test(slug)) {
+    return 'tenders';
+  }
+  if (/^(recruitment|contracts|musaned|orders|ingaz|visas|offices)/.test(slug)) {
+    return 'recruitment';
+  }
+  if (/^(rental|rent-|packages)/.test(slug)) {
+    return 'rental';
+  }
+  if (/^(ats|cvs|create-cv|foreign-agency|external-offices|transactions-followup)/.test(slug)) {
+    return 'ats';
+  }
+  if (/^(shelter|accommodation|housing|reception|travel)/.test(slug)) {
+    return 'shelter';
+  }
+  if (/^(crm|clients|complaints|marketing|leads|corporate-mail|communications|sent-messages|branch-comms)/.test(slug)) {
+    return 'crm';
+  }
+  return ((fallbackDept || 'executive') as DepartmentId);
+}
+
+const CROSS_DEPT_PROMPT_SIGNALS: Array<{ dept: DepartmentId; labelAr: string; regex: RegExp }> = [
+  { dept: 'hr', labelAr: 'الموارد البشرية والرواتب', regex: /رواتب الموظفين|مسير الرواتب|بيانات موظف|ملف الموظف|راتب الموظف|إجازة الموظف|إجازات الموظفين|عهدة الموظف|موظف آخر|زميلي|زميلتي|حماية الأجور|WPS/i },
+  { dept: 'finance', labelAr: 'الإدارة المالية والمحاسبة', regex: /ميزان المراجعة|قائمة الدخل|الميزانية العمومية|قيود اليومية|الإقرار الضريبي|فواتير زاتكا|حسابات البنوك|الأرصدة البنكية/i },
+  { dept: 'shelter', labelAr: 'الإيواء والتسكين', regex: /نزيلات الإيواء|دار الإيواء|دار الرواد|سكن العاملات/i },
+  { dept: 'tenders', labelAr: 'المستودعات والمنافسات (كاس)', regex: /جرد المستودع|أصناف المستودع|منافسات كاس|كراسة الشروط|عهد المستودع/i },
+  { dept: 'recruitment', labelAr: 'الاستقدام ومساند', regex: /عقود الاستقدام|تفويض إنجاز|تأشيرات مساند/i },
+  { dept: 'ats', labelAr: 'المتابعة الخارجية والوكلاء', regex: /الوكلاء الخارجيين|مكاتب الاستقدام الخارجية|معاملات المتابعة الخارجية/i },
+];
+
+/**
+ * Enforces strict active-section & cross-employee privacy for Faris & Noura.
+ * Regular employees can ONLY query inside their currently open section and can NEVER view
+ * another employee's data. Exceptions: HR, Executive Management, and Eng. Abdulrahman.
+ */
+export function evaluateAiPrivacyGuard(
+  prompt: string,
+  user: any,
+  activePage?: string
+): { allowed: boolean; activeSectionDept: DepartmentId; refusalAr?: string } {
+  const activeSectionDept = mapActivePageToDepartment(activePage, user?.department_id);
+  if (isPrivilegedAiCrossSectionUser(user)) {
+    return { allowed: true, activeSectionDept };
+  }
+
+  const text = String(prompt || '').trim();
+  // 1. Always block asking about another employee's personal/HR/salary data
+  if (/راتب\s+(?!ي\b)|بيانات\s+الموظف|ملف\s+الموظف|إجازة\s+الموظف|عهدة\s+الموظف|رواتب\s+الموظفين|موظف\s+آخر|زميل[ية]?\s+/i.test(text)) {
+    return {
+      allowed: false,
+      activeSectionDept,
+      refusalAr:
+        'رفض أمني للخصوصية (PDPL): لا يُسمح بالاطلاع على بيانات أو رواتب موظف آخر. هذه الصلاحية محصورة فقط في الإدارة العليا، والموارد البشرية (HR)، والمهندس عبدالرحمن.',
+    };
+  }
+
+  // 2. Block querying departments outside the currently open section
+  for (const sig of CROSS_DEPT_PROMPT_SIGNALS) {
+    if (sig.dept !== activeSectionDept && sig.regex.test(text)) {
+      return {
+        allowed: false,
+        activeSectionDept,
+        refusalAr: `رفض أمني للنطاق: يعمل فارس ونورة حصرياً داخل القسم المفتوح حالياً فقط، ولا يمكن عرض بيانات قسم «${sig.labelAr}» من خارج القسم أو لغير المخولين (الإدارة العليا، الموارد البشرية، عبدالرحمن).`,
+      };
+    }
+  }
+
+  return { allowed: true, activeSectionDept };
 }
 
 export interface LocalAiResponse {
@@ -107,7 +225,7 @@ export async function checkLocalAiAvailable(): Promise<boolean> {
 function readScopedTable(tableKey: string, compId: string): Array<Record<string, any>> {
   try {
     if (typeof window === 'undefined') return [];
-    const raw = localStorage.getItem(`ALSULAIM_ERP_DB_V1_${tableKey}`);
+    const raw = decryptStoragePayload(localStorage.getItem(`ALSULAIM_ERP_DB_V1_${tableKey}`));
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
@@ -905,14 +1023,33 @@ export async function generateLocalAiResponse(options: LocalAiGenerateOptions): 
 }
 
 async function _generateLocalAiResponseInternal(options: LocalAiGenerateOptions): Promise<LocalAiResponse> {
-  const { prompt, persona, company, conversationHistory = [], signal } = options;
+  const { prompt, persona, company, conversationHistory = [], signal, activePage } = options;
   const user = authService.getCurrentUser();
   const targetModel = resolveTargetModel(company, persona);
   const empGreeting = user?.full_name ? `يا ${user.full_name.split(' ')[0]}` : '';
+  const isPrivileged = isPrivilegedAiCrossSectionUser(user);
+  const privacyCheck = evaluateAiPrivacyGuard(prompt, user, activePage);
+
+  // 0. Hard Privacy & Active-Section Gate (blocks cross-employee & cross-department queries for non-privileged users)
+  if (!privacyCheck.allowed && privacyCheck.refusalAr) {
+    return {
+      text: privacyCheck.refusalAr,
+      modelUsed: 'kas-privacy-guard',
+      isLocal: true,
+    };
+  }
 
   // 1. Fast-path: If the prompt is an explicit ERP tool execution command, prepare the tool immediately
   const directTool = inferToolCallFromArabicPrompt(prompt, company.id);
   if (directTool) {
+    const toolDept = String((directTool.tool as any)?.department || '').toLowerCase();
+    if (!isPrivileged && toolDept && toolDept !== 'all' && toolDept !== privacyCheck.activeSectionDept) {
+      return {
+        text: `رفض أمني للنطاق: أداة «${directTool.tool.nameAr}» تقع خارج القسم المفتوح حالياً. يعمل فارس ونورة ضمن القسم المفتوح فقط، والوصول عبر الأقسام محصور في الإدارة العليا والموارد البشرية والمهندس عبدالرحمن.`,
+        modelUsed: 'kas-privacy-guard',
+        isLocal: true,
+      };
+    }
     const toolIntro =
       persona === 'noura'
         ? `أبشر/أبشري ${empGreeting}! معكِ "نُورة"، قمتُ بتجهيز بيانات **"${directTool.tool.nameAr}"** في نطاق (${company.name}) لتنفيذ مهمتكِ فوراً. يرجى الضغط على **تأكيد وتنفيذ العملية** أدناه لحفظها في الجدول:`
@@ -927,14 +1064,44 @@ async function _generateLocalAiResponseInternal(options: LocalAiGenerateOptions)
   }
 
   const isolationContext = buildCompanyIsolationContext(company, persona);
-  const toolContext = buildToolDescriptionsForLLM(company.id, user?.department_id);
+  const scopedDepartmentForTools = isPrivileged ? user?.department_id : privacyCheck.activeSectionDept;
+  const toolContext = buildToolDescriptionsForLLM(company.id, scopedDepartmentForTools);
   const liveSnapshot = getLiveCompanySnapshot(company.id.toUpperCase());
-  const liveMetricsPrompt = `\n[بيانات المنظومة الحية اللحظية لـ ${company.name}]:
-- الفواتير الضريبية ZATCA: ${liveSnapshot.invoicesCount} فاتورة (المعتمد: ${liveSnapshot.clearedCount}) بإجمالي مبيعات ${liveSnapshot.totalSalesFormatted} ريال وضريبة قيمة مضافة ${liveSnapshot.totalVatFormatted} ريال.
-- قيود اليومية: ${liveSnapshot.journalsCount} قيد | سندات القبض والصرف: ${liveSnapshot.vouchersCount} سند.
-- عقود استقدام مساند: ${liveSnapshot.contractsCount} عقد | عقود التأجير: ${liveSnapshot.rentCount} عقد | السير الذاتية ATS: ${liveSnapshot.cvsCount}.
-- الموظفون: ${liveSnapshot.employeesCount} موظف | العملاء: ${liveSnapshot.clientsCount} عميل | الشكاوى: ${liveSnapshot.complaintsCount} | نزيلات دار الإيواء: ${liveSnapshot.shelterCount} نزيلة.
-تحدث دائماً باللهجة السعودية البيضاء الاحترافية (${persona === 'noura' ? 'بصفتك نُورة المستشارة المؤسسية السعودية' : 'بصفتك فارس المستشار التنفيذي السعودي'}) وبإجابات ذكية ومباشرة ومختصرة مدعومة بالأرقام الحية أعلاه.\n`;
+
+  // Build strictly section-scoped live metrics (never leak other departments' numbers to non-privileged users)
+  const metricLines: string[] = [];
+  if (isPrivileged || privacyCheck.activeSectionDept === 'finance') {
+    metricLines.push(
+      `- الفواتير الضريبية ZATCA: ${liveSnapshot.invoicesCount} فاتورة (المعتمد: ${liveSnapshot.clearedCount}) بإجمالي مبيعات ${liveSnapshot.totalSalesFormatted} ريال وضريبة قيمة مضافة ${liveSnapshot.totalVatFormatted} ريال.`,
+      `- قيود اليومية: ${liveSnapshot.journalsCount} قيد | سندات القبض والصرف: ${liveSnapshot.vouchersCount} سند.`
+    );
+  }
+  if (isPrivileged || privacyCheck.activeSectionDept === 'recruitment' || privacyCheck.activeSectionDept === 'rental' || privacyCheck.activeSectionDept === 'ats') {
+    metricLines.push(
+      `- عقود استقدام مساند: ${liveSnapshot.contractsCount} عقد | عقود التأجير: ${liveSnapshot.rentCount} عقد | السير الذاتية ATS: ${liveSnapshot.cvsCount}.`
+    );
+  }
+  if (isPrivileged) {
+    metricLines.push(`- الموظفون: ${liveSnapshot.employeesCount} موظف.`);
+  }
+  if (isPrivileged || privacyCheck.activeSectionDept === 'crm') {
+    metricLines.push(`- العملاء: ${liveSnapshot.clientsCount} عميل | الشكاوى: ${liveSnapshot.complaintsCount}.`);
+  }
+  if (isPrivileged || privacyCheck.activeSectionDept === 'shelter') {
+    metricLines.push(`- نزيلات دار الإيواء: ${liveSnapshot.shelterCount} نزيلة.`);
+  }
+
+  const privacyRulePrompt = isPrivileged
+    ? `\n[صلاحية الوصول]: المستخدم الحالي مخول (الإدارة العليا / الموارد البشرية / المهندس عبدالرحمن) بالاطلاع الإداري على الأقسام.\n`
+    : `\n[قاعدة العزل والخصوصية الصارمة — PDPL]:
+- أنت تعمل حصرياً داخل القسم المفتوح حالياً فقط (${activePage || privacyCheck.activeSectionDept}).
+- يُمنع منعاً باتاً تقديم أو تخمين أي بيانات تخص قسماً آخر أو أي موظف آخر (مثل الرواتب أو الإجازات أو العهد أو العقود غير المفتوحة).
+- إذا طلب المستخدم بيانات موظف آخر أو قسم آخر، ارفض بأدب واذكر أن الصلاحية محصورة في الإدارة العليا، الموارد البشرية (HR)، والمهندس عبدالرحمن فقط.\n`;
+
+  const liveMetricsPrompt = `\n[بيانات المنظومة الحية اللحظية المصرح بها لـ ${company.name}]:
+${metricLines.join('\n') || '- البيانات محصورة في الشاشة المفتوحة حالياً فقط.'}
+${privacyRulePrompt}
+تحدث دائماً باللهجة السعودية البيضاء الاحترافية (${persona === 'noura' ? 'بصفتك نُورة المستشارة المؤسسية السعودية' : 'بصفتك فارس المستشار التنفيذي السعودي'}) وبإجابات ذكية ومباشرة ومختصرة.\n`;
 
   const fullSystemPrompt = isolationContext + liveMetricsPrompt + toolContext;
 

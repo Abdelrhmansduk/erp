@@ -8,6 +8,7 @@ import { useCompany } from '../contexts/CompanyContext';
 import { Employee360DigitalFileModal } from '../components/hr/Employee360DigitalFileModal';
 import { useAppStore } from '../stores/appStore';
 import { realErpDataStore } from '../services/realErpDataStore';
+import { cryptoRandomInt } from '../utils/securitySanitizers';
 import { DEPARTMENT_LEGAL_POLICIES } from '../components/legal/LegalDisclaimerModal';
 import { 
   Users, Plus, FileSpreadsheet, FileText, Search, UserCheck, 
@@ -1084,7 +1085,7 @@ export const HRPage: React.FC = () => {
     }
 
     if (!isEditingExisting && createSystemUser) {
-      const username = name.split(' ')[0].toLowerCase() + '_' + Math.floor(100 + Math.random() * 900);
+      const username = name.split(' ')[0].toLowerCase() + '_' + cryptoRandomInt(100, 1000);
       await realErpDataStore.addRecord('system_users', {
         id: `usr-${Date.now()}`,
         name,

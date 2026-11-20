@@ -5,10 +5,15 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   review:
     name: Spec Compliance & OWASP Security Review
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     # Runs automatically when VIBERS_SPEC_URL is configured in repository variables, or manually via workflow_dispatch
     if: github.event_name == 'workflow_dispatch' || vars.VIBERS_SPEC_URL != ''
     steps:
@@ -18,7 +23,7 @@ jobs:
           fetch-depth: 2
 
       - name: Run Vibers Code Review Action
-        uses: marsiandeployer/vibers-action@v1
+        uses: marsiandeployer/vibers-action@3b7f10188930e4c03a128e914f9f82dc00f5a4d8 # v1
         with:
           spec_url: ${{ vars.VIBERS_SPEC_URL || 'https://kas-erp.com/erp-site-architecture-plan.md' }}
           review_scope: 'full'

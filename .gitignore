@@ -35,6 +35,7 @@ supabase/.branches/
 
 # Local artifacts
 *.local
+.mcp.json
 .hr-mail-gateway.local
 .cache/
 .agents/skills/awesome-skills/

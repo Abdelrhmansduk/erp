@@ -22,6 +22,8 @@ import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { useCompany } from '../contexts/CompanyContext';
 import { isKasTradeCompany, scopeRecordsForCompany, tagKasRecords } from '../services/kasTradeScope';
+import { wmsEngineService } from '../services/wms/wmsEngineService';
+import { WmsCompanyId } from '../types/wms';
 
 export interface FixedAsset {
   id: string;
@@ -101,6 +103,9 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
   const { addNotification } = useAppStore();
   const { activeCompanyId } = useCompany();
   const isKasTrade = isKasTradeCompany(activeCompanyId);
+  const wmsCompanyId: WmsCompanyId = (['KAS', 'SAF', 'YAQ', 'TOP', 'DAR'].includes(activeCompanyId)
+    ? activeCompanyId
+    : 'KAS') as WmsCompanyId;
   const defaultItemCategory = isKasTrade ? 'سلع وأجهزة تجارية' : 'خدمات استقدام';
   const defaultItemUnit = isKasTrade ? 'جهاز' : 'عقد';
   const scopeAssets = (list: FixedAsset[]) => scopeRecordsForCompany(list, activeCompanyId, KAS_INITIAL_ASSETS);
@@ -154,19 +159,52 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
     reason: '',
   });
 
-  // Load Data on Mount
+  // Load Data on Mount & Unify with KAS WMS Live Source of Truth
   useEffect(() => {
+    wmsEngineService.setActiveCompany(wmsCompanyId);
+    const wmsState = wmsEngineService.getState(wmsCompanyId);
+    const wmsItemsMapped: InventoryItem[] = wmsState.items.map((it) => {
+      const stock = wmsEngineService.getItemStockSummary(it.id);
+      const cat = wmsState.categories.find((c) => c.id === it.categoryId);
+      return {
+        id: it.id,
+        sku: it.sku,
+        name: it.nameAr,
+        category: cat?.nameAr || 'أصناف المستودع المركزي (WMS)',
+        unit: it.baseUom,
+        costPrice: it.avgUnitCost || 0,
+        salePrice: Number(((it.avgUnitCost || 0) * 1.25).toFixed(2)),
+        currentStock: stock.onHand,
+        status: stock.onHand > 0 ? 'متوفر' : 'منتهي المخزون',
+      };
+    });
+    const wmsVouchersMapped: StockVoucher[] = wmsState.vouchers.slice(0, 80).map((v) => ({
+      id: v.id,
+      voucherNo: v.voucherNo,
+      type: v.voucherType === 'GRN' || v.voucherType === 'SRN' ? 'إضافة' : 'صرف',
+      date: v.voucherDate,
+      item: v.lines[0]?.itemName || v.voucherNo,
+      qty: v.totalQtyBase,
+      reason: v.beneficiaryEntity || v.supplierName || v.notes || 'حركة مستودع موحّدة (WMS)',
+    }));
+
     realErpDataStore.getRecords<FixedAsset>('fixed_assets', INITIAL_ASSETS).then(data => setAssets(scopeAssets(data)));
     realErpDataStore.getRecords<InventoryItem>('inventory_items', INITIAL_ITEMS).then(raw => {
-      const data = scopeItems(raw);
-      setItems(data);
-      if (data.length > 0 && !newStockVoucher.item) {
-        setNewStockVoucher(prev => ({ ...prev, item: data[0].name }));
+      const legacyScoped = scopeItems(raw);
+      const existingSkus = new Set(legacyScoped.map((x) => x.sku));
+      const merged = [...legacyScoped, ...wmsItemsMapped.filter((w) => !existingSkus.has(w.sku))];
+      setItems(merged);
+      if (merged.length > 0 && !newStockVoucher.item) {
+        setNewStockVoucher(prev => ({ ...prev, item: merged[0].name }));
       }
     });
-    realErpDataStore.getRecords<StockVoucher>('stock_vouchers', INITIAL_VOUCHERS).then(data => setVouchers(scopeVouchers(data)));
+    realErpDataStore.getRecords<StockVoucher>('stock_vouchers', INITIAL_VOUCHERS).then(data => {
+      const legacyV = scopeVouchers(data);
+      const existingNos = new Set(legacyV.map((x) => x.voucherNo));
+      setVouchers([...wmsVouchersMapped.filter((w) => !existingNos.has(w.voucherNo)), ...legacyV]);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeCompanyId]);
+  }, [activeCompanyId, wmsCompanyId]);
 
   // Filtered Assets
   const filteredAssets = useMemo(() => {
@@ -265,7 +303,37 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
     };
 
     const updated = await realErpDataStore.addRecord<InventoryItem>('inventory_items', itemRecord, INITIAL_ITEMS);
-    setItems(scopeItems(updated));
+    try {
+      const wmsState = wmsEngineService.getState(wmsCompanyId);
+      wmsEngineService.createItem(
+        {
+          sku: skuCode,
+          nameAr: itemRecord.name,
+          categoryId: wmsState.categories[0]?.id || 'CAT-GEN',
+          baseUom: itemRecord.unit || 'حبة',
+          uomConversions: [{ uomName: itemRecord.unit || 'حبة', factorToBase: 1 }],
+          trackingMode: 'NONE',
+          valuationMethod: wmsState.settings.valuationMethod,
+          avgUnitCost: itemRecord.costPrice,
+          lastPurchaseCost: itemRecord.costPrice,
+          minQty: 1,
+          reorderPoint: 3,
+          maxQty: 500,
+          defaultWarehouseId: wmsState.warehouses[0]?.id || 'WH-MAIN',
+          defaultLocationCode: 'Z1-R1-B1',
+          isCustodyEligible: false,
+          isFastConsumable: false,
+          isSampleItem: false,
+          initialQty: currentStock,
+          status: 'نشط',
+        },
+        { email: 'erp-unified@kas.sa', name: 'النظام المالي للأصول والمخزون' }
+      );
+    } catch {
+      // Non-blocking mirror to WMS
+    }
+    void updated;
+    setItems((prev) => [itemRecord, ...prev.filter((x) => x.sku !== itemRecord.sku)]);
     setIsItemModalOpen(false);
     setNewItem({
       sku: '',
@@ -302,7 +370,37 @@ export const SmaccInventoryAssetsPage: React.FC = () => {
     };
 
     const updatedVouchers = await realErpDataStore.addRecord<StockVoucher>('stock_vouchers', voucherRecord, INITIAL_VOUCHERS);
-    setVouchers(scopeVouchers(updatedVouchers));
+    try {
+      const wmsState = wmsEngineService.getState(wmsCompanyId);
+      const matchedWms = wmsState.items.find(
+        (it) => it.nameAr === selectedItemName || it.sku === selectedItemName
+      );
+      if (matchedWms) {
+        wmsEngineService.createAndPostVoucher(
+          {
+            voucherType: voucherRecord.type === 'إضافة' ? 'GRN' : 'GIN',
+            voucherDate: voucherRecord.date,
+            warehouseId: matchedWms.defaultWarehouseId,
+            supplierName: voucherRecord.type === 'إضافة' ? voucherRecord.reason : undefined,
+            beneficiaryEntity: voucherRecord.type === 'صرف' ? voucherRecord.reason : undefined,
+            notes: `مرحل موحداً من شاشة الأصول والمخزون (${voucherRecord.voucherNo})`,
+            lines: [
+              {
+                itemId: matchedWms.id,
+                enteredQty: qty,
+                enteredUom: matchedWms.baseUom,
+                unitCost: matchedWms.avgUnitCost,
+              },
+            ],
+          },
+          { email: 'erp-unified@kas.sa', name: 'النظام المالي للأصول والمخزون' }
+        );
+      }
+    } catch {
+      // Non-blocking mirror to WMS
+    }
+    void updatedVouchers;
+    setVouchers((prev) => [voucherRecord, ...prev.filter((v) => v.voucherNo !== voucherRecord.voucherNo)]);
 
     // Update item stock count if item exists
     const matchingItem = items.find(it => it.name === selectedItemName || it.sku === selectedItemName);

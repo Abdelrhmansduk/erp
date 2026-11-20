@@ -15,6 +15,11 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { NavItem } from '../types';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
+import {
+  cryptoRandomAlphanumeric,
+  decryptStoragePayload,
+  encryptStoragePayload,
+} from '../utils/securitySanitizers';
 
 export type VisibilityScope = 'ALL' | 'SAF' | 'YAQ' | 'TOP' | 'KAS' | 'DAR';
 
@@ -64,7 +69,13 @@ export const UI_PARTS: { id: string; title: string; description: string }[] = [
 
 /** Items that can never be hidden globally (prevents visibility controller lock-out). */
 export const LOCKED_NAV_IDS = new Set<string>(['dashboard', 'module-visibility']);
-export const ALWAYS_ALLOWED_HREFS = new Set<string>(['profile', 'ess-self-service', 'logout']);
+export const ALWAYS_ALLOWED_HREFS = new Set<string>([
+  'profile',
+  'ess-self-service',
+  'corporate-mail',
+  'communications',
+  'logout',
+]);
 
 /** Extra route aliases blocked whenever a major hub or department ID is hidden. */
 const EXTRA_BLOCKED_HREFS_BY_ID: Record<string, string[]> = {
@@ -165,11 +176,11 @@ const PERMISSIONS_AUDIT_KEY = 'ALSULAIM_PERMISSIONS_AUDIT_LOG_V1';
 export function appendPermissionsAuditLog(actor: string, scopeKey: string, summary: string): void {
   if (typeof window === 'undefined') return;
   try {
-    const raw = window.localStorage.getItem(PERMISSIONS_AUDIT_KEY);
+    const raw = decryptStoragePayload(window.localStorage.getItem(PERMISSIONS_AUDIT_KEY));
     const list: PermissionAuditLogEntry[] = raw ? JSON.parse(raw) : [];
     const next: PermissionAuditLogEntry[] = [
       {
-        id: `PERM-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        id: `PERM-${Date.now()}-${cryptoRandomAlphanumeric(4).toLowerCase()}`,
         timestamp: new Date().toISOString(),
         actor: actor || 'a.salif.dev@kas.sa',
         scopeKey,
@@ -177,7 +188,7 @@ export function appendPermissionsAuditLog(actor: string, scopeKey: string, summa
       },
       ...(Array.isArray(list) ? list : []),
     ].slice(0, 200);
-    window.localStorage.setItem(PERMISSIONS_AUDIT_KEY, JSON.stringify(next));
+    window.localStorage.setItem(PERMISSIONS_AUDIT_KEY, encryptStoragePayload(JSON.stringify(next)));
     window.dispatchEvent(new CustomEvent('alsulaim-visibility-updated', { detail: { scopeKey, actor } }));
   } catch {
     // ignore storage quota errors
@@ -187,7 +198,7 @@ export function appendPermissionsAuditLog(actor: string, scopeKey: string, summa
 export function getPermissionsAuditLog(): PermissionAuditLogEntry[] {
   if (typeof window === 'undefined') return [];
   try {
-    const raw = window.localStorage.getItem(PERMISSIONS_AUDIT_KEY);
+    const raw = decryptStoragePayload(window.localStorage.getItem(PERMISSIONS_AUDIT_KEY));
     const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed : [];
   } catch {

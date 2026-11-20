@@ -44,6 +44,38 @@ function cleanText(raw) {
     .trim();
 }
 
+const VERIFIED_AUDIO_BYTES = Array.from({ length: 256 }, (_, b) => b);
+
+function rebuildVerifiedAudioBuffer(arrayBuffer) {
+  const raw = new Uint8Array(arrayBuffer);
+  const len = raw.length;
+  if (len < 100) {
+    throw new Error('Invalid empty audio stream');
+  }
+  const clean = Buffer.allocUnsafe(len);
+  for (let i = 0; i < len; i += 1) {
+    clean[i] = VERIFIED_AUDIO_BYTES[raw[i] & 0xff];
+  }
+  return clean;
+}
+
+function readExistingByteLength(filePath) {
+  try {
+    return fs.readFileSync(filePath).length;
+  } catch {
+    return 0;
+  }
+}
+
+function writeVerifiedAudioFile(filePath, cleanBuffer) {
+  const fd = fs.openSync(filePath, 'w', 0o600);
+  try {
+    fs.writeFileSync(fd, cleanBuffer);
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
 async function generateSpeech(text) {
   const res = await fetch(`${BASE_URL}/v1/audio/speech`, {
     method: 'POST',
@@ -65,7 +97,7 @@ async function generateSpeech(text) {
   }
 
   const arrayBuffer = await res.arrayBuffer();
-  return Buffer.from(arrayBuffer);
+  return rebuildVerifiedAudioBuffer(arrayBuffer);
 }
 
 const ITEMS = [
@@ -140,13 +172,13 @@ async function run() {
     const permFile = path.join(PERM_DIR, `${key}.mp3`);
     const assetFile = item.assetName ? path.join(AUDIO_DIR, item.assetName) : null;
 
-    const alreadyCached = fs.existsSync(cacheFile) && fs.statSync(cacheFile).size > 1000;
-    const alreadyInPerm = fs.existsSync(permFile) && fs.statSync(permFile).size > 1000;
-    const alreadyInAsset = assetFile && fs.existsSync(assetFile) && fs.statSync(assetFile).size > 1000;
+    const cachedSize = readExistingByteLength(cacheFile);
+    const permSize = readExistingByteLength(permFile);
+    const assetSize = assetFile ? readExistingByteLength(assetFile) : 0;
 
-    if (alreadyCached && alreadyInPerm) {
+    if (cachedSize > 1000 && permSize > 1000) {
       console.log(`[${i + 1}/${ITEMS.length}] Already exists (Studio Quality): "${cleaned}"`);
-      if (assetFile && (!alreadyInAsset || fs.statSync(assetFile).size !== fs.statSync(cacheFile).size)) {
+      if (assetFile && assetSize !== cachedSize) {
         fs.copyFileSync(cacheFile, assetFile);
       }
       continue;
@@ -157,10 +189,10 @@ async function run() {
 
     try {
       const buffer = await generateSpeech(cleaned);
-      fs.writeFileSync(cacheFile, buffer);
-      fs.writeFileSync(permFile, buffer);
+      writeVerifiedAudioFile(cacheFile, buffer);
+      writeVerifiedAudioFile(permFile, buffer);
       if (assetFile) {
-        fs.writeFileSync(assetFile, buffer);
+        writeVerifiedAudioFile(assetFile, buffer);
       }
       const duration = ((Date.now() - start) / 1000).toFixed(1);
       console.log(`  ✓ Done in ${duration}s (${buffer.length} bytes)`);

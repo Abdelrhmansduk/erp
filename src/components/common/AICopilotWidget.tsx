@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useCompany } from '../../contexts/CompanyContext';
+import { useAppStore } from '../../stores/appStore';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { 
   X, Send, Mic, MicOff, Volume2, VolumeX, Sparkles, 
@@ -184,7 +185,7 @@ export function detectWakeCall(rawText: string, defaultPersona: AssistantPersona
   // Extract direct query if user spoke a command after calling the name:
   // e.g. "يا فارس اعطني تقرير العقود" -> "اعطني تقرير العقود"
   const cleaned = rawText
-    .replace(/^(?:مرحبا|اهلا|أهلاً|أهلا|الو|ألو|هلا|يا|يا\s*)*(?:فارس(?:نا)?|نور[ةه]|نورا|مرشد[ةه]?|مساعد(?:نا)?|ابو\s*فهد|ام\s*خالد)[\s،,:-]*/i, '')
+    .replace(/^(?:(?:مرحبا|اهلا|أهلاً|أهلا|الو|ألو|هلا|يا)\s*){0,4}(?:فارس(?:نا)?|نور[ةه]|نورا|مرشد[ةه]?|مساعد(?:نا)?|ابو\s*فهد|ام\s*خالد)[\s،,:-]*/i, '')
     .trim();
 
   return {
@@ -1124,6 +1125,7 @@ export const AICopilotWidget: React.FC<AICopilotWidgetProps> = ({ onNavigate }) 
           code: (activeCompany as any).code,
         },
         conversationHistory: messages.map((m) => ({ sender: m.sender, text: m.text })),
+        activePage: useAppStore.getState().activeTab,
       });
 
       const isMutatingTool = Boolean(aiRes.toolCall && aiRes.toolCall.tool.isMutating);

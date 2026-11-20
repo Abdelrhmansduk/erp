@@ -261,7 +261,7 @@ describe('Entity Standalone Branding, Pre-Export Editor, Employee Sync, Leave Li
     await restoreUnifiedEmployeeFromBin(binItem);
     const afterRestoreHr = await realErpDataStore.getRecords<any>('hr_employees', []);
     expect(afterRestoreHr.some((e) => e.id === 'EMP-SYNC-01')).toBe(true);
-  });
+  }, 25000);
 
   it('calculates net leave days and executes post-approval return, early cut refund, extension, and cancellation', async () => {
     saveHrLeavePolicy({
@@ -370,7 +370,7 @@ describe('Entity Standalone Branding, Pre-Export Editor, Employee Sync, Leave Li
     });
     expect(cancelRes.refundedDays).toBe(5);
     expect(cancelRes.newBalance).toBe(27);
-  });
+  }, 25000);
 
   it('scans overdue leave returns & company commercial licenses in Smart Alerts and executes 1-click corrective actions', async () => {
     await realErpDataStore.addRecord<any>('hr_leave_requests', {

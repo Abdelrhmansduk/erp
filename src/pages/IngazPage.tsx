@@ -3,6 +3,7 @@ import { Badge } from '../components/ui/Badge';
 import { exportData } from '../services/exportService';
 import { ExportDropdown } from '../components/common/ExportDropdown';
 import { realErpDataStore } from '../services/realErpDataStore';
+import { syncIngazDelegationToFollowup } from '../services/externalAgencyMasterService';
 import { useAppStore } from '../stores/appStore';
 import { useCompany } from '../contexts/CompanyContext';
 import { Stamp, Plus, FileSpreadsheet, FileText, Search, Printer, RefreshCw, X, CheckCircle, QrCode, Award } from 'lucide-react';
@@ -173,6 +174,13 @@ export const IngazPage: React.FC = () => {
     };
 
     const updated = await realErpDataStore.addRecord('ingaz_delegations', newDelegation, MOCK_INGAZ_DELEGATIONS);
+    await syncIngazDelegationToFollowup({
+      visaNumber: newDelegation.visa_number,
+      clientName: newDelegation.client_name,
+      externalOfficeName: newDelegation.foreign_office,
+      status: newDelegation.status,
+      actorName: 'قسم تفاويض إنجاز',
+    });
     setDelegations(updated);
     setShowModal(false);
     setFormData({
@@ -202,6 +210,13 @@ export const IngazPage: React.FC = () => {
       { status: 'تم التوثيق' },
       MOCK_INGAZ_DELEGATIONS
     );
+    await syncIngazDelegationToFollowup({
+      visaNumber: row.visa_number,
+      clientName: row.client_name,
+      externalOfficeName: row.foreign_office,
+      status: 'تم التوثيق',
+      actorName: 'ربط إنجاز ومساند',
+    });
     setDelegations(updated);
     addNotification({
       title: 'مزامنة منصة إنجاز ومساند',

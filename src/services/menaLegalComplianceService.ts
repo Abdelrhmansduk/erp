@@ -11,6 +11,7 @@
  */
 
 import { supabase, isSupabaseConfigured } from './supabaseClient';
+import { decryptStoragePayload, encryptStoragePayload } from '../utils/securitySanitizers';
 
 // ─── Storage Keys ─────────────────────────────────────────────────────────────
 const STORAGE_KEYS = {
@@ -26,7 +27,7 @@ const STORAGE_KEYS = {
 function safeReadJson<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback;
   try {
-    const raw = window.localStorage.getItem(key);
+    const raw = decryptStoragePayload(window.localStorage.getItem(key));
     if (!raw) return fallback;
     return JSON.parse(raw) as T;
   } catch {
@@ -37,7 +38,7 @@ function safeReadJson<T>(key: string, fallback: T): T {
 function safeWriteJson<T>(key: string, value: T): void {
   if (typeof window === 'undefined') return;
   try {
-    window.localStorage.setItem(key, JSON.stringify(value));
+    window.localStorage.setItem(key, encryptStoragePayload(JSON.stringify(value)));
   } catch {
     // Ignore storage quota errors in restricted environments
   }
@@ -691,7 +692,13 @@ export interface ExternalDataProcessorInfo {
 export const DATA_PROCESSORS_ABROAD_MANIFEST: ExternalDataProcessorInfo[] = [
   {
     serviceName: 'Supabase Cloud (PostgreSQL Database, Auth, Storage & Backups)',
-    provider: 'Supabase Inc. (AWS Cloud Infrastructure — `vpktsypunodgihpcufdj.supabase.co`)',
+    provider: `Supabase Inc. (AWS Cloud Infrastructure — \`${(() => {
+      try {
+        return new URL((import.meta as any).env?.VITE_SUPABASE_URL || '').host || 'supabase.co';
+      } catch {
+        return 'supabase.co';
+      }
+    })()}\`)`,
     storageOrProcessingRegion: 'خارج سلطنة عُمان وخارج جمهورية مصر العربية (سحابة AWS الإقليمية + نسخ احتياطية سحابية)',
     dataCategories: 'حسابات المستخدمين، العقود، الفواتير، سجلات الموارد البشرية، والمرفقات',
     legalNote: 'يتطلب موافقة صريحة مسبقة لمستخدمي عُمان (المادة 23 واللائحة التنفيذية م 37)، وترخيص نقل عابر للحدود من مركز حماية البيانات الشخصية المصري (pdpc.gov.eg) لمستخدمي مصر (المادة 14).',

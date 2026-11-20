@@ -368,7 +368,7 @@ export const WmsSerialsSamplesTab: React.FC<{
                           onClick={() =>
                             onBridgeCustody(
                               r.id,
-                              r.assignedToName || 'احمد جمال احمد البشير',
+                              r.assignedToName || 'حاتم سلمان ابوالذهب سلمان',
                               r.assignedToEntity || 'شركة كاس للتجارة — الرياض',
                               0
                             )
@@ -636,12 +636,19 @@ export const WmsSerialsSamplesTab: React.FC<{
 export const WmsCycleCountTab: React.FC<{
   warehouses: WmsWarehouse[];
   sessions: WmsCycleCountSession[];
-  onStartSession: (warehouseId: string, blindMode: boolean) => void;
+  onStartSession: (
+    warehouseId: string,
+    blindMode: boolean,
+    scope?: 'ALL' | 'ABC_A' | 'ABC_B' | 'ABC_C' | 'ZONE',
+    zoneFilter?: string
+  ) => void;
   onUpdateLine: (sessionId: string, itemId: string, countedQty: number | null) => void;
   onPostSession: (sessionId: string) => void;
 }> = ({ warehouses, sessions, onStartSession, onUpdateLine, onPostSession }) => {
   const [selectedWh, setSelectedWh] = useState(warehouses[0]?.id || 'WH-MAIN');
   const [blindMode, setBlindMode] = useState(true);
+  const [scope, setScope] = useState<'ALL' | 'ABC_A' | 'ABC_B' | 'ABC_C' | 'ZONE'>('ALL');
+  const [zoneFilter, setZoneFilter] = useState('');
   const [activeSessionId, setActiveSessionId] = useState<string>(sessions[0]?.id || '');
 
   const activeSession = sessions.find((s) => s.id === activeSessionId) || sessions[0] || null;
@@ -650,9 +657,9 @@ export const WmsCycleCountTab: React.FC<{
     <div className="space-y-4">
       <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="text-sm font-bold text-[#141414]">منظومة الجرد الدوري الذكي والأعمى (Blind Cycle Count)</h3>
+          <h3 className="text-sm font-bold text-[#141414]">منظومة الجرد الدوري الذكي والأعمى (Blind Cycle Count — بدون حد أصناف)</h3>
           <p className="text-[11px] text-[#707070] mt-0.5">
-            أدخل الكميات الفعلية على الرفوف ثم اعتمد الجلسة لإصدار إذن تسوية فروقات (ADJ) تلقائياً
+            يدعم الجرد الكامل لكل المستودع أو التصنيف النطاقي (ABC / Zone) — أدخل الكميات الفعلية لإصدار تسوية ADJ محاسبية تلقائياً
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -667,13 +674,33 @@ export const WmsCycleCountTab: React.FC<{
               </option>
             ))}
           </select>
+          <select
+            value={scope}
+            onChange={(e) => setScope(e.target.value as 'ALL' | 'ABC_A' | 'ABC_B' | 'ABC_C' | 'ZONE')}
+            className="rounded-full bg-[#f0f0f0] px-3.5 py-2 text-xs font-semibold"
+          >
+            <option value="ALL">جميع أصناف المستودع (ALL)</option>
+            <option value="ABC_A">تصنيف A (الأعلى قيمة)</option>
+            <option value="ABC_B">تصنيف B (متوسط القيمة)</option>
+            <option value="ABC_C">تصنيف C (الاستهلاكية)</option>
+            <option value="ZONE">نطاق / رف محدد (Zone)</option>
+          </select>
+          {scope === 'ZONE' && (
+            <input
+              type="text"
+              value={zoneFilter}
+              onChange={(e) => setZoneFilter(e.target.value)}
+              placeholder="مثال: Z1 أو Z-IT"
+              className="w-32 rounded-full bg-[#f0f0f0] px-3 py-2 text-xs font-mono"
+            />
+          )}
           <label className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-full bg-[#f3f3f3] cursor-pointer">
             <input type="checkbox" checked={blindMode} onChange={(e) => setBlindMode(e.target.checked)} />
             <span>جرد أعمى (إخفاء الدفتري)</span>
           </label>
           <button
             type="button"
-            onClick={() => onStartSession(selectedWh, blindMode)}
+            onClick={() => onStartSession(selectedWh, blindMode, scope, zoneFilter || undefined)}
             className="px-4 py-2 rounded-full bg-[#141414] text-white text-xs font-bold flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -689,6 +716,9 @@ export const WmsCycleCountTab: React.FC<{
               <ClipboardList className="w-4 h-4 text-[#141414]" />
               <span className="font-mono font-bold text-sm text-[#141414]">{activeSession.countNo}</span>
               <span className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] text-[11px] font-bold">{activeSession.status}</span>
+              <span className="px-2.5 py-0.5 rounded-full bg-[#141414] text-white text-[11px] font-mono font-bold">
+                {activeSession.lines.length} صنف
+              </span>
               <span className="text-xs text-[#707070]">بواسطة: {activeSession.countedBy}</span>
             </div>
             <div className="flex items-center gap-2">
@@ -1009,6 +1039,90 @@ export const WmsAnalyticsAndSettingsTab: React.FC<{
             />
             <span>منع الصرف بالسالب لحماية دقة الأرصدة</span>
           </label>
+        </div>
+
+        {/* Enterprise Governance Controls (FEFO / QC / In-Transit / Immutability / Maker-Checker) */}
+        <div className="pt-3 border-t border-[#f0f0f0] space-y-3">
+          <div className="text-xs font-bold text-[#141414]">
+            إعدادات الحوكمة والرقابة المتقدمة (Enterprise WMS Governance):
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
+            <label className="flex items-center gap-2 p-3 rounded-[14px] bg-[#f3f3f3] cursor-pointer font-semibold">
+              <input
+                type="checkbox"
+                checked={settings.enforceFefo !== false}
+                onChange={(e) => onUpdateSettings({ enforceFefo: e.target.checked })}
+              />
+              <span>صرف FEFO آلي (الأقرب صلاحية أولاً)</span>
+            </label>
+            <label className="flex items-center gap-2 p-3 rounded-[14px] bg-[#f3f3f3] cursor-pointer font-semibold">
+              <input
+                type="checkbox"
+                checked={settings.blockExpiredLots !== false}
+                onChange={(e) => onUpdateSettings({ blockExpiredLots: e.target.checked })}
+              />
+              <span>منع صرف الدفعات منتهية الصلاحية</span>
+            </label>
+            <label className="flex items-center gap-2 p-3 rounded-[14px] bg-[#f3f3f3] cursor-pointer font-semibold">
+              <input
+                type="checkbox"
+                checked={Boolean(settings.requireQcOnGrn)}
+                onChange={(e) => onUpdateSettings({ requireQcOnGrn: e.target.checked })}
+              />
+              <span>إلزام حجر فحص الجودة (QC Hold) للوارد</span>
+            </label>
+            <label className="flex items-center gap-2 p-3 rounded-[14px] bg-[#f3f3f3] cursor-pointer font-semibold">
+              <input
+                type="checkbox"
+                checked={Boolean(settings.enableInTransitTransfers)}
+                onChange={(e) => onUpdateSettings({ enableInTransitTransfers: e.target.checked })}
+              />
+              <span>تفعيل التحويل بمرحلتين (In-Transit STR)</span>
+            </label>
+            <label className="flex items-center gap-2 p-3 rounded-[14px] bg-[#f3f3f3] cursor-pointer font-semibold">
+              <input
+                type="checkbox"
+                checked={Boolean(settings.strictImmutablePostedVouchers)}
+                onChange={(e) => onUpdateSettings({ strictImmutablePostedVouchers: e.target.checked })}
+              />
+              <span>حوكمة التثبيت الصارم (عكس قيد فقط للمُرحّل)</span>
+            </label>
+            <label className="flex items-center gap-2 p-3 rounded-[14px] bg-[#f3f3f3] cursor-pointer font-semibold">
+              <input
+                type="checkbox"
+                checked={Boolean(settings.enforceMakerChecker)}
+                onChange={(e) => onUpdateSettings({ enforceMakerChecker: e.target.checked })}
+              />
+              <span>فصل المهام (Maker ≠ Checker)</span>
+            </label>
+          </div>
+          <div className="flex flex-wrap items-center gap-4 text-xs pt-1">
+            <label className="flex items-center gap-2 font-semibold">
+              <span className="text-[#707070]">سقف الصرف التلقائي قبل الاعتماد (⃁):</span>
+              <input
+                type="number"
+                min={0}
+                step={500}
+                value={settings.approvalThresholdSar ?? 10000}
+                onChange={(e) => onUpdateSettings({ approvalThresholdSar: Math.max(0, Number(e.target.value) || 0) })}
+                className="w-28 rounded-full bg-[#f0f0f0] px-3 py-1 font-mono text-center font-bold"
+              />
+            </label>
+            <label className="flex items-center gap-2 font-semibold">
+              <span className="text-[#707070]">نسبة فرق الجرد الملزمة للاعتماد (%):</span>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                value={settings.cycleCountVarianceApprovalPct ?? 5}
+                onChange={(e) =>
+                  onUpdateSettings({ cycleCountVarianceApprovalPct: Math.max(0, Number(e.target.value) || 0) })
+                }
+                className="w-20 rounded-full bg-[#f0f0f0] px-3 py-1 font-mono text-center font-bold"
+              />
+            </label>
+          </div>
         </div>
       </div>
 

@@ -16,6 +16,7 @@ import { ModuleVisibilityManager } from '../components/settings/ModuleVisibility
 import { AppearanceDisplayCustomizer } from '../components/settings/AppearanceDisplayCustomizer';
 import { GoogleTwoFactorHub } from '../components/settings/GoogleTwoFactorHub';
 import { CloudflareEdgeStatusCard } from '../components/settings/CloudflareEdgeStatusCard';
+import { sanitizeSafeHref, sanitizeSafeMediaSrc } from '../utils/securitySanitizers';
 import { authService } from '../services/authService';
 import {
   loadGlobalTwoFactorPolicy,
@@ -1115,7 +1116,7 @@ export const SettingsPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-4 rounded-2xl border border-[#e0e0e0] bg-[#f3f3f3] flex flex-col items-center justify-center text-center">
                   <div className="w-16 h-16 rounded-full bg-white p-2 border border-[#e0e0e0] flex items-center justify-center mb-3 ">
-                    <img loading="lazy" decoding="async" src={logoLightUrl} alt="Logo Light" className="max-h-full max-w-full object-contain" />
+                    <img loading="lazy" decoding="async" src={sanitizeSafeMediaSrc(logoLightUrl, '/logos/group-logo.png')} alt="Logo Light" className="max-h-full max-w-full object-contain" />
                   </div>
                   <label className="text-xs font-bold text-[#141414] mb-1">شعار المنظومة الرئيسي</label>
                   <input 
@@ -1128,7 +1129,7 @@ export const SettingsPage: React.FC = () => {
 
                 <div className="p-4 rounded-2xl border border-[#e0e0e0] bg-[#f3f3f3] text-[#141414] flex flex-col items-center justify-center text-center">
                   <div className="w-16 h-16 rounded-full bg-[#262626] p-2 border border-[#e0e0e0] flex items-center justify-center mb-3 ">
-                    <img loading="lazy" decoding="async" src={logoDarkUrl} alt="Logo Dark" className="max-h-full max-w-full object-contain" />
+                    <img loading="lazy" decoding="async" src={sanitizeSafeMediaSrc(logoDarkUrl, '/logos/group-logo.png')} alt="Logo Dark" className="max-h-full max-w-full object-contain" />
                   </div>
                   <label className="text-xs font-bold text-[#141414] mb-1">شعار النمط الليلي (Dark Mode)</label>
                   <input 
@@ -1141,7 +1142,7 @@ export const SettingsPage: React.FC = () => {
 
                 <div className="p-4 rounded-2xl border border-[#e0e0e0] bg-[#f3f3f3] flex flex-col items-center justify-center text-center">
                   <div className="w-12 h-12 rounded-xl bg-white p-2 border border-[#e0e0e0] flex items-center justify-center mb-3 ">
-                    <img loading="lazy" decoding="async" src={faviconUrl} alt="Favicon" className="max-h-full max-w-full object-contain" />
+                    <img loading="lazy" decoding="async" src={sanitizeSafeMediaSrc(faviconUrl, '/favicon.ico')} alt="Favicon" className="max-h-full max-w-full object-contain" />
                   </div>
                   <label className="text-xs font-bold text-[#141414] mb-1">أيقونة المتصفح (Favicon)</label>
                   <input 
@@ -1273,7 +1274,7 @@ export const SettingsPage: React.FC = () => {
                       <tr key={link.id} className="hover:bg-[#f3f3f3]">
                         <td className="p-3.5 font-bold text-[#141414]">{link.name}</td>
                         <td className="p-3.5 font-mono text-[#707070] text-[11px]">
-                          <a href={link.url} target="_blank" rel="noreferrer" className="text-[#141414] hover:underline flex items-center gap-1">
+                          <a href={sanitizeSafeHref(link.url)} target="_blank" rel="noreferrer" className="text-[#141414] hover:underline flex items-center gap-1">
                             <span>{link.url}</span>
                             <ExternalLink className="w-3 h-3" />
                           </a>

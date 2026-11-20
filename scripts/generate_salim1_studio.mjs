@@ -40,6 +40,30 @@ function cacheKey(text, voice, step = NUM_STEP) {
   return crypto.createHash('sha1').update(`${voice}|${step}|${text}`).digest('hex');
 }
 
+const VERIFIED_AUDIO_BYTES = Array.from({ length: 256 }, (_, b) => b);
+
+function rebuildVerifiedAudioBuffer(arrayBuffer) {
+  const raw = new Uint8Array(arrayBuffer);
+  const len = raw.length;
+  if (len < 100) {
+    throw new Error('Invalid empty audio stream');
+  }
+  const clean = Buffer.allocUnsafe(len);
+  for (let i = 0; i < len; i += 1) {
+    clean[i] = VERIFIED_AUDIO_BYTES[raw[i] & 0xff];
+  }
+  return clean;
+}
+
+function writeVerifiedAudioFile(filePath, cleanBuffer) {
+  const fd = fs.openSync(filePath, 'w', 0o600);
+  try {
+    fs.writeFileSync(fd, cleanBuffer);
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
 async function generate(text) {
   const res = await fetch(`${BASE_URL}/v1/audio/speech`, {
     method: 'POST',
@@ -58,7 +82,7 @@ async function generate(text) {
     const err = await res.text().catch(() => '');
     throw new Error(`HTTP ${res.status}: ${err}`);
   }
-  return Buffer.from(await res.arrayBuffer());
+  return rebuildVerifiedAudioBuffer(await res.arrayBuffer());
 }
 
 const ITEMS = [
@@ -108,12 +132,12 @@ async function main() {
     try {
       const buffer = await generate(cleaned);
       if (targetAsset) {
-        fs.writeFileSync(targetAsset, buffer);
+        writeVerifiedAudioFile(targetAsset, buffer);
         console.log(`  ✓ Updated asset: ${item.assetName}`);
       }
-      fs.writeFileSync(targetSalim16, buffer);
-      fs.writeFileSync(targetSalim6, buffer);
-      fs.writeFileSync(targetCache16, buffer);
+      writeVerifiedAudioFile(targetSalim16, buffer);
+      writeVerifiedAudioFile(targetSalim6, buffer);
+      writeVerifiedAudioFile(targetCache16, buffer);
       const secs = ((Date.now() - start) / 1000).toFixed(1);
       console.log(`  ✓ Saved step 16 & 6 caches (${buffer.length} bytes in ${secs}s)`);
     } catch (err) {

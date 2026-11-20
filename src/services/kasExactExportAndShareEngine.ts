@@ -24,6 +24,7 @@ import { BOQItem, KasEstablishmentRow, TenderRecord } from '../types/tenders';
 import { RealBoqEngine } from './realBoqEngine';
 import { resolveDocumentBranding } from './entityBrandingService';
 import { printSpecificElement } from '../utils/printManager';
+import { sanitizeHtmlMarkup, sanitizeSafeHref } from '../utils/securitySanitizers';
 
 export type KasVisualExportTheme =
   | 'kas-original-xlsm'
@@ -971,7 +972,7 @@ export async function buildExactReplicaPdfFile(params: {
         container.style.background = '#ffffff';
         container.style.color = '#000000';
         container.dir = 'rtl';
-        container.innerHTML = embeddedHtml;
+        container.innerHTML = sanitizeHtmlMarkup(embeddedHtml);
         document.body.appendChild(container);
         try {
           const canvas = await html2canvas(container, {
@@ -1103,7 +1104,7 @@ export async function buildExactReplicaPngFile(params: {
         container.style.background = '#ffffff';
         container.style.color = '#000000';
         container.dir = 'rtl';
-        container.innerHTML = embeddedHtml;
+        container.innerHTML = sanitizeHtmlMarkup(embeddedHtml);
         document.body.appendChild(container);
         try {
           const canvas = await html2canvas(container, {
@@ -1359,7 +1360,7 @@ export async function executeKasExactExport(params: {
     const tempDiv = document.createElement('div');
     tempDiv.setAttribute('data-printable-card', 'true');
     tempDiv.setAttribute('data-print-orientation', 'landscape');
-    tempDiv.innerHTML = buildEmbeddedTablesHtmlForShare(params);
+    tempDiv.innerHTML = sanitizeHtmlMarkup(buildEmbeddedTablesHtmlForShare(params));
     document.body.appendChild(tempDiv);
     printSpecificElement(tempDiv);
     setTimeout(() => {
@@ -1812,7 +1813,7 @@ export async function downloadFilesSequentially(
     if (!isTest && typeof document !== 'undefined') {
       const url = URL.createObjectURL(file);
       const a = document.createElement('a');
-      a.href = url;
+      a.href = sanitizeSafeHref(url);
       a.download = file.name;
       document.body.appendChild(a);
       a.click();
@@ -2304,7 +2305,7 @@ export async function copyHtmlAndTextToClipboard(
     temp.style.left = '-9999px';
     temp.style.top = '0';
     temp.style.background = '#ffffff';
-    temp.innerHTML = htmlContent;
+    temp.innerHTML = sanitizeHtmlMarkup(htmlContent);
     document.body.appendChild(temp);
     try {
       const range = document.createRange();

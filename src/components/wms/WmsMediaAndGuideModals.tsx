@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { WmsMediaAttachment, WmsMediaTag } from '../../types/wms';
 import { WmsActor } from '../../services/wms/wmsEngineService';
+import { sanitizeSafeHref, sanitizeSafeMediaSrc } from '../../utils/securitySanitizers';
 
 /** Compress large images client-side so storage stays fast and clean */
 async function readFileAsOptimizedDataUrl(file: File): Promise<{ dataUrl: string; sizeBytes: number }> {
@@ -249,9 +250,9 @@ export const WmsMediaGalleryModal: React.FC<{
                     className="h-40 bg-[#f3f3f3] flex items-center justify-center cursor-pointer overflow-hidden relative"
                   >
                     {isImage ? (
-                      <img src={att.dataUrl} alt={att.name} className="w-full h-full object-cover" />
+                      <img src={sanitizeSafeMediaSrc(att.dataUrl)} alt={att.name} className="w-full h-full object-cover" />
                     ) : isVideo ? (
-                      <video src={att.dataUrl} className="w-full h-full object-cover" muted />
+                      <video src={sanitizeSafeMediaSrc(att.dataUrl)} className="w-full h-full object-cover" muted />
                     ) : (
                       <div className="flex flex-col items-center gap-1.5 text-[#141414]">
                         <FileText className="w-8 h-8" />
@@ -273,7 +274,7 @@ export const WmsMediaGalleryModal: React.FC<{
                       </span>
                       <div className="flex items-center gap-1">
                         <a
-                          href={att.dataUrl}
+                          href={sanitizeSafeHref(att.dataUrl)}
                           download={att.name}
                           className="w-6 h-6 rounded-full bg-[#f3f3f3] flex items-center justify-center text-[#141414]"
                           title="تنزيل"
@@ -324,11 +325,11 @@ export const WmsMediaGalleryModal: React.FC<{
                 </button>
               </div>
               {previewItem.mimeType.startsWith('image/') ? (
-                <img src={previewItem.dataUrl} alt={previewItem.name} className="w-full max-h-[68vh] object-contain rounded-[14px]" />
+                <img src={sanitizeSafeMediaSrc(previewItem.dataUrl)} alt={previewItem.name} className="w-full max-h-[68vh] object-contain rounded-[14px]" />
               ) : previewItem.mimeType.startsWith('video/') ? (
-                <video src={previewItem.dataUrl} controls className="w-full max-h-[68vh] rounded-[14px]" />
+                <video src={sanitizeSafeMediaSrc(previewItem.dataUrl)} controls className="w-full max-h-[68vh] rounded-[14px]" />
               ) : (
-                <iframe src={previewItem.dataUrl} title={previewItem.name} className="w-full h-[65vh] rounded-[14px] border border-[#e0e0e0]" />
+                <iframe src={sanitizeSafeMediaSrc(previewItem.dataUrl)} title={previewItem.name} className="w-full h-[65vh] rounded-[14px] border border-[#e0e0e0]" />
               )}
             </div>
           </div>
@@ -450,7 +451,7 @@ export const WmsUserGuideModal: React.FC<{
                 دليل وإرشادات استخدام نظام المستودعات والمخزون (`KAS Enterprise WMS`)
               </h3>
               <p className="text-xs text-[#707070] mt-0.5">
-                دليل تشغيلي عملي مخصص لـ حاتم سلمان وأحمد جمال البشير — خطوة بخطوة لكل ميزة في القسم
+                دليل تشغيلي عملي مخصص لـ حاتم سلمان أبوالذهب — خطوة بخطوة لكل ميزة في القسم
               </p>
             </div>
           </div>

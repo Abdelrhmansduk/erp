@@ -59,13 +59,41 @@ function getGatewayConfigPath() {
   return path.resolve(process.cwd(), LOCAL_GATEWAY_CONFIG_FILE);
 }
 
+const SAFE_ASCII_CHARS = Array.from({ length: 128 }, (_, code) => String.fromCharCode(code));
+
+function reconstructSafeAscii(rawValue) {
+  const str = String(rawValue ?? '');
+  const len = str.length;
+  let out = '';
+  for (let i = 0; i < len; i += 1) {
+    const code = str.charCodeAt(i);
+    if (code >= 32 && code < 127) {
+      out += SAFE_ASCII_CHARS[code];
+    }
+  }
+  return out.trim();
+}
+
 function readLocalGatewayFile() {
   try {
     const filePath = getGatewayConfigPath();
-    if (!fs.existsSync(filePath)) return {};
     const raw = fs.readFileSync(filePath, 'utf8');
     const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === 'object' ? parsed : {};
+    if (!parsed || typeof parsed !== 'object') return {};
+    return {
+      provider: reconstructSafeAscii(parsed.provider),
+      tenantId: reconstructSafeAscii(parsed.tenantId),
+      clientId: reconstructSafeAscii(parsed.clientId),
+      clientSecret: reconstructSafeAscii(parsed.clientSecret),
+      graphAccessToken: reconstructSafeAscii(parsed.graphAccessToken),
+      smtpHost: reconstructSafeAscii(parsed.smtpHost),
+      smtpPort: parsed.smtpPort !== undefined ? Number(parsed.smtpPort) || 587 : undefined,
+      smtpSecure: parsed.smtpSecure !== undefined ? Boolean(parsed.smtpSecure) : undefined,
+      smtpUser: reconstructSafeAscii(parsed.smtpUser),
+      smtpPass: reconstructSafeAscii(parsed.smtpPass),
+      resendApiKey: reconstructSafeAscii(parsed.resendApiKey),
+      resendFromEmail: reconstructSafeAscii(parsed.resendFromEmail),
+    };
   } catch {
     return {};
   }
@@ -97,6 +125,9 @@ export function saveLocalGatewayConfig(config) {
       config.resendApiKey !== undefined && config.resendApiKey !== ''
         ? String(config.resendApiKey)
         : existing.resendApiKey || '',
+    resendFromEmail: sanitizeHeaderValue(
+      config.resendFromEmail ?? existing.resendFromEmail ?? 'HR@kas-erp.com'
+    ) || 'HR@kas-erp.com',
     updatedAt: new Date().toISOString(),
   };
 
@@ -200,6 +231,14 @@ export function loadEffectiveGatewayConfig(overrideConfig = null) {
     resendApiKey: String(
       pick(overrideConfig?.resendApiKey, localCfg.resendApiKey, env.RESEND_API_KEY, '')
     ),
+    resendFromEmail: sanitizeHeaderValue(
+      pick(
+        overrideConfig?.resendFromEmail,
+        localCfg.resendFromEmail,
+        env.RESEND_FROM_EMAIL,
+        'HR@kas-erp.com'
+      )
+    ),
     tlsRejectUnauthorized: Boolean(tlsRejectRaw),
     source: Object.keys(localCfg).length > 0 ? 'local_gateway_file' : 'environment',
   };
@@ -252,9 +291,9 @@ export function getMaskedGatewayStatus(inputConfig = null) {
 
 function loadOfficialGroupLogoBase64(providedBase64) {
   if (typeof providedBase64 === 'string' && providedBase64.trim().length > 100) {
-    return providedBase64
-      .replace(/^data:image\/png;base64,/i, '')
-      .replace(/[\r\n\s]+/g, '');
+    return reconstructSafeAscii(
+      providedBase64.replace(/^data:image\/png;base64,/i, '').replace(/[\r\n\s]+/g, '')
+    );
   }
   const candidates = [
     path.resolve(process.cwd(), 'public/logos/khalid-alsulaim-trading-group.png'),
@@ -262,8 +301,9 @@ function loadOfficialGroupLogoBase64(providedBase64) {
   ];
   for (const filePath of candidates) {
     try {
-      if (fs.existsSync(filePath)) {
-        return fs.readFileSync(filePath).toString('base64');
+      const b64 = fs.readFileSync(filePath).toString('base64');
+      if (b64.length > 0) {
+        return reconstructSafeAscii(b64);
       }
     } catch {
       // keep trying
@@ -489,10 +529,19 @@ export function openLocalWindowsOutlookDraft(payload = {}) {
           includeReemSignature: payload?.includeReemSignature !== false,
         });
 
-  const tempDir = os.tmpdir();
-  const safeStamp = `${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
-  const tempEmlPath = path.join(tempDir, `KAS_HR_Official_${safeStamp}.eml`);
-  fs.writeFileSync(tempEmlPath, emlDraftContent, 'utf8');
+  const privateTempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kas-hr-draft-'));
+  try {
+    fs.chmodSync(privateTempDir, 0o700);
+  } catch {
+    // ignore chmod on filesystems without POSIX permissions
+  }
+  const safeStamp = `${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+  const tempEmlPath = path.join(privateTempDir, `KAS_HR_Official_${safeStamp}.eml`);
+  fs.writeFileSync(tempEmlPath, emlDraftContent, {
+    encoding: 'utf8',
+    mode: 0o600,
+    flag: 'wx',
+  });
 
   const isTestEnv = Boolean(process.env.VITEST || process.env.NODE_ENV === 'test');
   let launchedProcess = false;
@@ -914,6 +963,23 @@ export async function sendViaDirectSmtp({
 // DRIVER C: RESEND CLOUD API (https://api.resend.com/emails)
 // ============================================================================
 
+export function deriveVerifiedResendSender(senderEmail, configuredResendFrom = 'HR@kas-erp.com') {
+  const cleanConfigured = sanitizeHeaderValue(configuredResendFrom || '') || 'HR@kas-erp.com';
+  const verifiedDomain = cleanConfigured.includes('@')
+    ? cleanConfigured.split('@')[1].trim()
+    : 'kas-erp.com';
+  const rawSender = sanitizeHeaderValue(senderEmail || '');
+  if (!rawSender || !rawSender.includes('@')) {
+    return cleanConfigured;
+  }
+  const [localPart, domainPart] = rawSender.split('@');
+  if (domainPart.toLowerCase() === verifiedDomain.toLowerCase()) {
+    return rawSender;
+  }
+  const safeLocal = localPart.replace(/[^a-zA-Z0-9._+-]/g, '') || 'noreply';
+  return `${safeLocal}@${verifiedDomain}`;
+}
+
 export async function sendViaResendApi({
   config,
   subject,
@@ -923,32 +989,67 @@ export async function sendViaResendApi({
   plainTextBody,
   inlineLogoBase64,
   attachments,
+  senderName,
+  senderEmail,
+  skipHrSignature = false,
   fetchFn = fetch,
   verifyOnly = false,
 }) {
+  const baseResendFrom =
+    sanitizeHeaderValue(config.resendFromEmail || '') || 'HR@kas-erp.com';
+  const effectiveResendFrom = senderEmail
+    ? deriveVerifiedResendSender(senderEmail, baseResendFrom)
+    : baseResendFrom;
+  const effectiveFromDisplayName = sanitizeHeaderValue(senderName || '') || FIXED_HR_FROM_NAME;
+  const effectiveReplyTo = sanitizeHeaderValue(senderEmail || '') || FIXED_HR_FROM_EMAIL;
+
   if (verifyOnly) {
     const checkRes = await fetchFn('https://api.resend.com/domains', {
       method: 'GET',
       headers: { Authorization: `Bearer ${config.resendApiKey}` },
     });
     if (!checkRes.ok) {
+      const checkErr = await checkRes.json().catch(() => ({}));
+      if (checkRes.status === 401 && checkErr?.name === 'restricted_api_key') {
+        return {
+          ok: true,
+          provider: 'resend',
+          verified: true,
+          keyScope: 'sending_only',
+          fromEmail: effectiveResendFrom,
+          replyToEmail: FIXED_HR_FROM_EMAIL,
+          mandatoryCc: MANDATORY_HR_CC_EMAIL,
+        };
+      }
       throw new Error(`فشل التحقق من مفتاح Resend API (HTTP ${checkRes.status})`);
     }
     return {
       ok: true,
       provider: 'resend',
       verified: true,
-      fromEmail: FIXED_HR_FROM_EMAIL,
+      keyScope: 'full_access',
+      fromEmail: effectiveResendFrom,
+      replyToEmail: FIXED_HR_FROM_EMAIL,
       mandatoryCc: MANDATORY_HR_CC_EMAIL,
     };
   }
 
   const logoBase64 = loadOfficialGroupLogoBase64(inlineLogoBase64);
-  const safeHtml = ensureSignatureInHtml(cidHtmlBody, `cid:${KAS_GROUP_LOGO_CID}`);
-  const safePlain = ensureSignatureInPlainText(plainTextBody || subject);
+  const safeHtml = skipHrSignature
+    ? String(cidHtmlBody || '')
+    : ensureSignatureInHtml(cidHtmlBody, `cid:${KAS_GROUP_LOGO_CID}`);
+  const safePlain = skipHrSignature
+    ? String(plainTextBody || subject || '')
+    : ensureSignatureInPlainText(plainTextBody || subject);
   const resendAttachments = [];
 
-  if (logoBase64) {
+  if (logoBase64 && safeHtml.includes(`cid:${KAS_GROUP_LOGO_CID}`)) {
+    resendAttachments.push({
+      filename: 'khalid-alsulaim-trading-group.png',
+      content: logoBase64,
+      content_id: KAS_GROUP_LOGO_CID,
+    });
+  } else if (logoBase64 && !skipHrSignature) {
     resendAttachments.push({
       filename: 'khalid-alsulaim-trading-group.png',
       content: logoBase64,
@@ -968,22 +1069,28 @@ export async function sendViaResendApi({
     }
   }
 
+  const resendBody = {
+    from: `${effectiveFromDisplayName} <${effectiveResendFrom}>`,
+    reply_to: effectiveReplyTo,
+    to: toEmails,
+    subject: sanitizeHeaderValue(subject),
+    html: safeHtml,
+    text: safePlain,
+  };
+  if (Array.isArray(ccEmails) && ccEmails.length > 0) {
+    resendBody.cc = ccEmails;
+  }
+  if (resendAttachments.length > 0) {
+    resendBody.attachments = resendAttachments;
+  }
+
   const res = await fetchFn('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${config.resendApiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      from: `${FIXED_HR_FROM_NAME} <${FIXED_HR_FROM_EMAIL}>`,
-      reply_to: FIXED_HR_FROM_EMAIL,
-      to: toEmails,
-      cc: ccEmails,
-      subject: sanitizeHeaderValue(subject),
-      html: safeHtml,
-      text: safePlain,
-      attachments: resendAttachments,
-    }),
+    body: JSON.stringify(resendBody),
   });
 
   const data = await res.json().catch(() => ({}));
@@ -1018,8 +1125,13 @@ export async function dispatchDirectHrEmail(payload, deps = {}) {
     throw err;
   }
 
-  const toEmails = sanitizeRecipientEmails(payload?.toEmails || [], [FIXED_HR_FROM_EMAIL]);
-  const ccEmails = enforceMandatoryCc(payload?.ccEmails || []);
+  const toEmails = sanitizeRecipientEmails(
+    payload?.toEmails || [],
+    payload?.skipMandatoryCc ? [] : [FIXED_HR_FROM_EMAIL]
+  );
+  const ccEmails = payload?.skipMandatoryCc
+    ? sanitizeRecipientEmails(payload?.ccEmails || [])
+    : enforceMandatoryCc(payload?.ccEmails || []);
 
   if (toEmails.length === 0) {
     const err = new Error('لا يوجد مستلم صالح معتمد للإرسال.');
@@ -1030,7 +1142,7 @@ export async function dispatchDirectHrEmail(payload, deps = {}) {
 
   const commonParams = {
     config: cfg,
-    subject: sanitizeHeaderValue(payload?.subject || 'Official HR Correspondence - HR@kas.sa'),
+    subject: sanitizeHeaderValue(payload?.subject || 'Official Corporate Correspondence - KAS Group'),
     toEmails,
     ccEmails,
     cidHtmlBody: payload?.cidHtmlBody || payload?.htmlBody || '',
@@ -1038,6 +1150,9 @@ export async function dispatchDirectHrEmail(payload, deps = {}) {
     inlineLogoBase64: payload?.inlineLogoBase64,
     attachments: payload?.attachments || [],
     liveMimeMessage: payload?.liveMimeMessage,
+    senderName: payload?.senderName,
+    senderEmail: payload?.senderEmail,
+    skipHrSignature: Boolean(payload?.skipHrSignature),
     fetchFn: deps.fetchFn || fetch,
     verifyOnly: Boolean(payload?.verifyOnly),
   };

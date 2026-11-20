@@ -139,7 +139,7 @@ export const WmsWorldClassSuiteTab: React.FC<{
           >
             <h3 className="text-sm font-bold text-[#141414]">رفع طلب صرف داخلي جديد (MRQ)</h3>
             <p className="text-[11px] text-[#707070]">
-              بديل احترافي عن طلبات الواتساب — يصدر الطلب لطابور حاتم وأحمد جمال للتحويل الفوري إلى إذن صرف (GIN).
+              بديل احترافي عن طلبات الواتساب — يصدر الطلب لطابور حاتم سلمان للتحويل الفوري إلى إذن صرف (GIN).
             </p>
             <input
               type="text"

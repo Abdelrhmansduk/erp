@@ -8,6 +8,7 @@
  */
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { authService } from './authService';
+import { decryptStoragePayload, encryptStoragePayload } from '../utils/securitySanitizers';
 
 /** Bump this whenever the legal text changes to force everyone to re-sign. */
 export const LEGAL_POLICY_VERSION = '2026.1';
@@ -113,7 +114,7 @@ export const legalService = {
       if (input.username) {
         localStorage.setItem(`${LEGAL_SIGNED_KEY_PREFIX}${version}_${input.username}`, 'true');
       }
-      const existingRaw = localStorage.getItem(LEGAL_RECORDS_STORAGE_KEY);
+      const existingRaw = decryptStoragePayload(localStorage.getItem(LEGAL_RECORDS_STORAGE_KEY));
       const existing = existingRaw ? JSON.parse(existingRaw) : [];
       existing.unshift({
         id: recordId,
@@ -124,7 +125,10 @@ export const legalService = {
         compliance_hash: complianceHash,
         payload,
       });
-      localStorage.setItem(LEGAL_RECORDS_STORAGE_KEY, JSON.stringify(existing.slice(0, 100)));
+      localStorage.setItem(
+        LEGAL_RECORDS_STORAGE_KEY,
+        encryptStoragePayload(JSON.stringify(existing.slice(0, 100)))
+      );
     } catch {
       // ignore storage errors
     }

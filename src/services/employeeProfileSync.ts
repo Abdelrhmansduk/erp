@@ -6,6 +6,7 @@
  */
 
 import { realErpDataStore } from './realErpDataStore';
+import { cryptoRandomInt, encryptStoragePayload, decryptStoragePayload } from '../utils/securitySanitizers';
 import {
   CanonicalEntityCode,
   normalizeCanonicalEntityCode,
@@ -101,7 +102,7 @@ export async function saveUnifiedEmployeeProfile(
   const empCode = String(
     input.employee_code ||
       base.employee_code ||
-      `EMP-${entityCode}-${Math.floor(100 + Math.random() * 900)}`
+      `EMP-${entityCode}-${cryptoRandomInt(100, 1000)}`
   );
   const jobTitle = String(
     input.job_title || input.role || base.job_title || base.role || 'أخصائي عمليات'
@@ -482,7 +483,7 @@ function readCatalogList(storageKey: string, defaults: string[]): string[] {
     return [...defaults];
   }
   try {
-    const raw = window.localStorage.getItem(storageKey);
+    const raw = decryptStoragePayload(window.localStorage.getItem(storageKey));
     if (!raw) return [...defaults];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [...defaults];
@@ -501,7 +502,7 @@ function writeCatalogList(storageKey: string, items: string[]): string[] {
   );
   if (typeof window !== 'undefined' && window.localStorage) {
     try {
-      window.localStorage.setItem(storageKey, JSON.stringify(unique));
+      window.localStorage.setItem(storageKey, encryptStoragePayload(JSON.stringify(unique)));
     } catch {
       // Ignore storage quota errors in restricted environments
     }

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'data/erp_system_data.dart';
 import 'theme/erp_tokens.dart';
 import 'widgets/workspace_views.dart';
+import 'widgets/wms_field_scanner_view.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -2387,6 +2388,79 @@ class _ErpMasterFlowHostState extends State<ErpMasterFlowHost> with WidgetsBindi
                       onOpenAddRecordModal: _openCreateRecordSheet,
                       onOpenDocumentExtractorModal: _openUniversalDocumentExtractorSheet,
                     )
+                  else if (const {
+                    'kas-warehouse',
+                    'kas-wms',
+                    'warehouse-wms',
+                    'smacc-inventory',
+                  }.contains(_activeTab))
+                    WmsFieldScannerView(
+                      companyId: _selectedPortal.companyId == 'all' ? 'KAS' : _selectedPortal.companyId,
+                      offlineMode: _simulatedOfflineMode,
+                      pendingOfflineCount: _offlineQueue.length,
+                      onEnqueueOffline: (actionType, description) {
+                        final co = _selectedPortal.companyId == 'all' ? 'KAS' : _selectedPortal.companyId;
+                        final newId = 'WMS-${DateTime.now().millisecondsSinceEpoch % 100000}';
+                        setState(() {
+                          _offlineQueue.add(
+                            OfflineQueueAction(
+                              id: newId,
+                              actionType: actionType,
+                              description: description,
+                              companyCode: co,
+                              createdAt: 'الآن',
+                            ),
+                          );
+                          _allRecords.insert(
+                            0,
+                            ErpOperationalRecord(
+                              id: newId,
+                              companyId: co,
+                              moduleKey: 'kas-warehouse',
+                              title: description,
+                              subtitle: 'محطة الماسح الميداني • وضع الأوفلاين',
+                              status: 'في طابور الأوفلاين',
+                              badgeText: actionType,
+                              amountOrMetric: '1 حركة',
+                              updatedAt: 'الآن',
+                            ),
+                          );
+                        });
+                        _triggerInstantNativeNotification(
+                          customTitle: 'تم الحفظ في طابور الأوفلاين ($actionType)',
+                          customBody: description,
+                          tabKey: _activeTab,
+                          tabTitle: _activeTabTitle,
+                        );
+                      },
+                      onCommittedOnline: (actionType, description) {
+                        final co = _selectedPortal.companyId == 'all' ? 'KAS' : _selectedPortal.companyId;
+                        final newId = 'WMS-${DateTime.now().millisecondsSinceEpoch % 100000}';
+                        setState(() {
+                          _allRecords.insert(
+                            0,
+                            ErpOperationalRecord(
+                              id: newId,
+                              companyId: co,
+                              moduleKey: 'kas-warehouse',
+                              title: description,
+                              subtitle: 'محطة الماسح الميداني • مزامن سحابياً',
+                              status: 'مرحّل وموثق',
+                              badgeText: actionType,
+                              amountOrMetric: '1 حركة',
+                              updatedAt: 'الآن',
+                            ),
+                          );
+                        });
+                        _triggerInstantNativeNotification(
+                          customTitle: 'تم ترحيل الحركة المخزنية ($actionType)',
+                          customBody: description,
+                          tabKey: _activeTab,
+                          tabTitle: _activeTabTitle,
+                        );
+                      },
+                      onSyncNow: () => _flushOfflineQueue(reason: 'محطة الماسح الميداني للمستودع'),
+                    )
                   else
                     EnterpriseModuleWorkspaceView(
                       activeTab: _activeTab,
@@ -3956,8 +4030,10 @@ class _ErpMasterFlowHostState extends State<ErpMasterFlowHost> with WidgetsBindi
           ];
         case 'ats':
           return [
+            {'label': '⚡ رادار تأخيرات SLA مساند', 'query': 'افحص رادار المتابعة والمعاملات المتأخرة في مساند'},
+            {'label': '🏆 بطاقة أداء الوكلاء الخارجيين', 'query': 'اعرض بطاقة تقييم أداء الوكلاء الخارجيين'},
+            {'label': '📩 استعجال وكالة متأخرة', 'query': 'أرسل تذكير استعجال SLA للوكيل الخارجي'},
             {'label': '🗂️ تسجيل سيرة ذاتية ATS', 'query': 'سجل سيرة ذاتية جديدة في بنك السير الذاتية ATS'},
-            {'label': '🌍 حالة الوكالات الخارجية', 'query': 'ما هي حالة السير الذاتية والوكالات الخارجية؟'},
             {'label': '📄 استخلاص سير ذاتية PDF', 'query': 'أريد رفع ملفات سير ذاتية واستخلاص بياناتها تلقائياً'},
           ];
         case 'hr':

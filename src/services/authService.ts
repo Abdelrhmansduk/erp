@@ -25,6 +25,8 @@ import {
   saveCustomEmployeePassword,
 } from '../config/kasEmployeePasswordHashes';
 import { SIDEBAR_MENU } from '../data/sidebarMenu';
+import { decryptStoragePayload, encryptStoragePayload } from '../utils/securitySanitizers';
+import { ensureSupabaseSession } from './supabaseSessionBridge';
 import {
   resolveUserVisibilityAccess,
   isVisibilityControllerUser,
@@ -32,6 +34,7 @@ import {
 } from './moduleVisibility';
 import {
   verifyExternalAgencyCredentials,
+  verifyExternalAgencyCredentialsAsync,
   getExternalAgencyAccountsSync,
 } from './externalAgencyMasterService';
 
@@ -165,6 +168,8 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'hr-expenses',
       'hr-cards-rollover',
       'hr-arrears-b2b',
+      'corporate-mail',
+      'unified-communication',
       'profile',
     ],
   },
@@ -235,6 +240,8 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'airport-reception',
       'group-dispatch',
       'recruitment-reports',
+      'corporate-mail',
+      'unified-communication',
       'profile',
     ],
   },
@@ -264,6 +271,8 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'rental-cvs',
       'orders',
       'create-order',
+      'corporate-mail',
+      'unified-communication',
       'profile',
     ],
   },
@@ -296,10 +305,20 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'office-transfers',
       'agent-accounts',
       'external-offices',
+      'suppliers-agents',
       'foreign-agency-portal',
       'agency-portal',
       'agent-portal',
       'agent-imports',
+      'ingaz',
+      'ingaz-delegations',
+      'travel',
+      'arrival-flights',
+      'airport-reception',
+      'data-import',
+      'sent-messages',
+      'corporate-mail',
+      'unified-communication',
       'profile',
     ],
   },
@@ -361,8 +380,12 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'hr-workflows-pulse',
       'reem-hr-emails',
       'hr-official-emails',
+      'corporate-mail',
+      'unified-communication',
       'legal-compliance',
       'ess-self-service',
+      'corporate-mail',
+      'unified-communication',
       'profile',
     ],
   },
@@ -403,6 +426,8 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'complaint-types',
       'compensation-claims',
       'sales-reports',
+      'corporate-mail',
+      'unified-communication',
       'profile',
     ],
   },
@@ -436,6 +461,8 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'airport-reception',
       'deportation-flights',
       'deportation-travel',
+      'corporate-mail',
+      'unified-communication',
       'profile',
     ],
   },
@@ -472,6 +499,8 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
       'gov-integrations',
       'government-hub',
       'gov-integration-hub',
+      'corporate-mail',
+      'unified-communication',
       'profile',
     ],
   },
@@ -687,7 +716,7 @@ const APPROVED_GOOGLE_BINDINGS_KEY = 'ALSULAIM_APPROVED_GOOGLE_BINDINGS_V1';
 
 export function getApprovedGoogleBindings(): ApprovedGoogleAccountBinding[] {
   try {
-    const raw = localStorage.getItem(APPROVED_GOOGLE_BINDINGS_KEY);
+    const raw = decryptStoragePayload(localStorage.getItem(APPROVED_GOOGLE_BINDINGS_KEY));
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
@@ -730,13 +759,16 @@ export function validateAllowedCorporateEmail(identifier: string): {
   }
 
   // 1. Check explicit exclusion list first (e.g. o.saeed.hospitality@kas.sa — مطبخ البوفيه)
-  const excludedReason = getExcludedEmailReason(raw);
+  const normalizedKasAlias = raw.endsWith('@kas-erp.com')
+    ? `${raw.slice(0, -'@kas-erp.com'.length)}@kas.sa`
+    : raw;
+  const excludedReason = getExcludedEmailReason(raw) || getExcludedEmailReason(normalizedKasAlias);
   if (excludedReason) {
     return { allowed: false, reason: excludedReason };
   }
 
-  // 2. Check official 69 @kas.sa employee whitelist
-  const kasMatch = findAllowedKasEmployee(raw);
+  // 2. Check official 69 @kas.sa (and @kas-erp.com mirror) employee whitelist
+  const kasMatch = findAllowedKasEmployee(raw) || findAllowedKasEmployee(normalizedKasAlias);
   if (kasMatch) {
     return { allowed: true, kasEmployee: kasMatch };
   }
@@ -796,7 +828,7 @@ export const LOCKED_SESSION_DEPARTMENT_KEY = 'ALSULAIM_LOCKED_SESSION_DEPARTMENT
 
 export function getCustomStaffDirectory(): StaffDirectoryEntry[] {
   try {
-    const raw = localStorage.getItem(CUSTOM_STAFF_STORAGE_KEY);
+    const raw = decryptStoragePayload(localStorage.getItem(CUSTOM_STAFF_STORAGE_KEY));
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) return parsed;
@@ -911,7 +943,10 @@ export function registerCustomStaffAccount(input: {
     const existing = getCustomStaffDirectory().filter(
       (c) => c.email.toLowerCase() !== newEntry.email.toLowerCase() && c.username.toLowerCase() !== newEntry.username.toLowerCase()
     );
-    localStorage.setItem(CUSTOM_STAFF_STORAGE_KEY, JSON.stringify([newEntry, ...existing]));
+    localStorage.setItem(
+      CUSTOM_STAFF_STORAGE_KEY,
+      encryptStoragePayload(JSON.stringify([newEntry, ...existing]))
+    );
   } catch {
     // ignore storage errors
   }
@@ -939,8 +974,11 @@ function authRedirectUrl(): string {
 
 function cacheProfile(profile: UserProfile | null): void {
   try {
-    if (profile) localStorage.setItem(AUTH_USER_CACHE_KEY, JSON.stringify(profile));
-    else localStorage.removeItem(AUTH_USER_CACHE_KEY);
+    if (profile) {
+      localStorage.setItem(AUTH_USER_CACHE_KEY, encryptStoragePayload(JSON.stringify(profile)));
+    } else {
+      localStorage.removeItem(AUTH_USER_CACHE_KEY);
+    }
   } catch {
     // ignore storage errors
   }
@@ -949,8 +987,8 @@ function cacheProfile(profile: UserProfile | null): void {
 export function setLockedSessionCompany(companyId: string | null): void {
   try {
     if (companyId) {
-      localStorage.setItem(LOCKED_SESSION_COMPANY_KEY, companyId);
-      localStorage.setItem('alsulaim_active_company', companyId);
+      localStorage.setItem(LOCKED_SESSION_COMPANY_KEY, encryptStoragePayload(companyId));
+      localStorage.setItem('alsulaim_active_company', encryptStoragePayload(companyId));
     } else {
       localStorage.removeItem(LOCKED_SESSION_COMPANY_KEY);
     }
@@ -961,7 +999,7 @@ export function setLockedSessionCompany(companyId: string | null): void {
 
 export function getLockedSessionCompany(): string | null {
   try {
-    return localStorage.getItem(LOCKED_SESSION_COMPANY_KEY);
+    return decryptStoragePayload(localStorage.getItem(LOCKED_SESSION_COMPANY_KEY));
   } catch {
     return null;
   }
@@ -970,7 +1008,7 @@ export function getLockedSessionCompany(): string | null {
 export function setLockedSessionDepartment(departmentId: DepartmentId | null): void {
   try {
     if (departmentId) {
-      localStorage.setItem(LOCKED_SESSION_DEPARTMENT_KEY, departmentId);
+      localStorage.setItem(LOCKED_SESSION_DEPARTMENT_KEY, encryptStoragePayload(departmentId));
     } else {
       localStorage.removeItem(LOCKED_SESSION_DEPARTMENT_KEY);
     }
@@ -981,7 +1019,7 @@ export function setLockedSessionDepartment(departmentId: DepartmentId | null): v
 
 export function getLockedSessionDepartment(): DepartmentId | null {
   try {
-    return (localStorage.getItem(LOCKED_SESSION_DEPARTMENT_KEY) as DepartmentId) || null;
+    return (decryptStoragePayload(localStorage.getItem(LOCKED_SESSION_DEPARTMENT_KEY)) as DepartmentId) || null;
   } catch {
     return null;
   }
@@ -1032,7 +1070,12 @@ export function resolveDepartmentAndCompany(
   else if (clean.endsWith('@topaz-rec.sa') || clean.endsWith('@topaz-rec.com')) companyId = 'TOP';
   else if (clean.endsWith('@kas-etimad.sa') || clean.endsWith('@kas-etimad.com')) companyId = 'KAS';
   else if (clean.endsWith('@alruwad.sa') || clean.endsWith('@alruwad.com')) companyId = 'DAR';
-  else if (clean.endsWith('@alsulaim.sa') || clean.endsWith('@alsulaim.com')) companyId = 'all';
+  else if (
+    clean.endsWith('@alsulaim.sa') ||
+    clean.endsWith('@alsulaim.com') ||
+    clean.endsWith('@kas-erp.com')
+  )
+    companyId = 'all';
 
   // 3. Resolve Department ID from explicitDepartmentId, email prefix, or role
   let departmentId: DepartmentId = explicitDepartmentId || 'recruitment';
@@ -1274,7 +1317,7 @@ export const authService = {
       );
       localStorage.setItem(
         APPROVED_GOOGLE_BINDINGS_KEY,
-        JSON.stringify([newBinding, ...others])
+        encryptStoragePayload(JSON.stringify([newBinding, ...others]))
       );
     } catch {
       return { data: null, error: 'تعذر حفظ اعتماد حساب Google في المتصفح.' };
@@ -1306,7 +1349,10 @@ export const authService = {
       const remaining = getApprovedGoogleBindings().filter(
         (b) => b.kasEmail.toLowerCase() !== targetKas
       );
-      localStorage.setItem(APPROVED_GOOGLE_BINDINGS_KEY, JSON.stringify(remaining));
+      localStorage.setItem(
+        APPROVED_GOOGLE_BINDINGS_KEY,
+        encryptStoragePayload(JSON.stringify(remaining))
+      );
     } catch {
       // ignore
     }
@@ -1398,11 +1444,18 @@ export const authService = {
     // "شركة كاس شركة خاصة بالتجارة نظامها منفصل ليس له علاقة بالاستقدام"
     // 1) KAS Trade Company (`effectiveCompany === 'KAS'`) has ZERO access to any Recruitment, Musaned,
     //    Ingaz, Foreign Agencies, ATS CVs, Domestic Rental, Shelter, or Recruitment CRM screen.
+    const SHARED_COMMS_AND_UTILITY_TABS = new Set([
+      'profile',
+      'corporate-mail',
+      'unified-communication',
+      'data-import',
+      'sent-messages',
+    ]);
     const RECRUITMENT_AND_SHELTER_ONLY_TABS = new Set([
-      ...CORPORATE_DEPARTMENTS.recruitment.allowedTabs.filter((t) => t !== 'profile'),
-      ...CORPORATE_DEPARTMENTS.rental.allowedTabs.filter((t) => t !== 'profile'),
-      ...CORPORATE_DEPARTMENTS.ats.allowedTabs.filter((t) => t !== 'profile'),
-      ...CORPORATE_DEPARTMENTS.shelter.allowedTabs.filter((t) => t !== 'profile'),
+      ...CORPORATE_DEPARTMENTS.recruitment.allowedTabs.filter((t) => !SHARED_COMMS_AND_UTILITY_TABS.has(t)),
+      ...CORPORATE_DEPARTMENTS.rental.allowedTabs.filter((t) => !SHARED_COMMS_AND_UTILITY_TABS.has(t)),
+      ...CORPORATE_DEPARTMENTS.ats.allowedTabs.filter((t) => !SHARED_COMMS_AND_UTILITY_TABS.has(t)),
+      ...CORPORATE_DEPARTMENTS.shelter.allowedTabs.filter((t) => !SHARED_COMMS_AND_UTILITY_TABS.has(t)),
       'musaned-escrow',
       'suppliers-agents',
       'agent-accounts',
@@ -1473,7 +1526,7 @@ export const authService = {
         return false;
       }
       // Exclusive KAS Enterprise WMS (`kas-warehouse` / `kas-wms` / `warehouse-wms`):
-      // Strictly restricted to Hatem Salman, Ahmed Gamal Al-Bashir, and Firas Al-Hassan (plus Executive/Admin above)
+      // Strictly restricted to Hatem Salman and Firas Al-Hassan (plus Executive/Admin above)
       if (tabHref === 'kas-warehouse' || tabHref === 'kas-wms' || tabHref === 'warehouse-wms') {
         return Boolean(effectiveOverride && effectiveOverride.includes('kas-warehouse'));
       }
@@ -1632,14 +1685,16 @@ export const authService = {
 
     const cleanId = identifier.trim();
 
-    // 0. Check Isolated External Agency Partner Account (provisioned from Unified Agent Master)
+    // 0. Check Isolated External Agency Partner Account (local cache or Supabase SECURITY DEFINER RPC)
     const matchingExtAccount = getExternalAgencyAccountsSync().find(
       (a) =>
         a.email.toLowerCase() === cleanId.toLowerCase() ||
         a.username.toLowerCase() === cleanId.toLowerCase()
     );
-    if (matchingExtAccount) {
-      const extThrottle = checkThrottle(matchingExtAccount.email);
+    const allowCheck = matchingExtAccount ? { allowed: false, reason: '' } : validateAllowedCorporateEmail(cleanId);
+    if (matchingExtAccount || !allowCheck.allowed) {
+      const throttleKey = (matchingExtAccount?.email || cleanId).toLowerCase();
+      const extThrottle = checkThrottle(throttleKey);
       if (extThrottle.blocked) {
         return {
           data: null,
@@ -1649,18 +1704,34 @@ export const authService = {
           mfa: 'none',
         };
       }
-      const extVerify = verifyExternalAgencyCredentials(cleanId, password);
+      const extVerify = matchingExtAccount
+        ? verifyExternalAgencyCredentials(cleanId, password)
+        : !cleanId.toLowerCase().endsWith('@kas.sa')
+          ? await verifyExternalAgencyCredentialsAsync(cleanId, password)
+          : { valid: false };
       if (!extVerify.valid || !extVerify.account) {
-        recordFailedAttempt(matchingExtAccount.email);
+        if (matchingExtAccount || extVerify.reasonAr) {
+          recordFailedAttempt(throttleKey);
+          return {
+            data: null,
+            error: {
+              message: extVerify.reasonAr || 'رفض أمني: بيانات دخول الوكيل الخارجي غير صحيحة.',
+            },
+            mfa: 'none',
+          };
+        }
         return {
           data: null,
           error: {
-            message: extVerify.reasonAr || 'رفض أمني: بيانات دخول الوكيل الخارجي غير صحيحة.',
+            message:
+              allowCheck.reason ||
+              'رفض أمني: هذا البريد الإلكتروني غير مدرج في قائمة حسابات مجموعة خالد السليم المصرح لها بالتسجيل والدخول (@kas.sa).',
           },
           mfa: 'none',
         };
       }
-      clearFailedAttempts(matchingExtAccount.email);
+      clearFailedAttempts(throttleKey);
+      clearFailedAttempts(extVerify.account.email.toLowerCase());
       markBrowserSessionAuthenticated();
       const acc = extVerify.account;
       const agencyProfile: UserProfile = {
@@ -1693,19 +1764,6 @@ export const authService = {
       return { data: agencyProfile, error: null, mfa: 'none' };
     }
 
-    const allowCheck = validateAllowedCorporateEmail(cleanId);
-    if (!allowCheck.allowed) {
-      return {
-        data: null,
-        error: {
-          message:
-            allowCheck.reason ||
-            'رفض أمني: هذا البريد الإلكتروني غير مدرج في قائمة حسابات مجموعة خالد السليم المصرح لها بالتسجيل والدخول (@kas.sa).',
-        },
-        mfa: 'none',
-      };
-    }
-
     const email = this.resolveEmail(cleanId);
     const throttle = checkThrottle(email);
     if (throttle.blocked) {
@@ -1719,6 +1777,9 @@ export const authService = {
     // 1. Cryptographically verify the employee's strong password against the salted SHA-256 digest
     const isStrongPasswordValid = verifyKasEmployeePassword(email, password);
     if (isStrongPasswordValid) {
+      // Establish a real Supabase JWT in the background so RLS-protected data
+      // (inventory, etc.) can be read/written. Never blocks the login UX.
+      void ensureSupabaseSession(email, password);
       return this.signInWithDirectoryOrAutoRoute(
         cleanId,
         email,
@@ -2282,6 +2343,14 @@ export const authService = {
     try {
       const { data: { session }, error } = await supabase.auth.getSession();
       if (session?.user) {
+        const cachedSame = this.getCurrentUser();
+        if (
+          cachedSame?.email &&
+          session.user.email &&
+          cachedSame.email.toLowerCase() === session.user.email.toLowerCase()
+        ) {
+          return { session: { ...session, user: { ...session.user, profile: cachedSame } }, error };
+        }
         const { data: profile } = await this.getUserProfile(session.user.id);
         const resolvedProfile = profile || buildProfileFromAuthUser(session.user, session.user.email || '');
         cacheProfile(resolvedProfile);
@@ -2315,6 +2384,18 @@ export const authService = {
         return;
       }
       const authUser = session.user;
+      // Keep the directory-routed profile (department, tabs, role) when the Supabase
+      // session belongs to the same employee (created by the session bridge).
+      const cachedSame = this.getCurrentUser();
+      if (
+        cachedSame &&
+        cachedSame.email &&
+        authUser.email &&
+        cachedSame.email.toLowerCase() === authUser.email.toLowerCase()
+      ) {
+        callback(event, { ...session, user: { ...authUser, profile: cachedSame } });
+        return;
+      }
       setTimeout(async () => {
         const { data: profile } = await this.getUserProfile(authUser.id);
         const resolved = profile || buildProfileFromAuthUser(authUser, authUser.email || '');
@@ -2383,7 +2464,7 @@ export const authService = {
   getCurrentUser(): UserProfile | null {
     // A profile only exists after an explicit, successful sign-in. No automatic sessions.
     try {
-      const raw = localStorage.getItem(AUTH_USER_CACHE_KEY);
+      const raw = decryptStoragePayload(localStorage.getItem(AUTH_USER_CACHE_KEY));
       if (!raw) return null;
       const parsed = JSON.parse(raw) as UserProfile;
       if (parsed?.email && getExcludedEmailReason(parsed.email)) {

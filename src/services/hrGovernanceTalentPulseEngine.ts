@@ -8,6 +8,7 @@
 
 import { realErpDataStore } from './realErpDataStore';
 import { maskNationalId } from '../utils/pdplMasking';
+import { cryptoRandomInt } from '../utils/securitySanitizers';
 
 export type CustomFieldModule = 'EMPLOYEE_PROFILE' | 'HR_REQUEST' | 'ASSET_HANDOVER';
 export type CustomFieldType = 'TEXT' | 'NUMBER' | 'DATE' | 'SELECT' | 'BOOLEAN';
@@ -325,10 +326,7 @@ export async function issueEsignOtpChallenge(params: {
   documentId: string;
   channel: EsignChannel;
 }): Promise<EsignOtpChallenge> {
-  const randomDigits =
-    typeof globalThis !== 'undefined' && globalThis.crypto?.getRandomValues
-      ? (globalThis.crypto.getRandomValues(new Uint32Array(1))[0] % 900000) + 100000
-      : Math.floor(100000 + (Date.now() % 900000));
+  const randomDigits = cryptoRandomInt(100000, 1000000);
   const code = String(randomDigits);
   const otpHash = await computeDocumentSha256Hex(`${params.employeeId}:${params.documentId}:${code}`);
   const expiresAtIso = new Date(Date.now() + 5 * 60 * 1000).toISOString();

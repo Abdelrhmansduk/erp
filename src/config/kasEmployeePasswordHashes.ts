@@ -8,7 +8,15 @@
  * - Excluded accounts (such as `o.saeed.hospitality@kas.sa` — مطبخ البوفيه) have NO hash and are permanently rejected.
  */
 
+import {
+  cryptoRandomInt,
+  decryptStoragePayload,
+  encryptStoragePayload,
+} from '../utils/securitySanitizers';
+
 const KAS_PASSWORD_DOMAIN_SALT = 'KAS-ERP-STRONG-AUTH-2026-V2';
+const KAS_PBKDF2_SALT_PREFIX = 'KAS-PBKDF2-V1|';
+const KAS_PBKDF2_ITERATIONS = 100000;
 const KAS_PASSWORD_STRETCH_ROUNDS = 256;
 const CUSTOM_PASSWORD_HASHES_STORAGE_KEY = 'ALSULAIM_STAFF_PASSWORD_HASHES_V1';
 
@@ -27,9 +35,8 @@ function rotr(x: number, n: number): number {
   return (x >>> n) | (x << (32 - n));
 }
 
-/** Deterministic RFC 6234 SHA-256 hex digest (works identically in Browser, HTTP/HTTPS & Vitest jsdom). */
-export function sha256Hex(input: string): string {
-  const bytes = new TextEncoder().encode(input);
+/** Deterministic RFC 6234 SHA-256 raw digest (32 bytes). */
+function sha256Bytes(bytes: Uint8Array, out: Uint8Array = new Uint8Array(32)): Uint8Array {
   const bitLenHi = Math.floor((bytes.length * 8) / 0x100000000);
   const bitLenLo = (bytes.length * 8) >>> 0;
   const totalLen = ((bytes.length + 9 + 63) >> 6) << 6;
@@ -97,9 +104,168 @@ export function sha256Hex(input: string): string {
     h7 = (h7 + h) >>> 0;
   }
 
-  return [h0, h1, h2, h3, h4, h5, h6, h7]
-    .map((v) => v.toString(16).padStart(8, '0'))
-    .join('');
+  const outView = new DataView(out.buffer, out.byteOffset, 32);
+  outView.setUint32(0, h0, false);
+  outView.setUint32(4, h1, false);
+  outView.setUint32(8, h2, false);
+  outView.setUint32(12, h3, false);
+  outView.setUint32(16, h4, false);
+  outView.setUint32(20, h5, false);
+  outView.setUint32(24, h6, false);
+  outView.setUint32(28, h7, false);
+  return out;
+}
+
+function bytesToHex(bytes: Uint8Array): string {
+  let hex = '';
+  for (let i = 0; i < bytes.length; i += 1) {
+    hex += bytes[i].toString(16).padStart(2, '0');
+  }
+  return hex;
+}
+
+/** Deterministic RFC 6234 SHA-256 hex digest (works identically in Browser, HTTP/HTTPS & Vitest jsdom). */
+export function sha256Hex(input: string): string {
+  return bytesToHex(sha256Bytes(new TextEncoder().encode(input)));
+}
+
+function compressSha256Block(state: Uint32Array, w: Uint32Array): void {
+  for (let i = 16; i < 64; i += 1) {
+    const w15 = w[i - 15];
+    const w2 = w[i - 2];
+    const s0 = ((w15 >>> 7) | (w15 << 25)) ^ ((w15 >>> 18) | (w15 << 14)) ^ (w15 >>> 3);
+    const s1 = ((w2 >>> 17) | (w2 << 15)) ^ ((w2 >>> 19) | (w2 << 13)) ^ (w2 >>> 10);
+    w[i] = (w[i - 16] + s0 + w[i - 7] + s1) >>> 0;
+  }
+
+  let a = state[0];
+  let b = state[1];
+  let c = state[2];
+  let d = state[3];
+  let e = state[4];
+  let f = state[5];
+  let g = state[6];
+  let h = state[7];
+
+  for (let i = 0; i < 64; i += 1) {
+    const S1 = ((e >>> 6) | (e << 26)) ^ ((e >>> 11) | (e << 21)) ^ ((e >>> 25) | (e << 7));
+    const ch = (e & f) ^ (~e & g);
+    const temp1 = (h + S1 + ch + K256[i] + w[i]) >>> 0;
+    const S0 = ((a >>> 2) | (a << 30)) ^ ((a >>> 13) | (a << 19)) ^ ((a >>> 22) | (a << 10));
+    const maj = (a & b) ^ (a & c) ^ (b & c);
+    const temp2 = (S0 + maj) >>> 0;
+
+    h = g;
+    g = f;
+    f = e;
+    e = (d + temp1) >>> 0;
+    d = c;
+    c = b;
+    b = a;
+    a = (temp1 + temp2) >>> 0;
+  }
+
+  state[0] = (state[0] + a) >>> 0;
+  state[1] = (state[1] + b) >>> 0;
+  state[2] = (state[2] + c) >>> 0;
+  state[3] = (state[3] + d) >>> 0;
+  state[4] = (state[4] + e) >>> 0;
+  state[5] = (state[5] + f) >>> 0;
+  state[6] = (state[6] + g) >>> 0;
+  state[7] = (state[7] + h) >>> 0;
+}
+
+const SHA256_IV = new Uint32Array([
+  0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+  0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
+]);
+
+/** RFC 2898 PBKDF2-HMAC-SHA256 (dkLen = 32 bytes) matching Node `crypto.pbkdf2Sync(..., 'sha256')` with zero loop allocations. */
+export function computeKasPbkdf2Digest(
+  email: string,
+  password: string,
+  iterations = KAS_PBKDF2_ITERATIONS
+): string {
+  const cleanEmail = (email || '').trim().toLowerCase();
+  const cleanPass = (password || '').trim();
+  const enc = new TextEncoder();
+  const rawKey = enc.encode(cleanPass);
+  const key = rawKey.length > 64 ? sha256Bytes(rawKey) : rawKey;
+  const salt = enc.encode(`${KAS_PBKDF2_SALT_PREFIX}${cleanEmail}`);
+
+  const ipadKey = new Uint8Array(64);
+  const opadKey = new Uint8Array(64);
+  for (let i = 0; i < 64; i += 1) {
+    const kb = i < key.length ? key[i] : 0;
+    ipadKey[i] = kb ^ 0x36;
+    opadKey[i] = kb ^ 0x5c;
+  }
+
+  const w = new Uint32Array(64);
+  const ipadView = new DataView(ipadKey.buffer);
+  const opadView = new DataView(opadKey.buffer);
+
+  const ipadMid = new Uint32Array(SHA256_IV);
+  for (let i = 0; i < 16; i += 1) w[i] = ipadView.getUint32(i * 4, false);
+  compressSha256Block(ipadMid, w);
+
+  const opadMid = new Uint32Array(SHA256_IV);
+  for (let i = 0; i < 16; i += 1) w[i] = opadView.getUint32(i * 4, false);
+  compressSha256Block(opadMid, w);
+
+  const firstInnerInput = new Uint8Array(64 + salt.length + 4);
+  firstInnerInput.set(ipadKey, 0);
+  firstInnerInput.set(salt, 64);
+  firstInnerInput[64 + salt.length + 3] = 1; // INT(1) big-endian
+
+  const firstInnerBytes = sha256Bytes(firstInnerInput);
+  const firstInnerView = new DataView(firstInnerBytes.buffer);
+
+  const uWords = new Uint32Array(opadMid);
+  for (let i = 0; i < 8; i += 1) w[i] = firstInnerView.getUint32(i * 4, false);
+  w[8] = 0x80000000;
+  for (let i = 9; i < 15; i += 1) w[i] = 0;
+  w[15] = 768; // (64 + 32) * 8 bits
+  compressSha256Block(uWords, w);
+
+  const dkWords = new Uint32Array(uWords);
+  const innerState = new Uint32Array(8);
+
+  for (let iter = 1; iter < iterations; iter += 1) {
+    innerState.set(ipadMid);
+    for (let i = 0; i < 8; i += 1) w[i] = uWords[i];
+    w[8] = 0x80000000;
+    w[9] = 0;
+    w[10] = 0;
+    w[11] = 0;
+    w[12] = 0;
+    w[13] = 0;
+    w[14] = 0;
+    w[15] = 768;
+    compressSha256Block(innerState, w);
+
+    uWords.set(opadMid);
+    for (let i = 0; i < 8; i += 1) w[i] = innerState[i];
+    w[8] = 0x80000000;
+    w[9] = 0;
+    w[10] = 0;
+    w[11] = 0;
+    w[12] = 0;
+    w[13] = 0;
+    w[14] = 0;
+    w[15] = 768;
+    compressSha256Block(uWords, w);
+
+    for (let i = 0; i < 8; i += 1) {
+      dkWords[i] = (dkWords[i] ^ uWords[i]) >>> 0;
+    }
+  }
+
+  let hex = '';
+  for (let i = 0; i < 8; i += 1) {
+    hex += dkWords[i].toString(16).padStart(8, '0');
+  }
+  return `pbkdf2:${hex}`;
 }
 
 /** Computes the 256-round salted password digest for a given @kas.sa corporate email. */
@@ -238,11 +404,7 @@ export function generateStrongClientPassword(): string {
   const symbols = '!@#$%&*+=';
   const all = upper + lower + digits + symbols;
 
-  const randIndex = (max: number): number => {
-    const arr = new Uint32Array(1);
-    globalThis.crypto.getRandomValues(arr);
-    return arr[0] % max;
-  };
+  const randIndex = (max: number): number => cryptoRandomInt(0, max);
 
   const chars = [
     upper[randIndex(upper.length)],
@@ -271,7 +433,7 @@ export function generateStrongClientPassword(): string {
 
 export function getStoredCustomPasswordHashes(): Record<string, string> {
   try {
-    const raw = localStorage.getItem(CUSTOM_PASSWORD_HASHES_STORAGE_KEY);
+    const raw = decryptStoragePayload(localStorage.getItem(CUSTOM_PASSWORD_HASHES_STORAGE_KEY));
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === 'object') return parsed;
@@ -288,14 +450,27 @@ export function saveCustomEmployeePassword(email: string, newPlainPassword: stri
   if (!check.valid) {
     throw new Error(check.reason || 'كلمة المرور الجديدة لا تستوفي معايير القوة المؤسسية.');
   }
-  const digest = computeKasPasswordDigest(cleanEmail, newPlainPassword);
+  const digest = computeKasPbkdf2Digest(cleanEmail, newPlainPassword);
   try {
     const current = getStoredCustomPasswordHashes();
     current[cleanEmail] = digest;
-    localStorage.setItem(CUSTOM_PASSWORD_HASHES_STORAGE_KEY, JSON.stringify(current));
+    localStorage.setItem(
+      CUSTOM_PASSWORD_HASHES_STORAGE_KEY,
+      encryptStoragePayload(JSON.stringify(current))
+    );
   } catch {
     // ignore storage errors
   }
+}
+
+function matchesExpectedKasHash(email: string, password: string, expectedHash: string): boolean {
+  if (!expectedHash) return false;
+  if (expectedHash.startsWith('pbkdf2:')) {
+    const actualPbkdf2 = computeKasPbkdf2Digest(email, password);
+    return timingSafeHexEqual(actualPbkdf2, expectedHash);
+  }
+  const actualDigest = computeKasPasswordDigest(email, password);
+  return timingSafeHexEqual(actualDigest, expectedHash);
 }
 
 /** Verifies whether the supplied password matches the employee's active strong password (custom or issued). */
@@ -308,8 +483,7 @@ export function verifyKasEmployeePassword(email: string, password: string): bool
   const expectedHash = customHashes[cleanEmail] || KAS_EMPLOYEE_PASSWORD_HASHES[cleanEmail];
   if (!expectedHash) return false;
 
-  const actualDigest = computeKasPasswordDigest(cleanEmail, cleanPass);
-  return timingSafeHexEqual(actualDigest, expectedHash);
+  return matchesExpectedKasHash(cleanEmail, cleanPass, expectedHash);
 }
 
 /** Verifies specifically against either the active password OR the originally issued password hash. */
@@ -318,11 +492,10 @@ export function verifyInitialOrActiveKasPassword(email: string, password: string
   const cleanPass = (password || '').trim();
   if (!cleanEmail || !cleanPass) return false;
 
-  const actualDigest = computeKasPasswordDigest(cleanEmail, cleanPass);
   const customHashes = getStoredCustomPasswordHashes();
-  if (customHashes[cleanEmail] && timingSafeHexEqual(actualDigest, customHashes[cleanEmail])) {
+  if (customHashes[cleanEmail] && matchesExpectedKasHash(cleanEmail, cleanPass, customHashes[cleanEmail])) {
     return true;
   }
   const issuedHash = KAS_EMPLOYEE_PASSWORD_HASHES[cleanEmail];
-  return Boolean(issuedHash && timingSafeHexEqual(actualDigest, issuedHash));
+  return Boolean(issuedHash && matchesExpectedKasHash(cleanEmail, cleanPass, issuedHash));
 }

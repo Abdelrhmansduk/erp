@@ -3,9 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Badge } from '../components/ui/Badge';
 import { exportData } from '../services/exportService';
 import { realErpDataStore } from '../services/realErpDataStore';
-import { Mail, Plus, FileSpreadsheet, FileText, Inbox, PenSquare, Eye, Paperclip, Printer, Check, ShieldCheck } from 'lucide-react';
+import { Mail, Plus, FileSpreadsheet, FileText, Inbox, PenSquare, Eye, Paperclip, Printer, Check, ShieldCheck, Send } from 'lucide-react';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
+import { CorporateEmailExchangeHub } from '../components/common/CorporateEmailExchangeHub';
 
 export interface UnifiedCorrespondence {
   id: string;
@@ -82,7 +83,7 @@ const MOCK_CORRESPONDENCE: UnifiedCorrespondence[] = [
 
 export const UnifiedCommunicationCenterPage: React.FC = () => {
   const [correspondenceList, setCorrespondenceList] = useState<UnifiedCorrespondence[]>([]);
-  const [activeTab, setActiveTab] = useState<'inbox' | 'compose' | 'letterhead-preview'>('inbox');
+  const [activeTab, setActiveTab] = useState<'email-exchange' | 'inbox' | 'compose' | 'letterhead-preview'>('email-exchange');
   const [selectedMemo, setSelectedMemo] = useState<UnifiedCorrespondence | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>('الكل');
 
@@ -167,7 +168,15 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setActiveTab('email-exchange')}
+            className="button-white-pill"
+            style={{ fontSize: '12.5px', padding: '6px 18px', minHeight: '38px' }}
+          >
+            <Send className="w-4 h-4 ml-1" />
+            <span>إرسال بريد (بين الموظفين / للخارج)</span>
+          </button>
           <button
             onClick={() => setActiveTab('compose')}
             className="button-white-pill"
@@ -209,6 +218,7 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
       {/* Sub Tabs */}
       <div className="flex flex-wrap gap-2 border-b border-[#e0e0e0] pb-3">
         {[
+          { id: 'email-exchange', label: 'البريد المباشر (بين الموظفين • ومن الداخل للخارج)', icon: Mail },
           { id: 'inbox', label: `وارد وصادر المراسلات (${correspondenceList.length})`, icon: Inbox },
           { id: 'compose', label: 'منشئ الخطابات والتعميمات', icon: PenSquare },
           ...(selectedMemo ? [{ id: 'letterhead-preview', label: 'معاينة الخطاب الرسمي المطبوع', icon: Eye }] : []),
@@ -242,6 +252,9 @@ export const UnifiedCommunicationCenterPage: React.FC = () => {
           );
         })}
       </div>
+
+      {/* TAB 0: DIRECT INTERNAL & OUTBOUND EMAIL EXCHANGE (@kas-erp.com) */}
+      {activeTab === 'email-exchange' && <CorporateEmailExchangeHub />}
 
       {/* TAB 1: INBOX & TIMELINE */}
       {activeTab === 'inbox' && (

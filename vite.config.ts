@@ -135,13 +135,27 @@ const ttsPlugin = () => ({
 
       if (req.url && req.url.startsWith('/api/ai-chat') && req.method === 'POST') {
         try {
-          const body = await new Promise<string>((resolve) => {
+          const body = await new Promise<string>((resolve, reject) => {
             let data = '';
-            req.on('data', (chunk: any) => { data += chunk; });
+            req.on('data', (chunk: any) => {
+              data += chunk;
+              if (data.length > 256 * 1024) {
+                reject(new Error('Payload too large'));
+                req.destroy();
+              }
+            });
             req.on('end', () => resolve(data));
           });
           const payload = JSON.parse(body || '{}');
-          const messages = Array.isArray(payload.messages) ? payload.messages : [];
+          // @ts-ignore - Dynamic import of pure ESM Node helper
+          const { sanitizeChatMessages } = await import('./src/services/cloudflareAiVoiceServer.mjs');
+          const messages = sanitizeChatMessages(payload.messages) || [];
+          if (messages.length === 0) {
+            res.statusCode = 400;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: 'Invalid messages' }));
+            return;
+          }
 
           // 1. Try local Ollama first if running
           try {
@@ -173,40 +187,26 @@ const ttsPlugin = () => ({
             // Ollama not running locally, proceed to smart cloud LLM gateway
           }
 
-          // 2. Smart OpenAI-compatible LLM gateway
-          const llmCtrl = new AbortController();
-          const llmTimer = setTimeout(() => llmCtrl.abort(), 14000);
-          const llmRes = await fetch('https://text.pollinations.ai/openai', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              model: 'openai',
-              messages,
-              temperature: 0.35,
-            }),
-            signal: llmCtrl.signal,
-          });
-          clearTimeout(llmTimer);
-
-          if (llmRes.ok) {
-            const llmData: any = await llmRes.json();
-            const content = llmData?.choices?.[0]?.message?.content;
-            if (content) {
-              res.statusCode = 200;
-              res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify({ content, model: llmData.model || 'openai-smart' }));
-              return;
-            }
+          // 2. Cloudflare Workers AI (secure cloud brain via existing account; no external third-party LLMs)
+          // @ts-ignore - Dynamic import of pure ESM Node helper
+          const { chatCloudflareAi } = await import('./src/services/cloudflareAiVoiceServer.mjs');
+          const cfAi = await chatCloudflareAi(messages);
+          if (cfAi?.content) {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Cache-Control', 'no-store');
+            res.end(JSON.stringify({ content: cfAi.content, model: cfAi.model }));
+            return;
           }
 
-          res.statusCode = 502;
+          res.statusCode = 503;
           res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ error: 'Upstream AI gateway unavailable' }));
+          res.end(JSON.stringify({ error: 'AI brain unavailable (Ollama offline, Cloudflare AI unavailable)' }));
           return;
-        } catch (err: any) {
+        } catch {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ error: err?.message || 'AI chat gateway error' }));
+          res.end(JSON.stringify({ error: 'AI chat gateway error' }));
           return;
         }
       }
@@ -311,36 +311,172 @@ const ttsPlugin = () => ({
             return;
           }
 
-          // 1) Cloned voice from local VoiceStudio (cache hit or fast generation)
+          // Hybrid chain: 1) static Salim/Noura clips + real cloned VoiceStudio (if running)
+          //               2) optional ElevenLabs cloned cloud voice (if ELEVENLABS_API_KEY is set)
+          //               3) legacy Edge neural (only when EDGE_TTS_TRUSTED_CLIENT_TOKEN is set)
+          const safeText = text.slice(0, 600);
+          const safePersona = persona === 'faris' ? 'faris' : 'noura';
           // @ts-ignore - Dynamic import of pure ESM Node helper
           const { synthesizeVoiceStudio } = await import('./src/services/voiceStudioTtsServer.mjs');
-          let audioBuffer: Uint8Array | null = await synthesizeVoiceStudio(text, persona === 'faris' ? 'faris' : 'noura');
+          let audioBuffer: Uint8Array | null = await synthesizeVoiceStudio(safeText, safePersona, { waitMs: 6000 });
           let engine = 'voicestudio';
 
-          // 2) Fallback: Saudi Edge neural voice (VoiceStudio keeps filling its cache in background)
           if (!audioBuffer) {
             // @ts-ignore - Dynamic import of pure ESM Node helper
+            const { synthesizeElevenLabsSpeech } = await import('./src/services/cloudflareAiVoiceServer.mjs');
+            audioBuffer = await synthesizeElevenLabsSpeech(safeText, safePersona);
+            engine = 'elevenlabs';
+          }
+
+          if (!audioBuffer && process.env.EDGE_TTS_TRUSTED_CLIENT_TOKEN) {
+            // @ts-ignore - Dynamic import of pure ESM Node helper
             const { synthesizeSaudiEdgeTts } = await import('./src/services/saudiEdgeTtsServer.mjs');
-            audioBuffer = (await synthesizeSaudiEdgeTts(text, persona)) as Uint8Array;
+            audioBuffer = (await synthesizeSaudiEdgeTts(safeText, safePersona)) as Uint8Array;
             engine = 'edge';
+          }
+
+          if (!audioBuffer) {
+            res.statusCode = 503;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: 'No server TTS engine available' }));
+            return;
           }
           res.statusCode = 200;
           res.setHeader('X-TTS-Engine', engine);
           res.setHeader('Content-Type', 'audio/mpeg');
           res.setHeader('Content-Length', String(audioBuffer.length));
-          res.setHeader('Cache-Control', engine === 'voicestudio' ? 'public, max-age=3600' : 'no-store');
+          res.setHeader('Cache-Control', 'no-store');
           res.end(audioBuffer);
           return;
         } catch (err: any) {
-          console.warn('[TTS Dev Plugin] Execution error:', err);
+          console.warn('[TTS Dev Plugin] Execution error:', err?.message);
           if (!res.headersSent) {
             res.statusCode = 500;
             res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({ error: err.message || 'TTS generation failed' }));
+            res.end(JSON.stringify({ error: 'TTS generation failed' }));
           }
           return;
         }
       }
+
+      // KAS Supabase Session Bridge (dev parity with Cloudflare Edge /api/auth/supabase-session)
+      if (req.url && req.url.startsWith('/api/auth/supabase-session') && req.method === 'POST') {
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        try {
+          const rawBody = await new Promise<string>((resolve) => {
+            let buf = '';
+            req.on('data', (chunk: any) => {
+              buf += chunk;
+            });
+            req.on('end', () => resolve(buf));
+          });
+          const body = JSON.parse(rawBody || '{}');
+          // @ts-ignore - pure ESM Node helper
+          const bridge = await import('./scripts/lib/kasSessionBridge.mjs');
+          const fsMod = await import('node:fs');
+          const hashes = bridge.extractKasEmployeeHashes(
+            fsMod.readFileSync('./src/config/kasEmployeePasswordHashes.ts', 'utf8')
+          );
+          const result = await bridge.kasSessionBridge({
+            supabaseUrl: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '',
+            serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '',
+            hashes,
+            email: body?.email,
+            password: body?.password,
+          });
+          res.statusCode = result.status;
+          res.end(JSON.stringify(result.body));
+        } catch (err: any) {
+          res.statusCode = 500;
+          res.end(JSON.stringify({ ok: false, error: err?.message || 'Session bridge error' }));
+        }
+        return;
+      }
+
+      // Server-Side External Agency Authentication Gateway (service_role only)
+      if (req.url && req.url.startsWith('/api/external-agency-auth') && req.method === 'POST') {
+        const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
+        const serviceKey =
+          process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '';
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        if (!supabaseUrl || !serviceKey) {
+          res.statusCode = 503;
+          res.end(JSON.stringify({ ok: false, error: 'Auth gateway not configured' }));
+          return;
+        }
+        try {
+          const rawBody = await new Promise<string>((resolve) => {
+            let buf = '';
+            req.on('data', (chunk: any) => {
+              buf += chunk;
+            });
+            req.on('end', () => resolve(buf));
+          });
+          const body = JSON.parse(rawBody || '{}');
+          const action = typeof body?.action === 'string' ? body.action.trim() : '';
+          const identifier =
+            typeof body?.identifier === 'string' ? body.identifier.trim().toLowerCase() : '';
+          const passwordDigest =
+            typeof body?.passwordDigest === 'string' ? body.passwordDigest.trim() : '';
+
+          if (!identifier || identifier.length > 160) {
+            res.statusCode = 400;
+            res.end(JSON.stringify({ ok: false, error: 'Invalid identifier' }));
+            return;
+          }
+          if (
+            identifier.endsWith('@kas.sa') ||
+            (identifier.endsWith('@alsulaim.sa') && !identifier.endsWith('@agency.alsulaim.sa'))
+          ) {
+            res.statusCode = 200;
+            res.end(JSON.stringify({ ok: true, data: [] }));
+            return;
+          }
+
+          let rpcName = '';
+          let rpcPayload: Record<string, string> = {};
+          if (action === 'resolve') {
+            rpcName = 'resolve_external_agency_email';
+            rpcPayload = { p_identifier: identifier };
+          } else if (action === 'verify') {
+            if (!passwordDigest || passwordDigest.length > 256) {
+              res.statusCode = 400;
+              res.end(JSON.stringify({ ok: false, error: 'Invalid password digest' }));
+              return;
+            }
+            rpcName = 'verify_external_agency_login';
+            rpcPayload = { p_identifier: identifier, p_password_digest: passwordDigest };
+          } else {
+            res.statusCode = 400;
+            res.end(JSON.stringify({ ok: false, error: 'Unsupported action' }));
+            return;
+          }
+
+          const rpcResp = await fetch(`${supabaseUrl}/rest/v1/rpc/${rpcName}`, {
+            method: 'POST',
+            headers: {
+              apikey: serviceKey,
+              Authorization: `Bearer ${serviceKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(rpcPayload),
+          });
+          if (!rpcResp.ok) {
+            res.statusCode = 502;
+            res.end(JSON.stringify({ ok: false, error: `Upstream HTTP ${rpcResp.status}` }));
+            return;
+          }
+          const data = await rpcResp.json().catch(() => []);
+          res.statusCode = 200;
+          res.end(JSON.stringify({ ok: true, data: Array.isArray(data) ? data : [] }));
+          return;
+        } catch (err: any) {
+          res.statusCode = 500;
+          res.end(JSON.stringify({ ok: false, error: err?.message || 'Auth gateway error' }));
+          return;
+        }
+      }
+
       next();
     });
   }
@@ -353,8 +489,11 @@ export default defineConfig(({ mode }) => {
     if (
       (k.startsWith('HR_MAIL_') ||
         k.startsWith('HR_SMTP_') ||
-        k.startsWith('AZURE_') ||
-        k === 'RESEND_API_KEY') &&
+        k.startsWith('CLOUDFLARE_') ||
+        k.startsWith('ELEVENLABS_') ||
+        k.startsWith('RESEND_') ||
+        k.startsWith('SUPABASE_') ||
+        k === 'VITE_SUPABASE_URL') &&
       process.env[k] === undefined
     ) {
       process.env[k] = v;
@@ -381,6 +520,7 @@ export default defineConfig(({ mode }) => {
     }
   },
   build: {
+    emptyOutDir: false,
     copyPublicDir: false,
     chunkSizeWarningLimit: 1500,
     rollupOptions: {

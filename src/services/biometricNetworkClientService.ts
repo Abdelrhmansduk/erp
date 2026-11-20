@@ -1,4 +1,5 @@
 import { realErpDataStore } from './realErpDataStore';
+import { decryptStoragePayload, encryptStoragePayload } from '../utils/securitySanitizers';
 
 export type BiometricProtocolType =
   | 'ZKTECO_TCP_4370'
@@ -107,12 +108,12 @@ export const DEFAULT_NETWORK_BIOMETRIC_DEVICES: NetworkBiometricDeviceRecord[] =
     device_name_ar: 'جهاز البصمة الذكي ZKTeco UA760 — المقر الرئيسي (SN: BZD5253300723)',
     vendor_model: 'ZKTeco UA760 Smart Terminal (TCP 4370 + ADMS Live Push)',
     serial_number: 'BZD5253300723',
-    branch_name: 'المقر الرئيسي — الشبكة المكتبية (192.168.60.0/22)',
+    branch_name: 'المقر الرئيسي — الشبكة المكتبية (192.168.3.159)',
     location_zone: 'بوابة حضور وانصراف الموظفين (Ethernet CAT6 + DC 12V)',
-    ip_address: '192.168.61.201',
+    ip_address: '192.168.3.159',
     port: 4370,
     protocol: 'ZKTECO_TCP_4370',
-    is_online: false,
+    is_online: true,
     last_seen_at: new Date().toISOString(),
   },
   {
@@ -181,13 +182,13 @@ export const DEFAULT_NETWORK_BIOMETRIC_DEVICES: NetworkBiometricDeviceRecord[] =
     id: 'BIO-DEV-CLOUD-04',
     company_id: 'SAF',
     device_code: 'ADMS-CLOUD-HUB',
-    device_name_ar: 'بوابة ربط البصمات السحابية للفروع الخارجية (ADMS Push)',
-    vendor_model: 'ZKTeco BioTime / iClock Cloud Webhook',
-    serial_number: 'ZK-CLOUD-ALL-01',
-    branch_name: 'جميع فروع المملكة',
-    location_zone: 'سحابة الربط الفوري (Webhook)',
-    ip_address: 'cloud-adms.alsulaim.sa',
-    port: 443,
+    device_name_ar: 'بوابة ربط البصمات السحابية للفروع الخارجية (Cloudflare Edge ADMS)',
+    vendor_model: 'ZKTeco ADMS / iClock Edge Receiver (D1 + Supabase)',
+    serial_number: 'BZD5253300723',
+    branch_name: 'جميع فروع المملكة (adms.kas-erp.com)',
+    location_zone: 'سحابة كلاود فلير الفورية (HTTP 80 / HTTPS 443)',
+    ip_address: 'adms.kas-erp.com',
+    port: 80,
     protocol: 'ADMS_CLOUD_RELAY',
     is_online: true,
     last_seen_at: new Date().toISOString(),
@@ -201,7 +202,7 @@ export async function getRegisteredNetworkBiometricDevices(): Promise<
 > {
   try {
     if (typeof localStorage !== 'undefined') {
-      const raw = localStorage.getItem(LOCAL_BIO_DEVICES_STORAGE_KEY);
+      const raw = decryptStoragePayload(localStorage.getItem(LOCAL_BIO_DEVICES_STORAGE_KEY));
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -212,7 +213,10 @@ export async function getRegisteredNetworkBiometricDevices(): Promise<
           );
           if (!hasUa760) {
             const withUa760 = [DEFAULT_NETWORK_BIOMETRIC_DEVICES[0], ...parsed];
-            localStorage.setItem(LOCAL_BIO_DEVICES_STORAGE_KEY, JSON.stringify(withUa760));
+            localStorage.setItem(
+              LOCAL_BIO_DEVICES_STORAGE_KEY,
+              encryptStoragePayload(JSON.stringify(withUa760))
+            );
             return withUa760;
           }
           return parsed;
@@ -220,7 +224,7 @@ export async function getRegisteredNetworkBiometricDevices(): Promise<
       }
       localStorage.setItem(
         LOCAL_BIO_DEVICES_STORAGE_KEY,
-        JSON.stringify(DEFAULT_NETWORK_BIOMETRIC_DEVICES)
+        encryptStoragePayload(JSON.stringify(DEFAULT_NETWORK_BIOMETRIC_DEVICES))
       );
     }
   } catch {
@@ -234,7 +238,10 @@ export async function saveRegisteredNetworkBiometricDevices(
 ): Promise<void> {
   try {
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(LOCAL_BIO_DEVICES_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(
+        LOCAL_BIO_DEVICES_STORAGE_KEY,
+        encryptStoragePayload(JSON.stringify(list))
+      );
     }
   } catch {
     // ignore storage errors

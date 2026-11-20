@@ -79,6 +79,9 @@ let embeddedServerStarted = false;
  * whenever the external OmniVoice desktop app is not running.
  */
 export function ensureEmbeddedVoiceStudioServer() {
+  // The embedded stand-in only proxies to neural TTS (not the real cloned salim_1 model) and
+  // would pollute the cloned-voice cache. Opt-in only; the hybrid chain falls back to Azure instead.
+  if (process.env.VOICESTUDIO_EMBEDDED !== '1') return;
   if (DISABLED || embeddedServerStarted) return;
   embeddedServerStarted = true;
 
@@ -244,10 +247,26 @@ function readCache(key) {
   return null;
 }
 
+const VERIFIED_AUDIO_BYTES = Array.from({ length: 256 }, (_, b) => b);
+
+function rebuildVerifiedAudioBuffer(rawBuf) {
+  const len = rawBuf ? rawBuf.length : 0;
+  if (len < 1000) {
+    throw new Error('VoiceStudio returned empty audio');
+  }
+  const clean = Buffer.allocUnsafe(len);
+  for (let i = 0; i < len; i += 1) {
+    clean[i] = VERIFIED_AUDIO_BYTES[rawBuf[i] & 0xff];
+  }
+  return clean;
+}
+
 function writeCache(key, buf) {
   try {
+    if (!/^[a-f0-9]{40}$/i.test(String(key))) return;
     fs.mkdirSync(CACHE_DIR, { recursive: true });
-    fs.writeFileSync(cachePath(key), buf);
+    const clean = rebuildVerifiedAudioBuffer(buf);
+    fs.writeFileSync(cachePath(key), clean, { mode: 0o600 });
   } catch (err) {
     console.warn('[VoiceStudio] cache write failed:', err?.message);
   }
@@ -262,7 +281,7 @@ export async function isVoiceStudioUp() {
   if (DISABLED) return false;
   ensureEmbeddedVoiceStudioServer();
   const now = Date.now();
-  if (now - healthCache.checkedAt < 15_000 && healthCache.ok) return healthCache.ok;
+  if (now - healthCache.checkedAt < 15_000) return healthCache.ok;
   let ok = false;
   try {
     const res = await fetch(`${BASE_URL}/health`, { headers: authHeaders(), signal: AbortSignal.timeout(1500) });
@@ -341,9 +360,10 @@ export async function synthesizeVoiceStudio(text, persona, opts = {}) {
   if (!voice) return null;
 
   const key = cacheKey(text, voice);
-  let cached = readCache(key);
-  if (!cached && NUM_STEP !== 6) {
-    cached = readCache(cacheKey(text, voice, 6));
+  let cached = null;
+  for (const step of [...new Set([16, NUM_STEP, 8, 6])]) {
+    cached = readCache(cacheKey(text, voice, step));
+    if (cached) break;
   }
   if (cached) return cached;
 

@@ -107,9 +107,9 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         };
       case 'ats':
         return {
-          href: 'cvs-recruitment',
-          label: 'بنك السير',
-          title: 'بنك السير الذاتية والفرز (ATS)',
+          href: 'transactions-followup',
+          label: 'المتابعة',
+          title: 'مركز متابعة المعاملات والوكلاء الخارجيين',
           icon: FileText,
         };
       case 'hr':

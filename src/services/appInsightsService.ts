@@ -228,8 +228,8 @@ export function initAppInsights(customConnectionString?: string): ApplicationIns
         disableFetchTracking: false,
         onunloadDisableBeacon: false,
         excludeRequestFromAutoTrackingPatterns: [
-          /livemetrics\.azure\.com/i,
-          /speech\.platform\.bing\.com/i,
+          /^https?:\/\/(?:[a-z0-9-]+\.)*livemetrics\.azure\.com(?:[/:?#]|$)/i,
+          /^https?:\/\/(?:[a-z0-9-]+\.)*speech\.platform\.bing\.com(?:[/:?#]|$)/i,
         ],
       },
     });

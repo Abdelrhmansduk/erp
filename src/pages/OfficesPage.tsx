@@ -17,13 +17,19 @@ import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import {
   upsertUnifiedAgency,
   resolveCanonicalAgency,
+  loadUnifiedAgencies,
   provisionExternalAgencyAccount,
   getExternalAgencyAccountsSync,
   resetExternalAgencyPassword,
   toggleExternalAgencyAccountStatus,
   dispatchViaEmailAndWhatsApp,
+  normalizeAgencyCandidate,
+  getMusanedTransactions,
   type ExternalAgencyAccount,
+  type NormalizedAgencyCandidate,
+  type MusanedFollowupTransaction,
 } from '../services/externalAgencyMasterService';
+import { SAUDI_RIYAL_SYMBOL } from '../utils/saudiRiyal';
 
 export interface ForeignOffice {
   id: string;
@@ -165,8 +171,64 @@ export const OfficesPage: React.FC = () => {
     cost_usd: 1200
   });
 
+  const [allCandidates, setAllCandidates] = useState<NormalizedAgencyCandidate[]>([]);
+  const [allFollowupTxs, setAllFollowupTxs] = useState<MusanedFollowupTransaction[]>([]);
+  const [settlingPayment, setSettlingPayment] = useState(false);
+
+  const loadMergedOfficesAndLedgers = async () => {
+    const [storedOffices, canonicalAgencies, rawCands, txs] = await Promise.all([
+      realErpDataStore.getRecords<ForeignOffice>('offices', MOCK_OFFICES),
+      loadUnifiedAgencies(),
+      realErpDataStore.getRecords<any>('agency_candidates', [], 'all'),
+      getMusanedTransactions(),
+    ]);
+    const normalizedCands = rawCands
+      .map(normalizeAgencyCandidate)
+      .filter((c): c is NormalizedAgencyCandidate => Boolean(c));
+    setAllCandidates(normalizedCands);
+    setAllFollowupTxs(txs);
+
+    const byName = new Map<string, ForeignOffice>();
+    storedOffices.forEach((o) => {
+      byName.set(o.name.trim().toLowerCase(), o);
+    });
+
+    canonicalAgencies.forEach((ag, idx) => {
+      const keyAr = ag.name_ar.trim().toLowerCase();
+      const keyEn = ag.name_en.trim().toLowerCase();
+      if (byName.has(keyAr) || byName.has(keyEn)) return;
+      const agCands = normalizedCands.filter(
+        (c) =>
+          c.agency_id === ag.id ||
+          c.agencyName?.toLowerCase() === keyAr ||
+          c.agencyName?.toLowerCase() === keyEn
+      );
+      const unpaidUsd = agCands
+        .filter((c) => c.paymentStatus === 'UNPAID')
+        .reduce((s, c) => s + Math.max(0, c.commissionUsd - (c.deductionUsd || 0)), 0);
+      byName.set(keyEn || ag.id, {
+        id: ag.id,
+        name: ag.name_ar || ag.name_en,
+        manager: ag.manager_name || ag.assigned_coordinator_name || 'مدير الوكالة',
+        nationality: ag.country,
+        license_no: ag.musaned_license_no || ag.license_no || ag.canonical_code,
+        account_code: `221${String(20 + idx)}`,
+        phone: ag.phone || '—',
+        email: ag.email || '—',
+        cvs_count: agCands.length,
+        contracts_count: ag.historical_total_contracts || agCands.length,
+        cost_usd: ag.default_commission_usd || 1050,
+        commission_sar: Math.round((ag.default_commission_usd || 1050) * 3.75),
+        balance_usd: unpaidUsd,
+        status: ag.status === 'مجمّد' ? 'متوقف' : 'نشط',
+      });
+    });
+
+    setOffices(Array.from(byName.values()));
+  };
+
   useEffect(() => {
-    realErpDataStore.getRecords<ForeignOffice>('offices', MOCK_OFFICES).then(data => setOffices(data));
+    void loadMergedOfficesAndLedgers();
   }, []);
 
   const [provisionedCreds, setProvisionedCreds] = useState<{
@@ -258,7 +320,39 @@ export const OfficesPage: React.FC = () => {
     const updated = await realErpDataStore.addRecord<ForeignOffice>('offices', newOffice, MOCK_OFFICES);
     setOffices(updated);
 
-    // Cross-sync with external_recruitment_offices table
+    // Cross-sync with external_recruitment_offices and unified external_agencies_master
+    await upsertUnifiedAgency({
+      id: `AGY-${newOffice.id}`,
+      company_id: 'SAF',
+      canonical_code: `OFF_${newOffice.account_code || newOffice.id}`,
+      name_en: newOffice.name,
+      name_ar: newOffice.name,
+      country: newOffice.nationality,
+      country_code: 'INT',
+      license_no: newOffice.license_no,
+      musaned_license_no: newOffice.license_no,
+      manager_name: newOffice.manager,
+      email: newOffice.email,
+      phone: newOffice.phone,
+      whatsapp: newOffice.phone,
+      aliases: [newOffice.name],
+      authorized_companies: ['SAF', 'TOP', 'YAQ', 'DAR'],
+      supported_companies: ['SAF', 'TOP', 'YAQ', 'DAR'],
+      default_commission_usd: newOffice.cost_usd,
+      assigned_coordinator_email: 'm.fouda.followup@kas.sa',
+      assigned_coordinator_name: 'محمود فودة',
+      sla_assign_days: 7,
+      avg_days_to_assign: 7,
+      avg_days_to_arrival: 35,
+      historical_total_contracts: 0,
+      historical_arrived_count: 0,
+      historical_backout_count: 0,
+      historical_runaway_count: 0,
+      historical_cancelled_count: 0,
+      quality_score: 95,
+      status: 'نشط',
+    });
+
     await realErpDataStore.addRecord('external_recruitment_offices', {
       id: newOffice.id,
       officeName: newOffice.name,
@@ -273,6 +367,7 @@ export const OfficesPage: React.FC = () => {
       rating: 5.0,
       authorizedCompanies: ['SAF', 'TOP', 'YAQ', 'KAS'],
     });
+    await loadMergedOfficesAndLedgers();
     addNotification({
       title: 'إضافة وكالة خارجية جديدة',
       message: `تم اعتماد الوكالة (${newOffice.name}) في المنظومة وربطها بالدليل المحاسبي.`,
@@ -788,15 +883,95 @@ export const OfficesPage: React.FC = () => {
         </div>
       )}
 
-      {/* STATEMENT MODAL */}
-      {selectedOfficeStatement && (
-        <div role="dialog" aria-modal="true" onClick={() => setSelectedOfficeStatement(null)} className="fixed inset-0 z-50 bg-[#141414] backdrop-blur-md flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white rounded-[24px] border border-[#e0e0e0] text-[#141414] relative max-h-[90vh] overflow-y-auto">
-            <div className="absolute top-0 right-0 left-0 h-1.5 bg-[#f3f3f3]    rounded-t-3xl" />
+      {/* STATEMENT MODAL (Live Candidates Ledger, Deductions & Real Financial Settlement) */}
+      {selectedOfficeStatement && (() => {
+        const officeKey = selectedOfficeStatement.name.trim().toLowerCase();
+        const officeCandidates = allCandidates.filter(
+          (c) =>
+            c.agency_id === selectedOfficeStatement.id ||
+            (c.agencyName || '').trim().toLowerCase() === officeKey
+        );
+        const officeActiveTxs = allFollowupTxs.filter(
+          (t) =>
+            !t.is_archive &&
+            !t.is_deleted &&
+            (t.agency_id === selectedOfficeStatement.id ||
+              t.agency_canonical_name.trim().toLowerCase() === officeKey)
+        );
+        const unpaidCands = officeCandidates.filter((c) => c.paymentStatus === 'UNPAID');
+        const totalGrossUsd = unpaidCands.reduce((s, c) => s + (c.commissionUsd || 0), 0);
+        const totalDeductionsUsd = officeCandidates.reduce((s, c) => s + (c.deductionUsd || 0), 0);
+        const computedNetUsd = unpaidCands.length > 0
+          ? Math.max(0, totalGrossUsd - officeCandidates.filter((c) => c.paymentStatus === 'UNPAID').reduce((s, c) => s + (c.deductionUsd || 0), 0))
+          : (selectedOfficeStatement.balance_usd ?? 0);
+        const netSar = Math.round(computedNetUsd * 3.75);
 
+        const handleSettleOfficePayment = async () => {
+          if (computedNetUsd <= 0) {
+            addNotification({
+              title: 'لا توجد مستحقات مفتوحة للتسوية',
+              message: `الرصيد المستحق لوكالة (${selectedOfficeStatement.name}) مسدّد بالكامل (0$).`,
+              type: 'info',
+            });
+            return;
+          }
+          setSettlingPayment(true);
+          try {
+            const todayIso = new Date().toISOString().slice(0, 10);
+            const refNo = `SET-${Date.now().toString().slice(-6)}`;
+            await realErpDataStore.addRecord<any>('financial_requests', {
+              id: `FRQ-${Date.now().toString().slice(-6)}`,
+              company_id: 'SAF',
+              request_no: refNo,
+              request_type: 'تحويل بنكي دولي لوكيل خارجي',
+              beneficiary_name: selectedOfficeStatement.name,
+              amount: netSar,
+              currency: 'SAR',
+              amount_usd: computedNetUsd,
+              status: 'معتمد للصرف',
+              description: `تسوية عمولات ${unpaidCands.length} ملف/عقد لصالح وكالة ${selectedOfficeStatement.name} (${computedNetUsd}$ / ${SAUDI_RIYAL_SYMBOL} ${netSar.toLocaleString()})`,
+              created_at: todayIso,
+            });
+            await realErpDataStore.addRecord<any>('vouchers', {
+              id: `VOUCH-${Date.now().toString().slice(-6)}`,
+              voucher_no: `PAY-${Date.now().toString().slice(-6)}`,
+              type: 'سند صرف',
+              payee_payer: selectedOfficeStatement.name,
+              treasury: 'حساب الحوالات الدولية — السفير الماسي',
+              amount: netSar,
+              status: 'معتمد',
+              description: `صرف عمولة وكيل خارجي (${selectedOfficeStatement.name}) — $${computedNetUsd.toLocaleString()} (خصم: $${totalDeductionsUsd.toLocaleString()})`,
+              payment_method: 'SWIFT Wire Transfer',
+              company_id: 'SAF',
+              created_at: new Date().toISOString(),
+            });
+            for (const cand of unpaidCands) {
+              await realErpDataStore.updateRecord<any>('agency_candidates', cand.id, {
+                paymentStatus: 'PAID',
+                payment_status: 'PAID',
+              });
+            }
+            await realErpDataStore.updateRecord<ForeignOffice>('offices', selectedOfficeStatement.id, {
+              balance_usd: 0,
+            });
+            await loadMergedOfficesAndLedgers();
+            addNotification({
+              title: 'تم صرف وتسوية دفعة الوكيل محاسبياً',
+              message: `تم إصدار سند صرف وطلب تحويل بمبلغ $${computedNetUsd.toLocaleString()} (${SAUDI_RIYAL_SYMBOL} ${netSar.toLocaleString()}) وتحديث السجلات كـ PAID.`,
+              type: 'success',
+            });
+            setSelectedOfficeStatement(null);
+          } finally {
+            setSettlingPayment(false);
+          }
+        };
+
+        return (
+        <div role="dialog" aria-modal="true" onClick={() => setSelectedOfficeStatement(null)} className="fixed inset-0 z-50 bg-[#141414]/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-white rounded-[24px] border border-[#e0e0e0] text-[#141414] relative max-h-[90vh] overflow-y-auto">
             <div className="p-5 border-b border-[#e0e0e0] flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-base text-[#141414]">كشف حساب المعاملات: {selectedOfficeStatement.name}</h3>
+                <h3 className="font-bold text-base text-[#141414]">كشف حساب المعاملات الحي: {selectedOfficeStatement.name}</h3>
                 <p className="text-xs text-[#707070] font-mono mt-0.5">كود الحساب: {selectedOfficeStatement.account_code} | الدولة: {selectedOfficeStatement.nationality}</p>
               </div>
               <button 
@@ -808,52 +983,77 @@ export const OfficesPage: React.FC = () => {
             </div>
 
             <div className="p-6 space-y-4 text-xs">
-              <div className="p-4 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] grid grid-cols-3 gap-3 text-center">
+              <div className="p-4 bg-[#f3f3f3] rounded-2xl border border-[#e0e0e0] grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                 <div>
-                  <div className="text-[11px] text-[#707070]">الرصيد الدائن المستحق</div>
-                  <div className="text-base font-mono font-bold text-[#141414]">${(selectedOfficeStatement.balance_usd ?? 0).toLocaleString()}</div>
+                  <div className="text-[11px] text-[#707070]">المستحق الصافي ($)</div>
+                  <div className="text-base font-mono font-bold text-[#141414]">${computedNetUsd.toLocaleString()}</div>
+                  <div className="text-[10px] font-mono text-[#707070]">{SAUDI_RIYAL_SYMBOL} {netSar.toLocaleString()}</div>
                 </div>
                 <div>
-                  <div className="text-[11px] text-[#707070]">العقود المنجزة</div>
-                  <div className="text-base font-mono font-bold text-[#141414]">{selectedOfficeStatement.contracts_count ?? 0} عقود</div>
+                  <div className="text-[11px] text-[#707070]">خصومات Backout/هروب</div>
+                  <div className="text-base font-mono font-bold text-[#141414]">-${totalDeductionsUsd.toLocaleString()}</div>
                 </div>
                 <div>
-                  <div className="text-[11px] text-[#707070]">متوسط العمولة</div>
-                  <div className="text-base font-mono font-bold text-[#141414]">${(selectedOfficeStatement.cost_usd ?? 0).toLocaleString()}</div>
+                  <div className="text-[11px] text-[#707070]">معاملات نشطة بالمتابعة</div>
+                  <div className="text-base font-mono font-bold text-[#141414]">{officeActiveTxs.length} معاملة</div>
+                </div>
+                <div>
+                  <div className="text-[11px] text-[#707070]">تحت التسوية (UNPAID)</div>
+                  <div className="text-base font-mono font-bold text-[#141414]">{unpaidCands.length} ملف</div>
                 </div>
               </div>
 
-              <p className="text-xs text-[#707070] leading-relaxed font-medium">
-                • تم إجراء آخر تسوية نقدية عبر التحويل البنكي الخارجي بتاريخ 2026-08-10 بمبلغ $5,000.<br />
-                • توجد 3 إرساليات قيد إجراءات إصدار تذاكر الطيران للوصول إلى مطار الملك خالد الدولي.
-              </p>
+              {officeCandidates.length > 0 ? (
+                <div className="overflow-x-auto border border-[#e0e0e0] rounded-2xl">
+                  <table className="w-full text-right text-[11px]">
+                    <thead className="bg-[#f3f3f3] font-bold text-[#141414] border-b border-[#e0e0e0]">
+                      <tr>
+                        <th className="p-2.5">العاملة</th>
+                        <th className="p-2.5">العقد / الجواز</th>
+                        <th className="p-2.5">العمولة</th>
+                        <th className="p-2.5">الخصم</th>
+                        <th className="p-2.5">الحالة</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#e0e0e0]">
+                      {officeCandidates.slice(0, 12).map((c) => (
+                        <tr key={c.id}>
+                          <td className="p-2.5 font-bold">{c.maidName}</td>
+                          <td className="p-2.5 font-mono">{c.musanedContractNo || c.passportNumber}</td>
+                          <td className="p-2.5 font-mono">${c.commissionUsd.toLocaleString()}</td>
+                          <td className="p-2.5 font-mono">{c.deductionUsd ? `-$${c.deductionUsd}` : '—'}</td>
+                          <td className="p-2.5 font-bold">{c.paymentStatus === 'PAID' ? 'مسدد' : 'مستحق'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-xs text-[#707070] leading-relaxed font-medium bg-[#f3f3f3] p-3.5 rounded-xl border border-[#e0e0e0]">
+                  إجمالي العقود التاريخية: <strong>{selectedOfficeStatement.contracts_count ?? 0}</strong> • متوسط العمولة: <strong>${(selectedOfficeStatement.cost_usd ?? 0).toLocaleString()}</strong> • معاملات جارية بانتظار التعيين أو الطيران: <strong>{officeActiveTxs.length}</strong>.
+                </p>
+              )}
 
               <div className="flex justify-between items-center gap-2 pt-3 border-t border-[#e0e0e0] flex-wrap">
                 <button
-                  className="px-4 py-2 rounded-2xl bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] hover:bg-[#141414] font-bold text-xs flex items-center gap-1.5 transition "
-                  onClick={() => {
-                    addNotification({
-                      title: 'تسوية رصيد معتمد',
-                      message: `تم إنشاء سند تحويل دولي بمبلغ ${(selectedOfficeStatement.balance_usd ?? 0).toLocaleString()}$ لصالح وكالة (${selectedOfficeStatement.name}) وتوجيهه لقسم المالية.`,
-                      type: 'success'
-                    });
-                    setSelectedOfficeStatement(null);
-                  }}
+                  disabled={settlingPayment}
+                  className="px-4 py-2 rounded-2xl bg-[#141414] text-[#ffffff] hover:bg-[#262626] font-bold text-xs flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
+                  onClick={() => void handleSettleOfficePayment()}
                 >
-                  <DollarSign className="w-3.5 h-3.5 text-[#141414]" />
-                  <span>صرف وتسوية الدفعة</span>
+                  <DollarSign className="w-3.5 h-3.5 text-[#ffffff]" />
+                  <span>{settlingPayment ? 'جاري الترحيل المالي...' : 'صرف وتسوية الدفعة (سند صرف)'}</span>
                 </button>
 
                 <div className="flex items-center gap-2">
                   <button
-                    className="px-4 py-2 rounded-2xl bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] font-bold text-xs flex items-center gap-1.5 transition hover:bg-[#f3f3f3]"
+                    className="px-4 py-2 rounded-2xl bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0] font-bold text-xs flex items-center gap-1.5 transition hover:bg-[#e0e0e0] cursor-pointer"
                     onClick={() => exportData('offices', [selectedOfficeStatement], 'pdf')}
                   >
                     <FileText className="w-3.5 h-3.5 text-[#141414]" />
                     <span>طباعة الكشف</span>
                   </button>
                   <button
-                    className="px-4 py-2 rounded-2xl bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] font-bold text-xs transition"
+                    className="px-4 py-2 rounded-2xl bg-[#f3f3f3] hover:bg-[#e0e0e0] text-[#141414] font-bold text-xs transition cursor-pointer"
                     onClick={() => setSelectedOfficeStatement(null)}
                   >
                     إغلاق
@@ -863,7 +1063,8 @@ export const OfficesPage: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
       {/* AGENT PORTAL CREDENTIALS MODAL (Real Isolated Provisioning + Email & WhatsApp Dispatch) */}
       {selectedOfficeCredentials && (
         <div role="dialog" aria-modal="true" onClick={() => setSelectedOfficeCredentials(null)} className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">

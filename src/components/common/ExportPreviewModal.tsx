@@ -148,13 +148,14 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
   const [editedRowsMatrix, setEditedRowsMatrix] = useState<(string | number)[][]>([]);
 
   // KAS Exact Replica Studio States (`مطابق للقسم الجديد بالملي`)
+  // Strictly scoped to the 3 KAS Tenders/BOQ workbook sections — never hijack
+  // KAS Warehouse (WMS) or other KAS sections with the BOQ green spreadsheet.
   const isKasSection = useMemo(
     () =>
       sectionKey === 'kas_boq_items' ||
       sectionKey === 'kas_establishments_tracker' ||
-      sectionKey === 'kas_november_tenders' ||
-      entityCode === 'KAS',
-    [sectionKey, entityCode]
+      sectionKey === 'kas_november_tenders',
+    [sectionKey]
   );
   const [kasVisualTheme, setKasVisualTheme] =
     useState<KasVisualExportTheme>('kas-original-xlsm');
@@ -266,6 +267,7 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
   useEffect(() => {
     if (!isOpen) return;
     const handlePreviewMessage = (ev: MessageEvent) => {
+      if (ev.origin !== window.location.origin) return;
       const msg = ev.data;
       if (!msg) return;
 
@@ -338,21 +340,35 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
         else if (msg.field === 'customFinanceSignatory') setCustomFinanceSignatory(val.replace(/^الاسم:\s*/, ''));
         else if (msg.field === 'customExecutiveSignatory') setCustomExecutiveSignatory(val);
       } else if (msg.kind === 'header' && typeof msg.colIdx === 'number') {
+        const colIdx = Math.trunc(msg.colIdx);
         const val = String(msg.value || '').trim();
-        if (val) {
-          setEditableHeaders((prev) => ({ ...prev, [msg.colIdx]: val }));
+        if (val && Number.isInteger(colIdx) && colIdx >= 0 && colIdx < 200) {
+          setEditableHeaders((prev) => {
+            const next: Record<number, string> = Object.assign({}, prev);
+            next[colIdx] = val;
+            return next;
+          });
         }
       } else if (
         msg.kind === 'cell' &&
         typeof msg.rowIdx === 'number' &&
         typeof msg.colIdx === 'number'
       ) {
+        const rowIdx = Math.trunc(msg.rowIdx);
+        const colIdx = Math.trunc(msg.colIdx);
+        if (!Number.isInteger(rowIdx) || !Number.isInteger(colIdx) || rowIdx < 0 || colIdx < 0) {
+          return;
+        }
         const val = String(msg.value ?? '').trim();
         setHasEditedCells(true);
         setEditedRowsMatrix((prev) => {
           const base = prev.length > 0 ? prev.map((r) => [...r]) : rawMappedMatrix.map((r) => [...r]);
-          if (!base[msg.rowIdx]) return base;
-          base[msg.rowIdx][msg.colIdx] = val;
+          if (rowIdx >= base.length || !Array.isArray(base[rowIdx]) || colIdx >= base[rowIdx].length) {
+            return base;
+          }
+          const updatedRow = [...base[rowIdx]];
+          updatedRow.splice(colIdx, 1, val);
+          base.splice(rowIdx, 1, updatedRow);
           return base;
         });
       }

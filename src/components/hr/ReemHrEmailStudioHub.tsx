@@ -52,6 +52,7 @@ import type { KasDepartmentId } from '../../config/kasAllowedEmails';
 import { realErpDataStore } from '../../services/realErpDataStore';
 import { notificationPopupEngine } from '../../services/notificationPopupEngine';
 import { ExportDropdown } from '../common/ExportDropdown';
+import { sanitizeHtmlMarkup } from '../../utils/securitySanitizers';
 
 export interface ReemHrEmailStudioHubProps {
   companyId: string;
@@ -117,12 +118,10 @@ const DEPARTMENT_LABELS_AR: Record<KasDepartmentId, string> = {
 };
 
 function sanitizeEmailHtmlForPreview(rawHtml: string): string {
-  return (rawHtml || '')
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/\son[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
-    .replace(/javascript:/gi, '')
+  const withDataLogo = (rawHtml || '')
     .split(`cid:${KAS_GROUP_LOGO_CID}`)
     .join(KAS_TRADING_GROUP_LOGO_DATA_URI);
+  return sanitizeHtmlMarkup(withDataLogo);
 }
 
 function formatAttachmentSize(bytes: number): string {
@@ -197,6 +196,7 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
     initialRecipientEmail ? 'individual' : 'all_group'
   );
   const [recipientSearch, setRecipientSearch] = useState('');
+  const [externalRecipientInput, setExternalRecipientInput] = useState('');
   const [showAllPreviewRecipients, setShowAllPreviewRecipients] = useState(false);
   const [previewMode, setPreviewMode] = useState<'outlook_html' | 'eml_rfc5322'>('outlook_html');
 
@@ -1336,6 +1336,90 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
                     </label>
                   );
                 })}
+              </div>
+
+              {/* Outbound External Email Addition (Internal -> External) */}
+              <div className="pt-3 border-t border-[#e0e0e0] space-y-2">
+                <label className="block text-[11.5px] font-bold text-[#141414]">
+                  أو إضافة مستلمين من خارج المجموعة (من الداخل إلى الخارج — عملاء / مرشحون / جهات)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    dir="ltr"
+                    value={externalRecipientInput}
+                    onChange={(e) => setExternalRecipientInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const tokens = externalRecipientInput
+                          .split(/[,;\s]+/)
+                          .map((t) => t.trim())
+                          .filter((t) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t));
+                        if (tokens.length > 0) {
+                          setActiveScopeKey('individual');
+                          setSelectedEmails((prev) =>
+                            Array.from(new Set([...prev, ...tokens]))
+                          );
+                          setExternalRecipientInput('');
+                        }
+                      }
+                    }}
+                    placeholder="external@domain.com, candidate@gmail.com"
+                    className="flex-1 h-9 rounded-[16px] bg-[#f0f0f0] px-3 text-xs font-mono text-[#141414] focus:outline-none focus:ring-2 focus:ring-[#141414]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const tokens = externalRecipientInput
+                        .split(/[,;\s]+/)
+                        .map((t) => t.trim())
+                        .filter((t) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t));
+                      if (tokens.length > 0) {
+                        setActiveScopeKey('individual');
+                        setSelectedEmails((prev) =>
+                          Array.from(new Set([...prev, ...tokens]))
+                        );
+                        setExternalRecipientInput('');
+                      }
+                    }}
+                    className="h-9 px-3.5 rounded-full bg-[#141414] text-[#ffffff] text-xs font-bold cursor-pointer shrink-0"
+                  >
+                    + إضافة بريد خارجي
+                  </button>
+                </div>
+
+                {selectedEmails.some(
+                  (em) => !allKasDirectory.some((d) => d.email.toLowerCase() === em.toLowerCase())
+                ) && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {selectedEmails
+                      .filter(
+                        (em) =>
+                          !allKasDirectory.some((d) => d.email.toLowerCase() === em.toLowerCase())
+                      )
+                      .map((extEm) => (
+                        <span
+                          key={extEm}
+                          dir="ltr"
+                          className="px-2.5 py-1 rounded-full bg-[#f3f3f3] border border-[#141414] text-[11px] font-mono font-bold text-[#141414] inline-flex items-center gap-1.5"
+                        >
+                          <span>{extEm}</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSelectedEmails((prev) =>
+                                prev.filter((x) => x.toLowerCase() !== extEm.toLowerCase())
+                              )
+                            }
+                            className="cursor-pointer text-[#707070] hover:text-[#141414]"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                  </div>
+                )}
               </div>
             </div>
 

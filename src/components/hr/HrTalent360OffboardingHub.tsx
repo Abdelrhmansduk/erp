@@ -22,6 +22,7 @@ import {
   type HrFinalSettlementResult,
 } from '../../services/hrAdvancedComplianceEngine';
 import { journalEngine } from '../../services/accounting/journalEngine';
+import { cryptoRandomInt } from '../../utils/securitySanitizers';
 
 export interface CorporateCandidateRecord {
   id: string;
@@ -206,7 +207,7 @@ export const HrTalent360OffboardingHub: React.FC<HrTalent360OffboardingHubProps>
 
   const handleConvertCandidateToEmployee = async (cand: CorporateCandidateRecord) => {
     const todayIso = new Date().toISOString().slice(0, 10);
-    const empCode = `EMP-${companyCode}-${Math.floor(1000 + Math.random() * 8999)}`;
+    const empCode = `EMP-${companyCode}-${cryptoRandomInt(1000, 10000)}`;
     const basic = Math.round(cand.offered_salary * 0.65);
     const housing = Math.round(cand.offered_salary * 0.25);
     const transport = Math.max(0, cand.offered_salary - basic - housing);

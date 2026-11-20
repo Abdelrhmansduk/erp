@@ -29,7 +29,6 @@ import {
 const QUICK_RECIPIENTS = [
   { name: 'الشيخ خالد السليم', email: 'khalid@kas.sa', phone: '' },
   { name: 'أ/ فراس دحام الحسن', email: 'f.alhassan.trade@kas.sa', phone: '' },
-  { name: 'أحمد جمال البشير', email: 'a.albashir.trade@kas.sa', phone: '' },
   { name: 'حاتم سلمان أبوالذهب', email: 'h.salman.trade@kas.sa', phone: '' },
   { name: 'محمود علي (محاسبة التجارة)', email: 'm.alata.trade@kas.sa', phone: '' },
   { name: 'محمد خالد (محاسبة التجارة)', email: 'm.mohammed.acc@kas.sa', phone: '' },

@@ -72,14 +72,16 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy to Cloudflare Edge (Workers + Static Assets + D1 + Dispatch Namespace)
         if: steps.cf_check.outputs.configured == 'true'
         id: deploy
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=kas-erp --branch=${{ inputs.branch || github.ref_name }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: node scripts/deploy_cloudflare_edge.mjs
 
       - name: Post-Deploy Edge Health Check
         if: steps.cf_check.outputs.configured == 'true' && github.ref == 'refs/heads/main'

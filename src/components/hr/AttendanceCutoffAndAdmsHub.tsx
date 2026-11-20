@@ -242,10 +242,15 @@ export const AttendanceCutoffAndAdmsHub: React.FC<AttendanceCutoffAndAdmsHubProp
             />
           </div>
 
-          <div className="rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] p-3 text-[11px] space-y-1">
-            <div className="font-bold text-[#141414]">نقطة ربط أجهزة البصمة السحابية (Edge Webhook):</div>
+          <div className="rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] p-3 text-[11px] space-y-1.5">
+            <div className="font-bold text-[#141414]">
+              نقطة ربط جهاز البصمة السحابية المباشرة عبر كلاود فلير (ZKTeco UA760 Cloud Server):
+            </div>
+            <div className="font-mono text-[#141414]" dir="ltr">
+              Server Address: adms.kas-erp.com • Port: 80 • Domain Name: ON
+            </div>
             <div className="font-mono text-[#707070]" dir="ltr">
-              POST /functions/v1/adms-biometric-webhook?SN={deviceSn}&table=ATTLOG
+              POST http://adms.kas-erp.com/iclock/cdata?SN={deviceSn}&table=ATTLOG
             </div>
           </div>
 

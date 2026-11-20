@@ -10,6 +10,8 @@ import { kasEtmadRealService } from '../services/kasEtmadRealService';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { RealBoqEngine } from '../services/realBoqEngine';
 import { RealZatcaEngine } from '../services/realZatcaEngine';
+import { wmsEngineService } from '../services/wms/wmsEngineService';
+import { wmsProcurementService } from '../services/wms/wmsProcurementService';
 import {
   kasNovemberWorkbooksService,
   KasWorkbookSystemSnapshot,
@@ -36,6 +38,7 @@ import {
 import { KasKpiCard, KasTenderCard, KasSupplierCard } from '../components/kas/KasCards';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
+import { cryptoRandomAlphanumeric, cryptoRandomInt } from '../utils/securitySanitizers';
 import { 
   Building2, Plus, FileSpreadsheet, FileText, Search, Printer, 
   Trash2, Edit3, CheckCircle2, AlertCircle, TrendingUp, DollarSign,
@@ -331,7 +334,7 @@ export const TendersBOQPage: React.FC = () => {
 
   // Form States
   const [newTenderForm, setNewTenderForm] = useState({
-    referenceNumber: `2608${Math.floor(10000000 + Math.random() * 90000000)}`,
+    referenceNumber: `2608${cryptoRandomInt(10000000, 100000000)}`,
     title: '',
     entityName: 'مؤسسة خالد عبدالعزيز السليم للتجارة',
     clientName: '',
@@ -941,7 +944,7 @@ export const TendersBOQPage: React.FC = () => {
     const vat = Number((price * 0.15).toFixed(2));
     const totalWithVat = Number((price + vat).toFixed(2));
     const newItem: BOQItem = {
-      id: `item-cat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      id: `item-cat-${Date.now()}-${cryptoRandomAlphanumeric(4).toLowerCase()}`,
       itemNumber: nextNum,
       description: catItem.description,
       unit: catItem.unit || 'عدد',
@@ -1215,7 +1218,7 @@ export const TendersBOQPage: React.FC = () => {
     const newTender: TenderRecord = {
       id: `TND-${Date.now()}`,
       sheetName: `الجدول (${tendersList.length + 1})`,
-      referenceNumber: kasItem.referenceNumber || kasItem.tenderCode || `2608${Math.floor(10000000 + Math.random() * 90000000)}`,
+      referenceNumber: kasItem.referenceNumber || kasItem.tenderCode || `2608${cryptoRandomInt(10000000, 100000000)}`,
       title: kasItem.title,
       entityName: kasItem.company || 'مؤسسة خالد عبدالعزيز السليم للتجارة',
       clientName: kasItem.entity || 'الجهة الحكومية المعتمدة',
@@ -1473,7 +1476,7 @@ export const TendersBOQPage: React.FC = () => {
   const handleDuplicateTender = () => {
     pushUndoSnapshot(`نسخ كراسة المنافسة: ${selectedTender.title}`);
     const clonedId = `TND-${new Date().getFullYear()}-${String(tendersList.length + 1).padStart(3, '0')}`;
-    const clonedRef = `2511${Math.floor(10000000 + Math.random() * 90000000)}`;
+    const clonedRef = `2511${cryptoRandomInt(10000000, 100000000)}`;
     const cloned: TenderRecord = {
       ...selectedTender,
       id: clonedId,
@@ -1597,7 +1600,7 @@ export const TendersBOQPage: React.FC = () => {
     const nextNum = currentItems.length + 1;
     const cloned: BOQItem = {
       ...target,
-      id: `item-${Date.now()}-${Math.random()}`,
+      id: `item-${Date.now()}-${cryptoRandomInt(1000, 10000)}`,
       itemNumber: nextNum,
       description: `${target.description} (مكرر)`,
     };
@@ -3628,11 +3631,86 @@ export const TendersBOQPage: React.FC = () => {
                       status: 'معتمد للتوريد',
                       created_at: new Date().toISOString(),
                     });
+
+                    let reservedCount = 0;
+                    let createdPoNo = poNo;
+                    try {
+                      wmsEngineService.setActiveCompany('KAS');
+                      const wmsState = wmsEngineService.getState('KAS');
+                      const tenderActor = { email: 'tenders@kas.sa', name: 'إدارة المنافسات والمشتريات' };
+                      const procLines: Array<{ itemId: string; orderedQty: number; unitCost: number; uom?: string }> = [];
+
+                      for (const boq of selectedTender.items) {
+                        const cleanDesc = (boq.description || '').trim().toLowerCase();
+                        const matched = wmsState.items.find(
+                          (it) =>
+                            it.sku.toLowerCase() === cleanDesc ||
+                            it.nameAr.toLowerCase().includes(cleanDesc.slice(0, 12)) ||
+                            cleanDesc.includes(it.nameAr.toLowerCase().slice(0, 12))
+                        );
+                        if (!matched) continue;
+                        const { available } = wmsEngineService.getItemStockSummary(matched.id, matched.defaultWarehouseId);
+                        let reservedQty = 0;
+                        if (available > 0) {
+                          const toReserve = Math.min(available, Number(boq.quantity) || 0);
+                          if (toReserve > 0) {
+                            const res = wmsEngineService.reserveStockForTender(
+                              {
+                                tenderRef: selectedTender.referenceNumber,
+                                tenderTitle: selectedTender.title || selectedTender.entityName,
+                                itemId: matched.id,
+                                warehouseId: matched.defaultWarehouseId,
+                                qty: toReserve,
+                                notes: `حجز آلي من منافسة ${selectedTender.referenceNumber}`,
+                              },
+                              tenderActor
+                            );
+                            if (res.reservation) {
+                              reservedCount++;
+                              reservedQty = toReserve;
+                            }
+                          }
+                        }
+                        const shortage = Math.max(0, (Number(boq.quantity) || 0) - reservedQty);
+                        if (shortage > 0) {
+                          procLines.push({
+                            itemId: matched.id,
+                            orderedQty: shortage,
+                            unitCost: Number(boq.unitPrice) || matched.avgUnitCost || 0,
+                            uom: matched.baseUom,
+                          });
+                        }
+                      }
+
+                      if (procLines.length > 0) {
+                        const vendors = wmsProcurementService.getState('KAS').vendors;
+                        const approvedVendor = vendors.find((v) => v.status === 'معتمد') || vendors[0];
+                        if (approvedVendor) {
+                          const poRes = wmsProcurementService.createPurchaseOrder(
+                            {
+                              vendorId: approvedVendor.id,
+                              warehouseId: 'WH-MAIN',
+                              tenderRef: selectedTender.referenceNumber,
+                              notes: `أمر شراء آلي لمنافسة ${selectedTender.title || selectedTender.referenceNumber}`,
+                              lines: procLines,
+                            },
+                            tenderActor,
+                            'KAS'
+                          );
+                          if (poRes.ok && poRes.po) {
+                            createdPoNo = poRes.po.poNo;
+                          }
+                        }
+                      }
+                    } catch {
+                      // Non-blocking WMS bridge
+                    }
+
                     exportData(
                       'purchase_orders',
                       selectedTender.items.map((item, idx) => ({
                         'م': idx + 1,
-                        'رقم أمر التوريد': poNo,
+                        'رقم أمر التوريد': createdPoNo,
                         'البند': item.description,
                         'الوحدة': item.unit,
                         'الكمية': item.quantity,
@@ -3640,11 +3718,11 @@ export const TendersBOQPage: React.FC = () => {
                         'الإجمالي شاملاً الضريبة': item.totalWithVat,
                       })),
                       'excel',
-                      `أمر_توريد_${poNo}`
+                      `أمر_توريد_${createdPoNo}`
                     );
                     addNotification({
-                      title: 'أمر توريد مستودعي (PO)',
-                      message: `تم إنشاء وتصدير أمر الصرف والتوريد الداخلي #${poNo} لمستودعات شركة كاس للتجارة.`,
+                      title: 'أمر توريد مستودعي (PO) وحجز مخزون',
+                      message: `تم إنشاء أمر التوريد #${createdPoNo}${reservedCount > 0 ? ` وحجز (${reservedCount}) بند من رصيد المستودع المتاح` : ''} وتصديره لمستودعات شركة كاس.`,
                       type: 'success'
                     });
                   }}

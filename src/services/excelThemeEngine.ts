@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { decryptStoragePayload } from '../utils/securitySanitizers';
 
 export type ExcelUiThemeMode = 'corporate-color' | 'monochrome' | 'kas-original-xlsm';
 
@@ -126,8 +127,8 @@ export function resolveActiveCompanyThemeCode(overrideEntityCode?: string | null
     }
     if (typeof localStorage !== 'undefined') {
       const saved =
-        localStorage.getItem('alsulaim_active_company') ||
-        localStorage.getItem('ALSULAIM_ACTIVE_COMPANY');
+        decryptStoragePayload(localStorage.getItem('alsulaim_active_company')) ||
+        decryptStoragePayload(localStorage.getItem('ALSULAIM_ACTIVE_COMPANY'));
       if (saved) return normalizeThemeEntityCode(saved);
     }
   } catch {

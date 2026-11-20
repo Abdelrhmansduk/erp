@@ -25,6 +25,8 @@ import { BusinessIllustration } from '../components/common/BusinessIllustration'
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import {
   resolveCanonicalAgency,
+  loadUnifiedAgencies,
+  loadExternalAgencyAccounts,
   upsertUnifiedAgency,
   provisionExternalAgencyAccount,
   dispatchViaEmailAndWhatsApp,
@@ -47,6 +49,9 @@ export interface OfficeFile {
   file_type: string;
   upload_date: string;
   file_size: string;
+  expiry_date?: string;
+  file_name?: string;
+  file_data_url?: string;
 }
 
 const INITIAL_OFFICES: ExternalOffice[] = [
@@ -180,19 +185,67 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
   const [fileForm, setFileForm] = useState({
     office_name: '',
     file_title: '',
-    file_type: 'PDF'
+    file_type: 'PDF',
+    expiry_date: '2027-06-30',
+    file_name: '',
+    file_size: '',
+    file_data_url: '',
   });
 
-  // Load from realErpDataStore
+  // Load merged unified agencies + legacy offices, portal users, and real license files
   useEffect(() => {
-    realErpDataStore.getRecords<ExternalOffice>('external_recruitment_offices', INITIAL_OFFICES).then(data => {
-      setOffices(data);
-      if (data.length > 0) {
-        if (!userForm.linked_office) setUserForm(prev => ({ ...prev, linked_office: data[0].officeName }));
-        if (!fileForm.office_name) setFileForm(prev => ({ ...prev, office_name: data[0].officeName }));
+    Promise.all([
+      realErpDataStore.getRecords<ExternalOffice>('external_recruitment_offices', INITIAL_OFFICES),
+      loadUnifiedAgencies(),
+      loadExternalAgencyAccounts(),
+      realErpDataStore.getRecords<OfficeUser>('external_office_users', INITIAL_OFFICE_USERS),
+    ]).then(([storedOffices, canonicalAgencies, portalAccounts, storedUsers]) => {
+      const mergedMap = new Map<string, ExternalOffice>();
+      storedOffices.forEach((o) => mergedMap.set(o.officeName.trim().toLowerCase(), o));
+      canonicalAgencies.forEach((ag) => {
+        const keyAr = ag.name_ar.trim().toLowerCase();
+        const keyEn = ag.name_en.trim().toLowerCase();
+        if (mergedMap.has(keyAr) || mergedMap.has(keyEn)) return;
+        mergedMap.set(keyEn || ag.id, {
+          id: ag.id,
+          officeName: ag.name_ar || ag.name_en,
+          country: (ag.country as ExternalOffice['country']) || 'إثيوبيا',
+          countryCode: ag.country_code || 'INT',
+          managerName: ag.manager_name || ag.assigned_coordinator_name || 'المدير المسؤول',
+          phone: ag.phone || '—',
+          email: ag.email || '—',
+          licenseNumber: ag.musaned_license_no || ag.license_no || ag.canonical_code,
+          activeCandidatesCount: ag.historical_total_contracts || 0,
+          arrivedCountCount: ag.historical_arrived_count || 0,
+          rating: Number(((ag.quality_score || 90) / 20).toFixed(1)),
+          authorizedCompanies: ag.supported_companies || ag.authorized_companies || ['SAF'],
+        });
+      });
+      const finalOffices = Array.from(mergedMap.values());
+      setOffices(finalOffices);
+      if (finalOffices.length > 0) {
+        if (!userForm.linked_office) setUserForm(prev => ({ ...prev, linked_office: finalOffices[0].officeName }));
+        if (!fileForm.office_name) setFileForm(prev => ({ ...prev, office_name: finalOffices[0].officeName }));
       }
+
+      const userMap = new Map<string, OfficeUser>();
+      storedUsers.forEach((u) => userMap.set(u.email.toLowerCase(), u));
+      portalAccounts.forEach((acc) => {
+        if (!userMap.has(acc.email.toLowerCase())) {
+          userMap.set(acc.email.toLowerCase(), {
+            id: acc.id,
+            name: acc.contact_person || acc.agency_name_ar,
+            phone: acc.phone || acc.whatsapp || '—',
+            email: acc.email,
+            linked_office: acc.agency_name_ar || acc.agency_name,
+            nationality: acc.country,
+            status: acc.status === 'نشط' ? 'نشط' : 'معلق',
+          });
+        }
+      });
+      setOfficeUsers(Array.from(userMap.values()));
     });
-    realErpDataStore.getRecords<OfficeUser>('external_office_users', INITIAL_OFFICE_USERS).then(setOfficeUsers);
+
     realErpDataStore.getRecords<OfficeFile>('external_office_files', INITIAL_OFFICE_FILES).then(setOfficeFiles);
   }, []);
 
@@ -352,7 +405,10 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
       file_title: fileForm.file_title.trim(),
       file_type: fileForm.file_type,
       upload_date: new Date().toISOString().slice(0, 10),
-      file_size: '3.2 MB'
+      file_size: fileForm.file_size || '1.1 MB',
+      expiry_date: fileForm.expiry_date || undefined,
+      file_name: fileForm.file_name || undefined,
+      file_data_url: fileForm.file_data_url || undefined,
     };
 
     const updated = await realErpDataStore.addRecord<OfficeFile>('external_office_files', newFile, INITIAL_OFFICE_FILES);
@@ -361,7 +417,11 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
     setFileForm({
       office_name: offices.length > 0 ? offices[0].officeName : '',
       file_title: '',
-      file_type: 'PDF'
+      file_type: 'PDF',
+      expiry_date: '2027-06-30',
+      file_name: '',
+      file_size: '',
+      file_data_url: '',
     });
 
     addNotification({
@@ -373,7 +433,20 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
 
   // Handle Download File
   const handleDownloadFile = (f: OfficeFile) => {
-    const fileContent = `مجموعة شركات خالد السليم القابضة\nمركز إدارة الوكلاء والمكاتب الخارجية المعتمدة\n\nاسم المكتب: ${f.office_name}\nعنوان الوثيقة: ${f.file_title}\nنوع الملف: ${f.file_type}\nتاريخ التوثيق والرفع: ${f.upload_date}\nحجم الملف: ${f.file_size}\nالحالة: وثيقة معتمدة ومطابقة لضوابط وزارة الموارد البشرية ومنصة مساند.\n`;
+    if (f.file_data_url) {
+      const link = document.createElement('a');
+      link.href = f.file_data_url;
+      link.download = f.file_name || `${f.file_title.replace(/\s+/g, '_')}.pdf`;
+      link.click();
+      addNotification({
+        title: 'تحميل الوثيقة الأصلية',
+        message: `تم تحميل الملف (${f.file_name || f.file_title}) بنجاح.`,
+        type: 'success',
+      });
+      return;
+    }
+
+    const fileContent = `مجموعة شركات خالد السليم القابضة\nمركز إدارة الوكلاء والمكاتب الخارجية المعتمدة\n\nاسم المكتب: ${f.office_name}\nعنوان الوثيقة: ${f.file_title}\nنوع الملف: ${f.file_type}\nتاريخ التوثيق والرفع: ${f.upload_date}\nتاريخ الانتهاء: ${f.expiry_date || 'غير محدد'}\nحجم الملف: ${f.file_size}\nالحالة: وثيقة معتمدة ومطابقة لضوابط وزارة الموارد البشرية ومنصة مساند.\n`;
     const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -384,7 +457,7 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
 
     addNotification({
       title: 'تحميل الوثيقة',
-      message: `تم تحميل ملف (${f.file_title}) بنجاح.`,
+      message: `تم تحميل سجل وثيقة (${f.file_title}) بنجاح.`,
       type: 'success',
     });
   };
@@ -638,18 +711,53 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
                   <th className="p-3.5">عنوان الوثيقة والملف</th>
                   <th className="p-3.5">نوع الملف</th>
                   <th className="p-3.5">تاريخ الرفع</th>
+                  <th className="p-3.5">انتهاء الترخيص</th>
                   <th className="p-3.5">الحجم</th>
                   <th className="p-3.5 text-center">الإجراء</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e0e0e0]">
-                {officeFiles.map((f, idx) => (
+                {officeFiles.map((f, idx) => {
+                  const todayIso = new Date().toISOString().slice(0, 10);
+                  const daysLeft = f.expiry_date
+                    ? Math.round(
+                        (new Date(`${f.expiry_date}T00:00:00Z`).getTime() -
+                          new Date(`${todayIso}T00:00:00Z`).getTime()) /
+                          86_400_000
+                      )
+                    : null;
+                  return (
                   <tr key={f.id} className="hover:bg-[#f3f3f3]">
                     <td className="p-3.5 font-bold font-mono text-[#141414]">{idx + 1}</td>
                     <td className="p-3.5 font-bold text-[#141414]">{f.office_name}</td>
-                    <td className="p-3.5 font-semibold text-[#141414]">{f.file_title}</td>
+                    <td className="p-3.5 font-semibold text-[#141414]">
+                      <div>{f.file_title}</div>
+                      {f.file_name && <div className="text-[10.5px] font-mono text-[#707070]">{f.file_name}</div>}
+                    </td>
                     <td className="p-3.5"><Badge text={f.file_type} type="purple" /></td>
                     <td className="p-3.5 font-mono text-[#707070]">{f.upload_date}</td>
+                    <td className="p-3.5 font-mono">
+                      {f.expiry_date ? (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span>{f.expiry_date}</span>
+                          {daysLeft !== null && daysLeft <= 0 ? (
+                            <span className="px-2 py-0.5 rounded-full bg-[#141414] text-[#ffffff] font-sans text-[10px] font-bold">
+                              منتهي
+                            </span>
+                          ) : daysLeft !== null && daysLeft <= 60 ? (
+                            <span className="px-2 py-0.5 rounded-full bg-[#e0e0e0] text-[#141414] font-sans text-[10px] font-bold">
+                              باقي {daysLeft}ي
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[#141414] font-sans text-[10px] font-bold">
+                              ساري
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-[#707070]">—</span>
+                      )}
+                    </td>
                     <td className="p-3.5 font-mono">{f.file_size}</td>
                     <td className="p-3.5 text-center">
                       <button
@@ -662,7 +770,7 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
                       </button>
                     </td>
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>
@@ -901,17 +1009,70 @@ export const ExternalOfficesAgentsPage: React.FC = () => {
                   className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
                 />
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">نوع الملف</label>
+                  <select
+                    value={fileForm.file_type}
+                    onChange={e => setFileForm({ ...fileForm, file_type: e.target.value })}
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
+                  >
+                    <option value="PDF">مستند PDF رقمي</option>
+                    <option value="Image (JPG/PNG)">صورة ترخيص رسمية</option>
+                    <option value="DOCX">ملف وورد تعاقدي</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-[#141414] block mb-1">تاريخ انتهاء الترخيص</label>
+                  <input
+                    type="date"
+                    value={fileForm.expiry_date}
+                    onChange={e => setFileForm({ ...fileForm, expiry_date: e.target.value })}
+                    className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs font-mono text-[#141414] focus:border-[#141414] focus:outline-none"
+                  />
+                </div>
+              </div>
               <div>
-                <label className="text-xs font-semibold text-[#141414] block mb-1">نوع الملف</label>
-                <select
-                  value={fileForm.file_type}
-                  onChange={e => setFileForm({ ...fileForm, file_type: e.target.value })}
-                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414] focus:border-[#141414] focus:outline-none"
-                >
-                  <option value="PDF">مستند PDF رقمي</option>
-                  <option value="Image (JPG/PNG)">صورة ترخيص رسمية</option>
-                  <option value="DOCX">ملف وورد تعاقدي</option>
-                </select>
+                <label className="text-xs font-semibold text-[#141414] block mb-1">إرفاق الملف الفعلي (PDF / صورة ترخيص)</label>
+                <input
+                  type="file"
+                  accept=".pdf,image/*,.doc,.docx"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (file.size > 1_500_000) {
+                      addNotification({
+                        title: 'حجم الملف كبير',
+                        message: 'الحد الأقصى للترخيص المرفق 1.5 ميجابايت.',
+                        type: 'warning',
+                      });
+                      return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      const ext = file.name.toLowerCase().endsWith('.pdf')
+                        ? 'PDF'
+                        : /\.(png|jpe?g|webp)$/i.test(file.name)
+                          ? 'Image (JPG/PNG)'
+                          : 'DOCX';
+                      setFileForm((prev) => ({
+                        ...prev,
+                        file_title: prev.file_title || file.name.replace(/\.[^.]+$/, ''),
+                        file_type: ext,
+                        file_name: file.name,
+                        file_size: `${Math.max(1, Math.round(file.size / 1024))} KB`,
+                        file_data_url: String(reader.result || ''),
+                      }));
+                    };
+                    reader.readAsDataURL(file);
+                  }}
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-xl py-2 px-3 text-xs text-[#141414]"
+                />
+                {fileForm.file_name && (
+                  <div className="text-[11px] font-mono text-[#707070] mt-1">
+                    المرفق الجاهز: {fileForm.file_name} ({fileForm.file_size})
+                  </div>
+                )}
               </div>
               <div className="flex justify-end gap-2 pt-2 border-t border-[#e0e0e0]">
                 <button

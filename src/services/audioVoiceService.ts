@@ -420,16 +420,13 @@ export async function speakDynamicSpeech(
           controller.abort();
         }, 8500);
 
-        const res = clean.length > 120
-          ? await fetch('/api/tts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: clean, persona }),
-            signal: controller.signal,
-          })
-          : await fetch(`/api/tts?text=${encodeURIComponent(clean)}&persona=${persona}`, {
-            signal: controller.signal,
-          });
+        // Always POST: spoken text never appears in URLs, proxy logs, or browser history (PDPL)
+        const res = await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: clean, persona }),
+          signal: controller.signal,
+        });
         clearTimeout(timeoutId);
 
         if (sessionId !== activePlaybackId) {

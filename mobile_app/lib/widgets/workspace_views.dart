@@ -1415,6 +1415,15 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
 
   bool get _isSmaccFinanceModule => _smaccFinanceTabs.contains(widget.activeTab);
 
+  static const Set<String> _followupCenterTabs = {
+    'transactions-followup',
+    'foreign-agency-portal',
+    'offices',
+    'external-offices',
+  };
+
+  bool get _isFollowupCenterModule => _followupCenterTabs.contains(widget.activeTab);
+
   @override
   Widget build(BuildContext context) {
     final filtered = widget.records.where((r) {
@@ -1551,6 +1560,9 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
           const SizedBox(height: 12),
         ] else if (_isEnterpriseHrModule) ...[
           _buildEnterpriseMobileHrAndSelfServiceHub(),
+          const SizedBox(height: 12),
+        ] else if (_isFollowupCenterModule) ...[
+          _buildFollowupCenterMobilePanel(),
           const SizedBox(height: 12),
         ] else ...[
           _buildOperationalSmaccSubTabsBar(),
@@ -1759,6 +1771,141 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildFollowupCenterMobilePanel() {
+    final activeCount = widget.records.length;
+    final slaAlertCount = widget.records
+        .where((r) =>
+            r.status.contains('متأخر') ||
+            r.status.contains('تأشير') ||
+            r.status.contains('انتظار') ||
+            r.badgeText.contains('حرج'))
+        .length;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: ErpTokens.cardPricingDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: ErpTokens.ink,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.track_changes_rounded, size: 18, color: Colors.white),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'مركز متابعة المعاملات والوكلاء الخارجيين (SLA)',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: ErpTokens.ink),
+                    ),
+                    Text(
+                      'محمود فودة • إسلام أحمد عرفة | 20 وكالة موحدة معتمدة',
+                      style: TextStyle(fontSize: 11, color: ErpTokens.shade50, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: ErpTokens.surfaceSubtle,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: ErpTokens.hairlineLight),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('المعاملات النشطة', style: TextStyle(fontSize: 10.5, color: ErpTokens.shade50, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 3),
+                      Text('$activeCount سجل', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: ErpTokens.ink)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: ErpTokens.surfaceSubtle,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: ErpTokens.hairlineLight),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('تنبيهات SLA عاجلة', style: TextStyle(fontSize: 10.5, color: ErpTokens.shade50, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 3),
+                      Text('$slaAlertCount حالة', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: ErpTokens.ink)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: ErpTokens.surfaceSubtle,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: ErpTokens.hairlineLight),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('متوسط العمولة', style: TextStyle(fontSize: 10.5, color: ErpTokens.shade50, fontWeight: FontWeight.w700)),
+                      SizedBox(height: 3),
+                      Text('\u20C1 3,938', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: ErpTokens.ink)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ActionChip(
+                label: const Text('بنك السير الذاتية والاعتماد', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                backgroundColor: ErpTokens.surfaceSubtle,
+                side: const BorderSide(color: ErpTokens.hairlineLight),
+                onPressed: () => widget.onNavigate('cvs-recruitment', 'بنك السير الذاتية والمرشحين'),
+              ),
+              ActionChip(
+                label: const Text('بوابة الوكيل الخارجي المعزولة', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                backgroundColor: ErpTokens.surfaceSubtle,
+                side: const BorderSide(color: ErpTokens.hairlineLight),
+                onPressed: () => widget.onNavigate('foreign-agency-portal', 'بوابة الوكيل الخارجي المعزولة'),
+              ),
+              ActionChip(
+                label: const Text('المكاتب الخارجية والحسابات', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                backgroundColor: ErpTokens.surfaceSubtle,
+                side: const BorderSide(color: ErpTokens.hairlineLight),
+                onPressed: () => widget.onNavigate('offices', 'المكاتب الخارجية والوكلاء'),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

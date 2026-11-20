@@ -44,13 +44,19 @@ CREATE POLICY "kas_allowed_emails_admin_write_policy"
   FOR ALL
   TO authenticated
   USING (
-    EXISTS (
-      SELECT 1 FROM public.users u
-      WHERE u.id = auth.uid()
-        AND (
-          lower(u.email) IN ('khalid@kas.sa', 'a.salif.dev@kas.sa', 'chairman@alsulaim.sa', 'abdo12uk@gmail.com')
-          OR u.role IN ('رئيس مجلس الإدارة', 'رئيس المجموعة', 'مدير نظام', 'مطور النظام')
-        )
+    lower(coalesce((SELECT auth.jwt() ->> 'email'), '')) IN ('khalid@kas.sa', 'a.salif.dev@kas.sa', 'chairman@alsulaim.sa', 'abdo12uk@gmail.com')
+    OR EXISTS (
+      SELECT 1 FROM public.system_users u
+      WHERE lower(u.email) = lower(coalesce((SELECT auth.jwt() ->> 'email'), ''))
+        AND u.role IN ('رئيس مجلس الإدارة', 'رئيس المجموعة', 'مدير نظام', 'مطور النظام', 'المدير العام')
+    )
+  )
+  WITH CHECK (
+    lower(coalesce((SELECT auth.jwt() ->> 'email'), '')) IN ('khalid@kas.sa', 'a.salif.dev@kas.sa', 'chairman@alsulaim.sa', 'abdo12uk@gmail.com')
+    OR EXISTS (
+      SELECT 1 FROM public.system_users u
+      WHERE lower(u.email) = lower(coalesce((SELECT auth.jwt() ->> 'email'), ''))
+        AND u.role IN ('رئيس مجلس الإدارة', 'رئيس المجموعة', 'مدير نظام', 'مطور النظام', 'المدير العام')
     )
   );
 
@@ -148,7 +154,8 @@ CREATE OR REPLACE FUNCTION public.is_kas_email_allowed(check_email text)
 RETURNS boolean
 LANGUAGE sql
 STABLE
-SECURITY DEFINER
+SECURITY INVOKER
+SET search_path = public, extensions
 AS $$
   SELECT EXISTS (
     SELECT 1

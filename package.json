@@ -22,7 +22,9 @@
     "skills:audit": "node scripts/verify_skills_health.mjs --full",
     "tts:start": "node src/services/voiceStudioTtsServer.mjs",
     "tts:studio": "node src/services/voiceStudioTtsServer.mjs",
-    "tts:edge": "node src/services/saudiEdgeTtsServer.mjs"
+    "tts:edge": "node src/services/saudiEdgeTtsServer.mjs",
+    "cf:deploy": "npm run build && node scripts/deploy_cloudflare_edge.mjs",
+    "cf:deploy:fast": "node scripts/deploy_cloudflare_edge.mjs"
   },
   "dependencies": {
     "@microsoft/applicationinsights-web": "^3.4.6",
@@ -32,6 +34,7 @@
     "chart.js": "^4.5.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
+    "dompurify": "^3.4.16",
     "firebase": "^13.2.0",
     "i18next": "^26.3.6",
     "jspdf": "^4.2.1",

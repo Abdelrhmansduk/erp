@@ -19,6 +19,17 @@ import { HrWorkflowEngine, type HrApprovalRequestInstance } from './hrWorkflowEn
 import { composeReemHrOfficialEmail, REEM_HR_SIGNATORY, type ReemHrTemplateId } from './reemHrEmailTemplatesEngine';
 import { dispatchComposedHrEmailDirect } from './hrDirectEmailDispatchService';
 import { KAS_ALLOWED_EMPLOYEES, EXCLUDED_KAS_EMAILS } from '../config/kasAllowedEmails';
+import { decryptStoragePayload, encryptStoragePayload } from '../utils/securitySanitizers';
+import {
+  getMusanedTransactions,
+  evaluateTransactionSla,
+  computeDynamicAgencyScorecards,
+  loadUnifiedAgencies,
+  buildBulkAgencyReminderDigest,
+  dispatchViaEmailAndWhatsApp,
+  resolveCanonicalAgency,
+  SUBSIDIARY_DISPLAY_NAMES,
+} from './externalAgencyMasterService';
 
 // ═══════════════════════════════════════════════════════════
 //  TYPES
@@ -64,7 +75,7 @@ const MAX_AUDIT_ENTRIES = 500;
 
 function getAuditLog(): AuditLogEntry[] {
   try {
-    const raw = localStorage.getItem(AUDIT_LOG_KEY);
+    const raw = decryptStoragePayload(localStorage.getItem(AUDIT_LOG_KEY));
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
@@ -78,7 +89,7 @@ function appendAuditLog(entry: AuditLogEntry): void {
     log.length = MAX_AUDIT_ENTRIES;
   }
   try {
-    localStorage.setItem(AUDIT_LOG_KEY, JSON.stringify(log));
+    localStorage.setItem(AUDIT_LOG_KEY, encryptStoragePayload(JSON.stringify(log)));
   } catch {
     console.warn('[Audit] Failed to persist audit log to localStorage');
   }
@@ -513,6 +524,46 @@ export function inferToolCallFromArabicPrompt(
     return validateToolCall({ id: 'get_shelter_daily_status', params: {} }, companyId, currentUserEmail);
   }
 
+  if (/(?:رادار\s*المتابعة|معاملات\s*متأخر[ةه]|تأخيرات\s*مساند|تقرير\s*sla|SLA\s*المتابع[ةه]|متابعة\s*محمود|متابعة\s*إسلام)/i.test(clean)) {
+    const coordEmail = clean.includes('محمود') || clean.includes('فود')
+      ? 'm.fouda.followup@kas.sa'
+      : clean.includes('إسلام') || clean.includes('عرفة')
+      ? 'i.mahmoud.followup@kas.sa'
+      : '';
+    return validateToolCall(
+      { id: 'get_followup_sla_radar', params: { coordinator_email: coordEmail, company_id: companyId } },
+      companyId,
+      currentUserEmail
+    );
+  }
+
+  if (/(?:تقييم\s*الوكلاء|أداء\s*الوكلاء|اداء\s*الوكلاء|أفضل\s*وكال[ةه]|بطاق[ةه]\s*أداء\s*الوكالات|تقييم\s*المكاتب\s*الخارجي[ةه])/i.test(clean)) {
+    const countryHint = clean.includes('اثيوبيا') || clean.includes('إثيوبيا') || clean.includes('أثيوبيا')
+      ? 'أثيوبيا'
+      : clean.includes('فلبين')
+      ? 'الفلبين'
+      : clean.includes('كينيا')
+      ? 'كينيا'
+      : '';
+    return validateToolCall(
+      { id: 'get_external_agency_scorecard', params: { country: countryHint, agency_name: '' } },
+      companyId,
+      currentUserEmail
+    );
+  }
+
+  if (/(?:استعجل|استعجال|تذكير).*(?:وكال[ةه]|وكيل|مكتب\s*خارجي)|(?:ارسل|أرسل).*(?:تذكير\s*لل?وكيل|استعجال\s*مكتب|إشعار\s*وكال[ةه])/i.test(clean)) {
+    const agMatch = clean.match(/(?:ل?وكال[ةه]|لل?وكيل|ل?مكتب)\s+([^\d،,.]+?)(?:\s+بشأن|\s+بخصوص|\s*$)/i);
+    return validateToolCall(
+      {
+        id: 'dispatch_agency_sla_followup',
+        params: { agency_name: agMatch?.[1]?.trim() || 'مزايا', note: clean },
+      },
+      companyId,
+      currentUserEmail
+    );
+  }
+
   if (/(?:ابحث|بحث).*(?:منافسات\s*منص[ةه]\s*اعتماد|منافسات\s*اعتماد)/i.test(clean)) {
     const topicMatch = clean.match(/(?:عن)\s+(.+)$/i);
     return validateToolCall(
@@ -639,6 +690,15 @@ export async function executeToolCall(
         break;
       case 'create_rent_contract':
         result = await executeCreateRentContract(params, effectiveCompany);
+        break;
+      case 'get_followup_sla_radar':
+        result = await executeGetFollowupSlaRadar(params, effectiveCompany);
+        break;
+      case 'get_external_agency_scorecard':
+        result = await executeGetExternalAgencyScorecard(params);
+        break;
+      case 'dispatch_agency_sla_followup':
+        result = await executeDispatchAgencySlaFollowup(params, effectiveCompany);
         break;
       case 'create_candidate_cv':
         result = await executeCreateCandidateCv(params, effectiveCompany);
@@ -1874,6 +1934,202 @@ async function executeDispatchReemHrOfficialEmail(
       subject: composed.subject,
       templateId: composed.templateId,
       channel: dispatchResult.provider || 'smtp',
+    },
+  };
+}
+
+async function executeGetFollowupSlaRadar(
+  params: Record<string, unknown>,
+  effectiveCompany: string
+): Promise<ToolExecutionResult> {
+  const [txs, agencies] = await Promise.all([
+    getMusanedTransactions(),
+    loadUnifiedAgencies(),
+  ]);
+  const coordFilter = String(params.coordinator_email || '').trim().toLowerCase();
+  const compFilter = String(params.company_id || effectiveCompany || 'ALL').trim().toUpperCase();
+  const todayIso = new Date().toISOString().slice(0, 10);
+
+  const active = txs.filter((t) => {
+    if (t.is_archive || t.is_deleted) return false;
+    if (coordFilter && t.assigned_coordinator_email.toLowerCase() !== coordFilter) return false;
+    if (compFilter !== 'ALL' && t.company_id !== compFilter) return false;
+    return true;
+  });
+
+  const evaluated = active.map((tx) => ({
+    tx,
+    sla: evaluateTransactionSla(tx, todayIso, agencies),
+  }));
+  const overdue = evaluated.filter((item) => item.sla.alertsAr.length > 0);
+  const criticalCount = overdue.filter((item) => item.sla.severity === 'CRITICAL').length;
+  const mahmoudCount = active.filter((t) => t.assigned_coordinator_email === 'm.fouda.followup@kas.sa').length;
+  const islamCount = active.filter((t) => t.assigned_coordinator_email === 'i.mahmoud.followup@kas.sa').length;
+
+  const topLines = overdue.slice(0, 5).map(
+    ({ tx, sla }) => `• عقد #${tx.musaned_contract_no} (${tx.agency_canonical_name}) — ${sla.alertsAr[0]}`
+  );
+
+  return {
+    success: true,
+    message:
+      `تقرير رادار متابعة عقود مساند (SLA Radar):\n` +
+      `• إجمالي العقود الجارية: ${active.length} (محمود فودة: ${mahmoudCount} • إسلام عرفة: ${islamCount})\n` +
+      `• المعاملات المتأخرة / الحرجة: ${overdue.length} (حرجة جداً: ${criticalCount})\n` +
+      (topLines.length > 0 ? `\nأبرز الحالات العاجلة:\n${topLines.join('\n')}` : '\nلا توجد تأخيرات حرجة حالياً.'),
+    spokenSummary: `يوجد ${active.length} معاملة مساند جارية، منها ${overdue.length} معاملة تتطلب متابعة SLA (${criticalCount} حرجة جداً).`,
+    data: {
+      activeCount: active.length,
+      overdueCount: overdue.length,
+      criticalCount,
+      mahmoudCount,
+      islamCount,
+      overdueSamples: overdue.slice(0, 10).map((x) => ({
+        contractNo: x.tx.musaned_contract_no,
+        agency: x.tx.agency_canonical_name,
+        severity: x.sla.severity,
+        alerts: x.sla.alertsAr,
+      })),
+    },
+  };
+}
+
+async function executeGetExternalAgencyScorecard(
+  params: Record<string, unknown>
+): Promise<ToolExecutionResult> {
+  const [txs, agencies] = await Promise.all([
+    getMusanedTransactions(),
+    loadUnifiedAgencies(),
+  ]);
+  const countryFilter = String(params.country || '').trim();
+  const agencyFilter = String(params.agency_name || '').trim().toLowerCase();
+
+  let scorecards = computeDynamicAgencyScorecards(
+    agencies,
+    txs.filter((t) => !t.is_deleted)
+  );
+  if (countryFilter) {
+    scorecards = scorecards.filter((s) => s.agency.country.includes(countryFilter));
+  }
+  if (agencyFilter) {
+    scorecards = scorecards.filter(
+      (s) =>
+        s.agency.name_ar.toLowerCase().includes(agencyFilter) ||
+        s.agency.name_en.toLowerCase().includes(agencyFilter)
+    );
+  }
+
+  const ranked = [...scorecards].sort((a, b) => b.dynamicScore - a.dynamicScore);
+  const lines = ranked.slice(0, 6).map(
+    (s, i) =>
+      `${i + 1}. ${s.agency.name_ar} (${s.agency.country}) — التزام ${s.dynamicScore}% | نشط: ${s.activeCount} | الإجمالي: ${s.totalContracts} | عمولة: $${s.agency.default_commission_usd} (⃁ ${Math.round(s.agency.default_commission_usd * 3.75).toLocaleString()})`
+  );
+
+  return {
+    success: true,
+    message:
+      `بطاقة الأداء الديناميكية للوكلاء الخارجيين (${ranked.length} وكالة):\n` +
+      (lines.length ? lines.join('\n') : 'لا توجد وكالات مطابقة للتصفية.'),
+    spokenSummary: ranked[0]
+      ? `أعلى وكالة التزاماً هي ${ranked[0].agency.name_ar} بنسبة ${ranked[0].dynamicScore}% من أصل ${ranked.length} وكالة.`
+      : 'لا توجد بيانات كافية لبطاقة الأداء.',
+    data: ranked,
+  };
+}
+
+async function executeDispatchAgencySlaFollowup(
+  params: Record<string, unknown>,
+  effectiveCompany: string
+): Promise<ToolExecutionResult> {
+  const agencyQuery = String(params.agency_name || '').trim();
+  const note = String(params.note || '').trim();
+  const [txs, agencies] = await Promise.all([
+    getMusanedTransactions(),
+    loadUnifiedAgencies(),
+  ]);
+
+  const matchedAgency =
+    resolveCanonicalAgency(agencyQuery, agencies) ||
+    agencies.find(
+      (a) =>
+        a.name_ar.toLowerCase().includes(agencyQuery.toLowerCase()) ||
+        a.name_en.toLowerCase().includes(agencyQuery.toLowerCase())
+    ) ||
+    agencies[0];
+
+  const agencyActiveTxs = txs.filter(
+    (t) =>
+      !t.is_archive &&
+      !t.is_deleted &&
+      (matchedAgency ? t.agency_id === matchedAgency.id : true)
+  );
+  const targetTxs =
+    agencyActiveTxs.length > 0
+      ? agencyActiveTxs
+      : [
+          {
+            id: 'SLA-PING',
+            company_id: (effectiveCompany === 'ALL' ? 'SAF' : effectiveCompany) as any,
+            musaned_contract_no: 'SLA-REVIEW',
+            source_sheet: 'AI Follow-up',
+            is_archive: false,
+            client_name: '',
+            client_national_id: '',
+            client_phone: '',
+            client_city: 'الرياض',
+            visa_number: '',
+            visa_expiry_date: '',
+            worker_type: 'غير معين' as const,
+            maid_name: '',
+            passport_number: '',
+            nationality: matchedAgency?.country || 'أثيوبيا',
+            profession: 'عاملة منزلية',
+            monthly_salary: 1000,
+            agency_id: matchedAgency?.id,
+            agency_raw_name: matchedAgency?.name_ar || agencyQuery,
+            agency_canonical_name: matchedAgency?.name_ar || agencyQuery,
+            assigned_coordinator_email: matchedAgency?.assigned_coordinator_email || 'm.fouda.followup@kas.sa',
+            sales_creator_name: 'المتابعة',
+            branch_raw_name: SUBSIDIARY_DISPLAY_NAMES.SAF,
+            stage: 'UNASSIGNED' as const,
+            stage_timestamps: {},
+            contract_start_date: new Date().toISOString().slice(0, 10),
+            arrival_destination: 'الرياض',
+            paid_amount_sar: 0,
+            commission_usd: matchedAgency?.default_commission_usd || 1050,
+            updated_at: new Date().toISOString().slice(0, 10),
+          },
+        ];
+
+  const primaryDigest = buildBulkAgencyReminderDigest(matchedAgency, targetTxs as any);
+  const fullBody = note ? `${primaryDigest.bodyText}\n\nملاحظة المتابعة: ${note}` : primaryDigest.bodyText;
+
+  const dispatchRes = await dispatchViaEmailAndWhatsApp({
+    recipientName: matchedAgency?.name_ar || agencyQuery,
+    recipientEmail: matchedAgency?.email,
+    recipientPhone: matchedAgency?.whatsapp || matchedAgency?.phone,
+    subject: primaryDigest.subject,
+    bodyText: fullBody,
+    channel: 'both',
+    templateName: 'استعجال SLA مجمّع للوكيل عبر المساعد الذكي',
+    companyId: effectiveCompany === 'ALL' ? 'SAF' : effectiveCompany,
+    openExternalClient: false,
+  });
+
+  return {
+    success: true,
+    message:
+      `تم إرسال وتوثيق ملخص الاستعجال للوكالة الخارجية:\n` +
+      `• الوكالة: ${matchedAgency?.name_ar || agencyQuery}\n` +
+      `• العقود المشمولة بالتذكير: ${agencyActiveTxs.length}\n` +
+      `• البريد والواتساب: ${matchedAgency?.email || '—'} • ${matchedAgency?.whatsapp || matchedAgency?.phone || '—'}\n` +
+      `• رقم التوثيق: ${dispatchRes.loggedIds.join(', ')}`,
+    spokenSummary: `تم إرسال تذكير الاستعجال الرسمي عبر البريد والواتساب إلى وكالة ${matchedAgency?.name_ar || agencyQuery} بنجاح.`,
+    data: {
+      agencyId: matchedAgency?.id,
+      agencyName: matchedAgency?.name_ar,
+      contractCount: agencyActiveTxs.length,
+      loggedIds: dispatchRes.loggedIds,
     },
   };
 }

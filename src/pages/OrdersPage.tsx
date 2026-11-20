@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { journalEngine } from '../services/accounting/journalEngine';
+import { syncContractToMusanedFollowup } from '../services/externalAgencyMasterService';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
 
@@ -262,6 +263,23 @@ export const OrdersPage: React.FC = () => {
     };
 
     await realErpDataStore.addRecord('contracts', newContract);
+
+    await syncContractToMusanedFollowup({
+      musanedContractNo: newContract.musaned_number,
+      internalContractNo: newContract.contract_number,
+      companyId: newContract.company_id,
+      clientName: newContract.client_name,
+      clientNationalId: newContract.client_national_id,
+      clientPhone: newContract.client_phone,
+      clientCity: newContract.delivery_city,
+      maidName: newContract.maid_name,
+      passportNumber: order.passport_number || '',
+      nationality: newContract.nationality,
+      externalOfficeName: newContract.external_office,
+      paidAmountSar: newContract.total_amount,
+      branchName: newContract.branch,
+      salesCreatorName: 'قسم طلبات العملاء',
+    });
 
     // 3. Automatically generate ZATCA Phase 2 Tax Invoice
     const newInvoice = {

@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import { downloadThemedXlsxWorkbook } from './excelThemeEngine';
 import { journalEngine } from './accounting/journalEngine';
+import { decryptStoragePayload, encryptStoragePayload } from '../utils/securitySanitizers';
 import {
   KasEtmadCompetition,
   KasEtmadCategory,
@@ -295,7 +296,7 @@ class KasEtmadSuiteService {
 
   private loadFromStorage() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = decryptStoragePayload(localStorage.getItem(STORAGE_KEY));
       if (raw) {
         const parsed = JSON.parse(raw);
         this.competitions = parsed.competitions || INITIAL_COMPETITIONS;
@@ -356,7 +357,7 @@ class KasEtmadSuiteService {
         proposals: this.proposals, estimateRequests: this.estimateRequests,
         emailTemplates: this.emailTemplates
       };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(STORAGE_KEY, encryptStoragePayload(JSON.stringify(data)));
     } catch (e) {
       console.warn('LocalStorage quota reached', e);
     }

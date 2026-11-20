@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CompanyId, CompanyEntity } from '../types';
+import { decryptStoragePayload, encryptStoragePayload } from '../utils/securitySanitizers';
 
 export const GROUP_MASTER_ENTITY: CompanyEntity = {
   id: 'all' as CompanyId,
@@ -224,19 +225,19 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (sessionLocked && currentUser && !isGroupAdmin) {
       const enforcedCompany = normalizeCompanyId(sessionLocked);
       setActiveCompanyIdState(enforcedCompany);
-      localStorage.setItem('alsulaim_active_company', enforcedCompany);
+      localStorage.setItem('alsulaim_active_company', encryptStoragePayload(enforcedCompany));
       return;
     }
 
     if (normalized === 'all' && currentUser && !isGroupAdmin) {
       const assigned = normalizeCompanyId((currentUser.company_id as CompanyId) || 'SAF');
       setActiveCompanyIdState(assigned);
-      localStorage.setItem('alsulaim_active_company', assigned);
+      localStorage.setItem('alsulaim_active_company', encryptStoragePayload(assigned));
       return;
     }
 
     setActiveCompanyIdState(normalized);
-    localStorage.setItem('alsulaim_active_company', normalized);
+    localStorage.setItem('alsulaim_active_company', encryptStoragePayload(normalized));
   };
 
   useEffect(() => {
@@ -244,12 +245,14 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const currentUser = authService.getCurrentUser();
       const isGroupAdmin = authService.isAdmin(currentUser);
       const sessionLocked = getLockedSessionCompany();
-      const saved = localStorage.getItem('alsulaim_active_company') as CompanyId | null;
+      const saved = decryptStoragePayload(
+        localStorage.getItem('alsulaim_active_company')
+      ) as CompanyId | null;
 
       if (sessionLocked && !isGroupAdmin) {
         const lockedCompany = normalizeCompanyId(sessionLocked);
         setActiveCompanyIdState(lockedCompany);
-        localStorage.setItem('alsulaim_active_company', lockedCompany);
+        localStorage.setItem('alsulaim_active_company', encryptStoragePayload(lockedCompany));
         if (currentUser?.branch) setActiveBranch(currentUser.branch);
         return;
       }
@@ -257,14 +260,14 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (currentUser && !isGroupAdmin && currentUser.company_id && currentUser.company_id !== 'all') {
         const lockedCompany = normalizeCompanyId(currentUser.company_id);
         setActiveCompanyIdState(lockedCompany);
-        localStorage.setItem('alsulaim_active_company', lockedCompany);
+        localStorage.setItem('alsulaim_active_company', encryptStoragePayload(lockedCompany));
         if (currentUser.branch) setActiveBranch(currentUser.branch);
         return;
       }
 
       if (currentUser && isGroupAdmin) {
         setActiveCompanyIdState('all');
-        localStorage.setItem('alsulaim_active_company', 'all');
+        localStorage.setItem('alsulaim_active_company', encryptStoragePayload('all'));
         if (currentUser.branch) setActiveBranch(currentUser.branch);
         return;
       }

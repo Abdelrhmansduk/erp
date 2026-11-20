@@ -31,6 +31,13 @@
     "vercel": {
       "type": "http",
       "url": "https://mcp.vercel.com"
+    },
+    "resend": {
+      "type": "http",
+      "url": "https://mcp.resend.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${RESEND_API_KEY}"
+      }
     }
   }
 }

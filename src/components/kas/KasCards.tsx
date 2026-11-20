@@ -7,6 +7,7 @@ import {
   Activity, Check, Sparkles, Hash, Calendar, FileText
 } from 'lucide-react';
 import { Badge } from '../ui/Badge';
+import { sanitizeSafeHref } from '../../utils/securitySanitizers';
 
 // ============================================================================
 // 1. KAS KPI METRIC CARD (بطاقة المؤشرات المالية والتشغيلية الفاخرة)
@@ -399,7 +400,7 @@ export const KasSupplierCard: React.FC<KasSupplierCardProps> = ({
       {/* Contact Action */}
       <div className="flex items-center gap-2 pt-1">
         <a
-          href={`tel:${supplier.phone}`}
+          href={sanitizeSafeHref(`tel:${supplier.phone}`)}
           className="button-outline-on-light flex-1 text-xs font-bold flex items-center justify-center gap-1.5"
           style={{ minHeight: '34px', padding: '6px 14px' }}
         >
@@ -407,7 +408,7 @@ export const KasSupplierCard: React.FC<KasSupplierCardProps> = ({
           <span>اتصال</span>
         </a>
         <a
-          href={`mailto:${supplier.email}`}
+          href={sanitizeSafeHref(`mailto:${supplier.email}`)}
           className="button-outline-on-light flex-1 text-xs font-bold flex items-center justify-center gap-1.5"
           style={{ minHeight: '34px', padding: '6px 14px' }}
         >

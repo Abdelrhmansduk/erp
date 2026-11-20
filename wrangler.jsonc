@@ -1,0 +1,62 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kas-erp",
+  "main": "cloudflare/edge-worker.mjs",
+  "compatibility_date": "2026-11-01",
+  "workers_dev": true,
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "placement": {
+    "mode": "smart"
+  },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/api/*",
+      "/iclock/*",
+      "/functions/*"
+    ]
+  },
+  "d1_databases": [
+    {
+      "binding": "EDGE_DB",
+      "database_name": "kas-erp-edge-db",
+      "database_id": "47b03769-cd14-429a-aa85-32fc3aa3194c"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "EDGE_KV",
+      "id": "8f1ef9b59042473eac2df0fc79b80ae9"
+    }
+  ],
+  "dispatch_namespaces": [
+    {
+      "binding": "SUBSIDIARY_DISPATCHER",
+      "namespace": "kas-erp-subsidiaries"
+    }
+  ],
+  "ai": {
+    "binding": "AI"
+  },
+  "routes": [
+    { "pattern": "kas-erp.com", "custom_domain": true },
+    { "pattern": "www.kas-erp.com", "custom_domain": true },
+    { "pattern": "erp.kas-erp.com", "custom_domain": true },
+    { "pattern": "staging.kas-erp.com", "custom_domain": true },
+    { "pattern": "agents.kas-erp.com", "custom_domain": true },
+    { "pattern": "adms.kas-erp.com", "custom_domain": true },
+    { "pattern": "verify.kas-erp.com", "custom_domain": true },
+    { "pattern": "signage.kas-erp.com", "custom_domain": true },
+    { "pattern": "saf.kas-erp.com", "custom_domain": true },
+    { "pattern": "yaq.kas-erp.com", "custom_domain": true },
+    { "pattern": "top.kas-erp.com", "custom_domain": true },
+    { "pattern": "trade.kas-erp.com", "custom_domain": true },
+    { "pattern": "dar.kas-erp.com", "custom_domain": true }
+  ]
+}

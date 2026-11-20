@@ -136,6 +136,7 @@ self.addEventListener('fetch', (event) => {
 
 // Two-Way Message Channel with Main Thread (Mobile Notification Bridge & Background Sync Control)
 self.addEventListener('message', (event) => {
+  if (event.origin !== self.location.origin) return;
   const msg = event.data;
   if (!msg || typeof msg !== 'object') return;
 

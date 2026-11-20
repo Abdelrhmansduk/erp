@@ -146,6 +146,7 @@ export const SIDEBAR_MENU: NavItem[] = [
       { id: 'network-biometrics', title: 'البصمات الموصولة بالشبكة (رادار أجهزة البصمة)', icon: 'Fingerprint', href: 'network-biometrics', badge: 'LAN Live', badgeType: 'success' },
       { id: 'hr-welcome-signage', title: 'الترحيب بالموظف الجديد وشاشات العرض الذكية', icon: 'Sparkles', href: 'hr-welcome-signage', badge: 'TV Live', badgeType: 'primary' },
       { id: 'reem-hr-emails', title: 'مراسلات وقوالب بريد الموارد البشرية (HR@kas.sa)', icon: 'MailCheck', href: 'reem-hr-emails' },
+      { id: 'corporate-mail', title: 'البريد المؤسسي المباشر (بين الموظفين • ومن الداخل للخارج)', icon: 'Send', href: 'corporate-mail', badge: 'Resend', badgeType: 'success' },
       { id: 'profile', title: 'بوابة الخدمة الذاتية للموظف والمدير (ESS)', icon: 'UserCheck', href: 'profile' },
       { id: 'hr-alerts-compliance', title: 'رادار التنبيهات والجزاءات والراتب المرن ونطاقات', icon: 'Bell', href: 'hr-alerts-compliance' },
       { id: 'hr-org-muqeem', title: 'الهيكل التنظيمي ومكتب مقيم والخطابات', icon: 'Building2', href: 'hr-org-muqeem' },

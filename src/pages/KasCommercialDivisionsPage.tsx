@@ -14,6 +14,7 @@ import { useAuthContext } from '../contexts/AuthContext';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { useAppStore } from '../stores/appStore';
 import { ExportDropdown } from '../components/common/ExportDropdown';
+import { wmsEngineService } from '../services/wms/wmsEngineService';
 
 export interface KasCommercialDeal {
   id: string;
@@ -28,6 +29,8 @@ export interface KasCommercialDeal {
   total_with_vat: number;
   sales_rep: string;
   status: 'عرض سعر' | 'مؤكد ومفوتر' | 'قيد التسليم';
+  wms_item_id?: string;
+  wms_voucher_no?: string;
   created_at: string;
 }
 
@@ -99,11 +102,20 @@ export const KasCommercialDivisionsPage: React.FC = () => {
     division: (initialDivisionFilter === 'المعرض' ? 'المعرض' : 'الأميال') as 'الأميال' | 'المعرض',
     client_name: '',
     client_phone: '',
+    wms_item_id: '',
     item_description: '',
     quantity: 1,
     unit_price: 2500,
     status: 'عرض سعر' as KasCommercialDeal['status'],
   });
+
+  const wmsCatalogItems = useMemo(() => {
+    try {
+      return wmsEngineService.getState('KAS').items.filter((i) => i.status === 'نشط');
+    } catch {
+      return [];
+    }
+  }, [showAddModal]);
 
   useEffect(() => {
     setDivisionFilter(initialDivisionFilter);
@@ -158,6 +170,45 @@ export const KasCommercialDivisionsPage: React.FC = () => {
     const total = Number((subtotal + vat).toFixed(2));
     const prefix = form.division === 'الأميال' ? 'IMAL' : 'SHW';
 
+    let wmsVoucherNo: string | undefined;
+    if (form.wms_item_id && (form.status === 'مؤكد ومفوتر' || form.status === 'قيد التسليم')) {
+      const matchedItem = wmsCatalogItems.find((i) => i.id === form.wms_item_id);
+      if (matchedItem) {
+        const res = wmsEngineService.createAndPostVoucher(
+          {
+            voucherType: 'GIN',
+            voucherDate: new Date().toISOString().slice(0, 10),
+            warehouseId: matchedItem.defaultWarehouseId,
+            beneficiaryEntity: `${form.division} — ${form.client_name.trim()}`,
+            costCenterCode: 'CC-KAS-01',
+            issuePurpose: 'تجارة وشحنات أمازون',
+            notes: `صرف آلي لعملية ${prefix} — ${form.client_name.trim()}`,
+            lines: [
+              {
+                itemId: matchedItem.id,
+                enteredQty: qty,
+                enteredUom: matchedItem.baseUom,
+                unitCost: matchedItem.avgUnitCost,
+              },
+            ],
+          },
+          {
+            email: user?.email || 'sales@kas.sa',
+            name: user?.full_name || 'مبيعات القطاعات التجارية',
+          }
+        );
+        if (res.voucher) {
+          wmsVoucherNo = res.voucher.voucherNo;
+        } else if (res.error) {
+          addNotification({
+            type: 'warning',
+            title: 'تنبيه صرف المستودع (WMS)',
+            message: res.error,
+          });
+        }
+      }
+    }
+
     const record: KasCommercialDeal = {
       id: `KCM-${Date.now().toString().slice(-5)}`,
       reference_no: `${prefix}-2026-${Math.floor(100 + Math.random() * 900)}`,
@@ -171,17 +222,21 @@ export const KasCommercialDivisionsPage: React.FC = () => {
       total_with_vat: total,
       sales_rep: user?.full_name || 'مبيعات القطاعات التجارية',
       status: form.status,
+      wms_item_id: form.wms_item_id || undefined,
+      wms_voucher_no: wmsVoucherNo,
       created_at: new Date().toISOString().slice(0, 10),
     };
 
     await realErpDataStore.addRecord('kas_commercial_deals', record);
     setDeals((prev) => [record, ...prev]);
     setShowAddModal(false);
-    setForm((f) => ({ ...f, client_name: '', client_phone: '', item_description: '' }));
+    setForm((f) => ({ ...f, wms_item_id: '', client_name: '', client_phone: '', item_description: '' }));
     addNotification({
       type: 'success',
       title: 'تم حفظ العملية التجارية',
-      message: `تم تسجيل عقد/مبيعات قطاع ${record.division} برقم ${record.reference_no} وإجمالي ${record.total_with_vat.toLocaleString('ar-SA')} ⃁.`,
+      message: `تم تسجيل عقد/مبيعات قطاع ${record.division} برقم ${record.reference_no}${
+        wmsVoucherNo ? ` وإصدار إذن صرف مخزني (${wmsVoucherNo})` : ''
+      } وإجمالي ${record.total_with_vat.toLocaleString('ar-SA')} ⃁.`,
     });
   };
 
@@ -326,6 +381,11 @@ export const KasCommercialDivisionsPage: React.FC = () => {
                   <td className="py-3.5 px-3 text-[#262626] max-w-xs truncate" title={deal.item_description}>
                     <Package className="w-3.5 h-3.5 inline ml-1 text-[#707070]" />
                     {deal.item_description}
+                    {deal.wms_voucher_no && (
+                      <span className="mr-1.5 px-2 py-0.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] font-mono text-[10px] font-bold text-[#141414]">
+                        {deal.wms_voucher_no}
+                      </span>
+                    )}
                   </td>
                   <td className="py-3.5 px-3 text-[#707070]">{deal.sales_rep}</td>
                   <td className="py-3.5 px-3 font-mono font-bold text-[#141414]">
@@ -407,6 +467,41 @@ export const KasCommercialDivisionsPage: React.FC = () => {
                     className="w-full rounded-[16px] bg-[#f0f0f0] px-3.5 py-2.5 text-xs text-[#141414] outline-none focus:ring-2 focus:ring-[#141414]"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#141414] mb-1">
+                  ربط بصنف من المستودع (WMS) — خصم آلي عند التأكيد/التسليم (اختياري)
+                </label>
+                <select
+                  value={form.wms_item_id}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    const chosen = wmsCatalogItems.find((i) => i.id === id);
+                    setForm((prev) => ({
+                      ...prev,
+                      wms_item_id: id,
+                      item_description: prev.item_description.trim()
+                        ? prev.item_description
+                        : chosen?.nameAr || prev.item_description,
+                      unit_price:
+                        chosen && chosen.avgUnitCost > 0 && prev.unit_price === 2500
+                          ? Number((chosen.avgUnitCost * 1.25).toFixed(2))
+                          : prev.unit_price,
+                    }));
+                  }}
+                  className="w-full rounded-[16px] bg-[#f0f0f0] px-3.5 py-2.5 text-xs text-[#141414] outline-none focus:ring-2 focus:ring-[#141414]"
+                >
+                  <option value="">— بند خدمة / غير مربوط بالمستودع —</option>
+                  {wmsCatalogItems.map((it) => {
+                    const avail = wmsEngineService.getItemStockSummary(it.id, it.defaultWarehouseId).available;
+                    return (
+                      <option key={it.id} value={it.id}>
+                        {it.sku} — {it.nameAr} (متاح: {avail} {it.baseUom})
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
 
               <div>

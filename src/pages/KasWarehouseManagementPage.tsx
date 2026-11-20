@@ -36,6 +36,8 @@ import {
   MessageCircle,
   Sparkles,
   PenTool,
+  Building2,
+  RefreshCw,
 } from 'lucide-react';
 import { useAuthContext } from '../contexts/AuthContext';
 import { useAppStore } from '../stores/appStore';
@@ -43,7 +45,7 @@ import { ExportDropdown } from '../components/common/ExportDropdown';
 import { wmsEngineService, WmsActor, CreateVoucherInput } from '../services/wms/wmsEngineService';
 import { buildWmsScopeDataset } from '../services/wms/wmsExportAndSendService';
 import { shareViaWhatsApp } from '../services/quickShareService';
-import { WmsIssuePurpose, WmsItem, WmsStockVoucher, WmsVoucherType } from '../types/wms';
+import { WmsCompanyId, WmsIssuePurpose, WmsItem, WmsStockVoucher, WmsVoucherType } from '../types/wms';
 import {
   WmsBarcodeLabelModal,
   WmsCreateItemModal,
@@ -69,13 +71,18 @@ import {
 import { WmsScannerAndLabelHubTab } from '../components/wms/WmsScannerAndLabelHubTab';
 import { WmsInteractiveAvatar } from '../components/wms/WmsInteractiveAvatar';
 import { WmsWorldClassSuiteTab } from '../components/wms/WmsWorldClassSuiteTab';
+import { WmsProcurementAndControlsTab } from '../components/wms/WmsProcurementAndControlsTab';
 import { WmsSignaturePadModal } from '../components/wms/WmsSignaturePadModal';
 import { wmsAdvancedOpsService } from '../services/wms/wmsAdvancedOpsService';
+import { wmsCloudSyncService } from '../services/wms/wmsCloudSyncService';
+import { WmsKpiDetailsModal, WmsKpiDetailKind } from '../components/wms/WmsKpiDetailsModal';
+import { hasSupabaseSession, SUPABASE_SESSION_READY_EVENT } from '../services/supabaseSessionBridge';
 
 type WmsTabId =
   | 'overview'
   | 'catalog'
   | 'vouchers'
+  | 'procurement-controls'
   | 'scanner-labels'
   | 'world-class'
   | 'quick-consumables'
@@ -84,21 +91,32 @@ type WmsTabId =
   | 'reconciliation'
   | 'analytics-settings';
 
+const WMS_COMPANY_SWITCHER: Array<{ id: WmsCompanyId; label: string }> = [
+  { id: 'KAS', label: 'كاس (KAS)' },
+  { id: 'SAF', label: 'السفير (SAF)' },
+  { id: 'YAQ', label: 'ياقوت (YAQ)' },
+  { id: 'TOP', label: 'توباز (TOP)' },
+  { id: 'DAR', label: 'دار الرواد (DAR)' },
+];
+
 export const KasWarehouseManagementPage: React.FC = () => {
   const { user } = useAuthContext();
   const { addNotification } = useAppStore();
 
   const actor: WmsActor = {
-    email: user?.email || 'h.salman.trade@kas.sa',
-    name: user?.full_name || 'حاتم سلمان ابوالذهب سلمان',
+    email: user?.email || 'unknown@kas-erp.com',
+    name: user?.full_name || user?.email || 'مستخدم غير معرّف',
   };
 
   const [tick, setTick] = useState(0);
   const refresh = () => setTick((t) => t + 1);
+  const [activeCompany, setActiveCompany] = useState<WmsCompanyId>(() => wmsEngineService.getActiveCompany());
+  const [cloudSyncBusy, setCloudSyncBusy] = useState(false);
 
-  const state = useMemo(() => wmsEngineService.getState(), [tick]);
-  const alerts = useMemo(() => wmsEngineService.getAlerts(), [tick]);
-  const consumptionByBeneficiary = useMemo(() => wmsEngineService.getConsumptionByBeneficiary(), [tick]);
+  const state = useMemo(() => wmsEngineService.getState(activeCompany), [tick, activeCompany]);
+  const alerts = useMemo(() => wmsEngineService.getAlerts(), [tick, activeCompany]);
+  const consumptionByBeneficiary = useMemo(() => wmsEngineService.getConsumptionByBeneficiary(), [tick, activeCompany]);
+  const cloudStatus = wmsCloudSyncService.getStatus();
 
   const [activeTab, setActiveTab] = useState<WmsTabId>('overview');
   const [searchQuery, setSearchQuery] = useState('');
@@ -134,6 +152,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
   const [stockCardItem, setStockCardItem] = useState<WmsItem | null>(null);
   const [barcodeItem, setBarcodeItem] = useState<WmsItem | null>(null);
   const [printVoucher, setPrintVoucher] = useState<WmsStockVoucher | null>(null);
+  const [kpiDetail, setKpiDetail] = useState<WmsKpiDetailKind | null>(null);
 
   const undoRedo = useMemo(() => wmsEngineService.getUndoRedoCounts(), [tick]);
 
@@ -171,6 +190,79 @@ export const KasWarehouseManagementPage: React.FC = () => {
     return () => window.removeEventListener('keydown', onKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actor.email, actor.name]);
+
+  // Cloud hydration + Realtime multi-user sync per company
+  useEffect(() => {
+    let mounted = true;
+    const bootstrapCloud = async () => {
+      const res = await wmsEngineService.hydrateFromCloud(activeCompany);
+      if (!mounted) return;
+      if (res.hydrated) {
+        refresh();
+        return;
+      }
+      // Cloud ledger empty for this company → publish this browser's ledger once
+      if (await hasSupabaseSession()) {
+        const push = await wmsEngineService.syncNowToCloud(activeCompany);
+        if (mounted && push.ok) {
+          refresh();
+          addNotification({
+            title: 'رفع المخزون إلى السحابة',
+            message: `تم رفع دفتر مستودع [${activeCompany}] لأول مرة (${push.counts?.items ?? 0} صنف • ${push.counts?.vouchers ?? 0} إذن).`,
+            type: 'success',
+          });
+        }
+      }
+    };
+    void bootstrapCloud();
+    const onSessionReady = () => void bootstrapCloud();
+    window.addEventListener(SUPABASE_SESSION_READY_EVENT, onSessionReady);
+    const unsubscribe = wmsCloudSyncService.subscribeWmsRealtime(activeCompany, () => {
+      void wmsEngineService.hydrateFromCloud(activeCompany).then((res) => {
+        if (mounted && res.hydrated) refresh();
+      });
+    });
+    return () => {
+      mounted = false;
+      window.removeEventListener(SUPABASE_SESSION_READY_EVENT, onSessionReady);
+      unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCompany]);
+
+  const handleSwitchCompany = (cid: WmsCompanyId) => {
+    wmsEngineService.setActiveCompany(cid);
+    setActiveCompany(cid);
+    setSelectedWarehouse('all');
+    refresh();
+    addNotification({
+      title: 'تبديل مستودع الكيان',
+      message: `تم التحويل الفوري إلى بيئة مستودع [${cid}] المعزولة سحابياً.`,
+      type: 'info',
+    });
+  };
+
+  const handleManualCloudSync = async () => {
+    setCloudSyncBusy(true);
+    try {
+      const pushRes = await wmsEngineService.syncNowToCloud(activeCompany);
+      const pullRes = await wmsEngineService.hydrateFromCloud(activeCompany);
+      refresh();
+      addNotification({
+        title: pushRes.ok ? 'اكتملت المزامنة السحابية' : 'تنبيه المزامنة',
+        message: pushRes.ok
+          ? `تمت مزامنة [${activeCompany}]: ${pushRes.counts?.items ?? 0} صنف • ${pushRes.counts?.vouchers ?? 0} إذن • ${pushRes.counts?.quants ?? 0} رصيد${
+              (pushRes.counts?.skippedLines || 0) + (pushRes.counts?.skippedVouchers || 0) > 0
+                ? ` (تم تجاوز ${(pushRes.counts?.skippedVouchers || 0)} إذن و${pushRes.counts?.skippedLines || 0} بند يشير لأصناف/مستودعات محذوفة)`
+                : ''
+            } (${pullRes.hydrated ? 'تحديث من السحابة' : 'النسخة المحلية محدّثة'}).`
+          : pushRes.error || 'البيانات محفوظة محلياً وستُزامَن عند توفر الاتصال.',
+        type: pushRes.ok ? 'success' : 'warning',
+      });
+    } finally {
+      setCloudSyncBusy(false);
+    }
+  };
 
   const sendSingleVoucherWhatsApp = (v: WmsStockVoucher) => {
     const linesText = v.lines
@@ -392,10 +484,18 @@ export const KasWarehouseManagementPage: React.FC = () => {
     return { ok: true };
   };
 
+  const pendingControlsCount = alerts.pendingQcCount + alerts.pendingApprovalsCount + alerts.inTransitCount;
+
   const tabs: Array<{ id: WmsTabId; label: string; icon: React.ReactNode; badge?: string | number }> = [
     { id: 'overview', label: 'لوحة القيادة والرادار', icon: <Warehouse className="w-3.5 h-3.5" /> },
     { id: 'catalog', label: 'دليل الأصناف والأرصدة', icon: <Package className="w-3.5 h-3.5" />, badge: state.items.length },
     { id: 'vouchers', label: 'دفتر الأذونات (وارد/صادر/مرتجع)', icon: <FileText className="w-3.5 h-3.5" />, badge: state.vouchers.length },
+    {
+      id: 'procurement-controls',
+      label: 'المشتريات والرقابة المتقدمة',
+      icon: <Building2 className="w-3.5 h-3.5" />,
+      badge: pendingControlsCount > 0 ? pendingControlsCount : 'P2P',
+    },
     { id: 'scanner-labels', label: 'أجهزة الجرد والباركود التسلسلي', icon: <ScanBarcode className="w-3.5 h-3.5" />, badge: 'USB/PDA' },
     { id: 'world-class', label: 'العمليات العالمية (طلبات/خريطة/ضمان/راكد)', icon: <Sparkles className="w-3.5 h-3.5" />, badge: 'PRO' },
     { id: 'quick-consumables', label: 'الصرف السريع (حجارة ومستهلكات)', icon: <BatteryCharging className="w-3.5 h-3.5" />, badge: state.fastConsumables.length },
@@ -417,6 +517,8 @@ export const KasWarehouseManagementPage: React.FC = () => {
     STR: 'تحويل STR',
     ADJ: 'تسوية ADJ',
     SAMPLE: 'عينة SMP',
+    RTV: 'مرتجع مورد RTV',
+    SCRAP: 'إتلاف SCRAP',
   };
 
   return (
@@ -430,7 +532,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
                 KAS ENTERPRISE WMS
               </span>
               <span className="px-3 py-1 rounded-full bg-[#f3f3f3] text-[#141414] text-[11px] font-bold border border-[#e0e0e0]">
-                قسم مخصص: حاتم سلمان • أحمد جمال البشير
+                قسم مخصص: حاتم سلمان أبوالذهب
               </span>
               <span className="px-3 py-1 rounded-full bg-[#f3f3f3] text-[#707070] text-[11px] font-semibold">
                 التسعير: {state.settings.costingMode === 'mandatory' ? 'إلزامي (IAS 2)' : 'مرن اختياري (IAS 2 عند الإدخال)'}
@@ -444,7 +546,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
             </p>
             <div className="pt-1">
               <WmsInteractiveAvatar
-                activeTab={activeTab}
+                activeTab={activeTab === 'procurement-controls' ? 'vouchers' : activeTab}
                 actorName={actor.name}
                 totalItems={state.items.length}
                 lowStockCount={alerts.lowStockItems.length}
@@ -559,6 +661,33 @@ export const KasWarehouseManagementPage: React.FC = () => {
               <ArchiveRestore className="w-3.5 h-3.5" />
               <span>سلة المحذوفات ({state.recycleBin?.length || 0})</span>
             </button>
+            <div className="flex items-center gap-1 bg-[#f3f3f3] p-1 rounded-full">
+              {WMS_COMPANY_SWITCHER.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => handleSwitchCompany(c.id)}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors ${
+                    activeCompany === c.id ? 'bg-[#141414] text-white' : 'text-[#141414] hover:bg-[#ffffff]'
+                  }`}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              disabled={cloudSyncBusy}
+              onClick={handleManualCloudSync}
+              className="px-3 py-1.5 rounded-full border border-[#e0e0e0] bg-[#ffffff] text-[#141414] text-xs font-bold flex items-center gap-1.5 hover:bg-[#f3f3f3] disabled:opacity-50"
+              title="مزامنة فورية مع قاعدة بيانات Supabase وStorage"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${cloudSyncBusy ? 'animate-spin' : ''}`} />
+              <span>
+                مزامنة سحابية ({cloudStatus.cloudEnabled ? 'متصل' : 'محلي'}
+                {cloudStatus.pendingQueueCount > 0 ? ` • ${cloudStatus.pendingQueueCount}` : ''})
+              </span>
+            </button>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
@@ -597,9 +726,14 @@ export const KasWarehouseManagementPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. 4 Monochrome KPI Metric Cards */}
+      {/* 2. 4 Monochrome KPI Metric Cards — click any card to open full details */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#ffffff] border border-[#f0f0f0] rounded-[24px] p-5">
+        <button
+          type="button"
+          onClick={() => setKpiDetail({ kind: 'items' })}
+          title="اضغط لعرض تفاصيل الأصناف والأرصدة"
+          className="text-right bg-[#ffffff] border border-[#f0f0f0] hover:border-[#141414] rounded-[24px] p-5 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-[#141414]"
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-[#707070]">الأصناف الموحّدة والرصيد الحي</span>
             <div className="w-8 h-8 rounded-full bg-[#f3f3f3] flex items-center justify-center">
@@ -611,9 +745,15 @@ export const KasWarehouseManagementPage: React.FC = () => {
             رصيد فعلي: <strong className="text-[#141414] font-mono">{kpis.totalOnHand.toLocaleString()}</strong> • محجوز:{' '}
             <strong className="text-[#141414] font-mono">{kpis.totalReserved}</strong>
           </div>
-        </div>
+          <div className="text-[10px] font-bold text-[#141414] mt-2 underline">عرض التفاصيل ←</div>
+        </button>
 
-        <div className="bg-[#f3f3f3] border border-[#e0e0e0] rounded-[24px] p-5">
+        <button
+          type="button"
+          onClick={() => setKpiDetail({ kind: 'movements', voucherType: 'all' })}
+          title="اضغط لعرض تفاصيل الحركات"
+          className="text-right bg-[#f3f3f3] border border-[#e0e0e0] hover:border-[#141414] rounded-[24px] p-5 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-[#141414]"
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-[#707070]">حركات المستودع المعتمدة</span>
             <div className="w-8 h-8 rounded-full bg-[#ffffff] flex items-center justify-center">
@@ -626,9 +766,15 @@ export const KasWarehouseManagementPage: React.FC = () => {
             <strong className="text-[#141414]">{kpis.ginCount}</strong> • مرتجع:{' '}
             <strong className="text-[#141414]">{kpis.srnCount}</strong>
           </div>
-        </div>
+          <div className="text-[10px] font-bold text-[#141414] mt-2 underline">عرض التفاصيل ←</div>
+        </button>
 
-        <div className="bg-[#ffffff] border border-[#f0f0f0] rounded-[24px] p-5">
+        <button
+          type="button"
+          onClick={() => setKpiDetail({ kind: 'alerts' })}
+          title="اضغط لعرض تفاصيل التنبيهات"
+          className="text-right bg-[#ffffff] border border-[#f0f0f0] hover:border-[#141414] rounded-[24px] p-5 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-[#141414]"
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-[#707070]">رادار المخزون والصلاحية والعينات</span>
             <div className="w-8 h-8 rounded-full bg-[#f3f3f3] flex items-center justify-center">
@@ -640,14 +786,17 @@ export const KasWarehouseManagementPage: React.FC = () => {
             عينات متأخرة: <strong className="text-[#141414]">{alerts.overdueSamples.length}</strong> • دفعات طبية:{' '}
             <strong className="text-[#141414]">{alerts.expiringLots.length}</strong>
           </div>
-        </div>
+          <div className="text-[10px] font-bold text-[#141414] mt-2 underline">عرض التفاصيل ←</div>
+        </button>
 
-        <div
-          onClick={() => setActiveTab('reconciliation')}
-          className="bg-[#141414] text-white rounded-[24px] p-5 cursor-pointer hover:bg-[#262626] transition-colors"
+        <button
+          type="button"
+          onClick={() => setKpiDetail({ kind: 'valuation' })}
+          title="اضغط لعرض تفاصيل التقييم والتسويات"
+          className="text-right bg-[#141414] text-white rounded-[24px] p-5 cursor-pointer hover:bg-[#262626] transition-colors focus:outline-none focus:ring-2 focus:ring-[#707070]"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#d4d4d4]">تسوية الإكسل (116 صفاً)</span>
+            <span className="text-xs font-semibold text-[#d4d4d4]">تقييم المخزون والتسويات</span>
             <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
               <AlertTriangle className="w-4 h-4 text-white" />
             </div>
@@ -656,9 +805,10 @@ export const KasWarehouseManagementPage: React.FC = () => {
           <div className="text-xs text-[#adadad] mt-1">
             {kpis.totalValuation > 0
               ? `تقييم المخزون: ${kpis.totalValuation.toLocaleString()} ⃁`
-              : 'اضغط لمراجعة DVD DRIVE والتواريخ المصححة'}
+              : 'لا توجد تكلفة مسجلة للأصناف بعد'}
           </div>
-        </div>
+          <div className="text-[10px] font-bold text-white mt-2 underline">عرض التفاصيل ←</div>
+        </button>
       </div>
 
       {/* 3. Navigation Pill Strip */}
@@ -791,10 +941,8 @@ export const KasWarehouseManagementPage: React.FC = () => {
                 <button
                   key={wh.id}
                   type="button"
-                  onClick={() => {
-                    setSelectedWarehouse(wh.id);
-                    setActiveTab('catalog');
-                  }}
+                  onClick={() => setKpiDetail({ kind: 'warehouse', warehouseId: wh.id })}
+                  title="اضغط لعرض تفاصيل المستودع"
                   className="text-right bg-[#ffffff] border border-[#e0e0e0] hover:border-[#141414] rounded-[20px] p-4 space-y-1.5 transition-colors"
                 >
                   <div className="flex items-center justify-between">
@@ -1245,9 +1393,13 @@ export const KasWarehouseManagementPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => {
-                              wmsEngineService.reverseVoucher(v.id, 'عكس وتصحيح من المستخدم', actor);
-                              refresh();
-                              addNotification({ title: 'عكس الإذن', message: `تم عكس الإذن ${v.voucherNo} وتحديث الرصيد.`, type: 'info' });
+                              const res = wmsEngineService.reverseVoucher(v.id, 'عكس وتصحيح من المستخدم', actor);
+                              if (!res.ok) {
+                                addNotification({ title: 'تعذر العكس', message: res.error || '', type: 'error' });
+                              } else {
+                                refresh();
+                                addNotification({ title: 'عكس الإذن', message: `تم عكس الإذن ${v.voucherNo} وتحديث الرصيد والقيد.`, type: 'info' });
+                              }
                             }}
                             className="px-2.5 py-1 rounded-full border border-[#e0e0e0] text-[10px] font-bold text-[#707070] hover:text-[#141414]"
                           >
@@ -1257,7 +1409,15 @@ export const KasWarehouseManagementPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => {
-                            wmsEngineService.deleteVoucher(v.id, 'حذف من دفتر الأذونات', actor);
+                            const ok = wmsEngineService.deleteVoucher(v.id, 'حذف من دفتر الأذونات', actor);
+                            if (!ok) {
+                              addNotification({
+                                title: 'محمي بحوكمة التثبيت الصارم',
+                                message: `لا يمكن حذف الإذن المُرحّل (${v.voucherNo}) — استخدم زر "عكس" لإصدار قيد عكسي معتمد.`,
+                                type: 'error',
+                              });
+                              return;
+                            }
                             refresh();
                             addNotification({
                               title: 'تم حذف الإذن إلى سلة المحذوفات',
@@ -1278,6 +1438,15 @@ export const KasWarehouseManagementPage: React.FC = () => {
             </table>
           </div>
         </div>
+      )}
+
+      {activeTab === 'procurement-controls' && (
+        <WmsProcurementAndControlsTab
+          state={state}
+          actor={actor}
+          onRefresh={refresh}
+          onNotify={(title, message, type = 'success') => addNotification({ title, message, type })}
+        />
       )}
 
       {activeTab === 'scanner-labels' && (
@@ -1383,10 +1552,10 @@ export const KasWarehouseManagementPage: React.FC = () => {
         <WmsCycleCountTab
           warehouses={state.warehouses}
           sessions={state.cycleCounts}
-          onStartSession={(whId, blind) => {
-            const s = wmsEngineService.createCycleCountSession(whId, blind, actor);
+          onStartSession={(whId, blind, scope, zoneFilter) => {
+            const s = wmsEngineService.createCycleCountSession(whId, blind, actor, { scope, zoneFilter });
             refresh();
-            addNotification({ title: 'بدء جلسة جرد', message: `تم فتح جلسة الجرد (${s.countNo}).`, type: 'success' });
+            addNotification({ title: 'بدء جلسة جرد', message: `تم فتح جلسة الجرد (${s.countNo}) بعدد ${s.lines.length} صنف.`, type: 'success' });
           }}
           onUpdateLine={(sid, itemId, qty) => {
             wmsEngineService.updateCycleCountLine(sid, itemId, qty);
@@ -1446,6 +1615,26 @@ export const KasWarehouseManagementPage: React.FC = () => {
         onClose={() => setIsItemModalOpen(false)}
         categories={state.categories}
         warehouses={state.warehouses}
+        onCreateCategory={(input) => {
+          const created = wmsEngineService.createCategory(input, actor);
+          refresh();
+          addNotification({
+            title: 'إضافة فئة تصنيفية جديدة',
+            message: `تمت إضافة الفئة (${created.nameAr}) برمز ${created.code} إلى دليل الأصناف الموحد.`,
+            type: 'success',
+          });
+          return created;
+        }}
+        onCreateWarehouse={(input) => {
+          const created = wmsEngineService.createWarehouse(input, actor);
+          refresh();
+          addNotification({
+            title: 'إضافة مستودع جديد',
+            message: `تمت إضافة المستودع (${created.nameAr} — ${created.branch}) وتحديدُه كخيار متاح فوراً.`,
+            type: 'success',
+          });
+          return created;
+        }}
         onSubmit={handleCreateItem}
       />
 
@@ -1507,6 +1696,30 @@ export const KasWarehouseManagementPage: React.FC = () => {
         }}
       />
 
+      <WmsKpiDetailsModal
+        detail={kpiDetail}
+        state={state}
+        alerts={alerts}
+        undoCount={undoRedo.undoCount}
+        redoCount={undoRedo.redoCount}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        onClose={() => setKpiDetail(null)}
+        onOpenStockCard={(item) => {
+          setKpiDetail(null);
+          setStockCardItem(item);
+        }}
+        onPrintVoucher={(v) => {
+          setKpiDetail(null);
+          setPrintVoucher(v);
+        }}
+        onOpenWarehouseCatalog={(whId) => {
+          setKpiDetail(null);
+          setSelectedWarehouse(whId);
+          setActiveTab('catalog');
+        }}
+      />
+
       <WmsExportAndSendModal
         open={exportSendModal.open}
         initialTab={exportSendModal.tab}
@@ -1536,7 +1749,11 @@ export const KasWarehouseManagementPage: React.FC = () => {
         voucher={editingVoucher}
         onClose={() => setEditingVoucher(null)}
         onSave={(voucherId, patch) => {
-          wmsEngineService.updateVoucher(voucherId, patch, actor);
+          const res = wmsEngineService.updateVoucher(voucherId, patch, actor);
+          if (!res.ok) {
+            addNotification({ title: 'تعذر تعديل الإذن', message: res.error || '', type: 'error' });
+            return;
+          }
           refresh();
           addNotification({ title: 'تم تعديل الإذن المخزني', message: 'تم تحديث الإذن والأرصدة المرتبطة تلقائياً.', type: 'success' });
         }}

@@ -7,11 +7,13 @@
 
 import * as XLSX from 'xlsx';
 import { realErpDataStore } from './realErpDataStore';
+import { supabase, isDummySupabase } from './supabaseClient';
 import {
   computeKasPasswordDigest,
   generateStrongClientPassword,
   validateStrongPasswordPolicy,
 } from '../config/kasEmployeePasswordHashes';
+import { decryptStoragePayload, encryptStoragePayload } from '../utils/securitySanitizers';
 
 export type RecruitmentSubsidiaryCode = 'SAF' | 'TOP' | 'YAQ' | 'DAR';
 
@@ -19,25 +21,80 @@ export type FollowupCoordinatorEmail =
   | 'i.mahmoud.followup@kas.sa'
   | 'm.fouda.followup@kas.sa';
 
-export const FOLLOWUP_COORDINATORS: Array<{
+export interface FollowupCoordinatorProfile {
   email: FollowupCoordinatorEmail;
   nameAr: string;
+  nameEn?: string;
   roleAr: string;
   phone: string;
-}> = [
+  whatsapp?: string;
+}
+
+export const FOLLOWUP_COORDINATORS: FollowupCoordinatorProfile[] = [
   {
     email: 'i.mahmoud.followup@kas.sa',
     nameAr: 'إسلام أحمد عرفة',
+    nameEn: 'Islam Ahmed Arafa',
     roleAr: 'مسؤول متابعة الوكلاء والمعاملات الخارجية',
     phone: '+966500112233',
+    whatsapp: '+966500112233',
   },
   {
     email: 'm.fouda.followup@kas.sa',
     nameAr: 'محمود فودة',
+    nameEn: 'Mahmoud Fouda',
     roleAr: 'أخصائي متابعة المكاتب الخارجية والـ ATS',
     phone: '+966500112244',
+    whatsapp: '+966500112244',
   },
 ];
+
+const COORDINATOR_CONTACTS_STORAGE_KEY = 'ALSULAIM_FOLLOWUP_COORDINATORS_V1';
+
+export function getCoordinatorProfiles(): FollowupCoordinatorProfile[] {
+  try {
+    if (typeof localStorage === 'undefined') return [...FOLLOWUP_COORDINATORS];
+    const raw = decryptStoragePayload(localStorage.getItem(COORDINATOR_CONTACTS_STORAGE_KEY));
+    if (!raw) return [...FOLLOWUP_COORDINATORS];
+    const overrides = JSON.parse(raw) as Record<string, string>;
+    return FOLLOWUP_COORDINATORS.map((c) => ({
+      ...c,
+      phone: overrides[c.email] || c.phone,
+      whatsapp: overrides[`${c.email}:wa`] || overrides[c.email] || c.whatsapp || c.phone,
+    }));
+  } catch {
+    return [...FOLLOWUP_COORDINATORS];
+  }
+}
+
+export function saveCoordinatorContact(
+  emailOrObj:
+    | FollowupCoordinatorEmail
+    | { email: FollowupCoordinatorEmail; phone: string; whatsapp?: string; nameAr?: string },
+  phoneArg?: string
+): FollowupCoordinatorProfile[] {
+  const email = typeof emailOrObj === 'string' ? emailOrObj : emailOrObj.email;
+  const cleanPhone = String(
+    typeof emailOrObj === 'string' ? phoneArg || '' : emailOrObj.phone || ''
+  ).trim();
+  const cleanWhatsapp =
+    typeof emailOrObj === 'object' && emailOrObj.whatsapp ? String(emailOrObj.whatsapp).trim() : '';
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const raw = decryptStoragePayload(localStorage.getItem(COORDINATOR_CONTACTS_STORAGE_KEY));
+      const current = raw ? (JSON.parse(raw) as Record<string, string>) : {};
+      if (cleanPhone) current[email] = cleanPhone;
+      if (cleanWhatsapp) current[`${email}:wa`] = cleanWhatsapp;
+      localStorage.setItem(
+        COORDINATOR_CONTACTS_STORAGE_KEY,
+        encryptStoragePayload(JSON.stringify(current))
+      );
+    }
+  } catch {
+    // ignore storage limits
+  }
+  return getCoordinatorProfiles();
+}
 
 export type TransactionStage =
   | 'UNASSIGNED'     // غير معيّن (بانتظار تعيين العاملة من الوكيل)
@@ -88,16 +145,19 @@ export interface UnifiedExternalAgency {
   country: string;
   country_code: string;
   license_no: string;
+  musaned_license_no?: string;
   manager_name: string;
   email: string;
   phone: string;
   whatsapp: string;
   aliases: string[];
   authorized_companies: RecruitmentSubsidiaryCode[];
+  supported_companies?: RecruitmentSubsidiaryCode[];
   assigned_coordinator_email: FollowupCoordinatorEmail;
   assigned_coordinator_name: string;
   default_commission_usd: number;
   sla_assign_days: number;
+  sla_arrival_days?: number;
   avg_days_to_assign: number;
   avg_days_to_arrival: number;
   historical_total_contracts: number;
@@ -107,7 +167,91 @@ export interface UnifiedExternalAgency {
   historical_cancelled_count: number;
   quality_score: number;
   status: 'نشط' | 'مجمّد' | 'تحت المراجعة';
+  license_expiry_date?: string;
   created_at: string;
+}
+
+export type TransactionAttachmentCategory =
+  | 'DELEGATION'
+  | 'MEDICAL'
+  | 'VISA'
+  | 'TICKET'
+  | 'CONTRACT'
+  | 'OTHER'
+  | 'مستند مرحلة'
+  | 'تذكرة طيران'
+  | 'تأشيرة'
+  | 'فحص طبي'
+  | 'تفويض'
+  | 'أخرى';
+
+export interface TransactionAttachment {
+  id: string;
+  title?: string;
+  name?: string;
+  category: TransactionAttachmentCategory;
+  fileName?: string;
+  mimeType: string;
+  fileSizeLabel?: string;
+  sizeBytes?: number;
+  dataUrl: string;
+  uploadedBy: string;
+  uploadedByRole?: string;
+  uploadedAt?: string;
+}
+
+export interface TransactionThreadMessage {
+  id: string;
+  senderRole: 'followup' | 'agency' | 'internal_coordinator' | 'external_agency';
+  senderName: string;
+  body: string;
+  createdAt: string;
+  sentAt: string;
+}
+
+export interface NormalizedAgencyCandidate {
+  id: string;
+  company_id?: string;
+  agency_id?: string;
+  maidName: string;
+  passportNumber: string;
+  nationality: string;
+  age: number;
+  profession: string;
+  medicalStatus: 'FIT' | 'PENDING' | 'UNFIT';
+  visaStatus: 'ISSUED' | 'APPLIED' | 'READY';
+  ticketStatus: 'BOOKED' | 'PENDING';
+  commissionUsd: number;
+  deductionUsd: number;
+  deductionReason?: string;
+  paymentStatus: 'PAID' | 'UNPAID';
+  uploadedAt: string;
+  agencyName?: string;
+  musanedContractNo?: string;
+}
+
+export interface DynamicAgencyScorecard {
+  agency: UnifiedExternalAgency;
+  totalContracts: number;
+  totalHandledCount: number;
+  activeCount: number;
+  activeContractsCount: number;
+  overdueCount: number;
+  arrivedCount: number;
+  backoutCount: number;
+  runawayCount: number;
+  cancelledCount: number;
+  backoutPct: number;
+  backoutRatePct: number;
+  runawayPct: number;
+  runawayRatePct: number;
+  slaCompliancePct: number;
+  avgDaysToAssign: number;
+  avgAssignDays: number;
+  avgDaysToArrival: number;
+  avgArrivalDays: number;
+  dynamicScore: number;
+  computedScore: number;
 }
 
 export interface ExternalAgencyAccount {
@@ -177,8 +321,15 @@ export interface MusanedFollowupTransaction {
   replacement_for_contract_no?: string;
   paid_amount_sar: number;
   commission_usd: number;
+  deduction_usd?: number;
+  warranty_end_date?: string;
   cv_id?: string;
   notes?: string;
+  attachments?: TransactionAttachment[];
+  messages_thread?: TransactionThreadMessage[];
+  is_deleted?: boolean;
+  deleted_at?: string;
+  deleted_by?: string;
   updated_at: string;
 }
 
@@ -200,6 +351,7 @@ export interface SanitizedAgencyTransaction {
   monthly_salary: number;
   agency_id?: string;
   agency_canonical_name: string;
+  assigned_coordinator_email?: FollowupCoordinatorEmail;
   stage: TransactionStage;
   stage_timestamps: Partial<Record<TransactionStage, string>>;
   contract_start_date: string;
@@ -213,7 +365,11 @@ export interface SanitizedAgencyTransaction {
   arrival_date?: string;
   arrival_destination: string;
   commission_usd: number;
+  deduction_usd?: number;
+  warranty_end_date?: string;
   cv_id?: string;
+  attachments?: TransactionAttachment[];
+  messages_thread?: TransactionThreadMessage[];
   sla_assign_deadline?: string;
   updated_at: string;
 }
@@ -1309,12 +1465,41 @@ export function parseFreeTextFollowupStatus(
 
 // ─── Unified Agent Master & Alias Registry ──────────────────────────────────
 
+export function resolveCoordinatorForAgencyOrTx(params: {
+  agencyId?: string;
+  nationality?: string;
+  explicitEmail?: FollowupCoordinatorEmail;
+  assignedEmail?: FollowupCoordinatorEmail | string;
+}): FollowupCoordinatorProfile {
+  const coordinators = getCoordinatorProfiles();
+  const preferred = params.explicitEmail || params.assignedEmail;
+  if (preferred) {
+    const found = coordinators.find((c) => c.email === preferred);
+    if (found) return found;
+  }
+  if (params.agencyId) {
+    const ag = getUnifiedAgenciesSync().find((a) => a.id === params.agencyId);
+    if (ag?.assigned_coordinator_email) {
+      const found = coordinators.find((c) => c.email === ag.assigned_coordinator_email);
+      if (found) return found;
+    }
+  }
+  const nat = String(params.nationality || '');
+  if (nat.includes('ثيوبيا')) {
+    return coordinators.find((c) => c.email === 'i.mahmoud.followup@kas.sa') || coordinators[0];
+  }
+  return coordinators.find((c) => c.email === 'm.fouda.followup@kas.sa') || coordinators[1] || coordinators[0];
+}
+
 export function getUnifiedAgenciesSync(): UnifiedExternalAgency[] {
   try {
     if (typeof localStorage === 'undefined') return [...INITIAL_UNIFIED_AGENCIES];
-    const raw = localStorage.getItem(AGENCY_MASTER_STORAGE_KEY);
+    const raw = decryptStoragePayload(localStorage.getItem(AGENCY_MASTER_STORAGE_KEY));
     if (!raw) {
-      localStorage.setItem(AGENCY_MASTER_STORAGE_KEY, JSON.stringify(INITIAL_UNIFIED_AGENCIES));
+      localStorage.setItem(
+        AGENCY_MASTER_STORAGE_KEY,
+        encryptStoragePayload(JSON.stringify(INITIAL_UNIFIED_AGENCIES))
+      );
       return [...INITIAL_UNIFIED_AGENCIES];
     }
     const parsed = JSON.parse(raw);
@@ -1325,10 +1510,43 @@ export function getUnifiedAgenciesSync(): UnifiedExternalAgency[] {
   }
 }
 
+export async function loadUnifiedAgencies(): Promise<UnifiedExternalAgency[]> {
+  const remoteOrLocal = await realErpDataStore.getRecords<UnifiedExternalAgency>(
+    'external_agencies_master',
+    INITIAL_UNIFIED_AGENCIES,
+    'all'
+  );
+  const byId = new Map<string, UnifiedExternalAgency>();
+  INITIAL_UNIFIED_AGENCIES.forEach((ag) => byId.set(ag.id, ag));
+  getUnifiedAgenciesSync().forEach((ag) => byId.set(ag.id, ag));
+  remoteOrLocal.forEach((ag) => {
+    if (!ag?.id) return;
+    const prev = byId.get(ag.id);
+    byId.set(ag.id, {
+      ...(prev || ({} as UnifiedExternalAgency)),
+      ...ag,
+      aliases: Array.isArray(ag.aliases) && ag.aliases.length > 0 ? ag.aliases : prev?.aliases || [],
+      authorized_companies:
+        Array.isArray(ag.authorized_companies) && ag.authorized_companies.length > 0
+          ? ag.authorized_companies
+          : prev?.authorized_companies || ['SAF', 'TOP', 'YAQ', 'DAR'],
+    });
+  });
+  const merged = Array.from(byId.values());
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(AGENCY_MASTER_STORAGE_KEY, encryptStoragePayload(JSON.stringify(merged)));
+    }
+  } catch {
+    // ignore storage limits
+  }
+  return merged;
+}
+
 export async function saveUnifiedAgencies(list: UnifiedExternalAgency[]): Promise<UnifiedExternalAgency[]> {
   try {
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(AGENCY_MASTER_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(AGENCY_MASTER_STORAGE_KEY, encryptStoragePayload(JSON.stringify(list)));
     }
   } catch {
     // ignore
@@ -1407,17 +1625,59 @@ export async function confirmAliasMergeToAgency(
 }
 
 export async function upsertUnifiedAgency(
-  agency: Omit<UnifiedExternalAgency, 'id' | 'created_at'> & { id?: string; created_at?: string }
+  agency: Partial<UnifiedExternalAgency> & { name_ar: string }
 ): Promise<UnifiedExternalAgency> {
   const list = getUnifiedAgenciesSync();
   const id = agency.id || `AGY-${agency.country_code || 'INT'}-${Date.now().toString().slice(-5)}`;
-  const fullRecord: UnifiedExternalAgency = {
-    ...agency,
-    id,
-    authorized_companies: (agency.authorized_companies?.filter((c) =>
+  const prev = list.find((a) => a.id === id) || null;
+  const companies = (
+    (agency.authorized_companies || agency.supported_companies || prev?.authorized_companies)?.filter((c) =>
       ['SAF', 'TOP', 'YAQ', 'DAR'].includes(c)
-    ) as RecruitmentSubsidiaryCode[]) || ['SAF', 'TOP', 'YAQ', 'DAR'],
-    created_at: agency.created_at || new Date().toISOString().slice(0, 10),
+    ) as RecruitmentSubsidiaryCode[]
+  ) || ['SAF', 'TOP', 'YAQ', 'DAR'];
+  const coordEmail = agency.assigned_coordinator_email || prev?.assigned_coordinator_email || 'm.fouda.followup@kas.sa';
+  const coordName =
+    agency.assigned_coordinator_name ||
+    prev?.assigned_coordinator_name ||
+    getCoordinatorProfiles().find((c) => c.email === coordEmail)?.nameAr ||
+    'محمود فودة';
+
+  const fullRecord: UnifiedExternalAgency = {
+    id,
+    company_id: agency.company_id || prev?.company_id || 'SAF',
+    canonical_code:
+      agency.canonical_code ||
+      prev?.canonical_code ||
+      (agency.name_en || agency.name_ar).replace(/[^A-Za-z0-9\u0600-\u06FF]+/g, '_').toUpperCase(),
+    name_en: agency.name_en || prev?.name_en || agency.name_ar,
+    name_ar: agency.name_ar,
+    country: agency.country || prev?.country || 'أثيوبيا',
+    country_code: agency.country_code || prev?.country_code || 'ET',
+    license_no: agency.license_no || agency.musaned_license_no || prev?.license_no || 'MSN-LIC',
+    musaned_license_no: agency.musaned_license_no || agency.license_no || prev?.musaned_license_no,
+    manager_name: agency.manager_name || prev?.manager_name || 'مدير الوكالة',
+    email: agency.email ?? prev?.email ?? '',
+    phone: agency.phone ?? prev?.phone ?? '',
+    whatsapp: agency.whatsapp ?? agency.phone ?? prev?.whatsapp ?? '',
+    aliases: agency.aliases || prev?.aliases || [agency.name_ar, agency.name_en || agency.name_ar],
+    authorized_companies: companies,
+    supported_companies: companies,
+    assigned_coordinator_email: coordEmail,
+    assigned_coordinator_name: coordName,
+    default_commission_usd: agency.default_commission_usd ?? prev?.default_commission_usd ?? 1050,
+    sla_assign_days: agency.sla_assign_days ?? prev?.sla_assign_days ?? 3,
+    sla_arrival_days: agency.sla_arrival_days ?? prev?.sla_arrival_days ?? 38,
+    avg_days_to_assign: agency.avg_days_to_assign ?? prev?.avg_days_to_assign ?? 3,
+    avg_days_to_arrival: agency.avg_days_to_arrival ?? prev?.avg_days_to_arrival ?? 35,
+    historical_total_contracts: agency.historical_total_contracts ?? prev?.historical_total_contracts ?? 0,
+    historical_arrived_count: agency.historical_arrived_count ?? prev?.historical_arrived_count ?? 0,
+    historical_backout_count: agency.historical_backout_count ?? prev?.historical_backout_count ?? 0,
+    historical_runaway_count: agency.historical_runaway_count ?? prev?.historical_runaway_count ?? 0,
+    historical_cancelled_count: agency.historical_cancelled_count ?? prev?.historical_cancelled_count ?? 0,
+    quality_score: agency.quality_score ?? prev?.quality_score ?? 92,
+    status: agency.status || prev?.status || 'نشط',
+    license_expiry_date: agency.license_expiry_date || prev?.license_expiry_date,
+    created_at: agency.created_at || prev?.created_at || new Date().toISOString().slice(0, 10),
   };
 
   const existingIdx = list.findIndex((a) => a.id === id || a.canonical_code === fullRecord.canonical_code);
@@ -1432,18 +1692,32 @@ export async function upsertUnifiedAgency(
 
 export async function assignAgencyCoordinator(
   agencyId: string,
-  coordinatorEmail: FollowupCoordinatorEmail
+  coordinatorEmail: FollowupCoordinatorEmail,
+  cascadeActiveTransactions = true
 ): Promise<UnifiedExternalAgency | null> {
   const list = getUnifiedAgenciesSync();
   const idx = list.findIndex((a) => a.id === agencyId);
   if (idx === -1) return null;
-  const coord = FOLLOWUP_COORDINATORS.find((c) => c.email === coordinatorEmail) || FOLLOWUP_COORDINATORS[0];
+  const coord = getCoordinatorProfiles().find((c) => c.email === coordinatorEmail) || FOLLOWUP_COORDINATORS[0];
   list[idx] = {
     ...list[idx],
     assigned_coordinator_email: coord.email,
     assigned_coordinator_name: coord.nameAr,
   };
   await saveUnifiedAgencies(list);
+
+  if (cascadeActiveTransactions) {
+    const allTxs = await getMusanedTransactions();
+    const openTxs = allTxs.filter((t) => !t.is_archive && t.agency_id === agencyId);
+    for (const tx of openTxs) {
+      await realErpDataStore.updateRecord<MusanedFollowupTransaction>(
+        'musaned_followup_transactions',
+        tx.id,
+        { assigned_coordinator_email: coord.email },
+        INITIAL_MUSANED_FOLLOWUP_TRANSACTIONS
+      );
+    }
+  }
   return list[idx];
 }
 
@@ -1457,7 +1731,7 @@ export function computeExternalAgencyPasswordDigest(emailOrUsername: string, pla
 export function getExternalAgencyAccountsSync(): ExternalAgencyAccount[] {
   try {
     if (typeof localStorage === 'undefined') return [];
-    const raw = localStorage.getItem(AGENCY_ACCOUNTS_STORAGE_KEY);
+    const raw = decryptStoragePayload(localStorage.getItem(AGENCY_ACCOUNTS_STORAGE_KEY));
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
@@ -1466,10 +1740,38 @@ export function getExternalAgencyAccountsSync(): ExternalAgencyAccount[] {
   }
 }
 
+export async function loadExternalAgencyAccounts(): Promise<ExternalAgencyAccount[]> {
+  const remoteOrLocal = await realErpDataStore.getRecords<ExternalAgencyAccount>(
+    'external_agency_accounts',
+    [],
+    'all'
+  );
+  const byId = new Map<string, ExternalAgencyAccount>();
+  getExternalAgencyAccountsSync().forEach((a) => {
+    if (a?.id) byId.set(a.id, a);
+  });
+  remoteOrLocal.forEach((a) => {
+    if (!a?.id) return;
+    const prev = byId.get(a.id);
+    byId.set(a.id, {
+      ...(prev || ({} as ExternalAgencyAccount)),
+      ...a,
+      agency_name_ar: a.agency_name_ar || prev?.agency_name_ar || a.agency_name,
+      country: a.country || prev?.country || 'أثيوبيا',
+    });
+  });
+  const merged = Array.from(byId.values());
+  saveExternalAgencyAccountsSync(merged);
+  return merged;
+}
+
 function saveExternalAgencyAccountsSync(accounts: ExternalAgencyAccount[]): void {
   try {
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(AGENCY_ACCOUNTS_STORAGE_KEY, JSON.stringify(accounts));
+      localStorage.setItem(
+        AGENCY_ACCOUNTS_STORAGE_KEY,
+        encryptStoragePayload(JSON.stringify(accounts))
+      );
     }
   } catch {
     // ignore
@@ -1493,6 +1795,9 @@ export async function provisionExternalAgencyAccount(params: {
   if (!agency) {
     throw new Error('لا يمكن إنشاء حساب وكيل خارجي إلا من سجل الوكلاء الموحد المعتمد.');
   }
+
+  // Ensure parent agency exists in cloud master before creating FK account row
+  await realErpDataStore.importRealRecordsBatch('external_agencies_master', [agency]);
 
   const passwordToUse = params.plainPassword?.trim() || generateStrongClientPassword();
   const policy = validateStrongPasswordPolicy(passwordToUse);
@@ -1624,6 +1929,163 @@ export function verifyExternalAgencyCredentials(
   saveExternalAgencyAccountsSync(updatedAccounts);
 
   return { valid: true, account: match };
+}
+
+/**
+ * Verifies External Agency Partner credentials locally first and falls back to
+ * Supabase SECURITY DEFINER RPC so partners can log in from any device worldwide.
+ */
+export async function verifyExternalAgencyCredentialsAsync(
+  identifier: string,
+  plainPassword: string
+): Promise<{
+  valid: boolean;
+  account?: ExternalAgencyAccount;
+  reasonAr?: string;
+}> {
+  const cleanId = (identifier || '').trim().toLowerCase();
+  if (!cleanId || !plainPassword) {
+    return { valid: false };
+  }
+
+  // 1. Check local cache first
+  const localCheck = verifyExternalAgencyCredentials(cleanId, plainPassword);
+  if (localCheck.valid || localCheck.reasonAr) {
+    return localCheck;
+  }
+
+  // Never query external agency RPC for internal corporate domains
+  if (
+    cleanId.endsWith('@kas.sa') ||
+    (cleanId.endsWith('@alsulaim.sa') && !cleanId.endsWith('@agency.alsulaim.sa'))
+  ) {
+    return { valid: false };
+  }
+
+  // In Vitest unit tests without a mocked supabase.rpc, do not hit live network
+  const isVitestRuntime = Boolean(
+    (import.meta as any)?.env?.VITEST || (globalThis as any)?.process?.env?.VITEST
+  );
+  const hasMockedRpc = Boolean((supabase as any)?.rpc?.mock);
+  if (isVitestRuntime && !hasMockedRpc) {
+    return { valid: false };
+  }
+
+  // 2. Remote Server-Side Edge Gateway verification (invokes service_role-only RPCs safely)
+  if (!isDummySupabase) {
+    try {
+      const withRpcTimeout = <T,>(promise: PromiseLike<T>, ms = 3500): Promise<T | null> =>
+        Promise.race([
+          Promise.resolve(promise),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
+        ]);
+
+      const invokeExternalAgencyAuthRpc = async (
+        fnName: 'resolve_external_agency_email' | 'verify_external_agency_login',
+        params: Record<string, string>
+      ): Promise<{ data: any[] | null; error?: any } | null> => {
+        if (hasMockedRpc) {
+          return withRpcTimeout<any>(supabase.rpc(fnName, params));
+        }
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 3500);
+        try {
+          const action = fnName === 'resolve_external_agency_email' ? 'resolve' : 'verify';
+          const resp = await fetch('/api/external-agency-auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action,
+              identifier: params.p_identifier,
+              passwordDigest: params.p_password_digest,
+            }),
+            signal: ctrl.signal,
+          });
+          if (!resp.ok) {
+            return { data: null, error: new Error(`HTTP ${resp.status}`) };
+          }
+          const payload = await resp.json();
+          return {
+            data: Array.isArray(payload?.data) ? payload.data : [],
+            error: payload?.ok === false ? new Error(payload?.error || 'Auth gateway error') : null,
+          };
+        } catch (err) {
+          return { data: null, error: err };
+        } finally {
+          clearTimeout(timer);
+        }
+      };
+
+      let resolvedEmail = cleanId.includes('@') ? cleanId : '';
+      const emailRes = await invokeExternalAgencyAuthRpc('resolve_external_agency_email', {
+        p_identifier: cleanId,
+      });
+      if (emailRes && !emailRes.error && Array.isArray(emailRes.data) && emailRes.data.length > 0) {
+        const meta = emailRes.data[0] as { email?: string; status?: string };
+        if (meta.status && meta.status !== 'نشط') {
+          return {
+            valid: false,
+            reasonAr: 'رفض أمني: حساب الوكالة الخارجية مجمّد حالياً من قبل قسم المتابعة الخارجية.',
+          };
+        }
+        if (meta.email) {
+          resolvedEmail = meta.email.toLowerCase();
+        }
+      }
+
+      if (resolvedEmail) {
+        const digest = computeExternalAgencyPasswordDigest(resolvedEmail, plainPassword);
+        const loginRes = await invokeExternalAgencyAuthRpc('verify_external_agency_login', {
+          p_identifier: resolvedEmail,
+          p_password_digest: digest,
+        });
+        if (loginRes && !loginRes.error && Array.isArray(loginRes.data) && loginRes.data.length > 0) {
+          const row = loginRes.data[0] as any;
+          if (row.status !== 'نشط') {
+            return {
+              valid: false,
+              reasonAr: `رفض أمني: حساب الوكالة الخارجية (${row.agency_name_ar || row.agency_name}) مجمّد حالياً من قبل قسم المتابعة الخارجية.`,
+            };
+          }
+          const remoteAcc: ExternalAgencyAccount = {
+            id: String(row.id),
+            company_id: (row.company_id || 'SAF') as RecruitmentSubsidiaryCode,
+            agency_id: String(row.agency_id),
+            agency_name: String(row.agency_name || ''),
+            agency_name_ar: String(row.agency_name_ar || row.agency_name || ''),
+            country: String(row.country || 'أثيوبيا'),
+            username: String(row.username || ''),
+            email: String(row.email || resolvedEmail),
+            password_digest: digest,
+            contact_person: String(row.contact_person || ''),
+            phone: String(row.phone || ''),
+            whatsapp: String(row.whatsapp || row.phone || ''),
+            authorized_companies: Array.isArray(row.authorized_companies)
+              ? row.authorized_companies
+              : ['SAF'],
+            status: 'نشط',
+            last_login_at: new Date().toISOString(),
+            created_by: String(row.created_by || 'قسم المتابعة الخارجية'),
+            created_at: String(row.created_at || new Date().toISOString()),
+          };
+
+          const cached = getExternalAgencyAccountsSync().filter((a) => a.id !== remoteAcc.id);
+          saveExternalAgencyAccountsSync([remoteAcc, ...cached]);
+          return { valid: true, account: remoteAcc };
+        }
+        if (emailRes?.data && Array.isArray(emailRes.data) && emailRes.data.length > 0) {
+          return {
+            valid: false,
+            reasonAr: 'رفض أمني: كلمة مرور بوابة الوكيل الخارجي غير صحيحة.',
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('[External Agency Remote Auth] RPC fallback check error:', e);
+    }
+  }
+
+  return { valid: false };
 }
 
 // ─── SLA & Expected Arrival Evaluation ──────────────────────────────────────
@@ -1758,6 +2220,7 @@ export function sanitizeTransactionForExternalAgent(
     monthly_salary: tx.monthly_salary,
     agency_id: tx.agency_id,
     agency_canonical_name: tx.agency_canonical_name,
+    assigned_coordinator_email: tx.assigned_coordinator_email,
     stage: tx.stage,
     stage_timestamps: tx.stage_timestamps,
     contract_start_date: tx.contract_start_date,
@@ -1771,19 +2234,140 @@ export function sanitizeTransactionForExternalAgent(
     arrival_date: tx.arrival_date,
     arrival_destination: tx.arrival_destination,
     commission_usd: tx.commission_usd,
+    deduction_usd: tx.deduction_usd,
+    warranty_end_date: tx.warranty_end_date,
     cv_id: tx.cv_id,
+    attachments: tx.attachments || [],
+    messages_thread: tx.messages_thread || [],
     sla_assign_deadline: slaDeadline,
     updated_at: tx.updated_at,
   };
 }
 
+// ─── Agency Candidates DB Compatibility Mapper (snake_case <-> camelCase) ───
+
+export function normalizeAgencyCandidate(raw: any): NormalizedAgencyCandidate {
+  const commission = Number(raw?.commissionUsd ?? raw?.commission_usd ?? raw?.cost_usd ?? 1050) || 1050;
+  const deduction = Number(raw?.deductionUsd ?? raw?.deduction_usd ?? 0) || 0;
+  const rawMed = String(raw?.medicalStatus ?? raw?.medical_status ?? 'FIT').toUpperCase();
+  const medicalStatus: 'FIT' | 'PENDING' | 'UNFIT' = rawMed.includes('UNFIT')
+    ? 'UNFIT'
+    : rawMed.includes('PENDING') || rawMed.includes('قيد')
+    ? 'PENDING'
+    : 'FIT';
+  const rawVisa = String(raw?.visaStatus ?? raw?.visa_status ?? 'READY').toUpperCase();
+  const visaStatus: 'ISSUED' | 'APPLIED' | 'READY' = rawVisa.includes('ISSUED')
+    ? 'ISSUED'
+    : rawVisa.includes('APPLIED')
+    ? 'APPLIED'
+    : 'READY';
+  const rawTicket = String(raw?.ticketStatus ?? raw?.ticket_status ?? 'PENDING').toUpperCase();
+  const ticketStatus: 'BOOKED' | 'PENDING' = rawTicket.includes('BOOKED') ? 'BOOKED' : 'PENDING';
+  const rawPay = String(raw?.paymentStatus ?? raw?.payment_status ?? 'UNPAID').toUpperCase();
+  const paymentStatus: 'PAID' | 'UNPAID' = rawPay === 'PAID' || rawPay === 'مسددة' ? 'PAID' : 'UNPAID';
+
+  return {
+    id: String(raw?.id || `cand-${Date.now()}`),
+    company_id: raw?.company_id || 'SAF',
+    agency_id: raw?.agency_id,
+    maidName: String(raw?.maidName ?? raw?.maid_name ?? raw?.full_name ?? 'مرشحة'),
+    passportNumber: String(raw?.passportNumber ?? raw?.passport_number ?? ''),
+    nationality: String(raw?.nationality ?? 'أثيوبيا'),
+    age: Number(raw?.age ?? 26) || 26,
+    profession: String(raw?.profession ?? 'عاملة منزلية'),
+    medicalStatus,
+    visaStatus,
+    ticketStatus,
+    commissionUsd: commission,
+    deductionUsd: deduction,
+    deductionReason: raw?.deductionReason ?? raw?.deduction_reason,
+    paymentStatus,
+    uploadedAt: String(raw?.uploadedAt ?? raw?.uploaded_at ?? raw?.created_at ?? '').slice(0, 10) || new Date().toISOString().slice(0, 10),
+    agencyName: raw?.agencyName ?? raw?.agency_name,
+    musanedContractNo: raw?.musanedContractNo ?? raw?.musaned_contract_no,
+  };
+}
+
+export function toAgencyCandidateStorageRecord(cand: Partial<NormalizedAgencyCandidate> & { id: string; company_id?: string }): { id: string; [key: string]: any } {
+  const maidName = cand.maidName || 'مرشحة';
+  const passportNumber = cand.passportNumber || '';
+  const commissionUsd = Number(cand.commissionUsd ?? 1050) || 1050;
+  const deductionUsd = Number(cand.deductionUsd ?? 0) || 0;
+  const paymentStatus = cand.paymentStatus || 'UNPAID';
+  const uploadedAt = cand.uploadedAt || new Date().toISOString().slice(0, 10);
+
+  return {
+    id: cand.id,
+    company_id: cand.company_id || 'SAF',
+    agency_id: cand.agency_id,
+    // UI camelCase
+    maidName,
+    passportNumber,
+    nationality: cand.nationality || 'أثيوبيا',
+    age: cand.age ?? 26,
+    profession: cand.profession || 'عاملة منزلية',
+    medicalStatus: cand.medicalStatus || 'FIT',
+    visaStatus: cand.visaStatus || 'READY',
+    ticketStatus: cand.ticketStatus || 'PENDING',
+    commissionUsd,
+    deductionUsd,
+    deductionReason: cand.deductionReason || '',
+    paymentStatus,
+    uploadedAt,
+    agencyName: cand.agencyName || '',
+    musanedContractNo: cand.musanedContractNo || '',
+    // PostgreSQL snake_case mirror columns
+    full_name: maidName,
+    maid_name: maidName,
+    passport_number: passportNumber,
+    medical_status: cand.medicalStatus || 'FIT',
+    visa_status: cand.visaStatus || 'READY',
+    ticket_status: cand.ticketStatus || 'PENDING',
+    cost_usd: commissionUsd,
+    commission_usd: commissionUsd,
+    deduction_usd: deductionUsd,
+    deduction_reason: cand.deductionReason || '',
+    payment_status: paymentStatus,
+    uploaded_at: uploadedAt,
+    agency_name: cand.agencyName || '',
+    musaned_contract_no: cand.musanedContractNo || '',
+  };
+}
+
 // ─── Structured Pipeline CRUD & Cross-Department Reflection ─────────────────
 
-export async function getMusanedTransactions(): Promise<MusanedFollowupTransaction[]> {
-  return realErpDataStore.getRecords<MusanedFollowupTransaction>(
+export async function getMusanedTransactions(includeDeleted = false): Promise<MusanedFollowupTransaction[]> {
+  const list = await realErpDataStore.getRecords<MusanedFollowupTransaction>(
     'musaned_followup_transactions',
-    INITIAL_MUSANED_FOLLOWUP_TRANSACTIONS
+    INITIAL_MUSANED_FOLLOWUP_TRANSACTIONS,
+    'all'
   );
+  return includeDeleted ? list : list.filter((t) => !t.is_deleted);
+}
+
+function mapFollowupStageToRecruitmentContractStage(stage: TransactionStage): string {
+  switch (stage) {
+    case 'UNASSIGNED':
+      return 'عقود جديدة';
+    case 'ASSIGNED':
+    case 'DELEGATED':
+      return 'تفويض السفارة';
+    case 'MEDICAL_FIT':
+    case 'VISA_STAMPED':
+      return 'التفييز';
+    case 'TICKET_BOOKED':
+      return 'حجز التذكرة';
+    case 'ARRIVED':
+      return 'تم الوصول';
+    case 'BACKOUT':
+    case 'RUNAWAY':
+    case 'CANCELLED':
+      return 'ملغي / استرداد';
+    case 'REPLACED':
+      return 'استبدال';
+    default:
+      return 'عقود جديدة';
+  }
 }
 
 export async function updateMusanedTransactionStage(params: {
@@ -1800,7 +2384,7 @@ export async function updateMusanedTransactionStage(params: {
   replacementForContractNo?: string;
   notes?: string;
 }): Promise<MusanedFollowupTransaction | null> {
-  const all = await getMusanedTransactions();
+  const all = await getMusanedTransactions(true);
   const target = all.find((t) => t.id === params.transactionId);
   if (!target) return null;
 
@@ -1844,12 +2428,18 @@ export async function updateMusanedTransactionStage(params: {
     }
     if (params.arrivalDestination) patch.arrival_destination = params.arrivalDestination;
   } else if (params.nextStage === 'ARRIVED') {
-    patch.arrival_date = params.arrivalDate || todayIso;
+    const actualArr = params.arrivalDate || todayIso;
+    patch.arrival_date = actualArr;
+    patch.warranty_end_date = addDaysToIso(actualArr, 90);
     patch.is_archive = false;
   } else if (params.nextStage === 'BACKOUT') {
     patch.backout_date = todayIso;
+    const baseComm = target.commission_usd || agency?.default_commission_usd || 1050;
+    patch.deduction_usd = target.deduction_usd ?? Math.round(baseComm * 0.25);
   } else if (params.nextStage === 'RUNAWAY') {
     patch.runaway_date = todayIso;
+    const baseComm = target.commission_usd || agency?.default_commission_usd || 1050;
+    patch.deduction_usd = target.deduction_usd ?? Math.round(baseComm * 0.5);
   }
 
   await realErpDataStore.updateRecord<MusanedFollowupTransaction>(
@@ -1883,18 +2473,20 @@ export async function updateMusanedTransactionStage(params: {
     });
   }
 
-  // 2. Cross-Department Sync -> Agency Commission Accrual (`agency_candidates`) upon Visa Stamped / Arrived
+  // 2. Cross-Department Sync -> Agency Commission Accrual & Backout/Runaway Clawbacks (`agency_candidates`)
   if (
     (params.nextStage === 'VISA_STAMPED' || params.nextStage === 'ARRIVED') &&
     mergedRecord.maid_name &&
     mergedRecord.passport_number
   ) {
-    const existingCandidates = await realErpDataStore.getRecords<any>('agency_candidates', []);
+    const existingCandidates = await realErpDataStore.getRecords<any>('agency_candidates', [], 'all');
     const existingCand = existingCandidates.find(
-      (c) => String(c.passportNumber || '').toUpperCase() === mergedRecord.passport_number.toUpperCase()
+      (c) =>
+        String(c.passportNumber || c.passport_number || '').toUpperCase() ===
+        mergedRecord.passport_number.toUpperCase()
     );
     if (!existingCand) {
-      await realErpDataStore.addRecord('agency_candidates', {
+      const candRecord = toAgencyCandidateStorageRecord({
         id: `AGY-CAND-${mergedRecord.musaned_contract_no}`,
         company_id: mergedRecord.company_id,
         agency_id: mergedRecord.agency_id,
@@ -1907,14 +2499,90 @@ export async function updateMusanedTransactionStage(params: {
         visaStatus: 'ISSUED',
         ticketStatus: params.nextStage === 'ARRIVED' ? 'BOOKED' : 'PENDING',
         commissionUsd: mergedRecord.commission_usd || agency?.default_commission_usd || 1050,
+        deductionUsd: 0,
         paymentStatus: 'UNPAID',
         uploadedAt: todayIso,
         agencyName: mergedRecord.agency_canonical_name,
+        musanedContractNo: mergedRecord.musaned_contract_no,
       });
+      await realErpDataStore.addRecord<any>('agency_candidates', candRecord);
+    } else if (params.nextStage === 'ARRIVED') {
+      await realErpDataStore.updateRecord<any>('agency_candidates', existingCand.id, {
+        ticketStatus: 'BOOKED',
+        ticket_status: 'BOOKED',
+      });
+    }
+  } else if (params.nextStage === 'BACKOUT' || params.nextStage === 'RUNAWAY') {
+    const deductionAmt = mergedRecord.deduction_usd || 0;
+    const reasonText =
+      params.nextStage === 'RUNAWAY'
+        ? `خصم تغيب / هروب خلال فترة ضمان الـ 90 يوماً (عقد #${mergedRecord.musaned_contract_no})`
+        : `خصم اعتذار / Backout بعد التعيين (عقد #${mergedRecord.musaned_contract_no})`;
+    const existingCandidates = await realErpDataStore.getRecords<any>('agency_candidates', [], 'all');
+    const existingCand = existingCandidates.find(
+      (c) =>
+        (mergedRecord.passport_number &&
+          String(c.passportNumber || c.passport_number || '').toUpperCase() ===
+            mergedRecord.passport_number.toUpperCase()) ||
+        String(c.musanedContractNo || c.musaned_contract_no || '') === mergedRecord.musaned_contract_no
+    );
+    if (existingCand) {
+      await realErpDataStore.updateRecord<any>('agency_candidates', existingCand.id, {
+        deductionUsd: deductionAmt,
+        deduction_usd: deductionAmt,
+        deductionReason: reasonText,
+        deduction_reason: reasonText,
+      });
+    } else if (mergedRecord.agency_id) {
+      await realErpDataStore.addRecord<any>(
+        'agency_candidates',
+        toAgencyCandidateStorageRecord({
+          id: `AGY-DED-${mergedRecord.musaned_contract_no}`,
+          company_id: mergedRecord.company_id,
+          agency_id: mergedRecord.agency_id,
+          maidName: mergedRecord.maid_name || `عقد #${mergedRecord.musaned_contract_no}`,
+          passportNumber: mergedRecord.passport_number || '—',
+          nationality: mergedRecord.nationality,
+          profession: mergedRecord.profession,
+          medicalStatus: 'UNFIT',
+          visaStatus: 'READY',
+          ticketStatus: 'PENDING',
+          commissionUsd: 0,
+          deductionUsd: deductionAmt,
+          deductionReason: reasonText,
+          paymentStatus: 'UNPAID',
+          uploadedAt: todayIso,
+          agencyName: mergedRecord.agency_canonical_name,
+          musanedContractNo: mergedRecord.musaned_contract_no,
+        })
+      );
     }
   }
 
-  // 3. Cross-Department Activity Log for Sales Creator & Follow-up Audit Trail
+  // 3. Cross-Department Reflection -> Recruitment Contracts (`contracts`) & Ingaz
+  try {
+    const existingContracts = await realErpDataStore.getRecords<any>('contracts', [], 'all');
+    const matchedContract = existingContracts.find(
+      (c) =>
+        String(c.musaned_number || c.musaned_contract_no || '') === mergedRecord.musaned_contract_no ||
+        (mergedRecord.internal_contract_no &&
+          String(c.contract_number || '') === mergedRecord.internal_contract_no)
+    );
+    if (matchedContract) {
+      await realErpDataStore.updateRecord<any>('contracts', matchedContract.id, {
+        stage: mapFollowupStageToRecruitmentContractStage(params.nextStage),
+        maid_name: mergedRecord.maid_name || matchedContract.maid_name,
+        maid_passport: mergedRecord.passport_number || matchedContract.maid_passport,
+        warranty_status: mergedRecord.warranty_end_date
+          ? `نشط حتى ${mergedRecord.warranty_end_date}`
+          : matchedContract.warranty_status,
+      });
+    }
+  } catch {
+    // non-fatal cross sync
+  }
+
+  // 4. Cross-Department Activity Log for Sales Creator & Follow-up Audit Trail
   await realErpDataStore.addRecord('activity_log', {
     id: `ACT-MSN-${Date.now().toString().slice(-6)}`,
     company_id: mergedRecord.company_id,
@@ -1930,6 +2598,454 @@ export async function updateMusanedTransactionStage(params: {
   });
 
   return mergedRecord;
+}
+
+/**
+ * Syncs newly created recruitment contracts from Sales / Orders / CV Bank
+ * directly into the Follow-up Center pipeline (`musaned_followup_transactions`).
+ */
+export async function syncContractToMusanedFollowup(input: {
+  musanedContractNo: string;
+  internalContractNo?: string;
+  companyId: string;
+  clientName: string;
+  clientNationalId?: string;
+  clientPhone?: string;
+  clientCity?: string;
+  visaNumber?: string;
+  visaExpiryDate?: string;
+  maidName?: string;
+  passportNumber?: string;
+  nationality?: string;
+  profession?: string;
+  monthlySalary?: number;
+  externalOfficeName?: string;
+  agencyId?: string;
+  salesCreatorName?: string;
+  paidAmountSar?: number;
+  branchName?: string;
+  stage?: TransactionStage;
+}): Promise<MusanedFollowupTransaction> {
+  const cleanContractNo = String(input.musanedContractNo || input.internalContractNo || `MSN-${Date.now().toString().slice(-6)}`).trim();
+  const compCode = (['SAF', 'TOP', 'YAQ', 'DAR'].includes(String(input.companyId || '').toUpperCase())
+    ? String(input.companyId).toUpperCase()
+    : 'SAF') as RecruitmentSubsidiaryCode;
+
+  const agencies = getUnifiedAgenciesSync();
+  const matchedAgency = input.agencyId
+    ? agencies.find((a) => a.id === input.agencyId) || null
+    : input.externalOfficeName
+    ? resolveCanonicalAgency(input.externalOfficeName, agencies)
+    : null;
+
+  const coord = resolveCoordinatorForAgencyOrTx({
+    agencyId: matchedAgency?.id,
+    nationality: input.nationality,
+  });
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const existing = await getMusanedTransactions(true);
+  const dup = existing.find(
+    (t) => t.musaned_contract_no === cleanContractNo && t.company_id === compCode
+  );
+
+  if (dup) {
+    const patch: Partial<MusanedFollowupTransaction> = {
+      is_deleted: false,
+      maid_name: input.maidName || dup.maid_name,
+      passport_number: input.passportNumber || dup.passport_number,
+      agency_id: matchedAgency?.id || dup.agency_id,
+      agency_canonical_name: matchedAgency?.name_ar || dup.agency_canonical_name,
+      updated_at: todayIso,
+    };
+    await realErpDataStore.updateRecord<MusanedFollowupTransaction>(
+      'musaned_followup_transactions',
+      dup.id,
+      patch,
+      INITIAL_MUSANED_FOLLOWUP_TRANSACTIONS
+    );
+    return { ...dup, ...patch };
+  }
+
+  const inferredStage: TransactionStage =
+    input.stage || (input.maidName || input.passportNumber ? 'ASSIGNED' : 'UNASSIGNED');
+  const newTx: MusanedFollowupTransaction = {
+    id: `MTX-${compCode}-${cleanContractNo}`,
+    company_id: compCode,
+    musaned_contract_no: cleanContractNo,
+    internal_contract_no: input.internalContractNo,
+    source_sheet: 'عقود المبيعات التلقائية',
+    is_archive: false,
+    client_name: input.clientName || 'عميل استقدام',
+    client_national_id: input.clientNationalId || '',
+    client_phone: input.clientPhone || '',
+    client_city: input.clientCity || 'الرياض',
+    visa_number: input.visaNumber || '',
+    visa_issue_date: todayIso,
+    visa_expiry_date: input.visaExpiryDate || addDaysToIso(todayIso, 90),
+    worker_type: input.maidName ? 'معين' : 'غير معين',
+    maid_name: input.maidName || '',
+    passport_number: (input.passportNumber || '').toUpperCase(),
+    nationality: input.nationality || 'أثيوبيا',
+    profession: input.profession || 'عاملة منزلية',
+    monthly_salary: Number(input.monthlySalary) || 1000,
+    agency_id: matchedAgency?.id,
+    agency_raw_name: input.externalOfficeName || '',
+    agency_canonical_name: matchedAgency?.name_ar || input.externalOfficeName || 'غير محدد (بانتظار إسناد وكيل)',
+    assigned_coordinator_email: coord.email,
+    sales_creator_name: input.salesCreatorName || 'قسم المبيعات',
+    branch_raw_name: input.branchName || SUBSIDIARY_DISPLAY_NAMES[compCode],
+    stage: inferredStage,
+    stage_timestamps: { [inferredStage]: todayIso },
+    contract_start_date: todayIso,
+    expected_arrival_date: addDaysToIso(todayIso, matchedAgency?.avg_days_to_arrival || 36),
+    arrival_destination: input.clientCity || 'الرياض',
+    paid_amount_sar: Number(input.paidAmountSar) || 0,
+    commission_usd: matchedAgency?.default_commission_usd || 1050,
+    attachments: [],
+    messages_thread: [],
+    is_deleted: false,
+    updated_at: todayIso,
+  };
+
+  await realErpDataStore.addRecord(
+    'musaned_followup_transactions',
+    newTx,
+    INITIAL_MUSANED_FOLLOWUP_TRANSACTIONS
+  );
+  return newTx;
+}
+
+export async function syncIngazDelegationToFollowup(input: {
+  visaNumber?: string;
+  clientName?: string;
+  externalOfficeName?: string;
+  status: string;
+  actorName?: string;
+}): Promise<MusanedFollowupTransaction | null> {
+  const all = await getMusanedTransactions();
+  const match = all.find(
+    (t) =>
+      !t.is_archive &&
+      ((input.visaNumber && t.visa_number === input.visaNumber) ||
+        (input.clientName && t.client_name === input.clientName))
+  );
+  if (!match) return null;
+  const isVerified = /توثيق|مختوم|معتمد|موثق/i.test(input.status);
+  const nextStage: TransactionStage =
+    isVerified && ['UNASSIGNED', 'ASSIGNED'].includes(match.stage)
+      ? 'DELEGATED'
+      : match.stage === 'UNASSIGNED'
+      ? 'DELEGATED'
+      : match.stage;
+  if (nextStage === match.stage) return match;
+  return updateMusanedTransactionStage({
+    transactionId: match.id,
+    nextStage,
+    actorName: input.actorName || 'بوابة تفاويض إنجاز',
+  });
+}
+
+export async function updateMusanedTransaction(
+  transactionId: string,
+  patch: Partial<MusanedFollowupTransaction>
+): Promise<MusanedFollowupTransaction | null> {
+  const all = await getMusanedTransactions(true);
+  const target = all.find((t) => t.id === transactionId);
+  if (!target) return null;
+  const fullPatch: Partial<MusanedFollowupTransaction> = {
+    ...patch,
+    updated_at: new Date().toISOString().slice(0, 10),
+  };
+  await realErpDataStore.updateRecord<MusanedFollowupTransaction>(
+    'musaned_followup_transactions',
+    transactionId,
+    fullPatch,
+    INITIAL_MUSANED_FOLLOWUP_TRANSACTIONS
+  );
+  return { ...target, ...fullPatch };
+}
+
+export async function softDeleteMusanedTransaction(
+  transactionId: string,
+  actorName: string
+): Promise<MusanedFollowupTransaction | null> {
+  return updateMusanedTransaction(transactionId, {
+    is_deleted: true,
+    deleted_at: new Date().toISOString(),
+    deleted_by: actorName,
+  });
+}
+
+export async function restoreMusanedTransaction(
+  transactionId: string
+): Promise<MusanedFollowupTransaction | null> {
+  return updateMusanedTransaction(transactionId, {
+    is_deleted: false,
+    deleted_at: undefined,
+    deleted_by: undefined,
+  });
+}
+
+export async function permanentlyDeleteMusanedTransaction(transactionId: string): Promise<void> {
+  await realErpDataStore.deleteRecord<MusanedFollowupTransaction>(
+    'musaned_followup_transactions',
+    transactionId,
+    INITIAL_MUSANED_FOLLOWUP_TRANSACTIONS
+  );
+}
+
+export async function reassignTransactionsCoordinator(
+  transactionIds: string[],
+  coordinatorEmail: FollowupCoordinatorEmail
+): Promise<number> {
+  let count = 0;
+  for (const id of transactionIds) {
+    const res = await updateMusanedTransaction(id, {
+      assigned_coordinator_email: coordinatorEmail,
+    });
+    if (res) count++;
+  }
+  return count;
+}
+
+export async function bulkUpdateTransactionsStage(
+  idsOrParams:
+    | string[]
+    | { transactionIds: string[]; nextStage: TransactionStage; actorName: string },
+  nextStageArg?: TransactionStage,
+  actorNameArg?: string
+): Promise<number> {
+  const transactionIds = Array.isArray(idsOrParams) ? idsOrParams : idsOrParams.transactionIds;
+  const nextStage = Array.isArray(idsOrParams) ? nextStageArg! : idsOrParams.nextStage;
+  const actorName = Array.isArray(idsOrParams)
+    ? actorNameArg || 'قسم المتابعة الخارجية'
+    : idsOrParams.actorName;
+  let updated = 0;
+  for (const id of transactionIds) {
+    const res = await updateMusanedTransactionStage({
+      transactionId: id,
+      nextStage,
+      actorName,
+    });
+    if (res) updated++;
+  }
+  return updated;
+}
+
+export interface AgencyReminderDigestItem {
+  agency: UnifiedExternalAgency;
+  subject: string;
+  bodyText: string;
+}
+
+export function buildBulkAgencyReminderDigest(
+  agency: UnifiedExternalAgency,
+  transactions: Array<Partial<MusanedFollowupTransaction>>
+): { subject: string; bodyText: string };
+export function buildBulkAgencyReminderDigest(
+  transactions: MusanedFollowupTransaction[],
+  agencies: UnifiedExternalAgency[]
+): AgencyReminderDigestItem[];
+export function buildBulkAgencyReminderDigest(
+  first: UnifiedExternalAgency | MusanedFollowupTransaction[],
+  second: Array<Partial<MusanedFollowupTransaction>> | UnifiedExternalAgency[]
+): { subject: string; bodyText: string } | AgencyReminderDigestItem[] {
+  if (Array.isArray(first)) {
+    const txs = first;
+    const agencies = second as UnifiedExternalAgency[];
+    const grouped = new Map<string, { agency: UnifiedExternalAgency; items: MusanedFollowupTransaction[] }>();
+    for (const tx of txs) {
+      const ag =
+        agencies.find((a) => a.id === tx.agency_id) ||
+        resolveCanonicalAgency(tx.agency_canonical_name || tx.agency_raw_name, agencies) ||
+        agencies[0];
+      if (!ag) continue;
+      const entry = grouped.get(ag.id) || { agency: ag, items: [] };
+      entry.items.push(tx);
+      grouped.set(ag.id, entry);
+    }
+    return Array.from(grouped.values()).map(({ agency, items }) => {
+      const single = buildBulkAgencyReminderDigest(agency, items);
+      return { agency, subject: single.subject, bodyText: single.bodyText };
+    });
+  }
+
+  const agency = first;
+  const transactions = second as MusanedFollowupTransaction[];
+  const lines = transactions.map((tx, idx) => {
+    const sla = evaluateTransactionSla(tx);
+    const alertTag = sla.alertsAr[0] || getStageLabelAr(tx.stage);
+    return `${idx + 1}. Contract #${tx.musaned_contract_no} (${tx.company_id}) | Visa: ${
+      tx.visa_number || '—'
+    } | Worker: ${tx.maid_name || 'UNASSIGNED'} | ${alertTag}`;
+  });
+
+  const subject = `تذكير متابعة جماعي (${transactions.length} معاملات) — ${agency.name_ar}`;
+  const bodyText = [
+    `Dear Partner (${agency.name_en} / ${agency.name_ar}),`,
+    `تحية طيبة من قسم المتابعة الخارجية — مجموعة خالد السليم. يرجى التكرم بسرعة تحديث ومعالجة العقود التالية عبر بوابة الوكلاء:`,
+    ...lines,
+    `رابط البوابة: https://agents.kas-erp.com`,
+  ].join('\n');
+
+  return { subject, bodyText };
+}
+
+export async function addTransactionAttachment(
+  transactionId: string,
+  attachment: Omit<TransactionAttachment, 'id'> & { id?: string }
+): Promise<MusanedFollowupTransaction | null> {
+  const all = await getMusanedTransactions(true);
+  const target = all.find((t) => t.id === transactionId);
+  if (!target) return null;
+  const normalized: TransactionAttachment = {
+    ...attachment,
+    id: attachment.id || `ATT-${Date.now()}`,
+    name: attachment.name || attachment.fileName || attachment.title || 'attachment',
+    fileName: attachment.fileName || attachment.name || attachment.title || 'attachment',
+    title: attachment.title || attachment.name || attachment.fileName || 'مرفق معاملة',
+    sizeBytes: attachment.sizeBytes ?? 0,
+    uploadedAt: attachment.uploadedAt || new Date().toISOString(),
+  };
+  const nextAttachments = [normalized, ...(target.attachments || [])];
+  return updateMusanedTransaction(transactionId, { attachments: nextAttachments });
+}
+
+export async function removeTransactionAttachment(
+  transactionId: string,
+  attachmentId: string
+): Promise<MusanedFollowupTransaction | null> {
+  const all = await getMusanedTransactions(true);
+  const target = all.find((t) => t.id === transactionId);
+  if (!target) return null;
+  const nextAttachments = (target.attachments || []).filter((a) => a.id !== attachmentId);
+  return updateMusanedTransaction(transactionId, { attachments: nextAttachments });
+}
+
+export async function addTransactionThreadMessage(
+  transactionId: string,
+  message: Omit<TransactionThreadMessage, 'id' | 'createdAt' | 'sentAt'> & {
+    createdAt?: string;
+    sentAt?: string;
+  }
+): Promise<MusanedFollowupTransaction | null> {
+  const all = await getMusanedTransactions(true);
+  const target = all.find((t) => t.id === transactionId);
+  if (!target) return null;
+  const ts = new Date().toISOString().replace('T', ' ').slice(0, 16);
+  const fullMsg: TransactionThreadMessage = {
+    ...message,
+    id: `MSG-TX-${Date.now()}`,
+    createdAt: message.createdAt || ts,
+    sentAt: message.sentAt || ts,
+  };
+  const nextThread = [...(target.messages_thread || []), fullMsg];
+  return updateMusanedTransaction(transactionId, { messages_thread: nextThread });
+}
+
+export function computeDynamicAgencyScorecards(
+  first: UnifiedExternalAgency[] | MusanedFollowupTransaction[],
+  second: MusanedFollowupTransaction[] | UnifiedExternalAgency[]
+): DynamicAgencyScorecard[] {
+  const firstIsAgency =
+    first.length > 0 && 'canonical_code' in (first[0] as unknown as Record<string, unknown>);
+  const secondIsAgency =
+    second.length > 0 && 'canonical_code' in (second[0] as unknown as Record<string, unknown>);
+  const agencies = (
+    firstIsAgency ? first : secondIsAgency ? second : first
+  ) as UnifiedExternalAgency[];
+  const transactions = (
+    firstIsAgency ? second : secondIsAgency ? first : second
+  ) as MusanedFollowupTransaction[];
+  const activeOnly = transactions.filter((t) => !t.is_deleted);
+  return agencies.map((ag) => {
+    const agTxs = activeOnly.filter(
+      (t) =>
+        t.agency_id === ag.id ||
+        normalizeLookupToken(t.agency_canonical_name) === normalizeLookupToken(ag.name_ar)
+    );
+    const liveArrived = agTxs.filter((t) => t.stage === 'ARRIVED').length;
+    const liveBackout = agTxs.filter((t) => t.stage === 'BACKOUT').length;
+    const liveRunaway = agTxs.filter((t) => t.stage === 'RUNAWAY').length;
+    const liveCancelled = agTxs.filter((t) => t.stage === 'CANCELLED').length;
+    const activeCount = agTxs.filter(
+      (t) => !t.is_archive && !['ARRIVED', 'BACKOUT', 'RUNAWAY', 'CANCELLED'].includes(t.stage)
+    ).length;
+
+    const totalContracts = ag.historical_total_contracts + agTxs.length;
+    const arrivedCount = ag.historical_arrived_count + liveArrived;
+    const backoutCount = ag.historical_backout_count + liveBackout;
+    const runawayCount = ag.historical_runaway_count + liveRunaway;
+    const cancelledCount = ag.historical_cancelled_count + liveCancelled;
+
+    const denom = Math.max(1, totalContracts);
+    const backoutPct = Number(((backoutCount / denom) * 100).toFixed(1));
+    const runawayPct = Number(((runawayCount / denom) * 100).toFixed(1));
+
+    const openNonArchive = agTxs.filter((t) => !t.is_archive);
+    const slaViolations = openNonArchive.filter((t) => evaluateTransactionSla(t).alertsAr.length > 0).length;
+    const slaCompliancePct =
+      openNonArchive.length > 0
+        ? Math.max(0, Math.round(((openNonArchive.length - slaViolations) / openNonArchive.length) * 100))
+        : 100;
+
+    // Live assign days & arrival days blended with agency historical benchmark
+    const assignDurations = agTxs
+      .filter((t) => t.contract_start_date && t.stage_timestamps?.ASSIGNED)
+      .map((t) => Math.max(1, diffDaysBetweenIso(t.contract_start_date, t.stage_timestamps.ASSIGNED!)));
+    const avgDaysToAssign =
+      assignDurations.length > 0
+        ? Number(
+            (
+              (ag.avg_days_to_assign * 3 +
+                assignDurations.reduce((s, d) => s + d, 0) / assignDurations.length) /
+              4
+            ).toFixed(1)
+          )
+        : ag.avg_days_to_assign;
+
+    const arrivalDurations = agTxs
+      .filter((t) => t.delegation_date && t.arrival_date)
+      .map((t) => Math.max(5, diffDaysBetweenIso(t.delegation_date!, t.arrival_date!)));
+    const avgDaysToArrival =
+      arrivalDurations.length > 0
+        ? Number(
+            (
+              (ag.avg_days_to_arrival * 3 +
+                arrivalDurations.reduce((s, d) => s + d, 0) / arrivalDurations.length) /
+              4
+            ).toFixed(1)
+          )
+        : ag.avg_days_to_arrival;
+
+    const penalty = backoutPct * 0.7 + runawayPct * 1.4 + (100 - slaCompliancePct) * 0.08;
+    const dynamicScore = Number(Math.max(40, Math.min(99.5, 100 - penalty)).toFixed(1));
+
+    return {
+      agency: ag,
+      totalContracts,
+      totalHandledCount: totalContracts,
+      activeCount,
+      activeContractsCount: activeCount,
+      overdueCount: slaViolations,
+      arrivedCount,
+      backoutCount,
+      runawayCount,
+      cancelledCount,
+      backoutPct,
+      backoutRatePct: backoutPct,
+      runawayPct,
+      runawayRatePct: runawayPct,
+      slaCompliancePct,
+      avgDaysToAssign,
+      avgAssignDays: avgDaysToAssign,
+      avgDaysToArrival,
+      avgArrivalDays: avgDaysToArrival,
+      dynamicScore,
+      computedScore: dynamicScore,
+    };
+  });
 }
 
 // ─── 5-Sheet Musaned Excel Importer & Upsert Engine ─────────────────────────
@@ -2178,8 +3294,8 @@ export async function importMusanedFollowupWorkbook(
       combinedUnknownAgents.set(raw, (combinedUnknownAgents.get(raw) || 0) + cnt);
     });
 
-    // Keep operational active sheet in full + cap massive historical archive stored in localStorage to latest 600 rows so browser storage never overflows
-    const rowsToPersist = isArchive ? parsed.parsedTransactions.slice(0, 250) : parsed.parsedTransactions;
+    // Persist all rows including full archive; only fallback-trim archive if browser quota overflows
+    const rowsToPersist = parsed.parsedTransactions;
 
     for (const tx of parsed.parsedTransactions) {
       if (tx.passport_number) {
@@ -2200,6 +3316,8 @@ export async function importMusanedFollowupWorkbook(
           airline: tx.airline || prev.airline,
           cv_id: tx.cv_id || prev.cv_id,
           notes: prev.notes || tx.notes,
+          attachments: prev.attachments || tx.attachments,
+          messages_thread: prev.messages_thread || tx.messages_thread,
           stage_timestamps: {
             ...prev.stage_timestamps,
             ...tx.stage_timestamps,
@@ -2216,7 +3334,16 @@ export async function importMusanedFollowupWorkbook(
   }
 
   const finalList = Array.from(existingByKey.values());
-  await realErpDataStore.importRealRecordsBatch('musaned_followup_transactions', finalList);
+  try {
+    await realErpDataStore.importRealRecordsBatch('musaned_followup_transactions', finalList);
+  } catch {
+    const activeOnly = finalList.filter((t) => !t.is_archive);
+    const trimmedArchive = finalList.filter((t) => t.is_archive).slice(0, 1200);
+    await realErpDataStore.importRealRecordsBatch('musaned_followup_transactions', [
+      ...activeOnly,
+      ...trimmedArchive,
+    ]);
+  }
 
   const duplicatePassportsDetected = Array.from(passportCounter.entries())
     .filter(([, count]) => count > 1)
@@ -2314,6 +3441,33 @@ export interface MultiChannelDispatchParams {
   templateName: string;
   companyId?: string;
   openExternalClient?: boolean;
+  senderName?: string;
+  senderEmail?: string;
+  ccEmails?: string[];
+  htmlBody?: string;
+}
+
+function escapeEmailHtml(val: string): string {
+  return String(val || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function buildMonochromeFollowupEmailHtml(subject: string, bodyText: string, senderName?: string): string {
+  const safeSubject = escapeEmailHtml(subject);
+  const safeBody = escapeEmailHtml(bodyText).replace(/\n/g, '<br/>');
+  const safeSender = escapeEmailHtml(senderName || 'قسم المتابعة الخارجية — مجموعة خالد السليم');
+  return [
+    '<div dir="rtl" style="font-family:Arial,Tahoma,sans-serif;background:#ffffff;color:#141414;padding:24px;border:1px solid #e0e0e0;border-radius:16px;max-width:680px;margin:0 auto;">',
+    '<div style="background:#141414;color:#ffffff;padding:16px 20px;border-radius:12px;margin-bottom:16px;">',
+    `<div style="font-size:11px;color:#adadad;">KHALID AL-SULAIM GROUP • EXTERNAL AGENCIES FOLLOW-UP</div>`,
+    `<h2 style="margin:6px 0 0 0;font-size:16px;color:#ffffff;">${safeSubject}</h2>`,
+    '</div>',
+    `<div style="background:#f3f3f3;border:1px solid #e0e0e0;border-radius:12px;padding:16px;font-size:13px;line-height:1.7;color:#141414;">${safeBody}</div>`,
+    `<div style="margin-top:16px;padding-top:12px;border-top:1px solid #e0e0e0;font-size:11px;color:#707070;">${safeSender}</div>`,
+    '</div>',
+  ].join('');
 }
 
 export async function dispatchViaEmailAndWhatsApp(
@@ -2322,6 +3476,7 @@ export async function dispatchViaEmailAndWhatsApp(
   whatsappUrl?: string;
   mailtoUrl?: string;
   loggedIds: string[];
+  emailDeliveredDirectly?: boolean;
 }> {
   const nowFormatted = new Date().toISOString().replace('T', ' ').slice(0, 16);
   const loggedIds: string[] = [];
@@ -2332,6 +3487,7 @@ export async function dispatchViaEmailAndWhatsApp(
 
   let whatsappUrl: string | undefined;
   let mailtoUrl: string | undefined;
+  let emailDeliveredDirectly = false;
 
   if (params.channel === 'whatsapp' || params.channel === 'both') {
     const waId = `MSG-WA-${Date.now()}-${Math.floor(100 + Math.random() * 899)}`;
@@ -2346,6 +3502,8 @@ export async function dispatchViaEmailAndWhatsApp(
       subject: params.subject,
       content: params.bodyText,
       status: 'تم التسليم',
+      delivery_mode: params.openExternalClient ? 'WHATSAPP_WEB' : 'LOGGED_DISPATCH',
+      sender_email: params.senderEmail || 'followup@kas.sa',
       cost_sar: 0.15,
       sent_at: nowFormatted,
     });
@@ -2360,31 +3518,69 @@ export async function dispatchViaEmailAndWhatsApp(
   }
 
   if (params.channel === 'email' || params.channel === 'both') {
+    const cleanRecipientEmail = String(params.recipientEmail || '').trim();
+    if (cleanRecipientEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanRecipientEmail) && typeof fetch === 'function') {
+      try {
+        const res = await fetch('/api/hr-email-send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subject: params.subject,
+            toEmails: [cleanRecipientEmail],
+            ccEmails: params.ccEmails || [],
+            htmlBody:
+              params.htmlBody ||
+              buildMonochromeFollowupEmailHtml(params.subject, params.bodyText, params.senderName),
+            plainTextBody: params.bodyText,
+            senderName: params.senderName || 'قسم المتابعة الخارجية — مجموعة خالد السليم',
+            senderEmail: params.senderEmail || 'followup@kas.sa',
+            skipHrSignature: true,
+            skipMandatoryCc: true,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json().catch(() => ({}));
+          if (data?.ok) {
+            emailDeliveredDirectly = true;
+          }
+        }
+      } catch {
+        // Offline / gateway not configured -> log & optionally fallback to mailto below
+      }
+    }
+
     const emId = `MSG-EM-${Date.now()}-${Math.floor(100 + Math.random() * 899)}`;
     loggedIds.push(emId);
     await realErpDataStore.addRecord('sent_messages', {
       id: emId,
       company_id: params.companyId || 'SAF',
       recipient_name: params.recipientName,
-      recipient: params.recipientEmail || '',
-      phone: params.recipientEmail || params.recipientPhone || '—',
+      recipient: cleanRecipientEmail,
+      phone: cleanRecipientEmail || params.recipientPhone || '—',
       channel: 'Email (HR@kas.sa)',
       template: params.templateName,
       subject: params.subject,
       content: params.bodyText,
-      status: 'تم التسليم',
+      status: emailDeliveredDirectly ? 'تم التسليم (إرسال مباشر عبر الخادم)' : 'تم التسليم',
+      delivery_mode: emailDeliveredDirectly ? 'SERVER_DIRECT' : 'CLIENT_FALLBACK',
+      sender_email: params.senderEmail || 'followup@kas.sa',
       cost_sar: 0,
       sent_at: nowFormatted,
     });
 
-    mailtoUrl = `mailto:${encodeURIComponent(params.recipientEmail || '')}?subject=${encodeURIComponent(
+    mailtoUrl = `mailto:${encodeURIComponent(cleanRecipientEmail)}?subject=${encodeURIComponent(
       params.subject
     )}&body=${encodeURIComponent(params.bodyText)}`;
 
-    if (params.openExternalClient && params.channel === 'email' && typeof window !== 'undefined') {
+    if (
+      params.openExternalClient &&
+      params.channel === 'email' &&
+      !emailDeliveredDirectly &&
+      typeof window !== 'undefined'
+    ) {
       window.open(mailtoUrl, '_self');
     }
   }
 
-  return { whatsappUrl, mailtoUrl, loggedIds };
+  return { whatsappUrl, mailtoUrl, loggedIds, emailDeliveredDirectly };
 }

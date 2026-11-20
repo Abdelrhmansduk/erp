@@ -2,6 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Badge } from '../components/ui/Badge';
 import { ExportDropdown } from '../components/common/ExportDropdown';
 import { realErpDataStore } from '../services/realErpDataStore';
+import {
+  dispatchViaEmailAndWhatsApp,
+  loadUnifiedAgencies,
+  getUnifiedAgenciesSync,
+  type UnifiedExternalAgency,
+} from '../services/externalAgencyMasterService';
+import { syncContractToMusanedFollowup } from '../services/externalAgencyMasterService';
 import { journalEngine } from '../services/accounting/journalEngine';
 import { useAppStore } from '../stores/appStore';
 import { useCompany } from '../contexts/CompanyContext';
@@ -33,7 +40,9 @@ import {
   Eye,
   RefreshCw,
   HeartHandshake,
-  Download
+  Download,
+  Edit3,
+  RotateCcw,
 } from 'lucide-react';
 
 export interface CVRecord {
@@ -54,8 +63,17 @@ export interface CVRecord {
   experience_years?: number;
   experience_country?: string;
   skills: string[];
-  status: 'متاح' | 'محجوز' | 'مؤجر' | 'بانتظار الاعتماد' | 'تراجع' | 'محذوف';
+  status:
+    | 'متاح'
+    | 'محجوز'
+    | 'مؤجر'
+    | 'بانتظار الاعتماد'
+    | 'بانتظار مراجعة القسم'
+    | 'تراجع'
+    | 'محذوف'
+    | 'محذوفة';
   approval_status?: string;
+  revision_note?: string;
   target_company_scope?: string;
   agency_id?: string;
   hold_expires_at?: string;
@@ -520,10 +538,34 @@ export const CVsBankPage: React.FC = () => {
   const [showSmartCvExtractor, setShowSmartCvExtractor] = useState(false);
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
+  const [agencies, setAgencies] = useState<UnifiedExternalAgency[]>(() => getUnifiedAgenciesSync());
+  const [editingCV, setEditingCV] = useState<CVRecord | null>(null);
+  const [editCvForm, setEditCvForm] = useState({
+    maid_name: '',
+    maid_name_ar: '',
+    passport_number: '',
+    nationality: 'الفلبين',
+    job: 'عاملة منزلية',
+    type: 'استقدام' as 'استقدام' | 'تأجير' | 'توسط',
+    salary: '1500',
+    age: '26',
+    external_office: '',
+    religion: 'مسلمة',
+    marital_status: 'عزباء',
+    experience_country: '',
+    video_url: '',
+  });
+  const [revisionTargetCV, setRevisionTargetCV] = useState<CVRecord | null>(null);
+  const [revisionNoteInput, setRevisionNoteInput] = useState('');
+  const [scopeOverrides, setScopeOverrides] = useState<Record<string, string>>({});
   const { user } = useAuthContext();
   const currentUserProfile = user || authService.getCurrentUser();
   const canAuditAndApproveCvs =
     authService.isAdmin(currentUserProfile) || currentUserProfile?.department_id === 'ats';
+
+  const isPendingCvStatus = (st?: string) =>
+    st === 'بانتظار الاعتماد' || st === 'بانتظار مراجعة القسم';
+  const isDeletedCvStatus = (st?: string) => st === 'محذوف' || st === 'محذوفة';
 
   // Load CV records from realErpDataStore (auto-releasing expired 24-hour holds)
   const normalizeCV = (r: any, idx: number): CVRecord => {
@@ -551,6 +593,7 @@ export const CVsBankPage: React.FC = () => {
       external_office: r.external_office || r.office_name || "PLATINUM BROTHERS INT'L",
       status: effectiveStatus,
       approval_status: r.approval_status,
+      revision_note: r.revision_note,
       target_company_scope: r.target_company_scope || 'ALL',
       agency_id: r.agency_id,
       hold_expires_at: isHoldActive ? r.hold_expires_at : undefined,
@@ -575,6 +618,7 @@ export const CVsBankPage: React.FC = () => {
       });
     };
     loadCvs();
+    void loadUnifiedAgencies().then(setAgencies);
     window.addEventListener('erp-data-updated', loadCvs);
     return () => window.removeEventListener('erp-data-updated', loadCvs);
   }, []);
@@ -584,7 +628,11 @@ export const CVsBankPage: React.FC = () => {
     const userCompUpper = (currentUserProfile?.company_id || activeCompany?.id || 'SAF').toUpperCase();
     return cvs.filter(cv => {
       // Mandatory Approval Gate: Sales departments NEVER see unapproved agency uploads!
-      if (!canAuditAndApproveCvs && cv.status === 'بانتظار الاعتماد') {
+      if (!canAuditAndApproveCvs && (isPendingCvStatus(cv.status) || isDeletedCvStatus(cv.status))) {
+        return false;
+      }
+      // Exclude soft-deleted CVs from regular tabs unless viewing 'deleted'
+      if (activeCategory !== 'deleted' && isDeletedCvStatus(cv.status)) {
         return false;
       }
       // Company Scope Gate: respect dedicated subsidiary allocation when set
@@ -603,8 +651,8 @@ export const CVsBankPage: React.FC = () => {
       if (activeCategory === 'recruitment' && cv.type !== 'استقدام' && cv.type !== 'توسط') return false;
       if (activeCategory === 'reserved' && cv.status !== 'محجوز') return false;
       if (activeCategory === 'backout' && cv.status !== 'تراجع') return false;
-      if (activeCategory === 'pending' && cv.status !== 'بانتظار الاعتماد') return false;
-      if (activeCategory === 'deleted' && cv.status !== 'محذوف') return false;
+      if (activeCategory === 'pending' && !isPendingCvStatus(cv.status)) return false;
+      if (activeCategory === 'deleted' && !isDeletedCvStatus(cv.status)) return false;
 
       // Nationality filter
       if (nationalityFilter !== 'all' && cv.nationality !== nationalityFilter) return false;
@@ -650,16 +698,170 @@ export const CVsBankPage: React.FC = () => {
     });
   };
 
-  // Counts for each category tab
+  const handleRelease24HourHold = async (cv: CVRecord) => {
+    const updated = await realErpDataStore.updateRecord<CVRecord>(
+      'cvs',
+      cv.id,
+      {
+        status: 'متاح',
+        hold_expires_at: '',
+        held_by_name: '',
+        held_by_email: '',
+      },
+      INITIAL_CVS
+    );
+    setCvs(updated.map(normalizeCV));
+    addNotification({
+      title: 'تم فك الحجز المؤقت للسيرة',
+      message: `عادت السيرة (${cv.cv_code}) إلى حالة (متاح) للتعاقد الفوري.`,
+      type: 'info',
+    });
+  };
+
+  const handleApprovePendingCv = async (cv: CVRecord) => {
+    const chosenScope = scopeOverrides[cv.id] || cv.target_company_scope || 'ALL';
+    const updated = await realErpDataStore.updateRecord<CVRecord>(
+      'cvs',
+      cv.id,
+      {
+        status: 'متاح',
+        approval_status: 'APPROVED',
+        target_company_scope: chosenScope,
+        revision_note: '',
+      },
+      INITIAL_CVS
+    );
+    setCvs(updated.map(normalizeCV));
+    addNotification({
+      title: 'تم اعتماد السيرة الذاتية ونشرها',
+      message: `أصبحت السيرة #${cv.cv_code} متاحة لقسم المبيعات بنطاق (${chosenScope === 'ALL' ? 'جميع الشركات' : chosenScope}).`,
+      type: 'success',
+    });
+  };
+
+  const handleSubmitRevisionNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!revisionTargetCV || !revisionNoteInput.trim()) return;
+    const note = revisionNoteInput.trim();
+    const updated = await realErpDataStore.updateRecord<CVRecord>(
+      'cvs',
+      revisionTargetCV.id,
+      {
+        status: 'بانتظار مراجعة القسم',
+        approval_status: 'NEEDS_REVISION',
+        revision_note: note,
+      },
+      INITIAL_CVS
+    );
+    setCvs(updated.map(normalizeCV));
+
+    const matchedAgency = agencies.find(
+      (a) =>
+        a.id === revisionTargetCV.agency_id ||
+        a.name_ar === revisionTargetCV.external_office ||
+        a.name_en === revisionTargetCV.external_office
+    );
+    if (matchedAgency) {
+      await dispatchViaEmailAndWhatsApp({
+        recipientName: matchedAgency.name_ar,
+        recipientEmail: matchedAgency.email,
+        recipientPhone: matchedAgency.whatsapp || matchedAgency.phone,
+        subject: `ملاحظة تعديل على السيرة #${revisionTargetCV.cv_code} — (${revisionTargetCV.maid_name})`,
+        bodyText: `يرجى مراجعة وتحديث السيرة #${revisionTargetCV.cv_code} عبر بوابة الوكيل الخارجي بناءً على ملاحظة قسم المتابعة:\n${note}`,
+        channel: 'both',
+        templateName: 'إشعار ملاحظة تعديل سيرة ذاتية',
+        companyId: 'SAF',
+        openExternalClient: false,
+      });
+    }
+
+    setRevisionTargetCV(null);
+    setRevisionNoteInput('');
+    addNotification({
+      title: 'تم إرجاع السيرة بملاحظة للوكيل',
+      message: `تم حفظ الملاحظة على السيرة #${revisionTargetCV.cv_code} وإشعار الوكيل للتعديل.`,
+      type: 'info',
+    });
+  };
+
+  const handleToggleDeleteCv = async (cv: CVRecord) => {
+    const nextStatus = isDeletedCvStatus(cv.status) ? 'متاح' : 'محذوف';
+    const updated = await realErpDataStore.updateRecord<CVRecord>(
+      'cvs',
+      cv.id,
+      { status: nextStatus },
+      INITIAL_CVS
+    );
+    setCvs(updated.map(normalizeCV));
+    addNotification({
+      title: nextStatus === 'محذوف' ? 'تم نقل السيرة للمحذوفات' : 'تمت استعادة السيرة للبنك',
+      message: `حالة السيرة #${cv.cv_code} الآن: ${nextStatus}.`,
+      type: 'info',
+    });
+  };
+
+  const handleOpenEditCv = (cv: CVRecord) => {
+    setEditCvForm({
+      maid_name: cv.maid_name || '',
+      maid_name_ar: cv.maid_name_ar || '',
+      passport_number: cv.passport_number || '',
+      nationality: cv.nationality || 'الفلبين',
+      job: cv.job || 'عاملة منزلية',
+      type: cv.type || 'استقدام',
+      salary: String(cv.salary || 1500),
+      age: String(cv.age || 26),
+      external_office: cv.external_office || '',
+      religion: cv.religion || 'مسلمة',
+      marital_status: cv.marital_status || 'عزباء',
+      experience_country: cv.experience_country || '',
+      video_url: cv.video_url || '',
+    });
+    setEditingCV(cv);
+  };
+
+  const handleSaveEditCv = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCV) return;
+    const updated = await realErpDataStore.updateRecord<CVRecord>(
+      'cvs',
+      editingCV.id,
+      {
+        maid_name: editCvForm.maid_name,
+        maid_name_ar: editCvForm.maid_name_ar || editCvForm.maid_name,
+        passport_number: editCvForm.passport_number.toUpperCase(),
+        nationality: editCvForm.nationality,
+        job: editCvForm.job,
+        type: editCvForm.type,
+        salary: Number(editCvForm.salary) || editingCV.salary,
+        age: Number(editCvForm.age) || editingCV.age,
+        external_office: editCvForm.external_office,
+        religion: editCvForm.religion,
+        marital_status: editCvForm.marital_status,
+        experience_country: editCvForm.experience_country,
+        video_url: editCvForm.video_url,
+      },
+      INITIAL_CVS
+    );
+    setCvs(updated.map(normalizeCV));
+    setEditingCV(null);
+    addNotification({
+      title: 'تم تحديث بيانات السيرة الذاتية',
+      message: `تم حفظ التعديلات على السيرة #${editingCV.cv_code} بنجاح.`,
+      type: 'success',
+    });
+  };
+
+  // Real live counts without hardcoded fallbacks
   const counts = useMemo(() => {
+    const nonDeleted = cvs.filter(c => !isDeletedCvStatus(c.status));
     return {
-      rental: cvs.filter(c => c.type === 'تأجير').length || 13,
-      recruitment: cvs.filter(c => c.type === 'استقدام' || c.type === 'توسط').length || 163,
-      reserved: cvs.filter(c => c.status === 'محجوز').length || 12,
-      backout: cvs.filter(c => c.status === 'تراجع').length || 4,
-      pending: cvs.filter(c => c.status === 'بانتظار الاعتماد').length || 5,
-      deleted: cvs.filter(c => c.status === 'محذوف').length || 2,
-      all: cvs.length || 176,
+      rental: nonDeleted.filter(c => c.type === 'تأجير').length,
+      recruitment: nonDeleted.filter(c => c.type === 'استقدام' || c.type === 'توسط').length,
+      reserved: nonDeleted.filter(c => c.status === 'محجوز').length,
+      backout: nonDeleted.filter(c => c.status === 'تراجع').length,
+      pending: nonDeleted.filter(c => isPendingCvStatus(c.status)).length,
+      deleted: cvs.filter(c => isDeletedCvStatus(c.status)).length,
+      all: nonDeleted.length,
     };
   }, [cvs]);
 
@@ -732,6 +934,23 @@ export const CVsBankPage: React.FC = () => {
         branch: 'فرع الرياض الرئيسي',
         status: 'جديد',
         created_at: new Date().toISOString(),
+      });
+
+      await syncContractToMusanedFollowup({
+        musanedContractNo: musanedNumber,
+        internalContractNo: contractNumber,
+        companyId: companyCode,
+        clientName,
+        clientPhone,
+        clientCity: 'الرياض',
+        maidName: `${bookingCV.maid_name} (${bookingCV.maid_name_ar})`,
+        passportNumber: bookingCV.passport_number,
+        nationality: bookingCV.nationality,
+        externalOfficeName: bookingCV.external_office,
+        monthlySalary: Number(bookingCV.salary) || 1000,
+        paidAmountSar: totalWithTax,
+        branchName: 'فرع الرياض الرئيسي',
+        salesCreatorName: 'حجز فوري من بنك السير',
       });
 
       await realErpDataStore.addRecord('zatca_company_invoices', {
@@ -940,6 +1159,7 @@ export const CVsBankPage: React.FC = () => {
           { key: 'reserved', label: `سير ذاتية محجوزة`, count: counts.reserved, icon: BookmarkCheck, color: 'text-[#141414]' },
           { key: 'backout', label: `سير ذاتية تراجع (باك أوت)`, count: counts.backout, icon: UserX, color: 'text-[#141414]' },
           { key: 'pending', label: `سير بانتظار الاعتماد`, count: counts.pending, icon: Clock, color: 'text-[#707070]' },
+          { key: 'deleted', label: `سير محذوفة`, count: counts.deleted, icon: Trash2, color: 'text-[#707070]' },
           { key: 'all', label: `جميع السير الذاتية`, count: counts.all, icon: Layers, color: 'text-[#141414]' },
         ].map(cat => {
           const isActive = activeCategory === cat.key;
@@ -954,6 +1174,7 @@ export const CVsBankPage: React.FC = () => {
                 else if (cat.key === 'reserved') setActiveTab('cvs-reserved', 'سير ذاتية محجوزة');
                 else if (cat.key === 'backout') setActiveTab('cvs-backout', 'سير ذاتية تراجع (باك أوت)');
                 else if (cat.key === 'pending') setActiveTab('cvs-pending', 'سير بانتظار الاعتماد');
+                else if (cat.key === 'deleted') setActiveTab('cvs-deleted', 'سير ذاتية محذوفة');
               }}
               style={{
                 display: 'inline-flex',
@@ -1164,11 +1385,58 @@ export const CVsBankPage: React.FC = () => {
                       </span>
                     )}
                   </div>
+                  {cv.revision_note && (
+                    <div className="mt-2 p-2 rounded-xl bg-[#f3f3f3] border border-[#141414] text-[10.5px] font-semibold text-[#141414]">
+                      ملاحظة تعديل للوكيل: {cv.revision_note}
+                    </div>
+                  )}
                 </div>
               </div>
 
+              {/* Inline Pending Approval & Scope Allocation Controls (ATS / Admin) */}
+              {canAuditAndApproveCvs && isPendingCvStatus(cv.status) && (
+                <div className="mb-3 p-2.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2 text-[11px]">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-[#141414]">نطاق الشركة:</span>
+                    <select
+                      aria-label={`تحديد نطاق شركة السيرة ${cv.cv_code}`}
+                      value={scopeOverrides[cv.id] || cv.target_company_scope || 'ALL'}
+                      onChange={(e) =>
+                        setScopeOverrides({ ...scopeOverrides, [cv.id]: e.target.value })
+                      }
+                      className="px-2.5 py-1 rounded-full bg-white border border-[#e0e0e0] text-[11px] font-bold text-[#141414]"
+                    >
+                      <option value="ALL">جميع الشركات (ALL)</option>
+                      <option value="SAF">السفير الماسي (SAF)</option>
+                      <option value="TOP">توباز (TOP)</option>
+                      <option value="YAQ">ياقوت نجد (YAQ)</option>
+                      <option value="DAR">دار الرواد (DAR)</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => void handleApprovePendingCv(cv)}
+                      className="flex-1 py-1.5 px-3 rounded-full bg-[#141414] text-white font-bold cursor-pointer"
+                    >
+                      اعتماد ونشر
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRevisionTargetCV(cv);
+                        setRevisionNoteInput(cv.revision_note || '');
+                      }}
+                      className="py-1.5 px-3 rounded-full bg-white border border-[#e0e0e0] text-[#141414] font-bold cursor-pointer"
+                    >
+                      إرجاع بملاحظة
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Action Buttons */}
-              <div className="pt-3 border-t border-[#e0e0e0] flex items-center justify-between gap-2">
+              <div className="pt-3 border-t border-[#e0e0e0] flex items-center justify-between gap-1.5 flex-wrap">
                 <button
                   type="button"
                   onClick={() => setBookingCV(cv)}
@@ -1201,6 +1469,18 @@ export const CVsBankPage: React.FC = () => {
                   </button>
                 )}
 
+                {cv.status === 'محجوز' && canAuditAndApproveCvs && (
+                  <button
+                    type="button"
+                    onClick={() => void handleRelease24HourHold(cv)}
+                    className="px-2.5 py-1.5 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#e0e0e0] text-[#141414] text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                    title="فك الحجز المؤقت وإرجاع السيرة متاحة"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>فك حجز</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={() => setSelectedCVForPrint(cv)}
@@ -1209,6 +1489,31 @@ export const CVsBankPage: React.FC = () => {
                 >
                   <Printer className="w-4 h-4" />
                 </button>
+
+                {canAuditAndApproveCvs && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditCv(cv)}
+                      className="button-outline-on-light p-2 rounded-full text-[#707070] hover:text-[#141414]"
+                      title="تعديل بيانات السيرة الذاتية"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleToggleDeleteCv(cv)}
+                      className="button-outline-on-light p-2 rounded-full text-[#707070] hover:text-[#141414]"
+                      title={isDeletedCvStatus(cv.status) ? 'استعادة السيرة' : 'نقل للمحذوفات'}
+                    >
+                      {isDeletedCvStatus(cv.status) ? (
+                        <RotateCcw className="w-4 h-4" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
+                    </button>
+                  </>
+                )}
 
                 <a
                   href={`https://wa.me/?text=${encodeURIComponent(
@@ -1300,6 +1605,25 @@ export const CVsBankPage: React.FC = () => {
                         >
                           <Printer className="w-3.5 h-3.5" />
                         </button>
+                        {canAuditAndApproveCvs && isPendingCvStatus(cv.status) && (
+                          <button
+                            type="button"
+                            onClick={() => void handleApprovePendingCv(cv)}
+                            className="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-[#141414] text-white cursor-pointer"
+                          >
+                            اعتماد
+                          </button>
+                        )}
+                        {canAuditAndApproveCvs && (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditCv(cv)}
+                            className="p-1 text-[#707070] hover:text-[#141414] rounded cursor-pointer"
+                            title="تعديل"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -1426,6 +1750,206 @@ export const CVsBankPage: React.FC = () => {
               canViewInternalAudit={canAuditAndApproveCvs}
               onClose={() => setSelectedCVForPrint(null)}
             />
+          </div>
+        </div>
+      )}
+
+      {/* ─── Edit CV Modal (ATS / Admin) ─── */}
+      {editingCV && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setEditingCV(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm dir-rtl text-right"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-lg bg-white border border-[#e0e0e0] rounded-[24px] p-6 font-sans max-h-[90vh] overflow-y-auto space-y-4"
+          >
+            <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
+              <h3 className="font-bold text-sm text-[#141414]">
+                تعديل بيانات السيرة الذاتية #{editingCV.cv_code}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingCV(null)}
+                className="w-7 h-7 rounded-full bg-[#f3f3f3] flex items-center justify-center cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleSaveEditCv} className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-[#707070] mb-1">الاسم بالإنجليزية</label>
+                  <input
+                    type="text"
+                    required
+                    value={editCvForm.maid_name}
+                    onChange={(e) => setEditCvForm({ ...editCvForm, maid_name: e.target.value })}
+                    className="w-full px-3 py-2 rounded-[14px] bg-[#f0f0f0] text-[#141414] font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-[#707070] mb-1">الاسم بالعربية</label>
+                  <input
+                    type="text"
+                    value={editCvForm.maid_name_ar}
+                    onChange={(e) => setEditCvForm({ ...editCvForm, maid_name_ar: e.target.value })}
+                    className="w-full px-3 py-2 rounded-[14px] bg-[#f0f0f0] text-[#141414]"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block font-bold text-[#707070] mb-1">رقم الجواز</label>
+                  <input
+                    type="text"
+                    required
+                    value={editCvForm.passport_number}
+                    onChange={(e) =>
+                      setEditCvForm({ ...editCvForm, passport_number: e.target.value.toUpperCase() })
+                    }
+                    className="w-full px-3 py-2 rounded-[14px] bg-[#f0f0f0] text-[#141414] font-mono"
+                    dir="ltr"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-[#707070] mb-1">الراتب</label>
+                  <input
+                    type="number"
+                    value={editCvForm.salary}
+                    onChange={(e) => setEditCvForm({ ...editCvForm, salary: e.target.value })}
+                    className="w-full px-3 py-2 rounded-[14px] bg-[#f0f0f0] text-[#141414] font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-[#707070] mb-1">العمر</label>
+                  <input
+                    type="number"
+                    value={editCvForm.age}
+                    onChange={(e) => setEditCvForm({ ...editCvForm, age: e.target.value })}
+                    className="w-full px-3 py-2 rounded-[14px] bg-[#f0f0f0] text-[#141414] font-mono"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-[#707070] mb-1">النوع</label>
+                  <select
+                    value={editCvForm.type}
+                    onChange={(e) => setEditCvForm({ ...editCvForm, type: e.target.value as any })}
+                    className="w-full px-3 py-2 rounded-[14px] bg-[#f0f0f0] text-[#141414]"
+                  >
+                    <option value="استقدام">استقدام</option>
+                    <option value="تأجير">تأجير</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold text-[#707070] mb-1">الديانة</label>
+                  <input
+                    type="text"
+                    value={editCvForm.religion}
+                    onChange={(e) => setEditCvForm({ ...editCvForm, religion: e.target.value })}
+                    className="w-full px-3 py-2 rounded-[14px] bg-[#f0f0f0] text-[#141414]"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-[#707070] mb-1">المكتب الخارجي</label>
+                  <input
+                    type="text"
+                    value={editCvForm.external_office}
+                    onChange={(e) => setEditCvForm({ ...editCvForm, external_office: e.target.value })}
+                    className="w-full px-3 py-2 rounded-[14px] bg-[#f0f0f0] text-[#141414]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-[#707070] mb-1">رابط الفيديو</label>
+                  <input
+                    type="text"
+                    value={editCvForm.video_url}
+                    onChange={(e) => setEditCvForm({ ...editCvForm, video_url: e.target.value })}
+                    className="w-full px-3 py-2 rounded-[14px] bg-[#f0f0f0] text-[#141414] font-mono"
+                    dir="ltr"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingCV(null)}
+                  className="px-4 py-2 rounded-full bg-[#f3f3f3] text-[#141414] font-bold cursor-pointer"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-full bg-[#141414] text-white font-bold cursor-pointer"
+                >
+                  حفظ التعديلات
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Revision Request Note Modal ─── */}
+      {revisionTargetCV && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setRevisionTargetCV(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm dir-rtl text-right"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md bg-white border border-[#e0e0e0] rounded-[24px] p-6 font-sans space-y-4"
+          >
+            <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
+              <h3 className="font-bold text-sm text-[#141414]">
+                إرجاع السيرة #{revisionTargetCV.cv_code} بملاحظة تعديل للوكيل
+              </h3>
+              <button
+                type="button"
+                onClick={() => setRevisionTargetCV(null)}
+                className="w-7 h-7 rounded-full bg-[#f3f3f3] flex items-center justify-center cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleSubmitRevisionNote} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-[#707070] mb-1">
+                  سبب الإرجاع / المطلوب تعديله من الوكيل الخارجي *
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="مثال: يرجى إعادة رفع صورة أوضح لجواز السفر وتصحيح سنة الميلاد..."
+                  value={revisionNoteInput}
+                  onChange={(e) => setRevisionNoteInput(e.target.value)}
+                  className="w-full px-3 py-2 rounded-[14px] bg-[#f0f0f0] text-[#141414]"
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRevisionTargetCV(null)}
+                  className="px-4 py-2 rounded-full bg-[#f3f3f3] text-[#141414] font-bold cursor-pointer"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-full bg-[#141414] text-white font-bold cursor-pointer"
+                >
+                  إرسال الملاحظة وإشعار الوكيل
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

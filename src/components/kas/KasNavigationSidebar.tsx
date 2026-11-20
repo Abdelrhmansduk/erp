@@ -77,7 +77,7 @@ export const KAS_DEPARTMENTS: {
     id: 'warehouse-wms',
     title: 'إدارة المستودعات والمخزون الذكي (WMS)',
     titleEn: 'Enterprise Warehouse & Inventory Management',
-    badge: 'حاتم • أحمد جمال',
+    badge: 'حاتم سلمان',
     badgeColor: 'bg-[#141414] text-white border border-[#141414]',
     icon: Package,
     description: 'نظام مستودعات عالمي (الوارد، الصادر، المرتجع، الحجارة، الباركود، العهد، الجرد الأعمى، IAS 2)',

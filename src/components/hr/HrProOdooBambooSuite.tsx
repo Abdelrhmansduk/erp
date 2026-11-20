@@ -15,6 +15,7 @@ import { WpsPayrollEngine, EmployeePayrollRecord } from '../../services/wpsPayro
 import { realErpDataStore } from '../../services/realErpDataStore';
 import { ExportDropdown } from '../common/ExportDropdown';
 import { shareHrOfficialEmailEml } from '../../services/quickShareService';
+import { decryptStoragePayload } from '../../utils/securitySanitizers';
 
 export interface SuiteEmployeeSummary {
   id: string;
@@ -351,7 +352,9 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
     const other = selectedEmployee.allowances || 0;
     const isSaudi = selectedEmployee.national_id ? selectedEmployee.national_id.startsWith('1') : true;
     const activeCompany =
-      (typeof window !== 'undefined' ? localStorage.getItem('alsulaim_active_company') : null) || 'SAF';
+      (typeof window !== 'undefined'
+        ? decryptStoragePayload(localStorage.getItem('alsulaim_active_company'))
+        : null) || 'SAF';
 
     const item = WpsPayrollEngine.calculateComprehensivePayrollItem({
       employeeId: selectedEmployee.id,

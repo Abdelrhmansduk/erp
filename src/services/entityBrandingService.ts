@@ -7,6 +7,7 @@
 
 import { COMPANIES_LIST } from '../contexts/CompanyContext';
 import { useAppStore } from '../stores/appStore';
+import { decryptStoragePayload } from '../utils/securitySanitizers';
 
 export type CanonicalEntityCode = 'SAF' | 'YAQ' | 'TOP' | 'DAR' | 'KAS' | 'HQ';
 
@@ -288,10 +289,10 @@ export function detectActiveSessionEntityCode(): CanonicalEntityCode {
     const storeCompany = useAppStore.getState()?.activeCompanyId;
     const raw =
       typeof localStorage !== 'undefined'
-        ? localStorage.getItem('ALSULAIM_ACTIVE_COMPANY') ||
-          localStorage.getItem('alsulaim_active_company') ||
-          localStorage.getItem('ALSULAIM_LOCKED_COMPANY') ||
-          localStorage.getItem('ALSULAIM_TARGET_SYSTEM') ||
+        ? decryptStoragePayload(localStorage.getItem('ALSULAIM_ACTIVE_COMPANY')) ||
+          decryptStoragePayload(localStorage.getItem('alsulaim_active_company')) ||
+          decryptStoragePayload(localStorage.getItem('ALSULAIM_LOCKED_COMPANY')) ||
+          decryptStoragePayload(localStorage.getItem('ALSULAIM_TARGET_SYSTEM')) ||
           storeCompany ||
           ''
         : storeCompany || '';

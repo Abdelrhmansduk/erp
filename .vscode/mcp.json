@@ -1,7 +1,7 @@
 {
   "servers": {
     "supabase": {
-      "url": "http://127.0.0.1:54421/mcp?read_only=true&features=docs%2Cdatabase%2Cdebugging%2Cdevelopment"
+      "url": "https://mcp.supabase.com/mcp?project_ref=${env:SUPABASE_PROJECT_REF}&features=docs%2Caccount%2Cdatabase%2Cdebugging%2Cdevelopment%2Cfunctions%2Cbranching%2Cfeedback%2Cnotebooks"
     },
     "firebase": {
       "command": "npx",
@@ -24,6 +24,13 @@
     "vercel": {
       "type": "http",
       "url": "https://mcp.vercel.com"
+    },
+    "resend": {
+      "type": "http",
+      "url": "https://mcp.resend.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:RESEND_API_KEY}"
+      }
     }
   }
 }

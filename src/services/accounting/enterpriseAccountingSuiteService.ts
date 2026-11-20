@@ -1,4 +1,5 @@
 import { TrialBalanceEntry, ifrsFinancialEngineService } from './ifrsFinancialEngineService';
+import { decryptStoragePayload, encryptStoragePayload } from '../../utils/securitySanitizers';
 
 // ============================================================================
 // 1. UNIFIED LIVE JOURNAL LEDGER LOG & DRILL-DOWN SERVICE
@@ -340,7 +341,7 @@ export const enterpriseAccountingSuiteService = {
   // 1. Journal Log
   getJournalLog(companyId: string): LiveJournalEntryRecord[] {
     try {
-      const raw = localStorage.getItem(`${JOURNAL_LOG_KEY}${companyId}`);
+      const raw = decryptStoragePayload(localStorage.getItem(`${JOURNAL_LOG_KEY}${companyId}`));
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -385,7 +386,7 @@ export const enterpriseAccountingSuiteService = {
 
   saveJournalLog(companyId: string, log: LiveJournalEntryRecord[]): void {
     try {
-      localStorage.setItem(`${JOURNAL_LOG_KEY}${companyId}`, JSON.stringify(log));
+      localStorage.setItem(`${JOURNAL_LOG_KEY}${companyId}`, encryptStoragePayload(JSON.stringify(log)));
     } catch {
       // ignore
     }

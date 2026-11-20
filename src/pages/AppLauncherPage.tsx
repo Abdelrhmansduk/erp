@@ -223,6 +223,34 @@ const ALL_SYSTEM_APPS: AppTile[] = [
     metricBadge: '12 مرحلة نظامية'
   },
   {
+    id: 'transactions-followup',
+    titleKey: 'transactions-followup',
+    defaultTitle: '٤أ. مركز متابعة المعاملات والوكلاء الخارجيين',
+    subKey: 'transactionsFollowupSub',
+    defaultSubtitle: 'إدارة عقود مساند الموحدة، رادار الـ SLA، تفويض وتنبيهات المنسقين، وحوكمة 20 وكالة خارجية.',
+    icon: Radio,
+    emoji: '',
+    href: 'transactions-followup',
+    category: 'operations',
+    categoryLabel: 'المتابعة الخارجية • SLA ومساند',
+    smaccCode: 'ATS-03',
+    metricBadge: 'مركز المتابعة الموحد'
+  },
+  {
+    id: 'foreign-agency-portal',
+    titleKey: 'foreign-agency-portal',
+    defaultTitle: '٤ب. بوابة الوكيل الخارجي المعزولة (Partner Portal)',
+    subKey: 'foreignAgencyPortalSub',
+    defaultSubtitle: 'رفع السير الذاتية بصيغة ثنائية اللغة، استكمال مراحل مساند، ومتابعة الحوالات والخصومات.',
+    icon: Globe,
+    emoji: '',
+    href: 'foreign-agency-portal',
+    category: 'operations',
+    categoryLabel: 'الوكلاء الخارجيون • بوابة الشركاء',
+    smaccCode: 'ATS-04',
+    metricBadge: 'بوابة معزولة ثنائية اللغة'
+  },
+  {
     id: 'rent-contracts',
     titleKey: 'rent-contracts',
     defaultTitle: '٥. عقود التأجير والتشغيل المرن',

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 import {
   Printer,
@@ -18,6 +18,7 @@ import { printSpecificElement } from '../../utils/printManager';
 import { SAUDI_RIYAL_SYMBOL } from '../../utils/saudiRiyal';
 import {
   getOfficeCvPresets,
+  loadOfficeCvPresets,
   saveCustomOfficeCvPreset,
   maskPassportForClientPreview,
   type OfficeCvExportPreset,
@@ -106,6 +107,17 @@ export const ProfessionalAgencyCvTemplate: React.FC<ProfessionalAgencyCvTemplate
   const printContainerRef = useRef<HTMLDivElement>(null);
 
   const [presets, setPresets] = useState<OfficeCvExportPreset[]>(() => getOfficeCvPresets());
+  useEffect(() => {
+    let active = true;
+    loadOfficeCvPresets().then((cloudPresets) => {
+      if (active && Array.isArray(cloudPresets) && cloudPresets.length > 0) {
+        setPresets(cloudPresets);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
   const visiblePresets = useMemo(
     () =>
       presets.filter((p) => (p.officeCode === 'INTERNAL_AUDIT' ? canViewInternalAudit : true)),

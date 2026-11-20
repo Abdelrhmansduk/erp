@@ -73,7 +73,7 @@ export const NetworkBiometricDevicesHub: React.FC<NetworkBiometricDevicesHubProp
   const [newName, setNewName] = useState<string>('');
   const [newBranch, setNewBranch] = useState<string>('المقر الرئيسي — الرياض');
   const [newZone, setNewZone] = useState<string>('بوابة الحضور الرئيسية');
-  const [newIp, setNewIp] = useState<string>('192.168.61.201');
+  const [newIp, setNewIp] = useState<string>('192.168.3.159');
   const [newPort, setNewPort] = useState<number>(4370);
   const [newSn, setNewSn] = useState<string>('BZD5253300723');
   const [newProtocol, setNewProtocol] = useState<BiometricProtocolType>('ZKTECO_TCP_4370');
@@ -422,6 +422,39 @@ export const NetworkBiometricDevicesHub: React.FC<NetworkBiometricDevicesHubProp
             </div>
             <span className="text-[11px] text-[#707070]">يستقبل بصمات ZKTeco لحظياً</span>
           </div>
+        </div>
+
+        {/* Cloudflare Edge Global ADMS Push Banner */}
+        <div className="rounded-[16px] bg-[#f3f3f3] border border-[#141414] p-3.5 flex items-center justify-between flex-wrap gap-3 text-xs">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <Radio className="w-4 h-4 text-[#141414]" />
+            <span className="font-bold text-[#141414]">
+              ربط ZKTeco UA760 سحابياً من أي فرع بدون كمبيوتر مفتوح (Cloudflare Edge D1):
+            </span>
+            <code
+              className="px-2.5 py-1 rounded-full bg-[#ffffff] border border-[#e0e0e0] font-mono text-[11px] text-[#141414]"
+              dir="ltr"
+            >
+              Domain: ON • Server: adms.kas-erp.com • Port: 80
+            </code>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleCopy('adms.kas-erp.com', 'adms-cloud-domain')}
+            className="px-3.5 py-1.5 rounded-full bg-[#141414] text-[#ffffff] text-[11px] font-bold inline-flex items-center gap-1.5 cursor-pointer"
+          >
+            {copiedText === 'adms-cloud-domain' ? (
+              <>
+                <Check className="w-3.5 h-3.5" />
+                <span>تم نسخ النطاق</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5" />
+                <span>نسخ adms.kas-erp.com</span>
+              </>
+            )}
+          </button>
         </div>
 
         {/* Local ADMS Push Configuration Banner */}

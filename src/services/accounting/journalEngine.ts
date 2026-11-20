@@ -21,7 +21,14 @@ export type OperationalTransactionType =
   | 'EOSB_SETTLEMENT'
   | 'WMS_GOODS_RECEIPT'
   | 'WMS_GOODS_ISSUE'
-  | 'WMS_STOCK_ADJUSTMENT';
+  | 'WMS_STOCK_ADJUSTMENT'
+  | 'WMS_STOCK_RETURN'
+  | 'WMS_STOCK_SURPLUS'
+  | 'WMS_STOCK_REVERSAL'
+  | 'WMS_LANDED_COST'
+  | 'WMS_SUPPLIER_INVOICE_3WAY'
+  | 'WMS_RTV_DEBIT_NOTE'
+  | 'WMS_SCRAP_WRITEOFF';
 
 export interface OperationalTransactionPayload {
   companyId: CompanyId | string;
@@ -41,6 +48,10 @@ export interface OperationalTransactionPayload {
   costCenterName?: string;
   createdBy?: string;
   entryDate?: string;
+  /** Optional per-category GL accounts and reversal target for WMS IAS 2 entries */
+  glInventoryAccount?: string;
+  glExpenseAccount?: string;
+  reversalTargetType?: OperationalTransactionType;
   /** Optional foreign currency amount in USD (converted at SAMA peg 3.75 SAR/USD) */
   usdAmount?: number;
 }
@@ -1054,8 +1065,9 @@ export const journalEngine = {
       }
 
       case 'WMS_GOODS_RECEIPT': {
+        const invAcc = payload.glInventoryAccount || '114101';
         lines.push({
-          accountCode: '114101',
+          accountCode: invAcc,
           accountName: 'المخزون التجاري ومواد المستودعات (IAS 2)',
           description: payload.description || 'استلام بضاعة ومواد بالمستودع (GRN)',
           debit: grossAmount,
@@ -1064,7 +1076,7 @@ export const journalEngine = {
         });
         lines.push({
           accountCode: '210101',
-          accountName: 'ذمم الموردين ومشتريات قيد الفوترة',
+          accountName: 'ذمم الموردين ومشتريات قيد الفوترة (GRNI)',
           description: payload.description || 'التزام توريد مستودع (GRN)',
           debit: 0,
           credit: grossAmount,
@@ -1074,8 +1086,10 @@ export const journalEngine = {
       }
 
       case 'WMS_GOODS_ISSUE': {
+        const invAcc = payload.glInventoryAccount || '114101';
+        const expAcc = payload.glExpenseAccount || '510101';
         lines.push({
-          accountCode: '510101',
+          accountCode: expAcc,
           accountName: 'تكلفة المواد والمستهلكات المصروفة (COGS / تشغيل)',
           description: payload.description || 'صرف مخزني إلى مركز تكلفة (GIN)',
           debit: grossAmount,
@@ -1083,7 +1097,7 @@ export const journalEngine = {
           costCenterCode: payload.costCenterCode || 'CC-KAS-01',
         });
         lines.push({
-          accountCode: '114101',
+          accountCode: invAcc,
           accountName: 'المخزون التجاري ومواد المستودعات (IAS 2)',
           description: payload.description || 'تخفيض رصيد المخزون بالصرف (GIN)',
           debit: 0,
@@ -1093,23 +1107,229 @@ export const journalEngine = {
         break;
       }
 
-      case 'WMS_STOCK_ADJUSTMENT': {
+      case 'WMS_STOCK_RETURN': {
+        const invAcc = payload.glInventoryAccount || '114101';
+        const expAcc = payload.glExpenseAccount || '510101';
         lines.push({
-          accountCode: '520901',
-          accountName: 'فروقات وتسويات الجرد المخزني (IAS 2)',
-          description: payload.description || 'تسوية جرد دوري للمستودع',
+          accountCode: invAcc,
+          accountName: 'المخزون التجاري ومواد المستودعات (IAS 2)',
+          description: payload.description || 'إرجاع أصناف صالحة للمستودع (SRN)',
           debit: grossAmount,
           credit: 0,
           costCenterCode: payload.costCenterCode || 'CC-KAS-01',
         });
         lines.push({
-          accountCode: '114101',
-          accountName: 'المخزون التجاري ومواد المستودعات (IAS 2)',
-          description: payload.description || 'تعديل رصيد المخزون بالتسوية',
+          accountCode: expAcc,
+          accountName: 'عكس تكلفة المواد المصروفة عند الإرجاع (SRN)',
+          description: payload.description || 'تخفيض مصروف مركز التكلفة بالمرتجع',
           debit: 0,
           credit: grossAmount,
           costCenterCode: payload.costCenterCode || 'CC-KAS-01',
         });
+        break;
+      }
+
+      case 'WMS_STOCK_SURPLUS': {
+        const invAcc = payload.glInventoryAccount || '114101';
+        lines.push({
+          accountCode: invAcc,
+          accountName: 'المخزون التجاري ومواد المستودعات (IAS 2)',
+          description: payload.description || 'زيادة رصيد المخزون بفائض الجرد (ADJ)',
+          debit: grossAmount,
+          credit: 0,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+        });
+        lines.push({
+          accountCode: '420901',
+          accountName: 'فائض ومكاسب تسوية الجرد المخزني (IAS 2)',
+          description: payload.description || 'إثبات فائض الجرد الفعلي عن الدفتري',
+          debit: 0,
+          credit: grossAmount,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+        });
+        break;
+      }
+
+      case 'WMS_STOCK_ADJUSTMENT': {
+        const invAcc = payload.glInventoryAccount || '114101';
+        lines.push({
+          accountCode: '520901',
+          accountName: 'فروقات وعجز تسويات الجرد المخزني (IAS 2)',
+          description: payload.description || 'تسوية عجز جرد دوري للمستودع',
+          debit: grossAmount,
+          credit: 0,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+        });
+        lines.push({
+          accountCode: invAcc,
+          accountName: 'المخزون التجاري ومواد المستودعات (IAS 2)',
+          description: payload.description || 'تخفيض رصيد المخزون بعجز الجرد',
+          debit: 0,
+          credit: grossAmount,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+        });
+        break;
+      }
+
+      case 'WMS_SCRAP_WRITEOFF': {
+        const invAcc = payload.glInventoryAccount || '114101';
+        lines.push({
+          accountCode: '520902',
+          accountName: 'مصروف تالف وإتلاف مخزون معتمد (IAS 2)',
+          description: payload.description || 'إعدام / إتلاف مخزون غير صالح (SCRAP)',
+          debit: grossAmount,
+          credit: 0,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+        });
+        lines.push({
+          accountCode: invAcc,
+          accountName: 'المخزون التجاري ومواد المستودعات (IAS 2)',
+          description: payload.description || 'إقفال قيمة المخزون التالف',
+          debit: 0,
+          credit: grossAmount,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+        });
+        break;
+      }
+
+      case 'WMS_LANDED_COST': {
+        const invAcc = payload.glInventoryAccount || '114101';
+        lines.push({
+          accountCode: invAcc,
+          accountName: 'المخزون التجاري — رسملة التكاليف المضافة (IAS 2)',
+          description: payload.description || 'تحميل شحن وجمارك وتخليص على تكلفة المخزون',
+          debit: grossAmount,
+          credit: 0,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+        });
+        lines.push({
+          accountCode: '210401',
+          accountName: 'مصاريف شحن وجمارك وتخليص مستحقة (Landed Cost)',
+          description: payload.description || 'التزام تكاليف التوريد والاستيراد',
+          debit: 0,
+          credit: grossAmount,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+        });
+        break;
+      }
+
+      case 'WMS_SUPPLIER_INVOICE_3WAY': {
+        lines.push({
+          accountCode: '210101',
+          accountName: 'إقفال حساب مشتريات قيد الفوترة (GRNI)',
+          description: payload.description || 'مطابقة ثلاثية لأمر الشراء والوارد والفاتورة',
+          debit: netAmount,
+          credit: 0,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+        });
+        if (vatAmount > 0) {
+          lines.push({
+            accountCode: '110501',
+            accountName: 'ضريبة القيمة المضافة للمدخلات القابلة للاسترداد (Input VAT 15%)',
+            description: `ضريبة مدخلات 15% — ${effectiveRefNumber}`,
+            debit: vatAmount,
+            credit: 0,
+            costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+          });
+        }
+        lines.push({
+          accountCode: '210102',
+          accountName: 'ذمم الموردين المعتمدة (Accounts Payable)',
+          description: payload.description || `استحقاق فاتورة مورد — ${payload.partyName || ''}`,
+          debit: 0,
+          credit: grossAmount,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+        });
+        break;
+      }
+
+      case 'WMS_RTV_DEBIT_NOTE': {
+        const invAcc = payload.glInventoryAccount || '114101';
+        lines.push({
+          accountCode: '210102',
+          accountName: 'ذمم الموردين — إشعار مدين بمرتجع مشتريات (RTV)',
+          description: payload.description || `خصم إشعار مدين على المورد — ${effectiveRefNumber}`,
+          debit: grossAmount,
+          credit: 0,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+        });
+        lines.push({
+          accountCode: invAcc,
+          accountName: 'المخزون التجاري ومواد المستودعات (IAS 2)',
+          description: payload.description || 'تخفيض المخزون بمرتجع للمورد (RTV)',
+          debit: 0,
+          credit: netAmount,
+          costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+        });
+        if (vatAmount > 0) {
+          lines.push({
+            accountCode: '110501',
+            accountName: 'عكس ضريبة القيمة المضافة للمدخلات (RTV VAT 15%)',
+            description: `عكس ضريبة مرتجع مورد 15% — ${effectiveRefNumber}`,
+            debit: 0,
+            credit: vatAmount,
+            costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+          });
+        }
+        break;
+      }
+
+      case 'WMS_STOCK_REVERSAL': {
+        const invAcc = payload.glInventoryAccount || '114101';
+        const expAcc = payload.glExpenseAccount || '510101';
+        const target = payload.reversalTargetType || 'WMS_GOODS_ISSUE';
+        if (target === 'WMS_GOODS_RECEIPT') {
+          lines.push({
+            accountCode: '210101',
+            accountName: 'عكس ذمم مشتريات قيد الفوترة (GRN Reversal)',
+            description: payload.description || 'قيد عكسي لإلغاء أثر إذن وارد',
+            debit: grossAmount,
+            credit: 0,
+            costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+          });
+          lines.push({
+            accountCode: invAcc,
+            accountName: 'عكس المخزون التجاري ومواد المستودعات (IAS 2)',
+            description: payload.description || 'تخفيض المخزون بالعكس المحاسبي',
+            debit: 0,
+            credit: grossAmount,
+            costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+          });
+        } else if (target === 'WMS_STOCK_RETURN') {
+          lines.push({
+            accountCode: expAcc,
+            accountName: 'عكس مرتجع مصروفات المواد (SRN Reversal)',
+            description: payload.description || 'قيد عكسي لمرتجع مستودعي',
+            debit: grossAmount,
+            credit: 0,
+            costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+          });
+          lines.push({
+            accountCode: invAcc,
+            accountName: 'عكس المخزون التجاري ومواد المستودعات (IAS 2)',
+            description: payload.description || 'قيد عكسي لمرتجع مستودعي',
+            debit: 0,
+            credit: grossAmount,
+            costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+          });
+        } else {
+          lines.push({
+            accountCode: invAcc,
+            accountName: 'إعادة إثبات المخزون التجاري بالعكس (GIN Reversal)',
+            description: payload.description || 'قيد عكسي لإذن صرف مخزني',
+            debit: grossAmount,
+            credit: 0,
+            costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+          });
+          lines.push({
+            accountCode: expAcc,
+            accountName: 'عكس تكلفة المواد المصروفة (GIN Reversal)',
+            description: payload.description || 'عكس مصروف إذن الصرف',
+            debit: 0,
+            credit: grossAmount,
+            costCenterCode: payload.costCenterCode || 'CC-KAS-01',
+          });
+        }
         break;
       }
 

@@ -179,7 +179,7 @@ if (flutterTokens.includes('0xFF141414') && flutterTokens.includes('0xFFF3F3F3')
 console.log('\n🔒 [Layer 7] Zero-Secret Guard & 77-Module QA (`code-review-security-audit` + `testing-and-qa`)...');
 try {
   const grepOut = execSync(
-    'git grep -i -E "(sb_publishable_[a-zA-Z0-9_-]{8,}|sb_secret_[a-zA-Z0-9_-]{8,}|sbp_[a-zA-Z0-9]{10,}|sntryu_[a-f0-9]{10,}|AIzaSy[a-zA-Z0-9_-]{20,})" -- "src/" "scripts/" "mobile_app/" "mcp.json" ".vscode/" ":(exclude)scripts/verify_skills_health.mjs"',
+    'git grep -E "(sb_publishable_[a-zA-Z0-9_-]{8,}|sb_secret_[a-zA-Z0-9_-]{8,}|sbp_[a-zA-Z0-9]{10,}|sntryu_[a-f0-9]{10,}|AIzaSy[a-zA-Z0-9_-]{20,}|cfat_[a-zA-Z0-9_-]{20,}|(^|[^a-zA-Z0-9_])re_[a-zA-Z0-9]{6,}_[a-zA-Z0-9]{16,})" -- "src/" "scripts/" "mobile_app/" "mcp.json" ".vscode/" ":(exclude)scripts/verify_skills_health.mjs"',
     { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] }
   );
   if (grepOut.trim()) {

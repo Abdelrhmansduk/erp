@@ -22,6 +22,7 @@ import {
   generateRealCode128BarcodeSvg,
   generateRealQrSvg,
 } from '../../utils/realBarcodeGenerator';
+import { sanitizeHtmlMarkup } from '../../utils/securitySanitizers';
 import {
   BatchParsedScan,
   PrintableSerialLabel,
@@ -398,13 +399,21 @@ export const WmsScannerAndLabelHubTab: React.FC<{
         .lbl-loc { font-size: ${isThermal ? '7px' : '8.5px'}; color: #444; margin-top: 1px; }
         .lbl-bar { display: flex; justify-content: center; margin-top: 2px; }
         .lbl-code { text-align: center; font-family: monospace; font-size: ${isThermal ? '7.5px' : '9px'}; font-weight: 700; letter-spacing: 0.5px; }
-      </style></head><body><div class="grid">${cardsHtml}</div><script>window.onload=function(){window.print();}</script></body></html>`;
+      </style></head><body><div class="grid">${cardsHtml}</div></body></html>`;
 
     const w = window.open('', '_blank', 'width=900,height=700');
     if (w) {
       w.document.open();
-      w.document.write(html);
+      w.document.write(sanitizeHtmlMarkup(html, true));
       w.document.close();
+      setTimeout(() => {
+        try {
+          w.focus();
+          w.print();
+        } catch {
+          // ignore popup print errors
+        }
+      }, 150);
     }
   };
 
@@ -916,7 +925,7 @@ export const WmsScannerAndLabelHubTab: React.FC<{
                 type="text"
                 value={labelAssignee}
                 onChange={(e) => setLabelAssignee(e.target.value)}
-                placeholder="مثال: أحمد جمال أو مشرفة السكن"
+                placeholder="مثال: حاتم سلمان أو مشرفة السكن"
                 className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 text-xs"
               />
             </div>
