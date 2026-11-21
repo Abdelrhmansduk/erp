@@ -18,7 +18,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || vars.VIBERS_SPEC_URL != ''
     steps:
       - name: Checkout Repository (with commit diff history)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 2
 
