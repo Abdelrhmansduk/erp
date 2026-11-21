@@ -31,6 +31,7 @@ import {
   COMPANY_AUTH_METADATA,
   KAS_ALLOWED_EMPLOYEES,
 } from '../services/authService';
+import { HrHelpdeskAndCircularsHub } from '../components/hr/HrHelpdeskAndCircularsHub';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { useAppStore } from '../stores/appStore';
 import { notificationPopupEngine } from '../services/notificationPopupEngine';
@@ -139,7 +140,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
     : null;
 
   const [activeTab, setActiveTab] = useState<
-    'WALLET' | 'PROFILE_DOCS' | 'REQUESTS' | 'CARDS_PULSE' | 'MANAGER_MSS'
+    'WALLET' | 'PROFILE_DOCS' | 'REQUESTS' | 'CARDS_PULSE' | 'HELPDESK_CIRCULARS' | 'MANAGER_MSS'
   >('WALLET');
   const [condRulesState, setCondRulesState] = useState<ConditionalWorkflowRule[]>([]);
 
@@ -2114,6 +2115,19 @@ export const EmployeeSelfServicePage: React.FC = () => {
           <span>بطاقتي والتوقيع ونبض الولاء</span>
         </button>
 
+        <button
+          type="button"
+          onClick={() => setActiveTab('HELPDESK_CIRCULARS')}
+          className={`px-5 py-2.5 rounded-full text-xs font-bold inline-flex items-center gap-2 cursor-pointer ${
+            activeTab === 'HELPDESK_CIRCULARS'
+              ? 'bg-[#141414] text-[#ffffff]'
+              : 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
+          }`}
+        >
+          <Bell className="w-4 h-4" />
+          <span>تذاكر HR والتعاميم الرسمية</span>
+        </button>
+
         {isManagerOrAdmin && (
           <button
             type="button"
@@ -2129,6 +2143,10 @@ export const EmployeeSelfServicePage: React.FC = () => {
           </button>
         )}
       </div>
+
+      {activeTab === 'HELPDESK_CIRCULARS' && (
+        <HrHelpdeskAndCircularsHub companyId={activeCompany?.id || 'SAF'} />
+      )}
 
       {activeTab === 'WALLET' && (
         <div className="space-y-6">

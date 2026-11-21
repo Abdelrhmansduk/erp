@@ -343,4 +343,54 @@ describe('WpsPayrollEngine — Saudi Labor Law & WPS Enterprise Suite', () => {
       expect(normal.effectiveInstallment).toBe(1000);
     });
   });
+
+  describe('Saudi Labor Law Payroll Automation (Art. 117 Sick Tiers, Art. 109 21/30 Upgrade, HRSD Lateness Schedule)', () => {
+    it('automatically computes progressive lateness penalties and enforces Art. 66 5-day monthly fine cap', () => {
+      // Daily wage = 300 SAR, Basic = 6000 SAR (5-day basic cap = 1000 SAR)
+      const res = WpsPayrollEngine.calculateSaudiLatenessPenalties(300, 6000, [
+        { minutesLate: 20 }, // 1st 15-30m => written warning (0%)
+        { minutesLate: 25 }, // 2nd 15-30m => 5% = 15
+        { minutesLate: 28 }, // 3rd 15-30m => 10% = 30
+        { minutesLate: 20, excused: true }, // excused => 0
+        { minutesLate: 45 }, // 1st 31-60m => 10% = 30
+      ]);
+      expect(res.unexcusedCount).toBe(4);
+      expect(res.writtenWarnings).toBe(1);
+      expect(res.rawPenaltyAmount).toBe(75);
+      expect(res.allowedPenaltyThisMonth).toBe(75);
+      expect(res.wasCappedByArt66).toBe(false);
+    });
+
+    it('integrates Art. 117 sick leave tiers, Art. 109 21/30 annual upgrade, and lateness penalties directly into payroll items', () => {
+      // Fixed wage = 9000 SAR => daily wage = 300 SAR
+      // Previous sick days = 28, this month = 5 => 2 days @100% (0 ded) + 3 days @75% (25% ded = 225 SAR)
+      // Hire date = 2020-01-01 vs 2026-11-21 => >5 years => auto-upgraded to 30 days (2.5/month)
+      const item = WpsPayrollEngine.calculateComprehensivePayrollItem({
+        employeeId: 'EMP-99',
+        employeeNumber: '99',
+        nationalIdOrIqama: '1099887766',
+        employeeName: 'سعد بن محمد القحطاني',
+        isSaudi: true,
+        basicSalary: 6000,
+        housingAllowance: 2000,
+        transportAllowance: 1000,
+        hireDate: '2020-01-01',
+        referenceDate: '2026-11-21',
+        previousSickDaysInYear: 28,
+        sickDaysThisMonth: 5,
+        latenessEvents: [
+          { minutesLate: 20 }, // warning 0%
+          { minutesLate: 25 }, // 5% of 300 = 15 SAR
+        ],
+      });
+
+      expect(item.sickLeaveDeduction).toBe(225);
+      expect(item.latenessPenaltyDeduction).toBe(15);
+      expect(item.annualLeaveEntitlementDays).toBe(30);
+      expect(item.annualLeaveMonthlyAccrual).toBe(2.5);
+      expect(item.annualLeaveUpgradedTo30).toBe(true);
+      expect(item.deductions).toBe(240); // 225 sick + 15 lateness
+      expect(item.netSalary).toBe(Number((9000 - item.gosiDeduction - 240).toFixed(2)));
+    });
+  });
 });

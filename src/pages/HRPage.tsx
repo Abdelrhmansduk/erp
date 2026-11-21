@@ -105,6 +105,7 @@ import {
   type RetroactiveArrearRecord,
 } from '../services/hrPayrollArrearsAndB2BEngine';
 import { ReemHrEmailStudioHub } from '../components/hr/ReemHrEmailStudioHub';
+import { HrHelpdeskAndCircularsHub } from '../components/hr/HrHelpdeskAndCircularsHub';
 import type { ReemHrTemplateId } from '../services/reemHrEmailTemplatesEngine';
 import {
   calculateNetLeaveDaysExcludingHolidays,
@@ -510,6 +511,7 @@ export type HrSubTab =
   | 'hr-org-muqeem'
   | 'hr-talent-360'
   | 'hr-shifts-overtime'
+  | 'hr-helpdesk-circulars'
   | 'hr-welcome-signage'
   | 'welcome-screens'
   | 'hr-alerts-compliance'
@@ -2481,6 +2483,7 @@ export const HRPage: React.FC = () => {
       tabs: [
         { id: 'vacations', label: `طلبات الإجازات (${filteredVacations.length})`, icon: CalendarMinus },
         { id: 'hr-shifts-overtime', label: 'المناوبات والعمل الإضافي (م107) والتعاميم', icon: Clock },
+        { id: 'hr-helpdesk-circulars', label: 'تذاكر HR (SLA) وتتبع قراءة التعاميم', icon: BellRing },
         { id: 'advances', label: `طلبات السلف (${filteredAdvances.length})`, icon: DollarSign },
         { id: 'rewards', label: `طلبات المكافآت (${filteredRewards.length})`, icon: Award },
         { id: 'permissions', label: `طلبات الأذونات (${filteredPermissions.length})`, icon: Clock },
@@ -4925,6 +4928,11 @@ export const HRPage: React.FC = () => {
           initialRecipientNameAr={reemEmailDraft.recipientNameAr}
           initialDetailsAr={reemEmailDraft.detailsAr}
         />
+      )}
+
+      {/* Tab: HR Helpdesk Ticketing (SLA) & Official Circulars Read Receipts */}
+      {activeTab === 'hr-helpdesk-circulars' && (
+        <HrHelpdeskAndCircularsHub companyId={effectiveCompanyCode} />
       )}
 
       {/* Tab: Unified HR Smart Alerts Radar, HRSD Disciplinary Matrix, EWA, Nitaqat & Document Expiry */}

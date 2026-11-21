@@ -50,6 +50,13 @@ export interface EmployeePayrollRecord {
   advanceDeduction?: number;
   sanctionDeduction?: number;
   absenceDeduction?: number;
+  sickLeaveDeduction?: number;
+  sickLeaveBreakdownNote?: string;
+  latenessPenaltyDeduction?: number;
+  latenessPenaltyNote?: string;
+  annualLeaveEntitlementDays?: 21 | 30;
+  annualLeaveMonthlyAccrual?: number;
+  annualLeaveUpgradedTo30?: boolean;
   deductions: number;
   carriedForwardDeduction?: number;
   gosiDeduction: number;
@@ -492,7 +499,79 @@ export class WpsPayrollEngine {
   }
 
   /**
-   * Comprehensive Employee Payroll Item Calculator with Article 92 (50% Deduction Cap)
+   * Calculates Saudi Labor Law Progressive Lateness Disciplinary Penalties
+   * (HRSD Unified Work Regulation Schedule + Article 66/70 5-day monthly fine cap):
+   * - 15–30 min unexcused: 1st = 0% (written warning), 2nd = 5%, 3rd = 10%, 4th+ = 20% of daily wage
+   * - 31–60 min unexcused: 1st = 10%, 2nd = 20%, 3rd = 30%, 4th+ = 50% of daily wage
+   * - >60 min unexcused  : 1st = 25%, 2nd = 50%, 3rd = 75%, 4th+ = 100% of daily wage
+   */
+  public static calculateSaudiLatenessPenalties(
+    dailyWage: number,
+    basicSalary: number,
+    events: Array<{ minutesLate: number; excused?: boolean }> = []
+  ): {
+    unexcusedCount: number;
+    writtenWarnings: number;
+    rawPenaltyAmount: number;
+    allowedPenaltyThisMonth: number;
+    excessCarriedForward: number;
+    wasCappedByArt66: boolean;
+    legalNote: string;
+  } {
+    const brackets = {
+      b15_30: [0, 0.05, 0.1, 0.2],
+      b31_60: [0.1, 0.2, 0.3, 0.5],
+      b61_plus: [0.25, 0.5, 0.75, 1.0],
+    };
+    const counts = { b15_30: 0, b31_60: 0, b61_plus: 0 };
+    let unexcusedCount = 0;
+    let writtenWarnings = 0;
+    let rawPenalty = 0;
+
+    for (const ev of events) {
+      if (ev.excused) continue;
+      const mins = Number(ev.minutesLate) || 0;
+      if (mins < 15) continue;
+      unexcusedCount += 1;
+
+      if (mins <= 30) {
+        const pct = brackets.b15_30[Math.min(counts.b15_30, brackets.b15_30.length - 1)];
+        counts.b15_30 += 1;
+        if (pct === 0) writtenWarnings += 1;
+        rawPenalty += dailyWage * pct;
+      } else if (mins <= 60) {
+        const pct = brackets.b31_60[Math.min(counts.b31_60, brackets.b31_60.length - 1)];
+        counts.b31_60 += 1;
+        rawPenalty += dailyWage * pct;
+      } else {
+        const pct = brackets.b61_plus[Math.min(counts.b61_plus, brackets.b61_plus.length - 1)];
+        counts.b61_plus += 1;
+        rawPenalty += dailyWage * pct;
+      }
+    }
+
+    const roundedRaw = Number(rawPenalty.toFixed(2));
+    const cap = this.validateSanctionCap(basicSalary, roundedRaw, 0);
+    return {
+      unexcusedCount,
+      writtenWarnings,
+      rawPenaltyAmount: roundedRaw,
+      allowedPenaltyThisMonth: cap.allowedAmountThisMonth,
+      excessCarriedForward: cap.excessCarriedForward,
+      wasCappedByArt66: cap.wasCapped,
+      legalNote:
+        unexcusedCount === 0
+          ? 'لا توجد مخالفات تأخير غير مبررة خلال الشهر.'
+          : `لائحة الجزاءات السعودية: ${unexcusedCount} حالة تأخير (${writtenWarnings} إنذار كتابي)، غرامة الشهر ⃁ ${cap.allowedAmountThisMonth.toFixed(2)}${cap.wasCapped ? ' (مقيّدة بسقف 5 أيام — المادة 66)' : ''}.`,
+    };
+  }
+
+  /**
+   * Comprehensive Employee Payroll Item Calculator with:
+   * - Article 109 Annual Leave Auto-Upgrade (21 -> 30 days after 5 years)
+   * - Article 117 Progressive Sick Leave Deductions (100% / 75% / 0%)
+   * - HRSD Progressive Lateness Penalties + Article 66 (5-day cap)
+   * - Article 92 (50% Monthly Wage Deduction Cap)
    */
   public static calculateComprehensivePayrollItem(params: {
     employeeId: string;
@@ -514,6 +593,11 @@ export class WpsPayrollEngine {
     sanctionAmount?: number;
     unpaidAbsenceDays?: number;
     workingDays?: number;
+    hireDate?: string;
+    referenceDate?: string;
+    previousSickDaysInYear?: number;
+    sickDaysThisMonth?: number;
+    latenessEvents?: Array<{ minutesLate: number; excused?: boolean }>;
   }): EmployeePayrollRecord {
     const basic = Number(params.basicSalary) || 0;
     const housing = Number(params.housingAllowance) || 0;
@@ -535,11 +619,34 @@ export class WpsPayrollEngine {
     const dailyWage = fixedWage / 30;
     const absenceDeduction = Number(((params.unpaidAbsenceDays || 0) * dailyWage).toFixed(2));
     const advanceDeduction = Number(params.advanceInstallment) || 0;
-    const sanctionDeduction = Number(params.sanctionAmount) || 0;
+
+    // 1. Automatic Saudi Sick Leave Tiers (Art. 117: 30d@100% -> 60d@75% -> 30d@0%)
+    const sickDaysThisMonth = Math.max(0, Number(params.sickDaysThisMonth) || 0);
+    const sickEval =
+      sickDaysThisMonth > 0
+        ? this.calculateSickLeavePay(dailyWage, Math.max(0, Number(params.previousSickDaysInYear) || 0), sickDaysThisMonth)
+        : null;
+    const sickLeaveDeduction = sickEval ? sickEval.deductionAmount : 0;
+
+    // 2. Automatic HRSD Progressive Lateness Penalties (with Art. 66 5-day monthly fine cap)
+    const latenessEval =
+      params.latenessEvents && params.latenessEvents.length > 0
+        ? this.calculateSaudiLatenessPenalties(dailyWage, basic, params.latenessEvents)
+        : null;
+    const latenessPenaltyDeduction = latenessEval ? latenessEval.allowedPenaltyThisMonth : 0;
+
+    // 3. Automatic Annual Leave 21/30 Days Entitlement (Art. 109)
+    const annualEval = params.hireDate
+      ? this.calculateAnnualLeaveEntitlement(params.hireDate, params.referenceDate)
+      : null;
+
+    const sanctionDeduction = Number(((Number(params.sanctionAmount) || 0) + latenessPenaltyDeduction).toFixed(2));
 
     // Article 92 of Saudi Labor Law: Total deductions cannot exceed 50% of the employee's wage
     const maxTotalDeductionAllowed = Number((grossSalary * 0.5).toFixed(2));
-    const rawNonGosiDeductions = Number((advanceDeduction + sanctionDeduction + absenceDeduction).toFixed(2));
+    const rawNonGosiDeductions = Number(
+      (advanceDeduction + sanctionDeduction + absenceDeduction + sickLeaveDeduction).toFixed(2)
+    );
     const maxNonGosiAllowed = Math.max(0, Number((maxTotalDeductionAllowed - gosiEmployee).toFixed(2)));
 
     let effectiveNonGosiDeductions = rawNonGosiDeductions;
@@ -574,6 +681,13 @@ export class WpsPayrollEngine {
       advanceDeduction,
       sanctionDeduction,
       absenceDeduction,
+      sickLeaveDeduction,
+      sickLeaveBreakdownNote: sickEval?.legalNote,
+      latenessPenaltyDeduction,
+      latenessPenaltyNote: latenessEval?.legalNote,
+      annualLeaveEntitlementDays: annualEval?.annualEntitlementDays,
+      annualLeaveMonthlyAccrual: annualEval?.monthlyAccrualRate,
+      annualLeaveUpgradedTo30: annualEval ? annualEval.annualEntitlementDays === 30 : undefined,
       deductions: effectiveNonGosiDeductions,
       carriedForwardDeduction,
       gosiDeduction: gosiEmployee,
