@@ -21,6 +21,7 @@ import {
   AlertTriangle,
   XCircle,
   Zap,
+  Bell,
   BellRing,
   ArrowLeftRight,
   RefreshCw,

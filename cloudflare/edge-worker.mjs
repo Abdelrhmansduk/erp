@@ -816,6 +816,21 @@ export default {
       }
     }
 
+    // 5b. Cloud Signage LAN Scanner Standby (/api/signage-scan — LAN scan runs locally; cloud returns clean JSON)
+    if (path === '/api/signage-scan') {
+      return jsonResponse({
+        ok: true,
+        mode: 'cloud-edge',
+        screens: [],
+        devices: [],
+        report: {
+          scanned_at: new Date().toISOString(),
+          discovered: [],
+          note_ar: 'فحص شاشات الشبكة المحلية (LAN) متاح من الخادم المحلي، بينما البث السحابي عبر شاشات العرض نشط.',
+        },
+      });
+    }
+
     // 6. Edge Transactional Email Gateway via Resend (/api/hr-send-email & /api/hr-mail-status)
     if (path === '/api/hr-mail-status' && request.method === 'GET') {
       return jsonResponse({
