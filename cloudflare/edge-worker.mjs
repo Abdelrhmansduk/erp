@@ -831,8 +831,8 @@ export default {
       });
     }
 
-    // 6. Edge Transactional Email Gateway via Resend (/api/hr-send-email & /api/hr-mail-status)
-    if (path === '/api/hr-mail-status' && request.method === 'GET') {
+    // 6. Edge Transactional Email Gateway via Resend (/api/hr-send-email, /api/hr-email-send & /api/hr-mail-status)
+    if ((path === '/api/hr-mail-status' || path === '/api/hr-email-send') && request.method === 'GET') {
       return jsonResponse({
         ok: true,
         configured: Boolean(env.RESEND_API_KEY),

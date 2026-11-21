@@ -623,10 +623,8 @@ class EnterpriseErrorMonitorService {
     this.saveToStorage();
     this.notifySubscribers();
 
-    void realErpDataStore.addRecord('system_error_logs', {
-      id: target.id,
-      code: target.code,
-      title: target.title,
+    // Update existing incident row (never re-insert same id, which caused HTTP 409 conflict loops)
+    void realErpDataStore.updateRecord('system_error_logs', target.id, {
       status: target.statusLabelAr,
       healed_at: nowStr,
     });
