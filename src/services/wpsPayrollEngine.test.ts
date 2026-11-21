@@ -392,5 +392,92 @@ describe('WpsPayrollEngine — Saudi Labor Law & WPS Enterprise Suite', () => {
       expect(item.deductions).toBe(240); // 225 sick + 15 lateness
       expect(item.netSalary).toBe(Number((9000 - item.gosiDeduction - 240).toFixed(2)));
     });
+
+    it('enforces all Feb 2025 Saudi Labor Law Amendments (Art. 151 12w maternity, Art. 113 sibling 3d, Art. 53 180d probation, Art. 75/79bis, Art. 98/107 Ramadan & comp leave, Nitaqat Mutawwar)', () => {
+      // Art. 151: 12 weeks (84 days) fully paid maternity; 90 days -> 6 unpaid
+      const mat = WpsPayrollEngine.classifyLeaveDeductionRule('إجازة وضع', 90, 300);
+      expect(mat.unpaidDaysForPayroll).toBe(6);
+
+      // Art. 113: Sibling bereavement 3 days fully paid
+      const sib = WpsPayrollEngine.classifyLeaveDeductionRule('إجازة وفاة أخ', 3, 300);
+      expect(sib.payRatePercent).toBe(100);
+      expect(sib.unpaidDaysForPayroll).toBe(0);
+
+      // Art. 160: Iddah 130 days Muslim vs 15 days non-Muslim
+      expect(WpsPayrollEngine.classifyLeaveDeductionRule('إجازة عدة', 130, 300).unpaidDaysForPayroll).toBe(0);
+      expect(WpsPayrollEngine.classifyLeaveDeductionRule('إجازة عدة غير مسلمة', 20, 300).unpaidDaysForPayroll).toBe(5);
+
+      // Art. 53: Probation max 180 days + excludes Eid/sick days
+      const prob = WpsPayrollEngine.calculateProbationCompliance({
+        startDate: '2026-01-01',
+        agreedDays: 180,
+        eidDaysWithinProbation: 5,
+        sickDaysWithinProbation: 3,
+        referenceDate: '2026-03-01',
+      });
+      expect(prob.isValidDuration).toBe(true);
+      expect(prob.mutualTerminationAllowed).toBe(true);
+      expect(WpsPayrollEngine.calculateProbationCompliance({ startDate: '2026-01-01', agreedDays: 200 }).isValidDuration).toBe(false);
+
+      // Art. 75 & 79 bis
+      expect(
+        WpsPayrollEngine.calculateNoticeAndResignationRules({
+          contractType: 'INDEFINITE',
+          initiatedBy: 'EMPLOYEE',
+          submissionDate: '2026-11-01',
+        }).requiredNoticeDays
+      ).toBe(30);
+      expect(
+        WpsPayrollEngine.calculateNoticeAndResignationRules({
+          contractType: 'INDEFINITE',
+          initiatedBy: 'EMPLOYER',
+          submissionDate: '2026-11-01',
+        }).requiredNoticeDays
+      ).toBe(60);
+      const resig = WpsPayrollEngine.calculateNoticeAndResignationRules({
+        contractType: 'FIXED_TERM',
+        initiatedBy: 'EMPLOYEE',
+        submissionDate: '2026-11-01',
+        referenceDate: '2026-11-05',
+        employerDeferralDays: 45,
+      });
+      expect(resig.employeeCanWithdraw).toBe(true);
+      expect(resig.deferralValid).toBe(true);
+
+      // Art. 98 Ramadan 6h + Art. 107 Compensatory Leave
+      const ramadanComp = WpsPayrollEngine.calculateOvertimeOrCompLeave({
+        basicSalary: 6000,
+        totalWage: 9000,
+        dailyWorkedHours: 9,
+        isRamadan: true,
+        isMuslim: true,
+        compensateAsLeave: true,
+      });
+      expect(ramadanComp.standardDailyHours).toBe(6);
+      expect(ramadanComp.overtimeHours).toBe(3);
+      expect(ramadanComp.cashOvertimePay).toBe(0);
+      expect(ramadanComp.compensatoryLeaveDays).toBe(0.5);
+
+      // Nitaqat Mutawwar: disability = 4.0 weight + 26-week rolling average + professional quotas
+      const nitaqat = WpsPayrollEngine.calculateNitaqatStatus(
+        [
+          { isSaudi: true, salary: 5000, hasDisability: true },
+          { isSaudi: false, salary: 4000 },
+          { isSaudi: false, salary: 4000 },
+        ],
+        [42, 44, 46]
+      );
+      expect(nitaqat.effectiveSaudiWeight).toBe(4);
+      expect(nitaqat.saudizationPercentage).toBe(44);
+      expect(nitaqat.nitaqatBand).toBe('بلاتيني');
+
+      const profQuotas = WpsPayrollEngine.evaluateProfessionalSaudization([
+        { isSaudi: true, profession: 'محاسب عام' },
+        { isSaudi: false, profession: 'محاسب تكاليف' },
+        { isSaudi: false, profession: 'خدمة عملاء' },
+      ]);
+      expect(profQuotas.find((p) => p.professionGroupAr === 'المهن المحاسبية')?.compliant).toBe(true);
+      expect(profQuotas.find((p) => p.professionGroupAr === 'خدمة العملاء')?.compliant).toBe(false);
+    });
   });
 });

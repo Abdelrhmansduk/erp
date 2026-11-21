@@ -797,25 +797,77 @@ export class WpsPayrollEngine {
       };
     }
 
-    if (type.includes('زواج') || type.includes('وفاة') || type.includes('مولود') || type.includes('أحوال شخصية')) {
+    if (type.includes('أخ') || type.includes('أخت') || type.includes('شقيق')) {
+      const paidDays = Math.min(days, 3);
+      const unpaid = Math.max(0, days - 3);
       return {
         deductFromAnnualBalance: false,
         annualDaysToDeduct: 0,
-        payRatePercent: 100,
-        unpaidDaysForPayroll: 0,
+        payRatePercent: unpaid > 0 ? Number(((paidDays / days) * 100).toFixed(1)) : 100,
+        unpaidDaysForPayroll: unpaid,
         legalReference:
-          'المادة (113) من نظام العمل: إجازة أحوال شخصية مدفوعة الأجر بالكامل (5 أيام للزواج أو الوفاة، 3 أيام للمولود) ولا تُخصم من الرصيد السنوي.',
+          'المادة (113 — تعديل فبراير 2025): إجازة وفاة الأخ أو الأخت 3 أيام مدفوعة الأجر بالكامل ولا تُخصم من الرصيد السنوي.',
       };
     }
 
-    if (type.includes('وضع') || type.includes('أمومة') || type.includes('عدة')) {
+    if (type.includes('زواج') || type.includes('وفاة') || type.includes('مولود') || type.includes('أحوال شخصية')) {
+      const maxPaid = type.includes('مولود') ? 3 : 5;
+      const paidDays = Math.min(days, maxPaid);
+      const unpaid = Math.max(0, days - maxPaid);
       return {
         deductFromAnnualBalance: false,
         annualDaysToDeduct: 0,
-        payRatePercent: 100,
-        unpaidDaysForPayroll: 0,
+        payRatePercent: unpaid > 0 ? Number(((paidDays / days) * 100).toFixed(1)) : 100,
+        unpaidDaysForPayroll: unpaid,
         legalReference:
-          'المادتان (151 و160) من نظام العمل: إجازة وضع/عدة نظامية مدفوعة الأجر ولا تُخصم من رصيد الإجازة السنوية.',
+          'المادة (113 — تعديل فبراير 2025): إجازة أحوال شخصية مدفوعة الأجر بالكامل (5 أيام للزواج أو وفاة الزوج/الأصول/الفروع، 3 أيام للمولود أو وفاة الأخ/الأخت) ولا تُخصم من الرصيد السنوي.',
+      };
+    }
+
+    if (type.includes('وضع') || type.includes('أمومة')) {
+      // Saudi Labor Law Art. 151 (Feb 2025 Amendment): 12 weeks (84 days) fully paid (6 mandatory post-birth + 6 flexible)
+      const maxPaid = 84;
+      const paidDays = Math.min(days, maxPaid);
+      const unpaid = Math.max(0, days - maxPaid);
+      return {
+        deductFromAnnualBalance: false,
+        annualDaysToDeduct: 0,
+        payRatePercent: unpaid > 0 ? Number(((paidDays / days) * 100).toFixed(1)) : 100,
+        unpaidDaysForPayroll: unpaid,
+        legalReference:
+          'المادة (151 — تعديل فبراير 2025): إجازة الوضع 12 أسبوعاً (84 يوماً) بأجر كامل (6 أسابيع إلزامية بعد الولادة + 6 أسابيع مرنة) ولا تُخصم من الرصيد السنوي.',
+      };
+    }
+
+    if (type.includes('عدة')) {
+      // Saudi Labor Law Art. 160: 4 months & 10 days (130 days) for Muslim widow; 15 days for non-Muslim
+      const maxPaid = type.includes('غير مسلمة') ? 15 : 130;
+      const paidDays = Math.min(days, maxPaid);
+      const unpaid = Math.max(0, days - maxPaid);
+      return {
+        deductFromAnnualBalance: false,
+        annualDaysToDeduct: 0,
+        payRatePercent: unpaid > 0 ? Number(((paidDays / days) * 100).toFixed(1)) : 100,
+        unpaidDaysForPayroll: unpaid,
+        legalReference:
+          maxPaid === 130
+            ? 'المادة (160): إجازة العِدة للمرأة المسلمة المتوفى عنها زوجها 4 أشهر و10 أيام (130 يوماً) بأجر كامل.'
+            : 'المادة (160): إجازة العِدة لغير المسلمة 15 يوماً بأجر كامل.',
+      };
+    }
+
+    if (type.includes('حج')) {
+      // Saudi Labor Law Art. 114: 10–15 days paid once during service after 2 continuous years
+      const maxPaid = 15;
+      const paidDays = Math.min(days, maxPaid);
+      const unpaid = Math.max(0, days - maxPaid);
+      return {
+        deductFromAnnualBalance: false,
+        annualDaysToDeduct: 0,
+        payRatePercent: unpaid > 0 ? Number(((paidDays / days) * 100).toFixed(1)) : 100,
+        unpaidDaysForPayroll: unpaid,
+        legalReference:
+          'المادة (114): إجازة أداء فريضة الحج (10 إلى 15 يوماً بأجر كامل) لمرة واحدة طوال مدة الخدمة بعد إتمام سنتين متصلتين.',
       };
     }
 
@@ -1108,7 +1160,11 @@ export class WpsPayrollEngine {
   }
 
   /**
-   * Calculates Nitaqat (Saudization) Compliance Status for the Organization
+   * Calculates Nitaqat Mutawwar (Saudization) Compliance Status for the Organization
+   * Supports:
+   * - Wage weights: >= 4,000 SAR = 1.0, 3,000–3,999 SAR = 0.5
+   * - Special MHRSD weights: Persons with disabilities (4.0 when salary >= 4,000 SAR), Part-time/Student (0.5)
+   * - Optional 26-week rolling average calculation per Nitaqat Mutawwar
    */
   public static calculateNitaqatStatus(
     employees: Array<{
@@ -1116,7 +1172,10 @@ export class WpsPayrollEngine {
       national_id?: string;
       salary?: number;
       status?: string;
-    }>
+      hasDisability?: boolean;
+      isPartTimeOrStudent?: boolean;
+    }>,
+    weeklyRollingPercentages?: number[]
   ): NitaqatComplianceSummary {
     const active = employees.filter((e) => e.status !== 'نهاية خدمة');
     let saudiCount = 0;
@@ -1132,19 +1191,32 @@ export class WpsPayrollEngine {
 
       if (isSaudi) {
         saudiCount++;
-        // MHRSD Nitaqat wage rule: >= 4,000 SAR = 1.0 weight; 3,000 - 3,999 SAR = 0.5 weight
-        if (sal >= 4000) effectiveSaudiWeight += 1;
-        else if (sal >= 3000) effectiveSaudiWeight += 0.5;
+        if (emp.hasDisability && sal >= 4000) {
+          effectiveSaudiWeight += 4;
+        } else if (emp.isPartTimeOrStudent && sal >= 3000) {
+          effectiveSaudiWeight += 0.5;
+        } else if (sal >= 4000) {
+          effectiveSaudiWeight += 1;
+        } else if (sal >= 3000) {
+          effectiveSaudiWeight += 0.5;
+        }
       } else {
         nonSaudiCount++;
       }
     }
 
     const totalEmployees = active.length;
-    const saudizationPercentage =
+    const instantPct =
       totalEmployees > 0
         ? Number(((effectiveSaudiWeight / totalEmployees) * 100).toFixed(1))
         : 100;
+    const validWeeks = Array.isArray(weeklyRollingPercentages)
+      ? weeklyRollingPercentages.slice(-26).filter((n) => Number.isFinite(n))
+      : [];
+    const saudizationPercentage =
+      validWeeks.length > 0
+        ? Number((validWeeks.reduce((a, b) => a + b, 0) / validWeeks.length).toFixed(1))
+        : instantPct;
 
     let nitaqatBand: NitaqatComplianceSummary['nitaqatBand'] = 'بلاتيني';
     let bandColor: NitaqatComplianceSummary['bandColor'] = 'emerald';
@@ -1183,6 +1255,166 @@ export class WpsPayrollEngine {
       visasEligible,
       nextBandTargetSaudis,
     };
+  }
+
+  /**
+   * Saudi Labor Law Feb 2025 Amendments — Article 53 Probation Compliance
+   * Max 180 days directly in contract, mutual termination right, excludes Eid & sick leave days.
+   */
+  public static calculateProbationCompliance(params: {
+    startDate: string;
+    agreedDays: number;
+    eidDaysWithinProbation?: number;
+    sickDaysWithinProbation?: number;
+    referenceDate?: string;
+  }): {
+    isValidDuration: boolean;
+    effectiveMaxDays: number;
+    adjustedEndDate: string;
+    remainingDays: number;
+    mutualTerminationAllowed: boolean;
+    legalNote: string;
+  } {
+    const agreed = Math.max(0, Math.round(Number(params.agreedDays) || 0));
+    const isValidDuration = agreed <= 180;
+    const effectiveMaxDays = Math.min(agreed, 180);
+    const excludedDays =
+      Math.max(0, Math.round(Number(params.eidDaysWithinProbation) || 0)) +
+      Math.max(0, Math.round(Number(params.sickDaysWithinProbation) || 0));
+    const startMs = new Date(params.startDate).getTime();
+    const refMs = new Date(params.referenceDate || new Date().toISOString().slice(0, 10)).getTime();
+    const endMs = startMs + (effectiveMaxDays + excludedDays) * 86_400_000;
+    const remainingDays = Math.max(0, Math.ceil((endMs - refMs) / 86_400_000));
+    return {
+      isValidDuration,
+      effectiveMaxDays,
+      adjustedEndDate: new Date(endMs).toISOString().slice(0, 10),
+      remainingDays,
+      mutualTerminationAllowed: true,
+      legalNote: isValidDuration
+        ? `المادة (53 — تعديل 2025): فترة تجربة (${effectiveMaxDays} يوماً + ${excludedDays} يوم مستبعد للعيد/المرضي)، تنتهي في ${new Date(endMs).toISOString().slice(0, 10)} ويحق لكلا الطرفين إنهاؤها.`
+        : 'مخالفة للمادة (53 — تعديل 2025): لا يجوز أن تتجاوز فترة التجربة 180 يوماً.',
+    };
+  }
+
+  /**
+   * Saudi Labor Law Feb 2025 Amendments — Article 75 Notice Period & Article 79 bis Fixed-Term Resignation
+   * - Indefinite contract: 30 days if initiated by employee, 60 days if initiated by employer.
+   * - Fixed-term resignation: auto-accepted after 30 days without reply, 7-day employee withdrawal window, up to 60-day employer deferral.
+   */
+  public static calculateNoticeAndResignationRules(params: {
+    contractType: 'INDEFINITE' | 'FIXED_TERM';
+    initiatedBy: 'EMPLOYEE' | 'EMPLOYER';
+    submissionDate: string;
+    referenceDate?: string;
+    employerDeferralDays?: number;
+  }): {
+    requiredNoticeDays: number;
+    autoAcceptanceDate?: string;
+    employeeCanWithdraw?: boolean;
+    deferralValid?: boolean;
+    legalNote: string;
+  } {
+    const subMs = new Date(params.submissionDate).getTime();
+    const refMs = new Date(params.referenceDate || params.submissionDate).getTime();
+    const daysSinceSubmission = Math.max(0, Math.floor((refMs - subMs) / 86_400_000));
+
+    if (params.contractType === 'INDEFINITE') {
+      const requiredNoticeDays = params.initiatedBy === 'EMPLOYEE' ? 30 : 60;
+      return {
+        requiredNoticeDays,
+        legalNote:
+          params.initiatedBy === 'EMPLOYEE'
+            ? 'المادة (75 — تعديل 2025): مهلة الإشعار عند إنهاء العامل للعقد غير محدد المدة هي 30 يوماً.'
+            : 'المادة (75 — تعديل 2025): مهلة الإشعار عند إنهاء صاحب العمل للعقد غير محدد المدة هي 60 يوماً.',
+      };
+    }
+
+    const deferral = Math.max(0, Math.round(Number(params.employerDeferralDays) || 0));
+    const deferralValid = deferral <= 60;
+    const autoAcceptMs = subMs + 30 * 86_400_000;
+    const employeeCanWithdraw = daysSinceSubmission <= 7;
+    return {
+      requiredNoticeDays: 30,
+      autoAcceptanceDate: new Date(autoAcceptMs).toISOString().slice(0, 10),
+      employeeCanWithdraw,
+      deferralValid,
+      legalNote: `المادة (79 مكرر — تعديل 2025): تُقبل الاستقالة تلقائياً بعد 30 يوماً (${new Date(autoAcceptMs).toISOString().slice(0, 10)})، مهلة العدول للعامل 7 أيام، وحد التأجيل لصاحب العمل 60 يوماً.`,
+    };
+  }
+
+  /**
+   * Saudi Labor Law Art. 98 (Ramadan 6h workday) & Art. 107 (2025 Compensatory Leave in lieu of Overtime Pay)
+   */
+  public static calculateOvertimeOrCompLeave(params: {
+    basicSalary: number;
+    totalWage: number;
+    dailyWorkedHours: number;
+    isRamadan?: boolean;
+    isMuslim?: boolean;
+    compensateAsLeave?: boolean;
+  }): {
+    standardDailyHours: number;
+    overtimeHours: number;
+    cashOvertimePay: number;
+    compensatoryLeaveDays: number;
+    legalNote: string;
+  } {
+    const standardDailyHours = params.isRamadan && params.isMuslim !== false ? 6 : 8;
+    const overtimeHours = Math.max(0, Number(((Number(params.dailyWorkedHours) || 0) - standardDailyHours).toFixed(2)));
+    const payEval = this.calculateOvertimePay(params.basicSalary, params.totalWage, overtimeHours);
+    const compensatoryLeaveDays = params.compensateAsLeave
+      ? Number((overtimeHours / standardDailyHours).toFixed(2))
+      : 0;
+    return {
+      standardDailyHours,
+      overtimeHours,
+      cashOvertimePay: params.compensateAsLeave ? 0 : payEval.totalOvertimePay,
+      compensatoryLeaveDays,
+      legalNote: params.compensateAsLeave
+        ? `المادة (107 — تعديل 2025): تحويل (${overtimeHours}) ساعة إضافية إلى رصيد إجازة تعويضية مدفوعة (${compensatoryLeaveDays} يوم) بموافقة العامل.`
+        : `المادتان (98 و107): ساعات العمل النظامية (${standardDailyHours} ساعة) • إضافي (${overtimeHours} ساعة) = ⃁ ${payEval.totalOvertimePay.toFixed(2)}.`,
+    };
+  }
+
+  /**
+   * MHRSD Professional Localization Quotas Radar (التوطين المهني الإلزامي)
+   */
+  public static evaluateProfessionalSaudization(
+    employees: Array<{ isSaudi?: boolean; national_id?: string; profession?: string; status?: string }>
+  ): Array<{
+    professionGroupAr: string;
+    requiredPct: number;
+    actualPct: number;
+    saudiCount: number;
+    totalCount: number;
+    compliant: boolean;
+  }> {
+    const active = employees.filter((e) => e.status !== 'نهاية خدمة');
+    const quotas = [
+      { key: 'accounting', label: 'المهن المحاسبية', requiredPct: 30, rx: /محاسب|مالي|مراجع|حسابات/i },
+      { key: 'procurement', label: 'المشتريات والمنافسات', requiredPct: 50, rx: /مشتريات|منافسات|توريد/i },
+      { key: 'sales_marketing', label: 'المبيعات والتسويق', requiredPct: 30, rx: /مبيعات|تسويق/i },
+      { key: 'customer_service', label: 'خدمة العملاء', requiredPct: 100, rx: /خدمة عملاء|عناية|استقبال/i },
+      { key: 'recruitment', label: 'الاستقدام ومساند', requiredPct: 70, rx: /استقدام|مساند|متابعة|معقب/i },
+    ];
+
+    return quotas.map((q) => {
+      const matched = active.filter((e) => q.rx.test(String(e.profession || '')));
+      const saudiCount = matched.filter((e) =>
+        typeof e.isSaudi === 'boolean' ? e.isSaudi : String(e.national_id || '').trim().startsWith('1')
+      ).length;
+      const totalCount = matched.length;
+      const actualPct = totalCount > 0 ? Number(((saudiCount / totalCount) * 100).toFixed(1)) : 100;
+      return {
+        professionGroupAr: q.label,
+        requiredPct: q.requiredPct,
+        actualPct,
+        saudiCount,
+        totalCount,
+        compliant: actualPct >= q.requiredPct,
+      };
+    });
   }
 
   /**
