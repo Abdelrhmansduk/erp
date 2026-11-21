@@ -570,6 +570,9 @@ export const AI_TOOL_REGISTRY: AiToolDefinition[] = [
           'hr-workflows-pulse',
           'reem-hr-emails',
           'clients',
+          'crm-marketing-hub',
+          'marketing-studio',
+          'crm-leads-pipeline',
           'complaints',
           'employee-monitoring',
           'iam',
@@ -663,6 +666,20 @@ AI_TOOL_REGISTRY.push(
           'GENERAL_HR_CIRCULAR',
         ],
       },
+    ],
+  },
+  {
+    id: 'analyze_marketing_campaigns_roas',
+    nameAr: 'تحليل أداء الحملات الإعلانية والعائد التسويقي (ROAS & CAC)',
+    descriptionAr: 'تحليل كفاءة الحملات الممولة (سناب شات، تيك توك، جوجل، ميتا)، حساب العائد على الإنفاق ROAS وتكلفة التعاقد CPA وكشف الهدر الإعلاني ومؤشر جاهزية القياس (0-100).',
+    companyScope: [],
+    departmentScope: ['crm', 'executive', 'finance'],
+    requiredPermission: 'crm.marketing.read',
+    riskLevel: 'low',
+    category: 'crm',
+    isMutating: false,
+    parameters: [
+      { name: 'company_id', type: 'string', description: 'رمز الشركة (اختياري: SAF, TOP, YAQ, DAR, KAS, all)', required: false },
     ],
   }
 );

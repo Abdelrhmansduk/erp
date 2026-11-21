@@ -4,6 +4,11 @@ import { exportData } from '../services/exportService';
 import { ExportDropdown } from '../components/common/ExportDropdown';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { useAppStore } from '../stores/appStore';
+import {
+  DEFAULT_CRM_CAMPAIGNS,
+  resolveAutoAssignedSalesRep,
+  type AdPlatform,
+} from '../services/crmMarketingEngine';
 import { Globe, FileSpreadsheet, FileText, Smartphone, Laptop, Radio, Flame, PieChart, Search, PhoneCall, RefreshCw, Users, UserX, UserPlus, CheckCircle2 } from 'lucide-react';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
@@ -198,6 +203,42 @@ export const WebsiteVisitorsPage: React.FC = () => {
 
     try {
       await realErpDataStore.addRecord('clients', newClient);
+
+      const sourceMap: Record<string, AdPlatform> = {
+        'TikTok Ads': 'tiktok',
+        'Google Search': 'google',
+        'Instagram': 'meta',
+      };
+      const mappedPlatform: AdPlatform = sourceMap[v.source] || 'snapchat';
+      const assigned = resolveAutoAssignedSalesRep('SAF', Date.now());
+      const matchedCamp = DEFAULT_CRM_CAMPAIGNS.find((c) => c.platform === mappedPlatform);
+
+      await realErpDataStore.addRecord('crm_leads', {
+        id: `LED-WEB-${Date.now().toString().slice(-4)}`,
+        company_id: assigned.resolvedCompanyId,
+        lead_no: `LED-WEB-${Date.now().toString().slice(-4)}`,
+        full_name: newClient.name,
+        phone: v.phone,
+        city: cityName,
+        client_type: 'شخص',
+        service_interest: `استفسار منصة: ${v.page_visited || 'عام'}`,
+        source_platform: mappedPlatform,
+        campaign_id: matchedCamp?.id,
+        utm_campaign: matchedCamp?.utm_campaign || 'website_organic',
+        stage: 'new',
+        probability_pct: 10,
+        estimated_value_sar: 16500,
+        assigned_to_email: assigned.email,
+        assigned_to_name: assigned.nameAr,
+        captured_by_email: 'm.alkhader.marketing@kas.sa',
+        sla_due_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+        last_activity_at: new Date().toISOString(),
+        converted_client_id: clientCode,
+        retargeting_bucket: 'hot_1_7d',
+        marketing_consent: true,
+        created_at: new Date().toISOString(),
+      });
+
       const updatedVisitors = (visitors.length > 0 ? visitors : MOCK_VISITORS).map(item =>
         item.id === v.id ? { ...item, is_lead: true } : item
       );

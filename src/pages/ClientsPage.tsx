@@ -9,10 +9,11 @@ import { authService } from '../services/authService';
 import { 
   UserCheck, Plus, FileSpreadsheet, FileText, Printer, Search, 
   Upload, X, Check, MessageSquare, ShieldAlert, Trash2, Edit,
-  Phone, UserX, UserPlus, Filter
+  Phone, UserX, UserPlus, Filter, Eye, Megaphone
 } from 'lucide-react';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
+import { Client360DrawerModal } from '../components/crm/Client360DrawerModal';
 
 export const ClientsPage: React.FC = () => {
   useModalEscape();
@@ -31,6 +32,7 @@ export const ClientsPage: React.FC = () => {
   });
   const [showAddModal, setShowAddModal] = useState(() => storeActiveTab === 'new-client');
   const [editingClient, setEditingClient] = useState<any | null>(null);
+  const [selected360Client, setSelected360Client] = useState<any | null>(null);
 
   useEffect(() => {
     if (storeActiveTab === 'client-blacklist' || storeActiveTab === 'black-list') {
@@ -55,6 +57,23 @@ export const ClientsPage: React.FC = () => {
   const handleAddClient = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!addForm.name || !addForm.phone || !addForm.national_id) return;
+
+    const cleanDigits = addForm.phone.replace(/\D/g, '').slice(-9);
+    const duplicate = clients.find(
+      (c: any) =>
+        (cleanDigits.length === 9 && String(c.phone || '').replace(/\D/g, '').slice(-9) === cleanDigits) ||
+        (addForm.national_id.trim() && String(c.national_id || '').trim() === addForm.national_id.trim())
+    );
+    if (duplicate) {
+      addNotification({
+        title: 'منع تكرار ملفات العملاء',
+        message: `هذا العميل مسجل مسبقاً باسم (${duplicate.name}) — تم فتح ملفه 360° للمراجعة.`,
+        type: 'warning',
+      });
+      setShowAddModal(false);
+      setSelected360Client(duplicate);
+      return;
+    }
 
     const newRecord = {
       id: `CLI-2026-${String(242 + clients.length).padStart(4, '0')}`,
@@ -182,6 +201,15 @@ export const ClientsPage: React.FC = () => {
 
         {/* Action Pills */}
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            className="button-white-pill"
+            onClick={() => setActiveTab('crm-marketing-hub', 'منظومة التسويق والإعلانات والـ CRM')}
+            style={{ fontSize: '12.5px', padding: '6px 18px', minHeight: '38px' }}
+          >
+            <Megaphone className="w-4 h-4 ml-1" />
+            <span>بوابة التسويق والإعلانات (معاذ)</span>
+          </button>
+
           <button
             className="button-white-pill"
             onClick={() => setShowAddModal(true)}
@@ -373,6 +401,17 @@ export const ClientsPage: React.FC = () => {
                     </td>
                     <td className="p-3.5 text-center">
                       <div className="flex items-center justify-center gap-1">
+                        {/* Customer 360° Drawer */}
+                        <button
+                          type="button"
+                          onClick={() => setSelected360Client(c)}
+                          className="px-2.5 py-1 rounded-full bg-[#141414] text-white text-[10.5px] font-bold inline-flex items-center gap-1 hover:bg-[#262626] transition-colors"
+                          title="فتح ملف العميل الشامل 360°"
+                        >
+                          <Eye className="w-3 h-3" />
+                          <span>360°</span>
+                        </button>
+
                         {/* WhatsApp Link */}
                         <a
                           href={`https://wa.me/${c.phone.replace(/[^0-9]/g, '')}`}
@@ -587,6 +626,12 @@ export const ClientsPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Unified Customer 360° Drawer Modal */}
+      <Client360DrawerModal
+        client={selected360Client}
+        onClose={() => setSelected360Client(null)}
+      />
     </div>
   );
 };

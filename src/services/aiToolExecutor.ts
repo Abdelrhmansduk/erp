@@ -14,6 +14,13 @@ import { employeeMonitoringService } from './employeeMonitoringService';
 import { shelterTransferStore } from './shelterTransferStore';
 import { realErpDataStore } from './realErpDataStore';
 import { authService } from './authService';
+import {
+  DEFAULT_CRM_CAMPAIGNS,
+  DEFAULT_CRM_LEADS,
+  evaluateCampaignsPortfolio,
+  computeMeasurementReadinessIndex,
+  computeWeightedPipelineForecast,
+} from './crmMarketingEngine';
 import { runAndDispatchHrSmartAlerts } from './hrSmartAlertsEngine';
 import { HrWorkflowEngine, type HrApprovalRequestInstance } from './hrWorkflowEngine';
 import { composeReemHrOfficialEmail, REEM_HR_SIGNATORY, type ReemHrTemplateId } from './reemHrEmailTemplatesEngine';
@@ -749,6 +756,9 @@ export async function executeToolCall(
       case 'dispatch_reem_hr_official_email':
         result = await executeDispatchReemHrOfficialEmail(params, effectiveCompany);
         break;
+      case 'analyze_marketing_campaigns_roas':
+        result = await executeAnalyzeMarketingCampaignsRoas(params, effectiveCompany);
+        break;
       case 'get_employee_monitoring_summary':
         result = await executeGetEmployeeMonitoringSummary(params);
         break;
@@ -894,6 +904,9 @@ function executeNavigate(
     'hr-arrears-b2b': 'فروقات الرواتب بأثر رجعي والعمولات والمدفوعات البنكية B2B',
     'hr-cards-rollover': 'بطاقات المصروفات المؤسسية وترحيل الإجازات وإغلاق البصمة',
     'hr-workflows-pulse': 'سلاسل الاعتماد المخصصة والتوقيع الإلكتروني ونبض الرضا eNPS',
+    'crm-marketing-hub': 'مركز قيادة التسويق والإعلانات والـ ROAS (بوابة معاذ)',
+    'marketing-studio': 'استوديو المحتوى الإعلاني والتقويم والـ 8 زوايا',
+    'crm-leads-pipeline': 'خط أنابيب الفرص البيعية المرجّح Kanban',
     'reem-hr-emails': 'استوديو المراسلات الرسمية للموارد البشرية (HR@kas.sa)',
     'clients': 'إدارة العملاء CRM',
     'complaints': 'مركز الشكاوى واتفاقيات SLA',
@@ -2131,6 +2144,29 @@ async function executeDispatchAgencySlaFollowup(
       contractCount: agencyActiveTxs.length,
       loggedIds: dispatchRes.loggedIds,
     },
+  };
+}
+
+async function executeAnalyzeMarketingCampaignsRoas(
+  params: Record<string, unknown>,
+  companyId: string
+): Promise<ToolExecutionResult> {
+  const targetComp = String(params.company_id || companyId || 'all');
+  const campaigns = await realErpDataStore.getRecords('crm_marketing_campaigns', DEFAULT_CRM_CAMPAIGNS);
+  const leads = await realErpDataStore.getRecords('crm_leads', DEFAULT_CRM_LEADS);
+  const portfolio = evaluateCampaignsPortfolio(campaigns, targetComp);
+  const readiness = computeMeasurementReadinessIndex({
+    campaigns: portfolio.items.map((i) => i.campaign),
+    leads,
+    pdplGuardActive: true,
+  });
+  const forecast = computeWeightedPipelineForecast(leads, targetComp);
+
+  return {
+    success: true,
+    message: `ملخص الأداء التسويقي والإعلاني (${targetComp}):\n• مؤشر جاهزية القياس: ${readiness.score}/100 (${readiness.verdictAr})\n• إجمالي الإنفاق الإعلاني: ${portfolio.totalSpentSar.toLocaleString('en-US')} ⃁\n• الإيرادات المنسوبة: ${portfolio.totalRevenueSar.toLocaleString('en-US')} ⃁ (ROAS: ${portfolio.blendedRoas}x)\n• متوسط تكلفة العقد (CPA): ${portfolio.blendedCpaSar.toLocaleString('en-US')} ⃁\n• التوقع البيعي المرجّح للفرص: ${forecast.weightedForecastSar.toLocaleString('en-US')} ⃁`,
+    spokenSummary: `مؤشر جاهزية القياس التسويقي هو ${readiness.score} من مئة، والعائد المجمع على الإنفاق الإعلاني بلغ ${portfolio.blendedRoas} ضعف بمتوسط تكلفة تعاقد ${portfolio.blendedCpaSar} ريال سعودي.`,
+    data: { portfolio, readiness, forecast },
   };
 }
 

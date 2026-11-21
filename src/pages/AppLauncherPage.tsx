@@ -381,9 +381,23 @@ const ALL_SYSTEM_APPS: AppTile[] = [
     metricBadge: 'مخزون ومستودعات'
   },
   {
+    id: 'crm-marketing-hub',
+    titleKey: 'crm-marketing-hub',
+    defaultTitle: '٠. مركز قيادة التسويق والإعلانات واستوديو المحتوى',
+    subKey: 'crmMarketingHubSub',
+    defaultSubtitle: 'إدارة حملات سناب شات وتيك توك وجوجل، احتساب ROAS، خط أنابيب المبيعات Kanban، واستوديو الـ 8 زوايا.',
+    icon: TrendingUp,
+    emoji: '',
+    href: 'crm-marketing-hub',
+    category: 'crm',
+    categoryLabel: 'التسويق والإعلانات • بوابة معاذ',
+    smaccCode: 'MKT-01',
+    metricBadge: 'AARRR & ROAS'
+  },
+  {
     id: 'crm',
     titleKey: 'crm',
-    defaultTitle: '١. سجل العملاء والتصنيفات الائتمانية (CRM)',
+    defaultTitle: '١. سجل العملاء وملف 360° والتصنيفات (CRM)',
     subKey: 'crmSub',
     defaultSubtitle: 'بطاقات العملاء، التصنيفات الائتمانية، القوائم السوداء، وتاريخ العقود الموحد.',
     icon: Users,

@@ -610,7 +610,7 @@ export const KasShareAndExportModal: React.FC<KasShareAndExportModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-[#ffffff] border-2 border-[#000000] rounded-[20px] w-full max-w-[1240px] max-h-[94vh] flex flex-col overflow-hidden shadow-2xl"
+        className="bg-[#ffffff] border-2 border-[#141414] rounded-[24px] w-full max-w-[1240px] max-h-[94vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -1309,7 +1309,7 @@ export const KasShareAndExportModal: React.FC<KasShareAndExportModalProps> = ({
                             disabled={isProcessing}
                             onClick={() => void handleSendWhatsApp()}
                             style={{ backgroundColor: '#00CC00', color: '#000000' }}
-                            className="flex-1 py-2.5 px-4 rounded-[12px] border-2 border-[#000000] text-xs font-bold inline-flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:opacity-95"
+                            className="flex-1 py-2.5 px-4 rounded-full border-2 border-[#141414] text-xs font-bold inline-flex items-center justify-center gap-2 cursor-pointer hover:opacity-95"
                           >
                             <MessageCircle className="w-4 h-4" />
                             <span>
@@ -1322,7 +1322,7 @@ export const KasShareAndExportModal: React.FC<KasShareAndExportModalProps> = ({
                             disabled={isProcessing}
                             onClick={() => void handleSendEmailWithAttachments('desktop_eml')}
                             style={{ backgroundColor: '#00B0F0', color: '#000000' }}
-                            className="flex-1 py-2.5 px-4 rounded-[12px] border-2 border-[#000000] text-xs font-bold inline-flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:opacity-95"
+                            className="flex-1 py-2.5 px-4 rounded-full border-2 border-[#141414] text-xs font-bold inline-flex items-center justify-center gap-2 cursor-pointer hover:opacity-95"
                           >
                             <Mail className="w-4 h-4" />
                             <span>

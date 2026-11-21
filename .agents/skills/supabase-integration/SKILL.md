@@ -9,7 +9,7 @@ description: "Hybrid Supabase + Firebase authentication, multi-company Row Level
 
 ### 1. Hybrid Authentication Architecture (`Supabase + Firebase + @kas.sa Whitelist`)
 - **Primary Auth Service**: [`src/services/authService.ts`](../../../src/services/authService.ts) & [`src/config/kasAllowedEmails.ts`](../../../src/config/kasAllowedEmails.ts) coordinate:
-  1. **Strict `@kas.sa` Whitelist & Exclusions**: Enforces the 69 approved `@kas.sa` employee accounts across 9 isolated departments and permanently blocks excluded accounts (`o.saeed.hospitality@kas.sa` — أسامة سعيد / مطبخ البوفيه).
+  1. **Strict `@kas.sa` Whitelist & Exclusions**: Enforces the 68 approved `@kas.sa` employee accounts across 9 isolated departments and permanently blocks excluded accounts (`o.saeed.hospitality@kas.sa` — أسامة سعيد / مطبخ البوفيه، و`mustafa.marketing@kas.sa` المحذوف لانتهاء علاقته الوظيفية).
   2. **Email & Password / Direct Email Sign-In (`signIn` & `signInWithEmail`)**: Authenticates against Supabase Auth when configured, with deterministic fallback to `signInWithDirectoryOrAutoRoute` and per-employee `default_tab` routing.
   2. **Magic Link (`sendMagicLink`)**: Triggers Supabase OTP and activates the verified department/company session.
   3. **Google Sign-In (`signInWithGoogle`)**: Supports Firebase Popup OAuth ([`src/services/firebaseClient.ts`](../../../src/services/firebaseClient.ts)), Supabase OAuth, and the interactive Google Account Chooser.

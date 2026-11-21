@@ -540,26 +540,26 @@ export const SettingsPage: React.FC = () => {
           type="button"
           data-slot="quick-switch-appearance-btn"
           onClick={() => setActiveSection('appearance-display')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
             activeSection === 'appearance-display'
-              ? 'bg-[#141414] text-white shadow-sm'
+              ? 'bg-[#141414] text-white'
               : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#e8e8e8]'
           }`}
         >
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white/60" />
+          <span className="w-2.5 h-2.5 rounded-full bg-current opacity-80 border border-current/40" />
           <span>تخصيص الألوان والمظهر والعرض</span>
         </button>
         <button
           type="button"
           data-slot="quick-switch-google-2fa-btn"
           onClick={() => setActiveSection('security-2fa')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
             activeSection === 'security-2fa'
-              ? 'bg-[#141414] text-white shadow-sm'
+              ? 'bg-[#141414] text-white'
               : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#e8e8e8]'
           }`}
         >
-          <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-600 text-[10px] font-mono font-bold">2FA</span>
+          <span className="px-1.5 py-0.5 rounded-full bg-[#e0e0e0] text-[#141414] text-[10px] font-mono font-bold">2FA</span>
           <span>المصادقة الثنائية عبر Google بالإنترنت و Authenticator</span>
         </button>
       </div>

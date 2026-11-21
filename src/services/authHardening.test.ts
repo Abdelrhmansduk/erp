@@ -283,12 +283,16 @@ describe('authService — session hardening & hybrid email auth characterization
   });
 
   it('enforces @kas.sa corporate employee whitelist, strictly excludes Osama Saeed (o.saeed.hospitality@kas.sa — Buffet Kitchen), and routes each department to its dedicated screen', async () => {
-    // 1. Verify 69 approved @kas.sa accounts & exclusion of Osama Saeed (#68)
-    expect(KAS_ALLOWED_EMPLOYEES.length).toBe(69);
+    // 1. Verify 68 approved @kas.sa accounts & exclusion of Osama Saeed (#68) and removed account mustafa.marketing@kas.sa
+    expect(KAS_ALLOWED_EMPLOYEES.length).toBe(68);
     expect(
       KAS_ALLOWED_EMPLOYEES.some((e) => e.email.toLowerCase() === 'o.saeed.hospitality@kas.sa')
     ).toBe(false);
+    expect(
+      KAS_ALLOWED_EMPLOYEES.some((e) => e.email.toLowerCase() === 'mustafa.marketing@kas.sa')
+    ).toBe(false);
     expect(EXCLUDED_KAS_EMAILS['o.saeed.hospitality@kas.sa']).toBeDefined();
+    expect(EXCLUDED_KAS_EMAILS['mustafa.marketing@kas.sa']).toBeDefined();
 
     // 2. Strictly reject Osama Saeed (Buffet Kitchen) across signIn, signInWithEmail, and sendMagicLink
     const osamaCheck = validateAllowedCorporateEmail('o.saeed.hospitality@kas.sa');
@@ -364,11 +368,11 @@ describe('authService — session hardening & hybrid email auth characterization
     expect(darMusaned.data?.default_tab).toBe('recruitment-contracts');
 
     const mktHead = await authService.signIn(
-      'mustafa.marketing@kas.sa',
-      provisionVerifiedStrongPassword('mustafa.marketing@kas.sa')
+      'm.alkhader.marketing@kas.sa',
+      provisionVerifiedStrongPassword('m.alkhader.marketing@kas.sa')
     );
     expect(mktHead.data?.department_id).toBe('crm');
-    expect(mktHead.data?.default_tab).toBe('clients');
+    expect(mktHead.data?.default_tab).toBe('crm-marketing-hub');
 
     const salesMgr = await authService.signIn(
       'm.khalifa.sales@kas.sa',
@@ -479,16 +483,17 @@ describe('authService — session hardening & hybrid email auth characterization
     expect(authService.isAdmin(signedInDriver.data)).toBe(false);
   });
 
-  it('enforces 69 salted SHA-256 strong password hashes and 2-stage Personal Google Account approval for 2nd-time sign-in', async () => {
-    // 1. All 69 approved @kas.sa accounts have unique 64-hex digests; excluded account has zero hash
+  it('enforces 68 salted SHA-256 strong password hashes and 2-stage Personal Google Account approval for 2nd-time sign-in', async () => {
+    // 1. All 68 approved @kas.sa accounts have unique 64-hex digests; excluded accounts have zero hash
     const hashEntries = Object.entries(KAS_EMPLOYEE_PASSWORD_HASHES);
-    expect(hashEntries).toHaveLength(69);
-    expect(new Set(hashEntries.map(([, h]) => h)).size).toBe(69);
+    expect(hashEntries).toHaveLength(68);
+    expect(new Set(hashEntries.map(([, h]) => h)).size).toBe(68);
     for (const emp of KAS_ALLOWED_EMPLOYEES) {
       const digest = KAS_EMPLOYEE_PASSWORD_HASHES[emp.email.toLowerCase()];
       expect(digest, emp.email).toMatch(/^[0-9a-f]{64}$/);
     }
     expect(KAS_EMPLOYEE_PASSWORD_HASHES['o.saeed.hospitality@kas.sa']).toBeUndefined();
+    expect(KAS_EMPLOYEE_PASSWORD_HASHES['mustafa.marketing@kas.sa']).toBeUndefined();
 
     // 2. Strong password policy validation
     expect(validateStrongPasswordPolicy('short1!A').valid).toBe(false);

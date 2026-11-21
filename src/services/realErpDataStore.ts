@@ -82,6 +82,11 @@ function resolveSupabaseTableName(entityKey: string): string {
     'rent-contracts': 'rent_contracts',
     'sponsorship-transfers': 'sponsorship_transfers',
     'activity_log': 'activity_logs',
+    'marketing-campaigns': 'crm_marketing_campaigns',
+    'crm-leads': 'crm_leads',
+    'content-calendar': 'crm_content_calendar',
+    'promo-referrals': 'crm_promo_referrals',
+    'csat-surveys': 'crm_csat_surveys',
   };
   return aliasMap[entityKey] || entityKey;
 }

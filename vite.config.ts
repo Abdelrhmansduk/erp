@@ -359,6 +359,49 @@ const ttsPlugin = () => ({
         }
       }
 
+      // Marketing Group Websites Gateway (dev parity with Cloudflare Edge /api/marketing-sites/*)
+      if (req.url && req.url.startsWith('/api/marketing-sites/')) {
+        try {
+          const parsedUrl = new URL(req.url, 'http://localhost:5180');
+          const rawBody =
+            req.method === 'POST'
+              ? await new Promise<string>((resolve) => {
+                  let buf = '';
+                  req.on('data', (chunk: any) => {
+                    buf += chunk;
+                  });
+                  req.on('end', () => resolve(buf));
+                })
+              : '{}';
+          // @ts-ignore - pure ESM Node helper
+          const gw = await import('./scripts/lib/marketingSitesGateway.mjs');
+          const out = await gw.handleMarketingSitesGateway({
+            method: req.method || 'GET',
+            pathname: parsedUrl.pathname,
+            origin: `http://${req.headers.host || 'localhost:5180'}`,
+            body: JSON.parse(rawBody || '{}'),
+            country: 'SA',
+            supabaseUrl: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '',
+            serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '',
+          });
+          res.statusCode = out.status;
+          for (const [hk, hv] of Object.entries(out.headers || {})) {
+            res.setHeader(hk, String(hv));
+          }
+          if (out.rawBody !== undefined) {
+            res.end(out.rawBody);
+          } else {
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify(out.jsonBody || {}));
+          }
+        } catch (err: any) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ ok: false, error: err?.message || 'Gateway error' }));
+        }
+        return;
+      }
+
       // KAS Supabase Session Bridge (dev parity with Cloudflare Edge /api/auth/supabase-session)
       if (req.url && req.url.startsWith('/api/auth/supabase-session') && req.method === 'POST') {
         res.setHeader('Content-Type', 'application/json; charset=utf-8');

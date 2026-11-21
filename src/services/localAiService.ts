@@ -52,7 +52,7 @@ export function isPrivilegedAiCrossSectionUser(user: any): boolean {
     email === 'a.salif.dev@kas.sa' ||
     id === 'KAS-EMP-034' ||
     email === 'khalid@kas.sa' ||
-    email === 'h.alsalim@kas.sa' ||
+    email === 'hani@kas.sa' ||
     email === 'n.alshetwi@kas.sa' ||
     email === 'chairman@alsulaim.sa'
   ) {

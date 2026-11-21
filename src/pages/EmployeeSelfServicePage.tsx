@@ -1859,7 +1859,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
       id: `DEL-${Date.now().toString().slice(-5)}`,
       company_id: safeCompanyCode,
       from_manager_id: 'mgr-ops',
-      from_manager_name: user?.full_name || 'هاني عبدالله السليم (المدير المباشر)',
+      from_manager_name: user?.full_name || 'المستشار هاني السليم (المدير المباشر)',
       to_delegate_id: `del-${Date.now().toString().slice(-3)}`,
       to_delegate_name: delToName.trim(),
       start_date: delStart,
@@ -2146,7 +2146,9 @@ export const EmployeeSelfServicePage: React.FC = () => {
       </div>
 
       {activeTab === 'HELPDESK_CIRCULARS' && (
-        <HrHelpdeskAndCircularsHub companyId={activeCompany?.id || 'SAF'} />
+        <HrHelpdeskAndCircularsHub
+          companyId={user?.company_id && user.company_id !== 'all' ? user.company_id : 'SAF'}
+        />
       )}
 
       {activeTab === 'WALLET' && (

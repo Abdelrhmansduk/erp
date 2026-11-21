@@ -624,7 +624,7 @@ class EnterpriseErrorMonitorService {
     this.notifySubscribers();
 
     // Update existing incident row (never re-insert same id, which caused HTTP 409 conflict loops)
-    void realErpDataStore.updateRecord('system_error_logs', target.id, {
+    void realErpDataStore.updateRecord<{ id: string; status?: string; healed_at?: string }>('system_error_logs', target.id, {
       status: target.statusLabelAr,
       healed_at: nowStr,
     });

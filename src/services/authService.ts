@@ -401,6 +401,12 @@ export const CORPORATE_DEPARTMENTS: Record<DepartmentId, DepartmentDefinition> =
     allowedSections: ['crm-section', 'operations-section', 'complaints-group', 'messages-section'],
     allowedTabs: [
       'kas-commercial',
+      'crm-marketing-hub',
+      'marketing-campaigns',
+      'crm-leads-pipeline',
+      'marketing-studio',
+      'crm-promos-referrals',
+      'csat-surveys',
       'clients',
       'client-list',
       'new-client',
@@ -666,7 +672,7 @@ export interface StaffDirectoryEntry {
  * to their company (`company_id`) and their specific department (`department_id`).
  */
 export const CORPORATE_STAFF_DIRECTORY: StaffDirectoryEntry[] = [
-  // ─── 0. القائمة الرسمية المعتمدة لموظفي مجموعة خالد السليم (@kas.sa — 69 حساباً معتمداً) ────
+  // ─── 0. القائمة الرسمية المعتمدة لموظفي مجموعة خالد السليم (@kas.sa — 68 حساباً معتمداً) ────
   ...KAS_ALLOWED_EMPLOYEES.map((emp) => ({
     id: emp.id,
     username: emp.username,

@@ -1,6 +1,6 @@
 /**
  * Cryptographic Salted Password Hashes & Strong Password Policy Engine
- * for the 69 Official @kas.sa Corporate Employees (مجموعة خالد السليم القابضة).
+ * for the 68 Official @kas.sa Corporate Employees (مجموعة خالد السليم القابضة).
  *
  * SECURITY ARCHITECTURE:
  * - ZERO plaintext passwords are stored in source code or repository history.
@@ -295,7 +295,7 @@ function timingSafeHexEqual(a: string, b: string): boolean {
  */
 export const KAS_EMPLOYEE_PASSWORD_HASHES: Readonly<Record<string, string>> = Object.freeze({
   'khalid@kas.sa': 'ff34f658502b381a3074e1edb4c57a58ff19709779813ad422d8c0787148f52c',
-  'h.alsalim@kas.sa': 'a15aebc824ed5267129e1fc1b7112dfefcc72edcc57c90162c153a4be82ed8df',
+  'hani@kas.sa': 'a15aebc824ed5267129e1fc1b7112dfefcc72edcc57c90162c153a4be82ed8df',
   'n.alshetwi@kas.sa': 'd3e0b180c58d8a272758b82b918da3d62a24911b0e602fec789939ba3a808f3a',
   'a.salif.dev@kas.sa': '5940f9904b9e1eab033845c74e4036d5497a6114a95f868bfe73613820812393',
   'hr@kas.sa': 'bf0cc41690a091647c071eaaecaed89f21887aa21014945711a3f794f0ae12ef',
@@ -356,7 +356,6 @@ export const KAS_EMPLOYEE_PASSWORD_HASHES: Readonly<Record<string, string>> = Ob
   'k.alshennawy.trade@kas.sa': '1fcec7b39891115c30b001495bc5ed5271dcf575fff2797dcbf68bec4947568b',
   'm.robel.trade@kas.sa': '8f648a3b640f51d959d9488a966e19a1e562efd46e622f58df8184d6e8ac8732',
   'b.pathan.trade@kas.sa': '54c881e7eb7e2673329261113213ec8c0f8c493851e611723e3822b862a6e68b',
-  'mustafa.marketing@kas.sa': '1f44cecd5f6c0b451f088c337568aa9c653aa8d07d2ec771066beeed68d27f81',
   'm.alkhader.marketing@kas.sa': '57ec1ae42fb97dca3b35f9bc774c47b2496a67fb44e33d20f4133625663e99ba',
   'nagati.marketing@kas.sa': '6bba72fe84878806a47fac3405dd15b4cd9b5b3c67cee345202f53d88595edad',
   'm.almontaser.marketing@kas.sa': '53308588e74d18c67f1e2955f09aa6ca941c059337594e5346dad0cb4fae3fb5',
@@ -463,14 +462,22 @@ export function saveCustomEmployeePassword(email: string, newPlainPassword: stri
   }
 }
 
+/** Maps renamed corporate emails to their original salt email so existing issued passwords keep working. */
+const LEGACY_PASSWORD_SALT_EMAIL: Readonly<Record<string, string>> = Object.freeze({
+  'hani@kas.sa': 'h.alsalim@kas.sa',
+});
+
 function matchesExpectedKasHash(email: string, password: string, expectedHash: string): boolean {
   if (!expectedHash) return false;
+  const legacySaltEmail = LEGACY_PASSWORD_SALT_EMAIL[email.trim().toLowerCase()];
   if (expectedHash.startsWith('pbkdf2:')) {
     const actualPbkdf2 = computeKasPbkdf2Digest(email, password);
-    return timingSafeHexEqual(actualPbkdf2, expectedHash);
+    if (timingSafeHexEqual(actualPbkdf2, expectedHash)) return true;
+    return Boolean(legacySaltEmail && timingSafeHexEqual(computeKasPbkdf2Digest(legacySaltEmail, password), expectedHash));
   }
   const actualDigest = computeKasPasswordDigest(email, password);
-  return timingSafeHexEqual(actualDigest, expectedHash);
+  if (timingSafeHexEqual(actualDigest, expectedHash)) return true;
+  return Boolean(legacySaltEmail && timingSafeHexEqual(computeKasPasswordDigest(legacySaltEmail, password), expectedHash));
 }
 
 /** Verifies whether the supplied password matches the employee's active strong password (custom or issued). */

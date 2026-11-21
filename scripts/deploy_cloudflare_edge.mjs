@@ -264,6 +264,14 @@ async function deployMainEdgeWorker(assetsJwt) {
     );
     console.log(`  🔐 Session bridge inlined (${Object.keys(hashes).length} employee digests)`);
   }
+
+  // Inline the Marketing Group Websites Gateway (OpenAnalytics + OpenSEO + Lead Webhook)
+  const sitesGatewayPath = path.join(ROOT, 'scripts', 'lib', 'marketingSitesGateway.mjs');
+  if (workerSource.includes('/*__KAS_MARKETING_SITES_GATEWAY__*/') && fs.existsSync(sitesGatewayPath)) {
+    const sitesGatewaySrc = fs.readFileSync(sitesGatewayPath, 'utf8').replace(/^export\s+/gm, '');
+    workerSource = workerSource.replace('/*__KAS_MARKETING_SITES_GATEWAY__*/', `${sitesGatewaySrc}\n`);
+    console.log('  🌐 Marketing Group Websites Gateway inlined (/api/marketing-sites/*)');
+  }
   const metadata = {
     main_module: 'edge-worker.mjs',
     compatibility_date: '2026-11-01',

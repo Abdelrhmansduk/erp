@@ -18,6 +18,11 @@
       "layer": "finance-compliance-exports"
     },
     {
+      "name": "managing-saudi-crm-marketing",
+      "path": ".agents/skills/managing-saudi-crm-marketing/SKILL.md",
+      "layer": "crm-marketing-growth"
+    },
+    {
       "name": "saudi-voice-copilot-tts",
       "path": ".agents/skills/saudi-voice-copilot-tts/SKILL.md",
       "layer": "voice-ai-copilot"
@@ -80,6 +85,9 @@
     "ui-review",
     "xlsx-official",
     "analytics-tracking",
+    "ad-campaign-analyzer",
+    "ad-creative",
+    "odoo-sales-crm-expert",
     "voice-agents",
     "flutter-expert",
     "android_ui_verification",

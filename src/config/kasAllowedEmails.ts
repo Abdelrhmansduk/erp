@@ -46,6 +46,11 @@ export const EXCLUDED_KAS_EMAILS: Record<string, { nameAr: string; titleAr: stri
     titleAr: 'بوفيه',
     reasonAr: 'رفض أمني: هذا الحساب مخصص لمطبخ البوفيه ومستبعد نهائياً من الدخول على أنظمة المجموعة.',
   },
+  'mustafa.marketing@kas.sa': {
+    nameAr: 'مصطفي عبدالرحيم جلال الدين',
+    titleAr: 'مدير الدعاية والتسويق (سابقاً)',
+    reasonAr: 'رفض أمني: تم حذف وإيقاف هذا الحساب نهائياً لانتهاء العلاقة الوظيفية بالمجموعة.',
+  },
 };
 
 /**
@@ -58,7 +63,7 @@ export const KAS_EMAIL_NAMING_STANDARD = [
   { entityAr: 'التجارة', suffix: 'trade', company_id: 'KAS' as KasCompanyCode, department_id: 'tenders' as KasDepartmentId, defaultTab: 'kas-suite' },
   { entityAr: 'متابعة خارجية', suffix: 'followup', company_id: 'all' as KasCompanyCode, department_id: 'ats' as KasDepartmentId, defaultTab: 'transactions-followup' },
   { entityAr: 'السفير الماسي', suffix: 'safir', company_id: 'SAF' as KasCompanyCode, department_id: 'recruitment' as KasDepartmentId, defaultTab: 'recruitment-contracts' },
-  { entityAr: 'التسويق', suffix: 'marketing', company_id: 'all' as KasCompanyCode, department_id: 'crm' as KasDepartmentId, defaultTab: 'clients' },
+  { entityAr: 'التسويق', suffix: 'marketing', company_id: 'all' as KasCompanyCode, department_id: 'crm' as KasDepartmentId, defaultTab: 'crm-marketing-hub' },
   { entityAr: 'محاسب', suffix: 'acc', company_id: 'SAF' as KasCompanyCode, department_id: 'finance' as KasDepartmentId, defaultTab: 'smacc-accounting' },
   { entityAr: 'المعرض', suffix: 'showroom', company_id: 'KAS' as KasCompanyCode, department_id: 'crm' as KasDepartmentId, defaultTab: 'kas-commercial' },
   { entityAr: 'مبيعات التفاويض', suffix: 'sales', company_id: 'SAF' as KasCompanyCode, department_id: 'recruitment' as KasDepartmentId, defaultTab: 'ingaz-delegations' },
@@ -71,7 +76,7 @@ export const KAS_EMAIL_NAMING_STANDARD = [
 ] as const;
 
 /**
- * Complete Whitelist of 69 Official @kas.sa Accounts (out of 70 total, with #68 Osama Saeed excluded)
+ * Complete Whitelist of 68 Official @kas.sa Accounts (with Osama Saeed & former staff excluded)
  */
 export const KAS_ALLOWED_EMPLOYEES: KasAllowedEmployee[] = [
   // ─── 1. الإدارة التنفيذية العليا وتطوير الأعمال والبرمجة (Executive & Dev) ───────
@@ -93,10 +98,10 @@ export const KAS_ALLOWED_EMPLOYEES: KasAllowedEmployee[] = [
   {
     serial: 2,
     id: 'KAS-EMP-002',
-    username: 'h.alsalim',
-    email: 'h.alsalim@kas.sa',
-    nameAr: 'هاني عبدالله السليم',
-    nameEn: 'Hani Abdullah Al-Salim',
+    username: 'hani',
+    email: 'hani@kas.sa',
+    nameAr: 'المستشار هاني السليم',
+    nameEn: 'Advisor Hani Al-Salim',
     titleAr: 'استشاري تطوير أعمال',
     company_id: 'all',
     department_id: 'executive',
@@ -1051,36 +1056,20 @@ export const KAS_ALLOWED_EMPLOYEES: KasAllowedEmployee[] = [
 
   // ─── 9. قسم الدعاية والتسويق وصناعة المحتوى والعملاء (.marketing -> CRM) ───
   {
-    serial: 32,
-    id: 'KAS-EMP-032',
-    username: 'mustafa.marketing',
-    email: 'mustafa.marketing@kas.sa',
-    nameAr: 'مصطفي عبدالرحيم جلال الدين',
-    nameEn: 'Mostafa Abdelrahim Galal Al-Din',
-    titleAr: 'مدير الدعاية والتسويق',
-    company_id: 'all',
-    department_id: 'crm',
-    defaultTab: 'clients',
-    defaultTabTitle: 'بوابة إدارة الدعاية والتسويق وعلاقات العملاء (CRM)',
-    branch: 'المقر الرئيسي للمجموعة - الرياض',
-    suffixCode: 'marketing',
-    allowedTabsOverride: ['clients', 'complaints', 'client-portal', 'website-visitors', 'whatsapp-inbox', 'unified-communication', 'sent-messages', 'branch-communication', 'profile'],
-  },
-  {
     serial: 33,
     id: 'KAS-EMP-033',
     username: 'm.alkhader.marketing',
     email: 'm.alkhader.marketing@kas.sa',
     nameAr: 'معاذ عبدالكريم علي الخضر',
     nameEn: 'Moaz Abdulkarim Ali Al-Khader',
-    titleAr: 'موظف في الدعاية والتسويق',
+    titleAr: 'مسؤول الدعاية والتسويق وعلاقات العملاء',
     company_id: 'all',
     department_id: 'crm',
-    defaultTab: 'clients',
-    defaultTabTitle: 'بوابة الدعاية والتسويق والتواصل الموحد',
+    defaultTab: 'crm-marketing-hub',
+    defaultTabTitle: 'مركز قيادة التسويق والإعلانات وعلاقات العملاء (CRM)',
     branch: 'المقر الرئيسي للمجموعة - الرياض',
     suffixCode: 'marketing',
-    allowedTabsOverride: ['clients', 'website-visitors', 'whatsapp-inbox', 'unified-communication', 'sent-messages', 'branch-communication', 'profile'],
+    allowedTabsOverride: ['crm-marketing-hub', 'marketing-campaigns', 'crm-leads-pipeline', 'marketing-studio', 'crm-promos-referrals', 'csat-surveys', 'clients', 'complaints', 'client-portal', 'website-visitors', 'whatsapp-inbox', 'unified-communication', 'sent-messages', 'branch-communication', 'profile'],
   },
   {
     serial: 35,
@@ -1092,11 +1081,11 @@ export const KAS_ALLOWED_EMPLOYEES: KasAllowedEmployee[] = [
     titleAr: 'مصمم جرافيك',
     company_id: 'all',
     department_id: 'crm',
-    defaultTab: 'website-visitors',
-    defaultTabTitle: 'بوابة التصميم الإبداعي والدعاية والتسويق',
+    defaultTab: 'marketing-studio',
+    defaultTabTitle: 'استوديو التصميم الإبداعي والدعاية والتسويق',
     branch: 'المقر الرئيسي للمجموعة - الرياض',
     suffixCode: 'marketing',
-    allowedTabsOverride: ['clients', 'website-visitors', 'whatsapp-inbox', 'unified-communication', 'sent-messages', 'branch-communication', 'profile'],
+    allowedTabsOverride: ['marketing-studio', 'crm-marketing-hub', 'clients', 'website-visitors', 'whatsapp-inbox', 'unified-communication', 'sent-messages', 'branch-communication', 'profile'],
   },
   {
     serial: 36,
@@ -1108,11 +1097,11 @@ export const KAS_ALLOWED_EMPLOYEES: KasAllowedEmployee[] = [
     titleAr: 'صانع محتوي مرئي ومصور',
     company_id: 'all',
     department_id: 'crm',
-    defaultTab: 'website-visitors',
-    defaultTabTitle: 'بوابة صناعة المحتوى المرئي والتسويق الرقمي',
+    defaultTab: 'marketing-studio',
+    defaultTabTitle: 'استوديو صناعة المحتوى المرئي والتسويق الرقمي',
     branch: 'المقر الرئيسي للمجموعة - الرياض',
     suffixCode: 'marketing',
-    allowedTabsOverride: ['clients', 'website-visitors', 'whatsapp-inbox', 'unified-communication', 'sent-messages', 'branch-communication', 'profile'],
+    allowedTabsOverride: ['marketing-studio', 'crm-marketing-hub', 'clients', 'website-visitors', 'whatsapp-inbox', 'unified-communication', 'sent-messages', 'branch-communication', 'profile'],
   },
   {
     serial: 37,
@@ -1121,14 +1110,14 @@ export const KAS_ALLOWED_EMPLOYEES: KasAllowedEmployee[] = [
     email: 'a.magdy.marketing@kas.sa',
     nameAr: 'عبدالرحمن مجدي',
     nameEn: 'Abdulrahman Magdy',
-    titleAr: 'فريق مصطفي الدعاية',
+    titleAr: 'فريق الدعاية والتسويق',
     company_id: 'all',
     department_id: 'crm',
-    defaultTab: 'clients',
-    defaultTabTitle: 'بوابة فريق الدعاية والتسويق والحملات',
+    defaultTab: 'crm-leads-pipeline',
+    defaultTabTitle: 'بوابة الفرص البيعية والحملات التسويقية',
     branch: 'المقر الرئيسي للمجموعة - الرياض',
     suffixCode: 'marketing',
-    allowedTabsOverride: ['clients', 'website-visitors', 'whatsapp-inbox', 'unified-communication', 'sent-messages', 'branch-communication', 'profile'],
+    allowedTabsOverride: ['crm-leads-pipeline', 'crm-marketing-hub', 'marketing-studio', 'crm-promos-referrals', 'clients', 'website-visitors', 'whatsapp-inbox', 'unified-communication', 'sent-messages', 'branch-communication', 'profile'],
   },
   {
     serial: 38,
@@ -1137,14 +1126,14 @@ export const KAS_ALLOWED_EMPLOYEES: KasAllowedEmployee[] = [
     email: 'a.mirghani.marketing@kas.sa',
     nameAr: 'عبدالرحمن مرغني',
     nameEn: 'Abdulrahman Mirghani',
-    titleAr: 'فريق مصطفي الدعاية',
+    titleAr: 'فريق الدعاية والتسويق',
     company_id: 'all',
     department_id: 'crm',
-    defaultTab: 'clients',
-    defaultTabTitle: 'بوابة فريق الدعاية والتسويق والحملات',
+    defaultTab: 'crm-leads-pipeline',
+    defaultTabTitle: 'بوابة الفرص البيعية والحملات التسويقية',
     branch: 'المقر الرئيسي للمجموعة - الرياض',
     suffixCode: 'marketing',
-    allowedTabsOverride: ['clients', 'website-visitors', 'whatsapp-inbox', 'unified-communication', 'sent-messages', 'branch-communication', 'profile'],
+    allowedTabsOverride: ['crm-leads-pipeline', 'crm-marketing-hub', 'marketing-studio', 'crm-promos-referrals', 'clients', 'website-visitors', 'whatsapp-inbox', 'unified-communication', 'sent-messages', 'branch-communication', 'profile'],
   },
   {
     serial: 69,
@@ -1156,11 +1145,11 @@ export const KAS_ALLOWED_EMPLOYEES: KasAllowedEmployee[] = [
     titleAr: 'أخصائي تسويق ودعاية',
     company_id: 'all',
     department_id: 'crm',
-    defaultTab: 'clients',
-    defaultTabTitle: 'بوابة الدعاية والتسويق وعلاقات العملاء',
+    defaultTab: 'crm-marketing-hub',
+    defaultTabTitle: 'مركز قيادة التسويق والإعلانات وعلاقات العملاء',
     branch: 'المقر الرئيسي للمجموعة - الرياض',
     suffixCode: 'marketing',
-    allowedTabsOverride: ['clients', 'website-visitors', 'whatsapp-inbox', 'unified-communication', 'sent-messages', 'branch-communication', 'profile'],
+    allowedTabsOverride: ['crm-marketing-hub', 'marketing-campaigns', 'crm-leads-pipeline', 'marketing-studio', 'crm-promos-referrals', 'clients', 'website-visitors', 'whatsapp-inbox', 'unified-communication', 'sent-messages', 'branch-communication', 'profile'],
   },
 ];
 

@@ -43,23 +43,28 @@ function buildProfileForKasEmail(email: string): UserProfile {
 }
 
 describe('KAS Official Email Whitelist & 9-Department / Standalone KAS Trade RBAC', () => {
-  it('contains exactly 69 authorized @kas.sa staff accounts and permanently blocks Osama Saeed (Buffet Kitchen)', () => {
-    expect(KAS_ALLOWED_EMPLOYEES).toHaveLength(69);
+  it('contains exactly 68 authorized @kas.sa staff accounts and permanently blocks Osama Saeed (Buffet Kitchen) & removed account mustafa.marketing@kas.sa', () => {
+    expect(KAS_ALLOWED_EMPLOYEES).toHaveLength(68);
     expect(EXCLUDED_KAS_EMAILS['o.saeed.hospitality@kas.sa']).toBeDefined();
+    expect(EXCLUDED_KAS_EMAILS['mustafa.marketing@kas.sa']).toBeDefined();
 
     const blockedCheck = validateAllowedCorporateEmail('o.saeed.hospitality@kas.sa');
     expect(blockedCheck.allowed).toBe(false);
     expect(blockedCheck.reason).toContain('مطبخ البوفيه');
 
+    const removedMustafaCheck = validateAllowedCorporateEmail('mustafa.marketing@kas.sa');
+    expect(removedMustafaCheck.allowed).toBe(false);
+
     const unlistedKasCheck = validateAllowedCorporateEmail('intruder.unknown@kas.sa');
     expect(unlistedKasCheck.allowed).toBe(false);
 
-    // Every single approved @kas.sa employee has a salted SHA-256 strong password digest; excluded account has none
-    expect(Object.keys(KAS_EMPLOYEE_PASSWORD_HASHES)).toHaveLength(69);
+    // Every single approved @kas.sa employee has a salted SHA-256 strong password digest; excluded accounts have none
+    expect(Object.keys(KAS_EMPLOYEE_PASSWORD_HASHES)).toHaveLength(68);
     for (const emp of KAS_ALLOWED_EMPLOYEES) {
       expect(KAS_EMPLOYEE_PASSWORD_HASHES[emp.email.toLowerCase()]).toMatch(/^[0-9a-f]{64}$/);
     }
     expect(KAS_EMPLOYEE_PASSWORD_HASHES['o.saeed.hospitality@kas.sa']).toBeUndefined();
+    expect(KAS_EMPLOYEE_PASSWORD_HASHES['mustafa.marketing@kas.sa']).toBeUndefined();
   });
 
   it('enforces complete two-way separation between Standalone KAS Trade Company (KAS) and Recruitment/Shelter', () => {
@@ -90,7 +95,7 @@ describe('KAS Official Email Whitelist & 9-Department / Standalone KAS Trade RBA
     // 2. Non-KAS employees (Recruitment, Rental, Shelter, Followup, Marketing) must be 100% blocked from KAS Trade
     const safirStaff = buildProfileForKasEmail('h.hassan.safir@kas.sa');
     const followupStaff = buildProfileForKasEmail('m.fouda.followup@kas.sa');
-    const marketingStaff = buildProfileForKasEmail('mustafa.marketing@kas.sa');
+    const marketingStaff = buildProfileForKasEmail('m.alkhader.marketing@kas.sa');
     const shelterStaff = buildProfileForKasEmail('r.aljbr.housing@kas.sa');
 
     for (const recUser of [safirStaff, followupStaff, marketingStaff, shelterStaff]) {

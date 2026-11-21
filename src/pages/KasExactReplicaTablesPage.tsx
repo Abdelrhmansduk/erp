@@ -1014,7 +1014,7 @@ export const KasExactReplicaTablesPage: React.FC = () => {
             >
               قسم مستقل داخل منظومة كاس (KAS-XLSM)
             </span>
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#262626] text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#262626] text-white border border-white/20 flex items-center gap-1">
               <CheckCircle2 className="w-3 h-3" />
               <span>مرتبط لحظياً مع قسم المنافسات وجداول الكميات (BOQ)</span>
             </span>
@@ -1204,7 +1204,7 @@ export const KasExactReplicaTablesPage: React.FC = () => {
       {showNewSheetModal && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div
-            className="bg-white border-2 border-black rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-xl"
+            className="bg-white border-2 border-[#141414] rounded-[24px] max-w-lg w-full p-5 space-y-4"
             dir="rtl"
           >
             <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
@@ -1352,7 +1352,7 @@ export const KasExactReplicaTablesPage: React.FC = () => {
       {showPasteItemsModal && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div
-            className="bg-white border-2 border-black rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-xl"
+            className="bg-white border-2 border-[#141414] rounded-[24px] max-w-lg w-full p-5 space-y-4"
             dir="rtl"
           >
             <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">
@@ -1401,7 +1401,7 @@ export const KasExactReplicaTablesPage: React.FC = () => {
       {showMarginModal && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div
-            className="bg-white border-2 border-black rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl"
+            className="bg-white border-2 border-[#141414] rounded-[24px] max-w-sm w-full p-5 space-y-4"
             dir="rtl"
           >
             <div className="flex items-center justify-between border-b border-[#e0e0e0] pb-3">

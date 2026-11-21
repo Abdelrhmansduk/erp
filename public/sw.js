@@ -3,7 +3,7 @@
  * Version: 3.0.0 — Mobile Native Push, App Badging, Background Sync & Periodic Sync Engine
  */
 
-const CACHE_NAME = 'khalid-erp-pwa-v18-clean-20261121';
+const CACHE_NAME = 'khalid-erp-pwa-v19-clean-20261121';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/logo.png',

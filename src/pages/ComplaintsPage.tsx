@@ -8,7 +8,8 @@ import { useComplaints, useTableMutation } from '../hooks/queries/useErpQueries'
 import { useCompany } from '../contexts/CompanyContext';
 import { useAppStore } from '../stores/appStore';
 import { realErpDataStore } from '../services/realErpDataStore';
-import { Headphones, Plus, FileSpreadsheet, FileText, Search, Clock, AlertTriangle, MessageSquare, Building2, Check, X, ShieldAlert, Send, Trash2, Receipt, DollarSign } from 'lucide-react';
+import { DEFAULT_CSAT_SURVEYS, type CrmCsatSurvey } from '../services/crmMarketingEngine';
+import { Headphones, Plus, FileSpreadsheet, FileText, Search, Clock, AlertTriangle, MessageSquare, Building2, Check, X, ShieldAlert, Send, Trash2, Receipt, DollarSign, Star } from 'lucide-react';
 
 export interface ComplaintTicket {
   id: string;
@@ -115,16 +116,28 @@ export const ComplaintsPage: React.FC = () => {
     { id: 'CLM-2026-082', client: 'سارة أحمد محمد', ref: 'REC-2026-0089', reason: 'تعويض تأخير وصول أكثر من المدة النظامية', amount: 1500, iban: 'SA1220000001283920194821', status: 'تم التحويل والإيداع' },
     { id: 'CLM-2026-083', client: 'شركة دار الرواد', ref: 'RC-2026-0010', reason: 'استرجاع مبلغ تأمين سكن عقد منتهي', amount: 3000, iban: 'SA9050000004810294819203', status: 'معتمد بانتظار التحويل' },
   ]);
+  const [csatSurveys, setCsatSurveys] = useState<CrmCsatSurvey[]>(DEFAULT_CSAT_SURVEYS);
+  const [csatForm, setCsatForm] = useState({
+    client_name: '',
+    client_phone: '',
+    contract_ref: '',
+    trigger_stage: 'delivery' as CrmCsatSurvey['trigger_stage'],
+    csat_score: 5,
+    nps_score: 10,
+    feedback_text: '',
+  });
 
   useEffect(() => {
     let active = true;
     Promise.all([
       realErpDataStore.getRecords<InterCompanyDispute>('crm_inter_disputes', MOCK_INTER_DISPUTES),
       realErpDataStore.getRecords<any>('crm_refund_claims', refundClaims),
-    ]).then(([disp, claims]) => {
+      realErpDataStore.getRecords<CrmCsatSurvey>('crm_csat_surveys', DEFAULT_CSAT_SURVEYS),
+    ]).then(([disp, claims, surveys]) => {
       if (!active) return;
       if (disp?.length) setInterDisputes(disp);
       if (claims?.length) setRefundClaims(claims);
+      if (surveys?.length) setCsatSurveys(surveys);
     }).catch(() => {});
     return () => {
       active = false;
@@ -133,10 +146,11 @@ export const ComplaintsPage: React.FC = () => {
 
   const storeActiveTab = useAppStore(state => state.activeTab);
 
-  const getMappedTab = (tabKey: string): 'tickets' | 'claims' | 'types' | 'inter-company' | 'escalated' | 'whatsapp' | 'analytics' => {
+  const getMappedTab = (tabKey: string): 'tickets' | 'claims' | 'types' | 'inter-company' | 'escalated' | 'whatsapp' | 'analytics' | 'csat' => {
     switch (tabKey) {
       case 'compensation-claims': return 'claims';
       case 'complaint-types': return 'types';
+      case 'csat-surveys': return 'csat';
       case 'complaint-analytics':
       case 'sla-tracking':
         return 'analytics';
@@ -149,7 +163,7 @@ export const ComplaintsPage: React.FC = () => {
     }
   };
 
-  const [activeTab, setActiveTab] = useState<'tickets' | 'claims' | 'types' | 'inter-company' | 'escalated' | 'whatsapp' | 'analytics'>(() => getMappedTab(storeActiveTab));
+  const [activeTab, setActiveTab] = useState<'tickets' | 'claims' | 'types' | 'inter-company' | 'escalated' | 'whatsapp' | 'analytics' | 'csat'>(() => getMappedTab(storeActiveTab));
 
   useEffect(() => {
     setActiveTab(getMappedTab(storeActiveTab));
@@ -422,7 +436,8 @@ export const ComplaintsPage: React.FC = () => {
           { id: 'inter-company', label: 'شكاوى ونزاعات الشركات للإدارة العليا' },
           { id: 'escalated', label: 'الشكاوى المصعدة للمشرفين' },
           { id: 'whatsapp', label: 'محادثات الواتساب الحية' },
-          { id: 'analytics', label: 'تحليلات أسباب الشكاوى (RCA)' }
+          { id: 'analytics', label: 'تحليلات أسباب الشكاوى (RCA)' },
+          { id: 'csat', label: `تقييمات الرضا CSAT / NPS وخرائط جوجل (${csatSurveys.length})` }
         ].map(tab => (
           <button
             key={tab.id}
@@ -881,6 +896,200 @@ export const ComplaintsPage: React.FC = () => {
                 • <strong>متوسط زمن حل الشكوى</strong>: 6.4 ساعات فقط.
               </p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* CSAT / NPS & Google Maps Review Routing View */}
+      {activeTab === 'csat' && (
+        <div className="space-y-4">
+          <div className="p-6 rounded-[24px] bg-white border border-[#e0e0e0] space-y-4">
+            <h3 className="text-sm font-bold text-[#141414] m-0 flex items-center gap-2">
+              <Star className="w-4 h-4 text-[#141414]" />
+              <span>تسجيل تقييم رضا عميل (CSAT / NPS) — توجيه تلقائي لخرائط جوجل أو تذكرة استباقية</span>
+            </h3>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!csatForm.client_name.trim()) return;
+                const score = Number(csatForm.csat_score) || 5;
+                const isFiveStar = score === 5;
+                const isLowScore = score <= 2;
+                const newSurvey: CrmCsatSurvey = {
+                  id: `CSAT-${Date.now().toString().slice(-4)}`,
+                  company_id: activeCompanyId !== 'all' ? activeCompanyId : 'SAF',
+                  client_name: csatForm.client_name.trim(),
+                  client_phone: csatForm.client_phone.trim(),
+                  contract_ref: csatForm.contract_ref.trim(),
+                  branch: 'فرع الرياض الرئيسي',
+                  trigger_stage: csatForm.trigger_stage,
+                  csat_score: score,
+                  nps_score: Number(csatForm.nps_score) || 9,
+                  feedback_text: csatForm.feedback_text.trim(),
+                  google_review_prompted: isFiveStar,
+                  proactive_followup_created: isLowScore,
+                  created_at: new Date().toISOString(),
+                };
+                const next = [newSurvey, ...csatSurveys];
+                setCsatSurveys(next);
+                await realErpDataStore.saveRecords('crm_csat_surveys', next);
+
+                if (isLowScore) {
+                  await createItem.mutateAsync({
+                    id: `c-csat-${Date.now()}`,
+                    company_id: newSurvey.company_id,
+                    ticket_no: `TK-PRO-${Date.now().toString().slice(-4)}`,
+                    client_name: newSurvey.client_name,
+                    client_phone: newSurvey.client_phone || '+966500000000',
+                    category: 'جودة وسلوك',
+                    contract_ref: newSurvey.contract_ref || 'تقييم استباقي',
+                    priority: 'عاجل طارئ',
+                    status: 'جديدة',
+                    sla_hours_left: 4,
+                    assigned_agent: 'فريق العناية الاستباقية بالعملاء',
+                    branch: newSurvey.branch,
+                    description: `تنبيه مبكر من استبيان الرضا (${score}/5): ${newSurvey.feedback_text || 'تقييم منخفض يحتاج معالجة فورية'}`,
+                  });
+                }
+
+                setCsatForm({
+                  client_name: '',
+                  client_phone: '',
+                  contract_ref: '',
+                  trigger_stage: 'delivery',
+                  csat_score: 5,
+                  nps_score: 10,
+                  feedback_text: '',
+                });
+
+                addNotification({
+                  title: isFiveStar
+                    ? 'تقييم 5 نجوم — تم توليد دعوة تقييم خرائط جوجل'
+                    : isLowScore
+                    ? 'تنبيه تقييم منخفض — تم فتح تذكرة معالجة استباقية'
+                    : 'تم حفظ استبيان رضا العميل',
+                  message: `تم توثيق تقييم (${newSurvey.client_name}) بدرجة ${score}/5 و NPS ${newSurvey.nps_score}/10.`,
+                  type: isLowScore ? 'warning' : 'success',
+                });
+              }}
+              className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end text-xs"
+            >
+              <div>
+                <label className="block font-bold text-[#707070] mb-1">اسم العميل *</label>
+                <input
+                  type="text"
+                  required
+                  value={csatForm.client_name}
+                  onChange={(e) => setCsatForm({ ...csatForm, client_name: e.target.value })}
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-[#707070] mb-1">الجوال</label>
+                <input
+                  type="text"
+                  value={csatForm.client_phone}
+                  onChange={(e) => setCsatForm({ ...csatForm, client_phone: e.target.value })}
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 font-mono"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-[#707070] mb-1">مرحلة القياس</label>
+                <select
+                  value={csatForm.trigger_stage}
+                  onChange={(e) =>
+                    setCsatForm({
+                      ...csatForm,
+                      trigger_stage: e.target.value as CrmCsatSurvey['trigger_stage'],
+                    })
+                  }
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3"
+                >
+                  <option value="delivery">عند التسليم</option>
+                  <option value="day_30">مرور 30 يوماً</option>
+                  <option value="day_90">إقفال ضمان 90 يوماً</option>
+                  <option value="ticket_closed">بعد إغلاق الشكوى</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold text-[#707070] mb-1">الرضا CSAT (1-5)</label>
+                <select
+                  value={csatForm.csat_score}
+                  onChange={(e) => setCsatForm({ ...csatForm, csat_score: Number(e.target.value) })}
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3 font-mono"
+                >
+                  <option value={5}>5 / 5 (ممتاز)</option>
+                  <option value={4}>4 / 5 (جيد جداً)</option>
+                  <option value={3}>3 / 5 (مقبول)</option>
+                  <option value={2}>2 / 5 (غير راضٍ)</option>
+                  <option value={1}>1 / 5 (يحتاج تدخل فوري)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold text-[#707070] mb-1">ملاحظة العميل</label>
+                <input
+                  type="text"
+                  value={csatForm.feedback_text}
+                  onChange={(e) => setCsatForm({ ...csatForm, feedback_text: e.target.value })}
+                  className="w-full bg-[#f3f3f3] border border-[#e0e0e0] rounded-2xl py-2 px-3"
+                />
+              </div>
+              <button type="submit" className="button-primary-pill h-[38px] text-xs font-bold">
+                حفظ التقييم
+              </button>
+            </form>
+          </div>
+
+          <div className="rounded-[24px] bg-white border border-[#e0e0e0] overflow-hidden">
+            <table className="w-full text-right text-xs text-[#141414]">
+              <thead className="bg-[#f3f3f3] border-b border-[#e0e0e0] font-bold">
+                <tr>
+                  <th className="p-3.5">العميل والعقد</th>
+                  <th className="p-3.5">مرحلة التقييم</th>
+                  <th className="p-3.5">CSAT / NPS</th>
+                  <th className="p-3.5">تعليق العميل</th>
+                  <th className="p-3.5">الأتمتة المنفذة</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#e0e0e0]">
+                {csatSurveys.map((s) => (
+                  <tr key={s.id} className="hover:bg-[#f3f3f3]/70">
+                    <td className="p-3.5">
+                      <div className="font-bold">{s.client_name}</div>
+                      <div className="text-[11px] text-[#707070] font-mono">
+                        {s.client_phone} {s.contract_ref ? `• ${s.contract_ref}` : ''}
+                      </div>
+                    </td>
+                    <td className="p-3.5 font-semibold">
+                      {s.trigger_stage === 'delivery'
+                        ? 'عند التسليم'
+                        : s.trigger_stage === 'day_30'
+                        ? 'بعد 30 يوماً'
+                        : s.trigger_stage === 'day_90'
+                        ? 'ضمان 90 يوماً'
+                        : 'إغلاق شكوى'}
+                    </td>
+                    <td className="p-3.5 font-mono font-bold">
+                      {s.csat_score}/5 • NPS {s.nps_score}/10
+                    </td>
+                    <td className="p-3.5 text-[#707070]">{s.feedback_text || '—'}</td>
+                    <td className="p-3.5">
+                      {s.google_review_prompted ? (
+                        <span className="px-2.5 py-0.5 rounded-full bg-[#141414] text-white text-[11px] font-bold">
+                          دعوة تقييم خرائط جوجل
+                        </span>
+                      ) : s.proactive_followup_created ? (
+                        <span className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] border border-[#141414] text-[11px] font-bold">
+                          تذكرة معالجة استباقية
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-[#707070]">مؤرشف بالسجل</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

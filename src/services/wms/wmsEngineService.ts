@@ -37,6 +37,7 @@ import {
   WmsStockQuant,
   WmsStockVoucher,
   WmsTenderReservation,
+  WmsTrackingMode,
   WmsVoucherLine,
   WmsVoucherType,
   WmsWarehouse,

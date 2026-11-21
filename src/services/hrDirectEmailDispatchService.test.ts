@@ -263,7 +263,7 @@ describe('Direct Network HR Email Delivery (Zero .eml Downloads)', () => {
         clientSecret: 'kas-test-client-val',
       },
       subject: 'Official Graph HR Notice',
-      toEmails: ['h.alsalim@kas.sa'],
+      toEmails: ['hani@kas.sa'],
       ccEmails: ['Khalid@kas.sa'],
       cidHtmlBody: `<p>مرحباً بكم</p><img src="cid:${KAS_GROUP_LOGO_CID}" />`,
       inlineLogoBase64: KAS_TRADING_GROUP_LOGO_BASE64,
@@ -319,7 +319,7 @@ describe('Direct Network HR Email Delivery (Zero .eml Downloads)', () => {
         method: 'POST',
         body: {
           subject: 'Test unconfigured gateway',
-          toEmails: ['h.alsalim@kas.sa'],
+          toEmails: ['hani@kas.sa'],
         },
       };
       let responseStatus = 0;

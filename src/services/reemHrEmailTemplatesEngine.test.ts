@@ -124,9 +124,9 @@ describe('Reem HR Official Bilingual Email Engine (HR@kas.sa)', () => {
 
     const composed = composeReemHrOfficialEmail({
       templateId: 'CUSTOM_OFFICIAL_CORRESPONDENCE',
-      recipientEmails: ['h.alsalim@kas.sa'],
-      recipientNameAr: 'هاني عبدالله السليم',
-      recipientNameEn: 'Mr. Hani Abdullah Al-Salim',
+      recipientEmails: ['hani@kas.sa'],
+      recipientNameAr: 'المستشار هاني السليم',
+      recipientNameEn: 'Mr. Hani Al-Salim',
       customSubjectAr: 'اعتماد تنظيم حوافز التميز الميداني للربع الرابع',
       customSubjectEn: 'Q4 Field Excellence Incentive Regulation Approval',
       customBodyAr: customAr,
@@ -145,7 +145,7 @@ describe('Reem HR Official Bilingual Email Engine (HR@kas.sa)', () => {
 
     // Arabic Section Frame + Custom Body Verbatim Checks
     expect(composed.htmlBody).toContain('السلام عليكم ورحمة الله وبركاته');
-    expect(composed.htmlBody).toContain('الأستاذ / الأستاذة هاني عبدالله السليم المحترم/ة،');
+    expect(composed.htmlBody).toContain('الأستاذ / الأستاذة المستشار هاني السليم المحترم/ة،');
     expect(composed.htmlBody).toContain(
       'نفيدكم باعتماد التنظيم الإداري الجديد الخاص ببدلات التميز الميداني'
     );
@@ -163,7 +163,7 @@ describe('Reem HR Official Bilingual Email Engine (HR@kas.sa)', () => {
 
     // English Section Frame + Custom Body Verbatim Checks (Stacked after Arabic)
     expect(composed.htmlBody).toContain('Peace, mercy, and blessings of Allah be upon you.');
-    expect(composed.htmlBody).toContain('Dear Mr. Hani Abdullah Al-Salim,');
+    expect(composed.htmlBody).toContain('Dear Mr. Hani Al-Salim,');
     expect(composed.htmlBody).toContain(
       'Please be informed that the new operational directive governing field excellence allowances'
     );
@@ -226,7 +226,7 @@ describe('Reem HR Official Bilingual Email Engine (HR@kas.sa)', () => {
 
     const withAttachments = composeReemHrOfficialEmail({
       templateId: 'EMPLOYMENT_TRANSACTION_DECISION',
-      recipientEmails: ['h.alsalim@kas.sa'],
+      recipientEmails: ['hani@kas.sa'],
       attachments: [
         {
           fileName: 'قرار_اعتماد_الموارد_البشرية.pdf',
@@ -343,7 +343,7 @@ describe('Reem HR Official Bilingual Email Engine (HR@kas.sa)', () => {
       customBodyAr: longAr,
       customBodyEn: longEn,
     });
-    expect(broadcastComposed.toEmails).toHaveLength(69);
+    expect(broadcastComposed.toEmails).toHaveLength(68);
     expect(broadcastComposed.outlookWebUrl.length).toBeLessThanOrEqual(16000);
     expect(broadcastComposed.mailtoUrl.length).toBeLessThanOrEqual(9000);
     expect(new URL(broadcastComposed.outlookWebUrl).searchParams.get('body') || '').toContain(
@@ -417,7 +417,7 @@ describe('Reem HR Official Bilingual Email Engine (HR@kas.sa)', () => {
   it('strictly excludes EXCLUDED_KAS_EMAILS entries across resolveKasRecipients and composeReemHrOfficialEmail', () => {
     const excludedEmail = ['o.saeed.hospitality', '@kas.sa'].join('');
     const allRecipients = resolveKasRecipients();
-    expect(allRecipients.length).toBe(69);
+    expect(allRecipients.length).toBe(68);
     expect(
       allRecipients.some((emp) => emp.email.toLowerCase() === excludedEmail)
     ).toBe(false);
@@ -499,7 +499,7 @@ describe('Reem HR Official Bilingual Email Engine (HR@kas.sa)', () => {
     const excludedEmail = ['o.saeed.hospitality', '@kas.sa'].join('');
     const dirCfg = resolveConfig('kas_official_emails_directory', []);
     const defaultDirRows = resolveEffectiveMappedRows(dirCfg, []);
-    expect(defaultDirRows.length).toBe(69);
+    expect(defaultDirRows.length).toBe(68);
     expect(
       defaultDirRows.some((r) => String(r[5]).toLowerCase() === excludedEmail)
     ).toBe(false);

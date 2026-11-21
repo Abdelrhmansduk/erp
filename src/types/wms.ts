@@ -318,6 +318,8 @@ export interface WmsAuditLog {
   company_id: WmsCompanyId;
   action:
     | 'ITEM_CREATED'
+    | 'CATEGORY_CREATED'
+    | 'WAREHOUSE_CREATED'
     | 'ITEM_UPDATED'
     | 'ITEM_DELETED'
     | 'ITEM_RESTORED'
@@ -456,6 +458,8 @@ export interface WmsSettings {
   approvalThresholdSar?: number;
   cycleCountVarianceApprovalPct?: number;
   enforceMakerChecker?: boolean;
+  defaultGlInventoryAccount?: string;
+  defaultGlExpenseAccount?: string;
   updatedBy: string;
   updatedAt: string;
 }

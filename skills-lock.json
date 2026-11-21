@@ -43,6 +43,12 @@
       "skillPath": ".agents/skills/saudi-erp-compliance/SKILL.md",
       "computedHash": "793ce43203fd6a3c017798ae53ff84a38ad7b967b1ab21673d864885e55e1a81"
     },
+    "managing-saudi-crm-marketing": {
+      "source": "erp-group-alsulaim/local-skill",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/managing-saudi-crm-marketing/SKILL.md",
+      "computedHash": "282fd1de28424b99b2c9a78d1b25b3f285e82a057e0acd3ace66c6ad10d813c9"
+    },
     "saudi-voice-copilot-tts": {
       "source": "erp-group-alsulaim/local-skill",
       "sourceType": "local",
@@ -53,7 +59,7 @@
       "source": "erp-group-alsulaim/local-skill",
       "sourceType": "local",
       "skillPath": ".agents/skills/supabase-integration/SKILL.md",
-      "computedHash": "d109031c84c74e476ba0cd49dab8a454460b7e6770ed7f50a2a887f56b50d7ef"
+      "computedHash": "516da1a56e8fe58ffb842710fd8745c0e22d6b5b4387dfdecabfe791b5791836"
     },
     "supabase": {
       "source": "erp-group-alsulaim/local-skill",

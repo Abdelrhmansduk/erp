@@ -68,6 +68,43 @@ export const SECTION_CONFIGS: Record<string, SectionExportConfig> = {
     ]
   },
 
+  marketing_campaigns: {
+    sectionTitle: 'تقرير الحملات الإعلانية الممولة والعائد على الإنفاق (ROAS)',
+    headers: ['كود الحملة', 'اسم الحملة', 'الشركة', 'المنصة الإعلانية', 'الميزانية (⃁)', 'المنصرف (⃁)', 'النقرات', 'نسبة CTR', 'العملاء المحتملون', 'العقود المغلقة', 'تكلفة العقد CPA (⃁)', 'العائد ROAS', 'توصية المحلل'],
+    dataMapper: (r: any) => [
+      r.campaign_code || r.id || '',
+      r.name || '',
+      r.company_id || '',
+      r.platform || '',
+      r.budget_sar || 0,
+      r.spent_sar || 0,
+      r.clicks || 0,
+      r.ctr_pct || '',
+      r.leads_count || 0,
+      r.won_contracts_count || 0,
+      r.cpa_sar || 0,
+      r.roas || '',
+      r.verdict || r.status || ''
+    ]
+  },
+
+  crm_leads: {
+    sectionTitle: 'سجل الفرص البيعية والعملاء المحتملين (CRM Pipeline)',
+    headers: ['رقم الفرصة', 'اسم العميل المحتمل', 'الجوال', 'الشركة', 'القناة الإعلانية', 'الخدمة المطلوبة', 'المرحلة', 'الاحتمال (%)', 'القيمة المتوقعة (⃁)', 'المندوب المسؤول'],
+    dataMapper: (r: any) => [
+      r.lead_no || r.id || '',
+      r.full_name || '',
+      r.phone || '',
+      r.company_id || '',
+      r.source_platform || '',
+      r.service_interest || '',
+      r.stage || '',
+      r.probability_pct || 0,
+      r.estimated_value_sar || 0,
+      r.assigned_to_name || ''
+    ]
+  },
+
   // 2. الطلبات والحجوزات
   orders: {
     sectionTitle: 'تقرير طلبات واستفسارات الاستقدام',

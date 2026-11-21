@@ -92,6 +92,7 @@ const OfficesPage = lazyWithRetry(() => import('./pages/OfficesPage').then(m => 
 const FinancialRequestsPage = lazyWithRetry(() => import('./pages/FinancialRequestsPage').then(m => ({ default: m.FinancialRequestsPage })));
 const FinancePage = lazyWithRetry(() => import('./pages/FinancePage').then(m => ({ default: m.FinancePage })));
 const ClientsPage = lazyWithRetry(() => import('./pages/ClientsPage').then(m => ({ default: m.ClientsPage })));
+const CrmMarketingHubPage = lazyWithRetry(() => import('./pages/CrmMarketingHubPage').then(m => ({ default: m.CrmMarketingHubPage })));
 const HRPage = lazyWithRetry(() => import('./pages/HRPage').then(m => ({ default: m.HRPage })));
 const ReportsPage = lazyWithRetry(() => import('./pages/ReportsPage').then(m => ({ default: m.ReportsPage })));
 const SettingsPage = lazyWithRetry(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
@@ -681,6 +682,7 @@ const MainContent: React.FC = () => {
       case 'create-complaint':
       case 'complaint-types':
       case 'compensation-claims':
+      case 'csat-surveys':
         return <ComplaintsPage />;
 
       case 'offices':
@@ -768,6 +770,13 @@ const MainContent: React.FC = () => {
       case 'smacc-modules':
       case 'sales-collectors':
         return <SmaccModulesPage />;
+
+      case 'crm-marketing-hub':
+      case 'marketing-campaigns':
+      case 'crm-leads-pipeline':
+      case 'marketing-studio':
+      case 'crm-promos-referrals':
+        return <CrmMarketingHubPage />;
 
       case 'clients':
       case 'client-list':

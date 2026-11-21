@@ -263,14 +263,14 @@ describe('Online Google 2FA & Google Authenticator Service', () => {
     expect(getLoginChallengeForUser(TEST_KAS_EMAIL).required).toBe(false);
   });
 
-  it('provisions a unique, isolated Google Authenticator 2FA secret, QR code, and backup codes for every employee (69 employees)', async () => {
+  it('provisions a unique, isolated Google Authenticator 2FA secret, QR code, and backup codes for every employee (68 employees)', async () => {
     const directory = getAllEmployeesAuthenticatorDirectory('all');
-    expect(directory.length).toBe(69);
+    expect(directory.length).toBe(68);
 
     const secrets = new Set(directory.map((d) => d.totpSecret));
     const uris = new Set(directory.map((d) => d.otpAuthUri));
-    expect(secrets.size).toBe(69);
-    expect(uris.size).toBe(69);
+    expect(secrets.size).toBe(68);
+    expect(uris.size).toBe(68);
 
     // Provision single employee and test rotation
     const emp1Before = getEmployeeDedicatedAuthenticatorProfile('khalid@kas.sa');
@@ -311,16 +311,16 @@ describe('Online Google 2FA & Google Authenticator Service', () => {
       expect(crossCheck.crossEmployeeMismatch).toBe(true);
     }
 
-    // Bulk provision all 69 employees and run isolation audit
+    // Bulk provision all 68 employees and run isolation audit
     const bulk = provisionAllEmployeesDedicatedTotp();
-    expect(bulk.totalProvisioned).toBe(69);
-    expect(bulk.uniqueSecretsCount).toBe(69);
+    expect(bulk.totalProvisioned).toBe(68);
+    expect(bulk.uniqueSecretsCount).toBe(68);
 
     const audit = await auditAllEmployeesDedicatedTotpIsolation(fixedTime);
-    expect(audit.totalEmployees).toBe(69);
-    expect(audit.uniqueSecretsCount).toBe(69);
-    expect(audit.uniqueQrUrisCount).toBe(69);
-    expect(audit.enabledTotpCount).toBe(69);
+    expect(audit.totalEmployees).toBe(68);
+    expect(audit.uniqueSecretsCount).toBe(68);
+    expect(audit.uniqueQrUrisCount).toBe(68);
+    expect(audit.enabledTotpCount).toBe(68);
     expect(audit.zeroSecretCollisions).toBe(true);
     expect(audit.allSelfCodesVerified).toBe(true);
     expect(audit.crossEmployeeIsolationVerified).toBe(true);

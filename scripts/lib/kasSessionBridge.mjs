@@ -21,6 +21,7 @@ const KAS_PBKDF2_SALT_PREFIX = 'KAS-PBKDF2-V1|';
 const KAS_PBKDF2_ITERATIONS = 100000;
 const KAS_PASSWORD_STRETCH_ROUNDS = 256;
 const KAS_BRIDGE_EXCLUDED_EMAILS = ['o.saeed.hospitality@kas.sa', 'o.saeed.hospitality@kas-erp.com'];
+const KAS_BRIDGE_LEGACY_SALT_EMAIL = { 'hani@kas.sa': 'h.alsalim@kas.sa' };
 
 function kasBridgeHex(buf) {
   const bytes = new Uint8Array(buf);
@@ -62,10 +63,15 @@ function kasBridgeTimingSafeEqual(a, b) {
 async function kasBridgeVerifyPassword(hashes, email, password) {
   const expected = hashes[email];
   if (!expected) return false;
-  const actual = expected.startsWith('pbkdf2:')
-    ? await kasBridgePbkdf2Digest(email, password)
-    : await kasBridgeLegacyDigest(email, password);
-  return kasBridgeTimingSafeEqual(actual, expected);
+  const legacySalt = KAS_BRIDGE_LEGACY_SALT_EMAIL[email];
+  const check = async (saltEmail) => {
+    const actual = expected.startsWith('pbkdf2:')
+      ? await kasBridgePbkdf2Digest(saltEmail, password)
+      : await kasBridgeLegacyDigest(saltEmail, password);
+    return kasBridgeTimingSafeEqual(actual, expected);
+  };
+  if (await check(email)) return true;
+  return legacySalt ? check(legacySalt) : false;
 }
 
 async function kasBridgeFindAuthUserId(supabaseUrl, serviceKey, email) {

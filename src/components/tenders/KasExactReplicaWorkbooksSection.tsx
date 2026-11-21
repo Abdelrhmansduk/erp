@@ -609,7 +609,7 @@ export const KasExactReplicaWorkbooksSection: React.FC<
                 className="px-3.5 py-2 rounded-xl bg-[#141414] hover:bg-[#262626] text-[#ffffff] text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
                 title="الانتقال الفوري للقسم الآخر في كاس للتأكد من انعكاس التعديلات والإضافات لحظياً"
               >
-                <ArrowRightLeft className="w-3.5 h-3.5 text-emerald-400" />
+                <ArrowRightLeft className="w-3.5 h-3.5 text-white" />
                 <span>الانتقال إلى: {otherSectionLabel}</span>
               </button>
             )}
@@ -3234,7 +3234,7 @@ export const KasExactReplicaWorkbooksSection: React.FC<
             left: Math.min(mouseContextMenu.x, window.innerWidth - 320),
             zIndex: 100080,
           }}
-          className="bg-white border-2 border-black rounded-xl shadow-2xl p-2 w-[310px] space-y-1 font-sans text-right"
+          className="bg-white border-2 border-[#141414] rounded-[20px] p-2 w-[310px] space-y-1 font-sans text-right"
           dir="rtl"
           onClick={(e) => e.stopPropagation()}
         >

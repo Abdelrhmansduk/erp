@@ -519,7 +519,7 @@ export const HrSmartAlertsAndComplianceHub: React.FC<HrSmartAlertsAndComplianceH
       }
 
       return {
-        email: 'h.alsalim@kas.sa',
+        email: 'hani@kas.sa',
         nameAr: cleanName || 'الزميلات والزملاء الكرام في القسم المختص',
         nameEn: 'Respected Department Colleagues',
       };

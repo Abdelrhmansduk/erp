@@ -1020,7 +1020,7 @@ export const EnterpriseAccountingModulesHub: React.FC<EnterpriseAccountingModule
                   <th className="p-2.5">اسم الأصل الثابت (قابل للتعديل)</th>
                   <th className="p-2.5">البند المعياري</th>
                   <th className="p-2.5">تاريخ الشراء</th>
-                  <th className="p-2.5 font-mono">التكلفة (SAR)</th>
+                  <th className="p-2.5 font-mono">التكلفة (⃁)</th>
                   <th className="p-2.5 font-mono">الخردة</th>
                   <th className="p-2.5 font-mono">نسبة الإهلاك %</th>
                   <th className="p-2.5 font-mono">مجمع سابق</th>
@@ -1156,7 +1156,7 @@ export const EnterpriseAccountingModulesHub: React.FC<EnterpriseAccountingModule
                 <thead className="bg-[#f3f3f3] text-[#141414] font-bold border-b border-[#e0e0e0]">
                   <tr>
                     <th className="p-2.5">بند الإقرار الضريبي (ZATCA)</th>
-                    <th className="p-2.5 font-mono">المبلغ الخاضع (SAR)</th>
+                    <th className="p-2.5 font-mono">المبلغ الخاضع (⃁)</th>
                     <th className="p-2.5 font-mono">قيمة الضريبة 15%</th>
                   </tr>
                 </thead>
@@ -1238,7 +1238,7 @@ export const EnterpriseAccountingModulesHub: React.FC<EnterpriseAccountingModule
                   <tr>
                     <th className="p-2.5">مكونات الوعاء الزكوي الشرعي</th>
                     <th className="p-2.5">المرجع</th>
-                    <th className="p-2.5 font-mono">المبلغ (SAR)</th>
+                    <th className="p-2.5 font-mono">المبلغ (⃁)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#e0e0e0]">
@@ -1524,7 +1524,7 @@ export const EnterpriseAccountingModulesHub: React.FC<EnterpriseAccountingModule
                   <th className="p-3">مركز التكلفة المسؤول</th>
                   <th className="p-3 font-mono">الفعلي (Actual)</th>
                   <th className="p-3 font-mono">الموازنة التقديرية (Budget)</th>
-                  <th className="p-3 font-mono">الانحراف (SAR)</th>
+                  <th className="p-3 font-mono">الانحراف (⃁)</th>
                   <th className="p-3 font-mono">نسبة الانحراف %</th>
                   <th className="p-3">حالة الأداء</th>
                 </tr>

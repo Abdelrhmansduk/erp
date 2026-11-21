@@ -265,7 +265,7 @@ function getSeedCirculars(companyId: string): HrCircularRecord[] {
 }
 
 export function getTargetEmployeesForCircular(circular: HrCircularRecord) {
-  const excluded = new Set(Array.from(EXCLUDED_KAS_EMAILS).map((e) => String(e).toLowerCase()));
+  const excluded = new Set(Object.keys(EXCLUDED_KAS_EMAILS).map((e) => e.toLowerCase()));
   const active = KAS_ALLOWED_EMPLOYEES.filter(
     (emp) => !excluded.has(emp.email.toLowerCase())
   );

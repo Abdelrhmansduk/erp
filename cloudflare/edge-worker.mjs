@@ -10,6 +10,7 @@
  */
 
 /*__KAS_SESSION_BRIDGE__*/
+/*__KAS_MARKETING_SITES_GATEWAY__*/
 
 const SECURITY_HEADERS = {
   'X-Frame-Options': 'DENY',
@@ -1106,6 +1107,31 @@ export default {
     // 7f. Faris & Noura Secure Cloud Brain (/api/ai-chat) — Azure OpenAI (key never leaves the edge)
     if (path === '/api/ai-chat') {
       return handleAiChat(request, env, ctx);
+    }
+
+    // 7h. Marketing Group Websites & EveryApp-Style Modular Gateway (/api/marketing-sites/*)
+    if (path.startsWith('/api/marketing-sites/')) {
+      // eslint-disable-next-line no-undef
+      if (typeof handleMarketingSitesGateway !== 'function') {
+        return jsonResponse({ ok: false, error: 'Marketing sites gateway not bundled' }, 503);
+      }
+      const parsedBody =
+        request.method === 'POST' ? await request.json().catch(() => ({})) : {};
+      // eslint-disable-next-line no-undef
+      const out = await handleMarketingSitesGateway({
+        method: request.method,
+        pathname: path,
+        origin: url.origin,
+        body: parsedBody,
+        country: cf.country || 'SA',
+        supabaseUrl: env.SUPABASE_URL || env.VITE_SUPABASE_URL,
+        serviceKey: env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SECRET_KEY,
+        assetsFetcher: env.ASSETS,
+      });
+      if (out.rawBody !== undefined) {
+        return new Response(out.rawBody, { status: out.status, headers: out.headers || {} });
+      }
+      return jsonResponse(out.jsonBody || {}, out.status, out.headers || {});
     }
 
     // 7g. KAS Supabase Session Bridge (/api/auth/supabase-session)

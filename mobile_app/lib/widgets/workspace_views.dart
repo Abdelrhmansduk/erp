@@ -1215,8 +1215,8 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
   late final TextEditingController _reemBodyEnController;
 
   List<String> _resolveReemScopeEmails(String scope) {
-    if (scope.contains('Khalid@kas.sa') && scope.contains('h.alsalim@kas.sa')) {
-      return const ['Khalid@kas.sa', 'h.alsalim@kas.sa'];
+    if (scope.contains('Khalid@kas.sa') && scope.contains('hani@kas.sa')) {
+      return const ['Khalid@kas.sa', 'hani@kas.sa'];
     }
     if (scope.contains('n.alshetwi@kas.sa')) {
       return const ['n.alshetwi@kas.sa'];
@@ -1229,7 +1229,7 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
     }
     return const [
       'Khalid@kas.sa',
-      'h.alsalim@kas.sa',
+      'hani@kas.sa',
       'n.alshetwi@kas.sa',
       'HR@kas.sa',
       'a.farahat@kas.sa',
@@ -1256,7 +1256,7 @@ class _EnterpriseModuleWorkspaceViewState extends State<EnterpriseModuleWorkspac
 
   static const List<String> _reemScopeOptions = [
     'جميع الأقسام (69 حساب @kas.sa)',
-    'الإدارة العليا وتطوير الأعمال (Khalid@kas.sa • h.alsalim@kas.sa)',
+    'الإدارة العليا وتطوير الأعمال (Khalid@kas.sa • hani@kas.sa)',
     'التطوير والمتابعة (n.alshetwi@kas.sa)',
     'الموارد البشرية والشؤون الإدارية (HR@kas.sa)',
     'الإيواء والخدمات اللوجستية (a.farahat@kas.sa)',
