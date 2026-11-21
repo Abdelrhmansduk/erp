@@ -48,7 +48,7 @@ jobs:
 
       - name: Checkout Repository
         if: steps.cf_check.outputs.configured == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js 22
         if: steps.cf_check.outputs.configured == 'true'
