@@ -1987,8 +1987,6 @@ export async function verifyExternalAgencyCredentialsAsync(
         if (hasMockedRpc) {
           return withRpcTimeout<any>(supabase.rpc(fnName, params));
         }
-        const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 3500);
         try {
           const action = fnName === 'resolve_external_agency_email' ? 'resolve' : 'verify';
           const resp = await fetch('/api/external-agency-auth', {
@@ -1999,7 +1997,7 @@ export async function verifyExternalAgencyCredentialsAsync(
               identifier: params.p_identifier,
               passwordDigest: params.p_password_digest,
             }),
-            signal: ctrl.signal,
+            signal: AbortSignal.timeout(3500),
           });
           if (!resp.ok) {
             return { data: null, error: new Error(`HTTP ${resp.status}`) };
@@ -2011,8 +2009,6 @@ export async function verifyExternalAgencyCredentialsAsync(
           };
         } catch (err) {
           return { data: null, error: err };
-        } finally {
-          clearTimeout(timer);
         }
       };
 

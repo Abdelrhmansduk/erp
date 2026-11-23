@@ -79,6 +79,7 @@
     }
   ],
   "linkedGlobalSkills": [
+    "modern-web-guidance",
     "zustand-store-ts",
     "react-component-performance",
     "ui-a11y",

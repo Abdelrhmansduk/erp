@@ -7,9 +7,9 @@ describe('EnterpriseErrorMonitorService', () => {
     sessionStorage.clear();
   });
 
-  it('returns initial seed incidents and valid system health summary', () => {
+  it('starts with zero synthetic seed incidents and valid system health summary', () => {
     const incidents = errorMonitorService.getIncidents();
-    expect(incidents.length).toBeGreaterThanOrEqual(3);
+    expect(incidents).toHaveLength(0);
 
     const summary = errorMonitorService.getSystemHealthSummary();
     expect(summary.healthScore).toBeGreaterThanOrEqual(80);

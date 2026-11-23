@@ -650,7 +650,7 @@ export class HrShiftAttendanceEngine {
 
     grouped.forEach((group) => {
       if (group.punchesMinutes.length === 0) return;
-      const sorted = [...group.punchesMinutes].sort((a, b) => a - b);
+      const sorted = group.punchesMinutes.toSorted((a, b) => a - b);
       const minPunch = sorted[0];
       const maxPunch = sorted.length > 1 ? sorted[sorted.length - 1] : minPunch + 480;
 

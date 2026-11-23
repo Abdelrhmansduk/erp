@@ -30,42 +30,7 @@ interface ClientContract {
   flightDetails?: string;
 }
 
-const DEFAULT_MOCK_CONTRACTS: ClientContract[] = [
-  {
-    id: 'c-101',
-    contractNumber: 'MSN-2026-8941',
-    workerName: 'مريم أديس تيجيست',
-    profession: 'عاملة منزلية',
-    nationality: 'إثيوبيا',
-    passportNumber: 'EP8894120',
-    status: 'حجز الطيران',
-    progressPct: 85,
-    startDate: '2026-07-15',
-    expectedArrival: '2026-09-05',
-    amount: 14500,
-    paidAmount: 11000,
-    guaranteeDaysLeft: 90,
-    agencyName: 'وكالة دماس الدولية (DAMAS ETH)',
-    flightDetails: 'الخطوط السعودية SV-840 - الوصول: مطار الملك خالد الدولي بالرياض',
-  },
-  {
-    id: 'c-102',
-    contractNumber: 'MSN-2026-7730',
-    workerName: 'جويسانتي فلوريس',
-    profession: 'عاملة منزلية ورعاية كبار سن',
-    nationality: 'الفلبين',
-    passportNumber: 'P9920145',
-    status: 'مكتمل ومسلم',
-    progressPct: 100,
-    startDate: '2026-05-10',
-    expectedArrival: '2026-07-20',
-    amount: 18500,
-    paidAmount: 18500,
-    guaranteeDaysLeft: 48,
-    agencyName: 'بلاتينيوم مانيلا (PLATINUM PH)',
-    flightDetails: 'تم الوصول والتسليم بنجاح',
-  },
-];
+const DEFAULT_MOCK_CONTRACTS: ClientContract[] = [];
 
 export const ClientPortalPage: React.FC = () => {
   const { activeCompany } = useCompany();

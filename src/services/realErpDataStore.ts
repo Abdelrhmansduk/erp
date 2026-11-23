@@ -10,6 +10,7 @@
 import { supabase, isDummySupabase } from './supabaseClient';
 import { journalEngine } from './accounting/journalEngine';
 import { decryptStoragePayload, encryptStoragePayload } from '../utils/securitySanitizers';
+import { erpIndexedStorage } from './storage/erpIndexedStorage';
 
 const STORAGE_PREFIX = 'ALSULAIM_ERP_DB_V1_';
 const DATA_MODE_KEY = 'ALSULAIM_ERP_DATA_MODE';
@@ -91,6 +92,103 @@ function resolveSupabaseTableName(entityKey: string): string {
   return aliasMap[entityKey] || entityKey;
 }
 
+const SUPABASE_HR_COLUMN_ALLOWLISTS: Record<string, Set<string>> = {
+  employees: new Set([
+    'id', 'company_id', 'employee_code', 'name', 'national_id', 'job_title', 'department',
+    'branch', 'hire_date', 'salary', 'status', 'created_at', 'nationality', 'is_saudi',
+    'bank_code', 'iban', 'basic_salary', 'housing_allowance', 'transport_allowance',
+    'other_allowances', 'gosi_number', 'qiwa_contract_id', 'contract_type', 'iqama_expiry_date',
+    'passport_number', 'passport_expiry_date', 'contract_end_date', 'medical_insurance_expiry',
+    'leave_balance', 'grade', 'system_role', 'signature_status', 'compliance_hash', 'manager_id',
+    'pay_group', 'shift_id', 'cost_center_allocations', 'annual_ticket_allowance',
+    'medical_insurance_annual_cost', 'prior_sick_days_used_ytd', 'religion', 'passport_expiry',
+    'qiwa_contract_expiry', 'probation_days', 'is_disabled_saudi',
+    'is_student_or_flexible_saudi', 'name_en', 'marital_status', 'gender', 'qualification',
+    'birth_date', 'national_address', 'emergency_contact_name', 'emergency_contact_phone',
+    'qiwa_contract_no', 'medical_insurance_provider', 'default_shift_id', 'contract_family_status',
+  ]),
+  hr_leave_requests: new Set([
+    'id', 'company_id', 'employee_id', 'employee_name', 'vacation_type', 'pay_rate_percent',
+    'balance_before', 'from_date', 'to_date', 'days_count', 'balance_after',
+    'replacement_employee', 'notes', 'approved_by', 'status', 'created_at',
+  ]),
+  hr_advances: new Set([
+    'id', 'company_id', 'employee_id', 'employee_name', 'payment_method', 'amount',
+    'paid_amount', 'remaining_amount', 'installments_count', 'monthly_installment', 'date',
+    'reason', 'approved_by', 'status', 'created_at', 'advance_type', 'deferred_months',
+  ]),
+  hr_promotions: new Set([
+    'id', 'company_id', 'employee_id', 'employee_name', 'employee_code', 'previous_job_title',
+    'new_job_title', 'previous_department', 'new_department', 'previous_grade', 'new_grade',
+    'previous_salary', 'new_salary', 'increment_amount', 'increment_percentage', 'effective_date',
+    'performance_rating', 'promotion_reason', 'system_role_updated', 'approved_by', 'status', 'created_at',
+  ]),
+  hr_sanctions: new Set([
+    'id', 'company_id', 'employee_id', 'employee_name', 'sanction_type', 'violation_degree',
+    'amount', 'date', 'deduct_from_salary', 'payroll_month', 'reason', 'status', 'created_at',
+  ]),
+  hr_permissions: new Set([
+    'id', 'company_id', 'employee_id', 'employee_name', 'permission_type', 'date', 'time',
+    'hours_count', 'reason', 'status', 'created_at',
+  ]),
+  hr_rewards: new Set([
+    'id', 'company_id', 'employee_id', 'employee_name', 'reward_type', 'salary', 'net_reward',
+    'payout_timing', 'payroll_month', 'date', 'reason', 'status', 'created_at',
+  ]),
+  hr_digital_signage_screens: new Set([
+    'id', 'company_id', 'screen_code', 'screen_name_ar', 'branch_name', 'location_zone',
+    'ip_or_host', 'orientation', 'connection_type', 'is_online', 'last_heartbeat_at', 'created_at',
+  ]),
+  hr_welcome_broadcasts: new Set([
+    'id', 'company_id', 'company_name_ar', 'employee_id', 'employee_code', 'employee_name',
+    'job_title', 'department', 'branch', 'hire_date', 'buddy_name', 'headline_ar',
+    'welcome_quote_ar', 'target_screen_ids', 'slide_duration_seconds', 'is_active',
+    'expires_at', 'broadcasted_by', 'created_at',
+  ]),
+};
+
+const DATE_COLUMNS = new Set([
+  'hire_date', 'iqama_expiry_date', 'passport_expiry_date', 'contract_end_date',
+  'medical_insurance_expiry', 'birth_date', 'from_date', 'to_date', 'date', 'effective_date',
+]);
+
+function prepareSupabasePayload(tableName: string, raw: Record<string, any>): Record<string, any> {
+  const allowlist = SUPABASE_HR_COLUMN_ALLOWLISTS[tableName];
+  if (!allowlist) return raw;
+
+  const mapped: Record<string, any> = { ...raw };
+  if (tableName === 'employees') {
+    if (!mapped.iqama_expiry_date && mapped.iqama_expiry) {
+      mapped.iqama_expiry_date = mapped.iqama_expiry;
+    }
+    if (!mapped.passport_expiry_date && mapped.passport_expiry) {
+      mapped.passport_expiry_date = mapped.passport_expiry;
+    }
+    if (!mapped.bank_code && mapped.bank_name) {
+      mapped.bank_code = String(mapped.bank_name);
+    }
+  } else if (tableName === 'hr_leave_requests') {
+    if (!mapped.vacation_type && mapped.leave_type) mapped.vacation_type = mapped.leave_type;
+    if (!mapped.from_date && mapped.start_date) mapped.from_date = mapped.start_date;
+    if (!mapped.to_date && mapped.end_date) mapped.to_date = mapped.end_date;
+    if (mapped.balance_after === undefined && mapped.balance !== undefined) {
+      mapped.balance_after = mapped.balance;
+    }
+  }
+
+  const clean: Record<string, any> = {};
+  for (const [k, v] of Object.entries(mapped)) {
+    if (!allowlist.has(k) || v === undefined) continue;
+    if (DATE_COLUMNS.has(k)) {
+      const s = typeof v === 'string' ? v.trim() : '';
+      clean[k] = /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : null;
+    } else {
+      clean[k] = v;
+    }
+  }
+  return clean;
+}
+
 function syncEmployeeMirrorStore<T>(entityKey: string, data: T[]): void {
   if (entityKey === 'hr_employees') {
     saveLocalStore('employees', data);
@@ -170,45 +268,96 @@ function mergeRemoteWithPendingLocal<T extends { id: string | number }>(
   return [...localOnlyPending, ...mergedRemote];
 }
 
+const ZERO_DEMO_MIGRATION_KEY = 'ALSULAIM_ZERO_DEMO_MIGRATION_V1';
+
+const DEMO_TABLES_TO_PURGE = [
+  'contracts', 'recruitment-contracts', 'rent_contracts', 'rent-contracts',
+  'orders', 'clients', 'hr_promotions',
+  'hr_leave_requests', 'hr_advances', 'hr_sanctions', 'hr_permissions',
+  'hr_rewards', 'payroll_runs', 'eos_settlements', 'employee_contracts',
+  'cvs', 'shelter_inmates', 'shelter_records',
+  'complaints', 'sponsorship_transfers', 'ingaz_delegations', 'flights', 'travel_flights',
+  'finance_journals', 'finance_vouchers', 'company_journal_entries', 'journals',
+  'zatca_invoices', 'invoices', 'vouchers', 'financial_requests',
+  'attendances', 'custodies', 'activity_log', 'employee_executed_ops',
+  'hr_attendance_corrections', 'hr_approval_requests', 'hr_delegations',
+  'hr_accrual_runs', 'hr_muqeem_requests', 'hr_official_letters',
+  'hr_expense_claims', 'hr_business_trips', 'hr_corporate_candidates',
+  'hr_360_reviews', 'hr_training_courses', 'hr_offboarding_clearances',
+  'hr_shift_rosters', 'hr_shift_swap_requests',
+  'hr_disciplinary_records', 'hr_ewa_withdrawals', 'hr_smart_alerts',
+  'hr_official_emails', 'hr_onboarding_plans', 'hr_performance_reviews',
+  'hr_dependents', 'hr_overtime_records', 'hr_company_circulars', 'hr_circulars',
+  'hr_helpdesk_tickets', 'hr_final_settlements', 'hr_attendance_payroll_sync',
+  'hr_retroactive_adjustments', 'hr_exit_interviews',
+  'hr_onboarding_journeys', 'hr_welcome_broadcasts',
+  'agency_candidates', 'ats_candidates', 'agent_imports', 'offices',
+  'external_office_users', 'external_office_files', 'sent_messages',
+  'whatsapp_messages', 'employee_moods', 'telemetry_events',
+  'crm_marketing_campaigns', 'marketing-campaigns',
+  'crm_leads', 'crm-leads',
+  'crm_content_calendar', 'content-calendar',
+  'crm_promo_referrals', 'promo-referrals',
+  'crm_csat_surveys', 'csat-surveys',
+  'crm_group_websites',
+];
+
+function runOneTimeZeroDemoMigration(): void {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    if ((import.meta as any)?.env?.MODE === 'test') return;
+    if (window.localStorage.getItem(ZERO_DEMO_MIGRATION_KEY) === 'done') return;
+
+    for (const table of DEMO_TABLES_TO_PURGE) {
+      window.localStorage.removeItem(STORAGE_PREFIX + table);
+      window.localStorage.removeItem(PENDING_SYNC_PREFIX + resolveSupabaseTableName(table));
+    }
+
+    // Clear legacy shelter demo store keys
+    const legacyShelterKeys = [
+      'erp_shelter_workers_v1',
+      'erp_shelter_first_sponsors_v1',
+      'erp_shelter_accommodation_cases_v1',
+      'erp_shelter_transfer_cases_v1',
+      'erp_shelter_client_followups_v1',
+      'erp_shelter_worker_timeline_v1',
+      'ALSULAIM_ALL_28_EMP_OPS_SEEDED_V2',
+    ];
+    for (const k of legacyShelterKeys) {
+      window.localStorage.removeItem(k);
+    }
+
+    // Clear legacy synthetic COA / IFRS Trial Balance sample balances across LocalStorage + IndexedDB
+    erpIndexedStorage.removeSync('ALSULAIM_ERP_DB_V1_company_journal_entries');
+    for (const comp of ['SAF', 'YAQ', 'TOP', 'DAR', 'KAS', 'ALL', 'HOLDING']) {
+      erpIndexedStorage.removeSync(`ALSULAIM_COA_V7_${comp}`);
+      erpIndexedStorage.removeSync(`ALSULAIM_IFRS_TB_V3_${comp}`);
+      erpIndexedStorage.removeSync(`ALSULAIM_IFRS_SETTINGS_V3_${comp}`);
+    }
+
+    window.localStorage.setItem(ZERO_DEMO_MIGRATION_KEY, 'done');
+  } catch {
+    // ignore storage restrictions
+  }
+}
+
+runOneTimeZeroDemoMigration();
+
 export const realErpDataStore = {
   getDataMode,
   setDataMode,
 
   /**
-   * Purge all demo / mock records from local storage across all tables
-   * Leaving clean, genuine production tables
+   * Purge all demo / mock records from local storage across operational tables
+   * Strictly preserving KAS Trading, Mahmoud Fouda / External Agencies Excel, and official @kas.sa employees
    */
   purgeAllDemoData(): void {
-    const tables = [
-      'contracts', 'recruitment-contracts', 'rent_contracts', 'rent-contracts',
-      'orders', 'clients', 'employees', 'hr_employees', 'hr_promotions',
-      'hr_leave_requests', 'hr_advances', 'hr_sanctions', 'hr_permissions',
-      'hr_rewards', 'payroll_runs', 'eos_settlements', 'employee_contracts',
-      'cvs', 'shelter_inmates', 'shelter_records',
-      'complaints', 'sponsorship_transfers', 'ingaz_delegations', 'flights',
-      'finance_journals', 'finance_vouchers', 'company_journal_entries',
-      'zatca_invoices', 'cost_centers', 'attendances', 'custodies', 'activity_log',
-      'hr_shifts', 'hr_geofence_locations', 'hr_attendance_corrections',
-      'hr_workflow_definitions', 'hr_approval_requests', 'hr_delegations',
-      'hr_accrual_runs', 'hr_muqeem_requests', 'hr_official_letters',
-      'hr_expense_claims', 'hr_business_trips', 'hr_corporate_candidates',
-      'hr_360_reviews', 'hr_training_courses', 'hr_offboarding_clearances',
-      'hr_shift_rosters', 'hr_shift_swap_requests', 'hr_public_holidays',
-      'hr_disciplinary_records', 'hr_ewa_withdrawals', 'hr_smart_alerts',
-      'hr_official_emails', 'hr_onboarding_plans', 'hr_performance_reviews',
-      'hr_dependents', 'hr_overtime_records', 'hr_company_circulars',
-      'hr_final_settlements', 'hr_attendance_payroll_sync', 'hr_employee_documents',
-      'hr_payroll_cutoff_configs', 'hr_retroactive_adjustments', 'hr_exit_interviews',
-      'hr_onboarding_journeys', 'hr_digital_signage_screens', 'hr_welcome_broadcasts',
-      'external_agencies_master', 'external_agency_accounts', 'musaned_followup_transactions',
-      'office_cv_export_presets', 'agency_candidates', 'sent_messages'
-    ];
     try {
       localStorage.setItem(EXPLICIT_PURGE_KEY, 'true');
     } catch (e) {
       // ignore
     }
-    tables.forEach(table => {
+    DEMO_TABLES_TO_PURGE.forEach(table => {
       try {
         localStorage.removeItem(STORAGE_PREFIX + table);
         localStorage.setItem(STORAGE_PREFIX + table, JSON.stringify([]));
@@ -368,7 +517,11 @@ export const realErpDataStore = {
     const supabaseTable = resolveSupabaseTableName(entityKey);
     if (!isDummySupabase && !isTestOrDemo) {
       try {
-        const { error } = await supabase.from(supabaseTable).insert([scopedRecord]);
+        const cleanPayload = prepareSupabasePayload(
+          supabaseTable,
+          scopedRecord as unknown as Record<string, any>
+        );
+        const { error } = await supabase.from(supabaseTable).upsert([cleanPayload]);
         if (error) {
           markPendingSyncId(supabaseTable, scopedRecord.id);
         } else {
@@ -429,7 +582,8 @@ export const realErpDataStore = {
     const supabaseTable = resolveSupabaseTableName(entityKey);
     if (!isDummySupabase) {
       try {
-        const { error } = await supabase.from(supabaseTable).update(patch as any).eq('id', id);
+        const cleanPatch = prepareSupabasePayload(supabaseTable, patch as Record<string, any>);
+        const { error } = await supabase.from(supabaseTable).update(cleanPatch as any).eq('id', id);
         if (error) {
           markPendingSyncId(supabaseTable, id);
         } else {

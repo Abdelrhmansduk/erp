@@ -23,63 +23,7 @@ export interface UnifiedCorrespondence {
   approved_by?: string;
 }
 
-const MOCK_CORRESPONDENCE: UnifiedCorrespondence[] = [
-  {
-    id: 'MEMO-101',
-    memo_no: 'SAF-ADM-2026-081',
-    sender_entity: 'شركة السفير الماسي للاستقدام',
-    recipient_entity: 'وكالة مانيلا الدولية (الفلبين)',
-    subject: 'طلب تفييز عاجل لـ 15 عقد استقدام مساند خاص بفرع الرياض',
-    category: 'طلب استقدام دولي',
-    priority: 'عاجل جداً',
-    body: 'نحيطكم علماً بصدور تأشيرات العمل لـ 15 عاملة منزلية، يرجى التكرم بحجز تذاكر الطيران على الخطوط السعودية وإشعارنا برقم الرحلة قبل نهاية الأسبوع.',
-    status: 'معتمد وموجه',
-    attachment_name: 'قائمة_تأشيرات_الرياض_مساند.pdf',
-    created_at: '2026-08-17 11:30',
-    approved_by: 'خالد السليم (الرئيس التنفيذي)'
-  },
-  {
-    id: 'MEMO-102',
-    memo_no: 'YAQ-HR-2026-042',
-    sender_entity: 'شركة ياقوت نجد (جدة)',
-    recipient_entity: 'شركة توباز للاستقدام (الدمام)',
-    subject: 'طلب تحويل 5 سير ذاتية لسائقين مهنيين لفرع الشرقية',
-    category: 'طلب نقل كفالة',
-    priority: 'عادي',
-    body: 'نظراً لاكتفاء فرع جدة من طلبات السائقين المهنيين ووجود طلبات شاغرة بفرع الدمام، نرجو الموافقة على تحويل السير المرفقة للمتابعة.',
-    status: 'معتمد وموجه',
-    attachment_name: 'سير_السائقين_المهنيين.pdf',
-    created_at: '2026-08-17 10:15',
-    approved_by: 'عبدالرحمن العتيبي (مدير العمليات)'
-  },
-  {
-    id: 'MEMO-103',
-    memo_no: 'GRP-FIN-2026-019',
-    sender_entity: 'الإدارة المركزية للمجموعة (Al-Sulaim HQ)',
-    recipient_entity: 'كافة شركات وفروع المجموعة (الرياض، جدة، الدمام)',
-    subject: 'تعميم إداري: اعتماد نموذج الفوترة الإلكترونية ZATCA Phase 2',
-    category: 'تعميم إداري',
-    priority: 'سري وهام',
-    body: 'التزاماً بتعليمات هيئة الزكاة والضريبة والجمارك، يمنع إصدار أي فاتورة يدوية ويجب تصدير كافة الفواتير حصرياً عبر محرك ZATCA المعتمد في المنظومة.',
-    status: 'معتمد وموجه',
-    attachment_name: 'دليل_الفوترة_المرحلة_الثانية.pdf',
-    created_at: '2026-08-16 09:00',
-    approved_by: 'الإدارة المالية العليا'
-  },
-  {
-    id: 'MEMO-104',
-    memo_no: 'DAR-OPS-2026-008',
-    sender_entity: 'شركة دار الرواد للمقاولات والتشغيل',
-    recipient_entity: 'قسم الإيواء والرعاية الموحد',
-    subject: 'طلب تجهيز سكن وإعاشة لـ 20 عاملاً لقطاع الضيافة',
-    category: 'خطاب رسمي',
-    priority: 'عاجل جداً',
-    body: 'يرجى ترتيب الوجبات الغذائية وتخصيص غرف الإيواء بمركز الرمال استعداداً لانطلاق العقد التشغيلي ابتداءً من الأسبوع القادم.',
-    status: 'قيد المراجعة',
-    attachment_name: 'جدول_الكوادر_التشغيلية.pdf',
-    created_at: '2026-08-15 14:20'
-  }
-];
+const MOCK_CORRESPONDENCE: UnifiedCorrespondence[] = [];
 
 export const UnifiedCommunicationCenterPage: React.FC = () => {
   const [correspondenceList, setCorrespondenceList] = useState<UnifiedCorrespondence[]>([]);

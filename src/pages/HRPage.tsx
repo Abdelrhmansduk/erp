@@ -86,7 +86,6 @@ import { HrTalent360OffboardingHub } from '../components/hr/HrTalent360Offboardi
 import { HrShiftRosterAndOvertimeHub } from '../components/hr/HrShiftRosterAndOvertimeHub';
 import { NewEmployeeWelcomeAndSignageHub } from '../components/hr/NewEmployeeWelcomeAndSignageHub';
 import {
-  DEFAULT_COMPANY_DISPLAY_SCREENS,
   runLiveSignageNetworkScan,
   triggerNewEmployeeOnboardingConsequences,
   type DigitalSignageScreenRecord,
@@ -118,8 +117,13 @@ import {
 } from '../services/hrSmartAlertsEngine';
 import { journalEngine } from '../services/accounting/journalEngine';
 import { maskNationalId, maskIban } from '../utils/pdplMasking';
-import { authService, KAS_ALLOWED_EMPLOYEES, CORPORATE_DEPARTMENTS } from '../services/authService';
+import { authService } from '../services/authService';
 import { useModuleVisibility } from '../hooks/useModuleVisibility';
+import {
+  isDemoOrSimulatedEmployeeRecord,
+  sanitizeHrDemoDataPreservingUserAdditions,
+} from '../services/hrUserAddedDataSanitizer';
+import { UserAddedHrDataModal } from '../components/hr/UserAddedHrDataModal';
 
 export interface EmployeeRecord {
   id: string;
@@ -296,205 +300,21 @@ export type PayrollLifecycleStage =
   | 'PAID_WPS'
   | 'LOCKED';
 
-const DEFAULT_MOCK_EMPLOYEES: EmployeeRecord[] = KAS_ALLOWED_EMPLOYEES.map((emp, idx) => {
-  const deptName = CORPORATE_DEPARTMENTS[emp.department_id]?.nameAr || emp.titleAr;
-  const isManager =
-    emp.department_id === 'executive' ||
-    emp.titleAr.includes('مدير') ||
-    emp.titleAr.includes('رئيس') ||
-    emp.titleAr.includes('مشرف');
-  const baseSal =
-    emp.department_id === 'executive'
-      ? 18000
-      : isManager
-      ? 11500
-      : emp.department_id === 'finance'
-      ? 9200
-      : 6800;
-  const managerId =
-    emp.id === 'KAS-EMP-001'
-      ? undefined
-      : emp.department_id === 'executive'
-      ? 'KAS-EMP-001'
-      : emp.department_id === 'hr'
-      ? emp.id === 'KAS-EMP-004'
-        ? 'KAS-EMP-001'
-        : 'KAS-EMP-004'
-      : emp.department_id === 'finance'
-      ? emp.id === 'KAS-EMP-039'
-        ? 'KAS-EMP-001'
-        : 'KAS-EMP-039'
-      : 'KAS-EMP-002';
-  return {
-    id: emp.id,
-    company_id: emp.company_id === 'all' ? 'HQ' : emp.company_id,
-    employee_code: emp.id,
-    name: `${emp.nameAr} (${emp.email})`,
-    national_id: `10${String(80000000 + idx * 13579).slice(0, 8)}`,
-    phone: `055${String(1000000 + idx * 7919).slice(0, 7)}`,
-    email: emp.email,
-    job_title: emp.titleAr,
-    department: deptName,
-    branch: emp.branch,
-    grade: isManager ? 'الدرجة الخامسة (قيادي / إشرافي)' : 'الدرجة الثالثة (أخصائي معتمد)',
-    hire_date: '2024-01-15',
-    salary: baseSal,
-    leave_balance: 30,
-    iban: `SA03800000006080${String(10000000 + idx * 97).slice(0, 8)}`,
-    bank_name: 'مصرف الراجحي',
-    iqama_expiry_date: '2027-09-15',
-    contract_end_date: '2027-12-31',
-    medical_insurance_expiry: '2027-06-30',
-    system_role: emp.titleAr,
-    manager_id: managerId,
-    signature_status: 'موقّع ومعتمد',
-    compliance_hash: `KAS-HR-${emp.id}`,
-    status: 'نشط',
-  };
-});
+const DEFAULT_MOCK_EMPLOYEES: EmployeeRecord[] = [];
 
-const DEFAULT_MOCK_PROMOTIONS: PromotionRecord[] = [
-  {
-    id: 'PROM-2026-001',
-    employee_id: 'KAS-EMP-034',
-    employee_name: 'عبدالرحمن أبو سالف (a.salif.dev@kas.sa)',
-    employee_code: 'KAS-EMP-034',
-    previous_job_title: 'مطور نظم برمجية',
-    new_job_title: 'مهندس برمجيات وتكامل الأنظمة الرقمية',
-    previous_department: 'تقنية المعلومات والتحول الرقمي',
-    new_department: 'تقنية المعلومات والتحول الرقمي',
-    previous_grade: 'الدرجة الرابعة (قائد فريق)',
-    new_grade: 'الدرجة الخامسة (مدير إدارة)',
-    previous_salary: 10000,
-    new_salary: 12500,
-    increment_amount: 2500,
-    increment_percentage: '25.0%',
-    effective_date: '2026-01-01',
-    performance_rating: 'استثنائي (5/5)',
-    promotion_reason: 'أتمتة العمليات الرقمية وربط الأنظمة الحكومية والمالية عبر شركات المجموعة.',
-    system_role_updated: 'IT & Digital Lead (مهندس تكامل الأنظمة)',
-    approved_by: 'الرئيس التنفيذي / الإدارة العليا',
-    status: 'معتمد رسمياً',
-  },
-  {
-    id: 'PROM-2026-002',
-    employee_id: 'KAS-EMP-010',
-    employee_name: 'الجوري العنزي (a.alanazi@kas.sa)',
-    employee_code: 'KAS-EMP-010',
-    previous_job_title: 'أخصائي علاقات عملاء',
-    new_job_title: 'مشرف علاقات العملاء وعمليات الإيواء',
-    previous_department: 'خدمة العملاء والعلاقات التعاقدية',
-    new_department: 'خدمة العملاء والعلاقات التعاقدية',
-    previous_grade: 'الدرجة الثالثة (أخصائي أول)',
-    new_grade: 'الدرجة الرابعة (قائد فريق)',
-    previous_salary: 8200,
-    new_salary: 9800,
-    increment_amount: 1600,
-    increment_percentage: '19.5%',
-    effective_date: '2026-04-01',
-    performance_rating: 'ممتاز (5/5)',
-    promotion_reason: 'الالتزام الصارم بمعايير الجودة وتصفير نسبة الشكاوى في خدمات العملاء.',
-    system_role_updated: 'CRM Supervisor (مشرف علاقات عملاء)',
-    approved_by: 'إدارة الموارد البشرية (ريم احمد بن حسين)',
-    status: 'معتمد رسمياً',
-  }
-];
+const DEFAULT_MOCK_PROMOTIONS: PromotionRecord[] = [];
 
-const DEFAULT_VACATIONS: VacationRequest[] = [
-  {
-    id: 'VAC-01',
-    employee_id: 'KAS-EMP-010',
-    employee_name: 'الجوري العنزي (a.alanazi@kas.sa)',
-    vacation_type: 'إجازة اعتيادية سنوية',
-    balance: 24,
-    from_date: '2026-08-20',
-    to_date: '2026-08-27',
-    days_count: 7,
-    pay_rate_percent: 100,
-    notes: 'إجازة سنوية دورية (المادة 109)',
-    status: 'معتمد',
-  },
-  {
-    id: 'VAC-02',
-    employee_id: 'KAS-EMP-040',
-    employee_name: 'احمد حلمى عبدالمقصود عيسى (a.eissa.acc@kas.sa)',
-    vacation_type: 'إجازة اضطرارية',
-    balance: 18,
-    from_date: '2026-08-18',
-    to_date: '2026-08-19',
-    days_count: 2,
-    pay_rate_percent: 100,
-    notes: 'ظرف عائلي طارئ',
-    status: 'بانتظار الموافقة',
-  },
-];
+const DEFAULT_VACATIONS: VacationRequest[] = [];
 
-const DEFAULT_ADVANCES: AdvanceRequest[] = [
-  {
-    id: 'ADV-01',
-    employee_id: 'KAS-EMP-039',
-    employee_name: 'اكرم محمد الكناني (a.alkinani.acc@kas.sa)',
-    payment_method: 'تحويل بنكي راتب',
-    amount: 3000,
-    paid_amount: 1000,
-    remaining_amount: 2000,
-    monthly_installment: 1000,
-    date: '2026-08-01',
-    installments_count: 3,
-    reason: 'سلفة شخصية مقسطة على 3 أشهر',
-    status: 'معتمد',
-  },
-];
+const DEFAULT_ADVANCES: AdvanceRequest[] = [];
 
-const DEFAULT_SANCTIONS: SanctionItem[] = [
-  {
-    id: 'SANC-01',
-    employee_id: 'KAS-EMP-041',
-    employee_name: 'محمد شعبان الجرم (m.aljarm.acc@kas.sa)',
-    sanction_type: 'تأخير غير مبرر عن الدوام',
-    amount: 250,
-    date: '2026-08-12',
-    deduct_from_salary: true,
-    reason: 'تكرار التأخير الصباحي لأكثر من 45 دقيقة (وفق لائحة تنظيم العمل)',
-    status: 'معتمد',
-  },
-];
+const DEFAULT_SANCTIONS: SanctionItem[] = [];
 
-const DEFAULT_PERMISSIONS: PermissionRequest[] = [
-  {
-    id: 'PERM-01',
-    employee_id: 'KAS-EMP-010',
-    employee_name: 'الجوري العنزي (a.alanazi@kas.sa)',
-    permission_type: 'استئذان شخصي (ساعتان)',
-    date: '2026-08-17',
-    time: '12:00 - 14:00',
-    reason: 'مراجعة جهة حكومية رسمية',
-    status: 'معتمد',
-  },
-];
+const DEFAULT_PERMISSIONS: PermissionRequest[] = [];
 
-const DEFAULT_REWARDS: RewardRequest[] = [
-  {
-    id: 'REW-01',
-    company_id: 'SAF',
-    employee_id: 'KAS-EMP-034',
-    employee_name: 'عبدالرحمن أبو سالف (a.salif.dev@kas.sa)',
-    reward_type: 'مكافأة تميز وتحقيق مستهدف العقود',
-    salary: 12500,
-    net_reward: 2500,
-    payout_timing: 'مع راتب الشهر الحالي',
-    date: '2026-08-15',
-    status: 'معتمد',
-  },
-];
+const DEFAULT_REWARDS: RewardRequest[] = [];
 
-const DEFAULT_MAIDS_FLEET: MaidHrFleetRecord[] = [
-  { id: 'MD-101', company_id: 'SAF', name: 'MARIA SANTOS CORTEZ', nationality: 'الفلبين', job: 'عاملة منزلية وضيافة', iqama: '2498102931', status: 'مؤجرة لعميل (عقد نشط)', salary: 1500, insurance: 'ساري المفعول', location: 'حي النرجس - الرياض' },
-  { id: 'MD-102', company_id: 'SAF', name: 'ALEMITU BEKELE', nationality: 'إثيوبيا', job: 'عاملة منزلية شاملة', iqama: '2501928410', status: 'في مركز الإيواء (متاحة)', salary: 1200, insurance: 'ساري المفعول', location: 'مركز إيواء السليم - الغرفة 102' },
-  { id: 'MD-103', company_id: 'SAF', name: 'FLORENCE NABATANZI', nationality: 'أوغندا', job: 'مربية أطفال', iqama: '2491029481', status: 'مؤجرة لعميل (عقد نشط)', salary: 1300, insurance: 'ساري المفعول', location: 'حي الياسمين - الرياض' },
-  { id: 'MD-104', company_id: 'SAF', name: 'FATIMA BEGUM', nationality: 'بنغلاديش', job: 'طباخة منزلية', iqama: '2489102938', status: 'بانتظار نقل الكفالة', salary: 1400, insurance: 'ساري المفعول', location: 'فرع الإدارة الرئيسي' },
-  { id: 'MD-105', company_id: 'SAF', name: 'JACINTA WANJIRU', nationality: 'كينيا', job: 'عاملة منزلية', iqama: '2510294819', status: 'في مركز الإيواء (متاحة)', salary: 1200, insurance: 'ساري المفعول', location: 'مركز إيواء السليم - الغرفة 105' },
-];
+const DEFAULT_MAIDS_FLEET: MaidHrFleetRecord[] = [];
 
 export type HrSubTab =
   | 'employees'
@@ -649,10 +469,9 @@ export const HRPage: React.FC = () => {
     detailsAr?: string;
   }>({});
   const [revealPii, setRevealPii] = useState<boolean>(true);
+  const [showUserAddedModal, setShowUserAddedModal] = useState<boolean>(false);
   const syncedRadarCompanyRef = useRef<string | null>(null);
-  const [hrSignageScreens, setHrSignageScreens] = useState<DigitalSignageScreenRecord[]>(
-    DEFAULT_COMPANY_DISPLAY_SCREENS
-  );
+  const [hrSignageScreens, setHrSignageScreens] = useState<DigitalSignageScreenRecord[]>([]);
   const [hrNetworkScan, setHrNetworkScan] = useState<SignageNetworkScanReport | null>(null);
   const [isScanningHrScreens, setIsScanningHrScreens] = useState<boolean>(false);
   const hasAutoProbedHrScreensRef = useRef<boolean>(false);
@@ -663,12 +482,15 @@ export const HRPage: React.FC = () => {
       try {
         const stored = await realErpDataStore.getRecords<DigitalSignageScreenRecord>(
           'hr_digital_signage_screens',
-          DEFAULT_COMPANY_DISPLAY_SCREENS
+          []
         );
-        const targetScreens =
-          Array.isArray(stored) && stored.length > 0 ? stored : DEFAULT_COMPANY_DISPLAY_SCREENS;
-        const report = await runLiveSignageNetworkScan(targetScreens, effectiveCompanyCode);
+        const targetScreens = Array.isArray(stored) ? stored : [];
         setHrSignageScreens(targetScreens);
+        if (targetScreens.length === 0) {
+          setHrNetworkScan(null);
+          return;
+        }
+        const report = await runLiveSignageNetworkScan(targetScreens, effectiveCompanyCode);
         setHrNetworkScan(report);
         if (!silent) {
           addNotification({
@@ -693,47 +515,46 @@ export const HRPage: React.FC = () => {
 
   const reloadHrData = useCallback(() => {
     const companyScope = activeCompanyId && activeCompanyId !== 'all' ? activeCompanyId : undefined;
-    void realErpDataStore
-      .getRecords<EmployeeRecord>('hr_employees', DEFAULT_MOCK_EMPLOYEES, companyScope)
-      .then((hrRows) => {
-        const mergedMap = new Map<string, EmployeeRecord>();
-        for (const emp of DEFAULT_MOCK_EMPLOYEES) {
-          mergedMap.set(emp.id, emp);
-        }
-        for (const emp of rawEmployees as EmployeeRecord[]) {
-          if (emp && emp.id) {
-            mergedMap.set(emp.id, { ...(mergedMap.get(emp.id) || ({} as EmployeeRecord)), ...emp });
+    void sanitizeHrDemoDataPreservingUserAdditions().then(() => {
+      void realErpDataStore
+        .getRecords<EmployeeRecord>('hr_employees', [], companyScope)
+        .then((hrRows) => {
+          const mergedMap = new Map<string, EmployeeRecord>();
+          for (const emp of rawEmployees as EmployeeRecord[]) {
+            if (emp && emp.id && !isDemoOrSimulatedEmployeeRecord(emp)) {
+              mergedMap.set(emp.id, { ...(mergedMap.get(emp.id) || ({} as EmployeeRecord)), ...emp });
+            }
           }
-        }
-        for (const emp of Array.isArray(hrRows) ? hrRows : []) {
-          if (emp && emp.id) {
-            mergedMap.set(emp.id, { ...(mergedMap.get(emp.id) || ({} as EmployeeRecord)), ...emp });
+          for (const emp of Array.isArray(hrRows) ? hrRows : []) {
+            if (emp && emp.id && !isDemoOrSimulatedEmployeeRecord(emp)) {
+              mergedMap.set(emp.id, { ...(mergedMap.get(emp.id) || ({} as EmployeeRecord)), ...emp });
+            }
           }
-        }
-        setEmployeesList(Array.from(mergedMap.values()));
-      });
-    realErpDataStore.getRecords<PromotionRecord>('hr_promotions', DEFAULT_MOCK_PROMOTIONS, companyScope).then((d) => setPromotions(d));
-    realErpDataStore.getRecords<VacationRequest>('hr_leave_requests', DEFAULT_VACATIONS, companyScope).then((d) => setVacations(d));
-    realErpDataStore.getRecords<AdvanceRequest>('hr_advances', DEFAULT_ADVANCES, companyScope).then((d) => setAdvances(d));
-    realErpDataStore.getRecords<SanctionItem>('hr_sanctions', DEFAULT_SANCTIONS, companyScope).then((d) => setSanctions(d));
-    realErpDataStore.getRecords<PermissionRequest>('hr_permissions', DEFAULT_PERMISSIONS, companyScope).then((d) => setPermissions(d));
-    realErpDataStore.getRecords<RewardRequest>('hr_rewards', DEFAULT_REWARDS, companyScope).then((d) => setRewards(d));
-    realErpDataStore.getRecords<MaidHrFleetRecord>('hr_maids_fleet', DEFAULT_MAIDS_FLEET, companyScope).then((d) => setMaidsFleet(d));
-    realErpDataStore.getRecords<any>('attendances', [], companyScope).then((d) => setAttendancesList(Array.isArray(d) ? d : []));
-    realErpDataStore.getRecords<any>('custodies', [], companyScope).then((d) => setCustodiesList(Array.isArray(d) ? d : []));
-    realErpDataStore.getRecords<any>('payroll_runs', [], companyScope).then((d) => setPostedPayrollRuns(Array.isArray(d) ? d : []));
-    realErpDataStore.getRecords<any>('hr_attendance_payroll_sync', [], companyScope).then((d) => setSyncedAttendanceMap(Array.isArray(d) ? d : []));
-    realErpDataStore
-      .getRecords<EwaWithdrawalRecordStored>('hr_ewa_withdrawals', [], effectiveCompanyCode)
-      .then((d) => setEwaWithdrawals(Array.isArray(d) ? d : []));
-    realErpDataStore
-      .getRecords<DisciplinaryRecordStored>('hr_disciplinary_records', [], effectiveCompanyCode)
-      .then((d) => setDisciplinaryRecords(Array.isArray(d) ? d : []));
-    realErpDataStore
-      .getRecords<SaudiPublicHoliday>('hr_public_holidays', DEFAULT_SAUDI_PUBLIC_HOLIDAYS, effectiveCompanyCode)
-      .then((d) => {
-        setPublicHolidays(Array.isArray(d) && d.length > 0 ? d : DEFAULT_SAUDI_PUBLIC_HOLIDAYS);
-      });
+          setEmployeesList(Array.from(mergedMap.values()));
+        });
+      realErpDataStore.getRecords<PromotionRecord>('hr_promotions', [], companyScope).then((d) => setPromotions(d));
+      realErpDataStore.getRecords<VacationRequest>('hr_leave_requests', [], companyScope).then((d) => setVacations(d));
+      realErpDataStore.getRecords<AdvanceRequest>('hr_advances', [], companyScope).then((d) => setAdvances(d));
+      realErpDataStore.getRecords<SanctionItem>('hr_sanctions', [], companyScope).then((d) => setSanctions(d));
+      realErpDataStore.getRecords<PermissionRequest>('hr_permissions', [], companyScope).then((d) => setPermissions(d));
+      realErpDataStore.getRecords<RewardRequest>('hr_rewards', [], companyScope).then((d) => setRewards(d));
+      realErpDataStore.getRecords<MaidHrFleetRecord>('hr_maids_fleet', [], companyScope).then((d) => setMaidsFleet(d));
+      realErpDataStore.getRecords<any>('attendances', [], companyScope).then((d) => setAttendancesList(Array.isArray(d) ? d : []));
+      realErpDataStore.getRecords<any>('custodies', [], companyScope).then((d) => setCustodiesList(Array.isArray(d) ? d : []));
+      realErpDataStore.getRecords<any>('payroll_runs', [], companyScope).then((d) => setPostedPayrollRuns(Array.isArray(d) ? d : []));
+      realErpDataStore.getRecords<any>('hr_attendance_payroll_sync', [], companyScope).then((d) => setSyncedAttendanceMap(Array.isArray(d) ? d : []));
+      realErpDataStore
+        .getRecords<EwaWithdrawalRecordStored>('hr_ewa_withdrawals', [], effectiveCompanyCode)
+        .then((d) => setEwaWithdrawals(Array.isArray(d) ? d : []));
+      realErpDataStore
+        .getRecords<DisciplinaryRecordStored>('hr_disciplinary_records', [], effectiveCompanyCode)
+        .then((d) => setDisciplinaryRecords(Array.isArray(d) ? d : []));
+      realErpDataStore
+        .getRecords<SaudiPublicHoliday>('hr_public_holidays', DEFAULT_SAUDI_PUBLIC_HOLIDAYS, effectiveCompanyCode)
+        .then((d) => {
+          setPublicHolidays(Array.isArray(d) && d.length > 0 ? d : DEFAULT_SAUDI_PUBLIC_HOLIDAYS);
+        });
+    });
   }, [rawEmployees, activeCompanyId, effectiveCompanyCode]);
 
   useEffect(() => {
@@ -2557,6 +2378,19 @@ export const HRPage: React.FC = () => {
             >
               <Plus className="w-3.5 h-3.5" />
               <span>+ إدراج موظف جديد</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowUserAddedModal(true)}
+              data-slot="hr-user-added-data-btn"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#f3f3f3] hover:bg-[#e0e0e0] border border-[#141414] text-[#141414] text-xs font-bold transition-colors cursor-pointer"
+              title="عرض جميع البيانات والأجهزة المضافة من قبلك فقط وتطهير أي بقايا تجريبية"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>
+                ما أضفته أنا ({employeesList.length + activeRequestsCount + promotions.length})
+              </span>
             </button>
 
             <button
@@ -7525,6 +7359,13 @@ export const HRPage: React.FC = () => {
           </div>
         );
       })()}
+
+      <UserAddedHrDataModal
+        isOpen={showUserAddedModal}
+        companyScope={activeCompanyId}
+        onClose={() => setShowUserAddedModal(false)}
+        onAfterSanitizeOrImport={() => reloadHrData()}
+      />
     </div>
   );
 };

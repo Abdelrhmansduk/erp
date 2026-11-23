@@ -45,83 +45,9 @@ export interface JournalRecord {
   created_at: string;
 }
 
-const DEFAULT_MOCK_JOURNALS: JournalRecord[] = [
-  {
-    id: 'jv-1',
-    company_id: 'SAF',
-    entry_number: 'SAF-JV-2026-0001',
-    entry_date: new Date().toISOString().slice(0, 10),
-    entry_type: 'AUTOMATIC',
-    source_module: 'INVOICE',
-    source_reference: 'INV-2026-0014',
-    description: 'إثبات قيد فاتورة عقد تأجير تشغيلي - العميل أبو إياد',
-    total_debit: 1150.0,
-    total_credit: 1150.0,
-    status: 'POSTED',
-    branch_name: 'فرع الرياض الرئيسي',
-    cost_center_code: 'CC-OPS-01',
-    created_by: 'النظام المحاسبي الآلي',
-    approved_by: 'مدير الحسابات',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'jv-2',
-    company_id: 'SAF',
-    entry_number: 'SAF-JV-2026-0002',
-    entry_date: new Date().toISOString().slice(0, 10),
-    entry_type: 'AUTOMATIC',
-    source_module: 'RECEIPT',
-    source_reference: 'REC-2026-0059',
-    description: 'تحصيل دفعة مقدمة عقد استقدام مساند - بنك الراجحي',
-    total_debit: 14500.0,
-    total_credit: 14500.0,
-    status: 'POSTED',
-    branch_name: 'فرع الرياض الرئيسي',
-    cost_center_code: 'CC-REC-01',
-    created_by: 'إبراهيم الشمري (محاسب)',
-    approved_by: 'المدير المالي',
-    created_at: new Date().toISOString(),
-  },
-];
+const DEFAULT_MOCK_JOURNALS: JournalRecord[] = [];
 
-const KAS_DEFAULT_MOCK_JOURNALS: JournalRecord[] = [
-  {
-    id: 'kas-jv-1',
-    company_id: 'KAS',
-    entry_number: 'KAS-JV-2026-0001',
-    entry_date: new Date().toISOString().slice(0, 10),
-    entry_type: 'AUTOMATIC',
-    source_module: 'INVOICE',
-    source_reference: 'KAS-INV-2026-9901',
-    description: 'قيد مبيعات المعرض التجاري الرئيسي وتوريدات قطاع الأميال',
-    total_debit: 96600.0,
-    total_credit: 96600.0,
-    status: 'POSTED',
-    branch_name: 'المعرض التجاري الرئيسي — الرياض',
-    cost_center_code: 'CC-KAS-SHW',
-    created_by: 'محاسب التجارة — شركة كاس',
-    approved_by: 'المدير المالي',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'kas-jv-2',
-    company_id: 'KAS',
-    entry_number: 'KAS-JV-2026-0002',
-    entry_date: new Date().toISOString().slice(0, 10),
-    entry_type: 'AUTOMATIC',
-    source_module: 'RECEIPT',
-    source_reference: 'ETM-2026-88991',
-    description: 'تحصيل مستخلص أمر توريد منافسة حكومية بمنصة اعتماد - مصرف الراجحي',
-    total_debit: 145000.0,
-    total_credit: 145000.0,
-    status: 'POSTED',
-    branch_name: 'إدارة المنافسات والتوريدات الحكومية',
-    cost_center_code: 'CC-KAS-ETM',
-    created_by: 'محاسب التجارة — شركة كاس',
-    approved_by: 'المدير المالي',
-    created_at: new Date().toISOString(),
-  },
-];
+const KAS_DEFAULT_MOCK_JOURNALS: JournalRecord[] = [];
 
 export const JournalsPage: React.FC = () => {
   useModalEscape();

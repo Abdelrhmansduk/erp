@@ -97,6 +97,7 @@ export interface WmsItem {
   nameAr: string;
   nameEn?: string;
   categoryId: string;
+  itemType?: string;
   baseUom: string;
   uomConversions: WmsUomConversion[];
   trackingMode: WmsTrackingMode;
@@ -134,6 +135,7 @@ export interface WmsVoucherLine {
   itemId: string;
   sku: string;
   itemName: string;
+  itemType?: string;
   enteredQty: number;
   enteredUom: string;
   uomFactor: number;

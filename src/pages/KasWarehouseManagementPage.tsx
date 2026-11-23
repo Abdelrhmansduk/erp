@@ -38,14 +38,27 @@ import {
   PenTool,
   Building2,
   RefreshCw,
+  X,
+  Check,
+  ArrowUpDown,
+  Table as TableIcon,
+  Tag,
 } from 'lucide-react';
 import { useAuthContext } from '../contexts/AuthContext';
 import { useAppStore } from '../stores/appStore';
 import { ExportDropdown } from '../components/common/ExportDropdown';
 import { wmsEngineService, WmsActor, CreateVoucherInput } from '../services/wms/wmsEngineService';
+import { WMS_BENEFICIARIES } from '../services/wms/wmsExcelMigrationSeed';
 import { buildWmsScopeDataset } from '../services/wms/wmsExportAndSendService';
 import { shareViaWhatsApp } from '../services/quickShareService';
 import { WmsCompanyId, WmsIssuePurpose, WmsItem, WmsStockVoucher, WmsVoucherType } from '../types/wms';
+import {
+  DEFAULT_WMS_UNITS,
+  VOUCHER_TYPE_ARABIC_KEYWORDS,
+  matchesSmartSearch,
+  resolveItemTypeLabel,
+} from '../utils/wmsSearchUtils';
+import { WmsInlineQuickVoucherTable } from '../components/wms/WmsInlineQuickVoucherTable';
 import {
   WmsBarcodeLabelModal,
   WmsCreateItemModal,
@@ -116,13 +129,71 @@ export const KasWarehouseManagementPage: React.FC = () => {
   const state = useMemo(() => wmsEngineService.getState(activeCompany), [tick, activeCompany]);
   const alerts = useMemo(() => wmsEngineService.getAlerts(), [tick, activeCompany]);
   const consumptionByBeneficiary = useMemo(() => wmsEngineService.getConsumptionByBeneficiary(), [tick, activeCompany]);
+  const itemTypes = useMemo(() => wmsEngineService.getItemTypes(), [tick, activeCompany]);
   const cloudStatus = wmsCloudSyncService.getStatus();
 
   const [activeTab, setActiveTab] = useState<WmsTabId>('overview');
   const [searchQuery, setSearchQuery] = useState('');
+  const [voucherSearchQuery, setVoucherSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedItemType, setSelectedItemType] = useState<string>('all');
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>('all');
   const [voucherTypeFilter, setVoucherTypeFilter] = useState<string>('all');
+  const [sortField, setSortField] = useState<'default' | 'sku' | 'nameAr' | 'category' | 'itemType' | 'onHand' | 'cost'>('default');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+
+  // Inline Quick Voucher Table (accessible anywhere)
+  const [showQuickVoucherTable, setShowQuickVoucherTable] = useState(false);
+  const [quickVoucherPreset, setQuickVoucherPreset] = useState<{
+    type: WmsVoucherType;
+    itemId?: string | null;
+  }>({ type: 'GRN', itemId: null });
+
+  // Inline Classification & Type Creation in Catalog Bar
+  const [showNewCategoryInline, setShowNewCategoryInline] = useState(false);
+  const [newCategoryNameInline, setNewCategoryNameInline] = useState('');
+  const [showNewTypeInline, setShowNewTypeInline] = useState(false);
+  const [newTypeNameInline, setNewTypeNameInline] = useState('');
+
+  // Inline Quick-Add Item Row inside Catalog Table
+  const [showInlineAddItemRow, setShowInlineAddItemRow] = useState(false);
+  const [inlineNewItem, setInlineNewItem] = useState({
+    nameAr: '',
+    sku: '',
+    categoryId: 'CAT-MEP',
+    itemType: 'مستهلك تشغيلي',
+    warehouseId: 'WH-MAIN',
+    locationCode: 'Z1-R1-B1',
+    baseUom: 'حبة',
+    initialQty: '0',
+    avgUnitCost: '0',
+  });
+
+  // Per-row 1-click Supply/Issue inline bar inside Catalog Table
+  const [rowQuickAction, setRowQuickAction] = useState<{
+    itemId: string;
+    type: 'GRN' | 'GIN';
+    qty: string;
+    uom: string;
+    unitCost: string;
+    party: string;
+  } | null>(null);
+
+  // Inline Cell Editing (تحرير أي خانة مباشرة بالضغط عليها)
+  const [editingCatalogCell, setEditingCatalogCell] = useState<{
+    itemId: string;
+    field: 'sku' | 'nameAr' | 'categoryId' | 'itemType' | 'warehouseBin' | 'baseUom' | 'onHand' | 'avgUnitCost';
+    val1: string;
+    val2?: string;
+  } | null>(null);
+
+  const [editingVoucherCell, setEditingVoucherCell] = useState<{
+    voucherId: string;
+    lineId?: string;
+    field: 'voucherType' | 'voucherDate' | 'lineQty' | 'party';
+    val1: string;
+    val2?: string;
+  } | null>(null);
 
   // Modals
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
@@ -294,19 +365,25 @@ export const KasWarehouseManagementPage: React.FC = () => {
     });
   };
 
-  // Instant Barcode/SKU Scan match
-  const quickScannedItem = useMemo(() => {
-    const q = quickScanCode.trim().toLowerCase();
-    if (!q) return null;
-    return (
-      state.items.find(
-        (it) =>
-          it.barcode.toLowerCase() === q ||
-          it.sku.toLowerCase() === q ||
-          it.nameAr.toLowerCase().includes(q)
-      ) || null
-    );
-  }, [quickScanCode, state.items]);
+  // Instant Barcode/SKU/Arabic Smart Scan matches (up to 5 matches)
+  const quickScannedItems = useMemo(() => {
+    const q = quickScanCode.trim();
+    if (!q) return [];
+    return state.items
+      .filter((it) => {
+        const cat = state.categories.find((c) => c.id === it.categoryId);
+        return matchesSmartSearch(q, [
+          it.barcode,
+          it.sku,
+          it.nameAr,
+          it.nameEn,
+          it.itemType,
+          cat?.nameAr,
+          cat?.code,
+        ]);
+      })
+      .slice(0, 5);
+  }, [quickScanCode, state.items, state.categories]);
 
   const copyVoucherForWhatsApp = (v: WmsStockVoucher) => {
     const linesText = v.lines
@@ -386,38 +463,119 @@ export const KasWarehouseManagementPage: React.FC = () => {
     return { totalOnHand, totalReserved, totalValuation, grnCount, ginCount, srnCount };
   }, [state]);
 
-  // Filtered items
+  // Filtered & Sorted items (Smart Arabic/English/Numeric multi-token search across ALL columns)
   const filteredItems = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return state.items.filter((item) => {
+    const list = state.items.filter((item) => {
       if (selectedCategory !== 'all' && item.categoryId !== selectedCategory) return false;
-      if (selectedWarehouse !== 'all' && item.defaultWarehouseId !== selectedWarehouse) return false;
-      if (!q) return true;
-      return (
-        item.nameAr.toLowerCase().includes(q) ||
-        item.sku.toLowerCase().includes(q) ||
-        item.barcode.toLowerCase().includes(q) ||
-        (item.nameEn || '').toLowerCase().includes(q)
-      );
+      const cat = state.categories.find((c) => c.id === item.categoryId);
+      const resolvedType = resolveItemTypeLabel(item, cat?.code);
+      if (selectedItemType !== 'all' && resolvedType !== selectedItemType) return false;
+      if (selectedWarehouse !== 'all') {
+        const inWh =
+          item.defaultWarehouseId === selectedWarehouse ||
+          state.quants.some(
+            (q) => q.itemId === item.id && q.warehouseId === selectedWarehouse && q.onHandQty > 0
+          );
+        if (!inWh) return false;
+      }
+      if (!searchQuery.trim()) return true;
+      const wh = state.warehouses.find((w) => w.id === item.defaultWarehouseId);
+      return matchesSmartSearch(searchQuery, [
+        item.nameAr,
+        item.nameEn,
+        item.sku,
+        item.barcode,
+        cat?.nameAr,
+        cat?.nameEn,
+        cat?.code,
+        resolvedType,
+        wh?.nameAr,
+        wh?.code,
+        item.defaultWarehouseId,
+        item.defaultLocationCode,
+        item.baseUom,
+        ...(item.uomConversions || []).map((u) => u.uomName),
+        item.notes,
+        item.isCustodyEligible ? 'عهدة' : '',
+        item.trackingMode === 'SERIAL' ? 'تسلسلي sn' : '',
+        item.trackingMode === 'LOT_EXPIRY' ? 'صلاحية fefo تشغيلة' : '',
+        item.isSampleItem ? 'عينة' : '',
+      ]);
     });
-  }, [state.items, searchQuery, selectedCategory, selectedWarehouse]);
 
-  // Filtered vouchers
+    if (sortField === 'default') return list;
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...list].sort((a, b) => {
+      if (sortField === 'sku') return a.sku.localeCompare(b.sku) * dir;
+      if (sortField === 'nameAr') return a.nameAr.localeCompare(b.nameAr, 'ar') * dir;
+      if (sortField === 'category') {
+        const ca = state.categories.find((c) => c.id === a.categoryId)?.nameAr || '';
+        const cb = state.categories.find((c) => c.id === b.categoryId)?.nameAr || '';
+        return ca.localeCompare(cb, 'ar') * dir;
+      }
+      if (sortField === 'itemType') {
+        const ta = resolveItemTypeLabel(a, state.categories.find((c) => c.id === a.categoryId)?.code);
+        const tb = resolveItemTypeLabel(b, state.categories.find((c) => c.id === b.categoryId)?.code);
+        return ta.localeCompare(tb, 'ar') * dir;
+      }
+      if (sortField === 'onHand') {
+        const qa = wmsEngineService.getItemStockSummary(a.id).onHand;
+        const qb = wmsEngineService.getItemStockSummary(b.id).onHand;
+        return (qa - qb) * dir;
+      }
+      if (sortField === 'cost') {
+        return ((a.avgUnitCost || 0) - (b.avgUnitCost || 0)) * dir;
+      }
+      return 0;
+    });
+  }, [
+    state.items,
+    state.categories,
+    state.warehouses,
+    state.quants,
+    searchQuery,
+    selectedCategory,
+    selectedItemType,
+    selectedWarehouse,
+    sortField,
+    sortDir,
+  ]);
+
+  // Filtered vouchers (Smart Arabic/English search including Arabic voucher type keywords)
   const filteredVouchers = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const activeQ = voucherSearchQuery.trim();
     return state.vouchers.filter((v) => {
       if (voucherTypeFilter !== 'all' && v.voucherType !== voucherTypeFilter) return false;
       if (selectedWarehouse !== 'all' && v.warehouseId !== selectedWarehouse) return false;
-      if (!q) return true;
-      return (
-        v.voucherNo.toLowerCase().includes(q) ||
-        (v.beneficiaryEntity || '').toLowerCase().includes(q) ||
-        (v.recipientName || '').toLowerCase().includes(q) ||
-        (v.supplierName || '').toLowerCase().includes(q) ||
-        v.lines.some((l) => l.itemName.toLowerCase().includes(q) || l.sku.toLowerCase().includes(q))
-      );
+      if (!activeQ) return true;
+      const wh = state.warehouses.find((w) => w.id === v.warehouseId);
+      return matchesSmartSearch(activeQ, [
+        v.voucherNo,
+        v.voucherDate,
+        v.voucherType,
+        VOUCHER_TYPE_ARABIC_KEYWORDS[v.voucherType],
+        v.beneficiaryEntity,
+        v.recipientName,
+        v.supplierName,
+        v.roomOrSite,
+        v.poOrTrackingNo,
+        v.tenderRef,
+        v.notes,
+        wh?.nameAr,
+        v.warehouseId,
+        ...v.lines.flatMap((l) => [l.itemName, l.sku, l.itemType, l.enteredUom, l.notes]),
+      ]);
     });
-  }, [state.vouchers, voucherTypeFilter, selectedWarehouse, searchQuery]);
+  }, [state.vouchers, state.warehouses, voucherTypeFilter, selectedWarehouse, voucherSearchQuery]);
+
+  const toggleSort = (field: typeof sortField) => {
+    if (sortField === field) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDir('asc');
+    }
+  };
 
   // Dynamic Export Dataset covering ALL 8 tabs seamlessly
   const exportMeta = useMemo(() => {
@@ -440,6 +598,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
         nameAr: payload.nameAr,
         nameEn: payload.nameEn,
         categoryId: payload.categoryId,
+        itemType: payload.itemType,
         baseUom: payload.baseUom,
         uomConversions: conversions,
         trackingMode: payload.trackingMode,
@@ -482,6 +641,195 @@ export const KasWarehouseManagementPage: React.FC = () => {
       type: 'success',
     });
     return { ok: true };
+  };
+
+  // Commit 1-click inline cell edit in Catalog table (تحرير خانة فوري)
+  const commitCatalogCellEdit = () => {
+    if (!editingCatalogCell) return;
+    const { itemId, field, val1, val2 } = editingCatalogCell;
+    const target = state.items.find((i) => i.id === itemId);
+    if (!target) {
+      setEditingCatalogCell(null);
+      return;
+    }
+
+    if (field === 'onHand') {
+      const nextQty = Math.max(0, Number(val1) || 0);
+      const res = wmsEngineService.setItemOnHandStock(itemId, nextQty, actor);
+      if (res.ok && res.delta !== 0) {
+        refresh();
+        addNotification({
+          title: 'تم تحرير خانة الرصيد الفعلي',
+          message: `تم تعديل رصيد (${target.nameAr}) إلى (${nextQty} ${target.baseUom}) وإصدار إذن التسوية (${res.adjustmentVoucherNo}).`,
+          type: 'success',
+        });
+      }
+      setEditingCatalogCell(null);
+      return;
+    }
+
+    const patch: Partial<WmsItem> = {};
+    if (field === 'sku' && val1.trim()) {
+      patch.sku = val1.trim();
+      if (val2 !== undefined && val2.trim()) patch.barcode = val2.trim();
+    } else if (field === 'nameAr' && val1.trim()) {
+      patch.nameAr = val1.trim();
+    } else if (field === 'categoryId' && val1) {
+      patch.categoryId = val1;
+    } else if (field === 'itemType' && val1.trim()) {
+      patch.itemType = val1.trim();
+    } else if (field === 'warehouseBin') {
+      if (val1) patch.defaultWarehouseId = val1;
+      if (val2 !== undefined && val2.trim()) patch.defaultLocationCode = val2.trim();
+    } else if (field === 'baseUom' && val1.trim()) {
+      patch.baseUom = val1.trim();
+    } else if (field === 'avgUnitCost') {
+      patch.avgUnitCost = Math.max(0, Number(val1) || 0);
+    }
+
+    if (Object.keys(patch).length > 0) {
+      wmsEngineService.updateItem(itemId, patch, actor);
+      refresh();
+      addNotification({
+        title: 'تم حفظ الخانة بنجاح',
+        message: `تم تحديث بيانات (${patch.nameAr || target.nameAr}) مباشرة في الجدول.`,
+        type: 'success',
+      });
+    }
+    setEditingCatalogCell(null);
+  };
+
+  // Commit 1-click inline cell edit in Vouchers table
+  const commitVoucherCellEdit = () => {
+    if (!editingVoucherCell) return;
+    const { voucherId, lineId, field, val1, val2 } = editingVoucherCell;
+    const v = state.vouchers.find((x) => x.id === voucherId);
+    if (!v) {
+      setEditingVoucherCell(null);
+      return;
+    }
+
+    let res: { ok: boolean; error?: string } = { ok: true };
+    if (field === 'voucherType') {
+      res = wmsEngineService.updateVoucher(voucherId, { voucherType: val1 as WmsVoucherType }, actor);
+    } else if (field === 'voucherDate' && val1) {
+      res = wmsEngineService.updateVoucher(voucherId, { voucherDate: val1 }, actor);
+    } else if (field === 'party') {
+      if (v.voucherType === 'GRN' || v.voucherType === 'RTV') {
+        res = wmsEngineService.updateVoucher(
+          voucherId,
+          { supplierName: val1.trim(), recipientName: val2?.trim() || v.recipientName },
+          actor
+        );
+      } else {
+        res = wmsEngineService.updateVoucher(
+          voucherId,
+          { beneficiaryEntity: val1.trim(), recipientName: val2?.trim() || v.recipientName },
+          actor
+        );
+      }
+    } else if (field === 'lineQty' && lineId) {
+      const targetLine = v.lines.find((l) => l.id === lineId);
+      if (targetLine) {
+        res = wmsEngineService.updateVoucher(
+          voucherId,
+          {
+            lines: [
+              {
+                id: lineId,
+                enteredQty: Math.max(0.01, Number(val1) || targetLine.enteredQty),
+                enteredUom: val2?.trim() || targetLine.enteredUom,
+                unitCost: targetLine.unitCost,
+              },
+            ],
+          },
+          actor
+        );
+      }
+    }
+
+    setEditingVoucherCell(null);
+    if (!res.ok) {
+      addNotification({ title: 'تعذر حفظ الخانة', message: res.error || '', type: 'error' });
+      return;
+    }
+    refresh();
+    addNotification({
+      title: 'تم تحرير خانة الإذن',
+      message: `تم تحديث الإذن (${v.voucherNo}) وإعادة ضبط الرصيد تلقائياً.`,
+      type: 'success',
+    });
+  };
+
+  // Submit inline quick-add item row at top of Catalog table
+  const handleInlineAddItemSubmit = () => {
+    if (!inlineNewItem.nameAr.trim()) {
+      addNotification({ title: 'تنبيه', message: 'يرجى كتابة اسم الصنف في خانة الاسم.', type: 'warning' });
+      return;
+    }
+    const created = wmsEngineService.createItem(
+      {
+        sku: inlineNewItem.sku.trim() || undefined,
+        nameAr: inlineNewItem.nameAr.trim(),
+        categoryId: inlineNewItem.categoryId || state.categories[0]?.id || 'CAT-MEP',
+        itemType: inlineNewItem.itemType.trim() || undefined,
+        baseUom: inlineNewItem.baseUom.trim() || 'حبة',
+        uomConversions: [{ uomName: inlineNewItem.baseUom.trim() || 'حبة', factorToBase: 1 }],
+        trackingMode: 'NONE',
+        valuationMethod: state.settings.valuationMethod,
+        avgUnitCost: Math.max(0, Number(inlineNewItem.avgUnitCost) || 0),
+        lastPurchaseCost: Math.max(0, Number(inlineNewItem.avgUnitCost) || 0),
+        minQty: 1,
+        reorderPoint: 3,
+        maxQty: 100,
+        defaultWarehouseId: inlineNewItem.warehouseId || state.warehouses[0]?.id || 'WH-MAIN',
+        defaultLocationCode: inlineNewItem.locationCode.trim() || 'Z1-R1-B1',
+        isCustodyEligible: false,
+        isFastConsumable: false,
+        isSampleItem: false,
+        initialQty: Math.max(0, Number(inlineNewItem.initialQty) || 0),
+        status: 'نشط',
+      },
+      actor
+    );
+    setInlineNewItem((prev) => ({ ...prev, nameAr: '', sku: '', initialQty: '0', avgUnitCost: '0' }));
+    refresh();
+    addNotification({
+      title: 'تمت إضافة الصنف مباشرة في الجدول',
+      message: `أُضيف (${created.nameAr}) برمز ${created.sku} فوراً.`,
+      type: 'success',
+    });
+  };
+
+  // Submit 1-click row Supply / Issue directly from Catalog row
+  const handleRowQuickActionCommit = () => {
+    if (!rowQuickAction) return;
+    const item = state.items.find((i) => i.id === rowQuickAction.itemId);
+    if (!item) return;
+    const res = handleCreateVoucher({
+      voucherType: rowQuickAction.type,
+      voucherDate: new Date().toISOString().slice(0, 10),
+      warehouseId: item.defaultWarehouseId || state.warehouses[0]?.id || 'WH-MAIN',
+      beneficiaryEntity:
+        rowQuickAction.type === 'GIN' ? rowQuickAction.party.trim() || 'تشغيل المكاتب' : undefined,
+      supplierName:
+        rowQuickAction.type === 'GRN' ? rowQuickAction.party.trim() || 'مورد مباشر' : undefined,
+      recipientName: rowQuickAction.party.trim() || undefined,
+      lines: [
+        {
+          itemId: item.id,
+          itemType: item.itemType,
+          enteredQty: Math.max(0.01, Number(rowQuickAction.qty) || 1),
+          enteredUom: rowQuickAction.uom.trim() || item.baseUom,
+          unitCost: Math.max(0, Number(rowQuickAction.unitCost) || item.avgUnitCost || 0),
+        },
+      ],
+    });
+    if (!res.ok) {
+      addNotification({ title: 'تعذر التنفيذ', message: res.error || '', type: 'error' });
+      return;
+    }
+    setRowQuickAction(null);
   };
 
   const pendingControlsCount = alerts.pendingQcCount + alerts.pendingApprovalsCount + alerts.inTransitCount;
@@ -570,7 +918,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
               className="px-4 py-2 rounded-full bg-[#141414] text-white text-xs font-bold flex items-center gap-1.5 hover:bg-[#262626]"
             >
               <ArrowDownLeft className="w-3.5 h-3.5" />
-              <span>+ إذن وارد (GRN)</span>
+              <span>+ إذن توريد (GRN)</span>
             </button>
             <button
               type="button"
@@ -579,6 +927,22 @@ export const KasWarehouseManagementPage: React.FC = () => {
             >
               <ArrowUpRight className="w-3.5 h-3.5" />
               <span>+ إذن صرف (GIN)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setQuickVoucherPreset({ type: 'GRN', itemId: null });
+                setShowQuickVoucherTable((p) => !p);
+              }}
+              className={`px-4 py-2 rounded-full border-2 border-[#141414] text-xs font-bold flex items-center gap-1.5 transition-colors ${
+                showQuickVoucherTable
+                  ? 'bg-[#141414] text-white'
+                  : 'bg-[#ffffff] text-[#141414] hover:bg-[#141414] hover:text-white'
+              }`}
+              title="فتح جدول الصرف والتوريد السريع في أي مكان"
+            >
+              <TableIcon className="w-3.5 h-3.5" />
+              <span>جدول الصرف والتوريد السريع</span>
             </button>
             <button
               type="button"
@@ -839,6 +1203,22 @@ export const KasWarehouseManagementPage: React.FC = () => {
         ))}
       </div>
 
+      {/* Persistent Global Quick Voucher Spreadsheet Table (Accessible from ANY tab!) */}
+      {showQuickVoucherTable && (
+        <WmsInlineQuickVoucherTable
+          items={state.items}
+          categories={state.categories}
+          warehouses={state.warehouses}
+          itemTypes={itemTypes}
+          defaultType={quickVoucherPreset.type}
+          presetItemId={quickVoucherPreset.itemId}
+          getAvailableQty={(id) => wmsEngineService.getItemStockSummary(id).available}
+          onPostVoucher={handleCreateVoucher}
+          onNotify={(title, message, type = 'success') => addNotification({ title, message, type })}
+          onClose={() => setShowQuickVoucherTable(false)}
+        />
+      )}
+
       {/* 4. TAB VIEWS */}
       {activeTab === 'overview' && (
         <div className="space-y-5">
@@ -847,21 +1227,29 @@ export const KasWarehouseManagementPage: React.FC = () => {
             <div className="flex-1 space-y-2">
               <div className="flex items-center gap-2 text-xs font-bold text-[#141414]">
                 <ScanBarcode className="w-4 h-4" />
-                <span>المسح السريع بالباركود / SKU (تسهيلات الإدخال الفوري)</span>
+                <span>المسح والبحث السريع بالباركود / SKU / الاسم (صرف وتوريد فوري من أي مكان)</span>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <input
-                  type="text"
-                  value={quickScanCode}
-                  onChange={(e) => setQuickScanCode(e.target.value)}
-                  placeholder="امسح الباركود أو اكتب اسم صنف (مثال: شطاف، Nikon، كشاف، حجارة)..."
-                  className="flex-1 min-w-[220px] rounded-full bg-[#f0f0f0] px-4 py-2 text-xs text-[#141414] focus:outline-none focus:ring-2 focus:ring-[#141414]"
-                />
-                {quickScannedItem && (
-                  <div className="flex items-center gap-1.5 flex-wrap bg-[#f3f3f3] px-3 py-1.5 rounded-full text-xs">
-                    <strong className="text-[#141414]">{quickScannedItem.nameAr}</strong>
+                <div className="flex items-center gap-2 flex-1 min-w-[230px] rounded-full bg-[#f0f0f0] px-4 py-2 focus-within:ring-2 focus-within:ring-[#141414]">
+                  <Search className="w-3.5 h-3.5 text-[#707070] shrink-0" />
+                  <input
+                    type="text"
+                    value={quickScanCode}
+                    onChange={(e) => setQuickScanCode(e.target.value)}
+                    placeholder="امسح الباركود أو اكتب اسم صنف (مثال: ثلاجة، شطاف، كمبيوتر، حجارة)..."
+                    className="flex-1 bg-transparent text-xs text-[#141414] focus:outline-none"
+                  />
+                  {quickScanCode && (
+                    <button type="button" onClick={() => setQuickScanCode('')} className="text-[#707070] hover:text-[#141414]">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+                {quickScannedItems.map((matched) => (
+                  <div key={matched.id} className="flex items-center gap-1.5 flex-wrap bg-[#f3f3f3] px-3 py-1.5 rounded-full text-xs">
+                    <strong className="text-[#141414]">{matched.nameAr}</strong>
                     <span className="font-mono text-[#707070]">
-                      (متاح: {wmsEngineService.getItemStockSummary(quickScannedItem.id).available} {quickScannedItem.baseUom})
+                      (متاح: {wmsEngineService.getItemStockSummary(matched.id).available} {matched.baseUom})
                     </span>
                     <button
                       type="button"
@@ -869,12 +1257,12 @@ export const KasWarehouseManagementPage: React.FC = () => {
                         setVoucherModalState({
                           open: true,
                           type: 'GRN',
-                          preset: { itemIds: [quickScannedItem.id] },
+                          preset: { itemIds: [matched.id] },
                         })
                       }
                       className="px-2.5 py-0.5 rounded-full bg-[#141414] text-white text-[10px] font-bold"
                     >
-                      + وارد
+                      + توريد
                     </button>
                     <button
                       type="button"
@@ -882,7 +1270,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
                         setVoucherModalState({
                           open: true,
                           type: 'GIN',
-                          preset: { itemIds: [quickScannedItem.id] },
+                          preset: { itemIds: [matched.id] },
                         })
                       }
                       className="px-2.5 py-0.5 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[#141414] text-[10px] font-bold"
@@ -891,13 +1279,13 @@ export const KasWarehouseManagementPage: React.FC = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setStockCardItem(quickScannedItem)}
+                      onClick={() => setStockCardItem(matched)}
                       className="px-2.5 py-0.5 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[#141414] text-[10px] font-bold"
                     >
                       كرت
                     </button>
                   </div>
-                )}
+                ))}
               </div>
             </div>
 
@@ -987,10 +1375,16 @@ export const KasWarehouseManagementPage: React.FC = () => {
                       </span>
                       <button
                         type="button"
-                        onClick={() => setVoucherModalState({ open: true, type: 'GRN' })}
-                        className="px-2.5 py-1 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[11px] font-bold text-[#141414]"
+                        onClick={() =>
+                          setVoucherModalState({
+                            open: true,
+                            type: 'GRN',
+                            preset: { itemIds: [item.id] },
+                          })
+                        }
+                        className="px-2.5 py-1 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-[11px] font-bold text-[#141414] hover:bg-[#141414] hover:text-white transition-colors"
                       >
-                        توريد
+                        + توريد
                       </button>
                     </div>
                   </div>
@@ -1048,34 +1442,62 @@ export const KasWarehouseManagementPage: React.FC = () => {
 
       {activeTab === 'catalog' && (
         <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-5 space-y-4">
-          {/* Search & Filters */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 min-w-[220px]">
-              <Search className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2" />
+          {/* 1. Smart Search, Filters & Quick Table Actions */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex items-center gap-2 flex-1 min-w-[240px] rounded-full bg-[#f0f0f0] px-4 py-2.5 focus-within:ring-2 focus-within:ring-[#141414]">
+              <Search className="w-4 h-4 text-[#707070] shrink-0" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="بحث بالاسم أو رمز SKU أو مسح الباركود..."
-                className="w-full rounded-full bg-[#f0f0f0] pr-10 pl-4 py-2.5 text-xs text-[#141414] focus:outline-none focus:ring-2 focus:ring-[#141414]"
+                placeholder="بحث ذكي بالاسم أو التصنيف أو النوع أو رمز SKU أو الباركود..."
+                className="flex-1 bg-transparent text-xs text-[#141414] focus:outline-none"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  title="مسح البحث"
+                  className="w-5 h-5 rounded-full bg-[#e0e0e0] flex items-center justify-center text-[#141414] hover:bg-[#141414] hover:text-white"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+              <span className="px-2 py-0.5 rounded-full bg-[#ffffff] text-[10px] font-mono font-bold text-[#141414] shrink-0">
+                {filteredItems.length} / {state.items.length}
+              </span>
             </div>
+
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="rounded-full bg-[#f0f0f0] px-4 py-2.5 text-xs font-semibold text-[#141414]"
+              className="rounded-full bg-[#f0f0f0] px-3.5 py-2.5 text-xs font-semibold text-[#141414]"
             >
-              <option value="all">كل الفئات التصنيفية ({state.categories.length})</option>
+              <option value="all">كل التصنيفات ({state.categories.length})</option>
               {state.categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.nameAr}
                 </option>
               ))}
             </select>
+
+            <select
+              value={selectedItemType}
+              onChange={(e) => setSelectedItemType(e.target.value)}
+              className="rounded-full bg-[#f0f0f0] px-3.5 py-2.5 text-xs font-semibold text-[#141414]"
+            >
+              <option value="all">كل الأنواع ({itemTypes.length})</option>
+              {itemTypes.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+
             <select
               value={selectedWarehouse}
               onChange={(e) => setSelectedWarehouse(e.target.value)}
-              className="rounded-full bg-[#f0f0f0] px-4 py-2.5 text-xs font-semibold text-[#141414]"
+              className="rounded-full bg-[#f0f0f0] px-3.5 py-2.5 text-xs font-semibold text-[#141414]"
             >
               <option value="all">كل المستودعات ({state.warehouses.length})</option>
               {state.warehouses.map((w) => (
@@ -1084,137 +1506,886 @@ export const KasWarehouseManagementPage: React.FC = () => {
                 </option>
               ))}
             </select>
+
+            {(searchQuery || selectedCategory !== 'all' || selectedItemType !== 'all' || selectedWarehouse !== 'all') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('all');
+                  setSelectedItemType('all');
+                  setSelectedWarehouse('all');
+                }}
+                className="px-3 py-2 rounded-full border border-[#e0e0e0] text-xs font-bold text-[#707070] hover:text-[#141414]"
+              >
+                إعادة ضبط الفلاتر
+              </button>
+            )}
           </div>
 
+          {/* 2. Classification Pill Strip (تصنيف الجدول الفوري) + Inline Add Item / Voucher Table Toggles */}
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-[#f0f0f0]">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[11px] font-bold text-[#707070] flex items-center gap-1 ml-1">
+                <Tag className="w-3.5 h-3.5 text-[#141414]" />
+                <span>تصنيف الجدول:</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedCategory('all')}
+                className={`px-3 py-1 rounded-full text-[11px] font-bold transition-colors ${
+                  selectedCategory === 'all'
+                    ? 'bg-[#141414] text-white'
+                    : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#e5e5e5]'
+                }`}
+              >
+                الكل ({state.items.length})
+              </button>
+              {state.categories.map((cat) => {
+                const count = state.items.filter((i) => i.categoryId === cat.id).length;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`px-3 py-1 rounded-full text-[11px] font-bold transition-colors ${
+                      selectedCategory === cat.id
+                        ? 'bg-[#141414] text-white'
+                        : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#e5e5e5]'
+                    }`}
+                  >
+                    {cat.nameAr} ({count})
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => setShowNewCategoryInline((p) => !p)}
+                className="px-2.5 py-1 rounded-full border border-[#141414] text-[11px] font-bold text-[#141414] hover:bg-[#141414] hover:text-white transition-colors"
+              >
+                + تصنيف جديد
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowNewTypeInline((p) => !p)}
+                className="px-2.5 py-1 rounded-full border border-[#e0e0e0] text-[11px] font-bold text-[#141414] hover:bg-[#f3f3f3] transition-colors"
+              >
+                + نوع جديد
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] text-[#707070] font-semibold">
+                انقر على أي خانة في الجدول لتحريرها فوراً ✎
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowInlineAddItemRow((p) => !p)}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 transition-colors ${
+                  showInlineAddItemRow
+                    ? 'bg-[#141414] text-white'
+                    : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#141414] hover:text-white'
+                }`}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ إضافة صنف في الجدول</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowQuickVoucherTable((p) => !p)}
+                className="px-3 py-1.5 rounded-full bg-[#141414] text-white text-xs font-bold flex items-center gap-1 hover:bg-[#262626]"
+              >
+                <TableIcon className="w-3.5 h-3.5" />
+                <span>جدول توريد وصرف متعدد</span>
+              </button>
+            </div>
+          </div>
+
+          {showNewCategoryInline && (
+            <div className="p-3 rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold text-[#141414]">إضافة تصنيف جديد للجدول:</span>
+              <input
+                type="text"
+                value={newCategoryNameInline}
+                onChange={(e) => setNewCategoryNameInline(e.target.value)}
+                placeholder="مثال: مستلزمات السلامة والأمن..."
+                className="flex-1 min-w-[200px] rounded-full bg-[#ffffff] border border-[#e0e0e0] px-3.5 py-1.5 text-xs text-[#141414]"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (!newCategoryNameInline.trim()) return;
+                  const created = wmsEngineService.createCategory({ nameAr: newCategoryNameInline.trim() }, actor);
+                  refresh();
+                  setSelectedCategory(created.id);
+                  setNewCategoryNameInline('');
+                  setShowNewCategoryInline(false);
+                  addNotification({
+                    title: 'تمت إضافة التصنيف',
+                    message: `تمت إضافة التصنيف (${created.nameAr}) إلى الجدول.`,
+                    type: 'success',
+                  });
+                }}
+                className="px-3.5 py-1.5 rounded-full bg-[#141414] text-white text-xs font-bold"
+              >
+                حفظ التصنيف
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowNewCategoryInline(false)}
+                className="px-3 py-1.5 rounded-full border border-[#e0e0e0] text-xs font-bold text-[#707070]"
+              >
+                إلغاء
+              </button>
+            </div>
+          )}
+
+          {showNewTypeInline && (
+            <div className="p-3 rounded-[16px] bg-[#f3f3f3] border border-[#e0e0e0] flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold text-[#141414]">إضافة نوع صنف جديد:</span>
+              <input
+                type="text"
+                value={newTypeNameInline}
+                onChange={(e) => setNewTypeNameInline(e.target.value)}
+                placeholder="مثال: أجهزة تكييف وتبريد..."
+                className="flex-1 min-w-[200px] rounded-full bg-[#ffffff] border border-[#e0e0e0] px-3.5 py-1.5 text-xs text-[#141414]"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (!newTypeNameInline.trim()) return;
+                  const saved = wmsEngineService.addItemType(newTypeNameInline.trim(), actor);
+                  refresh();
+                  if (saved) setSelectedItemType(saved);
+                  setNewTypeNameInline('');
+                  setShowNewTypeInline(false);
+                  addNotification({
+                    title: 'تمت إضافة النوع',
+                    message: `تم تسجيل النوع (${saved}) في قائمة الأنواع.`,
+                    type: 'success',
+                  });
+                }}
+                className="px-3.5 py-1.5 rounded-full bg-[#141414] text-white text-xs font-bold"
+              >
+                حفظ النوع
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowNewTypeInline(false)}
+                className="px-3 py-1.5 rounded-full border border-[#e0e0e0] text-xs font-bold text-[#707070]"
+              >
+                إلغاء
+              </button>
+            </div>
+          )}
+
+          {/* 3. Interactive Catalog Table with Inline Cell Editing & Direct Supply/Issue */}
           <div className="overflow-x-auto border border-[#e0e0e0] rounded-[16px]">
+            <datalist id="wms-catalog-inline-types">
+              {itemTypes.map((t) => (
+                <option key={t} value={t} />
+              ))}
+            </datalist>
+            <datalist id="wms-catalog-inline-uoms">
+              {DEFAULT_WMS_UNITS.map((u) => (
+                <option key={u} value={u} />
+              ))}
+            </datalist>
+            <datalist id="wms-catalog-inline-parties">
+              {WMS_BENEFICIARIES.map((b) => (
+                <option key={b.id} value={b.nameAr} />
+              ))}
+            </datalist>
+
             <table className="w-full text-right text-xs">
               <thead className="bg-[#f3f3f3] text-[#707070] border-b border-[#e0e0e0]">
                 <tr>
-                  <th className="p-2.5">SKU / باركود</th>
-                  <th className="p-2.5">اسم الصنف الموحّد</th>
-                  <th className="p-2.5">الفئة والموقع</th>
+                  <th className="p-2.5 cursor-pointer hover:text-[#141414]" onClick={() => toggleSort('sku')}>
+                    <span className="inline-flex items-center gap-1">
+                      SKU / باركود <ArrowUpDown className="w-3 h-3" />
+                    </span>
+                  </th>
+                  <th className="p-2.5 cursor-pointer hover:text-[#141414]" onClick={() => toggleSort('nameAr')}>
+                    <span className="inline-flex items-center gap-1">
+                      اسم الصنف الموحّد <ArrowUpDown className="w-3 h-3" />
+                    </span>
+                  </th>
+                  <th className="p-2.5 cursor-pointer hover:text-[#141414]" onClick={() => toggleSort('category')}>
+                    <span className="inline-flex items-center gap-1">
+                      التصنيف <ArrowUpDown className="w-3 h-3" />
+                    </span>
+                  </th>
+                  <th className="p-2.5 cursor-pointer hover:text-[#141414]" onClick={() => toggleSort('itemType')}>
+                    <span className="inline-flex items-center gap-1">
+                      النوع <ArrowUpDown className="w-3 h-3" />
+                    </span>
+                  </th>
+                  <th className="p-2.5">المستودع والموقع</th>
                   <th className="p-2.5">الوحدات (UoM)</th>
-                  <th className="p-2.5">الرصيد الفعلي</th>
+                  <th className="p-2.5 cursor-pointer hover:text-[#141414]" onClick={() => toggleSort('onHand')}>
+                    <span className="inline-flex items-center gap-1">
+                      الرصيد الفعلي <ArrowUpDown className="w-3 h-3" />
+                    </span>
+                  </th>
                   <th className="p-2.5">محجوز / متاح</th>
-                  <th className="p-2.5">متوسط التكلفة</th>
-                  <th className="p-2.5">إجراءات</th>
+                  <th className="p-2.5 cursor-pointer hover:text-[#141414]" onClick={() => toggleSort('cost')}>
+                    <span className="inline-flex items-center gap-1">
+                      متوسط التكلفة <ArrowUpDown className="w-3 h-3" />
+                    </span>
+                  </th>
+                  <th className="p-2.5">توريد / صرف وإجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#f0f0f0]">
-                {filteredItems.map((it) => {
-                  const stock = wmsEngineService.getItemStockSummary(it.id);
-                  const cat = state.categories.find((c) => c.id === it.categoryId);
-                  return (
-                    <tr key={it.id} className="hover:bg-[#fafafa]">
-                      <td className="p-2.5 font-mono">
-                        <div className="font-bold text-[#141414]">{it.sku}</div>
-                        <div className="text-[10px] text-[#707070]">{it.barcode}</div>
-                      </td>
-                      <td className="p-2.5">
-                        <div className="font-bold text-[#141414]">{it.nameAr}</div>
-                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                          {it.trackingMode === 'SERIAL' && (
-                            <span className="px-2 py-0.5 rounded-full bg-[#141414] text-white text-[9px] font-bold">
-                              تسلسلي S/N
-                            </span>
-                          )}
-                          {it.trackingMode === 'LOT_EXPIRY' && (
-                            <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] text-[9px] font-bold">
-                              صلاحية FEFO
-                            </span>
-                          )}
-                          {it.isCustodyEligible && (
-                            <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] text-[#707070] text-[9px] font-semibold">
-                              عهدة
-                            </span>
-                          )}
-                          {it.isSampleItem && (
-                            <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] text-[9px] font-bold">
-                              عينة
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-2.5 text-[#707070]">
-                        <div>{cat?.code} — {it.defaultWarehouseId}</div>
-                        <div className="font-mono text-[10px]">{it.defaultLocationCode}</div>
-                      </td>
-                      <td className="p-2.5 text-[11px]">
-                        <span className="font-bold text-[#141414]">{it.baseUom}</span>
-                        {it.uomConversions.length > 1 && (
-                          <div className="text-[10px] text-[#707070]">
-                            {it.uomConversions
-                              .filter((u) => u.factorToBase > 1)
-                              .map((u) => `${u.uomName}=${u.factorToBase}`)
-                              .join(' • ')}
-                          </div>
+                {/* Inline Quick-Add Item Row Directly in Table */}
+                {showInlineAddItemRow && (
+                  <tr className="bg-[#f3f3f3]/80 border-b-2 border-[#141414]">
+                    <td className="p-2">
+                      <input
+                        type="text"
+                        value={inlineNewItem.sku}
+                        onChange={(e) => setInlineNewItem((p) => ({ ...p, sku: e.target.value }))}
+                        placeholder="تلقائي SKU"
+                        className="w-24 rounded-[10px] bg-[#ffffff] border border-[#e0e0e0] px-2 py-1 text-[11px] font-mono"
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="text"
+                        value={inlineNewItem.nameAr}
+                        onChange={(e) => setInlineNewItem((p) => ({ ...p, nameAr: e.target.value }))}
+                        onKeyDown={(e) => e.key === 'Enter' && handleInlineAddItemSubmit()}
+                        placeholder="اكتب اسم الصنف الجديد هنا *"
+                        className="w-full min-w-[160px] rounded-[10px] bg-[#ffffff] border border-[#141414] px-2.5 py-1.5 text-xs font-bold text-[#141414]"
+                      />
+                    </td>
+                    <td className="p-2">
+                      <select
+                        value={inlineNewItem.categoryId}
+                        onChange={(e) => setInlineNewItem((p) => ({ ...p, categoryId: e.target.value }))}
+                        className="w-full rounded-[10px] bg-[#ffffff] border border-[#e0e0e0] px-2 py-1.5 text-[11px] font-semibold"
+                      >
+                        {state.categories.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.nameAr}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="p-2">
+                      <input
+                        list="wms-catalog-inline-types"
+                        value={inlineNewItem.itemType}
+                        onChange={(e) => setInlineNewItem((p) => ({ ...p, itemType: e.target.value }))}
+                        placeholder="النوع..."
+                        className="w-full min-w-[115px] rounded-[10px] bg-[#ffffff] border border-[#e0e0e0] px-2 py-1.5 text-[11px]"
+                      />
+                    </td>
+                    <td className="p-2 space-y-1">
+                      <select
+                        value={inlineNewItem.warehouseId}
+                        onChange={(e) => setInlineNewItem((p) => ({ ...p, warehouseId: e.target.value }))}
+                        className="w-full rounded-[10px] bg-[#ffffff] border border-[#e0e0e0] px-2 py-1 text-[11px]"
+                      >
+                        {state.warehouses.map((w) => (
+                          <option key={w.id} value={w.id}>
+                            {w.nameAr}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="p-2">
+                      <input
+                        list="wms-catalog-inline-uoms"
+                        value={inlineNewItem.baseUom}
+                        onChange={(e) => setInlineNewItem((p) => ({ ...p, baseUom: e.target.value }))}
+                        className="w-20 rounded-[10px] bg-[#ffffff] border border-[#e0e0e0] px-2 py-1 text-[11px] font-semibold"
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="number"
+                        min={0}
+                        value={inlineNewItem.initialQty}
+                        onChange={(e) => setInlineNewItem((p) => ({ ...p, initialQty: e.target.value }))}
+                        placeholder="رصيد"
+                        className="w-20 rounded-[10px] bg-[#ffffff] border border-[#e0e0e0] px-2 py-1 text-xs font-mono font-bold"
+                      />
+                    </td>
+                    <td className="p-2 text-[10px] text-[#707070]">صنف جديد</td>
+                    <td className="p-2">
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={inlineNewItem.avgUnitCost}
+                        onChange={(e) => setInlineNewItem((p) => ({ ...p, avgUnitCost: e.target.value }))}
+                        placeholder="التكلفة"
+                        className="w-20 rounded-[10px] bg-[#ffffff] border border-[#e0e0e0] px-2 py-1 text-xs font-mono"
+                      />
+                    </td>
+                    <td className="p-2">
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={handleInlineAddItemSubmit}
+                          className="px-3 py-1 rounded-full bg-[#141414] text-white text-[11px] font-bold flex items-center gap-1"
+                        >
+                          <Check className="w-3 h-3" />
+                          <span>حفظ</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowInlineAddItemRow(false)}
+                          className="w-7 h-7 rounded-full bg-[#ffffff] border border-[#e0e0e0] flex items-center justify-center text-[#707070]"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+
+                {filteredItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="p-8 text-center text-xs text-[#707070]">
+                      لا توجد أصناف مطابقة للبحث أو التصنيف المحدد. اضغط «+ إضافة صنف في الجدول» لإضافته فوراً.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredItems.map((it) => {
+                    const stock = wmsEngineService.getItemStockSummary(it.id);
+                    const cat = state.categories.find((c) => c.id === it.categoryId);
+                    const wh = state.warehouses.find((w) => w.id === it.defaultWarehouseId);
+                    const resolvedType = resolveItemTypeLabel(it, cat?.code);
+                    const isEditing = (f: NonNullable<typeof editingCatalogCell>['field']) =>
+                      editingCatalogCell?.itemId === it.id && editingCatalogCell.field === f;
+                    const isRowActionOpen = rowQuickAction?.itemId === it.id;
+
+                    return (
+                      <React.Fragment key={it.id}>
+                        <tr className="hover:bg-[#fafafa] group">
+                          {/* Cell 1: SKU / Barcode */}
+                          <td
+                            className="p-2.5 font-mono cursor-pointer hover:bg-[#f3f3f3]/70 rounded-[8px]"
+                            title="انقر لتحرير خانة SKU والباركود"
+                            onClick={() =>
+                              !isEditing('sku') &&
+                              setEditingCatalogCell({ itemId: it.id, field: 'sku', val1: it.sku, val2: it.barcode })
+                            }
+                          >
+                            {isEditing('sku') ? (
+                              <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
+                                <input
+                                  type="text"
+                                  autoFocus
+                                  value={editingCatalogCell!.val1}
+                                  onChange={(e) => setEditingCatalogCell((s) => s && { ...s, val1: e.target.value })}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') commitCatalogCellEdit();
+                                    if (e.key === 'Escape') setEditingCatalogCell(null);
+                                  }}
+                                  className="w-28 rounded-[8px] bg-[#ffffff] border border-[#141414] px-2 py-1 text-[11px] font-mono font-bold"
+                                />
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="text"
+                                    value={editingCatalogCell!.val2 || ''}
+                                    onChange={(e) => setEditingCatalogCell((s) => s && { ...s, val2: e.target.value })}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') commitCatalogCellEdit();
+                                      if (e.key === 'Escape') setEditingCatalogCell(null);
+                                    }}
+                                    className="w-24 rounded-[8px] bg-[#ffffff] border border-[#e0e0e0] px-1.5 py-0.5 text-[10px] font-mono"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={commitCatalogCellEdit}
+                                    className="w-6 h-6 rounded-full bg-[#141414] text-white flex items-center justify-center"
+                                  >
+                                    <Check className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="font-bold text-[#141414]">{it.sku}</div>
+                                <div className="text-[10px] text-[#707070]">{it.barcode}</div>
+                              </>
+                            )}
+                          </td>
+
+                          {/* Cell 2: Item Name */}
+                          <td
+                            className="p-2.5 cursor-pointer hover:bg-[#f3f3f3]/70"
+                            title="انقر لتحرير اسم الصنف مباشرة"
+                            onClick={() =>
+                              !isEditing('nameAr') &&
+                              setEditingCatalogCell({ itemId: it.id, field: 'nameAr', val1: it.nameAr })
+                            }
+                          >
+                            {isEditing('nameAr') ? (
+                              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                <input
+                                  type="text"
+                                  autoFocus
+                                  value={editingCatalogCell!.val1}
+                                  onChange={(e) => setEditingCatalogCell((s) => s && { ...s, val1: e.target.value })}
+                                  onBlur={commitCatalogCellEdit}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') commitCatalogCellEdit();
+                                    if (e.key === 'Escape') setEditingCatalogCell(null);
+                                  }}
+                                  className="w-full min-w-[160px] rounded-[8px] bg-[#ffffff] border border-[#141414] px-2.5 py-1 text-xs font-bold text-[#141414]"
+                                />
+                              </div>
+                            ) : (
+                              <>
+                                <div className="font-bold text-[#141414]">{it.nameAr}</div>
+                                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                  {it.trackingMode === 'SERIAL' && (
+                                    <span className="px-2 py-0.5 rounded-full bg-[#141414] text-white text-[9px] font-bold">
+                                      تسلسلي S/N
+                                    </span>
+                                  )}
+                                  {it.trackingMode === 'LOT_EXPIRY' && (
+                                    <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] text-[9px] font-bold">
+                                      صلاحية FEFO
+                                    </span>
+                                  )}
+                                  {it.isCustodyEligible && (
+                                    <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] text-[#707070] text-[9px] font-semibold">
+                                      عهدة
+                                    </span>
+                                  )}
+                                  {it.isSampleItem && (
+                                    <span className="px-2 py-0.5 rounded-full bg-[#f3f3f3] text-[#141414] text-[9px] font-bold">
+                                      عينة
+                                    </span>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                          </td>
+
+                          {/* Cell 3: Dedicated Classification (التصنيف) */}
+                          <td
+                            className="p-2.5 cursor-pointer hover:bg-[#f3f3f3]/70"
+                            title="انقر لتغيير التصنيف"
+                            onClick={() =>
+                              !isEditing('categoryId') &&
+                              setEditingCatalogCell({ itemId: it.id, field: 'categoryId', val1: it.categoryId })
+                            }
+                          >
+                            {isEditing('categoryId') ? (
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <select
+                                  autoFocus
+                                  value={editingCatalogCell!.val1}
+                                  onChange={(e) => {
+                                    wmsEngineService.updateItem(it.id, { categoryId: e.target.value }, actor);
+                                    setEditingCatalogCell(null);
+                                    refresh();
+                                  }}
+                                  onBlur={() => setEditingCatalogCell(null)}
+                                  className="rounded-[8px] bg-[#ffffff] border border-[#141414] px-2 py-1 text-[11px] font-bold text-[#141414]"
+                                >
+                                  {state.categories.map((c) => (
+                                    <option key={c.id} value={c.id}>
+                                      {c.nameAr}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            ) : (
+                              <span className="inline-block px-2.5 py-1 rounded-full bg-[#f3f3f3] text-[#141414] text-[10px] font-bold">
+                                {cat?.nameAr || cat?.code || 'غير مصنّف'}
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Cell 4: Dedicated Item Type (النوع) */}
+                          <td
+                            className="p-2.5 cursor-pointer hover:bg-[#f3f3f3]/70"
+                            title="انقر لتحرير أو إضافة النوع"
+                            onClick={() =>
+                              !isEditing('itemType') &&
+                              setEditingCatalogCell({ itemId: it.id, field: 'itemType', val1: resolvedType })
+                            }
+                          >
+                            {isEditing('itemType') ? (
+                              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                <input
+                                  list="wms-catalog-inline-types"
+                                  autoFocus
+                                  value={editingCatalogCell!.val1}
+                                  onChange={(e) => setEditingCatalogCell((s) => s && { ...s, val1: e.target.value })}
+                                  onBlur={commitCatalogCellEdit}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') commitCatalogCellEdit();
+                                    if (e.key === 'Escape') setEditingCatalogCell(null);
+                                  }}
+                                  className="w-32 rounded-[8px] bg-[#ffffff] border border-[#141414] px-2 py-1 text-[11px] font-semibold"
+                                />
+                              </div>
+                            ) : (
+                              <span className="inline-block px-2.5 py-0.5 rounded-full border border-[#e0e0e0] bg-[#ffffff] text-[#141414] text-[10px] font-semibold">
+                                {resolvedType}
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Cell 5: Warehouse & Bin Location */}
+                          <td
+                            className="p-2.5 text-[#707070] cursor-pointer hover:bg-[#f3f3f3]/70"
+                            title="انقر لتحرير المستودع أو خانة الرف"
+                            onClick={() =>
+                              !isEditing('warehouseBin') &&
+                              setEditingCatalogCell({
+                                itemId: it.id,
+                                field: 'warehouseBin',
+                                val1: it.defaultWarehouseId,
+                                val2: it.defaultLocationCode,
+                              })
+                            }
+                          >
+                            {isEditing('warehouseBin') ? (
+                              <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
+                                <select
+                                  value={editingCatalogCell!.val1}
+                                  onChange={(e) => setEditingCatalogCell((s) => s && { ...s, val1: e.target.value })}
+                                  className="w-full rounded-[8px] bg-[#ffffff] border border-[#141414] px-1.5 py-1 text-[10px] font-semibold text-[#141414]"
+                                >
+                                  {state.warehouses.map((w) => (
+                                    <option key={w.id} value={w.id}>
+                                      {w.nameAr}
+                                    </option>
+                                  ))}
+                                </select>
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="text"
+                                    value={editingCatalogCell!.val2 || ''}
+                                    onChange={(e) => setEditingCatalogCell((s) => s && { ...s, val2: e.target.value })}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') commitCatalogCellEdit();
+                                      if (e.key === 'Escape') setEditingCatalogCell(null);
+                                    }}
+                                    className="w-24 rounded-[8px] bg-[#ffffff] border border-[#e0e0e0] px-1.5 py-0.5 text-[10px] font-mono text-[#141414]"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={commitCatalogCellEdit}
+                                    className="w-5 h-5 rounded-full bg-[#141414] text-white flex items-center justify-center"
+                                  >
+                                    <Check className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="text-[11px] font-semibold text-[#141414]">
+                                  {wh?.nameAr || it.defaultWarehouseId}
+                                </div>
+                                <div className="font-mono text-[10px]">{it.defaultLocationCode}</div>
+                              </>
+                            )}
+                          </td>
+
+                          {/* Cell 6: UoM */}
+                          <td
+                            className="p-2.5 text-[11px] cursor-pointer hover:bg-[#f3f3f3]/70"
+                            title="انقر لتحرير خانة الوحدة"
+                            onClick={() =>
+                              !isEditing('baseUom') &&
+                              setEditingCatalogCell({ itemId: it.id, field: 'baseUom', val1: it.baseUom })
+                            }
+                          >
+                            {isEditing('baseUom') ? (
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <input
+                                  list="wms-catalog-inline-uoms"
+                                  autoFocus
+                                  value={editingCatalogCell!.val1}
+                                  onChange={(e) => setEditingCatalogCell((s) => s && { ...s, val1: e.target.value })}
+                                  onBlur={commitCatalogCellEdit}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') commitCatalogCellEdit();
+                                    if (e.key === 'Escape') setEditingCatalogCell(null);
+                                  }}
+                                  className="w-20 rounded-[8px] bg-[#ffffff] border border-[#141414] px-2 py-1 text-xs font-bold"
+                                />
+                              </div>
+                            ) : (
+                              <>
+                                <span className="font-bold text-[#141414]">{it.baseUom}</span>
+                                {it.uomConversions.length > 1 && (
+                                  <div className="text-[10px] text-[#707070]">
+                                    {it.uomConversions
+                                      .filter((u) => u.factorToBase > 1)
+                                      .map((u) => `${u.uomName}=${u.factorToBase}`)
+                                      .join(' • ')}
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </td>
+
+                          {/* Cell 7: Actual On-Hand Stock (Inline Editable!) */}
+                          <td
+                            className="p-2.5 font-mono font-bold text-sm text-[#141414] cursor-pointer hover:bg-[#f3f3f3]/70"
+                            title="انقر لتحرير الرصيد الفعلي مباشرة"
+                            onClick={() =>
+                              !isEditing('onHand') &&
+                              setEditingCatalogCell({ itemId: it.id, field: 'onHand', val1: String(stock.onHand) })
+                            }
+                          >
+                            {isEditing('onHand') ? (
+                              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  step="any"
+                                  autoFocus
+                                  value={editingCatalogCell!.val1}
+                                  onChange={(e) => setEditingCatalogCell((s) => s && { ...s, val1: e.target.value })}
+                                  onBlur={commitCatalogCellEdit}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') commitCatalogCellEdit();
+                                    if (e.key === 'Escape') setEditingCatalogCell(null);
+                                  }}
+                                  className="w-20 rounded-[8px] bg-[#ffffff] border border-[#141414] px-2 py-1 text-xs font-mono font-bold"
+                                />
+                              </div>
+                            ) : (
+                              <span>{stock.onHand}</span>
+                            )}
+                          </td>
+
+                          {/* Cell 8: Reserved / Available */}
+                          <td className="p-2.5 font-mono text-[11px]">
+                            <span className="text-[#707070]">حجز {stock.reserved}</span> /{' '}
+                            <strong className="text-[#141414]">متاح {stock.available}</strong>
+                          </td>
+
+                          {/* Cell 9: Avg Unit Cost (Inline Editable!) */}
+                          <td
+                            className="p-2.5 font-mono text-xs cursor-pointer hover:bg-[#f3f3f3]/70"
+                            title="انقر لتحرير متوسط التكلفة"
+                            onClick={() =>
+                              !isEditing('avgUnitCost') &&
+                              setEditingCatalogCell({
+                                itemId: it.id,
+                                field: 'avgUnitCost',
+                                val1: String(it.avgUnitCost || 0),
+                              })
+                            }
+                          >
+                            {isEditing('avgUnitCost') ? (
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  autoFocus
+                                  value={editingCatalogCell!.val1}
+                                  onChange={(e) => setEditingCatalogCell((s) => s && { ...s, val1: e.target.value })}
+                                  onBlur={commitCatalogCellEdit}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') commitCatalogCellEdit();
+                                    if (e.key === 'Escape') setEditingCatalogCell(null);
+                                  }}
+                                  className="w-20 rounded-[8px] bg-[#ffffff] border border-[#141414] px-2 py-1 text-xs font-mono"
+                                />
+                              </div>
+                            ) : it.avgUnitCost > 0 ? (
+                              `${it.avgUnitCost.toLocaleString()} ⃁`
+                            ) : (
+                              <span className="text-[#adadad]">— (تحرير)</span>
+                            )}
+                          </td>
+
+                          {/* Cell 10: Direct Supply / Issue + Item Actions */}
+                          <td className="p-2.5">
+                            <div className="flex items-center gap-1 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setRowQuickAction(
+                                    isRowActionOpen && rowQuickAction?.type === 'GRN'
+                                      ? null
+                                      : {
+                                          itemId: it.id,
+                                          type: 'GRN',
+                                          qty: '1',
+                                          uom: it.baseUom,
+                                          unitCost: String(it.avgUnitCost || 0),
+                                          party: 'مشتريات كاس / مورد مباشر',
+                                        }
+                                  )
+                                }
+                                className="px-2 py-1 rounded-full bg-[#141414] text-white hover:bg-[#262626] text-[10px] font-bold inline-flex items-center gap-0.5"
+                                title="إذن توريد سريع لهذا الصنف"
+                              >
+                                <ArrowDownLeft className="w-3 h-3" />
+                                <span>توريد</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setRowQuickAction(
+                                    isRowActionOpen && rowQuickAction?.type === 'GIN'
+                                      ? null
+                                      : {
+                                          itemId: it.id,
+                                          type: 'GIN',
+                                          qty: '1',
+                                          uom: it.baseUom,
+                                          unitCost: String(it.avgUnitCost || 0),
+                                          party: WMS_BENEFICIARIES[0]?.nameAr || 'تشغيل المكاتب',
+                                        }
+                                  )
+                                }
+                                className="px-2 py-1 rounded-full border border-[#141414] bg-[#ffffff] text-[#141414] hover:bg-[#141414] hover:text-white text-[10px] font-bold inline-flex items-center gap-0.5 transition-colors"
+                                title="إذن صرف سريع لهذا الصنف"
+                              >
+                                <ArrowUpRight className="w-3 h-3" />
+                                <span>صرف</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setStockCardItem(it)}
+                                className="px-2 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#141414] hover:text-white text-[10px] font-bold inline-flex items-center gap-1 transition-colors"
+                                title="كرت الصنف"
+                              >
+                                <Eye className="w-3 h-3" />
+                                <span>كرت</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setMediaTarget({ kind: 'ITEM', id: it.id })}
+                                className="px-2 py-1 rounded-full border border-[#e0e0e0] hover:bg-[#141414] hover:text-white text-[10px] font-bold inline-flex items-center gap-1 transition-colors"
+                                title="صور ووسائط الصنف"
+                              >
+                                <Camera className="w-3 h-3" />
+                                {(it.attachments?.length || 0) > 0 && <span>{it.attachments?.length}</span>}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setBarcodeItem(it)}
+                                className="w-7 h-7 rounded-full border border-[#e0e0e0] flex items-center justify-center text-[#141414] hover:bg-[#f3f3f3]"
+                                title="طباعة باركود"
+                              >
+                                <Barcode className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEditingItem(it)}
+                                className="w-7 h-7 rounded-full border border-[#e0e0e0] flex items-center justify-center text-[#141414] hover:bg-[#141414] hover:text-white transition-colors"
+                                title="تحرير شامل للصنف"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  wmsEngineService.deleteItem(it.id, 'حذف من دليل الأصناف', actor);
+                                  refresh();
+                                  addNotification({
+                                    title: 'تم النقل لسلة المحذوفات',
+                                    message: `تم حذف (${it.nameAr}) — يمكنك الضغط على «تراجع» أو فتح سلة المحذوفات للاستعادة.`,
+                                    type: 'info',
+                                  });
+                                }}
+                                className="w-7 h-7 rounded-full border border-[#e0e0e0] flex items-center justify-center text-[#707070] hover:bg-[#141414] hover:text-white transition-colors"
+                                title="حذف الصنف إلى سلة المحذوفات"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+
+                        {/* Inline 1-Second Supply / Issue Row Drawer right inside the Table */}
+                        {isRowActionOpen && rowQuickAction && (
+                          <tr className="bg-[#f3f3f3] border-b border-[#e0e0e0]">
+                            <td colSpan={10} className="p-3">
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="px-2.5 py-1 rounded-full bg-[#141414] text-white text-[11px] font-bold">
+                                    {rowQuickAction.type === 'GRN' ? '+ إذن توريد فوري' : '- إذن صرف فوري'} — {it.nameAr}
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min={0.01}
+                                    step="any"
+                                    value={rowQuickAction.qty}
+                                    onChange={(e) => setRowQuickAction((s) => s && { ...s, qty: e.target.value })}
+                                    placeholder="الكمية"
+                                    className="w-24 rounded-full bg-[#ffffff] border border-[#141414] px-3 py-1 text-xs font-mono font-bold"
+                                  />
+                                  <input
+                                    list="wms-catalog-inline-uoms"
+                                    value={rowQuickAction.uom}
+                                    onChange={(e) => setRowQuickAction((s) => s && { ...s, uom: e.target.value })}
+                                    placeholder="الوحدة"
+                                    className="w-24 rounded-full bg-[#ffffff] border border-[#e0e0e0] px-3 py-1 text-xs font-semibold"
+                                  />
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    step="0.01"
+                                    value={rowQuickAction.unitCost}
+                                    onChange={(e) => setRowQuickAction((s) => s && { ...s, unitCost: e.target.value })}
+                                    placeholder="التكلفة ⃁"
+                                    className="w-24 rounded-full bg-[#ffffff] border border-[#e0e0e0] px-3 py-1 text-xs font-mono"
+                                  />
+                                  <input
+                                    list="wms-catalog-inline-parties"
+                                    value={rowQuickAction.party}
+                                    onChange={(e) => setRowQuickAction((s) => s && { ...s, party: e.target.value })}
+                                    placeholder={
+                                      rowQuickAction.type === 'GRN' ? 'المورد / المصدر...' : 'الجهة المستفيدة / المستلم...'
+                                    }
+                                    className="min-w-[200px] rounded-full bg-[#ffffff] border border-[#e0e0e0] px-3.5 py-1 text-xs"
+                                  />
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={handleRowQuickActionCommit}
+                                    className="px-4 py-1.5 rounded-full bg-[#141414] text-white text-xs font-bold flex items-center gap-1 hover:bg-[#262626]"
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    <span>اعتماد وترحيل فوراً</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const t = rowQuickAction.type;
+                                      setRowQuickAction(null);
+                                      setVoucherModalState({ open: true, type: t, preset: { itemIds: [it.id] } });
+                                    }}
+                                    className="px-3 py-1.5 rounded-full bg-[#ffffff] border border-[#e0e0e0] text-xs font-bold text-[#141414]"
+                                  >
+                                    فتح السند المتكامل
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setRowQuickAction(null)}
+                                    className="w-7 h-7 rounded-full bg-[#ffffff] flex items-center justify-center text-[#707070]"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
                         )}
-                      </td>
-                      <td className="p-2.5 font-mono font-bold text-sm text-[#141414]">{stock.onHand}</td>
-                      <td className="p-2.5 font-mono text-[11px]">
-                        <span className="text-[#707070]">حجز {stock.reserved}</span> /{' '}
-                        <strong className="text-[#141414]">متاح {stock.available}</strong>
-                      </td>
-                      <td className="p-2.5 font-mono text-xs">
-                        {it.avgUnitCost > 0 ? `${it.avgUnitCost.toLocaleString()} ⃁` : '—'}
-                      </td>
-                      <td className="p-2.5">
-                        <div className="flex items-center gap-1 flex-wrap">
-                          <button
-                            type="button"
-                            onClick={() => setStockCardItem(it)}
-                            className="px-2.5 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#141414] hover:text-white text-[11px] font-bold inline-flex items-center gap-1 transition-colors"
-                            title="كرت الصنف"
-                          >
-                            <Eye className="w-3 h-3" />
-                            <span>كرت</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setMediaTarget({ kind: 'ITEM', id: it.id })}
-                            className="px-2 py-1 rounded-full border border-[#e0e0e0] hover:bg-[#141414] hover:text-white text-[10px] font-bold inline-flex items-center gap-1 transition-colors"
-                            title="صور ووسائط الصنف"
-                          >
-                            <Camera className="w-3 h-3" />
-                            {(it.attachments?.length || 0) > 0 && <span>{it.attachments?.length}</span>}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setBarcodeItem(it)}
-                            className="w-7 h-7 rounded-full border border-[#e0e0e0] flex items-center justify-center text-[#141414] hover:bg-[#f3f3f3]"
-                            title="طباعة باركود"
-                          >
-                            <Barcode className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setEditingItem(it)}
-                            className="w-7 h-7 rounded-full border border-[#e0e0e0] flex items-center justify-center text-[#141414] hover:bg-[#141414] hover:text-white transition-colors"
-                            title="تعديل الصنف"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              wmsEngineService.deleteItem(it.id, 'حذف من دليل الأصناف', actor);
-                              refresh();
-                              addNotification({
-                                title: 'تم النقل لسلة المحذوفات',
-                                message: `تم حذف (${it.nameAr}) — يمكنك الضغط على «تراجع» أو فتح سلة المحذوفات للاستعادة.`,
-                                type: 'info',
-                              });
-                            }}
-                            className="w-7 h-7 rounded-full border border-[#e0e0e0] flex items-center justify-center text-[#707070] hover:bg-[#141414] hover:text-white transition-colors"
-                            title="حذف الصنف إلى سلة المحذوفات"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                      </React.Fragment>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
@@ -1222,220 +2393,452 @@ export const KasWarehouseManagementPage: React.FC = () => {
       )}
 
       {activeTab === 'vouchers' && (
-        <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-5 space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 min-w-[220px]">
-              <Search className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="بحث برقم الإذن، الصنف، الجهة المستفيدة، أو المستلم..."
-                className="w-full rounded-full bg-[#f0f0f0] pr-10 pl-4 py-2.5 text-xs text-[#141414]"
-              />
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                { id: 'all', label: 'الكل' },
-                { id: 'GRN', label: 'الوارد GRN' },
-                { id: 'GIN', label: 'الصادر GIN' },
-                { id: 'SRN', label: 'المرتجع SRN' },
-                { id: 'STR', label: 'التحويل STR' },
-                { id: 'ADJ', label: 'التسويات ADJ' },
-              ].map((f) => (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => setVoucherTypeFilter(f.id)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold ${
-                    voucherTypeFilter === f.id ? 'bg-[#141414] text-white' : 'bg-[#f3f3f3] text-[#141414]'
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-          </div>
+        <div className="space-y-4">
+          {/* Direct Inline Spreadsheet Table right inside Vouchers Tab */}
+          <WmsInlineQuickVoucherTable
+            items={state.items}
+            categories={state.categories}
+            warehouses={state.warehouses}
+            itemTypes={itemTypes}
+            defaultType={voucherTypeFilter !== 'all' ? (voucherTypeFilter as WmsVoucherType) : 'GRN'}
+            getAvailableQty={(id) => wmsEngineService.getItemStockSummary(id).available}
+            onPostVoucher={handleCreateVoucher}
+            onNotify={(title, message, type = 'success') => addNotification({ title, message, type })}
+            title="إضافة أذونات صرف وتوريد مباشرة في الجدول (مع دعم إضافة أصناف جديدة وتحديد النوع)"
+          />
 
-          <div className="overflow-x-auto border border-[#e0e0e0] rounded-[16px]">
-            <table className="w-full text-right text-xs">
-              <thead className="bg-[#f3f3f3] text-[#707070] border-b border-[#e0e0e0]">
-                <tr>
-                  <th className="p-2.5">رقم الإذن</th>
-                  <th className="p-2.5">النوع</th>
-                  <th className="p-2.5">التاريخ</th>
-                  <th className="p-2.5">الأصناف والكميات</th>
-                  <th className="p-2.5">الجهة / المستلم</th>
-                  <th className="p-2.5">الحالة / القيد</th>
-                  <th className="p-2.5">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#f0f0f0]">
-                {filteredVouchers.slice(0, 120).map((v) => (
-                  <tr key={v.id} className="hover:bg-[#fafafa]">
-                    <td className="p-2.5 font-mono font-bold text-[#141414]">
-                      <div>{v.voucherNo}</div>
-                      {v.dateAutoCorrected && (
-                        <span className="text-[9px] text-[#707070] block">تاريخ مصحّح ({v.originalExcelDate})</span>
-                      )}
-                    </td>
-                    <td className="p-2.5">
-                      <span className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] text-[10px] font-bold">
-                        {voucherTypeBadgeLabel[v.voucherType]}
-                      </span>
-                    </td>
-                    <td className="p-2.5 font-mono">{v.voucherDate}</td>
-                    <td className="p-2.5">
-                      {v.lines.map((l) => (
-                        <div key={l.id} className="font-semibold text-[#141414]">
-                          {l.itemName}{' '}
-                          <span className="font-mono text-[#707070]">
-                            ({l.enteredQty} {l.enteredUom})
-                          </span>
-                        </div>
-                      ))}
-                    </td>
-                    <td className="p-2.5">
-                      <div className="font-semibold text-[#141414]">{v.beneficiaryEntity || v.supplierName || '—'}</div>
-                      <div className="text-[11px] text-[#707070]">
-                        {v.recipientName || ''} {v.roomOrSite ? `• ${v.roomOrSite}` : ''}
-                      </div>
-                    </td>
-                    <td className="p-2.5">
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          v.status === 'POSTED'
-                            ? 'bg-[#141414] text-white'
-                            : v.status === 'DRAFT'
-                            ? 'bg-[#f3f3f3] text-[#141414]'
-                            : 'bg-[#f0f0f0] text-[#707070] line-through'
-                        }`}
-                      >
-                        {v.status === 'POSTED' ? 'معتمد ومُرحّل' : v.status === 'DRAFT' ? 'مسودة' : 'معكوس'}
-                      </span>
-                      {v.journalEntryId && (
-                        <div className="text-[10px] font-mono text-[#707070] mt-0.5">GL: {v.journalEntryId}</div>
-                      )}
-                    </td>
-                    <td className="p-2.5">
-                      <div className="flex items-center gap-1 flex-wrap">
-                        <button
-                          type="button"
-                          onClick={() => setPrintVoucher(v)}
-                          className="w-7 h-7 rounded-full bg-[#f3f3f3] flex items-center justify-center text-[#141414] hover:bg-[#141414] hover:text-white transition-colors"
-                          title="معاينة وطباعة السند PDF"
-                        >
-                          <Printer className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setSigningVoucher(v)}
-                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
-                            v.handoverSignatureDataUrl
-                              ? 'bg-[#141414] text-white'
-                              : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#141414] hover:text-white'
-                          }`}
-                          title={v.handoverSignatureDataUrl ? 'موقّع إلكترونياً — اضغط للتحديث' : 'التوقيع الإلكتروني على السند'}
-                        >
-                          <PenTool className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setMediaTarget({ kind: 'VOUCHER', id: v.id })}
-                          className="px-2 h-7 rounded-full bg-[#f3f3f3] flex items-center justify-center gap-1 text-[10px] font-bold text-[#141414] hover:bg-[#141414] hover:text-white transition-colors"
-                          title="صور الفاتورة وسند الاستلام والوسائط"
-                        >
-                          <Camera className="w-3.5 h-3.5" />
-                          {(v.attachments?.length || 0) > 0 && <span>{v.attachments?.length}</span>}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => sendSingleVoucherWhatsApp(v)}
-                          className="w-7 h-7 rounded-full bg-[#f3f3f3] flex items-center justify-center text-[#141414] hover:bg-[#141414] hover:text-white transition-colors"
-                          title="إرسال السند مباشرة عبر واتساب"
-                        >
-                          <MessageCircle className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => copyVoucherForWhatsApp(v)}
-                          className="w-7 h-7 rounded-full bg-[#f3f3f3] flex items-center justify-center text-[#141414] hover:bg-[#141414] hover:text-white transition-colors"
-                          title="نسخ ملخص الإذن"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditingVoucher(v)}
-                          className="w-7 h-7 rounded-full border border-[#e0e0e0] flex items-center justify-center text-[#141414] hover:bg-[#141414] hover:text-white transition-colors"
-                          title="تعديل الإذن والكميات"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        {v.status === 'DRAFT' && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const res = wmsEngineService.postDraftVoucher(v.id, actor);
-                              if (!res.ok) {
-                                addNotification({ title: 'تعذر الترحيل', message: res.error || '', type: 'error' });
-                              } else {
-                                refresh();
-                                addNotification({ title: 'تم الاعتماد الفوري', message: `ترحيل الإذن ${v.voucherNo}.`, type: 'success' });
-                              }
-                            }}
-                            className="px-2.5 py-1 rounded-full bg-[#141414] text-white text-[10px] font-bold"
-                          >
-                            اعتماد
-                          </button>
-                        )}
-                        {v.status === 'POSTED' && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const res = wmsEngineService.reverseVoucher(v.id, 'عكس وتصحيح من المستخدم', actor);
-                              if (!res.ok) {
-                                addNotification({ title: 'تعذر العكس', message: res.error || '', type: 'error' });
-                              } else {
-                                refresh();
-                                addNotification({ title: 'عكس الإذن', message: `تم عكس الإذن ${v.voucherNo} وتحديث الرصيد والقيد.`, type: 'info' });
-                              }
-                            }}
-                            className="px-2.5 py-1 rounded-full border border-[#e0e0e0] text-[10px] font-bold text-[#707070] hover:text-[#141414]"
-                          >
-                            عكس
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const ok = wmsEngineService.deleteVoucher(v.id, 'حذف من دفتر الأذونات', actor);
-                            if (!ok) {
-                              addNotification({
-                                title: 'محمي بحوكمة التثبيت الصارم',
-                                message: `لا يمكن حذف الإذن المُرحّل (${v.voucherNo}) — استخدم زر "عكس" لإصدار قيد عكسي معتمد.`,
-                                type: 'error',
-                              });
-                              return;
-                            }
-                            refresh();
-                            addNotification({
-                              title: 'تم حذف الإذن إلى سلة المحذوفات',
-                              message: `تم حذف (${v.voucherNo}) وإرجاع أثره المخزني — يمكنك التراجع أو الاستعادة في أي وقت.`,
-                              type: 'info',
-                            });
-                          }}
-                          className="w-7 h-7 rounded-full border border-[#e0e0e0] flex items-center justify-center text-[#707070] hover:bg-[#141414] hover:text-white transition-colors"
-                          title="حذف الإذن إلى سلة المحذوفات"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+          <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] p-5 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 flex-1 min-w-[240px] rounded-full bg-[#f0f0f0] px-4 py-2.5 focus-within:ring-2 focus-within:ring-[#141414]">
+                <Search className="w-4 h-4 text-[#707070] shrink-0" />
+                <input
+                  type="text"
+                  value={voucherSearchQuery}
+                  onChange={(e) => setVoucherSearchQuery(e.target.value)}
+                  placeholder="بحث ذكي برقم الإذن، النوع (وارد/صرف/مرتجع)، الصنف، أو الجهة المستفيدة..."
+                  className="flex-1 bg-transparent text-xs text-[#141414] focus:outline-none"
+                />
+                {voucherSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setVoucherSearchQuery('')}
+                    className="w-5 h-5 rounded-full bg-[#e0e0e0] flex items-center justify-center text-[#141414]"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+                <span className="px-2 py-0.5 rounded-full bg-[#ffffff] text-[10px] font-mono font-bold text-[#141414]">
+                  {filteredVouchers.length} / {state.vouchers.length}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1.5">
+                {[
+                  { id: 'all', label: 'الكل' },
+                  { id: 'GRN', label: 'التوريد GRN' },
+                  { id: 'GIN', label: 'الصرف GIN' },
+                  { id: 'SRN', label: 'المرتجع SRN' },
+                  { id: 'STR', label: 'التحويل STR' },
+                  { id: 'ADJ', label: 'التسويات ADJ' },
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setVoucherTypeFilter(f.id)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold ${
+                      voucherTypeFilter === f.id ? 'bg-[#141414] text-white' : 'bg-[#f3f3f3] text-[#141414]'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
                 ))}
-              </tbody>
-            </table>
+                <button
+                  type="button"
+                  onClick={() => setVoucherModalState({ open: true, type: 'GRN' })}
+                  className="px-3 py-1.5 rounded-full bg-[#141414] text-white text-xs font-bold flex items-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>نافذة سند متعدد</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="text-[11px] text-[#707070]">
+              انقر على خانة (النوع، التاريخ، الكمية، أو الجهة/المستلم) لتحريرها مباشرة في الجدول، أو اضغط أيقونة القلم لتحرير الأصناف بالكامل ✎
+            </div>
+
+            <div className="overflow-x-auto border border-[#e0e0e0] rounded-[16px]">
+              <table className="w-full text-right text-xs">
+                <thead className="bg-[#f3f3f3] text-[#707070] border-b border-[#e0e0e0]">
+                  <tr>
+                    <th className="p-2.5">رقم الإذن</th>
+                    <th className="p-2.5">نوع الإذن</th>
+                    <th className="p-2.5">التاريخ</th>
+                    <th className="p-2.5">الأصناف والنوع والكميات</th>
+                    <th className="p-2.5">الجهة / المورد / المستلم</th>
+                    <th className="p-2.5">الحالة / القيد</th>
+                    <th className="p-2.5">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#f0f0f0]">
+                  {filteredVouchers.slice(0, 120).map((v) => {
+                    const isEditingVch = (f: NonNullable<typeof editingVoucherCell>['field'], lid?: string) =>
+                      editingVoucherCell?.voucherId === v.id &&
+                      editingVoucherCell.field === f &&
+                      (!lid || editingVoucherCell.lineId === lid);
+
+                    return (
+                      <tr key={v.id} className="hover:bg-[#fafafa]">
+                        <td className="p-2.5 font-mono font-bold text-[#141414]">
+                          <div>{v.voucherNo}</div>
+                          {v.dateAutoCorrected && (
+                            <span className="text-[9px] text-[#707070] block">تاريخ مصحّح ({v.originalExcelDate})</span>
+                          )}
+                        </td>
+
+                        {/* Inline Editable Voucher Type */}
+                        <td
+                          className="p-2.5 cursor-pointer hover:bg-[#f3f3f3]/70"
+                          title="انقر لتغيير نوع الإذن"
+                          onClick={() =>
+                            !isEditingVch('voucherType') &&
+                            setEditingVoucherCell({ voucherId: v.id, field: 'voucherType', val1: v.voucherType })
+                          }
+                        >
+                          {isEditingVch('voucherType') ? (
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <select
+                                autoFocus
+                                value={editingVoucherCell!.val1}
+                                onChange={(e) => {
+                                  const res = wmsEngineService.updateVoucher(
+                                    v.id,
+                                    { voucherType: e.target.value as WmsVoucherType },
+                                    actor
+                                  );
+                                  setEditingVoucherCell(null);
+                                  if (!res.ok) {
+                                    addNotification({ title: 'تنبيه', message: res.error || '', type: 'error' });
+                                  } else {
+                                    refresh();
+                                  }
+                                }}
+                                onBlur={() => setEditingVoucherCell(null)}
+                                className="rounded-[8px] bg-[#ffffff] border border-[#141414] px-2 py-1 text-[11px] font-bold"
+                              >
+                                <option value="GRN">وارد GRN</option>
+                                <option value="GIN">صادر GIN</option>
+                                <option value="SRN">مرتجع SRN</option>
+                                <option value="STR">تحويل STR</option>
+                                <option value="ADJ">تسوية ADJ</option>
+                                <option value="SAMPLE">عينة SMP</option>
+                                <option value="RTV">مرتجع مورد RTV</option>
+                                <option value="SCRAP">إتلاف SCRAP</option>
+                              </select>
+                            </div>
+                          ) : (
+                            <span className="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] text-[10px] font-bold">
+                              {voucherTypeBadgeLabel[v.voucherType]}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Inline Editable Date */}
+                        <td
+                          className="p-2.5 font-mono cursor-pointer hover:bg-[#f3f3f3]/70"
+                          title="انقر لتحرير التاريخ"
+                          onClick={() =>
+                            !isEditingVch('voucherDate') &&
+                            setEditingVoucherCell({ voucherId: v.id, field: 'voucherDate', val1: v.voucherDate })
+                          }
+                        >
+                          {isEditingVch('voucherDate') ? (
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <input
+                                type="date"
+                                autoFocus
+                                value={editingVoucherCell!.val1}
+                                onChange={(e) => setEditingVoucherCell((s) => s && { ...s, val1: e.target.value })}
+                                onBlur={commitVoucherCellEdit}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') commitVoucherCellEdit();
+                                  if (e.key === 'Escape') setEditingVoucherCell(null);
+                                }}
+                                className="rounded-[8px] bg-[#ffffff] border border-[#141414] px-2 py-1 text-[11px] font-mono"
+                              />
+                            </div>
+                          ) : (
+                            v.voucherDate
+                          )}
+                        </td>
+
+                        {/* Inline Editable Lines & Quantities */}
+                        <td className="p-2.5 space-y-1">
+                          {v.lines.map((l) => (
+                            <div
+                              key={l.id}
+                              className="font-semibold text-[#141414] cursor-pointer hover:bg-[#f3f3f3] px-1.5 py-0.5 rounded-[8px]"
+                              title="انقر لتحرير الكمية أو الوحدة مباشرة"
+                              onClick={() =>
+                                !isEditingVch('lineQty', l.id) &&
+                                setEditingVoucherCell({
+                                  voucherId: v.id,
+                                  lineId: l.id,
+                                  field: 'lineQty',
+                                  val1: String(l.enteredQty),
+                                  val2: l.enteredUom,
+                                })
+                              }
+                            >
+                              {isEditingVch('lineQty', l.id) ? (
+                                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                  <span className="text-[11px]">{l.itemName}:</span>
+                                  <input
+                                    type="number"
+                                    min={0.01}
+                                    step="any"
+                                    autoFocus
+                                    value={editingVoucherCell!.val1}
+                                    onChange={(e) => setEditingVoucherCell((s) => s && { ...s, val1: e.target.value })}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') commitVoucherCellEdit();
+                                      if (e.key === 'Escape') setEditingVoucherCell(null);
+                                    }}
+                                    className="w-16 rounded-[8px] bg-[#ffffff] border border-[#141414] px-1.5 py-0.5 text-xs font-mono font-bold"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={editingVoucherCell!.val2 || ''}
+                                    onChange={(e) => setEditingVoucherCell((s) => s && { ...s, val2: e.target.value })}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') commitVoucherCellEdit();
+                                      if (e.key === 'Escape') setEditingVoucherCell(null);
+                                    }}
+                                    className="w-16 rounded-[8px] bg-[#ffffff] border border-[#e0e0e0] px-1.5 py-0.5 text-[11px]"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={commitVoucherCellEdit}
+                                    className="w-5 h-5 rounded-full bg-[#141414] text-white flex items-center justify-center"
+                                  >
+                                    <Check className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <>
+                                  <span>{l.itemName}</span>{' '}
+                                  {l.itemType && (
+                                    <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#f3f3f3] text-[#707070] mx-0.5">
+                                      {l.itemType}
+                                    </span>
+                                  )}
+                                  <span className="font-mono text-[#707070]">
+                                    ({l.enteredQty} {l.enteredUom})
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          ))}
+                        </td>
+
+                        {/* Inline Editable Beneficiary / Supplier / Recipient */}
+                        <td
+                          className="p-2.5 cursor-pointer hover:bg-[#f3f3f3]/70"
+                          title="انقر لتحرير الجهة المستفيدة أو المستلم"
+                          onClick={() =>
+                            !isEditingVch('party') &&
+                            setEditingVoucherCell({
+                              voucherId: v.id,
+                              field: 'party',
+                              val1: v.beneficiaryEntity || v.supplierName || '',
+                              val2: v.recipientName || '',
+                            })
+                          }
+                        >
+                          {isEditingVch('party') ? (
+                            <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
+                              <input
+                                type="text"
+                                autoFocus
+                                value={editingVoucherCell!.val1}
+                                onChange={(e) => setEditingVoucherCell((s) => s && { ...s, val1: e.target.value })}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') commitVoucherCellEdit();
+                                  if (e.key === 'Escape') setEditingVoucherCell(null);
+                                }}
+                                placeholder="الجهة / المورد..."
+                                className="w-full rounded-[8px] bg-[#ffffff] border border-[#141414] px-2 py-1 text-xs font-semibold"
+                              />
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="text"
+                                  value={editingVoucherCell!.val2 || ''}
+                                  onChange={(e) => setEditingVoucherCell((s) => s && { ...s, val2: e.target.value })}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') commitVoucherCellEdit();
+                                    if (e.key === 'Escape') setEditingVoucherCell(null);
+                                  }}
+                                  placeholder="المستلم..."
+                                  className="w-full rounded-[8px] bg-[#ffffff] border border-[#e0e0e0] px-2 py-0.5 text-[11px]"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={commitVoucherCellEdit}
+                                  className="w-6 h-6 rounded-full bg-[#141414] text-white flex items-center justify-center shrink-0"
+                                >
+                                  <Check className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="font-semibold text-[#141414]">
+                                {v.beneficiaryEntity || v.supplierName || '—'}
+                              </div>
+                              <div className="text-[11px] text-[#707070]">
+                                {v.recipientName || ''} {v.roomOrSite ? `• ${v.roomOrSite}` : ''}
+                              </div>
+                            </>
+                          )}
+                        </td>
+
+                        <td className="p-2.5">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                              v.status === 'POSTED'
+                                ? 'bg-[#141414] text-white'
+                                : v.status === 'DRAFT'
+                                ? 'bg-[#f3f3f3] text-[#141414]'
+                                : 'bg-[#f0f0f0] text-[#707070] line-through'
+                            }`}
+                          >
+                            {v.status === 'POSTED' ? 'معتمد ومُرحّل' : v.status === 'DRAFT' ? 'مسودة' : 'معكوس'}
+                          </span>
+                          {v.journalEntryId && (
+                            <div className="text-[10px] font-mono text-[#707070] mt-0.5">GL: {v.journalEntryId}</div>
+                          )}
+                        </td>
+                        <td className="p-2.5">
+                          <div className="flex items-center gap-1 flex-wrap">
+                            <button
+                              type="button"
+                              onClick={() => setPrintVoucher(v)}
+                              className="w-7 h-7 rounded-full bg-[#f3f3f3] flex items-center justify-center text-[#141414] hover:bg-[#141414] hover:text-white transition-colors"
+                              title="معاينة وطباعة السند PDF"
+                            >
+                              <Printer className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSigningVoucher(v)}
+                              className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+                                v.handoverSignatureDataUrl
+                                  ? 'bg-[#141414] text-white'
+                                  : 'bg-[#f3f3f3] text-[#141414] hover:bg-[#141414] hover:text-white'
+                              }`}
+                              title={v.handoverSignatureDataUrl ? 'موقّع إلكترونياً — اضغط للتحديث' : 'التوقيع الإلكتروني على السند'}
+                            >
+                              <PenTool className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setMediaTarget({ kind: 'VOUCHER', id: v.id })}
+                              className="px-2 h-7 rounded-full bg-[#f3f3f3] flex items-center justify-center gap-1 text-[10px] font-bold text-[#141414] hover:bg-[#141414] hover:text-white transition-colors"
+                              title="صور الفاتورة وسند الاستلام والوسائط"
+                            >
+                              <Camera className="w-3.5 h-3.5" />
+                              {(v.attachments?.length || 0) > 0 && <span>{v.attachments?.length}</span>}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => sendSingleVoucherWhatsApp(v)}
+                              className="w-7 h-7 rounded-full bg-[#f3f3f3] flex items-center justify-center text-[#141414] hover:bg-[#141414] hover:text-white transition-colors"
+                              title="إرسال السند مباشرة عبر واتساب"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => copyVoucherForWhatsApp(v)}
+                              className="w-7 h-7 rounded-full bg-[#f3f3f3] flex items-center justify-center text-[#141414] hover:bg-[#141414] hover:text-white transition-colors"
+                              title="نسخ ملخص الإذن"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingVoucher(v)}
+                              className="w-7 h-7 rounded-full border border-[#e0e0e0] flex items-center justify-center text-[#141414] hover:bg-[#141414] hover:text-white transition-colors"
+                              title="تحرير الإذن والأصناف والنوع والكميات"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                            {v.status === 'DRAFT' && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const res = wmsEngineService.postDraftVoucher(v.id, actor);
+                                  if (!res.ok) {
+                                    addNotification({ title: 'تعذر الترحيل', message: res.error || '', type: 'error' });
+                                  } else {
+                                    refresh();
+                                    addNotification({ title: 'تم الاعتماد الفوري', message: `ترحيل الإذن ${v.voucherNo}.`, type: 'success' });
+                                  }
+                                }}
+                                className="px-2.5 py-1 rounded-full bg-[#141414] text-white text-[10px] font-bold"
+                              >
+                                اعتماد
+                              </button>
+                            )}
+                            {v.status === 'POSTED' && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const res = wmsEngineService.reverseVoucher(v.id, 'عكس وتصحيح من المستخدم', actor);
+                                  if (!res.ok) {
+                                    addNotification({ title: 'تعذر العكس', message: res.error || '', type: 'error' });
+                                  } else {
+                                    refresh();
+                                    addNotification({ title: 'عكس الإذن', message: `تم عكس الإذن ${v.voucherNo} وتحديث الرصيد والقيد.`, type: 'info' });
+                                  }
+                                }}
+                                className="px-2.5 py-1 rounded-full border border-[#e0e0e0] text-[10px] font-bold text-[#707070] hover:text-[#141414]"
+                              >
+                                عكس
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const ok = wmsEngineService.deleteVoucher(v.id, 'حذف من دفتر الأذونات', actor);
+                                if (!ok) {
+                                  addNotification({
+                                    title: 'محمي بحوكمة التثبيت الصارم',
+                                    message: `لا يمكن حذف الإذن المُرحّل (${v.voucherNo}) — استخدم زر "عكس" لإصدار قيد عكسي معتمد.`,
+                                    type: 'error',
+                                  });
+                                  return;
+                                }
+                                refresh();
+                                addNotification({
+                                  title: 'تم حذف الإذن إلى سلة المحذوفات',
+                                  message: `تم حذف (${v.voucherNo}) وإرجاع أثره المخزني — يمكنك التراجع أو الاستعادة في أي وقت.`,
+                                  type: 'info',
+                                });
+                              }}
+                              className="w-7 h-7 rounded-full border border-[#e0e0e0] flex items-center justify-center text-[#707070] hover:bg-[#141414] hover:text-white transition-colors"
+                              title="حذف الإذن إلى سلة المحذوفات"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -1615,6 +3018,12 @@ export const KasWarehouseManagementPage: React.FC = () => {
         onClose={() => setIsItemModalOpen(false)}
         categories={state.categories}
         warehouses={state.warehouses}
+        itemTypes={itemTypes}
+        onCreateItemType={(tName) => {
+          const saved = wmsEngineService.addItemType(tName, actor);
+          refresh();
+          return saved;
+        }}
         onCreateCategory={(input) => {
           const created = wmsEngineService.createCategory(input, actor);
           refresh();
@@ -1644,9 +3053,25 @@ export const KasWarehouseManagementPage: React.FC = () => {
         initialPreset={voucherModalState.preset}
         onClose={() => setVoucherModalState((s) => ({ ...s, open: false, preset: null }))}
         items={state.items}
+        categories={state.categories}
+        itemTypes={itemTypes}
         warehouses={state.warehouses}
         settings={state.settings}
         getAvailableQty={(id) => wmsEngineService.getItemStockSummary(id).available}
+        onQuickEditItem={(itemId, patch) => {
+          wmsEngineService.updateItem(itemId, patch, actor);
+          refresh();
+        }}
+        onCreateCategory={(input) => {
+          const created = wmsEngineService.createCategory(input, actor);
+          refresh();
+          return created;
+        }}
+        onCreateWarehouse={(input) => {
+          const created = wmsEngineService.createWarehouse(input, actor);
+          refresh();
+          return created;
+        }}
         onSubmit={handleCreateVoucher}
       />
 
@@ -1675,6 +3100,10 @@ export const KasWarehouseManagementPage: React.FC = () => {
             ? wmsEngineService.getItemStockSummary(stockCardItem.id)
             : { onHand: 0, reserved: 0, available: 0 }
         }
+        onQuickVoucher={(type, item) =>
+          setVoucherModalState({ open: true, type, preset: { itemIds: [item.id] } })
+        }
+        onEditItem={(item) => setEditingItem(item)}
         onClose={() => setStockCardItem(null)}
       />
 
@@ -1718,6 +3147,14 @@ export const KasWarehouseManagementPage: React.FC = () => {
           setSelectedWarehouse(whId);
           setActiveTab('catalog');
         }}
+        onQuickVoucher={(type, itemId) => {
+          setKpiDetail(null);
+          setVoucherModalState({
+            open: true,
+            type,
+            preset: itemId ? { itemIds: [itemId] } : null,
+          });
+        }}
       />
 
       <WmsExportAndSendModal
@@ -1737,6 +3174,22 @@ export const KasWarehouseManagementPage: React.FC = () => {
         item={editingItem}
         categories={state.categories}
         warehouses={state.warehouses}
+        itemTypes={itemTypes}
+        currentOnHandQty={editingItem ? wmsEngineService.getItemStockSummary(editingItem.id).onHand : undefined}
+        onCreateCategory={(input) => {
+          const created = wmsEngineService.createCategory(input, actor);
+          refresh();
+          return created;
+        }}
+        onCreateWarehouse={(input) => {
+          const created = wmsEngineService.createWarehouse(input, actor);
+          refresh();
+          return created;
+        }}
+        onAdjustStock={(itemId, newQty) => {
+          wmsEngineService.setItemOnHandStock(itemId, newQty, actor);
+          refresh();
+        }}
         onClose={() => setEditingItem(null)}
         onSave={(itemId, patch) => {
           wmsEngineService.updateItem(itemId, patch, actor);
@@ -1747,6 +3200,10 @@ export const KasWarehouseManagementPage: React.FC = () => {
 
       <WmsEditVoucherModal
         voucher={editingVoucher}
+        items={state.items}
+        categories={state.categories}
+        warehouses={state.warehouses}
+        itemTypes={itemTypes}
         onClose={() => setEditingVoucher(null)}
         onSave={(voucherId, patch) => {
           const res = wmsEngineService.updateVoucher(voucherId, patch, actor);

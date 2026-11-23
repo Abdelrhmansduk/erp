@@ -531,7 +531,21 @@ describe('Enterprise HR Complete Parity Suite (13 Capabilities)', () => {
     expect(benchmark.marketP50).toBeGreaterThan(0);
     expect(benchmark.compaRatioPct).toBeGreaterThan(0);
 
-    const job = DEFAULT_CAREER_JOB_POSTINGS[0];
+    const job = DEFAULT_CAREER_JOB_POSTINGS[0] || {
+      id: 'JOB-TEST-01',
+      company_id: 'SAF',
+      title_ar: 'أخصائي أول موارد بشرية وحماية الأجور (Mudad / Qiwa)',
+      department: 'الموارد البشرية والتوطين',
+      city: 'الرياض',
+      employment_type: 'FULL_TIME' as const,
+      salary_min_sar: 9500,
+      salary_max_sar: 14500,
+      saudization_target: true,
+      description_ar: 'إدارة ملفات حماية الأجور وتوثيق عقود قوى',
+      requirements_json: ['قوى', 'مدد', 'GOSI', 'نظام العمل السعودي', 'موارد بشرية'],
+      is_published: true,
+      created_at: '2026-08-01T08:00:00Z',
+    };
     const app = await submitCareerPortalApplication({
       job,
       candidateName: 'لولوة السديري',

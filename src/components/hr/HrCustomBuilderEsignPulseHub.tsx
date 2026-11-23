@@ -24,7 +24,6 @@ import {
   calculateEnpsSummary,
   classifyEnpsScore,
   computeDocumentSha256Hex,
-  DEFAULT_CAREER_JOB_POSTINGS,
   DEFAULT_ENPS_SURVEYS,
   generateCelebrationsFeed,
   issueEsignOtpChallenge,
@@ -66,13 +65,13 @@ export const HrCustomBuilderEsignPulseHub: React.FC<HrCustomBuilderEsignPulseHub
     'CUSTOM_RULES'
   );
 
-  // State collections
+  // State collections (strictly user-added records)
   const [customFields, setCustomFields] = useState<CustomFieldDefinitionRecord[]>([]);
   const [condRules, setCondRules] = useState<ConditionalWorkflowRule[]>([]);
   const [esignatures, setEsignatures] = useState<VerifiedEsignatureRecord[]>([]);
-  const [careerJobs, setCareerJobs] = useState<CareerJobPostingRecord[]>(DEFAULT_CAREER_JOB_POSTINGS);
+  const [careerJobs, setCareerJobs] = useState<CareerJobPostingRecord[]>([]);
   const [careerApps, setCareerApps] = useState<CareerApplicationRecord[]>([]);
-  const [surveys, setSurveys] = useState<EnpsSurveyRecord[]>(DEFAULT_ENPS_SURVEYS);
+  const [surveys, setSurveys] = useState<EnpsSurveyRecord[]>([]);
   const [enpsResponses, setEnpsResponses] = useState<EnpsResponseRecord[]>([]);
   const [kudosFeed, setKudosFeed] = useState<CelebrationFeedItem[]>([]);
 
@@ -123,18 +122,18 @@ export const HrCustomBuilderEsignPulseHub: React.FC<HrCustomBuilderEsignPulseHub
       realErpDataStore.getRecords<CustomFieldDefinitionRecord>('hr_custom_field_definitions', []),
       realErpDataStore.getRecords<ConditionalWorkflowRule>('hr_conditional_workflow_rules', []),
       realErpDataStore.getRecords<VerifiedEsignatureRecord>('hr_verified_esignatures', []),
-      realErpDataStore.getRecords<CareerJobPostingRecord>('hr_career_job_postings', DEFAULT_CAREER_JOB_POSTINGS),
+      realErpDataStore.getRecords<CareerJobPostingRecord>('hr_career_job_postings', []),
       realErpDataStore.getRecords<CareerApplicationRecord>('hr_career_applications', []),
-      realErpDataStore.getRecords<EnpsSurveyRecord>('hr_enps_surveys', DEFAULT_ENPS_SURVEYS),
+      realErpDataStore.getRecords<EnpsSurveyRecord>('hr_enps_surveys', []),
       realErpDataStore.getRecords<EnpsResponseRecord>('hr_enps_responses', []),
       realErpDataStore.getRecords<CelebrationFeedItem>('hr_celebrations_feed', []),
     ]);
     setCustomFields((cfs || []).filter((x) => x.company_id === effectiveCompanyId));
     setCondRules((rules || []).filter((x) => x.company_id === effectiveCompanyId));
     setEsignatures((sigs || []).filter((x) => x.company_id === effectiveCompanyId));
-    setCareerJobs(Array.isArray(jobs) && jobs.length > 0 ? jobs : DEFAULT_CAREER_JOB_POSTINGS);
+    setCareerJobs(Array.isArray(jobs) ? jobs : []);
     setCareerApps(Array.isArray(apps) ? apps : []);
-    setSurveys(Array.isArray(survs) && survs.length > 0 ? survs : DEFAULT_ENPS_SURVEYS);
+    setSurveys(Array.isArray(survs) ? survs : []);
     setEnpsResponses((resps || []).filter((x) => x.company_id === effectiveCompanyId));
     setKudosFeed((kudos || []).filter((x) => x.company_id === effectiveCompanyId));
   };

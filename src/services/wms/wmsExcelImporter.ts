@@ -372,7 +372,7 @@ export const wmsExcelImporter = {
 
     // Sort GRN & SRN first so stock exists before GIN deductions!
     const orderWeight = (k: ExtractedWmsRow['kind']) => (k === 'GRN' ? 0 : k === 'SRN' ? 1 : k === 'ADJ' ? 2 : 3);
-    const ordered = [...selected].sort((a, b) => orderWeight(a.kind) - orderWeight(b.kind));
+    const ordered = selected.toSorted((a, b) => orderWeight(a.kind) - orderWeight(b.kind));
 
     // Temporarily permit batch import without blocking on 0 cost if optional, or handle gracefully
     for (const row of ordered) {

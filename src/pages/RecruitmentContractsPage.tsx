@@ -18,7 +18,7 @@ import {
 import { realErpDataStore } from '../services/realErpDataStore';
 import { musanedLifecycleEngine } from '../services/musanedLifecycleEngine';
 import { journalEngine } from '../services/accounting/journalEngine';
-import { syncContractToMusanedFollowup } from '../services/externalAgencyMasterService';
+import { syncContractToMusanedFollowup, loadUnifiedAgencies } from '../services/externalAgencyMasterService';
 
 export interface RecruitmentContractItem {
   id: string;
@@ -105,101 +105,13 @@ const STAGES_LIST: RecruitmentContractItem['stage'][] = [
   'مكتمل',
 ];
 
-const MOCK_DISPATCHES: DispatchRecord[] = [
-  {
-    id: 'DISP-01',
-    contract_number: 'SAF-RC-2026-0001',
-    client_name: 'بندر صالح الهويريني',
-    maid_name: 'MARIA SANTOS',
-    nationality: 'الفلبين',
-    office_name: "PLATINUM BROTHERS INT'L",
-    contract_status: 'ساري',
-    dispatch_status: 'تم إرسال الجواز للسفارة',
-    dispatch_date: '2026-08-10',
-    arrival_station: 'مطار الملك خالد الدولي بالرياض',
-    cost_usd: 1200,
-  },
-  {
-    id: 'DISP-02',
-    contract_number: 'SAF-RC-2026-0002',
-    client_name: 'سارة خالد الدوسري',
-    maid_name: 'ALEMITU BEKELE',
-    nationality: 'إثيوبيا',
-    office_name: 'DAMAS FOREIGN AGENCY',
-    contract_status: 'ساري',
-    dispatch_status: 'حجز تذكرة طيران',
-    dispatch_date: '2026-08-12',
-    arrival_station: 'مطار الملك عبدالعزيز بجدة',
-    cost_usd: 950,
-  },
-];
+const MOCK_DISPATCHES: DispatchRecord[] = [];
 
-const MOCK_EXTENSIONS: ExtensionRequest[] = [
-  {
-    id: 'EXT-01',
-    contract_number: 'SAF-RC-2025-0890',
-    client_name: 'محمد عبدالله العتيبي',
-    maid_name: 'JOYCE MWANGI',
-    extension_years: 2,
-    applicant: 'العميل مباشرة عبر مساند',
-    request_date: '2026-08-05',
-    status: 'معتمد',
-  },
-];
+const MOCK_EXTENSIONS: ExtensionRequest[] = [];
 
-const MOCK_RETURNS: ReturnRequest[] = [
-  {
-    id: 'RET-01',
-    contract_number: 'SAF-RC-2026-0033',
-    client_name: 'فهد إبراهيم السبيعي',
-    maid_name: 'FATIMA BEGUM',
-    notes: 'عدم اجتياز الفحص الطبي في بلد المصدر',
-    status: 'تم الاسترجاع المالي',
-    request_date: '2026-08-08',
-  },
-];
+const MOCK_RETURNS: ReturnRequest[] = [];
 
-const MOCK_INSURANCE: InsurancePolicy[] = [
-  {
-    id: 'INS-01',
-    contract_number: 'SAF-RC-2026-0001',
-    client_name: 'بندر صالح الهويريني',
-    maid_name: 'MARIA SANTOS',
-    company: 'شركة تكافل الراجحي للتأمين',
-    policy_no: 'TR-REC-9982104',
-    coverage: '24 شهراً (شامل الهروب ورفض العمل والوفاة)',
-    status: 'سارية المفعول',
-    start_date: '2026-01-15',
-    end_date: '2028-01-14',
-    premium_sar: 450,
-  },
-  {
-    id: 'INS-02',
-    contract_number: 'SAF-RC-2026-0002',
-    client_name: 'سارة خالد الدوسري',
-    maid_name: 'ALEMITU BEKELE',
-    company: 'الشركة التعاونية للتأمين (Tawuniya)',
-    policy_no: 'TAW-2026-887412',
-    coverage: '24 شهراً (شامل تكاليف إعادة الاستقدام)',
-    status: 'سارية المفعول',
-    start_date: '2026-02-01',
-    end_date: '2028-01-31',
-    premium_sar: 450,
-  },
-  {
-    id: 'INS-03',
-    contract_number: 'SAF-RC-2026-0003',
-    client_name: 'محمد عبدالله العتيبي',
-    maid_name: 'JOYCE MWANGI',
-    company: 'شركة سلامة للتأمين التعاوني',
-    policy_no: 'SLM-REC-554190',
-    coverage: '24 شهراً (حماية أصحاب العمل)',
-    status: 'سارية المفعول',
-    start_date: '2026-03-10',
-    end_date: '2028-03-09',
-    premium_sar: 450,
-  },
-];
+const MOCK_INSURANCE: InsurancePolicy[] = [];
 
 export const RecruitmentContractsPage: React.FC = () => {
   const { activeCompanyId, activeCompany } = useCompany();
@@ -255,13 +167,7 @@ export const RecruitmentContractsPage: React.FC = () => {
   const [amountInput, setAmountInput] = useState('14500');
   const [branch, setBranch] = useState('فرع الرياض الرئيسي');
   const [availableCVs, setAvailableCVs] = useState<any[]>([]);
-  const [registeredOffices, setRegisteredOffices] = useState<string[]>([
-    "PLATINUM BROTHERS INT'L",
-    'DAMAS FOREIGN AGENCY',
-    'VERSATILE OVERSEAS LTD',
-    'AL-MANAR RECRUITMENT',
-    'COLOMBO MANPOWER BUREAU',
-  ]);
+  const [registeredOffices, setRegisteredOffices] = useState<string[]>([]);
 
   // Sub-modules state with realErpDataStore persistence
   const [dispatches, setDispatches] = useState<DispatchRecord[]>([]);
@@ -320,31 +226,26 @@ export const RecruitmentContractsPage: React.FC = () => {
     realErpDataStore.getRecords<InsurancePolicy>('contract_insurance', MOCK_INSURANCE).then(setInsurancePolicies);
     realErpDataStore.getRecords<any>('cvs', []).then(cvsList => {
       const filtered = cvsList.filter((c: any) => !c.status || c.status === 'متاح' || c.status === 'متاح للتعاقد');
-      if (filtered.length > 0) {
-        setAvailableCVs(filtered);
-      } else {
-        setAvailableCVs([
-          { id: 'CV-DEF-1', maid_name: 'MARIA SANTOS DELA CRUZ', passport_number: 'P9812345A', nationality: 'الفلبين', external_office: "PLATINUM BROTHERS INT'L" },
-          { id: 'CV-DEF-2', maid_name: 'ALEMITU BEKELE TADESSE', passport_number: 'EP7745120', nationality: 'إثيوبيا', external_office: 'DAMAS FOREIGN AGENCY' },
-          { id: 'CV-DEF-3', maid_name: 'JOYCE WANJIKU MWANGI', passport_number: 'AK0993412', nationality: 'كينيا', external_office: 'VERSATILE OVERSEAS LTD' },
-          { id: 'CV-DEF-4', maid_name: 'NADEESHA KUMARI PERERA', passport_number: 'N6651209', nationality: 'سريلانكا', external_office: 'COLOMBO MANPOWER BUREAU' },
-        ]);
-      }
+      setAvailableCVs(filtered);
     });
     Promise.all([
+      loadUnifiedAgencies(),
       realErpDataStore.getRecords<any>('offices', []),
       realErpDataStore.getRecords<any>('external_recruitment_offices', []),
-    ]).then(([offs1, offs2]) => {
-      const names = new Set<string>([
-        "PLATINUM BROTHERS INT'L",
-        'DAMAS FOREIGN AGENCY',
-        'VERSATILE OVERSEAS LTD',
-        'AL-MANAR RECRUITMENT',
-        'COLOMBO MANPOWER BUREAU',
-      ]);
+    ]).then(([canonicalAgencies, offs1, offs2]) => {
+      const names = new Set<string>();
+      canonicalAgencies.forEach((ag) => {
+        const label = ag.name_ar || ag.name_en;
+        if (label) names.add(label);
+      });
       offs1.forEach((o: any) => { if (o.name || o.officeName) names.add(o.name || o.officeName); });
       offs2.forEach((o: any) => { if (o.officeName || o.name) names.add(o.officeName || o.name); });
-      setRegisteredOffices(Array.from(names));
+      const list = Array.from(names);
+      setRegisteredOffices(list);
+      if (list.length > 0) {
+        setExternalOffice(prev => (prev && list.includes(prev) ? prev : list[0]));
+        setDispatchForm(prev => ({ ...prev, office_name: list[0] }));
+      }
     });
   }, []);
 

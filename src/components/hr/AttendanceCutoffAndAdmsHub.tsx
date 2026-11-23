@@ -16,10 +16,6 @@ interface AttendanceCutoffAndAdmsHubProps {
   employees: Array<{ id: string; name: string; grossSalary?: number }>;
 }
 
-const DEFAULT_SAMPLE_ATTLOG = `101\t2026-08-25 08:02:14\t0\t1
-102\t2026-08-25 08:11:40\t0\t15
-101\t2026-08-25 17:04:09\t1\t1`;
-
 export const AttendanceCutoffAndAdmsHub: React.FC<AttendanceCutoffAndAdmsHubProps> = ({
   companyId,
   employees,
@@ -30,16 +26,16 @@ export const AttendanceCutoffAndAdmsHub: React.FC<AttendanceCutoffAndAdmsHubProp
   const [cutoffEndDay, setCutoffEndDay] = useState<number>(24);
   const [permissionQuotaHours, setPermissionQuotaHours] = useState<number>(4);
   const [maxSingleHours, setMaxSingleHours] = useState<number>(2);
-  const [payrollMonth, setPayrollMonth] = useState<string>('2026-08');
+  const [payrollMonth, setPayrollMonth] = useState<string>(() => new Date().toISOString().slice(0, 7));
 
   // Quota calculator state
-  const [usedHoursSoFar, setUsedHoursSoFar] = useState<number>(3);
-  const [requestedHours, setRequestedHours] = useState<number>(2.5);
-  const [sampleSalary, setSampleSalary] = useState<number>(9600);
+  const [usedHoursSoFar, setUsedHoursSoFar] = useState<number>(0);
+  const [requestedHours, setRequestedHours] = useState<number>(0);
+  const [sampleSalary, setSampleSalary] = useState<number>(0);
 
   // ZKTeco UA760 ADMS cloud push receiver & event log
   const [deviceSn, setDeviceSn] = useState<string>('BZD5253300723');
-  const [rawAttlog, setRawAttlog] = useState<string>(DEFAULT_SAMPLE_ATTLOG);
+  const [rawAttlog, setRawAttlog] = useState<string>('');
   const [admsEvents, setAdmsEvents] = useState<AdmsPunchEventRecord[]>([]);
 
   const loadState = async () => {

@@ -660,7 +660,11 @@ export function DataTable<T extends { id: string | number }>({
                             }
                             onBlur={commitInlineEdit}
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter') commitInlineEdit();
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+                                commitInlineEdit();
+                              }
                               if (e.key === 'Escape') setEditingCell(null);
                             }}
                             className="w-full px-2.5 py-1 rounded-[10px] bg-[#f3f3f3] border border-[#141414] text-xs font-bold text-[#141414] focus:outline-none"

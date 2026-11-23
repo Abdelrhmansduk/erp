@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { realErpDataStore } from '../../services/realErpDataStore';
 import {
-  DEFAULT_CAREER_JOB_POSTINGS,
   submitCareerPortalApplication,
   type CareerApplicationRecord,
   type CareerJobPostingRecord,
@@ -26,7 +25,7 @@ export const PublicCareerPortalView: React.FC<PublicCareerPortalViewProps> = ({
   initialCompanyId,
   onExitToErp,
 }) => {
-  const [jobs, setJobs] = useState<CareerJobPostingRecord[]>(DEFAULT_CAREER_JOB_POSTINGS);
+  const [jobs, setJobs] = useState<CareerJobPostingRecord[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [cityFilter, setCityFilter] = useState<string>('ALL');
   const [selectedJob, setSelectedJob] = useState<CareerJobPostingRecord | null>(null);
@@ -40,17 +39,15 @@ export const PublicCareerPortalView: React.FC<PublicCareerPortalViewProps> = ({
   const [nationalId, setNationalId] = useState<string>('');
   const [nationality, setNationality] = useState<string>('سعودي');
   const [yearsExp, setYearsExp] = useState<number>(3);
-  const [expectedSalary, setExpectedSalary] = useState<number>(11000);
+  const [expectedSalary, setExpectedSalary] = useState<number>(0);
   const [skillsSummary, setSkillsSummary] = useState<string>('');
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     realErpDataStore
-      .getRecords<CareerJobPostingRecord>('hr_career_job_postings', DEFAULT_CAREER_JOB_POSTINGS)
+      .getRecords<CareerJobPostingRecord>('hr_career_job_postings', [])
       .then((list) => {
-        if (Array.isArray(list) && list.length > 0) {
-          setJobs(list);
-        }
+        setJobs(Array.isArray(list) ? list : []);
       });
   }, []);
 

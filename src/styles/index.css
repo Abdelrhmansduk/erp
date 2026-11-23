@@ -16,6 +16,22 @@
   padding: 0;
 }
 
+:root {
+  color-scheme: light dark;
+  --scrollbar-thumb: var(--color-text-muted, #707070);
+  --scrollbar-track: var(--color-canvas-soft, #f3f3f3);
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+:root:has(> head > meta[name="color-scheme"][content="dark"]) {
+  color-scheme: dark;
+}
+
+:root:has(> head > meta[name="color-scheme"][content="light"]) {
+  color-scheme: light;
+}
+
 html {
   font-family: var(--font-family-saans);
   font-size: 16px;
@@ -404,20 +420,25 @@ body {
   box-shadow: none;
 }
 
-/* Custom Scrollbar (Monochrome Ladder) */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--color-canvas-soft);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-hairline);
-  border-radius: var(--rounded-full);
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
+/* Custom Scrollbar (Standard + Safari/WebKit Fallback) */
+@supports not (scrollbar-color: auto) {
+  :root {
+    scrollbar-width: auto;
+  }
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: var(--rounded-full);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-ink);
+  }
 }
 
 /* Utility Colors Mapped to Mobbin Tokens */
@@ -484,15 +505,31 @@ a {
 .anim-wave-4 { animation: audioWaveBar4 0.6s ease-in-out infinite; }
 .anim-wave-5 { animation: audioWaveBar5 0.75s ease-in-out infinite; }
 
-.thin-scrollbar::-webkit-scrollbar {
-  height: 4px;
+.thin-scrollbar {
+  --thin-scrollbar-thumb: var(--color-text-muted, #707070);
+  --thin-scrollbar-track: var(--color-canvas-soft, #f3f3f3);
+  scrollbar-width: thin;
+  scrollbar-color: var(--thin-scrollbar-thumb) var(--thin-scrollbar-track);
 }
-.thin-scrollbar::-webkit-scrollbar-thumb {
-  background: #e0e0e0;
-  border-radius: 9999px;
-}
-.thin-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #707070;
+
+@supports not (scrollbar-color: auto) {
+  .thin-scrollbar {
+    scrollbar-width: auto;
+  }
+  .thin-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  .thin-scrollbar::-webkit-scrollbar-track {
+    background: var(--thin-scrollbar-track);
+  }
+  .thin-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--thin-scrollbar-thumb);
+    border-radius: 9999px;
+  }
+  .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--color-ink, #141414);
+  }
 }
 
 /* ─── StyleSeed & Mobbin Calibrated Motion Seeds (/ui-motion) ─── */

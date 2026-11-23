@@ -41,73 +41,7 @@ export function syncAppBadgeCount(count: number): void {
   }
 }
 
-const DEFAULT_NOTIFICATIONS: AppNotification[] = [
-  {
-    id: 'n-hr-radar',
-    title: 'تنبيه رادار الوثائق والعقود (HR & WPS)',
-    message: 'توجد وثيقة فحص طبي وإقامة تقترب من الانتهاء خلال أقل من 30 يوماً؛ يرجى التجديد لتفادي إيقاف الخدمات.',
-    type: 'warning',
-    priority: 'critical',
-    category: 'hr',
-    companyId: 'SAF',
-    timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
-    read: false,
-    link: 'hr',
-    actionLabel: 'فتح رادار الوثائق',
-  },
-  {
-    id: 'n-sla-rent',
-    title: 'تنبيه مهلة عقد تأجير وتشغيل (SLA)',
-    message: 'عقد التأجير #RENT-2026-0016 بحاجة إلى اعتماد وتوقيع العميل قبل نهاية اليوم.',
-    type: 'warning',
-    priority: 'critical',
-    category: 'musaned',
-    companyId: 'YAQ',
-    timestamp: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
-    read: false,
-    link: 'rent-contracts',
-    actionLabel: 'مراجعة العقد',
-  },
-  {
-    id: 'n-hr-requests',
-    title: 'طلبات موظفين بانتظار الاعتماد',
-    message: 'يوجد طلبان إجازة وطلب سلفة مالية في قسم الموارد البشرية بانتظار قرار الإدارة.',
-    type: 'info',
-    priority: 'actionable',
-    category: 'hr',
-    companyId: 'SAF',
-    timestamp: new Date(Date.now() - 1000 * 60 * 75).toISOString(),
-    read: false,
-    link: 'hr',
-    actionLabel: 'مراجعة الطلبات',
-  },
-  {
-    id: 'n-wps-zatca',
-    title: 'مطابقة مسير رواتب WPS وفواتير ZATCA',
-    message: 'تمت مطابقة مسير رواتب الشهر الحالي (23,500 ⃁) واعتماد فواتير المرحلة الثانية ZATCA بنجاح.',
-    type: 'success',
-    priority: 'actionable',
-    category: 'finance',
-    companyId: 'SAF',
-    timestamp: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-    read: true,
-    link: 'hr',
-    actionLabel: 'عرض المسير',
-  },
-  {
-    id: 'n-travel-arr',
-    title: 'وصول رحلة استقدام جديدة',
-    message: 'وصلت العاملة KIMBERLY (الفلبين) إلى مطار الملك خالد الدولي وتم تسكينها بنجاح.',
-    type: 'success',
-    priority: 'actionable',
-    category: 'musaned',
-    companyId: 'SAF',
-    timestamp: new Date(Date.now() - 1000 * 60 * 320).toISOString(),
-    read: true,
-    link: 'travel',
-    actionLabel: 'سجل الوصول',
-  },
-];
+const DEFAULT_NOTIFICATIONS: AppNotification[] = [];
 
 function loadSavedNotifications(): AppNotification[] {
   try {

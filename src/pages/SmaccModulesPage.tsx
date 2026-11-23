@@ -63,153 +63,15 @@ export interface SmaccSalesRep {
   targetAchieved: string;
 }
 
-const INITIAL_STORES: EcommerceStore[] = [
-  {
-    id: 'STR-SALLA-01',
-    name: 'متجر سلة الرسمي (باقات التأجير والخدمات)',
-    platform: 'سلة (Salla)',
-    companyId: 'SAF',
-    storeUrl: 'https://salla.sa/alsalim-group',
-    status: 'متصل',
-    lastSyncTime: 'منذ 3 دقائق',
-    syncedOrdersCount: 248,
-    syncedProductsCount: 18,
-    webhookStatus: 'نشط',
-    autoSyncOrders: true,
-    autoSyncInventory: true
-  },
-  {
-    id: 'STR-ZID-02',
-    name: 'منصة زد الرقمية (خدمات التوسط والاستقدام)',
-    platform: 'زد (Zid)',
-    companyId: 'YAQ',
-    storeUrl: 'https://zid.store/yaqoot-recruitment',
-    status: 'متصل',
-    lastSyncTime: 'منذ 8 دقائق',
-    syncedOrdersCount: 114,
-    syncedProductsCount: 12,
-    webhookStatus: 'نشط',
-    autoSyncOrders: true,
-    autoSyncInventory: true
-  },
-  {
-    id: 'STR-SHOPIFY-03',
-    name: 'متجر شوبيفاي للمجموعة (Shopify Global Portal)',
-    platform: 'شوبيفاي (Shopify)',
-    companyId: 'KAS',
-    storeUrl: 'https://kas-group.myshopify.com',
-    status: 'متصل',
-    lastSyncTime: 'منذ 15 دقيقة',
-    syncedOrdersCount: 89,
-    syncedProductsCount: 24,
-    webhookStatus: 'نشط',
-    autoSyncOrders: true,
-    autoSyncInventory: false
-  },
-  {
-    id: 'STR-WOO-04',
-    name: 'بوابة ووكومرس للشركات (B2B WooCommerce)',
-    platform: 'ووكومرس (WooCommerce)',
-    companyId: 'TOP',
-    storeUrl: 'https://top-talent.sa/b2b-portal',
-    status: 'متصل',
-    lastSyncTime: 'منذ 25 دقيقة',
-    syncedOrdersCount: 62,
-    syncedProductsCount: 8,
-    webhookStatus: 'نشط',
-    autoSyncOrders: true,
-    autoSyncInventory: true
-  },
-  {
-    id: 'STR-MOYASAR-05',
-    name: 'بوابة الدفع الإلكتروني المباشر (Moyasar API Gateway)',
-    platform: 'بوابة الدفع (Moyasar)',
-    companyId: 'SAF',
-    storeUrl: 'https://api.moyasar.com/v1',
-    status: 'متصل',
-    lastSyncTime: 'لحظي (Real-time)',
-    syncedOrdersCount: 513,
-    syncedProductsCount: 0,
-    webhookStatus: 'نشط',
-    autoSyncOrders: true,
-    autoSyncInventory: false
-  }
-];
+const INITIAL_STORES: EcommerceStore[] = [];
 
-const INITIAL_STORE_ORDERS: EcommerceStoreOrder[] = [
-  {
-    id: 'EORD-9912',
-    storeId: 'STR-SALLA-01',
-    platform: 'سلة (Salla)',
-    externalOrderNo: '#SAL-2026-881',
-    customerName: 'فهد محمد القحطاني',
-    customerPhone: '0551122334',
-    serviceType: 'باقة تأجير عمالة منزلية (3 أشهر)',
-    totalAmount: 6600,
-    paymentStatus: 'مدفوع',
-    orderStatus: 'قيد التنفيذ',
-    createdAt: '2026-08-31 18:20'
-  },
-  {
-    id: 'EORD-9911',
-    storeId: 'STR-ZID-02',
-    platform: 'زد (Zid)',
-    externalOrderNo: '#ZID-55420',
-    customerName: 'شركة اليمامة للمقاولات',
-    customerPhone: '0509988776',
-    serviceType: 'حجز 5 سائقين مهنيين (عقد سنوي)',
-    totalAmount: 18500,
-    paymentStatus: 'مدفوع',
-    orderStatus: 'جديد',
-    createdAt: '2026-08-31 17:45'
-  },
-  {
-    id: 'EORD-9910',
-    storeId: 'STR-SHOPIFY-03',
-    platform: 'شوبيفاي (Shopify)',
-    externalOrderNo: '#SH-10492',
-    customerName: 'نورة عبد العزيز السبيعي',
-    customerPhone: '0543322110',
-    serviceType: 'استقدام عاملة منزلية (الفلبين)',
-    totalAmount: 17250,
-    paymentStatus: 'مدفوع',
-    orderStatus: 'مكتمل',
-    createdAt: '2026-08-31 16:30'
-  },
-  {
-    id: 'EORD-9909',
-    storeId: 'STR-WOO-04',
-    platform: 'ووكومرس (WooCommerce)',
-    externalOrderNo: '#WC-88219',
-    customerName: 'مؤسسة أفق التقنية',
-    customerPhone: '0567788990',
-    serviceType: 'باقة ضيافة وتنظيف مكتبي شهري',
-    totalAmount: 4200,
-    paymentStatus: 'مدفوع',
-    orderStatus: 'قيد التنفيذ',
-    createdAt: '2026-08-31 15:10'
-  }
-];
+const INITIAL_STORE_ORDERS: EcommerceStoreOrder[] = [];
 
-const INITIAL_FIXED_ASSETS: SmaccFixedAsset[] = [
-  { id: 'AST-001', name: 'سيارة تويوتا كامري 2024 (فرع الرياض)', category: 'وسائل النقل', purchaseDate: '2024-01-15', cost: 95000, accumulatedDep: 19000, netBookValue: 76000, status: 'نشط' },
-  { id: 'AST-002', name: 'أجهزة حاسوب وسيرفرات إدارية', category: 'معدات وإلكترونيات', purchaseDate: '2023-06-10', cost: 45000, accumulatedDep: 22500, netBookValue: 22500, status: 'نشط' },
-  { id: 'AST-003', name: 'تأثيث وتجهيز مركز الإيواء الرئيسي', category: 'أثاث ومفروشات', purchaseDate: '2024-03-01', cost: 120000, accumulatedDep: 12000, netBookValue: 108000, status: 'نشط' },
-  { id: 'AST-004', name: 'مبنى المقر الرئيسي - الرياض', category: 'العقارات والمباني', purchaseDate: '2020-01-01', cost: 1500000, accumulatedDep: 150000, netBookValue: 1350000, status: 'نشط' },
-];
+const INITIAL_FIXED_ASSETS: SmaccFixedAsset[] = [];
 
-const INITIAL_INVENTORY: SmaccInventoryItem[] = [
-  { id: 'INV-101', code: 'INV-101', name: 'عقد استقدام عاملة منزلية (الفلبين)', category: 'خدمات استقدام', qty: 15, unitPrice: 17500, reorderLevel: 5, status: 'متوفر' },
-  { id: 'INV-102', code: 'INV-102', name: 'عقد تأجير شهري (عمالة مهنية)', category: 'تأجير تشغيلي', qty: 42, unitPrice: 3500, reorderLevel: 10, status: 'متوفر' },
-  { id: 'INV-103', code: 'INV-103', name: 'عقد استقدام سائق خاص (الهند)', category: 'خدمات استقدام', qty: 8, unitPrice: 13000, reorderLevel: 3, status: 'منخفض' },
-  { id: 'INV-104', code: 'INV-104', name: 'باقة تنظيف منازل يومية', category: 'خدمات سريعة', qty: 100, unitPrice: 250, reorderLevel: 20, status: 'متوفر' },
-];
+const INITIAL_INVENTORY: SmaccInventoryItem[] = [];
 
-const INITIAL_SALES_REPS: SmaccSalesRep[] = [
-  { id: 'REP-01', name: 'أحمد محمود السعيد', role: 'بائع رئيسي', phone: '0501234567', totalSales: 450000, collected: 410000, pending: 40000, targetAchieved: '92%' },
-  { id: 'REP-02', name: 'محمد عبد الله العتيبي', role: 'محصل مبيعات', phone: '0559876543', totalSales: 320000, collected: 320000, pending: 0, targetAchieved: '100%' },
-  { id: 'REP-03', name: 'سارة خالد الدوسري', role: 'بائع ومحصل', phone: '0541122334', totalSales: 280000, collected: 250000, pending: 30000, targetAchieved: '89%' },
-];
+const INITIAL_SALES_REPS: SmaccSalesRep[] = [];
 
 export const SmaccModulesPage: React.FC = () => {
   useModalEscape();
@@ -284,11 +146,7 @@ export const SmaccModulesPage: React.FC = () => {
     realErpDataStore.getRecords<SmaccFixedAsset>('fixed_assets', INITIAL_FIXED_ASSETS).then(setFixedAssets);
     realErpDataStore.getRecords<SmaccInventoryItem>('inventory_items', INITIAL_INVENTORY).then(setInventoryItems);
     realErpDataStore.getRecords<SmaccSalesRep>('sales_reps', INITIAL_SALES_REPS).then(setSalesReps);
-    realErpDataStore.getRecords<any>('compliance_logs', [
-      { id: 'log-1', timestamp: '2026-09-03 12:40', system: 'ZATCA Phase 2', event: 'فحص التشفير والـ CSID واعتماد 14 فاتورة ضريبية', status: 'معتمد ومطابق' },
-      { id: 'log-2', timestamp: '2026-09-03 10:15', system: 'منصة مساند', event: 'مزامنة 38 عقد استقدام وإصدار تأشيرات الربط الآلي', status: 'ناجح ومحدث' },
-      { id: 'log-3', timestamp: '2026-09-02 18:30', system: 'المكاتب الخارجية', event: 'مطابقة تسويات أرصدة مكتب مانيلا ونيروبي', status: 'مطابق' }
-    ]).then(setComplianceLogs);
+    realErpDataStore.getRecords<any>('compliance_logs', []).then(setComplianceLogs);
   }, []);
 
   // Sync Single Store

@@ -160,39 +160,7 @@ export interface IPWhitelistEntry {
   isActive: boolean;
 }
 
-export const DEFAULT_IP_WHITELIST: IPWhitelistEntry[] = [
-  {
-    id: 'IP-001',
-    ipAddress: '197.34.110.0/24',
-    label: 'شبكة الفرع الرئيسي - الرياض',
-    branchId: 'HQ-RUH',
-    addedBy: 'admin',
-    addedAt: '2026-01-01',
-    isTemporary: false,
-    isActive: true,
-  },
-  {
-    id: 'IP-002',
-    ipAddress: '185.12.90.0/24',
-    label: 'شبكة فرع جدة',
-    branchId: 'BR-JED',
-    addedBy: 'admin',
-    addedAt: '2026-01-01',
-    isTemporary: false,
-    isActive: true,
-  },
-  {
-    id: 'IP-003',
-    ipAddress: '92.50.14.88',
-    label: 'VPN المدير العام (سفر مؤقت)',
-    userId: 'USER-001',
-    addedBy: 'admin',
-    addedAt: '2026-08-20',
-    expiresAt: '2026-09-20',
-    isTemporary: true,
-    isActive: true,
-  },
-];
+export const DEFAULT_IP_WHITELIST: IPWhitelistEntry[] = [];
 
 export function isIPAllowed(ip: string, whitelist: IPWhitelistEntry[]): { allowed: boolean; matchedEntry?: IPWhitelistEntry } {
   const activeEntries = whitelist.filter(e => e.isActive);

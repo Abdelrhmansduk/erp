@@ -49,70 +49,20 @@ export interface ShelterCateringMeal {
   status: string;
 }
 
-const DEFAULT_MOCK_SHELTER: ShelterRecordItem[] = [
-  {
-    id: 'SH-2026-001',
-    company_id: 'SAF',
-    maid_name: 'سارة أديسي (Sara Ethiopian)',
-    nationality: 'إثيوبيا',
-    passport: 'EP9827341',
-    client_name: 'شركة توباز للتأجير',
-    contract_ref: 'RC-2026-0014',
-    shelter_location: 'مقر الإيواء الرئيسي - الرياض',
-    days_in_shelter: 12,
-    catering_meals_count: 36,
-    work_willingness: 'ترغب بالعمل',
-    status: 'داخل الإيواء',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'SH-2026-002',
-    company_id: 'SAF',
-    maid_name: 'ماري جين سانتوس (Mary Jane Santos)',
-    nationality: 'الفلبين',
-    passport: 'PH8849201',
-    client_name: 'دار الرواد للمقاولات',
-    contract_ref: 'RC-2026-0012',
-    shelter_location: 'مقر الإيواء - جدة',
-    days_in_shelter: 4,
-    catering_meals_count: 12,
-    work_willingness: 'ترغب بالعمل',
-    status: 'متاح للنقل',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'SH-2026-003',
-    company_id: 'SAF',
-    maid_name: 'فلورنس ناباتانزي (Florence Nabatanzi)',
-    nationality: 'أوغندا',
-    passport: 'UG1102938',
-    client_name: 'السفير للخدمات',
-    contract_ref: 'RC-2026-0009',
-    shelter_location: 'مقر الإيواء - الخبر',
-    days_in_shelter: 28,
-    catering_meals_count: 84,
-    work_willingness: 'لا ترغب بالعمل',
-    status: 'مرحلة الترحيل',
-    created_at: new Date().toISOString(),
-  },
-];
+const DEFAULT_MOCK_SHELTER: ShelterRecordItem[] = [];
 
 const INITIAL_ROOMS: ShelterRoom[] = [
-  { id: 'RM-101', room: 'جناح أ - غرفة 101', beds: '4 أسرة', totalBeds: 4, occupied: 3, status: 'متاح سرير 1', type: 'نزيلات الفلبين', clean: 'تم التعقيم' },
-  { id: 'RM-102', room: 'جناح أ - غرفة 102', beds: '4 أسرة', totalBeds: 4, occupied: 4, status: 'مكتمل الإشغال', type: 'نزيلات إندونيسيا', clean: 'تم التعقيم' },
-  { id: 'RM-201', room: 'جناح ب - غرفة 201', beds: '6 أسرة', totalBeds: 6, occupied: 4, status: 'متاح سريرين', type: 'نزيلات إثيوبيا', clean: 'تم التعقيم' },
-  { id: 'RM-202', room: 'جناح ب - غرفة 202', beds: '6 أسرة', totalBeds: 6, occupied: 2, status: 'متاح 4 أسرة', type: 'نزيلات أوغندا وكينيا', clean: 'تم التعقيم' },
+  { id: 'RM-101', room: 'جناح أ - غرفة 101', beds: '4 أسرة', totalBeds: 4, occupied: 0, status: 'شاغر بالكامل', type: 'نزيلات الفلبين', clean: 'تم التعقيم' },
+  { id: 'RM-102', room: 'جناح أ - غرفة 102', beds: '4 أسرة', totalBeds: 4, occupied: 0, status: 'شاغر بالكامل', type: 'نزيلات إندونيسيا', clean: 'تم التعقيم' },
+  { id: 'RM-201', room: 'جناح ب - غرفة 201', beds: '6 أسرة', totalBeds: 6, occupied: 0, status: 'شاغر بالكامل', type: 'نزيلات إثيوبيا', clean: 'تم التعقيم' },
+  { id: 'RM-202', room: 'جناح ب - غرفة 202', beds: '6 أسرة', totalBeds: 6, occupied: 0, status: 'شاغر بالكامل', type: 'نزيلات أوغندا وكينيا', clean: 'تم التعقيم' },
   { id: 'RM-301', room: 'جناح ج - غرفة 301', beds: '4 أسرة', totalBeds: 4, occupied: 0, status: 'شاغر بالكامل', type: 'غرفة عزل صحي مؤقت', clean: 'جاهز للاستقبال' },
-  { id: 'RM-302', room: 'جناح ج - غرفة 302', beds: '4 أسرة', totalBeds: 4, occupied: 1, status: 'متاح 3 أسرة', type: 'مرحلة الترحيل العاجل', clean: 'تم التعقيم' },
-  { id: 'RM-JED', room: 'فرع جدة - غرفة 1', beds: '8 أسرة', totalBeds: 8, occupied: 5, status: 'متاح 3 أسرة', type: 'استقبال مطار وترانزيت', clean: 'تم التعقيم' },
-  { id: 'RM-DMM', room: 'فرع الدمام - غرفة 1', beds: '6 أسرة', totalBeds: 6, occupied: 3, status: 'متاح 3 أسرة', type: 'تسكين المنطقة الشرقية', clean: 'تم التعقيم' },
+  { id: 'RM-302', room: 'جناح ج - غرفة 302', beds: '4 أسرة', totalBeds: 4, occupied: 0, status: 'شاغر بالكامل', type: 'مرحلة الترحيل العاجل', clean: 'تم التعقيم' },
+  { id: 'RM-JED', room: 'فرع جدة - غرفة 1', beds: '8 أسرة', totalBeds: 8, occupied: 0, status: 'شاغر بالكامل', type: 'استقبال مطار وترانزيت', clean: 'تم التعقيم' },
+  { id: 'RM-DMM', room: 'فرع الدمام - غرفة 1', beds: '6 أسرة', totalBeds: 6, occupied: 0, status: 'شاغر بالكامل', type: 'تسكين المنطقة الشرقية', clean: 'تم التعقيم' },
 ];
 
-const INITIAL_CATERING: ShelterCateringMeal[] = [
-  { id: 'CAT-01', date: '2026-08-31', place: 'مقر الرياض الرئيسي', meal: 'وجبة غداء', count: 18, vendor: 'مطابخ ومطاعم السليم للإعاشة', cost: 360, sup: 'أميرة الشمري', status: 'تم الاستلام والتوزيع' },
-  { id: 'CAT-02', date: '2026-08-31', place: 'مقر الرياض الرئيسي', meal: 'وجبة إفطار', count: 18, vendor: 'مخابز وحلويات الريان', cost: 180, sup: 'أميرة الشمري', status: 'تم الاستلام والتوزيع' },
-  { id: 'CAT-03', date: '2026-08-31', place: 'فرع ترانزيت جدة', meal: 'وجبة غداء', count: 5, vendor: 'شركة ضيافة الحجاز', cost: 125, sup: 'خالد باوزير', status: 'تم الاستلام والتوزيع' },
-];
+const INITIAL_CATERING: ShelterCateringMeal[] = [];
 
 export const ShelterPage: React.FC = () => {
   const { activeCompanyId, activeCompany } = useCompany();

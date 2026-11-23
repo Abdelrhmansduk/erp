@@ -20,12 +20,7 @@ interface WhatsAppChat {
   status: 'نشط' | 'مغلق';
 }
 
-const MOCK_CHATS: WhatsAppChat[] = [
-  { id: '1', client_name: 'سارة أحمد محمد', phone: '+966558025628', last_message: 'السلام عليكم، هل صدرت التأشيرة من مساند؟', time: '10:45 ص', unread_count: 2, status: 'نشط' },
-  { id: '2', client_name: 'نايف القحطاني', phone: '+966535355555', last_message: 'شكراً لكم، تم استلام حجز العاملة بنجاح.', time: 'أمس', unread_count: 0, status: 'نشط' },
-  { id: '3', client_name: 'بندر صالح الهويريني', phone: '+966555774494', last_message: 'يرجى تزويدي بإيصال تحويل السداد المعتمد.', time: '29/07', unread_count: 0, status: 'مغلق' },
-  { id: '4', client_name: 'شركة دار الرواد للمقاولات', phone: '+966501234567', last_message: 'نحتاج تجديد عقود التأجير لـ 5 عاملات هذا الشهر.', time: '28/07', unread_count: 1, status: 'نشط' }
-];
+const MOCK_CHATS: WhatsAppChat[] = [];
 
 const PRESET_TEMPLATES = [
   { id: 't-1', title: 'تحديث حالة العقد', text: 'مرحباً بك! نود إبلاغك بأنه تم تحديث حالة عقدكم رقم (#RC-2026-0594) بنجاح إلى مرحلة (التفييز وإصدار التذكرة). يمكنك متابعة التحديثات عبر البوابة.' },
@@ -34,11 +29,7 @@ const PRESET_TEMPLATES = [
   { id: 't-4', title: 'تذكير انتهاء فترة التجربة (90 يوم)', text: 'نود تذكيركم بقرب انتهاء فترة الضمان والتجربة النظامية (90 يوماً). نرجو تقييم الخدمة أو إبلاغنا بأي ملاحظات.' }
 ];
 
-const KAS_MOCK_CHATS: WhatsAppChat[] = tagKasRecords([
-  { id: 'kas-wa-1', client_name: 'شركة المدار للتجهيزات التجارية', phone: '+966504411220', last_message: 'نرجو تزويدنا بعرض سعر رسمي لتوريد 40 جهاز تكييف لقطاع الأميال.', time: '10:45 ص', unread_count: 2, status: 'نشط' },
-  { id: 'kas-wa-2', client_name: 'مؤسسة النخبة للتوريدات المكتبية', phone: '+966553311889', last_message: 'تم استلام شحنة المعرض التجاري والفاتورة الضريبية بنجاح.', time: 'أمس', unread_count: 0, status: 'نشط' },
-  { id: 'kas-wa-3', client_name: 'إدارة المشتريات — مشروع تجهيز المكاتب', phone: '+966539900771', last_message: 'يرجى تأكيد موعد تسليم أمر الشراء رقم #PO-KAS-2026-881.', time: '29/07', unread_count: 1, status: 'نشط' },
-]);
+const KAS_MOCK_CHATS: WhatsAppChat[] = tagKasRecords([]);
 
 const KAS_PRESET_TEMPLATES = [
   { id: 'kt-1', title: 'إرسال عرض سعر تجاري', text: 'عميلنا الكريم، مرفق لكم عرض السعر المعتمد من شركة كاس للتجارة والمنافسات رقم (#QT-KAS-2026) شاملاً ضريبة القيمة المضافة.' },
@@ -64,7 +55,7 @@ export const WhatsAppInboxPage: React.FC = () => {
   const activePresetTemplates = isKasTrade ? KAS_PRESET_TEMPLATES : PRESET_TEMPLATES;
   const initialChatList = (isKasTrade ? KAS_MOCK_CHATS : MOCK_CHATS).map(normalizeChat);
   const [chats, setChats] = useState<WhatsAppChat[]>(initialChatList);
-  const [activeChat, setActiveChat] = useState<WhatsAppChat>(initialChatList[0]);
+  const [activeChat, setActiveChat] = useState<WhatsAppChat | null>(initialChatList[0] ?? null);
   const [replyText, setReplyText] = useState('');
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -74,17 +65,7 @@ export const WhatsAppInboxPage: React.FC = () => {
   const [newChatName, setNewChatName] = useState('');
   const [newChatPhone, setNewChatPhone] = useState('');
 
-  const [messages, setMessages] = useState(() =>
-    isKasTrade
-      ? [
-          { sender: 'client', text: 'السلام عليكم، نرجو تزويدنا بعرض سعر رسمي لتوريد 40 جهاز تكييف لقطاع الأميال.', time: '10:45 ص' },
-          { sender: 'system', text: 'أهلاً بكم في شركة كاس للتجارة! تم اعتماد عرض السعر رقم #QT-KAS-410 وجارٍ إرساله مع الفاتورة المبدئية.', time: '10:47 ص' },
-        ]
-      : [
-          { sender: 'client', text: 'السلام عليكم، هل وصلت التأشيرة من مساند؟', time: '10:45 ص' },
-          { sender: 'system', text: 'أهلاً بك أختي سارة! تم تفييز العقد رقم #707070 ونحن بانتظار صدور التذكرة اليوم.', time: '10:47 ص' },
-        ]
-  );
+  const [messages, setMessages] = useState<Array<{ sender: string; text: string; time: string }>>([]);
 
   useEffect(() => {
     realErpDataStore.getRecords<WhatsAppChat>('whatsapp_messages', MOCK_CHATS).then(raw => {
@@ -92,7 +73,10 @@ export const WhatsAppInboxPage: React.FC = () => {
       if (Array.isArray(scoped) && scoped.length > 0) {
         const normalized = scoped.map(normalizeChat);
         setChats(normalized);
-        setActiveChat(normalized[0]);
+        setActiveChat(normalized[0] ?? null);
+      } else {
+        setChats([]);
+        setActiveChat(null);
       }
     });
 
@@ -105,6 +89,7 @@ export const WhatsAppInboxPage: React.FC = () => {
   }, [activeCompanyId]);
 
   const handleSendWhatsAppWithFile = () => {
+    if (!activeChat) return;
     const messageBody =
       replyText.trim() ||
       (isKasTrade
@@ -142,7 +127,7 @@ export const WhatsAppInboxPage: React.FC = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!replyText.trim()) return;
+    if (!replyText.trim() || !activeChat) return;
     const newMsg = { sender: 'system', text: replyText, time: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) };
     setMessages(prev => [...prev, newMsg]);
     const sentText = replyText;
@@ -362,7 +347,7 @@ export const WhatsAppInboxPage: React.FC = () => {
                   key={chat.id}
                   onClick={() => setActiveChat(chat)}
                   className={`p-3.5 transition-all cursor-pointer flex items-start gap-2.5 ${
-                    activeChat.id === chat.id
+                    activeChat?.id === chat.id
                       ? 'bg-[#f3f3f3] border-r-4 border-[#141414]'
                       : 'hover:bg-[#f3f3f3]'
                   }`}
@@ -396,121 +381,142 @@ export const WhatsAppInboxPage: React.FC = () => {
 
         {/* Right Side: Active Chat Box */}
         <div className="md:col-span-2 flex flex-col h-full bg-white">
-          {/* Chat Header */}
-          <div className="p-3.5 border-b border-[#e0e0e0] flex items-center justify-between bg-[#f3f3f3]">
-            <div className="flex items-center gap-3">
-              <CorporateAvatar
-                name={activeChat.client_name}
-                departmentId="crm"
-                size="sm"
-                status="online"
-              />
-              <div>
-                <h2 className="font-bold text-xs text-[#141414]">{activeChat.client_name}</h2>
-                <span className="text-[11px] font-mono text-[#141414] font-bold">{activeChat.phone}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
+          {!activeChat ? (
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center gap-3 bg-[#f3f3f3]/40">
+              <MessageSquare className="w-10 h-10 text-[#707070]" />
+              <div className="text-sm font-bold text-[#141414]">لا توجد محادثة محددة حالياً</div>
+              <p className="text-xs text-[#707070] max-w-sm">
+                اختر محادثة من القائمة الجانبية أو ابدأ محادثة واتساب جديدة مع عميل.
+              </p>
               <button
                 type="button"
-                onClick={handleSendWhatsAppWithFile}
-                className="button-outline-on-light inline-flex items-center gap-1.5 cursor-pointer"
-                style={{ minHeight: '30px', padding: '4px 12px', fontSize: '11px' }}
-                title="توليد ملف PDF رسمي وإرساله مع النص عبر WhatsApp"
-              >
-                <PhoneCall className="w-3.5 h-3.5 text-[#141414]" />
-                <span>إرسال واتساب (PDF + نص)</span>
-              </button>
-              <Badge text="متصل بـ WhatsApp Cloud API" type="gold" />
-            </div>
-          </div>
-
-          {/* Messages Body */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#f3f3f3]">
-            {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex flex-col ${msg.sender === 'system' ? 'items-start' : 'items-end'}`}
-              >
-                <div
-                  className={`max-w-[80%] p-3.5 rounded-2xl text-xs leading-relaxed ${
-                    msg.sender === 'system'
-                      ? 'bg-[#141414] text-white rounded-br-sm '
-                      : 'bg-white text-[#141414] rounded-bl-sm border border-[#e0e0e0]'
-                  }`}
-                >
-                  {msg.text}
-                </div>
-                <span className="text-[10px] text-[#707070] mt-1 px-1 font-mono">{msg.time}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Reply Form */}
-          <form onSubmit={handleSendMessage} className="p-3 border-t border-[#e0e0e0] bg-white space-y-2">
-            {attachedFile && (
-              <div className="flex items-center justify-between px-3 py-1.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[11px]">
-                <span className="font-bold text-[#141414] truncate">
-                  ملف مرفق جاهز للإرسال مع النص: {attachedFile.name}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAttachedFile(null);
-                    if (fileInputRef.current) fileInputRef.current.value = '';
-                  }}
-                  className="text-[#707070] hover:text-[#141414] p-0.5 cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            )}
-            <div className="flex items-center gap-2 flex-wrap">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xlsx"
-                onChange={(e) => setAttachedFile(e.target.files?.[0] || null)}
-                className="hidden"
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="button-outline-on-light cursor-pointer"
-                style={{ padding: '6px 12px', minHeight: '36px', fontSize: '11.5px' }}
-                title="إرفاق ملف مخصص (أو اتركه فارغاً لتوليد PDF رسمي تلقائياً)"
-              >
-                <Paperclip className="w-3.5 h-3.5 ml-1" />
-                <span>{attachedFile ? 'تغيير الملف' : 'إرفاق ملف'}</span>
-              </button>
-              <input
-                type="text"
-                aria-label="اكتب ردك للعميل أو اختر قالباً جاهزاً من الأعلى"
-                placeholder="اكتب ردك للعميل أو اختر قالباً جاهزاً من الأعلى..."
-                value={replyText}
-                onChange={e => setReplyText(e.target.value)}
-                className="flex-1 min-w-[180px] px-4 py-2 bg-[#f3f3f3] border border-[#e0e0e0] rounded-full text-xs text-[#141414] focus:outline-none focus:border-[#141414]"
-              />
-              <button
-                type="button"
-                onClick={handleSendWhatsAppWithFile}
-                className="button-outline-on-light cursor-pointer"
-                style={{ padding: '6px 14px', minHeight: '36px', fontSize: '11.5px' }}
-                title="إرسال ملف PDF الرسمي + النص عبر واتساب"
-              >
-                <FileText className="w-3.5 h-3.5 ml-1" />
-                <span>واتساب (PDF + نص)</span>
-              </button>
-              <button
-                type="submit"
-                className="button-primary-pill"
+                onClick={() => setShowNewChatModal(true)}
+                className="button-primary-pill flex items-center gap-1.5"
                 style={{ padding: '6px 18px', minHeight: '36px', fontSize: '12px' }}
               >
-                <Send className="w-3.5 h-3.5 ml-1" />
-                <span>إرسال</span>
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ محادثة جديدة مع عميل</span>
               </button>
             </div>
-          </form>
+          ) : (
+            <>
+              {/* Chat Header */}
+              <div className="p-3.5 border-b border-[#e0e0e0] flex items-center justify-between bg-[#f3f3f3]">
+                <div className="flex items-center gap-3">
+                  <CorporateAvatar
+                    name={activeChat.client_name}
+                    departmentId="crm"
+                    size="sm"
+                    status="online"
+                  />
+                  <div>
+                    <h2 className="font-bold text-xs text-[#141414]">{activeChat.client_name}</h2>
+                    <span className="text-[11px] font-mono text-[#141414] font-bold">{activeChat.phone}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleSendWhatsAppWithFile}
+                    className="button-outline-on-light inline-flex items-center gap-1.5 cursor-pointer"
+                    style={{ minHeight: '30px', padding: '4px 12px', fontSize: '11px' }}
+                    title="توليد ملف PDF رسمي وإرساله مع النص عبر WhatsApp"
+                  >
+                    <PhoneCall className="w-3.5 h-3.5 text-[#141414]" />
+                    <span>إرسال واتساب (PDF + نص)</span>
+                  </button>
+                  <Badge text="متصل بـ WhatsApp Cloud API" type="gold" />
+                </div>
+              </div>
+
+              {/* Messages Body */}
+              <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#f3f3f3]">
+                {messages.map((msg, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex flex-col ${msg.sender === 'system' ? 'items-start' : 'items-end'}`}
+                  >
+                    <div
+                      className={`max-w-[80%] p-3.5 rounded-2xl text-xs leading-relaxed ${
+                        msg.sender === 'system'
+                          ? 'bg-[#141414] text-white rounded-br-sm '
+                          : 'bg-white text-[#141414] rounded-bl-sm border border-[#e0e0e0]'
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
+                    <span className="text-[10px] text-[#707070] mt-1 px-1 font-mono">{msg.time}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Reply Form */}
+              <form onSubmit={handleSendMessage} className="p-3 border-t border-[#e0e0e0] bg-white space-y-2">
+                {attachedFile && (
+                  <div className="flex items-center justify-between px-3 py-1.5 rounded-full bg-[#f3f3f3] border border-[#e0e0e0] text-[11px]">
+                    <span className="font-bold text-[#141414] truncate">
+                      ملف مرفق جاهز للإرسال مع النص: {attachedFile.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAttachedFile(null);
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                      }}
+                      className="text-[#707070] hover:text-[#141414] p-0.5 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xlsx"
+                    onChange={(e) => setAttachedFile(e.target.files?.[0] || null)}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="button-outline-on-light cursor-pointer"
+                    style={{ padding: '6px 12px', minHeight: '36px', fontSize: '11.5px' }}
+                    title="إرفاق ملف مخصص (أو اتركه فارغاً لتوليد PDF رسمي تلقائياً)"
+                  >
+                    <Paperclip className="w-3.5 h-3.5 ml-1" />
+                    <span>{attachedFile ? 'تغيير الملف' : 'إرفاق ملف'}</span>
+                  </button>
+                  <input
+                    type="text"
+                    aria-label="اكتب ردك للعميل أو اختر قالباً جاهزاً من الأعلى"
+                    placeholder="اكتب ردك للعميل أو اختر قالباً جاهزاً من الأعلى..."
+                    value={replyText}
+                    onChange={e => setReplyText(e.target.value)}
+                    className="flex-1 min-w-[180px] px-4 py-2 bg-[#f3f3f3] border border-[#e0e0e0] rounded-full text-xs text-[#141414] focus:outline-none focus:border-[#141414]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSendWhatsAppWithFile}
+                    className="button-outline-on-light cursor-pointer"
+                    style={{ padding: '6px 14px', minHeight: '36px', fontSize: '11.5px' }}
+                    title="إرسال ملف PDF الرسمي + النص عبر واتساب"
+                  >
+                    <FileText className="w-3.5 h-3.5 ml-1" />
+                    <span>واتساب (PDF + نص)</span>
+                  </button>
+                  <button
+                    type="submit"
+                    className="button-primary-pill"
+                    style={{ padding: '6px 18px', minHeight: '36px', fontSize: '12px' }}
+                  >
+                    <Send className="w-3.5 h-3.5 ml-1" />
+                    <span>إرسال</span>
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
         </div>
       </div>
 

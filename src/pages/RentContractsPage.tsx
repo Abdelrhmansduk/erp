@@ -77,108 +77,13 @@ export interface RentalMaid {
   status: string;
 }
 
-const MOCK_PACKAGES: RentPackage[] = [
-  {
-    id: 'PKG-01',
-    title: 'باقة الشهر - عمالة منزلية إندونيسية',
-    nationality: 'إندونيسيا',
-    order: 1,
-    rent_type: 'شهري',
-    duration: 'شهر واحد',
-    price_before_tax: 3000,
-    tax: 450,
-    total_price: 3450,
-    days_count: 30,
-    is_visible: true,
-  },
-  {
-    id: 'PKG-02',
-    title: 'باقة الثلاثة أشهر - عمالة منزلية إثيوبية',
-    nationality: 'إثيوبيا',
-    order: 2,
-    rent_type: '3 أشهر',
-    duration: '3 أشهر',
-    price_before_tax: 4500,
-    tax: 675,
-    total_price: 5175,
-    days_count: 90,
-    is_visible: true,
-  },
-  {
-    id: 'PKG-03',
-    title: 'باقة ستة أشهر - عمالة منزلية فلبينية متميزة',
-    nationality: 'الفلبين',
-    order: 3,
-    rent_type: '6 أشهر',
-    duration: '6 أشهر',
-    price_before_tax: 18000,
-    tax: 2700,
-    total_price: 20700,
-    days_count: 180,
-    is_visible: true,
-  },
-];
+const MOCK_PACKAGES: RentPackage[] = [];
 
-const MOCK_DRIVERS: RentalDriver[] = [
-  { id: 'DRV-01', name: 'RAJESH KUMAR', nat: 'الهند', lic: 'DL-992810', lic_status: 'سارية', car: 'تويوتا كامري 2024 (لوحة 4410)', client: 'عبدالرحمن السليم', salary: 2200, status: 'مؤجر ونشط' },
-  { id: 'DRV-02', name: 'MOHAMMED ISLAM', nat: 'بنغلاديش', lic: 'DL-882711', lic_status: 'سارية', car: 'هيونداي H1 (لوحة 7721)', client: 'حساب مجموعة السليم', salary: 2000, status: 'مؤجر ونشط' },
-  { id: 'DRV-03', name: 'ALI HASSAN', nat: 'باكستان', lic: 'DL-119283', lic_status: 'سارية', car: 'نيسان صني (لوحة 3312)', client: 'غير معين (متاح للتأجير)', salary: 2000, status: 'متاح للتعاقد' },
-  { id: 'DRV-04', name: 'SURESH PATEL', nat: 'الهند', lic: 'DL-773829', lic_status: 'سارية', car: 'غير معين', client: 'غير معين (متاح للتأجير)', salary: 2200, status: 'متاح للتعاقد' },
-];
+const MOCK_DRIVERS: RentalDriver[] = [];
 
-const MOCK_MAIDS: RentalMaid[] = [
-  { id: 'DOM-01', name: 'SITI NURHALIZA', nat: 'إندونيسيا', pass: 'IQ-22910481', skill: 'عاملة منزلية + طبخ سعودي', client: 'سعود بن فهد التميمي', end: '2026-11-15', price: 3200, status: 'مؤجرة حالياً' },
-  { id: 'DOM-02', name: 'MARITESS SANTOS', nat: 'الفلبين', pass: 'IQ-23491029', skill: 'رعاية أطفال + إتقان الإنجليزية', client: 'د. منيرة القحطاني', end: '2026-10-30', price: 3500, status: 'مؤجرة حالياً' },
-  { id: 'DOM-03', name: 'TIGIST ALEMU', nat: 'إثيوبيا', pass: 'IQ-24810293', skill: 'نظافة وغسيل ورعاية منزلية', client: 'متاح للتعاقد الفوري', end: '-', price: 2800, status: 'متاح للتأجير' },
-  { id: 'DOM-04', name: 'FATIMA NABATANZI', nat: 'أوغندا', pass: 'IQ-25910284', skill: 'عاملة منزلية ورعاية كبار سن', client: 'متاح للتعاقد الفوري', end: '-', price: 2700, status: 'متاح للتأجير' },
-];
+const MOCK_MAIDS: RentalMaid[] = [];
 
-const DEFAULT_MOCK_RENT_CONTRACTS: RentContractRecord[] = [
-  {
-    id: 'rent-1',
-    company_id: 'SAF',
-    contract_number: 'SAF-RENT-2026-0014',
-    client_name: 'ابو عبدالله',
-    client_phone: '+966535666840',
-    client_national_id: '1088273619',
-    maid_name: 'Rental A21221 (سيتي نورعيني)',
-    nationality: 'إندونيسيا',
-    package_name: 'باقة الشهر الإندونيسي',
-    start_date: new Date().toISOString().slice(0, 10),
-    end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    duration_months: 1,
-    monthly_cost: 3000.0,
-    tax_amount: 450.0,
-    total_amount: 3450.0,
-    status: 'نشط',
-    payment_status: 'تم الدفع',
-    marketer: 'سارة خالد (مشرفة التأجير)',
-    branch: 'فرع الرياض الرئيسي',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'rent-2',
-    company_id: 'SAF',
-    contract_number: 'SAF-RENT-2026-0016',
-    client_name: 'ابو اياد',
-    client_phone: '+966562404213',
-    client_national_id: '1099281726',
-    maid_name: 'Rental A2122121 (رحمة أديسي)',
-    nationality: 'إثيوبيا',
-    package_name: 'باقة الشهر الإثيوبي',
-    start_date: new Date().toISOString().slice(0, 10),
-    end_date: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    duration_months: 2,
-    monthly_cost: 1500.0,
-    tax_amount: 450.0,
-    total_amount: 3450.0,
-    status: 'نشط',
-    payment_status: 'معلق',
-    marketer: 'فهد العتيبي',
-    branch: 'فرع الرياض الرئيسي',
-    created_at: new Date().toISOString(),
-  },
-];
+const DEFAULT_MOCK_RENT_CONTRACTS: RentContractRecord[] = [];
 
 export const RentContractsPage: React.FC = () => {
   const { activeCompanyId, activeCompany } = useCompany();
@@ -233,11 +138,16 @@ export const RentContractsPage: React.FC = () => {
   const [rentalDrivers, setRentalDrivers] = useState<RentalDriver[]>([]);
   const [rentalMaids, setRentalMaids] = useState<RentalMaid[]>([]);
   const [rentPackages, setRentPackages] = useState<RentPackage[]>([]);
-  const [rentalOrders, setRentalOrders] = useState([
-    { id: 'ORD-R-101', client: 'عبدالله بن سعد الدوسري', job: 'عاملة منزلية بالشهر', nat: 'الفلبين', dur: '3 أشهر', date: '2026-09-01', deposit: 1000, status: 'بانتظار التعميد' },
-    { id: 'ORD-R-102', client: 'شركة الأفق للمقاولات', job: 'سائق خاص', nat: 'الهند', dur: '12 شهر', date: '2026-08-25', deposit: 2500, status: 'تم الفحص والموافقة' },
-    { id: 'ORD-R-103', client: 'نورة بنت محمد آل الشيخ', job: 'مربية أطفال', nat: 'إندونيسيا', dur: '6 أشهر', date: '2026-09-05', deposit: 1500, status: 'بانتظار التعميد' },
-  ]);
+  const [rentalOrders, setRentalOrders] = useState<Array<{
+    id: string;
+    client: string;
+    job: string;
+    nat: string;
+    dur: string;
+    date: string;
+    deposit: number;
+    status: string;
+  }>>([]);
   const [rentTerms, setRentTerms] = useState(() => {
     try {
       const saved = localStorage.getItem('ALSULAIM_RENT_TERMS');

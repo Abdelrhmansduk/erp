@@ -980,8 +980,8 @@ export const IfrsFinancialEngineWorkspace: React.FC<IfrsFinancialEngineWorkspace
 
     // 3. Sort rows cleanly by IFRS section order (A -> L -> E -> O -> R), then subCode, then erpCode
     const orderPrefix: Record<string, number> = { A: 1, L: 2, E: 3, O: 4, R: 5 };
-    const sortedRows = [...updatedRows]
-      .sort((a, b) => {
+    const sortedRows = updatedRows
+      .toSorted((a, b) => {
         const ca = a.manualCode || suggestIfrsCode(a.accountName) || 'Z';
         const cb = b.manualCode || suggestIfrsCode(b.accountName) || 'Z';
         const pa = orderPrefix[ca.charAt(0)] || 9;

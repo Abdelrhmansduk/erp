@@ -1352,6 +1352,7 @@ export const ReemHrEmailStudioHub: React.FC<ReemHrEmailStudioHubProps> = ({
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
+                        if (e.nativeEvent.isComposing || e.keyCode === 229) return;
                         const tokens = externalRecipientInput
                           .split(/[,;\s]+/)
                           .map((t) => t.trim())

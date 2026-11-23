@@ -4,6 +4,7 @@ import { wmsExcelImporter } from './wmsExcelImporter';
 import { buildMultiSheetWmsExcelFile, wmsExportAndSendService } from './wmsExportAndSendService';
 import { wmsScannerAndBarcodeService } from './wmsScannerAndBarcodeService';
 import { wmsAdvancedOpsService } from './wmsAdvancedOpsService';
+import { matchesSmartSearch, VOUCHER_TYPE_ARABIC_KEYWORDS } from '../../utils/wmsSearchUtils';
 
 const HATEM: WmsActor = {
   email: 'h.salman.trade@kas.sa',
@@ -443,5 +444,92 @@ describe('KAS Enterprise WMS Engine (116-Row Excel Migration + Global WMS Standa
     expect(heatmap.length).toBeGreaterThanOrEqual(5);
     const forecast = wmsAdvancedOpsService.computeAgingAndForecast();
     expect(forecast.length).toBeGreaterThan(50);
+  });
+
+  it('supports inline item creation in vouchers, itemType/category management, inline cell stock edit, and smart Arabic search', () => {
+    // 1) Smart Arabic search: Alef/Teh-Marbuta/Arabic-digits/Multi-token normalization
+    expect(matchesSmartSearch('ثلاجه مكتب', ['ثلاجة صغيرة ميني بار مكتب', 'KAS-FUR-001'])).toBe(true);
+    expect(matchesSmartSearch('اثاث ٢٤٠', ['الأثاث والأجهزة الكهربائية', 240])).toBe(true);
+    expect(matchesSmartSearch('توريد', ['GRN-2026-0001', VOUCHER_TYPE_ARABIC_KEYWORDS.GRN])).toBe(true);
+    expect(matchesSmartSearch('صرف', ['GIN-2026-0001', VOUCHER_TYPE_ARABIC_KEYWORDS.GIN])).toBe(true);
+
+    // 2) Add custom classification & custom item type
+    const cat = wmsEngineService.createCategory({ nameAr: 'أدوات السلامة والطوارئ', code: 'SAFE' }, HATEM);
+    const savedType = wmsEngineService.addItemType('معدات إطفاء وإنذار', HATEM);
+    expect(savedType).toBe('معدات إطفاء وإنذار');
+    expect(wmsEngineService.getItemTypes()).toContain('معدات إطفاء وإنذار');
+
+    // 3) Create GRN voucher with a brand-new item inline inside the voucher table
+    const grnRes = wmsEngineService.createAndPostVoucher(
+      {
+        voucherType: 'GRN',
+        voucherDate: '2026-11-22',
+        warehouseId: 'WH-MAIN',
+        supplierName: 'شركة السلامة الوطنية',
+        lines: [
+          {
+            itemId: '__NEW__',
+            newItemName: 'طفاية حريق بودرة 6 كجم',
+            newItemCategoryId: cat.id,
+            itemType: 'معدات إطفاء وإنذار',
+            enteredQty: 15,
+            enteredUom: 'أسطوانة',
+            unitCost: 95,
+          },
+        ],
+      },
+      HATEM
+    );
+    expect(grnRes.error).toBeNull();
+    const createdItem = wmsEngineService
+      .getState()
+      .items.find((i) => i.nameAr === 'طفاية حريق بودرة 6 كجم');
+    expect(createdItem).toBeDefined();
+    expect(createdItem?.itemType).toBe('معدات إطفاء وإنذار');
+    expect(createdItem?.baseUom).toBe('أسطوانة');
+    expect(wmsEngineService.getItemStockSummary(createdItem!.id).onHand).toBe(15);
+
+    // 4) Inline cell editing of actual stock (setItemOnHandStock) + Undo
+    const adjRes = wmsEngineService.setItemOnHandStock(createdItem!.id, 20, HATEM);
+    expect(adjRes.ok).toBe(true);
+    expect(adjRes.delta).toBe(5);
+    expect(wmsEngineService.getItemStockSummary(createdItem!.id).onHand).toBe(20);
+
+    expect(wmsEngineService.undo(HATEM)).toBe(true);
+    expect(wmsEngineService.getItemStockSummary(createdItem!.id).onHand).toBe(15);
+
+    // 5) Full voucher editing (adding a second line + updating qty) recalculates balances cleanly
+    const updRes = wmsEngineService.updateVoucher(
+      grnRes.voucher!.id,
+      {
+        replaceAllLines: true,
+        lines: [
+          {
+            id: grnRes.voucher!.lines[0].id,
+            itemId: createdItem!.id,
+            itemName: 'طفاية حريق بودرة 6 كجم معتمدة',
+            itemType: 'معدات إطفاء وإنذار',
+            enteredUom: 'أسطوانة',
+            enteredQty: 18,
+            unitCost: 95,
+          },
+          {
+            itemId: '__NEW__',
+            newItemName: 'بطانية حريق مقاومة',
+            newItemCategoryId: cat.id,
+            itemType: 'معدات إطفاء وإنذار',
+            enteredUom: 'حبة',
+            enteredQty: 4,
+            unitCost: 40,
+          },
+        ],
+      },
+      HATEM
+    );
+    expect(updRes.ok).toBe(true);
+    expect(wmsEngineService.getItemStockSummary(createdItem!.id).onHand).toBe(18);
+    const blanket = wmsEngineService.getState().items.find((i) => i.nameAr === 'بطانية حريق مقاومة');
+    expect(blanket).toBeDefined();
+    expect(wmsEngineService.getItemStockSummary(blanket!.id).onHand).toBe(4);
   });
 });

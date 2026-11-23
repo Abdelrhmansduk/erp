@@ -33,71 +33,7 @@ export interface FinancialReq {
   applicant: string;
 }
 
-const MOCK_FIN_REQUESTS: FinancialReq[] = [
-  {
-    id: 'FIN-01',
-    request_number: '#FIN-2026-001',
-    paid_to: 'منصة مساند الحكومية',
-    branch: 'الفرع الرئيسي - الرياض',
-    accounting_name: 'رسوم توثيق عقود استقدام مساند',
-    request_type: 'سداد مساند',
-    escalation: 'هام',
-    date: '2026-08-10',
-    amount: 150.0,
-    entry_type: 'مدين',
-    payment_method: 'تحويل بنكي',
-    description: 'سداد رسوم العقد الإلكتروني رقم #RC-2026-0592',
-    accounting_account: '52010 - مصروفات وتراخيص حكومية',
-    bank_name: 'مصرف الراجحي',
-    account_owner: 'شركة خالد السليم للاستقدام',
-    account_number: '10928374112',
-    iban: 'SA038000000010928374112',
-    status: 'تم السداد',
-    applicant: 'فهد العتيبي (مسؤول التشغيل)',
-  },
-  {
-    id: 'FIN-02',
-    request_number: '#FIN-2026-002',
-    paid_to: 'المديرية العامة للجوازات',
-    branch: 'فرع جدة',
-    accounting_name: 'رسوم إصدار وتجديد إقامة',
-    request_type: 'رسوم إقامة',
-    escalation: 'شديد الأهمية',
-    date: '2026-08-12',
-    amount: 650.0,
-    entry_type: 'مدين',
-    payment_method: 'بطاقة مدى',
-    description: 'رسوم إقامة للعاملة ماريا سانتوس لعقد الإيجار الشهري',
-    accounting_account: '52020 - رسوم الجوازات والإقامات',
-    bank_name: 'البنك الأهلي السعودي',
-    account_owner: 'شركة خالد السليم',
-    account_number: '20938475611',
-    iban: 'SA031000000020938475611',
-    status: 'بانتظار الاعتماد',
-    applicant: 'سارة خالد',
-  },
-  {
-    id: 'FIN-03',
-    request_number: '#FIN-2026-003',
-    paid_to: 'PLATINUM BROTHERS INT’L',
-    branch: 'الإدارة العامة للمجموعة',
-    accounting_name: 'دفعة حساب وكيل خارجي',
-    request_type: 'تسوية وكيل',
-    escalation: 'شديد الأهمية',
-    date: '2026-08-15',
-    amount: 18500.0,
-    entry_type: 'مدين',
-    payment_method: 'تحويل بنكي',
-    description: 'تسوية إرسالية عدد 15 جواز سفر معتمد للسفارة',
-    accounting_account: '21040 - حسابات المكاتب الخارجية الدائنة',
-    bank_name: 'بنك الرياض',
-    account_owner: 'PLATINUM BROTHERS AGENCY',
-    account_number: '99018273645',
-    iban: 'PH0380000099018273645',
-    status: 'تجهيز',
-    applicant: 'عبدالفتح (مسؤول الوكلاء)',
-  },
-];
+const MOCK_FIN_REQUESTS: FinancialReq[] = [];
 
 export const FinancialRequestsPage: React.FC = () => {
   useModalEscape();
@@ -132,65 +68,11 @@ export const FinancialRequestsPage: React.FC = () => {
       setRequests(data);
 
       const [expClaims, trips, advances, ewaRows, clearances] = await Promise.all([
-        realErpDataStore.getRecords<any>('hr_expense_claims', [
-          {
-            id: 'EXP-CLM-101',
-            employee_name: 'فهد العتيبي',
-            department: 'إدارة العمليات والاستقدام',
-            category: 'فاتورة ضريبية ZATCA QR',
-            amount: 1150,
-            vat_amount: 150,
-            date: '2026-11-10',
-            description: 'رسوم تصديق وتوثيق غرفة الرياض وضيافة وفد خارجي',
-            status: 'بانتظار الصرف المالي',
-          },
-        ]),
-        realErpDataStore.getRecords<any>('hr_business_trips', [
-          {
-            id: 'TRP-2026-04',
-            employee_name: 'عبدالرحمن السليم',
-            department: 'الإدارة التنفيذية والتطوير',
-            destination: 'جدة — الدمام',
-            total_per_diem: 3200,
-            start_date: '2026-11-08',
-            purpose: 'انتداب رسمي لتدقيق الفروع ومطابقة أنظمة الاستقدام (4 أيام)',
-            status: 'معتمد إدارياً — بانتظار الصرف',
-          },
-        ]),
-        realErpDataStore.getRecords<any>('hr_advances', [
-          {
-            id: 'ADV-2026-11',
-            employee_name: 'محمد مصطفى',
-            department: 'قسم التأجير والتشغيل',
-            amount: 6000,
-            remaining_balance: 4500,
-            request_date: '2026-11-05',
-            reason: 'سلفة شخصية معتمدة تقسط على 6 أشهر',
-            status: 'بانتظار الصرف البنكي',
-          },
-        ]),
-        realErpDataStore.getRecords<any>('hr_ewa_withdrawals', [
-          {
-            id: 'EWA-2026-19',
-            employee_name: 'سارة خالد',
-            department: 'خدمة العملاء CRM',
-            requested_amount: 2100,
-            request_date: '2026-11-12',
-            notes: 'سحب راتب مرن مبكر (EWA) من الأيام المكتسبة فعلياً بالحضور',
-            status: 'قيد التحويل الفوري',
-          },
-        ]),
-        realErpDataStore.getRecords<any>('hr_offboarding_clearances', [
-          {
-            id: 'EOS-CLR-88',
-            employee_name: 'خالد الحربي',
-            department: 'العلاقات الحكومية والتعقيب',
-            net_payable: 28450,
-            last_working_day: '2026-11-14',
-            separation_reason: 'انتهاء مدة العقد النظامي (المادة 84)',
-            status: 'مخالصة معتمدة — بانتظار الصرف',
-          },
-        ]),
+        realErpDataStore.getRecords<any>('hr_expense_claims', []),
+        realErpDataStore.getRecords<any>('hr_business_trips', []),
+        realErpDataStore.getRecords<any>('hr_advances', []),
+        realErpDataStore.getRecords<any>('hr_ewa_withdrawals', []),
+        realErpDataStore.getRecords<any>('hr_offboarding_clearances', []),
       ]);
 
       const normalizedHrItems = [

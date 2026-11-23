@@ -84,112 +84,9 @@ export interface DependentBenefitRecord {
   status: 'نشط' | 'معلق';
 }
 
-const DEFAULT_ONBOARDING_PLANS: OnboardingPlanRecord[] = [
-  {
-    id: 'ONB-01',
-    employee_id: '1',
-    employee_name: 'طلال الشهري',
-    role: 'مدير عمليات التشغيل',
-    department: 'التشغيل',
-    start_date: '2026-09-01',
-    buddy_name: 'وليد العتيبي',
-    it_access_done: true,
-    qiwa_contract_done: true,
-    gosi_registered_done: true,
-    day30_completed: true,
-    day60_completed: true,
-    day90_completed: false,
-    notes: 'تم اجتياز مرحلة الـ 60 يوماً بنجاح، وجارٍ استكمال مستهدفات الـ 90 يوماً.',
-  },
-  {
-    id: 'ONB-02',
-    employee_id: '2',
-    employee_name: 'رغد المنصور',
-    role: 'أخصائية موارد بشرية',
-    department: 'الموارد البشرية',
-    start_date: '2026-10-15',
-    buddy_name: 'طلال الشهري',
-    it_access_done: true,
-    qiwa_contract_done: true,
-    gosi_registered_done: true,
-    day30_completed: true,
-    day60_completed: false,
-    day90_completed: false,
-    notes: 'إتمام الربط مع منصتَي قوى ومدد والتدريب على محرك حماية الأجور WPS.',
-  },
-];
-
-const DEFAULT_PERFORMANCE_REVIEWS: PerformanceReviewRecord[] = [
-  {
-    id: 'PERF-01',
-    employee_id: '1',
-    employee_name: 'طلال الشهري',
-    role: 'مدير عمليات التشغيل',
-    cycle: 'Q4-2026',
-    job_mastery: 5,
-    execution_quality: 5,
-    compliance_discipline: 5,
-    collaboration: 4,
-    leadership_initiative: 5,
-    smart_goal_summary: 'تحقيق نسبة التزام تشغيلي 98% في عقود الإعاشة والتشغيل وخفض الهدر بنسبة 12%.',
-    pip_required: false,
-    updated_at: '2026-11-01',
-  },
-  {
-    id: 'PERF-02',
-    employee_id: '2',
-    employee_name: 'رغد المنصور',
-    role: 'أخصائية موارد بشرية',
-    cycle: 'Q4-2026',
-    job_mastery: 4,
-    execution_quality: 5,
-    compliance_discipline: 5,
-    collaboration: 5,
-    leadership_initiative: 4,
-    smart_goal_summary: 'رفع نسبة التوطين في نطاقات إلى النطاق البلاتيني وأتمتة مسيرات WPS بنسبة 100%.',
-    pip_required: false,
-    updated_at: '2026-11-02',
-  },
-];
-
-const DEFAULT_DEPENDENTS: DependentBenefitRecord[] = [
-  {
-    id: 'DEP-01',
-    employee_id: '1',
-    employee_name: 'طلال الشهري',
-    dependent_name: 'نورة الشهري',
-    relationship: 'زوج/زوجة',
-    national_id: '1088442211',
-    birth_date: '1994-05-12',
-    insurance_plan: 'VIP',
-    policy_number: 'BUPA-VIP-88210',
-    status: 'نشط',
-  },
-  {
-    id: 'DEP-02',
-    employee_id: '1',
-    employee_name: 'طلال الشهري',
-    dependent_name: 'سلطان طلال الشهري',
-    relationship: 'ابن',
-    national_id: '1129384756',
-    birth_date: '2021-08-20',
-    insurance_plan: 'VIP',
-    policy_number: 'BUPA-VIP-88211',
-    status: 'نشط',
-  },
-  {
-    id: 'DEP-03',
-    employee_id: '3',
-    employee_name: 'محمد خان',
-    dependent_name: 'عائشة خان',
-    relationship: 'زوج/زوجة',
-    national_id: '2459812300',
-    birth_date: '1996-11-03',
-    insurance_plan: 'Class A',
-    policy_number: 'TAWUNIYA-A-44109',
-    status: 'نشط',
-  },
-];
+export const DEFAULT_ONBOARDING_PLANS: OnboardingPlanRecord[] = [];
+export const DEFAULT_PERFORMANCE_REVIEWS: PerformanceReviewRecord[] = [];
+export const DEFAULT_DEPENDENTS: DependentBenefitRecord[] = [];
 
 interface HrProOdooBambooSuiteProps {
   employees: SuiteEmployeeSummary[];
@@ -234,11 +131,11 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
   } | null>(null);
   const [isPersistingStructure, setIsPersistingStructure] = useState<boolean>(false);
 
-  // --- Sub-tab 2: HR-Pro Onboarding & Performance State ---
+  // --- Sub-tab 2: HR-Pro Onboarding & Performance State (strictly user-added) ---
   const [onboardingPlans, setOnboardingPlans] = useState<OnboardingPlanRecord[]>(DEFAULT_ONBOARDING_PLANS);
   const [reviews, setReviews] = useState<PerformanceReviewRecord[]>(DEFAULT_PERFORMANCE_REVIEWS);
   const [showNewReviewModal, setShowNewReviewModal] = useState(false);
-  const [revEmpId, setRevEmpId] = useState<string>(employees[0]?.id || '1');
+  const [revEmpId, setRevEmpId] = useState<string>(employees[0]?.id || '');
   const [revMastery, setRevMastery] = useState<number>(4);
   const [revExec, setRevExec] = useState<number>(4);
   const [revComp, setRevComp] = useState<number>(5);
@@ -252,7 +149,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
   const [lastSyncIso, setLastSyncIso] = useState<string>(() => new Date(Date.now() - 3600 * 1000 * 6).toISOString());
   const [changeFilterType, setChangeFilterType] = useState<'all' | 'inserted' | 'updated'>('all');
   const [showAddDependentModal, setShowAddDependentModal] = useState(false);
-  const [depEmpId, setDepEmpId] = useState<string>(employees[0]?.id || '1');
+  const [depEmpId, setDepEmpId] = useState<string>(employees[0]?.id || '');
   const [depName, setDepName] = useState<string>('');
   const [depRel, setDepRel] = useState<DependentBenefitRecord['relationship']>('زوج/زوجة');
   const [depNatId, setDepNatId] = useState<string>('');
@@ -281,9 +178,9 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
           }>('hr_salary_structures', []),
         ]);
         if (mounted) {
-          if (savedOnb.length > 0) setOnboardingPlans(savedOnb);
-          if (savedRev.length > 0) setReviews(savedRev);
-          if (savedDep.length > 0) setDependents(savedDep);
+          setOnboardingPlans(Array.isArray(savedOnb) ? savedOnb : []);
+          setReviews(Array.isArray(savedRev) ? savedRev : []);
+          setDependents(Array.isArray(savedDep) ? savedDep : []);
           if (savedStructures.length > 0) {
             const overridesMap: Record<
               string,
@@ -543,7 +440,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
         : undefined,
       updated_at: new Date().toISOString().slice(0, 10),
     };
-    const updated = await realErpDataStore.addRecord('hr_performance_reviews', newRev, DEFAULT_PERFORMANCE_REVIEWS);
+    const updated = await realErpDataStore.addRecord('hr_performance_reviews', newRev, []);
     setReviews(updated);
     setShowNewReviewModal(false);
     setRevGoal('');
@@ -571,7 +468,7 @@ export const HrProOdooBambooSuite: React.FC<HrProOdooBambooSuiteProps> = ({
       policy_number: `MED-${depPlan.replace(/\s+/g, '')}-${Math.floor(10000 + Math.random() * 89999)}`,
       status: 'نشط',
     };
-    const updated = await realErpDataStore.addRecord('hr_dependents', newDep, DEFAULT_DEPENDENTS);
+    const updated = await realErpDataStore.addRecord('hr_dependents', newDep, []);
     setDependents(updated);
     setShowAddDependentModal(false);
     setDepName('');

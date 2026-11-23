@@ -232,51 +232,9 @@ export interface CelebrationFeedItem {
   created_at: string;
 }
 
-export const DEFAULT_CAREER_JOB_POSTINGS: CareerJobPostingRecord[] = [
-  {
-    id: 'JOB-KAS-2026-01',
-    company_id: 'SAF',
-    title_ar: 'أخصائي أول موارد بشرية وحماية الأجور (Mudad / Qiwa)',
-    department: 'الموارد البشرية والتوطين',
-    city: 'الرياض',
-    employment_type: 'FULL_TIME',
-    salary_min_sar: 9500,
-    salary_max_sar: 14500,
-    saudization_target: true,
-    description_ar: 'إدارة ملفات حماية الأجور (مدد)، توثيق عقود قوى، ومطابقة اشتراكات التأمينات الاجتماعية GOSI.',
-    requirements_json: ['قوى', 'مدد', 'GOSI', 'نظام العمل السعودي', 'موارد بشرية'],
-    is_published: true,
-    created_at: '2026-08-01T08:00:00Z',
-  },
-  {
-    id: 'JOB-KAS-2026-02',
-    company_id: 'YAQ',
-    title_ar: 'محاسب ضريبي وتقارير مالية (ZATCA Phase 2)',
-    department: 'الإدارة المالية',
-    city: 'الرياض',
-    employment_type: 'FULL_TIME',
-    salary_min_sar: 10000,
-    salary_max_sar: 16000,
-    saudization_target: true,
-    description_ar: 'إعداد الإقرارات الضريبية ومراجعة الفوترة الإلكترونية المرحلية ZATCA وإقفالات مراكز التكلفة.',
-    requirements_json: ['ZATCA', 'محاسبة', 'إقرارات ضريبية', 'مراكز تكلفة', 'SOCPA'],
-    is_published: true,
-    created_at: '2026-08-03T08:00:00Z',
-  },
-];
+export const DEFAULT_CAREER_JOB_POSTINGS: CareerJobPostingRecord[] = [];
 
-export const DEFAULT_ENPS_SURVEYS: EnpsSurveyRecord[] = [
-  {
-    id: 'ENPS-2026-Q3',
-    company_id: 'SAF',
-    title_ar: 'استبيان نبض بيئة العمل والرضا الوظيفي — الربع الثالث 2026',
-    question_ar: 'ما مدى احتمالية توصيتك للعمل في مجموعة خالد السليم لأصدقائك أو زملائك (من 0 إلى 10)؟',
-    quarter_label: 'Q3-2026',
-    is_active: true,
-    closes_at: '2026-09-30',
-    created_at: '2026-08-01T08:00:00Z',
-  },
-];
+export const DEFAULT_ENPS_SURVEYS: EnpsSurveyRecord[] = [];
 
 /**
  * Compute real cryptographic SHA-256 hex digest using Web Crypto API (with pure JS fallback).

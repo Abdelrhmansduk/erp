@@ -462,8 +462,7 @@ export class HrWorkflowEngine {
 
     const nowIso = new Date().toISOString();
     const matchedRules = (params.conditionalRules || [])
-      .slice()
-      .sort((a, b) => a.priority - b.priority)
+      .toSorted((a, b) => a.priority - b.priority)
       .filter((rule) =>
         matchesConditionalRule(rule, {
           category: params.category,

@@ -20,41 +20,7 @@ import {
   X
 } from 'lucide-react';
 
-const INITIAL_TASKS: MsProjectTask[] = [
-  {
-    id: 'MSP-101',
-    taskName: 'حملة الاستقدام المكثف - 500 كادر فلبيني وهندي',
-    companyId: 'SAF',
-    assignedResource: 'فهد العتيبي (مسؤول التوظيف)',
-    startDate: '2026-07-01',
-    endDate: '2026-09-30',
-    progressPercent: 68,
-    status: 'قيد التنفيذ',
-    milestone: false,
-  },
-  {
-    id: 'MSP-102',
-    taskName: 'افتتاح فرع المنسكية والتجهيزات التقنية اللوجستية',
-    companyId: 'YAQ',
-    assignedResource: 'م. خالد السليم',
-    startDate: '2026-06-15',
-    endDate: '2026-08-15',
-    progressPercent: 100,
-    status: 'مكتمل',
-    milestone: true,
-  },
-  {
-    id: 'MSP-103',
-    taskName: 'تحديث معايير الامتثال والربط الضريبي ZATCA Phase 2',
-    companyId: 'TOP',
-    assignedResource: 'أحمد المحاسب المالي',
-    startDate: '2026-08-01',
-    endDate: '2026-10-01',
-    progressPercent: 45,
-    status: 'قيد التنفيذ',
-    milestone: false,
-  }
-];
+const INITIAL_TASKS: MsProjectTask[] = [];
 
 export const MicrosoftIntegrationCenterPage: React.FC = () => {
   useModalEscape();
@@ -88,35 +54,7 @@ export const MicrosoftIntegrationCenterPage: React.FC = () => {
     realErpDataStore.getRecords<MsProjectTask>('ms_project_tasks', INITIAL_TASKS).then(data => setProjectTasks(data));
   }, []);
 
-  const [powerbiDashboards] = useState<PowerBiDashboardItem[]>([
-    {
-      id: 'PBI-01',
-      title: 'لوحة التحليل المالي والإيرادات والتكاليف (Executive P&L)',
-      category: 'محاسبة',
-      reportUrl: 'https://app.powerbi.com/view?reportId=ExecutivePLReport',
-      datasetName: 'Sulaim_Financial_Data_v2',
-      rlsApplied: true,
-      lastSyncTime: '2026-08-11 12:00 PM',
-    },
-    {
-      id: 'PBI-02',
-      title: 'تحليلات كفاءة الاستقدام وتكلفة التوظيف (ATS Time-to-Hire)',
-      category: 'توظيف ATS',
-      reportUrl: 'https://app.powerbi.com/view?reportId=ATSKPIsReport',
-      datasetName: 'Sulaim_ATS_Pipeline_DB',
-      rlsApplied: true,
-      lastSyncTime: '2026-08-11 11:30 AM',
-    },
-    {
-      id: 'PBI-03',
-      title: 'مؤشرات أداء الكادر البشري والدوران الوظيفي (HR Turnover)',
-      category: 'موارد بشرية',
-      reportUrl: 'https://app.powerbi.com/view?reportId=HRMetricsReport',
-      datasetName: 'Sulaim_HRIS_Employee_Master',
-      rlsApplied: true,
-      lastSyncTime: '2026-08-11 10:45 AM',
-    },
-  ]);
+  const [powerbiDashboards] = useState<PowerBiDashboardItem[]>([]);
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -50,7 +50,6 @@ import {
 import {
   HrWorkflowEngine,
   DEFAULT_HR_WORKFLOWS,
-  DEFAULT_HR_DELEGATIONS,
   HR_REQUEST_CATEGORY_LABELS,
   type HrRequestCategory,
   type HrApprovalRequestInstance,
@@ -177,7 +176,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
   const [gpsStatusBanner, setGpsStatusBanner] = useState<string>('');
 
   const [approvalInstances, setApprovalInstances] = useState<HrApprovalRequestInstance[]>([]);
-  const [delegations, setDelegations] = useState<HrManagerDelegation[]>(DEFAULT_HR_DELEGATIONS);
+  const [delegations, setDelegations] = useState<HrManagerDelegation[]>([]);
   const [custodies, setCustodies] = useState<CustodyItem[]>([]);
   const [existingLeaves, setExistingLeaves] = useState<any[]>([]);
   const [attendancesList, setAttendancesList] = useState<AttendancePunchRow[]>([]);
@@ -297,27 +296,27 @@ export const EmployeeSelfServicePage: React.FC = () => {
       matchedDbEmp?.company_id || kasEntry?.company_id || safeCompanyCode || 'SAF'
     ).toUpperCase();
 
-    const totalSal = Number(matchedDbEmp?.salary || 10500);
-    const basicSal = Number(matchedDbEmp?.basic_salary || Math.round(totalSal * 0.7));
-    const housingSal = Number(matchedDbEmp?.housing_allowance || Math.round(totalSal * 0.2));
+    const totalSal = Number(matchedDbEmp?.salary ?? 0);
+    const basicSal = Number(matchedDbEmp?.basic_salary ?? Math.round(totalSal * 0.7));
+    const housingSal = Number(matchedDbEmp?.housing_allowance ?? Math.round(totalSal * 0.2));
     const transportSal = Number(
-      matchedDbEmp?.transport_allowance || Math.max(0, totalSal - basicSal - housingSal)
+      matchedDbEmp?.transport_allowance ?? Math.max(0, totalSal - basicSal - housingSal)
     );
 
     return {
       ...matchedDbEmp,
       id: String(matchedDbEmp?.id || kasEntry?.id || user?.id || 'EMP-SELF-01'),
       employee_code: String(
-        matchedDbEmp?.employee_code || kasEntry?.id || user?.id || 'KAS-101'
+        matchedDbEmp?.employee_code || kasEntry?.id || user?.id || '—'
       ),
       name: String(
         matchedDbEmp?.name || kasEntry?.nameAr || user?.full_name || 'موظف المنشأة'
       ),
-      national_id: String(matchedDbEmp?.national_id || '1092837465'),
-      phone: String(matchedDbEmp?.phone || '0505123456'),
-      email: String(matchedDbEmp?.email || kasEntry?.email || user?.email || 'staff@kas.sa'),
+      national_id: String(matchedDbEmp?.national_id || ''),
+      phone: String(matchedDbEmp?.phone || ''),
+      email: String(matchedDbEmp?.email || kasEntry?.email || user?.email || ''),
       job_title: String(
-        matchedDbEmp?.job_title || kasEntry?.titleAr || user?.role || 'أخصائي أول عمليات وموارد'
+        matchedDbEmp?.job_title || kasEntry?.titleAr || user?.role || 'موظف'
       ),
       department: String(
         matchedDbEmp?.department || user?.department_name_ar || 'الإدارة العامة'
@@ -325,24 +324,24 @@ export const EmployeeSelfServicePage: React.FC = () => {
       branch: String(
         matchedDbEmp?.branch || kasEntry?.branch || user?.branch || 'المقر الرئيسي - الرياض'
       ),
-      grade: String(matchedDbEmp?.grade || 'الدرجة الثالثة (أخصائي أول)'),
-      hire_date: String(matchedDbEmp?.hire_date || '2022-03-01'),
+      grade: String(matchedDbEmp?.grade || '—'),
+      hire_date: String(matchedDbEmp?.hire_date || ''),
       iqama_expiry_date: String(
-        matchedDbEmp?.iqama_expiry_date || matchedDbEmp?.iqama_expiry || '2027-06-15'
+        matchedDbEmp?.iqama_expiry_date || matchedDbEmp?.iqama_expiry || ''
       ),
-      passport_expiry_date: String(matchedDbEmp?.passport_expiry_date || '2028-09-20'),
-      contract_end_date: String(matchedDbEmp?.contract_end_date || '2027-03-01'),
+      passport_expiry_date: String(matchedDbEmp?.passport_expiry_date || ''),
+      contract_end_date: String(matchedDbEmp?.contract_end_date || ''),
       medical_insurance_expiry: String(
-        matchedDbEmp?.medical_insurance_expiry || '2027-04-30'
+        matchedDbEmp?.medical_insurance_expiry || ''
       ),
       basic_salary: basicSal,
       housing_allowance: housingSal,
       transport_allowance: transportSal,
       salary: basicSal + housingSal + transportSal,
       leave_balance:
-        typeof matchedDbEmp?.leave_balance === 'number' ? matchedDbEmp.leave_balance : 21,
-      iban: String(matchedDbEmp?.iban || 'SA4480000000608010167519'),
-      bank_name: String(matchedDbEmp?.bank_name || 'مصرف الراجحي'),
+        typeof matchedDbEmp?.leave_balance === 'number' ? matchedDbEmp.leave_balance : 0,
+      iban: String(matchedDbEmp?.iban || ''),
+      bank_name: String(matchedDbEmp?.bank_name || ''),
       company_id: resolvedCompanyId === 'ALL' ? 'HQ' : resolvedCompanyId,
       status: String(matchedDbEmp?.status || 'نشط'),
     };
@@ -384,7 +383,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
       ),
       realErpDataStore.getRecords<HrShiftSchedule>('hr_shifts', DEFAULT_HR_SHIFTS),
       realErpDataStore.getRecords<HrApprovalRequestInstance>('hr_approval_requests', []),
-      realErpDataStore.getRecords<HrManagerDelegation>('hr_delegations', DEFAULT_HR_DELEGATIONS),
+      realErpDataStore.getRecords<HrManagerDelegation>('hr_delegations', []),
       realErpDataStore.getRecords<CustodyItem>('custodies', []),
       realErpDataStore.getRecords<any>('hr_leave_requests', []),
       realErpDataStore.getRecords<AttendancePunchRow>('attendances', []),
@@ -417,7 +416,7 @@ export const EmployeeSelfServicePage: React.FC = () => {
     if (Array.isArray(geos) && geos.length > 0) setGeofences(geos);
     if (Array.isArray(shifts) && shifts.length > 0) setShiftsList(shifts);
     setApprovalInstances(Array.isArray(wfReqs) ? wfReqs : []);
-    setDelegations(Array.isArray(dels) && dels.length > 0 ? dels : DEFAULT_HR_DELEGATIONS);
+    setDelegations(Array.isArray(dels) ? dels : []);
     setCustodies(Array.isArray(custs) ? custs : []);
     setExistingLeaves(Array.isArray(leaves) ? leaves : []);
     const safeAtts = Array.isArray(atts) ? atts : [];

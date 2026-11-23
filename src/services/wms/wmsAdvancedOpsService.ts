@@ -52,53 +52,7 @@ function createInitialAdvancedState(): WmsAdvancedOpsState {
   const wmsState = wmsEngineService.getState();
   const findItem = (kw: string) => wmsState.items.find((i) => i.nameAr.includes(kw));
 
-  const switchItem = findItem('مفتاح مكيف');
-  const bidetItem = findItem('شطاف مياه');
-  const lampItem = findItem('كشاف خارجي');
-
-  const initialRequisitions: WmsMaterialRequisition[] = [
-    {
-      id: 'MRQ-INIT-01',
-      company_id: 'KAS',
-      reqNo: 'MRQ-2026-0001',
-      requestDate: '2026-11-19',
-      requestedBy: 'رجاء الجبر (مشرفة السكن)',
-      beneficiaryEntity: 'سكن العاملات (مركز الإيواء)',
-      costCenterCode: 'CC-SHL-01',
-      roomOrSite: 'الجناح الشرقي — غرفة 104',
-      priority: 'عاجل',
-      status: 'جديد',
-      lines: [
-        ...(bidetItem
-          ? [{ itemId: bidetItem.id, sku: bidetItem.sku, itemName: bidetItem.nameAr, requestedQty: 2, uom: bidetItem.baseUom }]
-          : []),
-        ...(switchItem
-          ? [{ itemId: switchItem.id, sku: switchItem.sku, itemName: switchItem.nameAr, requestedQty: 1, uom: switchItem.baseUom }]
-          : []),
-      ],
-      notes: 'طلب صيانة عاجل من مشرفة سكن العاملات — جاهز للتحويل الفوري إلى إذن صرف (GIN)',
-    },
-    ...(lampItem
-      ? [
-          {
-            id: 'MRQ-INIT-02',
-            company_id: 'KAS' as const,
-            reqNo: 'MRQ-2026-0002',
-            requestDate: '2026-11-19',
-            requestedBy: 'حسن يوسف (ياقوت نجد)',
-            beneficiaryEntity: 'مكتب ياقوت نجد (YAQ)',
-            costCenterCode: 'CC-YAQ-01',
-            roomOrSite: 'المدخل الرئيسي لمكتب ياقوت',
-            priority: 'عادي' as const,
-            status: 'جديد' as const,
-            lines: [
-              { itemId: lampItem.id, sku: lampItem.sku, itemName: lampItem.nameAr, requestedQty: 2, uom: lampItem.baseUom },
-            ],
-            notes: 'استبدال إنارة خارجية',
-          },
-        ]
-      : []),
-  ];
+  const initialRequisitions: WmsMaterialRequisition[] = [];
 
   const initialWarranties: WmsWarrantyRecord[] = [
     {

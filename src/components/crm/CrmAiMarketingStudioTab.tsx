@@ -81,8 +81,6 @@ const TONE_LABELS: Record<string, string> = {
 
 async function callEdgeAiChat(systemPrompt: string, userPrompt: string): Promise<string | null> {
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 14000);
     const resp = await fetch('/api/ai-chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -92,9 +90,8 @@ async function callEdgeAiChat(systemPrompt: string, userPrompt: string): Promise
           { role: 'user', content: userPrompt },
         ],
       }),
-      signal: ctrl.signal,
+      signal: AbortSignal.timeout(14000),
     });
-    clearTimeout(timer);
     if (!resp.ok) return null;
     const json = await resp.json().catch(() => null);
     const text = json?.content || json?.reply || json?.choices?.[0]?.message?.content;
@@ -140,7 +137,7 @@ export const CrmAiMarketingStudioTab: React.FC<CrmAiMarketingStudioTabProps> = (
 
   // Deterministic live executive diagnostics (always instant, zero latency)
   const liveInsights = useMemo(() => {
-    const sortedByRoas = [...evaluatedCampaigns].sort((a, b) => b.roas - a.roas);
+    const sortedByRoas = evaluatedCampaigns.toSorted((a, b) => b.roas - a.roas);
     const topWinner = sortedByRoas[0] || null;
     const wasteCandidates = evaluatedCampaigns.filter((c) => c.outlierFlags.length > 0);
     const urgentLeads = scopedLeads

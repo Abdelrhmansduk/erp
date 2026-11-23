@@ -123,181 +123,11 @@ interface HrEmpLite {
   marital_status: string;
 }
 
-const MOCK_FLIGHTS: FlightRecord[] = [
-  {
-    id: 'FL-801',
-    travel_type: 'وصول',
-    client_name: 'بندر صالح الهويريني',
-    maid_name: 'MARIA SANTOS CORTEZ',
-    nationality: 'الفلبين',
-    passport_number: 'P9982710B',
-    airline: 'الخطوط السعودية (SAUDIA)',
-    flight_number: 'SV-861',
-    departure_airport: 'مطار نينوي أكينو مانيلا (MNL)',
-    arrival_airport: 'مطار الملك خالد الدولي - الرياض (RUH)',
-    flight_date: '2026-08-18',
-    flight_time: '14:30',
-    ticket_number: '065-992837411',
-    driver_assigned: 'عمار محمد الهندي (مركبة رقم 12)',
-    status: 'مؤكد ومجدول',
-  },
-  {
-    id: 'FL-802',
-    travel_type: 'وصول',
-    client_name: 'سارة خالد الدوسري',
-    maid_name: 'ALEMITU BEKELE',
-    nationality: 'إثيوبيا',
-    passport_number: 'EP8829104',
-    airline: 'الخطوط الإثيوبية (Ethiopian Airlines)',
-    flight_number: 'ET-402',
-    departure_airport: 'مطار بولي الدولي أديس أبابا (ADD)',
-    arrival_airport: 'مطار الملك عبدالعزيز الدولي - جدة (JED)',
-    flight_date: '2026-08-17',
-    flight_time: '09:15',
-    ticket_number: '071-884729103',
-    driver_assigned: 'سمير أحمد قاسم (مركبة رقم 5)',
-    status: 'تم الوصول والاستقبال',
-  },
-  {
-    id: 'FL-803',
-    travel_type: 'ترحيل',
-    client_name: 'شركة دار الرواد',
-    maid_name: 'FLORENCE NABATANZI',
-    nationality: 'أوغندا',
-    passport_number: 'UG1102938',
-    airline: 'طيران ناس (Flynas)',
-    flight_number: 'XY-220',
-    departure_airport: 'مطار الملك فهد بالدمام (DMM)',
-    arrival_airport: 'مطار عنتيبي الدولي (EBB)',
-    flight_date: '2026-08-19',
-    flight_time: '23:45',
-    ticket_number: '065-119283745',
-    driver_assigned: 'بيدرو أوبينا (فريق الترحيل)',
-    status: 'مؤكد ومجدول',
-  },
-];
+const MOCK_FLIGHTS: FlightRecord[] = [];
 
-const INITIAL_BUSINESS_TRIPS: EmployeeBusinessTripRecord[] = [
-  {
-    id: 'TRP-2026-101',
-    company_id: 'SAF',
-    employee_id: 'emp-101',
-    employee_name: 'فهد العتيبي',
-    grade: 'الدرجة الثانية (مدير إدارة)',
-    destination: 'جدة — تفقد فرع المنطقة الغربية ومراكز الاستقبال',
-    destination_city: 'جدة',
-    trip_scope: 'DOMESTIC',
-    from_date: '2026-08-22',
-    start_date: '2026-08-22',
-    to_date: '2026-08-25',
-    nights_count: 3,
-    per_diem_daily: 800,
-    daily_per_diem: 800,
-    per_diem_total: 2400,
-    ticket_cost: 980,
-    estimated_ticket_cost: 980,
-    total_allowance: 3380,
-    total_trip_allowance: 3380,
-    pnr_code: 'SV7M2K',
-    ticket_number: '065-441092831',
-    airline: 'الخطوط السعودية (SAUDIA)',
-    requires_exit_reentry: false,
-    exit_reentry_visa_type: 'مواطن (لا يتطلب تأشيرة)',
-    exit_reentry_visa_no: '—',
-    exit_reentry_visa_expiry: '—',
-    gl_journal_ref: 'JV-TRP-2026-101',
-    status: 'معتمد ومصروف',
-    created_at: '2026-08-15',
-  },
-  {
-    id: 'TRP-2026-102',
-    company_id: 'SAF',
-    employee_id: 'emp-102',
-    employee_name: 'محمد مصطفي',
-    grade: 'الدرجة الثالثة (أخصائي أول)',
-    destination: 'مانيلا — التعاقد المباشر مع وكالات الاستقدام المعتمدة',
-    destination_city: 'مانيلا',
-    trip_scope: 'INTERNATIONAL',
-    from_date: '2026-09-01',
-    start_date: '2026-09-01',
-    to_date: '2026-09-06',
-    nights_count: 5,
-    per_diem_daily: 900,
-    daily_per_diem: 900,
-    per_diem_total: 4500,
-    ticket_cost: 3450,
-    estimated_ticket_cost: 3450,
-    total_allowance: 7950,
-    total_trip_allowance: 7950,
-    pnr_code: 'SV9Q8L',
-    ticket_number: '065-882910442',
-    airline: 'الخطوط السعودية (SAUDIA)',
-    requires_exit_reentry: true,
-    exit_reentry_visa_type: 'تأشيرة خروج وعودة - مقيم',
-    exit_reentry_visa_no: 'ERV-609182734',
-    exit_reentry_visa_expiry: '2026-11-30',
-    status: 'تم إصدار التذكرة وتوثيق PNR',
-    created_at: '2026-08-16',
-  },
-];
+const INITIAL_BUSINESS_TRIPS: EmployeeBusinessTripRecord[] = [];
 
-const INITIAL_AIR_TICKET_LEDGERS: AirTicketLedgerRecord[] = [
-  {
-    id: 'TKT-2026-201',
-    company_id: 'SAF',
-    employee_id: 'emp-102',
-    employee_name: 'محمد مصطفي',
-    nationality: 'مصر',
-    contract_status: 'FAMILY',
-    has_eligible_spouse: true,
-    eligible_children_count: 2,
-    adult_tickets_count: 2,
-    child_tickets_count: 2,
-    base_adult_fare: 1850,
-    total_entitlement_amount: 6475,
-    fulfillment_mode: 'TRAVEL_AGENCY_ORDER',
-    airline: 'الخطوط السعودية (SAUDIA)',
-    route: 'الرياض (RUH) ⇄ القاهرة (CAI)',
-    pnr_code: 'SV4K9P',
-    ticket_number: '065-773829104',
-    travel_date: '2026-08-25',
-    return_date: '2026-09-20',
-    exit_reentry_visa_type: 'تأشيرة خروج وعودة - مقيم',
-    exit_reentry_visa_no: 'ERV-609182734',
-    exit_reentry_visa_expiry: '2026-11-30',
-    gl_posted: true,
-    gl_journal_ref: 'JV-TKT-2026-201',
-    status: 'تم الصرف والترحيل المالي',
-    created_at: '2026-08-12',
-  },
-  {
-    id: 'TKT-2026-202',
-    company_id: 'YAQ',
-    employee_id: 'emp-105',
-    employee_name: 'أحمد سمير قاسم',
-    nationality: 'الأردن',
-    contract_status: 'SINGLE',
-    has_eligible_spouse: false,
-    eligible_children_count: 0,
-    adult_tickets_count: 1,
-    child_tickets_count: 0,
-    base_adult_fare: 1600,
-    total_entitlement_amount: 1600,
-    fulfillment_mode: 'TRAVEL_AGENCY_ORDER',
-    airline: 'طيران ناس (Flynas)',
-    route: 'الرياض (RUH) ⇄ عمّان (AMM)',
-    pnr_code: 'XY8N3B',
-    ticket_number: '590-332918471',
-    travel_date: '2026-09-10',
-    return_date: '2026-09-30',
-    exit_reentry_visa_type: 'تأشيرة خروج وعودة - مقيم',
-    exit_reentry_visa_no: 'ERV-609551209',
-    exit_reentry_visa_expiry: '2026-10-15',
-    gl_posted: false,
-    status: 'تم إصدار التذكرة وتوثيق PNR',
-    created_at: '2026-08-14',
-  },
-];
+const INITIAL_AIR_TICKET_LEDGERS: AirTicketLedgerRecord[] = [];
 
 function evaluateExitReentryVisaStatus(expiryIso?: string, visaType?: string): {
   label: string;
@@ -327,48 +157,16 @@ export const TravelPage: React.FC = () => {
     'worker_flights'
   );
   const [flights, setFlights] = useState<FlightRecord[]>([]);
-  const [airportReceptions, setAirportReceptions] = useState([
-    {
-      id: 'REC-RUH-01',
-      maid: 'MARIA SANTOS CORTEZ',
-      nat: 'الفلبين',
-      airport: 'مطار الملك خالد - صالة 2',
-      time: '14:30',
-      driver: 'عمار محمد الهندي (حافلة 12)',
-      dest: 'مركز إيواء الرياض الرئيسي',
-      status: 'تم الاستقبال بنجاح',
-    },
-    {
-      id: 'REC-JED-02',
-      maid: 'ALEMITU BEKELE',
-      nat: 'إثيوبيا',
-      airport: 'مطار الملك عبدالعزيز - الصالة 1',
-      time: '09:15',
-      driver: 'سمير أحمد قاسم (فان 05)',
-      dest: 'مركز ترانزيت جدة',
-      status: 'تم الاستقبال بنجاح',
-    },
-    {
-      id: 'REC-RUH-03',
-      maid: 'JOYCE MWANGI',
-      nat: 'كينيا',
-      airport: 'مطار الملك خالد - صالة 2',
-      time: '18:45',
-      driver: 'بيدرو أوبينا (حافلة 14)',
-      dest: 'تسليم مباشر للعميل',
-      status: 'بانتظار هبوط الطائرة',
-    },
-    {
-      id: 'REC-DMM-04',
-      maid: 'FATIMA NABATANZI',
-      nat: 'أوغندا',
-      airport: 'مطار الملك فهد بالدمام',
-      time: '21:00',
-      driver: 'نور عالم شودري (فان 08)',
-      dest: 'مركز إيواء الدمام',
-      status: 'بانتظار هبوط الطائرة',
-    },
-  ]);
+  const [airportReceptions, setAirportReceptions] = useState<Array<{
+    id: string;
+    maid: string;
+    nat: string;
+    airport: string;
+    time: string;
+    driver: string;
+    dest: string;
+    status: string;
+  }>>([]);
 
   // Tab 2 State: Employee Business Trips & Air Ticket Ledgers
   const [hrEmployees, setHrEmployees] = useState<HrEmpLite[]>([]);

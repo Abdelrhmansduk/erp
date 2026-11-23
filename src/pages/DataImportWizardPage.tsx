@@ -48,10 +48,10 @@ export const DataImportWizardPage: React.FC = () => {
     Promise.all(
       IMPORT_TEMPLATES.map(async (tmpl) => {
         try {
-          const recs = await realErpDataStore.getRecords<any>(tmpl.entityKey, tmpl.exampleRows as any);
+          const recs = await realErpDataStore.getRecords<any>(tmpl.entityKey, []);
           return [tmpl.entityKey, recs] as const;
         } catch {
-          return [tmpl.entityKey, tmpl.exampleRows] as const;
+          return [tmpl.entityKey, []] as const;
         }
       })
     ).then((entries) => {

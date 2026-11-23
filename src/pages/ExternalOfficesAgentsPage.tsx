@@ -54,90 +54,11 @@ export interface OfficeFile {
   file_data_url?: string;
 }
 
-const INITIAL_OFFICES: ExternalOffice[] = [
-  {
-    id: 'OFF-PH-01',
-    officeName: 'Manila Overseas Placement Agency',
-    country: 'الفلبين',
-    countryCode: 'PH',
-    managerName: 'Maria Santos',
-    phone: '+63281234567',
-    email: 'info@manilaagency.ph',
-    licenseNumber: 'POEA-2024-9981',
-    activeCandidatesCount: 140,
-    arrivedCountCount: 820,
-    rating: 4.9,
-    authorizedCompanies: ['SAF', 'TOP'],
-  },
-  {
-    id: 'OFF-ET-02',
-    officeName: 'Addis International Recruitment Bureau',
-    country: 'إثيوبيا',
-    countryCode: 'ET',
-    managerName: 'Bekele Tadesse',
-    phone: '+251115512345',
-    email: 'contact@addisbureau.et',
-    licenseNumber: 'ETH-MOL-7741',
-    activeCandidatesCount: 95,
-    arrivedCountCount: 540,
-    rating: 4.7,
-    authorizedCompanies: ['YAQ', 'KAS'],
-  },
-  {
-    id: 'OFF-IN-03',
-    officeName: 'Bombay Professional Manpower Services',
-    country: 'الهند',
-    countryCode: 'IN',
-    managerName: 'Rajesh Sharma',
-    phone: '+912261234567',
-    email: 'mumbai@manpower.in',
-    licenseNumber: 'MEA-IND-3321',
-    activeCandidatesCount: 210,
-    arrivedCountCount: 1100,
-    rating: 4.8,
-    authorizedCompanies: ['SAF', 'YAQ', 'TOP', 'KAS'],
-  },
-];
+const INITIAL_OFFICES: ExternalOffice[] = [];
 
-const INITIAL_OFFICE_USERS: OfficeUser[] = [
-  {
-    id: 'OU-01',
-    name: 'عبدالفتح (مسؤول الوكلاء)',
-    phone: '+966558025628',
-    email: 'abdelftah@alsulaim-group.com',
-    linked_office: 'Manila Overseas Placement Agency',
-    nationality: 'الفلبين',
-    status: 'نشط',
-  },
-  {
-    id: 'OU-02',
-    name: 'Bekele Tadesse',
-    phone: '+251115512345',
-    email: 'bekele@addisbureau.et',
-    linked_office: 'Addis International Recruitment Bureau',
-    nationality: 'إثيوبيا',
-    status: 'نشط',
-  },
-];
+const INITIAL_OFFICE_USERS: OfficeUser[] = [];
 
-const INITIAL_OFFICE_FILES: OfficeFile[] = [
-  {
-    id: 'OF-01',
-    office_name: 'Manila Overseas Placement Agency',
-    file_title: 'ترخيص وزارة العمل الفلبينية POEA ساري',
-    file_type: 'PDF',
-    upload_date: '2026-01-10',
-    file_size: '2.4 MB',
-  },
-  {
-    id: 'OF-02',
-    office_name: 'Addis International Recruitment Bureau',
-    file_title: 'عقد الشراكة والإرساليات المعتمد مع شركة السليم',
-    file_type: 'PDF',
-    upload_date: '2026-02-15',
-    file_size: '4.1 MB',
-  },
-];
+const INITIAL_OFFICE_FILES: OfficeFile[] = [];
 
 export const ExternalOfficesAgentsPage: React.FC = () => {
   const { activeCompany } = useCompany();

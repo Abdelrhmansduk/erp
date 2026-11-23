@@ -37,47 +37,7 @@ const GROUP_COMPANIES = [
   { id: 'versatile', name: 'مكتب فيرساتيل الهندي (VERSATILE Ltd)', icon: Globe, color: '#141414' }
 ];
 
-const MOCK_DISPATCHES: GroupDispatchMemo[] = [
-  {
-    id: 'd-1',
-    dispatch_no: '#DISP-2026-0491',
-    source_entity: 'شركة توباز (Topaz)',
-    target_entity: 'الأيال للسفر والسياحة (Al-Ayal)',
-    dispatch_type: 'حجز رحلات وسفر',
-    subject: 'طلب اصدار تذاكر وصول لدفعة عمالة إثيوبية (12 عاملة)',
-    details: 'يرجى إصدار وتأكيد حجوزات الطيران القادمة من أديس أبابا إلى مطار الرياض الملك خالد.',
-    priority: 'عاجل جداً',
-    status: 'تم الاستلام والتنفيذ',
-    created_at: '2026-07-31 11:20',
-    assigned_officer: 'خالد السليم (الأيال)'
-  },
-  {
-    id: 'd-2',
-    dispatch_no: '#DISP-2026-0492',
-    source_entity: 'دار الرواد (Dar Al-Ruwad)',
-    target_entity: 'السفير (Al-Saffir)',
-    dispatch_type: 'خطاب تكليف رسمي',
-    subject: 'تفويض استلام حافلات نقل الكوادر لمشاريع دار الرواد',
-    details: 'المواكبة التشغيلية وتخصيص سائقين ونقل الكوادر من سكن الإيواء للمواقع.',
-    priority: 'هام',
-    status: 'قيد المراجعة',
-    created_at: '2026-07-31 13:45',
-    assigned_officer: 'فهد العتيبي'
-  },
-  {
-    id: 'd-3',
-    dispatch_no: '#DISP-2026-0493',
-    source_entity: 'الماسي (Al-Masi)',
-    target_entity: 'مكتب داماس الإثيوبي (DAMAS)',
-    dispatch_type: 'طلب استقدام عاجل',
-    subject: 'حجز ومقابلة 5 طهاة منازل وطباخين بريميوم',
-    details: 'يشترط الخبرة السابقة بالخليج وإتقان اللغة والطهي المتقدم.',
-    priority: 'عاجل جداً',
-    status: 'بانتظار الاعتماد',
-    created_at: '2026-07-31 14:10',
-    assigned_officer: 'Mr. Solomon (DAMAS)'
-  }
-];
+const MOCK_DISPATCHES: GroupDispatchMemo[] = [];
 
 export const GroupDispatchPage: React.FC = () => {
   const { addNotification } = useAppStore();

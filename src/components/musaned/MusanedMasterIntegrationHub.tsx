@@ -18,12 +18,15 @@ export const MusanedMasterIntegrationHub: React.FC = () => {
   const [selectedEntity, setSelectedEntity] = useState<string>('Contract');
   const [selectedCompany, setSelectedCompany] = useState<'SAF' | 'YAQ' | 'TOP' | 'DAR'>('SAF');
   const [isTestingIsolation, setIsTestingIsolation] = useState(false);
-  const [webhookEvents, setWebhookEvents] = useState([
-    { id: 'EVT-99201', type: 'contract.activated', ref: 'MSN-CTR-9948201', tenant: 'السفير الماسي', time: '11:05:12', sig: 'HMAC-SHA256 (Valid)', status: 'تمت المعالجة بنجاح' },
-    { id: 'EVT-99200', type: 'payment.succeeded', ref: 'MSN-PAY-8812904', tenant: 'ياقوت نجد', time: '10:45:00', sig: 'HMAC-SHA256 (Valid)', status: 'تمت المعالجة بنجاح' },
-    { id: 'EVT-99199', type: 'visa.status.changed', ref: 'MSN-VSA-77281', tenant: 'توباز للاستقدام', time: '09:20:18', sig: 'HMAC-SHA256 (Valid)', status: 'تمت المعالجة بنجاح' },
-    { id: 'EVT-99198', type: 'offer.created', ref: 'MSN-OFR-10293', tenant: 'السفير الماسي', time: '08:14:55', sig: 'HMAC-SHA256 (Valid)', status: 'تمت المعالجة بنجاح' },
-  ]);
+  const [webhookEvents, setWebhookEvents] = useState<Array<{
+    id: string;
+    type: string;
+    ref: string;
+    tenant: string;
+    time: string;
+    sig: string;
+    status: string;
+  }>>([]);
 
   const handleSimulateWebhook = async () => {
     const evtId = `EVT-${Math.floor(10000 + Math.random() * 90000)}`;

@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { X, Undo2, Redo2, Eye, Search, Printer, FileText } from 'lucide-react';
+import { X, Undo2, Redo2, Eye, Search, Printer, FileText, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import { ExportDropdown } from '../common/ExportDropdown';
 import { ExportPreviewModal } from '../common/ExportPreviewModal';
 import type { WmsStateSnapshot, WmsAlertsSummary } from '../../services/wms/wmsEngineService';
 import type { WmsItem, WmsStockVoucher, WmsVoucherType } from '../../types/wms';
+import { matchesSmartSearch } from '../../utils/wmsSearchUtils';
 
 export type WmsKpiDetailKind =
   | { kind: 'items' }
@@ -24,6 +25,7 @@ interface WmsKpiDetailsModalProps {
   onOpenStockCard: (item: WmsItem) => void;
   onPrintVoucher: (voucher: WmsStockVoucher) => void;
   onOpenWarehouseCatalog?: (warehouseId: string) => void;
+  onQuickVoucher?: (type: WmsVoucherType, itemId?: string) => void;
 }
 
 type Row = Record<string, string | number>;
@@ -62,6 +64,7 @@ export const WmsKpiDetailsModal: React.FC<WmsKpiDetailsModalProps> = ({
   onOpenStockCard,
   onPrintVoucher,
   onOpenWarehouseCatalog,
+  onQuickVoucher,
 }) => {
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -268,11 +271,13 @@ export const WmsKpiDetailsModal: React.FC<WmsKpiDetailsModalProps> = ({
 
   const filteredRows = useMemo(() => {
     if (!view) return [];
-    const q = query.trim().toLowerCase();
     return view.rows.filter((r) => {
       if (detail?.kind === 'movements' && typeFilter !== 'all' && r.__type !== typeFilter) return false;
-      if (!q) return true;
-      return Object.entries(r).some(([k, v]) => !k.startsWith('__') && String(v).toLowerCase().includes(q));
+      if (!query.trim()) return true;
+      const values = Object.entries(r)
+        .filter(([k]) => !k.startsWith('__'))
+        .map(([, v]) => v);
+      return matchesSmartSearch(query, values);
     });
   }, [view, query, typeFilter, detail]);
 
@@ -343,16 +348,48 @@ export const WmsKpiDetailsModal: React.FC<WmsKpiDetailsModalProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-[#707070]" />
+            <div className="flex items-center gap-2 flex-1 min-w-[200px] rounded-full bg-[#f0f0f0] px-3.5 py-2 focus-within:ring-2 focus-within:ring-[#141414]">
+              <Search className="w-3.5 h-3.5 text-[#707070] shrink-0" />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="بحث داخل التفاصيل..."
-                className="w-full rounded-full bg-[#f0f0f0] pr-9 pl-4 py-2 text-xs text-[#141414] focus:outline-none focus:ring-2 focus:ring-[#141414]"
+                placeholder="بحث ذكي داخل التفاصيل..."
+                className="flex-1 bg-transparent text-xs text-[#141414] focus:outline-none"
               />
+              {query && (
+                <button type="button" onClick={() => setQuery('')} className="text-[#707070] hover:text-[#141414]">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
+
+            {onQuickVoucher && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onQuickVoucher('GRN');
+                  }}
+                  className="px-3 py-2 rounded-full bg-[#141414] text-white text-xs font-bold flex items-center gap-1 hover:bg-[#262626]"
+                >
+                  <ArrowDownLeft className="w-3.5 h-3.5" />
+                  <span>+ توريد</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onQuickVoucher('GIN');
+                  }}
+                  className="px-3 py-2 rounded-full border border-[#e0e0e0] bg-[#ffffff] text-[#141414] text-xs font-bold flex items-center gap-1 hover:bg-[#f3f3f3]"
+                >
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                  <span>- صرف</span>
+                </button>
+              </>
+            )}
 
             {detail.kind === 'movements' && (
               <select
@@ -447,8 +484,54 @@ export const WmsKpiDetailsModal: React.FC<WmsKpiDetailsModalProps> = ({
                         {typeof r[c] === 'number' ? fmt(Number(r[c]), c.includes('تكلفة') || c === 'القيمة' ? 2 : 0) : r[c]}
                       </td>
                     ))}
-                    <td className="px-3 py-2 text-[#707070]">
-                      {view.rowKind === 'voucher' ? <Printer className="w-3.5 h-3.5" /> : <FileText className="w-3.5 h-3.5" />}
+                    <td className="px-3 py-2 text-[#707070]" onClick={(e) => e.stopPropagation()}>
+                      {view.rowKind === 'voucher' ? (
+                        <button
+                          type="button"
+                          onClick={() => handleRowClick(r)}
+                          className="w-7 h-7 rounded-full bg-[#f3f3f3] flex items-center justify-center text-[#141414]"
+                          title="طباعة السند"
+                        >
+                          <Printer className="w-3.5 h-3.5" />
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          {onQuickVoucher && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onClose();
+                                  onQuickVoucher('GRN', String(r.__id));
+                                }}
+                                className="px-2 py-0.5 rounded-full bg-[#141414] text-white text-[10px] font-bold"
+                                title="توريد لهذا الصنف"
+                              >
+                                + توريد
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onClose();
+                                  onQuickVoucher('GIN', String(r.__id));
+                                }}
+                                className="px-2 py-0.5 rounded-full border border-[#e0e0e0] bg-[#ffffff] text-[#141414] text-[10px] font-bold"
+                                title="صرف لهذا الصنف"
+                              >
+                                - صرف
+                              </button>
+                            </>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleRowClick(r)}
+                            className="w-7 h-7 rounded-full bg-[#f3f3f3] flex items-center justify-center text-[#141414]"
+                            title="كرت الصنف"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}

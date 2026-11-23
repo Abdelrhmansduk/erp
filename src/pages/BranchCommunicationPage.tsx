@@ -29,61 +29,9 @@ export interface InterBranchTransferReq {
   created_at: string;
 }
 
-const MOCK_BRANCH_MESSAGES: BranchMessage[] = [
-  {
-    id: 'm-1',
-    sender_name: 'عبد الفتاح السليم',
-    sender_branch: 'الإدارة العامة - الرياض',
-    sender_role: 'المدير العام',
-    content: 'تعميم رسمي: يرجى العلم ببدء ربط المرحلة الثانية ZATCA لجميع فروع المجموعة ابتداءً من الأسبوع القادم.',
-    timestamp: '15:20',
-    channel: 'المجموعة العامة',
-    priority: 'تعميم رسمي'
-  },
-  {
-    id: 'm-2',
-    sender_name: 'خالد العتيبي',
-    sender_branch: 'فرع جدة - طريق الملك',
-    sender_role: 'مدير فرع جدة',
-    content: 'تم استقبال وفد الوكالة الإثيوبية DAMAS بفرع جدة، وتم توثيق 18 تفويض إنجاز جديد.',
-    timestamp: '14:45',
-    channel: 'فرع جدة',
-    priority: 'عادي'
-  },
-  {
-    id: 'm-3',
-    sender_name: 'سارة خالد',
-    sender_branch: 'مركز الإيواء والتغذية - الرياض',
-    sender_role: 'مشرفة الإيواء',
-    content: 'عاجل: تم تجهيز 6 عاملات متميزات متاحين للنقل والتحويل لفرع الشرقية.',
-    timestamp: '13:10',
-    channel: 'قسم الإيواء',
-    priority: 'عاجل'
-  }
-];
+const MOCK_BRANCH_MESSAGES: BranchMessage[] = [];
 
-const MOCK_TRANSFERS: InterBranchTransferReq[] = [
-  {
-    id: 'tr-101',
-    request_no: '#REQ-BR-2026-08',
-    from_branch: 'مركز الإيواء الرئيسي (الرياض)',
-    to_branch: 'فرع الشرقية (الخبر)',
-    req_type: 'مناقلة عمالة',
-    details: 'طلب نقل 4 عاملات إثيوبيات جاهزات للتأجير الفوري لفرع الخبر.',
-    status: 'تم القبول والتحويل',
-    created_at: '2026-07-31 10:30'
-  },
-  {
-    id: 'tr-102',
-    request_no: '#REQ-BR-2026-09',
-    from_branch: 'فرع جدة',
-    to_branch: 'الإدارة المالية - الرياض',
-    req_type: 'طلب سيولة تشغيلية',
-    details: 'طلب دعم سلفة عاجلة لسداد رسوم تأشيرات ومساند بمبلغ 25,000 ⃁.',
-    status: 'بانتظار الاعتماد',
-    created_at: '2026-07-31 12:15'
-  }
-];
+const MOCK_TRANSFERS: InterBranchTransferReq[] = [];
 
 export const BranchCommunicationPage: React.FC = () => {
   const { addNotification } = useAppStore();

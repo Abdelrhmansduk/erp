@@ -33,10 +33,10 @@ class SupabaseEssSyncService {
     if (!isConfigured) {
       return const SupabaseEssSyncResult(
         syncedFromCloud: false,
-        pendingApprovalsCount: 2,
-        activeCardsCount: 1,
-        activeAlertsCount: 3,
-        statusLabel: 'وضع محلي نشط (جاهز للمزامنة السحابية فور ضبط SUPABASE_URL)',
+        pendingApprovalsCount: 0,
+        activeCardsCount: 0,
+        activeAlertsCount: 0,
+        statusLabel: 'وضع محلي نشط — البيانات المضافة من قبلك فقط (بدون محاكاة)',
       );
     }
 
@@ -72,10 +72,10 @@ class SupabaseEssSyncService {
     } catch (_) {
       return const SupabaseEssSyncResult(
         syncedFromCloud: false,
-        pendingApprovalsCount: 2,
-        activeCardsCount: 1,
-        activeAlertsCount: 3,
-        statusLabel: 'تعذر الوصول للشبكة — يعمل بوضع التخزين المحلي الآمن',
+        pendingApprovalsCount: 0,
+        activeCardsCount: 0,
+        activeAlertsCount: 0,
+        statusLabel: 'تعذر الوصول للشبكة — يعمل بوضع التخزين المحلي الآمن (بدون محاكاة)',
       );
     } finally {
       client.close(force: true);

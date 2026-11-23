@@ -74,56 +74,7 @@ export interface AgencyCandidate {
   agencyName?: string;
 }
 
-const INITIAL_AGENCY_CANDIDATES: AgencyCandidate[] = [
-  {
-    id: 'cand-1',
-    agency_id: 'AGY-ETH-SHEGER',
-    maidName: 'MOMINA KEDIR GURMU',
-    passportNumber: 'EP9249575',
-    nationality: 'أثيوبيا',
-    age: 25,
-    profession: 'عاملة منزلية',
-    medicalStatus: 'FIT',
-    visaStatus: 'ISSUED',
-    ticketStatus: 'BOOKED',
-    commissionUsd: 1050,
-    paymentStatus: 'PAID',
-    uploadedAt: '2026-10-15',
-    agencyName: 'وكالة شيجر الدولية للاستقدام',
-  },
-  {
-    id: 'cand-2',
-    agency_id: 'AGY-ETH-TELA',
-    maidName: 'HALIMA KEBEDE TESFAYE',
-    passportNumber: 'EP9920140',
-    nationality: 'أثيوبيا',
-    age: 24,
-    profession: 'عاملة منزلية',
-    medicalStatus: 'FIT',
-    visaStatus: 'READY',
-    ticketStatus: 'PENDING',
-    commissionUsd: 1050,
-    paymentStatus: 'UNPAID',
-    uploadedAt: '2026-11-02',
-    agencyName: 'وكالة تيلا للاستقدام الخارجي',
-  },
-  {
-    id: 'cand-3',
-    agency_id: 'AGY-PHL-YOSHI',
-    maidName: 'MARIA CRISTINA DELA CRUZ',
-    passportNumber: 'P9482716A',
-    nationality: 'الفلبين',
-    age: 28,
-    profession: 'عاملة منزلية',
-    medicalStatus: 'FIT',
-    visaStatus: 'ISSUED',
-    ticketStatus: 'BOOKED',
-    commissionUsd: 1350,
-    paymentStatus: 'UNPAID',
-    uploadedAt: '2026-11-10',
-    agencyName: 'وكالة يوشي بروموشنز — الفلبين',
-  },
-];
+const INITIAL_AGENCY_CANDIDATES: AgencyCandidate[] = [];
 
 type PortalViewTab = 'contracts' | 'uploaded_cvs' | 'statement';
 

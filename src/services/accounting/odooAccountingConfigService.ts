@@ -591,7 +591,7 @@ export const odooAccountingConfigService = {
     statementLabel: string,
     amountSar: number
   ): OdooReconciliationModel | null {
-    const models = [...this.getReconciliationModels()].sort(
+    const models = this.getReconciliationModels().toSorted(
       (a, b) => a.matchingOrder - b.matchingOrder
     );
     const upperLabel = (statementLabel || '').toUpperCase();

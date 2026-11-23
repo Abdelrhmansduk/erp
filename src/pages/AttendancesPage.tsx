@@ -106,188 +106,13 @@ interface StoredPublicHolidayRecord extends SaudiPublicHoliday {
   company_id?: string;
 }
 
-const DEFAULT_EMPLOYEES_DIRECTORY: CompanyEmployeeOption[] = [
-  {
-    id: 'KAS-EMP-039',
-    employee_code: 'KAS-EMP-039',
-    name: 'اكرم محمد الكناني',
-    department: 'الإدارة المالية',
-    company_id: 'SAF',
-    shift_id: 'SHF-MAIN-FIXED',
-    salary: 9200,
-  },
-  {
-    id: 'KAS-EMP-004',
-    employee_code: 'KAS-EMP-004',
-    name: 'ريم احمد بن حسين',
-    department: 'الموارد البشرية',
-    company_id: 'SAF',
-    shift_id: 'SHF-MAIN-FIXED',
-    salary: 11500,
-  },
-  {
-    id: 'KAS-EMP-034',
-    employee_code: 'KAS-EMP-034',
-    name: 'عبدالرحمن أبو سالف',
-    department: 'تقنية المعلومات والتحول الرقمي',
-    company_id: 'SAF',
-    shift_id: 'SHF-SHELTER-ROT',
-    salary: 12500,
-  },
-  {
-    id: 'KAS-EMP-010',
-    employee_code: 'KAS-EMP-010',
-    name: 'الجوري العنزي',
-    department: 'خدمة العملاء CRM',
-    company_id: 'SAF',
-    shift_id: 'SHF-FLEX-TECH',
-    salary: 7900,
-  },
-  {
-    id: 'KAS-EMP-040',
-    employee_code: 'KAS-EMP-040',
-    name: 'احمد حلمى عبدالمقصود عيسى',
-    department: 'الإدارة المالية',
-    company_id: 'SAF',
-    shift_id: 'SHF-MAIN-FIXED',
-    salary: 8400,
-  },
-];
+const DEFAULT_EMPLOYEES_DIRECTORY: CompanyEmployeeOption[] = [];
 
-const INITIAL_ATTENDANCES: AttendanceRecordExtended[] = [
-  {
-    id: 'ATT-2026-01',
-    company_id: 'SAF',
-    employee_id: 'KAS-EMP-039',
-    emp_name: 'اكرم محمد الكناني',
-    department: 'الإدارة المالية',
-    date: '2026-11-14',
-    shift_id: 'SHF-MAIN-FIXED',
-    shift_name: 'الدوام الإداري الرسمي الثابت',
-    check_in: '07:56',
-    check_out: '16:35',
-    work_hours: 8.65,
-    late_minutes: 0,
-    early_leave_minutes: 0,
-    overtime_minutes: 39,
-    verification_method: 'GPS_GEOFENCE',
-    distance_meters: 42,
-    mock_location_detected: false,
-    is_holiday_work: false,
-    payroll_synced: true,
-    status: 'حاضر',
-  },
-  {
-    id: 'ATT-2026-02',
-    company_id: 'SAF',
-    employee_id: 'KAS-EMP-004',
-    emp_name: 'ريم احمد بن حسين',
-    department: 'الموارد البشرية',
-    date: '2026-11-14',
-    shift_id: 'SHF-MAIN-FIXED',
-    shift_name: 'الدوام الإداري الرسمي الثابت',
-    check_in: '08:28',
-    check_out: '16:30',
-    work_hours: 8.03,
-    late_minutes: 28,
-    early_leave_minutes: 0,
-    overtime_minutes: 0,
-    verification_method: 'WIFI_NETWORK',
-    distance_meters: 18,
-    mock_location_detected: false,
-    is_holiday_work: false,
-    payroll_synced: false,
-    status: 'متأخر',
-  },
-  {
-    id: 'ATT-2026-03',
-    company_id: 'SAF',
-    employee_id: 'KAS-EMP-034',
-    emp_name: 'عبدالرحمن أبو سالف',
-    department: 'تقنية المعلومات والتحول الرقمي',
-    date: '2026-11-14',
-    shift_id: 'SHF-SHELTER-ROT',
-    shift_name: 'وردية مراكز الإيواء والاستقبال بالمطار',
-    check_in: '06:58',
-    check_out: '16:30',
-    work_hours: 9.53,
-    late_minutes: 0,
-    early_leave_minutes: 0,
-    overtime_minutes: 92,
-    verification_method: 'BIOMETRIC_ZKT',
-    distance_meters: 0,
-    mock_location_detected: false,
-    is_holiday_work: false,
-    payroll_synced: false,
-    status: 'حاضر',
-  },
-  {
-    id: 'ATT-2026-04',
-    company_id: 'SAF',
-    employee_id: 'KAS-EMP-010',
-    emp_name: 'الجوري العنزي',
-    department: 'خدمة العملاء CRM',
-    date: '2026-11-14',
-    shift_id: 'SHF-FLEX-TECH',
-    shift_name: 'الدوام المرن (07:30 - 09:30)',
-    check_in: '09:10',
-    check_out: '17:15',
-    work_hours: 8.08,
-    late_minutes: 0,
-    early_leave_minutes: 0,
-    overtime_minutes: 0,
-    verification_method: 'KIOSK_TABLET',
-    distance_meters: 5,
-    mock_location_detected: false,
-    is_holiday_work: false,
-    payroll_synced: true,
-    kiosk_photo_captured: true,
-    kiosk_photo_hash: 'KSK-CAM-8F41C20A',
-    status: 'حاضر',
-  },
-];
+const INITIAL_ATTENDANCES: AttendanceRecordExtended[] = [];
 
-const INITIAL_CORRECTIONS: AttendanceCorrectionRequest[] = [
-  {
-    id: 'COR-2026-01',
-    company_id: 'SAF',
-    employee_id: 'KAS-EMP-004',
-    employee_name: 'ريم احمد بن حسين',
-    department: 'الموارد البشرية',
-    target_date: '2026-11-13',
-    correction_type: 'FIELD_MISSION',
-    requested_check_in: '08:00',
-    requested_check_out: '16:30',
-    reason: 'مراجعة رسمية لمكتب العمل وفرع التأمينات الاجتماعية صباحاً',
-    status: 'بانتظار الموافقة',
-    created_at: '2026-11-13',
-  },
-];
+const INITIAL_CORRECTIONS: AttendanceCorrectionRequest[] = [];
 
-const INITIAL_ROSTERS: StoredRosterRecord[] = [
-  {
-    id: 'RST-2026-01',
-    company_id: 'SAF',
-    employeeId: 'KAS-EMP-039',
-    employeeName: 'اكرم محمد الكناني',
-    rosterDate: '2026-11-15',
-    shiftId: 'SHF-MAIN-FIXED',
-    shiftName: 'الدوام الإداري الرسمي الثابت (الإدارة العامة)',
-    isDayOff: false,
-    branchName: 'المقر الرئيسي — الرياض (حي اليرموك)',
-  },
-  {
-    id: 'RST-2026-02',
-    company_id: 'SAF',
-    employeeId: 'KAS-EMP-034',
-    employeeName: 'عبدالرحمن أبو سالف',
-    rosterDate: '2026-11-15',
-    shiftId: 'SHF-SHELTER-ROT',
-    shiftName: 'وردية مراكز الإيواء والاستقبال بالمطار (متناوبة)',
-    isDayOff: false,
-    branchName: 'مركز الإيواء والرعاية النموذجي — الرياض (الرمال)',
-  },
-];
+const INITIAL_ROSTERS: StoredRosterRecord[] = [];
 
 const VERIFICATION_LABELS: Record<AttendanceVerificationMethod, string> = {
   GPS_GEOFENCE: 'سياج جغرافي GPS',
@@ -430,9 +255,9 @@ export const AttendancesPage: React.FC = () => {
 
   // Manual Attendance Form
   const [manualForm, setManualForm] = useState({
-    employee_id: DEFAULT_EMPLOYEES_DIRECTORY[0].id,
-    emp_name: DEFAULT_EMPLOYEES_DIRECTORY[0].name,
-    department: DEFAULT_EMPLOYEES_DIRECTORY[0].department,
+    employee_id: '',
+    emp_name: '',
+    department: '',
     shift_id: 'SHF-MAIN-FIXED',
     date: new Date().toISOString().slice(0, 10),
     check_in: '08:00',
@@ -463,7 +288,7 @@ export const AttendancesPage: React.FC = () => {
   const [isLocatingBranchGps, setIsLocatingBranchGps] = useState(false);
 
   // Real Live GPS Geofence Verification State
-  const [gpsEmpId, setGpsEmpId] = useState<string>(DEFAULT_EMPLOYEES_DIRECTORY[0].id);
+  const [gpsEmpId, setGpsEmpId] = useState<string>('');
   const [gpsCheckOutTime, setGpsCheckOutTime] = useState<string>('16:30');
   const [gpsConnectedWifi, setGpsConnectedWifi] = useState<string>('');
   const [isAcquiringGps, setIsAcquiringGps] = useState<boolean>(false);
@@ -486,15 +311,15 @@ export const AttendancesPage: React.FC = () => {
   >('idle');
   const [kioskCameraNotice, setKioskCameraNotice] = useState<string>('');
   const [kioskPreviewDataUrl, setKioskPreviewDataUrl] = useState<string>('');
-  const [kioskEmpId, setKioskEmpId] = useState<string>(DEFAULT_EMPLOYEES_DIRECTORY[2].id);
+  const [kioskEmpId, setKioskEmpId] = useState<string>('');
   const [kioskPinInput, setKioskPinInput] = useState('');
   const [kioskBranchId, setKioskBranchId] = useState('GEO-RUH-HQ');
 
   // Punch Correction Form
   const [corrForm, setCorrForm] = useState({
-    employee_id: DEFAULT_EMPLOYEES_DIRECTORY[1].id,
-    employee_name: DEFAULT_EMPLOYEES_DIRECTORY[1].name,
-    department: DEFAULT_EMPLOYEES_DIRECTORY[1].department,
+    employee_id: '',
+    employee_name: '',
+    department: '',
     target_date: new Date().toISOString().slice(0, 10),
     correction_type: 'MISSING_CHECK_OUT' as AttendanceCorrectionRequest['correction_type'],
     requested_check_in: '08:00',
@@ -504,7 +329,7 @@ export const AttendancesPage: React.FC = () => {
 
   // Tab 5: Monthly Shift Roster, Colleague Shift Swap & Saudi Public Holidays State
   const todayIso = useMemo(() => new Date().toISOString().slice(0, 10), []);
-  const [rosterEmpId, setRosterEmpId] = useState<string>(DEFAULT_EMPLOYEES_DIRECTORY[0].id);
+  const [rosterEmpId, setRosterEmpId] = useState<string>('');
   const [rosterDate, setRosterDate] = useState<string>(todayIso);
   const [rosterShiftId, setRosterShiftId] = useState<string>('SHF-MAIN-FIXED');
   const [rosterIsDayOff, setRosterIsDayOff] = useState<boolean>(false);
@@ -512,10 +337,8 @@ export const AttendancesPage: React.FC = () => {
     DEFAULT_GEOFENCE_LOCATIONS[0].branch_name
   );
 
-  const [swapRequesterId, setSwapRequesterId] = useState<string>(
-    DEFAULT_EMPLOYEES_DIRECTORY[0].id
-  );
-  const [swapTargetId, setSwapTargetId] = useState<string>(DEFAULT_EMPLOYEES_DIRECTORY[2].id);
+  const [swapRequesterId, setSwapRequesterId] = useState<string>('');
+  const [swapTargetId, setSwapTargetId] = useState<string>('');
   const [swapDate, setSwapDate] = useState<string>(todayIso);
   const [swapRequesterShiftId, setSwapRequesterShiftId] = useState<string>('SHF-MAIN-FIXED');
   const [swapTargetShiftId, setSwapTargetShiftId] = useState<string>('SHF-SHELTER-ROT');

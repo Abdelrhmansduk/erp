@@ -385,7 +385,18 @@ export function applyAppearanceSettingsToDom(settings: AppearanceSettings): void
   root.style.setProperty('--rounded-sm', radius.sm);
   root.style.fontSize = FONT_SCALE_PX[settings.fontScale];
 
-  // Semantic DOM Attributes for appearance.css
+  // Semantic DOM Attributes & <meta name="color-scheme"> Sync
+  const metaSchemeValue = settings.themeMode === 'system' ? 'light dark' : effectiveTheme;
+  let colorSchemeMeta = document.querySelector<HTMLMetaElement>('meta[name="color-scheme"]');
+  if (!colorSchemeMeta && document.head) {
+    colorSchemeMeta = document.createElement('meta');
+    colorSchemeMeta.name = 'color-scheme';
+    document.head.appendChild(colorSchemeMeta);
+  }
+  if (colorSchemeMeta) {
+    colorSchemeMeta.content = metaSchemeValue;
+  }
+
   root.setAttribute('data-theme', effectiveTheme);
   root.setAttribute('data-erp-theme-mode', settings.themeMode);
   root.setAttribute('data-erp-palette', settings.paletteId);
@@ -475,6 +486,13 @@ export function initAppearanceSettings(): AppearanceSettings {
       if (typeof mediaQuery.addEventListener === 'function') {
         mediaQuery.addEventListener('change', handleSystemChange);
       }
+      window.addEventListener('storage', (event) => {
+        if (event.key === APPEARANCE_STORAGE_KEY) {
+          const synced = loadAppearanceSettings();
+          applyAppearanceSettingsToDom(synced);
+          window.dispatchEvent(new CustomEvent(APPEARANCE_CHANGED_EVENT, { detail: synced }));
+        }
+      });
     } catch {
       // ignore matchMedia limitations
     }

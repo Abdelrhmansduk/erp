@@ -1,30 +1,59 @@
 import React, { useEffect, useState } from 'react';
-import { X, Save, RotateCcw, Trash2, ArchiveRestore } from 'lucide-react';
+import { X, Save, RotateCcw, Trash2, ArchiveRestore, Plus } from 'lucide-react';
 import {
   WmsCategory,
   WmsItem,
   WmsRecycleBinEntry,
   WmsStockVoucher,
   WmsTrackingMode,
+  WmsVoucherType,
   WmsWarehouse,
 } from '../../types/wms';
 import { WMS_BENEFICIARIES } from '../../services/wms/wmsExcelMigrationSeed';
+import {
+  DEFAULT_WMS_ITEM_TYPES,
+  DEFAULT_WMS_UNITS,
+  resolveItemTypeLabel,
+} from '../../utils/wmsSearchUtils';
 
 // ============================================================================
-// 1. EDIT ITEM MODAL (تعديل الصنف)
+// 1. EDIT ITEM MODAL (تعديل الصنف الشامل + التصنيف + النوع + الوحدة + الرصيد الفعلي)
 // ============================================================================
 export const WmsEditItemModal: React.FC<{
   item: WmsItem | null;
   categories: WmsCategory[];
   warehouses: WmsWarehouse[];
+  itemTypes?: string[];
+  currentOnHandQty?: number;
+  onCreateCategory?: (input: { nameAr: string; code?: string }) => WmsCategory | null;
+  onCreateWarehouse?: (input: { nameAr: string; branch?: string }) => WmsWarehouse | null;
+  onAdjustStock?: (itemId: string, newOnHandQty: number) => void;
   onClose: () => void;
   onSave: (itemId: string, patch: Partial<WmsItem>) => void;
-}> = ({ item, categories, warehouses, onClose, onSave }) => {
+}> = ({
+  item,
+  categories,
+  warehouses,
+  itemTypes = DEFAULT_WMS_ITEM_TYPES,
+  currentOnHandQty,
+  onCreateCategory,
+  onCreateWarehouse,
+  onAdjustStock,
+  onClose,
+  onSave,
+}) => {
+  const [sku, setSku] = useState('');
+  const [barcode, setBarcode] = useState('');
   const [nameAr, setNameAr] = useState('');
   const [nameEn, setNameEn] = useState('');
   const [categoryId, setCategoryId] = useState('CAT-MEP');
+  const [itemType, setItemType] = useState('');
+  const [baseUom, setBaseUom] = useState('حبة');
+  const [secondaryUomName, setSecondaryUomName] = useState('');
+  const [secondaryUomFactor, setSecondaryUomFactor] = useState('12');
   const [defaultWarehouseId, setDefaultWarehouseId] = useState('WH-MAIN');
   const [defaultLocationCode, setDefaultLocationCode] = useState('');
+  const [onHandInput, setOnHandInput] = useState('0');
   const [avgUnitCost, setAvgUnitCost] = useState('0');
   const [minQty, setMinQty] = useState('1');
   const [reorderPoint, setReorderPoint] = useState('3');
@@ -36,13 +65,27 @@ export const WmsEditItemModal: React.FC<{
   const [status, setStatus] = useState<'نشط' | 'موقوف'>('نشط');
   const [notes, setNotes] = useState('');
 
+  const [showNewCat, setShowNewCat] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [showNewWh, setShowNewWh] = useState(false);
+  const [newWhName, setNewWhName] = useState('');
+
   useEffect(() => {
     if (!item) return;
+    const catCode = categories.find((c) => c.id === item.categoryId)?.code;
+    setSku(item.sku);
+    setBarcode(item.barcode);
     setNameAr(item.nameAr);
     setNameEn(item.nameEn || '');
     setCategoryId(item.categoryId);
+    setItemType(resolveItemTypeLabel(item, catCode));
+    setBaseUom(item.baseUom || 'حبة');
+    const secUom = item.uomConversions?.find((u) => u.factorToBase > 1);
+    setSecondaryUomName(secUom?.uomName || '');
+    setSecondaryUomFactor(String(secUom?.factorToBase || 12));
     setDefaultWarehouseId(item.defaultWarehouseId);
     setDefaultLocationCode(item.defaultLocationCode);
+    setOnHandInput(String(currentOnHandQty ?? 0));
     setAvgUnitCost(String(item.avgUnitCost || 0));
     setMinQty(String(item.minQty ?? 1));
     setReorderPoint(String(item.reorderPoint ?? 3));
@@ -53,17 +96,31 @@ export const WmsEditItemModal: React.FC<{
     setIsSampleItem(item.isSampleItem);
     setStatus(item.status);
     setNotes(item.notes || '');
-  }, [item]);
+  }, [item, categories, currentOnHandQty]);
 
   if (!item) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!nameAr.trim()) return;
+    const cleanBaseUom = baseUom.trim() || 'حبة';
+    const conversions = [{ uomName: cleanBaseUom, factorToBase: 1 }];
+    if (secondaryUomName.trim()) {
+      conversions.push({
+        uomName: secondaryUomName.trim(),
+        factorToBase: Math.max(2, Number(secondaryUomFactor) || 12),
+      });
+    }
+
     onSave(item.id, {
+      sku: sku.trim() || item.sku,
+      barcode: barcode.trim() || item.barcode,
       nameAr: nameAr.trim(),
       nameEn: nameEn.trim() || undefined,
       categoryId,
+      itemType: itemType.trim() || undefined,
+      baseUom: cleanBaseUom,
+      uomConversions: conversions,
       defaultWarehouseId,
       defaultLocationCode: defaultLocationCode.trim() || 'Z1-R1-B1',
       avgUnitCost: Math.max(0, Number(avgUnitCost) || 0),
@@ -77,18 +134,25 @@ export const WmsEditItemModal: React.FC<{
       status,
       notes: notes.trim() || undefined,
     });
+
+    if (onAdjustStock !== undefined && currentOnHandQty !== undefined) {
+      const targetQty = Math.max(0, Number(onHandInput) || 0);
+      if (targetQty !== currentOnHandQty) {
+        onAdjustStock(item.id, targetQty);
+      }
+    }
     onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" dir="rtl">
-      <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+      <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] w-full max-w-2xl max-h-[92vh] overflow-y-auto p-6">
         <div className="flex items-center justify-between pb-4 border-b border-[#f0f0f0]">
           <div>
             <span className="font-mono text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#f3f3f3]">
               {item.sku}
             </span>
-            <h3 className="text-lg font-bold text-[#141414] mt-1">تعديل بيانات الصنف</h3>
+            <h3 className="text-lg font-bold text-[#141414] mt-1">تحرير بيانات الصنف والتصنيف والنوع والرصيد</h3>
           </div>
           <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-[#f3f3f3] flex items-center justify-center">
             <X className="w-4 h-4" />
@@ -118,9 +182,41 @@ export const WmsEditItemModal: React.FC<{
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[#141414] mb-1">الفئة</label>
+              <label className="block text-xs font-semibold text-[#141414] mb-1">رمز الصنف (SKU)</label>
+              <input
+                type="text"
+                value={sku}
+                onChange={(e) => setSku(e.target.value)}
+                className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 text-xs font-mono"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#141414] mb-1">الباركود (Barcode)</label>
+              <input
+                type="text"
+                value={barcode}
+                onChange={(e) => setBarcode(e.target.value)}
+                className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 text-xs font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-[#141414]">التصنيف</label>
+                {onCreateCategory && (
+                  <button
+                    type="button"
+                    onClick={() => setShowNewCat((p) => !p)}
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#141414] text-white"
+                  >
+                    + تصنيف جديد
+                  </button>
+                )}
+              </div>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
@@ -132,9 +228,63 @@ export const WmsEditItemModal: React.FC<{
                   </option>
                 ))}
               </select>
+              {showNewCat && onCreateCategory && (
+                <div className="mt-1.5 flex gap-1.5">
+                  <input
+                    type="text"
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    placeholder="اسم التصنيف الجديد..."
+                    className="flex-1 rounded-[10px] bg-[#f3f3f3] border border-[#e0e0e0] px-2.5 py-1 text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!newCatName.trim()) return;
+                      const created = onCreateCategory({ nameAr: newCatName.trim() });
+                      if (created) setCategoryId(created.id);
+                      setNewCatName('');
+                      setShowNewCat(false);
+                    }}
+                    className="px-2.5 py-1 rounded-full bg-[#141414] text-white text-[11px] font-bold"
+                  >
+                    حفظ
+                  </button>
+                </div>
+              )}
             </div>
+
             <div>
-              <label className="block text-xs font-semibold text-[#141414] mb-1">المستودع</label>
+              <label className="block text-xs font-semibold text-[#141414] mb-1">النوع (اختر أو اكتب نوعاً جديداً)</label>
+              <input
+                list="wms-edit-item-types"
+                value={itemType}
+                onChange={(e) => setItemType(e.target.value)}
+                placeholder="مثال: أجهزة كهربائية / مستهلك تشغيلي..."
+                className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 text-xs font-semibold"
+              />
+              <datalist id="wms-edit-item-types">
+                {itemTypes.map((t) => (
+                  <option key={t} value={t} />
+                ))}
+              </datalist>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-[#141414]">المستودع</label>
+                {onCreateWarehouse && (
+                  <button
+                    type="button"
+                    onClick={() => setShowNewWh((p) => !p)}
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#141414] text-white"
+                  >
+                    + مستودع جديد
+                  </button>
+                )}
+              </div>
               <select
                 value={defaultWarehouseId}
                 onChange={(e) => setDefaultWarehouseId(e.target.value)}
@@ -146,6 +296,30 @@ export const WmsEditItemModal: React.FC<{
                   </option>
                 ))}
               </select>
+              {showNewWh && onCreateWarehouse && (
+                <div className="mt-1.5 flex gap-1.5">
+                  <input
+                    type="text"
+                    value={newWhName}
+                    onChange={(e) => setNewWhName(e.target.value)}
+                    placeholder="اسم المستودع الجديد..."
+                    className="flex-1 rounded-[10px] bg-[#f3f3f3] border border-[#e0e0e0] px-2.5 py-1 text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!newWhName.trim()) return;
+                      const created = onCreateWarehouse({ nameAr: newWhName.trim() });
+                      if (created) setDefaultWarehouseId(created.id);
+                      setNewWhName('');
+                      setShowNewWh(false);
+                    }}
+                    className="px-2.5 py-1 rounded-full bg-[#141414] text-white text-[11px] font-bold"
+                  >
+                    حفظ
+                  </button>
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#141414] mb-1">الرف / الموقع (Bin)</label>
@@ -158,7 +332,58 @@ export const WmsEditItemModal: React.FC<{
             </div>
           </div>
 
+          {/* Units */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-[14px] bg-[#f3f3f3]">
+            <div>
+              <label className="block text-[11px] font-semibold text-[#707070] mb-1">وحدة الأساس</label>
+              <input
+                list="wms-edit-item-uoms"
+                value={baseUom}
+                onChange={(e) => setBaseUom(e.target.value)}
+                className="w-full rounded-[12px] bg-[#ffffff] px-3 py-1.5 text-xs font-semibold"
+              />
+              <datalist id="wms-edit-item-uoms">
+                {DEFAULT_WMS_UNITS.map((u) => (
+                  <option key={u} value={u} />
+                ))}
+              </datalist>
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-[#707070] mb-1">وحدة تعبئة إضافية</label>
+              <input
+                type="text"
+                value={secondaryUomName}
+                onChange={(e) => setSecondaryUomName(e.target.value)}
+                placeholder="كرتون / درزن..."
+                className="w-full rounded-[12px] bg-[#ffffff] px-3 py-1.5 text-xs"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-[#707070] mb-1">معامل التحويل</label>
+              <input
+                type="number"
+                min={2}
+                value={secondaryUomFactor}
+                onChange={(e) => setSecondaryUomFactor(e.target.value)}
+                className="w-full rounded-[12px] bg-[#ffffff] px-3 py-1.5 text-xs font-mono"
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {currentOnHandQty !== undefined && (
+              <div>
+                <label className="block text-[11px] font-bold text-[#141414] mb-1">الرصيد الفعلي</label>
+                <input
+                  type="number"
+                  min={0}
+                  step="any"
+                  value={onHandInput}
+                  onChange={(e) => setOnHandInput(e.target.value)}
+                  className="w-full rounded-[14px] bg-[#f0f0f0] border border-[#141414] px-3 py-2 text-xs font-mono font-bold"
+                />
+              </div>
+            )}
             <div>
               <label className="block text-[11px] font-semibold text-[#707070] mb-1">متوسط التكلفة (⃁)</label>
               <input
@@ -167,16 +392,6 @@ export const WmsEditItemModal: React.FC<{
                 step="0.01"
                 value={avgUnitCost}
                 onChange={(e) => setAvgUnitCost(e.target.value)}
-                className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 text-xs font-mono"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-[#707070] mb-1">الحد الأدنى</label>
-              <input
-                type="number"
-                min={0}
-                value={minQty}
-                onChange={(e) => setMinQty(e.target.value)}
                 className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 text-xs font-mono"
               />
             </div>
@@ -259,34 +474,81 @@ export const WmsEditItemModal: React.FC<{
 };
 
 // ============================================================================
-// 2. EDIT VOUCHER MODAL (تعديل الإذن المخزني + تحديث الرصيد تلقائياً)
+// 2. EDIT VOUCHER MODAL (تحرير الإذن المخزني + النوع + إضافة/حذف/تحرير الأصناف في جدول)
 // ============================================================================
+interface VoucherLineDraft {
+  id?: string;
+  mode: 'EXISTING' | 'NEW';
+  itemId: string;
+  itemName: string;
+  newItemName: string;
+  newItemCategoryId: string;
+  itemType: string;
+  enteredUom: string;
+  enteredQty: string;
+  unitCost: string;
+  notes: string;
+}
+
 export const WmsEditVoucherModal: React.FC<{
   voucher: WmsStockVoucher | null;
+  items?: WmsItem[];
+  categories?: WmsCategory[];
+  warehouses?: WmsWarehouse[];
+  itemTypes?: string[];
   onClose: () => void;
   onSave: (
     voucherId: string,
     patch: {
+      voucherType?: WmsVoucherType;
+      warehouseId?: string;
+      targetWarehouseId?: string;
       voucherDate?: string;
       beneficiaryEntity?: string;
       recipientName?: string;
       supplierName?: string;
       roomOrSite?: string;
       notes?: string;
-      lines?: Array<{ id: string; enteredQty: number; unitCost: number }>;
+      replaceAllLines?: boolean;
+      lines?: Array<{
+        id?: string;
+        itemId?: string;
+        newItemName?: string;
+        newItemCategoryId?: string;
+        itemName?: string;
+        itemType?: string;
+        enteredUom?: string;
+        enteredQty: number;
+        unitCost: number;
+        notes?: string;
+      }>;
     }
   ) => void;
-}> = ({ voucher, onClose, onSave }) => {
+}> = ({
+  voucher,
+  items = [],
+  categories = [],
+  warehouses = [],
+  itemTypes = DEFAULT_WMS_ITEM_TYPES,
+  onClose,
+  onSave,
+}) => {
+  const [voucherType, setVoucherType] = useState<WmsVoucherType>('GRN');
+  const [warehouseId, setWarehouseId] = useState('WH-MAIN');
+  const [targetWarehouseId, setTargetWarehouseId] = useState('WH-TND');
   const [voucherDate, setVoucherDate] = useState('');
   const [beneficiaryEntity, setBeneficiaryEntity] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [supplierName, setSupplierName] = useState('');
   const [roomOrSite, setRoomOrSite] = useState('');
   const [notes, setNotes] = useState('');
-  const [lineEdits, setLineEdits] = useState<Array<{ id: string; itemName: string; uom: string; enteredQty: string; unitCost: string }>>([]);
+  const [lineEdits, setLineEdits] = useState<VoucherLineDraft[]>([]);
 
   useEffect(() => {
     if (!voucher) return;
+    setVoucherType(voucher.voucherType);
+    setWarehouseId(voucher.warehouseId);
+    setTargetWarehouseId(voucher.targetWarehouseId || warehouses[1]?.id || 'WH-TND');
     setVoucherDate(voucher.voucherDate);
     setBeneficiaryEntity(voucher.beneficiaryEntity || '');
     setRecipientName(voucher.recipientName || '');
@@ -294,46 +556,129 @@ export const WmsEditVoucherModal: React.FC<{
     setRoomOrSite(voucher.roomOrSite || '');
     setNotes(voucher.notes || '');
     setLineEdits(
-      voucher.lines.map((l) => ({
-        id: l.id,
-        itemName: l.itemName,
-        uom: l.enteredUom,
-        enteredQty: String(l.enteredQty),
-        unitCost: String(l.unitCost || 0),
-      }))
+      voucher.lines.map((l) => {
+        const matched = items.find((i) => i.id === l.itemId);
+        const catCode = categories.find((c) => c.id === matched?.categoryId)?.code;
+        return {
+          id: l.id,
+          mode: 'EXISTING',
+          itemId: l.itemId,
+          itemName: l.itemName,
+          newItemName: '',
+          newItemCategoryId: matched?.categoryId || categories[0]?.id || 'CAT-MEP',
+          itemType: l.itemType || (matched ? resolveItemTypeLabel(matched, catCode) : ''),
+          enteredUom: l.enteredUom || matched?.baseUom || 'حبة',
+          enteredQty: String(l.enteredQty),
+          unitCost: String(l.unitCost || 0),
+          notes: l.notes || '',
+        };
+      })
     );
-  }, [voucher]);
+  }, [voucher, items, categories, warehouses]);
 
   if (!voucher) return null;
+
+  const addExistingRow = () => {
+    const first = items[0];
+    const catCode = categories.find((c) => c.id === first?.categoryId)?.code;
+    setLineEdits((prev) => [
+      ...prev,
+      {
+        mode: first ? 'EXISTING' : 'NEW',
+        itemId: first?.id || '__NEW__',
+        itemName: first?.nameAr || '',
+        newItemName: '',
+        newItemCategoryId: first?.categoryId || categories[0]?.id || 'CAT-MEP',
+        itemType: first ? resolveItemTypeLabel(first, catCode) : itemTypes[0] || 'مستهلك تشغيلي',
+        enteredUom: first?.baseUom || 'حبة',
+        enteredQty: '1',
+        unitCost: String(first?.avgUnitCost || 0),
+        notes: '',
+      },
+    ]);
+  };
+
+  const addNewItemRow = () => {
+    setLineEdits((prev) => [
+      ...prev,
+      {
+        mode: 'NEW',
+        itemId: '__NEW__',
+        itemName: '',
+        newItemName: '',
+        newItemCategoryId: categories[0]?.id || 'CAT-MEP',
+        itemType: itemTypes[0] || 'مستهلك تشغيلي',
+        enteredUom: 'حبة',
+        enteredQty: '1',
+        unitCost: '0',
+        notes: '',
+      },
+    ]);
+  };
+
+  const updateRow = (idx: number, patch: Partial<VoucherLineDraft>) => {
+    setLineEdits((prev) =>
+      prev.map((row, i) => {
+        if (i !== idx) return row;
+        const next = { ...row, ...patch };
+        if (patch.itemId && patch.itemId !== '__NEW__') {
+          const matched = items.find((it) => it.id === patch.itemId);
+          if (matched) {
+            const catCode = categories.find((c) => c.id === matched.categoryId)?.code;
+            next.mode = 'EXISTING';
+            next.itemName = matched.nameAr;
+            next.enteredUom = matched.baseUom;
+            next.unitCost = String(matched.avgUnitCost || 0);
+            next.itemType = resolveItemTypeLabel(matched, catCode);
+            next.newItemCategoryId = matched.categoryId;
+          }
+        }
+        return next;
+      })
+    );
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(voucher.id, {
+      voucherType,
+      warehouseId,
+      targetWarehouseId: voucherType === 'STR' ? targetWarehouseId : undefined,
       voucherDate,
       beneficiaryEntity: beneficiaryEntity.trim() || undefined,
       recipientName: recipientName.trim() || undefined,
       supplierName: supplierName.trim() || undefined,
       roomOrSite: roomOrSite.trim() || undefined,
       notes: notes.trim() || undefined,
+      replaceAllLines: true,
       lines: lineEdits.map((l) => ({
         id: l.id,
+        itemId: l.mode === 'NEW' ? '__NEW__' : l.itemId,
+        newItemName: l.mode === 'NEW' ? l.newItemName.trim() : undefined,
+        newItemCategoryId: l.newItemCategoryId || undefined,
+        itemName: l.mode === 'EXISTING' ? l.itemName.trim() : undefined,
+        itemType: l.itemType.trim() || undefined,
+        enteredUom: l.enteredUom.trim() || 'حبة',
         enteredQty: Number(l.enteredQty) || 1,
         unitCost: Number(l.unitCost) || 0,
+        notes: l.notes.trim() || undefined,
       })),
     });
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" dir="rtl">
-      <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-3 md:p-4" dir="rtl">
+      <div className="bg-[#ffffff] border border-[#e0e0e0] rounded-[24px] w-full max-w-5xl max-h-[92vh] overflow-y-auto p-6">
         <div className="flex items-center justify-between pb-4 border-b border-[#f0f0f0]">
           <div>
             <span className="font-mono text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#141414] text-white">
               {voucher.voucherNo} ({voucher.voucherType})
             </span>
-            <h3 className="text-lg font-bold text-[#141414] mt-1">تعديل الإذن المخزني</h3>
-            <p className="text-[11px] text-[#707070]">أي تعديل على الكميات يُعيد ضبط الأرصدة تلقائياً ويُوثّق في سجل التدقيق مع إمكانية التراجع (Undo)</p>
+            <h3 className="text-lg font-bold text-[#141414] mt-1">تحرير الإذن المخزني والأصناف والنوع</h3>
+            <p className="text-[11px] text-[#707070]">
+              يمكنك تعديل نوع الإذن والأصناف والنوع والوحدة والكميات أو إضافة أصناف جديدة وسيُعاد ضبط الرصيد تلقائياً مع دعم التراجع (Undo)
+            </p>
           </div>
           <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-[#f3f3f3] flex items-center justify-center">
             <X className="w-4 h-4" />
@@ -341,7 +686,24 @@ export const WmsEditVoucherModal: React.FC<{
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-[#141414] mb-1">نوع الإذن</label>
+              <select
+                value={voucherType}
+                onChange={(e) => setVoucherType(e.target.value as WmsVoucherType)}
+                className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 text-xs font-bold text-[#141414]"
+              >
+                <option value="GRN">توريد / وارد (GRN)</option>
+                <option value="GIN">صرف / صادر (GIN)</option>
+                <option value="SRN">مرتجع مستودع (SRN)</option>
+                <option value="STR">تحويل مستودعات (STR)</option>
+                <option value="ADJ">تسوية جرد (ADJ)</option>
+                <option value="SAMPLE">عينة تجارية (SAMPLE)</option>
+                <option value="RTV">مرتجع مورد (RTV)</option>
+                <option value="SCRAP">إتلاف (SCRAP)</option>
+              </select>
+            </div>
             <div>
               <label className="block text-xs font-semibold text-[#141414] mb-1">التاريخ</label>
               <input
@@ -351,20 +713,53 @@ export const WmsEditVoucherModal: React.FC<{
                 className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 text-xs font-mono"
               />
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-[#141414] mb-1">الجهة المستفيدة / مركز التكلفة</label>
-              <input
-                list="wms-edit-beneficiaries"
-                value={beneficiaryEntity}
-                onChange={(e) => setBeneficiaryEntity(e.target.value)}
-                className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 text-xs"
-              />
-              <datalist id="wms-edit-beneficiaries">
-                {WMS_BENEFICIARIES.map((b) => (
-                  <option key={b.id} value={b.nameAr} />
-                ))}
-              </datalist>
-            </div>
+            {warehouses.length > 0 && (
+              <div>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">المستودع</label>
+                <select
+                  value={warehouseId}
+                  onChange={(e) => setWarehouseId(e.target.value)}
+                  className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 text-xs font-semibold"
+                >
+                  {warehouses.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.nameAr}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {voucherType === 'STR' && warehouses.length > 0 ? (
+              <div>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">المستودع المستلم</label>
+                <select
+                  value={targetWarehouseId}
+                  onChange={(e) => setTargetWarehouseId(e.target.value)}
+                  className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 text-xs font-semibold"
+                >
+                  {warehouses.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.nameAr}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-xs font-semibold text-[#141414] mb-1">الجهة المستفيدة / مركز التكلفة</label>
+                <input
+                  list="wms-edit-beneficiaries"
+                  value={beneficiaryEntity}
+                  onChange={(e) => setBeneficiaryEntity(e.target.value)}
+                  className="w-full rounded-[14px] bg-[#f0f0f0] px-3 py-2 text-xs"
+                />
+                <datalist id="wms-edit-beneficiaries">
+                  {WMS_BENEFICIARIES.map((b) => (
+                    <option key={b.id} value={b.nameAr} />
+                  ))}
+                </datalist>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -398,40 +793,167 @@ export const WmsEditVoucherModal: React.FC<{
           </div>
 
           <div className="space-y-2">
-            <div className="text-xs font-bold text-[#141414]">تعديل كميات وتكاليف البنود:</div>
-            {lineEdits.map((l, idx) => (
-              <div key={l.id} className="p-3 rounded-[14px] bg-[#f3f3f3] grid grid-cols-12 gap-2 items-center text-xs">
-                <div className="col-span-6 font-bold text-[#141414]">
-                  {l.itemName} <span className="text-[#707070] font-normal">({l.uom})</span>
-                </div>
-                <div className="col-span-3">
-                  <input
-                    type="number"
-                    min={0.01}
-                    step="any"
-                    value={l.enteredQty}
-                    onChange={(e) =>
-                      setLineEdits((prev) => prev.map((x, i) => (i === idx ? { ...x, enteredQty: e.target.value } : x)))
-                    }
-                    className="w-full rounded-[10px] bg-[#ffffff] px-2.5 py-1.5 font-mono text-xs"
-                    placeholder="الكمية"
-                  />
-                </div>
-                <div className="col-span-3">
-                  <input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={l.unitCost}
-                    onChange={(e) =>
-                      setLineEdits((prev) => prev.map((x, i) => (i === idx ? { ...x, unitCost: e.target.value } : x)))
-                    }
-                    className="w-full rounded-[10px] bg-[#ffffff] px-2.5 py-1.5 font-mono text-xs"
-                    placeholder="التكلفة ⃁"
-                  />
-                </div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs font-bold text-[#141414]">جدول تحرير وإضافة الأصناف في الإذن ({lineEdits.length}):</span>
+              <div className="flex items-center gap-1.5">
+                {items.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={addExistingRow}
+                    className="px-3 py-1 rounded-full bg-[#f3f3f3] hover:bg-[#e5e5e5] text-xs font-bold text-[#141414] flex items-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ إضافة صنف من الدليل</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={addNewItemRow}
+                  className="px-3 py-1 rounded-full bg-[#141414] text-white text-xs font-bold flex items-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ إضافة صنف جديد</span>
+                </button>
               </div>
-            ))}
+            </div>
+
+            <div className="overflow-x-auto border border-[#e0e0e0] rounded-[16px]">
+              <table className="w-full text-right text-xs">
+                <thead className="bg-[#f3f3f3] text-[#707070] border-b border-[#e0e0e0]">
+                  <tr>
+                    <th className="p-2 min-w-[200px]">الصنف</th>
+                    <th className="p-2 min-w-[140px]">اسم الصنف (تحرير)</th>
+                    <th className="p-2 min-w-[140px]">النوع</th>
+                    <th className="p-2 w-24">الكمية</th>
+                    <th className="p-2 w-28">الوحدة</th>
+                    <th className="p-2 w-28">التكلفة ⃁</th>
+                    <th className="p-2 w-14 text-center">حذف</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#f0f0f0]">
+                  {lineEdits.map((l, idx) => (
+                    <tr key={l.id || idx} className="hover:bg-[#fafafa]">
+                      <td className="p-2">
+                        {l.mode === 'NEW' ? (
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="text"
+                              required
+                              value={l.newItemName}
+                              onChange={(e) => updateRow(idx, { newItemName: e.target.value })}
+                              placeholder="اسم الصنف الجديد..."
+                              className="w-full rounded-[10px] bg-[#f0f0f0] border border-[#141414] px-2.5 py-1.5 text-xs font-bold"
+                            />
+                            {items.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => updateRow(idx, { mode: 'EXISTING', itemId: items[0].id })}
+                                className="px-2 py-1 rounded-full bg-[#f3f3f3] text-[10px] font-bold"
+                              >
+                                موجود
+                              </button>
+                            )}
+                          </div>
+                        ) : items.length > 0 ? (
+                          <select
+                            value={l.itemId}
+                            onChange={(e) => {
+                              if (e.target.value === '__NEW__') {
+                                updateRow(idx, { mode: 'NEW', itemId: '__NEW__' });
+                              } else {
+                                updateRow(idx, { itemId: e.target.value });
+                              }
+                            }}
+                            className="w-full rounded-[10px] bg-[#f0f0f0] px-2 py-1.5 text-xs font-semibold"
+                          >
+                            {items.map((it) => (
+                              <option key={it.id} value={it.id}>
+                                [{it.sku}] {it.nameAr}
+                              </option>
+                            ))}
+                            <option value="__NEW__">+ صنف جديد...</option>
+                          </select>
+                        ) : (
+                          <span className="font-bold text-[#141414]">{l.itemName}</span>
+                        )}
+                      </td>
+                      <td className="p-2">
+                        <input
+                          type="text"
+                          value={l.mode === 'NEW' ? l.newItemName : l.itemName}
+                          onChange={(e) =>
+                            l.mode === 'NEW'
+                              ? updateRow(idx, { newItemName: e.target.value })
+                              : updateRow(idx, { itemName: e.target.value })
+                          }
+                          placeholder="تعديل اسم الصنف..."
+                          className="w-full rounded-[10px] bg-[#f0f0f0] px-2.5 py-1.5 text-xs font-semibold"
+                        />
+                      </td>
+                      <td className="p-2">
+                        <input
+                          list={`wms-edit-vch-type-${idx}`}
+                          value={l.itemType}
+                          onChange={(e) => updateRow(idx, { itemType: e.target.value })}
+                          placeholder="النوع..."
+                          className="w-full rounded-[10px] bg-[#f0f0f0] px-2.5 py-1.5 text-xs"
+                        />
+                        <datalist id={`wms-edit-vch-type-${idx}`}>
+                          {itemTypes.map((t) => (
+                            <option key={t} value={t} />
+                          ))}
+                        </datalist>
+                      </td>
+                      <td className="p-2">
+                        <input
+                          type="number"
+                          min={0.01}
+                          step="any"
+                          value={l.enteredQty}
+                          onChange={(e) => updateRow(idx, { enteredQty: e.target.value })}
+                          className="w-full rounded-[10px] bg-[#f0f0f0] px-2.5 py-1.5 font-mono text-xs font-bold"
+                        />
+                      </td>
+                      <td className="p-2">
+                        <input
+                          list={`wms-edit-vch-uom-${idx}`}
+                          value={l.enteredUom}
+                          onChange={(e) => updateRow(idx, { enteredUom: e.target.value })}
+                          className="w-full rounded-[10px] bg-[#f0f0f0] px-2.5 py-1.5 text-xs font-semibold"
+                        />
+                        <datalist id={`wms-edit-vch-uom-${idx}`}>
+                          {DEFAULT_WMS_UNITS.map((u) => (
+                            <option key={u} value={u} />
+                          ))}
+                        </datalist>
+                      </td>
+                      <td className="p-2">
+                        <input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={l.unitCost}
+                          onChange={(e) => updateRow(idx, { unitCost: e.target.value })}
+                          className="w-full rounded-[10px] bg-[#f0f0f0] px-2.5 py-1.5 font-mono text-xs"
+                        />
+                      </td>
+                      <td className="p-2 text-center">
+                        {lineEdits.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setLineEdits((prev) => prev.filter((_, i) => i !== idx))}
+                            className="w-7 h-7 rounded-full border border-[#e0e0e0] inline-flex items-center justify-center text-[#707070] hover:bg-[#141414] hover:text-white"
+                            title="حذف السطر"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div>

@@ -12,6 +12,7 @@ import {
 import { shareViaWhatsApp } from '../quickShareService';
 import { wmsEngineService } from './wmsEngineService';
 import { WmsStockVoucher } from '../../types/wms';
+import { resolveItemTypeLabel } from '../../utils/wmsSearchUtils';
 
 export type WmsExportScope =
   | 'all_sheets'
@@ -97,7 +98,9 @@ function mapVoucherRow(v: WmsStockVoucher): Record<string, string | number> {
     'الجهة المستفيدة / المورد': v.beneficiaryEntity || v.supplierName || 'المستودع المركزي',
     'مركز التكلفة': v.costCenterCode || 'CC-KAS-01',
     'المستلم': v.recipientName || '—',
-    'الأصناف والكميات': v.lines.map((l) => `${l.itemName} (${l.enteredQty} ${l.enteredUom})`).join(' | '),
+    'الأصناف والكميات': v.lines
+      .map((l) => `${l.itemName}${l.itemType ? ` [${l.itemType}]` : ''} (${l.enteredQty} ${l.enteredUom})`)
+      .join(' | '),
     'إجمالي بوحدة الأساس': v.totalQtyBase,
     'القيمة (⃁)': v.totalValue,
     'الحالة': v.status === 'POSTED' ? 'معتمد ومُرحّل' : v.status === 'DRAFT' ? 'مسودة' : 'معكوس',
@@ -187,12 +190,14 @@ export function buildWmsScopeDataset(scope: WmsExportScope): {
   // Default ('catalog' or 'all_sheets' tabular view): full live SKU catalog
   const rows = state.items.map((it) => {
     const s = wmsEngineService.getItemStockSummary(it.id);
-    const cat = state.categories.find((c) => c.id === it.categoryId)?.nameAr || it.categoryId;
+    const catObj = state.categories.find((c) => c.id === it.categoryId);
+    const cat = catObj?.nameAr || it.categoryId;
     return {
       'رمز SKU': it.sku,
       'الباركود': it.barcode,
       'اسم الصنف': it.nameAr,
-      'الفئة': cat,
+      'التصنيف': cat,
+      'النوع': resolveItemTypeLabel(it, catObj?.code),
       'المستودع': it.defaultWarehouseId,
       'الرف / الموقع': it.defaultLocationCode,
       'وحدة الأساس': it.baseUom,

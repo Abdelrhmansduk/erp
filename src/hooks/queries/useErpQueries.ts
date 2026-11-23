@@ -67,27 +67,27 @@ export function useTableData<T = Record<string, unknown>>(
 // --- Specific Entity Query Hooks ---
 
 export function useClients(options: ListOptions = {}) {
-  return useTableData('clients', options, MOCK_CLIENTS);
+  return useTableData<(typeof MOCK_CLIENTS)[number]>('clients', options, []);
 }
 
 export function useOrders(options: ListOptions = {}) {
-  return useTableData('orders', options, MOCK_ORDERS);
+  return useTableData<(typeof MOCK_ORDERS)[number]>('orders', options, []);
 }
 
 export function useRecruitmentContracts(options: ListOptions = {}) {
-  return useTableData('contracts', options, MOCK_RECRUITMENT_CONTRACTS);
+  return useTableData<(typeof MOCK_RECRUITMENT_CONTRACTS)[number]>('contracts', options, []);
 }
 
 export function useRentContracts(options: ListOptions = {}) {
-  return useTableData('rent_contracts', options, MOCK_RENT_CONTRACTS);
+  return useTableData<(typeof MOCK_RENT_CONTRACTS)[number]>('rent_contracts', options, []);
 }
 
 export function useShelterRecords(options: ListOptions = {}) {
-  return useTableData('shelter_records', options, MOCK_SHELTER_ITEMS);
+  return useTableData<(typeof MOCK_SHELTER_ITEMS)[number]>('shelter_records', options, []);
 }
 
 export function useEmployees(options: ListOptions = {}) {
-  return useTableData('employees', options, MOCK_EMPLOYEES);
+  return useTableData<(typeof MOCK_EMPLOYEES)[number]>('employees', options, []);
 }
 
 export function useComplaints(options: ListOptions = {}) {

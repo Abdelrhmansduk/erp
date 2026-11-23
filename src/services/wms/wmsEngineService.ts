@@ -47,6 +47,7 @@ import { journalEngine, OperationalTransactionType } from '../accounting/journal
 import { realErpDataStore } from '../realErpDataStore';
 import { wmsCloudSyncService } from './wmsCloudSyncService';
 import { hasSupabaseSession } from '../supabaseSessionBridge';
+import { DEFAULT_WMS_ITEM_TYPES, resolveItemTypeLabel } from '../../utils/wmsSearchUtils';
 
 const WMS_STORAGE_KEY = 'KAS_ENTERPRISE_WMS_STATE_V1';
 
@@ -76,6 +77,7 @@ export interface WmsStateSnapshot {
   inTransitTransfers: WmsInTransitTransfer[];
   approvalRequests: WmsApprovalRequest[];
   kittingBoms: WmsKitBom[];
+  customItemTypes?: string[];
   settings: WmsSettings;
 }
 
@@ -111,6 +113,9 @@ export interface CreateVoucherInput {
   requireApproval?: boolean;
   lines: Array<{
     itemId: string;
+    newItemName?: string;
+    newItemCategoryId?: string;
+    itemType?: string;
     enteredQty: number;
     enteredUom: string;
     unitCost?: number;
@@ -463,6 +468,7 @@ function hydrateExtendedDefaults(
       Array.isArray(parsed.kittingBoms) && parsed.kittingBoms.length
         ? parsed.kittingBoms
         : base.kittingBoms,
+    customItemTypes: Array.isArray(parsed.customItemTypes) ? parsed.customItemTypes : [],
     settings: { ...makeDefaultSettings(companyId), ...(parsed.settings || {}), company_id: companyId },
   };
 }
@@ -808,7 +814,7 @@ export const wmsEngineService = {
     };
 
     const mWarehouses = mergeById(local.warehouses, remote.warehouses, ['zones']);
-    const mItems = mergeById(local.items, remote.items, ['uomConversions', 'attachments']);
+    const mItems = mergeById(local.items, remote.items, ['uomConversions', 'attachments', 'itemType']);
     const mVouchers = mergeById(local.vouchers, remote.vouchers, ['attachments' as any, 'handoverSignatureDataUrl' as any]);
 
     const merged: WmsStateSnapshot = hydrateExtendedDefaults(
@@ -977,6 +983,11 @@ export const wmsEngineService = {
     const defaultWh =
       input.defaultWarehouseId || state.warehouses[0]?.id || 'WH-MAIN';
 
+    const cleanType = (input.itemType || '').trim();
+    if (cleanType) {
+      state.customItemTypes = Array.from(new Set([...(state.customItemTypes || []), cleanType]));
+    }
+
     const newItem: WmsItem = {
       id: `WMS-ITM-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 100)}`,
       company_id: companyId,
@@ -985,6 +996,18 @@ export const wmsEngineService = {
       nameAr: input.nameAr.trim(),
       nameEn: input.nameEn?.trim(),
       categoryId: cat.id,
+      itemType:
+        cleanType ||
+        resolveItemTypeLabel(
+          {
+            itemType: undefined,
+            isCustodyEligible: Boolean(input.isCustodyEligible),
+            isFastConsumable: Boolean(input.isFastConsumable),
+            isSampleItem: Boolean(input.isSampleItem),
+            categoryId: cat.id,
+          },
+          cat.code
+        ),
       baseUom: input.baseUom || 'حبة',
       uomConversions: conversions,
       trackingMode: input.trackingMode || cat.defaultTrackingMode,
@@ -1162,25 +1185,220 @@ export const wmsEngineService = {
     return newWarehouse;
   },
 
-  /** Update an existing item (cost, thresholds, UoM, etc.) */
+  /** Retrieve unified list of item types (default + custom + existing item types) */
+  getItemTypes(): string[] {
+    const state = loadState();
+    const set = new Set<string>(DEFAULT_WMS_ITEM_TYPES);
+    for (const t of state.customItemTypes || []) {
+      if (t?.trim()) set.add(t.trim());
+    }
+    for (const it of state.items) {
+      if (it.itemType?.trim()) set.add(it.itemType.trim());
+    }
+    for (const v of state.vouchers) {
+      for (const l of v.lines) {
+        if (l.itemType?.trim()) set.add(l.itemType.trim());
+      }
+    }
+    return Array.from(set);
+  },
+
+  /** Register a new custom item type (النوع) */
+  addItemType(typeName: string, actor: WmsActor): string | null {
+    const clean = (typeName || '').trim();
+    if (!clean) return null;
+    const state = loadState();
+    const existing = this.getItemTypes().find((t) => t.toLowerCase() === clean.toLowerCase());
+    if (existing) return existing;
+    pushUndoSnapshot(state);
+    state.customItemTypes = Array.from(new Set([...(state.customItemTypes || []), clean]));
+    appendAudit(
+      state,
+      actor,
+      'SETTINGS_UPDATED',
+      'WMS_ITEM_TYPE',
+      clean,
+      `نوع صنف جديد: ${clean}`,
+      `إضافة نوع صنف جديد (${clean}) إلى قائمة الأنواع المعتمدة.`
+    );
+    saveState(state);
+    return clean;
+  },
+
+  /** Directly adjust an item's On-Hand stock (e.g. from inline cell editing in Catalog table) with full ADJ voucher & Undo */
+  setItemOnHandStock(
+    itemId: string,
+    newOnHandQty: number,
+    actor: WmsActor,
+    warehouseId?: string,
+    note?: string
+  ): { ok: boolean; adjustmentVoucherNo?: string; delta: number; error?: string } {
+    const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
+    const item = state.items.find((i) => i.id === itemId);
+    if (!item) return { ok: false, delta: 0, error: 'الصنف غير موجود.' };
+
+    const targetQty = Math.max(0, Number(Number(newOnHandQty || 0).toFixed(3)));
+    const targetWh = warehouseId || item.defaultWarehouseId || state.warehouses[0]?.id || 'WH-MAIN';
+    const currentTotal = warehouseId
+      ? this.getItemStockSummary(itemId, warehouseId).onHand
+      : this.getItemStockSummary(itemId).onHand;
+    const delta = Number((targetQty - currentTotal).toFixed(3));
+    if (delta === 0) return { ok: true, delta: 0 };
+
+    pushUndoSnapshot(state);
+
+    if (warehouseId) {
+      const q = findOrCreateQuant(state, item, warehouseId);
+      q.onHandQty = targetQty;
+      q.updatedAt = new Date().toISOString();
+    } else {
+      // Adjust primary warehouse quant; if reducing below primary quant, distribute reduction cleanly across quants
+      const q = findOrCreateQuant(state, item, targetWh);
+      if (q.onHandQty + delta >= 0) {
+        q.onHandQty = Number((q.onHandQty + delta).toFixed(3));
+        q.updatedAt = new Date().toISOString();
+      } else {
+        let toRemove = Math.abs(delta);
+        for (const qRow of state.quants.filter((x) => x.itemId === itemId)) {
+          if (toRemove <= 0) break;
+          const take = Math.min(qRow.onHandQty, toRemove);
+          qRow.onHandQty = Number((qRow.onHandQty - take).toFixed(3));
+          qRow.updatedAt = new Date().toISOString();
+          toRemove = Number((toRemove - take).toFixed(3));
+        }
+      }
+    }
+
+    upsertBinLotQuant(state, {
+      itemId: item.id,
+      warehouseId: targetWh,
+      locationCode: item.defaultLocationCode || 'Z1-R1-B1',
+      qcStatus: 'APPROVED',
+      deltaOnHand: delta,
+    });
+
+    const adjNo = nextVoucherNumber(state, 'ADJ');
+    const nowIso = new Date().toISOString();
+    const absDelta = Math.abs(delta);
+    const val = Number((absDelta * Number(item.avgUnitCost || 0)).toFixed(2));
+    const adjVoucher: WmsStockVoucher = {
+      id: `VCH-CELL-ADJ-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      company_id: companyId,
+      voucherNo: adjNo,
+      voucherType: 'ADJ',
+      status: 'POSTED',
+      voucherDate: nowIso.slice(0, 10),
+      warehouseId: targetWh,
+      beneficiaryEntity: note || 'تعديل رصيد مباشر من جدول المخزون',
+      costCenterCode: 'CC-KAS-01',
+      lines: [
+        {
+          id: `VL-CELL-ADJ-${Date.now()}`,
+          itemId: item.id,
+          sku: item.sku,
+          itemName: item.nameAr,
+          itemType: item.itemType,
+          enteredQty: absDelta,
+          enteredUom: item.baseUom,
+          uomFactor: 1,
+          baseQty: delta,
+          unitCost: item.avgUnitCost,
+          totalCost: val,
+          notes: `تعديل الرصيد من (${currentTotal}) إلى (${targetQty})`,
+        },
+      ],
+      totalQtyBase: absDelta,
+      totalValue: val,
+      handoverSigned: true,
+      handoverSignedAt: nowIso,
+      createdByEmail: actor.email,
+      createdByName: actor.name,
+      postedByEmail: actor.email,
+      postedByName: actor.name,
+      postedAt: nowIso,
+      notes: note || `تسوية فورية للرصيد الفعلي من (${currentTotal}) إلى (${targetQty})`,
+      createdAt: nowIso,
+    };
+    if (val > 0) postVoucherGlEntry(state, adjVoucher, actor);
+    state.vouchers.unshift(adjVoucher);
+
+    appendAudit(
+      state,
+      actor,
+      'VOUCHER_POSTED',
+      'WMS_VOUCHER',
+      adjVoucher.id,
+      adjNo,
+      `تحرير خانة الرصيد الفعلي للصنف (${item.nameAr}) من (${currentTotal}) إلى (${targetQty}) وإصدار إذن تسوية (${adjNo}).`
+    );
+    saveState(state, companyId);
+    void wmsCloudSyncService.syncWmsEntitiesToSupabase(companyId, state);
+    return { ok: true, adjustmentVoucherNo: adjNo, delta };
+  },
+
+  /** Update an existing item (cost, thresholds, UoM, itemType, category, location, etc.) */
   updateItem(itemId: string, patch: Partial<WmsItem>, actor: WmsActor): WmsItem | null {
     const state = loadState();
     const idx = state.items.findIndex((i) => i.id === itemId);
     if (idx < 0) return null;
     pushUndoSnapshot(state);
-    state.items[idx] = { ...state.items[idx], ...patch };
+    const prev = state.items[idx];
+    const cleanPatch: Partial<WmsItem> = { ...patch };
+
+    if (cleanPatch.itemType !== undefined && cleanPatch.itemType.trim()) {
+      cleanPatch.itemType = cleanPatch.itemType.trim();
+      state.customItemTypes = Array.from(
+        new Set([...(state.customItemTypes || []), cleanPatch.itemType])
+      );
+    }
+
+    if (cleanPatch.baseUom && cleanPatch.baseUom.trim()) {
+      const nextBase = cleanPatch.baseUom.trim();
+      cleanPatch.baseUom = nextBase;
+      const convs = [...(cleanPatch.uomConversions || prev.uomConversions || [])];
+      if (!convs.some((u) => u.uomName === nextBase)) {
+        convs.unshift({ uomName: nextBase, factorToBase: 1 });
+      }
+      cleanPatch.uomConversions = convs;
+    }
+
+    state.items[idx] = { ...prev, ...cleanPatch };
+    const updated = state.items[idx];
+
+    if (cleanPatch.defaultLocationCode) {
+      for (const q of state.quants) {
+        if (q.itemId === itemId && q.warehouseId === updated.defaultWarehouseId) {
+          q.locationCode = updated.defaultLocationCode;
+        }
+      }
+    }
+
+    // Keep item name & SKU synchronized on draft vouchers if renamed
+    if (cleanPatch.nameAr || cleanPatch.sku || cleanPatch.itemType) {
+      for (const v of state.vouchers) {
+        for (const l of v.lines) {
+          if (l.itemId === itemId) {
+            if (cleanPatch.nameAr && v.status === 'DRAFT') l.itemName = updated.nameAr;
+            if (cleanPatch.sku && v.status === 'DRAFT') l.sku = updated.sku;
+            if (cleanPatch.itemType) l.itemType = updated.itemType;
+          }
+        }
+      }
+    }
+
     appendAudit(
       state,
       actor,
       'ITEM_UPDATED',
       'WMS_ITEM',
       itemId,
-      `${state.items[idx].sku} — ${state.items[idx].nameAr}`,
-      'تحديث بيانات الصنف أو حدود الطلب أو التكلفة'
+      `${updated.sku} — ${updated.nameAr}`,
+      'تحديث بيانات الصنف أو التصنيف أو النوع أو التكلفة'
     );
     saveState(state);
     void wmsCloudSyncService.syncWmsEntitiesToSupabase(activeCompanyId, state);
-    return state.items[idx];
+    return updated;
   },
 
   /** Soft-delete an item to the Recycle Bin */
@@ -1250,19 +1468,78 @@ export const wmsEngineService = {
 
     const voucherDate = input.voucherDate || new Date().toISOString().slice(0, 10);
     const builtLines: WmsVoucherLine[] = [];
+    const pendingInlineItems: Array<{ index: number; item: WmsItem }> = [];
 
     for (let i = 0; i < input.lines.length; i++) {
       const rawLine = input.lines[i];
-      const item = state.items.find((it) => it.id === rawLine.itemId);
+      let item = state.items.find((it) => it.id === rawLine.itemId);
+
+      // Support inline creation of a brand-new item directly inside any voucher row
+      if ((!item || rawLine.itemId === '__NEW__') && rawLine.newItemName?.trim()) {
+        const cleanName = rawLine.newItemName.trim();
+        const existingByName = state.items.find(
+          (it) => it.nameAr.trim().toLowerCase() === cleanName.toLowerCase()
+        );
+        if (existingByName) {
+          item = existingByName;
+        } else {
+          const cat =
+            state.categories.find((c) => c.id === rawLine.newItemCategoryId) ||
+            state.categories[0];
+          const seq = state.items.filter((x) => x.categoryId === cat.id).length + pendingInlineItems.length + 1;
+          const baseUom = rawLine.enteredUom?.trim() || 'حبة';
+          const resolvedType =
+            rawLine.itemType?.trim() ||
+            resolveItemTypeLabel(
+              {
+                itemType: undefined,
+                isCustodyEligible: false,
+                isFastConsumable: false,
+                isSampleItem: false,
+                categoryId: cat.id,
+              },
+              cat.code
+            );
+          item = {
+            id: `WMS-ITM-${Date.now().toString().slice(-6)}-${i}-${Math.floor(Math.random() * 100)}`,
+            company_id: companyId,
+            sku: `${companyId}-${cat.code}-${String(seq).padStart(3, '0')}`,
+            barcode: `628100${cat.code.charCodeAt(0)}${String(Date.now() + i).slice(-4)}`,
+            nameAr: cleanName,
+            categoryId: cat.id,
+            itemType: resolvedType,
+            baseUom,
+            uomConversions: [{ uomName: baseUom, factorToBase: 1 }],
+            trackingMode: cat.defaultTrackingMode || 'NONE',
+            valuationMethod: state.settings.valuationMethod,
+            avgUnitCost: Math.max(0, Number(rawLine.unitCost || 0)),
+            lastPurchaseCost: Math.max(0, Number(rawLine.unitCost || 0)),
+            minQty: 1,
+            reorderPoint: 3,
+            maxQty: 100,
+            defaultWarehouseId: input.warehouseId || state.warehouses[0]?.id || 'WH-MAIN',
+            defaultLocationCode: rawLine.locationCode || 'Z1-R1-B1',
+            isCustodyEligible: Boolean(cat.defaultCustodyEligible),
+            isFastConsumable: Boolean(cat.defaultFastConsumable),
+            isSampleItem: false,
+            abcClass: 'B',
+            status: 'نشط',
+            createdAt: new Date().toISOString(),
+          };
+          pendingInlineItems.push({ index: i, item });
+        }
+      }
+
       if (!item) {
-        return { voucher: null, error: `الصنف في السطر رقم ${i + 1} غير موجود في الدليل.` };
+        return { voucher: null, error: `الصنف في السطر رقم ${i + 1} غير موجود في الدليل — اختر صنفاً أو اكتب اسم صنف جديد.` };
       }
       const enteredQty = Number(rawLine.enteredQty || 0);
       if (enteredQty <= 0) {
         return { voucher: null, error: `الكمية للصنف (${item.nameAr}) يجب أن تكون أكبر من صفر.` };
       }
 
-      const uomFactor = getUomFactor(item, rawLine.enteredUom || item.baseUom);
+      const cleanEnteredUom = (rawLine.enteredUom || item.baseUom || 'حبة').trim();
+      const uomFactor = getUomFactor(item, cleanEnteredUom);
       const baseQty = Number((enteredQty * uomFactor).toFixed(3));
       const unitCost =
         rawLine.unitCost !== undefined && rawLine.unitCost > 0
@@ -1291,11 +1568,14 @@ export const wmsEngineService = {
         input.voucherType === 'SCRAP';
 
       if (!input.saveAsDraft && isOutflow && !state.settings.allowNegativeStock) {
-        const whStock = this.getItemStockSummary(item.id, input.warehouseId);
+        const isBrandNewInline = pendingInlineItems.some((p) => p.item.id === item!.id);
+        const whStock = isBrandNewInline
+          ? { onHand: 0, reserved: 0, available: 0 }
+          : this.getItemStockSummary(item.id, input.warehouseId);
         if (baseQty > whStock.available) {
           return {
             voucher: null,
-            error: `الرصيد المتاح في المستودع (${input.warehouseId}) للصنف (${item.nameAr}) هو (${whStock.available} ${item.baseUom}) فقط ولا يكفي لصرف (${baseQty} ${item.baseUom}). استخدم إذن تحويل (STR) لنقل الرصيد من مستودع آخر.`,
+            error: `الرصيد المتاح في المستودع (${input.warehouseId}) للصنف (${item.nameAr}) هو (${whStock.available} ${item.baseUom}) فقط ولا يكفي لصرف (${baseQty} ${item.baseUom}). استخدم إذن توريد (GRN) أو تحويل (STR) أولاً.`,
           };
         }
       }
@@ -1307,7 +1587,7 @@ export const wmsEngineService = {
       if (!input.saveAsDraft && isOutflow && item.trackingMode === 'LOT_EXPIRY') {
         const whLots = state.binLotQuants.filter(
           (b) =>
-            b.itemId === item.id &&
+            b.itemId === item!.id &&
             b.warehouseId === input.warehouseId &&
             b.qcStatus === 'APPROVED' &&
             b.onHandQty > 0 &&
@@ -1339,13 +1619,19 @@ export const wmsEngineService = {
         }
       }
 
+      const lineItemType =
+        rawLine.itemType?.trim() ||
+        item.itemType ||
+        resolveItemTypeLabel(item, state.categories.find((c) => c.id === item!.categoryId)?.code);
+
       builtLines.push({
         id: `VL-${Date.now()}-${i}-${Math.floor(Math.random() * 100)}`,
         itemId: item.id,
         sku: item.sku,
         itemName: item.nameAr,
+        itemType: lineItemType,
         enteredQty,
-        enteredUom: rawLine.enteredUom || item.baseUom,
+        enteredUom: cleanEnteredUom,
         uomFactor,
         baseQty,
         unitCost,
@@ -1364,6 +1650,45 @@ export const wmsEngineService = {
     const voucherNo = nextVoucherNumber(state, input.voucherType);
     const nowIso = new Date().toISOString();
     pushUndoSnapshot(state);
+
+    // Commit any inline-created items + custom UoMs / custom item types now that validation succeeded
+    for (const { item: createdInline } of pendingInlineItems) {
+      state.items.unshift(createdInline);
+      findOrCreateQuant(state, createdInline, createdInline.defaultWarehouseId);
+      if (createdInline.itemType) {
+        state.customItemTypes = Array.from(
+          new Set([...(state.customItemTypes || []), createdInline.itemType])
+        );
+      }
+      appendAudit(
+        state,
+        actor,
+        'ITEM_CREATED',
+        'WMS_ITEM',
+        createdInline.id,
+        `${createdInline.sku} — ${createdInline.nameAr}`,
+        `إضافة صنف جديد تلقائياً من داخل جدول الإذن (${voucherNo})`
+      );
+    }
+
+    for (let i = 0; i < input.lines.length; i++) {
+      const rawLine = input.lines[i];
+      const built = builtLines[i];
+      const item = state.items.find((it) => it.id === built.itemId);
+      if (!item) continue;
+      if (rawLine.itemType?.trim()) {
+        item.itemType = rawLine.itemType.trim();
+        state.customItemTypes = Array.from(
+          new Set([...(state.customItemTypes || []), item.itemType])
+        );
+      }
+      if (
+        built.enteredUom &&
+        !item.uomConversions.some((u) => u.uomName === built.enteredUom)
+      ) {
+        item.uomConversions.push({ uomName: built.enteredUom, factorToBase: 1 });
+      }
+    }
 
     // Check Maker/Checker threshold before posting
     const threshold = state.settings.approvalThresholdSar ?? 10000;
@@ -3084,21 +3409,37 @@ export const wmsEngineService = {
       .sort((a, b) => b.vouchersCount - a.vouchersCount);
   },
 
-  /** Edit an existing voucher (respects strictImmutablePostedVouchers governance flag) */
+  /** Edit an existing voucher (supports changing voucherType, warehouse, items, itemType, UoM, adding/removing lines & recalculating balances) */
   updateVoucher(
     voucherId: string,
     patch: {
+      voucherType?: WmsVoucherType;
+      warehouseId?: string;
+      targetWarehouseId?: string;
       voucherDate?: string;
       beneficiaryEntity?: string;
       recipientName?: string;
       supplierName?: string;
       roomOrSite?: string;
       notes?: string;
-      lines?: Array<{ id: string; enteredQty: number; unitCost: number }>;
+      replaceAllLines?: boolean;
+      lines?: Array<{
+        id?: string;
+        itemId?: string;
+        newItemName?: string;
+        newItemCategoryId?: string;
+        itemName?: string;
+        itemType?: string;
+        enteredUom?: string;
+        enteredQty: number;
+        unitCost: number;
+        notes?: string;
+      }>;
     },
     actor: WmsActor
   ): { ok: boolean; error?: string } {
     const state = loadState();
+    const companyId = state.settings.company_id || activeCompanyId;
     const v = state.vouchers.find((x) => x.id === voucherId);
     if (!v) return { ok: false, error: 'الإذن غير موجود.' };
 
@@ -3109,38 +3450,196 @@ export const wmsEngineService = {
       };
     }
 
+    const nextType = patch.voucherType || v.voucherType;
+    const nextWh = patch.warehouseId || v.warehouseId;
+    const nextTargetWh =
+      patch.targetWarehouseId !== undefined ? patch.targetWarehouseId : v.targetWarehouseId;
+
+    if (nextType === 'STR' && (!nextTargetWh || nextTargetWh === nextWh)) {
+      return { ok: false, error: 'في إذن التحويل (STR) يجب اختيار مستودع مستلم مختلف عن المستودع المصدر.' };
+    }
+
+    if (patch.replaceAllLines && (!patch.lines || patch.lines.length === 0)) {
+      return { ok: false, error: 'يجب الإبقاء على صنف واحد على الأقل في الإذن المخزني.' };
+    }
+
     pushUndoSnapshot(state);
 
-    if (patch.lines && v.status === 'POSTED') {
-      for (const upd of patch.lines) {
-        const line = v.lines.find((l) => l.id === upd.id);
-        if (!line) continue;
-        const newEntered = Math.max(0.01, Number(upd.enteredQty) || line.enteredQty);
-        const newBase = Number((newEntered * (line.uomFactor || 1)).toFixed(3));
-        const delta = Number((newBase - line.baseQty).toFixed(3));
-        if (delta !== 0) {
-          const item = state.items.find((i) => i.id === line.itemId);
-          if (item) {
-            const srcQ = findOrCreateQuant(state, item, v.warehouseId);
-            if (v.voucherType === 'GRN' || (v.voucherType === 'SRN' && line.conditionStatus !== 'تالف') || v.voucherType === 'ADJ') {
-              srcQ.onHandQty = Math.max(0, Number((srcQ.onHandQty + delta).toFixed(3)));
-            } else if (v.voucherType === 'GIN' || v.voucherType === 'RTV' || v.voucherType === 'SCRAP') {
-              srcQ.onHandQty = Math.max(0, Number((srcQ.onHandQty - delta).toFixed(3)));
-            } else if (v.voucherType === 'STR' && v.targetWarehouseId) {
-              const tgtQ = findOrCreateQuant(state, item, v.targetWarehouseId);
-              srcQ.onHandQty = Math.max(0, Number((srcQ.onHandQty - delta).toFixed(3)));
-              tgtQ.onHandQty = Math.max(0, Number((tgtQ.onHandQty + delta).toFixed(3)));
-            }
-            srcQ.updatedAt = new Date().toISOString();
+    const needsQuantReapply =
+      v.status === 'POSTED' &&
+      Boolean(
+        patch.lines ||
+          (patch.voucherType && patch.voucherType !== v.voucherType) ||
+          (patch.warehouseId && patch.warehouseId !== v.warehouseId) ||
+          (patch.targetWarehouseId !== undefined && patch.targetWarehouseId !== v.targetWarehouseId)
+      );
+
+    if (needsQuantReapply) {
+      rollbackPostedVoucherQuantDelta(state, v);
+    }
+
+    v.voucherType = nextType;
+    v.warehouseId = nextWh;
+    if (patch.targetWarehouseId !== undefined) v.targetWarehouseId = patch.targetWarehouseId;
+
+    if (patch.lines) {
+      const resolveOrCreateLineItem = (
+        upd: NonNullable<typeof patch.lines>[number],
+        fallbackLine?: WmsVoucherLine,
+        idx = 0
+      ): WmsItem | undefined => {
+        if (upd.newItemName?.trim() && (!upd.itemId || upd.itemId === '__NEW__')) {
+          const cleanName = upd.newItemName.trim();
+          const byName = state.items.find(
+            (i) => i.nameAr.trim().toLowerCase() === cleanName.toLowerCase()
+          );
+          if (byName) return byName;
+          const cat =
+            state.categories.find((c) => c.id === upd.newItemCategoryId) || state.categories[0];
+          const seq = state.items.filter((x) => x.categoryId === cat.id).length + 1;
+          const baseUom = upd.enteredUom?.trim() || 'حبة';
+          const created: WmsItem = {
+            id: `WMS-ITM-${Date.now().toString().slice(-6)}-E${idx}-${Math.floor(Math.random() * 100)}`,
+            company_id: companyId,
+            sku: `${companyId}-${cat.code}-${String(seq).padStart(3, '0')}`,
+            barcode: `628100${cat.code.charCodeAt(0)}${String(Date.now() + idx).slice(-4)}`,
+            nameAr: cleanName,
+            categoryId: cat.id,
+            itemType: upd.itemType?.trim() || resolveItemTypeLabel(
+              { itemType: undefined, isCustodyEligible: false, isFastConsumable: false, isSampleItem: false, categoryId: cat.id },
+              cat.code
+            ),
+            baseUom,
+            uomConversions: [{ uomName: baseUom, factorToBase: 1 }],
+            trackingMode: cat.defaultTrackingMode || 'NONE',
+            valuationMethod: state.settings.valuationMethod,
+            avgUnitCost: Math.max(0, Number(upd.unitCost || 0)),
+            lastPurchaseCost: Math.max(0, Number(upd.unitCost || 0)),
+            minQty: 1,
+            reorderPoint: 3,
+            maxQty: 100,
+            defaultWarehouseId: nextWh,
+            defaultLocationCode: 'Z1-R1-B1',
+            isCustodyEligible: Boolean(cat.defaultCustodyEligible),
+            isFastConsumable: Boolean(cat.defaultFastConsumable),
+            isSampleItem: false,
+            abcClass: 'B',
+            status: 'نشط',
+            createdAt: new Date().toISOString(),
+          };
+          state.items.unshift(created);
+          findOrCreateQuant(state, created, created.defaultWarehouseId);
+          return created;
+        }
+        const targetId = upd.itemId || fallbackLine?.itemId;
+        return targetId ? state.items.find((i) => i.id === targetId) : undefined;
+      };
+
+      const buildUpdatedLine = (
+        upd: NonNullable<typeof patch.lines>[number],
+        existingLine: WmsVoucherLine | undefined,
+        idx: number
+      ): WmsVoucherLine | null => {
+        const item = resolveOrCreateLineItem(upd, existingLine, idx);
+        if (!item && !existingLine) return null;
+
+        if (item && upd.itemName?.trim() && upd.itemName.trim() !== item.nameAr) {
+          item.nameAr = upd.itemName.trim();
+        }
+        if (upd.itemType?.trim()) {
+          const cleanT = upd.itemType.trim();
+          state.customItemTypes = Array.from(new Set([...(state.customItemTypes || []), cleanT]));
+          if (item) item.itemType = cleanT;
+        }
+
+        const enteredUom = (upd.enteredUom || existingLine?.enteredUom || item?.baseUom || 'حبة').trim();
+        if (item && enteredUom && !item.uomConversions.some((u) => u.uomName === enteredUom)) {
+          item.uomConversions.push({ uomName: enteredUom, factorToBase: 1 });
+        }
+
+        const factor = item ? getUomFactor(item, enteredUom) : existingLine?.uomFactor || 1;
+        const newEntered = Math.max(0.01, Number(upd.enteredQty) || existingLine?.enteredQty || 1);
+        const newBase = Number((newEntered * factor).toFixed(3));
+        const newUnitCost = Math.max(
+          0,
+          upd.unitCost !== undefined ? Number(upd.unitCost) || 0 : existingLine?.unitCost || 0
+        );
+
+        return {
+          ...(existingLine || {
+            id: `VL-UPD-${Date.now()}-${idx}-${Math.floor(Math.random() * 100)}`,
+            conditionStatus: 'سليم' as const,
+          }),
+          itemId: item?.id || existingLine!.itemId,
+          sku: item?.sku || existingLine!.sku,
+          itemName: upd.itemName?.trim() || item?.nameAr || existingLine!.itemName,
+          itemType: upd.itemType?.trim() || item?.itemType || existingLine?.itemType,
+          enteredQty: newEntered,
+          enteredUom,
+          uomFactor: factor,
+          baseQty: newBase,
+          unitCost: newUnitCost,
+          totalCost: Number((newBase * newUnitCost).toFixed(2)),
+          notes: upd.notes !== undefined ? upd.notes : existingLine?.notes,
+        };
+      };
+
+      if (patch.replaceAllLines) {
+        const rebuilt: WmsVoucherLine[] = [];
+        patch.lines.forEach((upd, idx) => {
+          const prevLine = upd.id ? v.lines.find((l) => l.id === upd.id) : undefined;
+          const built = buildUpdatedLine(upd, prevLine, idx);
+          if (built) rebuilt.push(built);
+        });
+        if (rebuilt.length > 0) v.lines = rebuilt;
+      } else {
+        for (let idx = 0; idx < patch.lines.length; idx++) {
+          const upd: NonNullable<typeof patch.lines>[number] = patch.lines[idx];
+          const existingIdx = upd.id ? v.lines.findIndex((l) => l.id === upd.id) : -1;
+          if (existingIdx >= 0) {
+            const built = buildUpdatedLine(upd, v.lines[existingIdx], idx);
+            if (built) v.lines[existingIdx] = built;
+          } else {
+            const built = buildUpdatedLine(upd, undefined, idx);
+            if (built) v.lines.push(built);
           }
         }
-        line.enteredQty = newEntered;
-        line.baseQty = newBase;
-        line.unitCost = Math.max(0, Number(upd.unitCost) || 0);
-        line.totalCost = Number((line.baseQty * line.unitCost).toFixed(2));
       }
-      v.totalQtyBase = v.lines.reduce((s, l) => s + l.baseQty, 0);
+
+      v.totalQtyBase = Number(v.lines.reduce((s, l) => s + l.baseQty, 0).toFixed(3));
       v.totalValue = Number(v.lines.reduce((s, l) => s + l.totalCost, 0).toFixed(2));
+    }
+
+    if (needsQuantReapply) {
+      for (const line of v.lines) {
+        const item = state.items.find((i) => i.id === line.itemId);
+        if (!item) continue;
+        const srcQ = findOrCreateQuant(state, item, v.warehouseId);
+        if (v.voucherType === 'GRN') {
+          if (line.unitCost > 0) {
+            const prevQty = Math.max(0, srcQ.onHandQty);
+            const newTotal = prevQty + line.baseQty;
+            if (newTotal > 0) {
+              item.avgUnitCost = Number(
+                ((prevQty * item.avgUnitCost + line.baseQty * line.unitCost) / newTotal).toFixed(2)
+              );
+            }
+          }
+          srcQ.onHandQty = Number((srcQ.onHandQty + line.baseQty).toFixed(3));
+        } else if (v.voucherType === 'SRN' && line.conditionStatus !== 'تالف') {
+          srcQ.onHandQty = Number((srcQ.onHandQty + line.baseQty).toFixed(3));
+        } else if (v.voucherType === 'ADJ') {
+          srcQ.onHandQty = Math.max(0, Number((srcQ.onHandQty + line.baseQty).toFixed(3)));
+        } else if (v.voucherType === 'GIN' || v.voucherType === 'RTV' || v.voucherType === 'SCRAP' || v.voucherType === 'SAMPLE') {
+          srcQ.onHandQty = Math.max(0, Number((srcQ.onHandQty - line.baseQty).toFixed(3)));
+        } else if (v.voucherType === 'STR' && v.targetWarehouseId) {
+          const tgtQ = findOrCreateQuant(state, item, v.targetWarehouseId);
+          srcQ.onHandQty = Math.max(0, Number((srcQ.onHandQty - line.baseQty).toFixed(3)));
+          tgtQ.onHandQty = Number((tgtQ.onHandQty + line.baseQty).toFixed(3));
+          tgtQ.updatedAt = new Date().toISOString();
+        }
+        srcQ.updatedAt = new Date().toISOString();
+      }
     }
 
     if (patch.voucherDate !== undefined) v.voucherDate = patch.voucherDate;
@@ -3159,7 +3658,8 @@ export const wmsEngineService = {
       v.voucherNo,
       `تعديل بيانات وبنود الإذن (${v.voucherNo}) وتحديث الأرصدة المرتبطة.`
     );
-    saveState(state);
+    saveState(state, companyId);
+    void wmsCloudSyncService.syncWmsEntitiesToSupabase(companyId, state);
     return { ok: true };
   },
 

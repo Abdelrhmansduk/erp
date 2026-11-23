@@ -207,13 +207,10 @@ export async function checkLocalAiAvailable(): Promise<boolean> {
   }
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 1200);
     const res = await fetch(`${OLLAMA_BASE_URL}/api/tags`, {
       method: 'GET',
-      signal: controller.signal,
+      signal: AbortSignal.timeout(1200),
     });
-    clearTimeout(timeoutId);
     if (!res.ok) ollamaUnreachableCached = true;
     return res.ok;
   } catch {
@@ -1118,15 +1115,15 @@ ${privacyRulePrompt}
   const isTestEnv = typeof navigator !== 'undefined' && /jsdom|happy-dom/i.test(navigator.userAgent || '');
   if (typeof window !== 'undefined' && !isTestEnv) {
     try {
-      const chatCtrl = new AbortController();
-      const chatTimer = setTimeout(() => chatCtrl.abort(), 12000);
+      const requestSignal = signal
+        ? AbortSignal.any([signal, AbortSignal.timeout(12000)])
+        : AbortSignal.timeout(12000);
       const gwRes = await fetch('/api/ai-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: targetModel, messages, persona }),
-        signal: signal || chatCtrl.signal,
+        signal: requestSignal,
       });
-      clearTimeout(chatTimer);
 
       if (gwRes.ok) {
         const gwData = await gwRes.json();

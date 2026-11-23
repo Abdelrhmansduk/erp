@@ -41,74 +41,7 @@ import { BusinessIllustration } from '../components/common/BusinessIllustration'
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import { useAppStore } from '../stores/appStore';
 
-const INITIAL_ENPS_RESPONSES: EnpsResponseRecord[] = [
-  {
-    id: 'ENPS-RES-101',
-    company_id: 'SAF',
-    survey_id: 'ENPS-2026-Q3',
-    department_group: 'الموارد البشرية والتوطين',
-    score: 10,
-    category: 'PROMOTER',
-    feedback_comment: 'بيئة عمل محفزة وأنظمة رقمية متطورة تسهل إنجاز معاملات الموظفين.',
-    responder_token_hash: 'sha256-9a81f20c',
-    submitted_at: '2026-08-10T09:20:00Z',
-  },
-  {
-    id: 'ENPS-RES-102',
-    company_id: 'SAF',
-    survey_id: 'ENPS-2026-Q3',
-    department_group: 'الإدارة المالية والمحاسبة',
-    score: 9,
-    category: 'PROMOTER',
-    feedback_comment: 'وضوح الصلاحيات والالتزام بصرف المستحقات في مواعيدها.',
-    responder_token_hash: 'sha256-3b74e11a',
-    submitted_at: '2026-08-11T11:05:00Z',
-  },
-  {
-    id: 'ENPS-RES-103',
-    company_id: 'YAQ',
-    survey_id: 'ENPS-2026-Q3',
-    department_group: 'التشغيل والاستقدام',
-    score: 9,
-    category: 'PROMOTER',
-    feedback_comment: 'تعاون عالٍ بين الفروع وسرعة في معالجة طلبات العملاء.',
-    responder_token_hash: 'sha256-7c19d44e',
-    submitted_at: '2026-08-12T13:40:00Z',
-  },
-  {
-    id: 'ENPS-RES-104',
-    company_id: 'TPZ',
-    survey_id: 'ENPS-2026-Q3',
-    department_group: 'تقنية المعلومات والأنظمة',
-    score: 10,
-    category: 'PROMOTER',
-    feedback_comment: 'استقرار عالي في المنظومة وتكامل ممتاز مع البوابات الحكومية.',
-    responder_token_hash: 'sha256-5f20a89b',
-    submitted_at: '2026-08-13T10:15:00Z',
-  },
-  {
-    id: 'ENPS-RES-105',
-    company_id: 'MAS',
-    survey_id: 'ENPS-2026-Q3',
-    department_group: 'العمليات الميدانية والإيواء',
-    score: 8,
-    category: 'PASSIVE',
-    feedback_comment: 'العمل جيد مع الحاجة لتوزيع المناوبات الميدانية في أوقات الذروة.',
-    responder_token_hash: 'sha256-2d91c77f',
-    submitted_at: '2026-08-14T14:50:00Z',
-  },
-  {
-    id: 'ENPS-RES-106',
-    company_id: 'SAF',
-    survey_id: 'ENPS-2026-Q3',
-    department_group: 'خدمة العملاء والعقود',
-    score: 6,
-    category: 'DETRACTOR',
-    feedback_comment: 'ضغط اتصالات مرتفع خلال نهاية الأسبوع يتطلب دعماً إضافياً للفريق.',
-    responder_token_hash: 'sha256-8e42b10d',
-    submitted_at: '2026-08-15T16:10:00Z',
-  },
-];
+const INITIAL_ENPS_RESPONSES: EnpsResponseRecord[] = [];
 
 export const EmployeeMonitoringPage: React.FC = () => {
   const { activeTab: storeActiveTab, addNotification } = useAppStore();
@@ -136,17 +69,17 @@ export const EmployeeMonitoringPage: React.FC = () => {
   const [summaries, setSummaries] = useState<EmployeeMonitoringSummary[]>([]);
   const [moodLogs, setMoodLogs] = useState<DailyMoodRecord[]>([]);
   const [telemetryEvents, setTelemetryEvents] = useState<ActivityTelemetryEvent[]>([]);
-  const [enpsSurveys, setEnpsSurveys] = useState<EnpsSurveyRecord[]>(DEFAULT_ENPS_SURVEYS);
+  const [enpsSurveys, setEnpsSurveys] = useState<EnpsSurveyRecord[]>([]);
   const [enpsResponses, setEnpsResponses] = useState<EnpsResponseRecord[]>(INITIAL_ENPS_RESPONSES);
   const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
   const [lastDiagnosticReport, setLastDiagnosticReport] = useState<string | null>(null);
 
   const [metrics, setMetrics] = useState({
-    teamMoodScore: 4.2,
-    activeRatio: 88,
-    totalRageClicks: 3,
-    securityAlertsCount: 2,
-    activeEmployeesCount: 28,
+    teamMoodScore: 0,
+    activeRatio: 0,
+    totalRageClicks: 0,
+    securityAlertsCount: 0,
+    activeEmployeesCount: 0,
   });
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -180,16 +113,16 @@ export const EmployeeMonitoringPage: React.FC = () => {
         employeeMonitoringService.getMoodLogs(),
         employeeMonitoringService.getTelemetryEvents(),
         employeeMonitoringService.getOverallMetrics(),
-        realErpDataStore.getRecords<EnpsSurveyRecord>('hr_enps_surveys', DEFAULT_ENPS_SURVEYS),
-        realErpDataStore.getRecords<EnpsResponseRecord>('hr_enps_responses', INITIAL_ENPS_RESPONSES),
+        realErpDataStore.getRecords<EnpsSurveyRecord>('hr_enps_surveys', []),
+        realErpDataStore.getRecords<EnpsResponseRecord>('hr_enps_responses', []),
         realErpDataStore.getRecords<any>('attendances'),
       ]);
       setSummaries(sums);
       setMoodLogs(moods);
       setTelemetryEvents(tele);
       setMetrics(met);
-      setEnpsSurveys(surveys.length > 0 ? surveys : DEFAULT_ENPS_SURVEYS);
-      setEnpsResponses(responses.length > 0 ? responses : INITIAL_ENPS_RESPONSES);
+      setEnpsSurveys(Array.isArray(surveys) ? surveys : []);
+      setEnpsResponses(Array.isArray(responses) ? responses : []);
       setAttendanceRecords(attendances);
     } catch (e) {
       console.error('Error loading monitoring data:', e);

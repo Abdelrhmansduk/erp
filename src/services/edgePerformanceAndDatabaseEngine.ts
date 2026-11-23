@@ -636,7 +636,7 @@ class LoadTestRunnerEngine {
     // Generate deterministic realistic latency samples across L1/L2 cache + Supavisor OLTP if not provided
     const samples =
       params?.latencySamplesMs && params.latencySamplesMs.length > 0
-        ? [...params.latencySamplesMs].sort((a, b) => a - b)
+        ? params.latencySamplesMs.toSorted((a, b) => a - b)
         : Array.from({ length: 1000 }, (_, i) => {
             if (i < 600) return 12 + (i % 35); // L1/L2 Edge & Cache hits: 12ms - 46ms (p50 ~ 32ms)
             if (i < 950) return 55 + (i % 90); // OLTP Supavisor queries: 55ms - 144ms (p95 ~ 140ms)

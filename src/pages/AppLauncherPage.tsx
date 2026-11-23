@@ -480,7 +480,7 @@ const ALL_SYSTEM_APPS: AppTile[] = [
     category: 'hr',
     categoryLabel: 'الموارد البشرية • الرواتب',
     smaccCode: 'HRM-01',
-    metricBadge: '32 موظف'
+    metricBadge: 'سجل فعلي'
   },
   {
     id: 'attendances',

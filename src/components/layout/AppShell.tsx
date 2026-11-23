@@ -217,11 +217,6 @@ export const AppShell: React.FC<AppShellProps> = ({
     };
   }, [mobileDrawerOpen, showShortcutsModal, handleToggleSidebar]);
 
-  // Ensure all 28 corporate employees have initial operations seeded across all departments & branches
-  useEffect(() => {
-    void employeeOperationsEngine.ensureSeededForAllEmployees();
-  }, []);
-
   // Global Dynamic Button State Enhancer for payment, ZATCA, WPS, Musaned, and approval actions
   // Uses pure CSS data-attributes (data-dyn-state & data-dyn-label) without mutating React DOM children
   const handleWorkspaceClickCapture = useCallback((e: React.MouseEvent<HTMLElement>) => {

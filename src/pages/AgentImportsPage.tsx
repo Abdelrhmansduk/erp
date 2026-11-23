@@ -55,39 +55,7 @@ export interface ImportBatch {
   }>;
 }
 
-const MOCK_BATCHES: ImportBatch[] = [
-  {
-    id: '1',
-    batch_code: '#IMP-2026-08',
-    office_name: 'وكالة شيجر الدولية للاستقدام',
-    agency_id: 'AGY-ETH-SHEGER',
-    country: 'أثيوبيا',
-    cvs_count: 3,
-    status: 'بانتظار الاعتماد',
-    created_at: '2026-11-16',
-    notes: 'دفعة عاملات منزليات مرفوعة بالاستخلاص الذكي (SHEGER PDF + MRZ) بانتظار اعتماد المتابعة',
-    candidates: [
-      { id: 'c-1', name: 'MOMINA KEDIR GURMU', passport: 'EP9249575', age: 25, profession: 'عاملة منزلية', experience: 'أول مرة', medical: 'لائق', status: 'قيد المراجعة' },
-      { id: 'c-2', name: 'HALIMA GEBRE TESFAYE', passport: 'EP9920140', age: 24, profession: 'عاملة منزلية', experience: 'أول مرة', medical: 'لائق', status: 'قيد المراجعة' },
-      { id: 'c-3', name: 'FATUMA MOHAMMED NUR', passport: 'EP7731209', age: 29, profession: 'طباخة منزلية', experience: 'سنتان بالسعودية', medical: 'لائق', status: 'قيد المراجعة' },
-    ],
-  },
-  {
-    id: '2',
-    batch_code: '#IMP-2026-07',
-    office_name: 'وكالة يوشي بروموشنز — الفلبين',
-    agency_id: 'AGY-PHL-YOSHI',
-    country: 'الفلبين',
-    cvs_count: 2,
-    status: 'مستوردة بالكامل',
-    created_at: '2026-11-10',
-    notes: 'دفعة كوادر فلبينية معتمدة ومطابقة لمنصة مساند',
-    candidates: [
-      { id: 'c-4', name: 'MARIA SANTOS CORTEZ', passport: 'P9982710B', age: 31, profession: 'رعاية كبار سن', experience: '3 سنوات', medical: 'لائق', status: 'معتمد' },
-      { id: 'c-5', name: 'JOYCE FLORES', passport: 'P8871625A', age: 27, profession: 'عاملة منزلية', experience: 'أول مرة', medical: 'لائق', status: 'معتمد' },
-    ],
-  },
-];
+const MOCK_BATCHES: ImportBatch[] = [];
 
 export const AgentImportsPage: React.FC = () => {
   const { user } = useAuthContext();

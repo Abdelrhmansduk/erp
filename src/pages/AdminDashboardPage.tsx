@@ -32,41 +32,7 @@ interface UserSession {
   status: 'نشط' | 'خامل';
 }
 
-const MOCK_ACTIVE_SESSIONS: UserSession[] = [
-  {
-    id: 's-1',
-    username: 'admin',
-    name: 'مشرف admin (المدير العام)',
-    role: 'Administrator',
-    ip_address: '197.34.110.42',
-    device: 'Windows 11 / Chrome 126',
-    login_time: 'منذ 14 دقيقة',
-    two_factor_status: 'مفعل (TOTP)',
-    status: 'نشط'
-  },
-  {
-    id: 's-2',
-    username: 'mohammed_finance',
-    name: 'محمد مصطفى (المدير المالي)',
-    role: 'Finance Manager',
-    ip_address: '197.34.112.18',
-    device: 'macOS Sonoma / Safari',
-    login_time: 'منذ 45 دقيقة',
-    two_factor_status: 'مفعل (TOTP)',
-    status: 'نشط'
-  },
-  {
-    id: 's-3',
-    username: 'sara_hr',
-    name: 'سارة خالد (مسؤولة HR)',
-    role: 'HR Specialist',
-    ip_address: '185.12.90.104',
-    device: 'Android 14 / Chrome',
-    login_time: 'منذ ساعتين',
-    two_factor_status: 'مفعل (SMS)',
-    status: 'خامل'
-  }
-];
+const MOCK_ACTIVE_SESSIONS: UserSession[] = [];
 
 const MODULE_PERMISSIONS = [
   { id: 'crm', name: 'إدارة العملاء والـ CRM' },

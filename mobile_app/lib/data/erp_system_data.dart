@@ -2653,7 +2653,7 @@ class ErpSystemData {
       title: 'الموارد البشرية والرواتب (HR & WPS)',
       icon: Icons.groups_rounded,
       children: [
-        ErpSidebarItem(id: 'employees', title: '١. سجل الموظفين والكادر الوظيفي', icon: Icons.person_search_rounded, href: 'employees', badge: '32'),
+        ErpSidebarItem(id: 'employees', title: '١. سجل الموظفين والكادر الوظيفي', icon: Icons.person_search_rounded, href: 'employees'),
         ErpSidebarItem(id: 'payrolls', title: '٢. مسير الرواتب وحماية الأجور (WPS)', icon: Icons.payments_rounded, href: 'payrolls'),
         ErpSidebarItem(id: 'attendances', title: '٣. الحضور والانصراف وأجهزة البصمة', icon: Icons.access_time_filled_rounded, href: 'attendances'),
         ErpSidebarItem(id: 'employee-monitoring', title: '٤. مؤشرات الأداء والإنتاجية الوظيفية', icon: Icons.monitor_heart_rounded, href: 'employee-monitoring'),
@@ -2841,18 +2841,6 @@ class ErpSystemData {
         badgeText: 'QR + PIH Verified',
         amountOrMetric: '17,250 ⃁ (شامل 15% VAT)',
         updatedAt: 'منذ 6 دقائق',
-      ),
-      // Reem Official HR Emails Records
-      ErpOperationalRecord(
-        id: 'REEM-KAS-2026-01',
-        companyId: 'SAF',
-        moduleKey: 'reem-hr-emails',
-        title: 'تعميم رسمي #REEM-KAS-01 — ضوابط الدوام الرسمي واعتماد المعاملات الوظيفية عبر بوابة الموارد البشرية',
-        subtitle: 'من: ريم احمد بن حسين (HR@kas.sa) • نسخة: خالد عبدالعزيز السليم (Khalid@kas.sa) • تعميم إداري موثق',
-        status: 'صادر ومؤرشف رسمياً',
-        badgeText: 'عربي / EN • Outlook',
-        amountOrMetric: '69 حساب @kas.sa',
-        updatedAt: 'الآن',
       ),
     ];
   }

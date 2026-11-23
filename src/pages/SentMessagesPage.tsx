@@ -50,63 +50,7 @@ interface MessageTemplate {
   variables: string[];
 }
 
-const MOCK_MESSAGES: MessageLog[] = [
-  {
-    id: 'MSG-901',
-    recipient_name: 'سارة احمد محمد',
-    phone: '+966558025628',
-    channel: 'WhatsApp',
-    template: 'تحديث تفييز مساند',
-    content: 'عزيزتنا سارة، نفيدكم بصدور تأشيرة الاستقدام وتفييز الجواز للعقد #RC-594 (العاملة MARIA SANTOS) وجارٍ حجز تذكرة الطيران.',
-    status: 'تم التسليم',
-    cost_sar: 0.15,
-    sent_at: '2026-08-17 14:15'
-  },
-  {
-    id: 'MSG-902',
-    recipient_name: 'نايف القحطاني',
-    phone: '+966535355555',
-    channel: 'SMS',
-    template: 'تنبيه موعد التذكرة والوصول',
-    content: 'عميلنا العزيز نايف، موعد وصول رحلة الاستقدام غداً الساعة 04:30 مساءً على الرحلة SV-840 مطار الملك خالد بالرياض.',
-    status: 'تم التسليم',
-    cost_sar: 0.12,
-    sent_at: '2026-08-17 13:40'
-  },
-  {
-    id: 'MSG-903',
-    recipient_name: 'عبدالله محمد الغامدي',
-    phone: '+966501234567',
-    channel: 'WhatsApp',
-    template: 'إشعار الفاتورة الإلكترونية ZATCA',
-    content: 'مرحباً عبدالله، تم إصدار الفاتورة الضريبية رقم SAF-INV-2026-0001 بمبلغ 13,800 ⃁ معتمدة من هيئة الزكاة. رابط الفاتورة: https://alsulaim.sa/inv/9001',
-    status: 'تم التسليم',
-    cost_sar: 0.15,
-    sent_at: '2026-08-17 11:20'
-  },
-  {
-    id: 'MSG-904',
-    recipient_name: 'شركة دار الرواد للمقاولات',
-    phone: '+966544998877',
-    channel: 'SMS',
-    template: 'تجديد عقد تأجير',
-    content: 'عقد التأجير #RENT-2026-0016 ينتهي بعد 7 أيام. للتجديد الفوري يرجى تأكيد الدفعة القادمة عبر المنصة.',
-    status: 'قيد الإرسال',
-    cost_sar: 0.12,
-    sent_at: '2026-08-17 10:05'
-  },
-  {
-    id: 'MSG-905',
-    recipient_name: 'خالد إبراهيم الدوسري',
-    phone: '+966599112233',
-    channel: 'SMS',
-    template: 'رمز التحقق 2FA',
-    content: 'رمز التحقق الخاص بك لمنظومة السليم هو: 582914 صالح لمدة 5 دقائق. لا تشارك الرمز مع أحد.',
-    status: 'تم التسليم',
-    cost_sar: 0.12,
-    sent_at: '2026-08-17 09:12'
-  }
-];
+const MOCK_MESSAGES: MessageLog[] = [];
 
 const MOCK_TEMPLATES: MessageTemplate[] = [
   {
@@ -143,41 +87,7 @@ const MOCK_TEMPLATES: MessageTemplate[] = [
   }
 ];
 
-const KAS_MOCK_MESSAGES: MessageLog[] = tagKasRecords([
-  {
-    id: 'KAS-MSG-901',
-    recipient_name: 'شركة المدار للتجهيزات التجارية',
-    phone: '+966504411220',
-    channel: 'WhatsApp',
-    template: 'اعتماد عرض سعر تجاري',
-    content: 'عميلنا الكريم، تم اعتماد عرض السعر رقم #QT-KAS-2026-410 لتوريد أجهزة ومعدات قطاع الأميال بمبلغ 64,400 ⃁ شامل الضريبة.',
-    status: 'تم التسليم',
-    cost_sar: 0.15,
-    sent_at: '2026-08-18 14:15',
-  },
-  {
-    id: 'KAS-MSG-902',
-    recipient_name: 'الهيئة العامة للموانئ — إدارة المشتريات',
-    phone: '+966553311889',
-    channel: 'SMS',
-    template: 'إشعار شحن أمر توريد اعتماد',
-    content: 'نفيدكم بخروج شحنة أمر التوريد رقم #ETM-2026-90412 من مستودعات شركة كاس المركزية وتسليمها في الموعد المحدد.',
-    status: 'تم التسليم',
-    cost_sar: 0.12,
-    sent_at: '2026-08-18 11:30',
-  },
-  {
-    id: 'KAS-MSG-903',
-    recipient_name: 'مؤسسة النخبة للتوريدات المكتبية',
-    phone: '+966539900771',
-    channel: 'WhatsApp',
-    template: 'إشعار فاتورة ضريبية ZATCA',
-    content: 'تم إصدار الفاتورة الضريبية المعتمدة رقم KAS-INV-2026-9902 بمبلغ 64,400 ⃁ عبر منظومة الفوترة الإلكترونية ZATCA.',
-    status: 'تم التسليم',
-    cost_sar: 0.15,
-    sent_at: '2026-08-17 16:10',
-  },
-]);
+const KAS_MOCK_MESSAGES: MessageLog[] = tagKasRecords([]);
 
 const KAS_MOCK_TEMPLATES: MessageTemplate[] = [
   {

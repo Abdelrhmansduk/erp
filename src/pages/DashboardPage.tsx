@@ -4,7 +4,7 @@ import { useCompany } from '../contexts/CompanyContext';
 import { useIamSession } from '../contexts/IamSessionContext';
 import { realErpDataStore } from '../services/realErpDataStore';
 import { KAS_ALLOWED_EMPLOYEES } from '../config/kasAllowedEmails';
-import { MOCK_RECRUITMENT_CONTRACTS, DASHBOARD_STATS_BY_PERIOD } from '../data/mockData';
+import { DASHBOARD_STATS_BY_PERIOD } from '../data/mockData';
 import { SmaccDashboardWidget } from '../components/smacc/SmaccDashboardWidget';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
@@ -43,6 +43,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const [inmates, setInmates] = useState<any[]>([]);
   const [complaints, setComplaints] = useState<any[]>([]);
   const [transfers, setTransfers] = useState<any[]>([]);
+  const [ingazDelegations, setIngazDelegations] = useState<any[]>([]);
   const [hrEmployees, setHrEmployees] = useState<any[]>([]);
   const [legacyEmployees, setLegacyEmployees] = useState<any[]>([]);
   const [attendances, setAttendances] = useState<any[]>([]);
@@ -53,7 +54,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   useEffect(() => {
     const loadAllDashboardData = () => {
       Promise.all([
-        realErpDataStore.getRecords('contracts', MOCK_RECRUITMENT_CONTRACTS),
+        realErpDataStore.getRecords('contracts', []),
         realErpDataStore.getRecords('orders', []),
         realErpDataStore.getRecords('rent_contracts', []),
         realErpDataStore.getRecords('cvs', []),
@@ -61,13 +62,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         realErpDataStore.getRecords('shelter_inmates', []),
         realErpDataStore.getRecords('complaints', []),
         realErpDataStore.getRecords('sponsorship_transfers', []),
+        realErpDataStore.getRecords('ingaz_delegations', []),
         realErpDataStore.getRecords('hr_employees', [], 'all'),
         realErpDataStore.getRecords('employees', [], 'all'),
         realErpDataStore.getRecords('attendances', [], 'all'),
         realErpDataStore.getRecords('hr_approval_requests', [], 'all'),
         realErpDataStore.getRecords('hr_smart_alerts', [], 'all'),
         realErpDataStore.getRecords('hr_ewa_withdrawals', [], 'all'),
-      ]).then(([c, o, r, v, cl, inms, comp, tr, hrEmps, legEmps, att, reqs, alerts, ewa]) => {
+      ]).then(([c, o, r, v, cl, inms, comp, tr, ingaz, hrEmps, legEmps, att, reqs, alerts, ewa]) => {
         setContracts(c);
         setOrders(o);
         setRentContracts(r);
@@ -76,6 +78,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         setInmates(inms);
         setComplaints(comp);
         setTransfers(tr);
+        setIngazDelegations(ingaz);
         setHrEmployees(hrEmps);
         setLegacyEmployees(legEmps);
         setAttendances(att);
@@ -99,34 +102,32 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const filteredInmates = filterRecords(inmates);
   const filteredComplaints = filterRecords(complaints);
   const filteredTransfers = filterRecords(transfers);
+  const filteredIngaz = filterRecords(ingazDelegations);
 
-  // Dynamic Calculated Metrics
-  const totalContractsCount = filteredContracts.length || 115;
-  const beforeArrivalCount = filteredContracts.filter(c => ['عقود جديدة', 'مساند', 'تفويض', 'تفييز', 'تذكرة'].includes(c.stage)).length || 18;
-  const arrivalStageCount = filteredContracts.filter(c => c.stage === 'وصول').length || 7;
-  const underGuaranteeCount = filteredContracts.filter(c => c.warranty_status?.includes('ساري') || c.stage === 'وصول').length || 27;
+  // Dynamic Calculated Metrics (strictly from real records; 0 when empty)
+  const totalContractsCount = filteredContracts.length;
+  const beforeArrivalCount = filteredContracts.filter(c => ['عقود جديدة', 'مساند', 'تفويض', 'تفييز', 'تذكرة'].includes(c.stage)).length;
+  const arrivalStageCount = filteredContracts.filter(c => c.stage === 'وصول').length;
+  const underGuaranteeCount = filteredContracts.filter(c => c.warranty_status?.includes('ساري') || c.stage === 'وصول').length;
 
-  const totalOrdersCount = filteredOrders.length || 42;
-  const newOrdersCount = filteredOrders.filter(o => o.status === 'جديد').length || 12;
-  const inProgressOrdersCount = filteredOrders.filter(o => o.status === 'تحت الإجراء').length || 18;
-  const completedOrdersCount = filteredOrders.filter(o => o.status === 'تم التعاقد' || o.status === 'مكتمل').length || 12;
+  const totalOrdersCount = filteredOrders.length;
+  const newOrdersCount = filteredOrders.filter(o => o.status === 'جديد').length;
+  const inProgressOrdersCount = filteredOrders.filter(o => o.status === 'تحت الإجراء').length;
+  const completedOrdersCount = filteredOrders.filter(o => o.status === 'تم التعاقد' || o.status === 'مكتمل').length;
 
-  const totalRentCount = filteredRent.length || 24;
-  const activeRentCount = filteredRent.filter(r => r.status === 'نشط' || r.status === 'ساري').length || 16;
-  const completedRentCount = filteredRent.filter(r => r.status === 'مكتمل' || r.status === 'منتهي').length || 8;
+  const totalRentCount = filteredRent.length;
+  const activeRentCount = filteredRent.filter(r => r.status === 'نشط' || r.status === 'ساري').length;
+  const completedRentCount = filteredRent.filter(r => r.status === 'مكتمل' || r.status === 'منتهي').length;
 
-  const totalCvsCount = filteredCvs.length || 86;
-  const availableCvsCount = filteredCvs.filter(c => c.status === 'متاح' || !c.status?.includes('محجوز')).length || 54;
-  const reservedCvsCount = filteredCvs.filter(c => c.status?.includes('محجوز')).length || 32;
+  const totalCvsCount = filteredCvs.length;
+  const availableCvsCount = filteredCvs.filter(c => c.status === 'متاح' || !c.status?.includes('محجوز')).length;
+  const reservedCvsCount = filteredCvs.filter(c => c.status?.includes('محجوز')).length;
 
-  const totalClientsCount = filteredClients.length || 142;
-  const totalInmatesCount = filteredInmates.length || 44;
-  const totalComplaintsCount = filteredComplaints.length || 8;
-  const totalTransfersCount = filteredTransfersCountFallback(filteredTransfers);
-
-  function filteredTransfersCountFallback(list: any[]): number {
-    return list.length || 17;
-  }
+  const totalClientsCount = filteredClients.length;
+  const totalInmatesCount = filteredInmates.length;
+  const totalComplaintsCount = filteredComplaints.length;
+  const totalTransfersCount = filteredTransfers.length;
+  const totalIngazCount = filteredIngaz.length;
 
   // Live HR & Payroll Command Strip Calculations
   const mergedHrRoster = React.useMemo(() => {
@@ -211,10 +212,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   );
 
   const baseStats = DASHBOARD_STATS_BY_PERIOD[selectedPeriod];
+  const todayIso = new Date().toISOString().slice(0, 10);
   const stats = {
     ...baseStats,
-    todayContractsCount: Math.max(1, Math.round(totalContractsCount / 12)),
-    todayOrdersCount: Math.max(1, Math.round(totalOrdersCount / 8)),
+    todayContractsCount: filteredContracts.filter(c => String(c.created_at || '').startsWith(todayIso)).length,
+    todayOrdersCount: filteredOrders.filter(o => String(o.created_at || '').startsWith(todayIso)).length,
     recruitmentContracts: {
       total: totalContractsCount,
       beforeArrival: beforeArrivalCount,
@@ -230,7 +232,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     rentContracts: {
       total: totalRentCount,
       active: activeRentCount,
-      sent: Math.round(totalRentCount * 0.25),
+      sent: filteredRent.filter(r => r.status === 'مرسل').length,
       completed: completedRentCount,
     },
     cvs: {
@@ -240,31 +242,41 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     },
     rentMaids: {
       total: totalRentCount,
-      available: Math.max(2, totalRentCount - activeRentCount),
+      available: Math.max(0, totalRentCount - activeRentCount),
       activeRent: activeRentCount,
     },
     clients: {
       total: totalClientsCount,
-      active: Math.max(0, totalClientsCount - 14),
-      inactive: Math.min(14, totalClientsCount),
+      active: filteredClients.filter(cl => cl.status !== 'غير نشط').length,
+      inactive: filteredClients.filter(cl => cl.status === 'غير نشط').length,
       withOrders: Math.round(totalClientsCount * 0.7),
-      withoutOrders: Math.round(totalClientsCount * 0.3),
+      withoutOrders: Math.max(0, totalClientsCount - Math.round(totalClientsCount * 0.7)),
+    },
+    ingaz: {
+      total: totalIngazCount,
+      inProgress: filteredIngaz.filter(d => d.status !== 'تم التوثيق' && d.status !== 'تم التفويض').length,
+      approved: filteredIngaz.filter(d => d.status === 'تم التوثيق' || d.status === 'تم التفويض').length,
     },
     shelter: {
       total: totalInmatesCount,
-      inside: Math.max(0, totalInmatesCount - 5),
-      outside: Math.min(5, totalInmatesCount),
+      inside: filteredInmates.filter(i => i.status === 'داخل الإيواء' || !i.status).length,
+      outside: filteredInmates.filter(i => i.status && i.status !== 'داخل الإيواء').length,
     },
     complaints: {
       total: totalComplaintsCount,
-      open: filteredComplaints.filter(c => c.status !== 'مغلقة' && c.status !== 'محلولة').length || 3,
-      resolved: filteredComplaints.filter(c => c.status === 'مغلقة' || c.status === 'محلولة').length || 5,
-      closed: filteredComplaints.filter(c => c.status === 'مغلقة' || c.status === 'محلولة').length || 5,
+      open: filteredComplaints.filter(c => c.status !== 'مغلقة' && c.status !== 'محلولة' && c.status !== 'تم الحل وإغلاق الشكوى').length,
+      resolved: filteredComplaints.filter(c => c.status === 'مغلقة' || c.status === 'محلولة' || c.status === 'تم الحل وإغلاق الشكوى').length,
+      closed: filteredComplaints.filter(c => c.status === 'مغلقة' || c.status === 'محلولة' || c.status === 'تم الحل وإغلاق الشكوى').length,
+    },
+    sponsorshipTransfers: {
+      total: totalTransfersCount,
+      trialPeriod: filteredTransfers.filter(tr => String(tr.status || '').includes('تجرب')).length,
+      transferred: filteredTransfers.filter(tr => tr.status === 'مكتمل' || tr.status === 'تم النقل').length,
     },
     transfers: {
       total: totalTransfersCount,
-      inTrial: 5,
-      completed: 12,
+      inTrial: filteredTransfers.filter(tr => String(tr.status || '').includes('تجرب')).length,
+      completed: filteredTransfers.filter(tr => tr.status === 'مكتمل' || tr.status === 'تم النقل').length,
     },
   };
 
@@ -961,50 +973,58 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e0e0e0]">
-                {(filteredContracts.length > 0 ? filteredContracts : MOCK_RECRUITMENT_CONTRACTS).slice(0, 6).map((contract) => (
-                  <tr key={contract.id} className="hover:bg-[#f3f3f3] transition-colors">
-                    <td className="p-3.5">
-                      <strong className="font-mono text-[#141414]">{contract.contract_number}</strong>
-                      <div className="text-[10px] text-[#707070] font-mono">مساند: {contract.musaned_number}</div>
-                    </td>
-                    <td className="p-3.5">
-                      <div className="font-bold text-[#141414]">{contract.client_name}</div>
-                      <div className="text-[11px] text-[#707070] font-mono">{contract.client_phone}</div>
-                    </td>
-                    <td className="p-3.5">
-                      <div className="font-bold text-[#141414]">{contract.maid_name}</div>
-                      <div className="text-[11px] text-[#707070] font-mono">{contract.nationality} • {contract.maid_passport}</div>
-                    </td>
-                    <td className="p-3.5 text-[#141414] font-semibold">{contract.external_office}</td>
-                    <td className="p-3.5">
-                      <span className="pill-tag-shade" style={{ fontSize: '10px' }}>{contract.branch}</span>
-                    </td>
-                    <td className="p-3.5">
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          contract.stage === 'مكتمل'
-                            ? 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
-                            : contract.stage === 'وصول'
-                            ? 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
-                            : contract.stage === 'تفييز'
-                            ? 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
-                            : 'bg-[#f3f3f3] text-[#141414]'
-                        }`}
-                      >
-                        {contract.stage}
-                      </span>
-                    </td>
-                    <td className="p-3.5 text-center">
-                      <button
-                        onClick={() => onNavigate('recruitment-contracts', 'عقود الاستقدام')}
-                        className="button-outline-on-light"
-                        style={{ padding: '2px 8px', fontSize: '10.5px', minHeight: '24px' }}
-                      >
-                        التفاصيل
-                      </button>
+                {filteredContracts.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="p-6 text-center text-xs text-[#707070]">
+                      لا توجد عقود استقدام مسجلة حالياً
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredContracts.slice(0, 6).map((contract) => (
+                    <tr key={contract.id} className="hover:bg-[#f3f3f3] transition-colors">
+                      <td className="p-3.5">
+                        <strong className="font-mono text-[#141414]">{contract.contract_number}</strong>
+                        <div className="text-[10px] text-[#707070] font-mono">مساند: {contract.musaned_number}</div>
+                      </td>
+                      <td className="p-3.5">
+                        <div className="font-bold text-[#141414]">{contract.client_name}</div>
+                        <div className="text-[11px] text-[#707070] font-mono">{contract.client_phone}</div>
+                      </td>
+                      <td className="p-3.5">
+                        <div className="font-bold text-[#141414]">{contract.maid_name}</div>
+                        <div className="text-[11px] text-[#707070] font-mono">{contract.nationality} • {contract.maid_passport}</div>
+                      </td>
+                      <td className="p-3.5 text-[#141414] font-semibold">{contract.external_office}</td>
+                      <td className="p-3.5">
+                        <span className="pill-tag-shade" style={{ fontSize: '10px' }}>{contract.branch}</span>
+                      </td>
+                      <td className="p-3.5">
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                            contract.stage === 'مكتمل'
+                              ? 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
+                              : contract.stage === 'وصول'
+                              ? 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
+                              : contract.stage === 'تفييز'
+                              ? 'bg-[#f3f3f3] text-[#141414] border border-[#e0e0e0]'
+                              : 'bg-[#f3f3f3] text-[#141414]'
+                          }`}
+                        >
+                          {contract.stage}
+                        </span>
+                      </td>
+                      <td className="p-3.5 text-center">
+                        <button
+                          onClick={() => onNavigate('recruitment-contracts', 'عقود الاستقدام')}
+                          className="button-outline-on-light"
+                          style={{ padding: '2px 8px', fontSize: '10.5px', minHeight: '24px' }}
+                        >
+                          التفاصيل
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

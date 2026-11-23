@@ -139,62 +139,7 @@ export interface CompanyLicenseRecord {
   status?: string;
 }
 
-export const DEFAULT_COMPANY_LICENSES: CompanyLicenseRecord[] = [
-  {
-    id: 'LIC-SAF-CR',
-    company_id: 'SAF',
-    company_name: ENTITY_LEGAL_PROFILES.SAF.nameAr,
-    license_type: 'CR',
-    license_title_ar: 'السجل التجاري الرئيسي — وزارة التجارة',
-    license_number: ENTITY_LEGAL_PROFILES.SAF.crNumber,
-    expiry_date: '2026-12-10',
-  },
-  {
-    id: 'LIC-SAF-MSN',
-    company_id: 'SAF',
-    company_name: ENTITY_LEGAL_PROFILES.SAF.nameAr,
-    license_type: 'MUSANED',
-    license_title_ar: 'ترخيص مزاولة نشاط الاستقدام — منصة مساند',
-    license_number: ENTITY_LEGAL_PROFILES.SAF.musanedLicenseNo || 'MSN-38-1010123',
-    expiry_date: '2026-11-28',
-  },
-  {
-    id: 'LIC-YAQ-CR',
-    company_id: 'YAQ',
-    company_name: ENTITY_LEGAL_PROFILES.YAQ.nameAr,
-    license_type: 'CR',
-    license_title_ar: 'السجل التجاري للتشغيل والتأجير',
-    license_number: ENTITY_LEGAL_PROFILES.YAQ.crNumber,
-    expiry_date: '2026-12-18',
-  },
-  {
-    id: 'LIC-TOP-MSN',
-    company_id: 'TOP',
-    company_name: ENTITY_LEGAL_PROFILES.TOP.nameAr,
-    license_type: 'MUSANED',
-    license_title_ar: 'ترخيص منصة مساند — شركة توباز للاستقدام',
-    license_number: ENTITY_LEGAL_PROFILES.TOP.musanedLicenseNo || 'MSN-40-1010345',
-    expiry_date: '2026-12-05',
-  },
-  {
-    id: 'LIC-DAR-MUN',
-    company_id: 'DAR',
-    company_name: ENTITY_LEGAL_PROFILES.DAR.nameAr,
-    license_type: 'MUNICIPAL',
-    license_title_ar: 'رخصة مركز الإيواء والسلامة البلدية (بلدي)',
-    license_number: 'BLD-RUWAD-6429',
-    expiry_date: '2026-12-12',
-  },
-  {
-    id: 'LIC-KAS-CHAMBER',
-    company_id: 'KAS',
-    company_name: ENTITY_LEGAL_PROFILES.KAS.nameAr,
-    license_type: 'CHAMBER',
-    license_title_ar: 'اشتراك الغرفة التجارية بالرياض وتصديق الخطابات',
-    license_number: ENTITY_LEGAL_PROFILES.KAS.chamberMembershipNo || 'RCCI-778923',
-    expiry_date: '2026-12-02',
-  },
-];
+export const DEFAULT_COMPANY_LICENSES: CompanyLicenseRecord[] = [];
 
 export async function getCompanyLicenses(companyId?: string): Promise<CompanyLicenseRecord[]> {
   const stored = await realErpDataStore.getRecords<CompanyLicenseRecord>(

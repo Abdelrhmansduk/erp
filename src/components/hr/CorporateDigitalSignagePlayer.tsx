@@ -20,8 +20,6 @@ import {
 } from 'lucide-react';
 import { realErpDataStore } from '../../services/realErpDataStore';
 import {
-  DEFAULT_COMPANY_DISPLAY_SCREENS,
-  DEFAULT_WELCOME_BROADCASTS,
   KAS_SIGNAGE_BROADCAST_CHANNEL,
   KAS_SIGNAGE_STORAGE_PING_KEY,
   buildWelcomeEmailQrPayload,
@@ -49,12 +47,8 @@ export const CorporateDigitalSignagePlayer: React.FC<CorporateDigitalSignagePlay
   onClose,
 }) => {
   const [selectedScreenCode, setSelectedScreenCode] = useState<string>(screenId || 'ALL');
-  const [screens, setScreens] = useState<DigitalSignageScreenRecord[]>(
-    DEFAULT_COMPANY_DISPLAY_SCREENS
-  );
-  const [allBroadcasts, setAllBroadcasts] = useState<WelcomeBroadcastRecord[]>(
-    DEFAULT_WELCOME_BROADCASTS
-  );
+  const [screens, setScreens] = useState<DigitalSignageScreenRecord[]>([]);
+  const [allBroadcasts, setAllBroadcasts] = useState<WelcomeBroadcastRecord[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [darkGalleryMode, setDarkGalleryMode] = useState(true);
@@ -68,23 +62,15 @@ export const CorporateDigitalSignagePlayer: React.FC<CorporateDigitalSignagePlay
     const [storedScreens, storedBroadcasts] = await Promise.all([
       realErpDataStore.getRecords<DigitalSignageScreenRecord>(
         'hr_digital_signage_screens',
-        DEFAULT_COMPANY_DISPLAY_SCREENS
+        []
       ),
       realErpDataStore.getRecords<WelcomeBroadcastRecord>(
         'hr_welcome_broadcasts',
-        DEFAULT_WELCOME_BROADCASTS
+        []
       ),
     ]);
-    setScreens(
-      Array.isArray(storedScreens) && storedScreens.length > 0
-        ? storedScreens
-        : DEFAULT_COMPANY_DISPLAY_SCREENS
-    );
-    setAllBroadcasts(
-      Array.isArray(storedBroadcasts) && storedBroadcasts.length > 0
-        ? storedBroadcasts
-        : DEFAULT_WELCOME_BROADCASTS
-    );
+    setScreens(Array.isArray(storedScreens) ? storedScreens : []);
+    setAllBroadcasts(Array.isArray(storedBroadcasts) ? storedBroadcasts : []);
     setLastSyncStamp(new Date().toLocaleTimeString('en-GB', { hour12: false }));
   }, []);
 

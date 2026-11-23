@@ -58,35 +58,17 @@ export const OdooAccountingConfigWorkspace: React.FC<OdooAccountingConfigWorkspa
   const [reconModels] = useState<OdooReconciliationModel[]>(() =>
     odooAccountingConfigService.getReconciliationModels()
   );
-  const [bankFeedLines, setBankFeedLines] = useState([
-    {
-      id: 'BF-101',
-      ref: 'SARIE-FEE-9921',
-      date: '2026-08-12',
-      label: 'SARIE TRANSFER BANK FEE - رسوم تحويل سريع للوكيل الخارجي',
-      amountSar: 28.75,
-      reconciled: false,
-      postedEntryNo: '',
-    },
-    {
-      id: 'BF-102',
-      ref: 'MADA-POS-8834',
-      date: '2026-08-14',
-      label: 'MADA POS GATEWAY FEE - عمولة نقاط بيع مدى وسداد عقود الاستقدام',
-      amountSar: 172.5,
-      reconciled: false,
-      postedEntryNo: '',
-    },
-    {
-      id: 'BF-103',
-      ref: 'FX-RND-7740',
-      date: '2026-08-15',
-      label: 'FX DIFF ROUNDING - فروق عملة وتقريب سداد مكتب مانيلا بالدولار',
-      amountSar: 14.25,
-      reconciled: false,
-      postedEntryNo: '',
-    },
-  ]);
+  const [bankFeedLines, setBankFeedLines] = useState<
+    Array<{
+      id: string;
+      ref: string;
+      date: string;
+      label: string;
+      amountSar: number;
+      reconciled: boolean;
+      postedEntryNo: string;
+    }>
+  >([]);
 
   const schedulePreview = odooAccountingConfigService.computeInstallmentSchedule(
     selectedTermId,

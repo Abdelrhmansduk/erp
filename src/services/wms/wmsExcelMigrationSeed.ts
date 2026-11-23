@@ -1032,7 +1032,7 @@ let cachedDataset: InitialWmsDataset | null = null;
 
 export function buildInitialWmsDataset(): InitialWmsDataset {
   if (cachedDataset) {
-    return JSON.parse(JSON.stringify(cachedDataset));
+    return structuredClone(cachedDataset);
   }
 
   const itemByCanonical = new Map<string, WmsItem>();
@@ -1526,5 +1526,5 @@ export function buildInitialWmsDataset(): InitialWmsDataset {
     discrepancies,
   };
 
-  return JSON.parse(JSON.stringify(cachedDataset));
+  return structuredClone(cachedDataset);
 }

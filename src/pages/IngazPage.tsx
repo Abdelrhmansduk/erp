@@ -24,47 +24,7 @@ export interface IngazDelegation {
   created_at: string;
 }
 
-const MOCK_INGAZ_DELEGATIONS: IngazDelegation[] = [
-  {
-    id: '1',
-    delegation_number: '#EGZ-2026-0891',
-    client_name: 'نايف بن عبدالعزيز القحطاني',
-    sponsor_id: '1098452391',
-    visa_number: '1300984521',
-    foreign_office: 'DAMAS FOREIGN AGENCY',
-    profession: 'عاملة منزلية',
-    nationality: 'اثيوبيا',
-    fee_amount: 350.00,
-    status: 'تم التوثيق',
-    created_at: '2026-07-28'
-  },
-  {
-    id: '2',
-    delegation_number: '#EGZ-2026-0892',
-    client_name: 'سليمان بن فهد العتيبي',
-    sponsor_id: '1029384756',
-    visa_number: '1300762145',
-    foreign_office: 'VERSATILE OVERSEAS LTD',
-    profession: 'سائق خاص',
-    nationality: 'الهند',
-    fee_amount: 400.00,
-    status: 'بانتظار الموافقة',
-    created_at: '2026-07-29'
-  },
-  {
-    id: '3',
-    delegation_number: '#EGZ-2026-0893',
-    client_name: 'شركة الخالد للتشغيل',
-    sponsor_id: '7019283746',
-    visa_number: '1400293847',
-    foreign_office: "PLATINUM BROTHERS INT'L",
-    profession: 'عامل مهني',
-    nationality: 'الفلبين',
-    fee_amount: 450.00,
-    status: 'تم التوثيق',
-    created_at: '2026-07-30'
-  }
-];
+const MOCK_INGAZ_DELEGATIONS: IngazDelegation[] = [];
 
 export const IngazPage: React.FC = () => {
   const { addNotification } = useAppStore();
@@ -74,20 +34,29 @@ export const IngazPage: React.FC = () => {
   const [selectedDelegationForPrint, setSelectedDelegationForPrint] = useState<IngazDelegation | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [chamberRecords, setChamberRecords] = useState([
-    { id: 'COC-2026-991', company_id: 'SAF', chamber: 'غرفة الرياض التجارية', name: 'شركة السليم الدولية للاستقدام', doc: 'تفويض استقدام عمالة منزلية لمكتب مانيلا', cr: '1010784920', fee: 35, date: '2026-08-30', status: 'مصدق إلكترونياً' },
-    { id: 'COC-2026-992', company_id: 'TOP', chamber: 'غرفة الرياض التجارية', name: 'شركة توباز للاستقدام', doc: 'عقد إرسالية وكالة توظيف أديس أبابا', cr: '1010892011', fee: 35, date: '2026-08-29', status: 'مصدق إلكترونياً' },
-    { id: 'COC-2026-993', company_id: 'YAQ', chamber: 'غرفة جدة التجارية', name: 'شركة ياقوت نجد لتشغيل الكوادر والتأجير', doc: 'تفويض وكالة كولومبو سريلانكا', cr: '4030192847', fee: 35, date: '2026-08-28', status: 'مصدق إلكترونياً' },
-    { id: 'COC-2026-994', company_id: 'DAR', chamber: 'غرفة الشرقية', name: 'شركة دار الرواد للإيواء والعمليات', doc: 'خطاب تفويض بنغلاديش دكا', cr: '2050119284', fee: 35, date: '2026-08-27', status: 'مصدق إلكترونياً' },
-  ]);
+  const [chamberRecords, setChamberRecords] = useState<Array<{
+    id: string;
+    company_id: string;
+    chamber: string;
+    name: string;
+    doc: string;
+    cr: string;
+    fee: number;
+    date: string;
+    status: string;
+  }>>([]);
 
-  const [readyVisas, setReadyVisas] = useState([
-    { id: '1300984521', visa: '1300984521', sponsor: 'نايف بن عبدالعزيز القحطاني', nat_id: '1098452391', job: 'عاملة منزلية', country: 'إثيوبيا', issue: '2026-07-28', exp: 'متبقي 88 يوماً', status: 'مفوضة وجاهزة' },
-    { id: '1300762145', visa: '1300762145', sponsor: 'سليمان بن فهد العتيبي', nat_id: '1029384756', job: 'سائق خاص', country: 'الهند', issue: '2026-07-29', exp: 'متبقي 89 يوماً', status: 'مفوضة وجاهزة' },
-    { id: '1400293847', visa: '1400293847', sponsor: 'شركة الخالد للتشغيل', nat_id: '7019283746', job: 'عامل مهني', country: 'الفلبين', issue: '2026-07-30', exp: 'متبقي 90 يوماً', status: 'مفوضة وجاهزة' },
-    { id: '1300119283', visa: '1300119283', sponsor: 'عبدالرحمن محمد السليم', nat_id: '1088273619', job: 'عاملة منزلية', country: 'الفلبين', issue: '2026-08-10', exp: 'متبقي 100 يوماً', status: 'بانتظار التفويض' },
-    { id: '1300448192', visa: '1300448192', sponsor: 'بندر صالح الهويريني', nat_id: '1055774494', job: 'عاملة منزلية', country: 'الفلبين', issue: '2026-08-12', exp: 'متبقي 102 يوماً', status: 'مفوضة وجاهزة' },
-  ]);
+  const [readyVisas, setReadyVisas] = useState<Array<{
+    id: string;
+    visa: string;
+    sponsor: string;
+    nat_id: string;
+    job: string;
+    country: string;
+    issue: string;
+    exp: string;
+    status: string;
+  }>>([]);
 
   useEffect(() => {
     realErpDataStore.getRecords<any>('ingaz_delegations', MOCK_INGAZ_DELEGATIONS).then(data => {

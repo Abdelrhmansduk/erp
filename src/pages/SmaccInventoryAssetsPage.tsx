@@ -60,44 +60,18 @@ export interface StockVoucher {
   reason: string;
 }
 
-const INITIAL_ASSETS: FixedAsset[] = [
-  { id: 'AST-001', code: 'AST-001', name: 'سيارة تويوتا كامري 2024 (فرع الرياض)', category: 'وسائل النقل والسيارات', purchaseDate: '2024-01-15', cost: 95000, depreciationRate: 20, accumulatedDepreciation: 19000, bookValue: 76000, status: 'نشط' },
-  { id: 'AST-002', code: 'AST-002', name: 'أجهزة حاسوب وسيرفرات إدارية', category: 'معدات وإلكترونيات', purchaseDate: '2023-06-10', cost: 45000, depreciationRate: 25, accumulatedDepreciation: 22500, bookValue: 22500, status: 'نشط' },
-  { id: 'AST-003', code: 'AST-003', name: 'تأثيث وتجهيز مركز الإيواء الرئيسي', category: 'أثاث ومفروشات', purchaseDate: '2024-03-01', cost: 120000, depreciationRate: 10, accumulatedDepreciation: 12000, bookValue: 108000, status: 'نشط' },
-  { id: 'AST-004', code: 'AST-004', name: 'مبنى المقر الرئيسي - الرياض', category: 'العقارات والمباني', purchaseDate: '2020-01-01', cost: 1500000, depreciationRate: 5, accumulatedDepreciation: 150000, bookValue: 1350000, status: 'نشط' },
-];
+const INITIAL_ASSETS: FixedAsset[] = [];
 
-const INITIAL_ITEMS: InventoryItem[] = [
-  { id: 'INV-101', sku: 'INV-101', name: 'عقد استقدام عاملة منزلية (الفلبين)', category: 'خدمات استقدام', unit: 'عقد', costPrice: 12000, salePrice: 17500, currentStock: 15, status: 'متوفر' },
-  { id: 'INV-102', sku: 'INV-102', name: 'عقد تأجير شهري (عمالة مهنية)', category: 'تأجير تشغيلي', unit: 'شهر', costPrice: 2200, salePrice: 3500, currentStock: 42, status: 'متوفر' },
-  { id: 'INV-103', sku: 'INV-103', name: 'عقد استقدام سائق خاص (الهند)', category: 'خدمات استقدام', unit: 'عقد', costPrice: 8500, salePrice: 13000, currentStock: 8, status: 'متوفر' },
-  { id: 'INV-104', sku: 'INV-104', name: 'باقة تنظيف منازل يومية', category: 'خدمات سريعة', unit: 'ساعة', costPrice: 150, salePrice: 250, currentStock: 100, status: 'متوفر' },
-];
+const INITIAL_ITEMS: InventoryItem[] = [];
 
-const INITIAL_VOUCHERS: StockVoucher[] = [
-  { id: 'STK-001', voucherNo: 'STK-2026-001', type: 'إضافة', date: '2026-08-01', item: 'عقد استقدام عاملة منزلية (الفلبين)', qty: 10, reason: 'دفعة جديدة من الوكالة الخارجية' },
-  { id: 'STK-002', voucherNo: 'STK-2026-002', type: 'صرف', date: '2026-08-05', item: 'عقد تأجير شهري (عمالة مهنية)', qty: 5, reason: 'تسليم لشركة مقاولات شريكة' },
-];
+const INITIAL_VOUCHERS: StockVoucher[] = [];
 
 // ── KAS Trade (standalone commercial company) seed data — zero recruitment content ──
-const KAS_INITIAL_ASSETS: FixedAsset[] = tagKasRecords([
-  { id: 'KAS-AST-001', code: 'KAS-AST-001', name: 'شاحنة توزيع إيسوزو 2024 (قطاع الأميال)', category: 'وسائل النقل والسيارات', purchaseDate: '2024-02-10', cost: 185000, depreciationRate: 20, accumulatedDepreciation: 37000, bookValue: 148000, status: 'نشط' },
-  { id: 'KAS-AST-002', code: 'KAS-AST-002', name: 'تجهيزات وديكورات المعرض التجاري الرئيسي', category: 'أثاث ومفروشات', purchaseDate: '2024-04-01', cost: 260000, depreciationRate: 10, accumulatedDepreciation: 26000, bookValue: 234000, status: 'نشط' },
-  { id: 'KAS-AST-003', code: 'KAS-AST-003', name: 'رافعات شوكية وأرفف المستودع المركزي', category: 'معدات وإلكترونيات', purchaseDate: '2023-09-15', cost: 98000, depreciationRate: 15, accumulatedDepreciation: 22050, bookValue: 75950, status: 'نشط' },
-  { id: 'KAS-AST-004', code: 'KAS-AST-004', name: 'أجهزة نقاط البيع (POS) وأنظمة الباركود', category: 'معدات وإلكترونيات', purchaseDate: '2024-01-20', cost: 42000, depreciationRate: 25, accumulatedDepreciation: 10500, bookValue: 31500, status: 'نشط' },
-]);
+const KAS_INITIAL_ASSETS: FixedAsset[] = tagKasRecords([]);
 
-const KAS_INITIAL_ITEMS: InventoryItem[] = tagKasRecords([
-  { id: 'KAS-INV-101', sku: 'KAS-INV-101', name: 'أجهزة تكييف سبليت 24 ألف وحدة', category: 'سلع وأجهزة تجارية', unit: 'جهاز', costPrice: 2100, salePrice: 2850, currentStock: 64, status: 'متوفر' },
-  { id: 'KAS-INV-102', sku: 'KAS-INV-102', name: 'أثاث مكتبي متكامل (مكتب + كرسي)', category: 'سلع وأجهزة تجارية', unit: 'طقم', costPrice: 1450, salePrice: 2100, currentStock: 38, status: 'متوفر' },
-  { id: 'KAS-INV-103', sku: 'KAS-INV-103', name: 'أجهزة حاسب محمول لتوريدات المنافسات', category: 'توريدات المنافسات الحكومية', unit: 'جهاز', costPrice: 3200, salePrice: 4150, currentStock: 120, status: 'متوفر' },
-  { id: 'KAS-INV-104', sku: 'KAS-INV-104', name: 'مستلزمات وأدوات مكتبية (كرتون)', category: 'مستهلكات ومواد تشغيل', unit: 'كرتون', costPrice: 85, salePrice: 140, currentStock: 450, status: 'متوفر' },
-]);
+const KAS_INITIAL_ITEMS: InventoryItem[] = tagKasRecords([]);
 
-const KAS_INITIAL_VOUCHERS: StockVoucher[] = tagKasRecords([
-  { id: 'KAS-STK-001', voucherNo: 'KAS-STK-2026-001', type: 'إضافة', date: '2026-08-03', item: 'أجهزة تكييف سبليت 24 ألف وحدة', qty: 40, reason: 'استلام أمر شراء من المورد #PO-KAS-2026-881' },
-  { id: 'KAS-STK-002', voucherNo: 'KAS-STK-2026-002', type: 'صرف', date: '2026-08-09', item: 'أجهزة حاسب محمول لتوريدات المنافسات', qty: 25, reason: 'توريد مستخلص منصة اعتماد #ETM-2026-88991' },
-]);
+const KAS_INITIAL_VOUCHERS: StockVoucher[] = tagKasRecords([]);
 
 export const SmaccInventoryAssetsPage: React.FC = () => {
   const { addNotification } = useAppStore();

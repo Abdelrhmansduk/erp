@@ -9,8 +9,8 @@
 
 | مجال العمل / المهمة | المهارة المحلية في المشروع (`.agents/skills/`) | المهارات المساندة في البيئة (`Global Skills`) |
 | :--- | :--- | :--- |
-| **تصميم الواجهات والثيم الأحادي (Mobbin UI)** | [`.agents/skills/ui-ux-design-system/SKILL.md`](.agents/skills/ui-ux-design-system/SKILL.md) | `ui-a11y`, `ui-review`, `frontend-design` |
-| **مكونات React 19 وTypeScript وإدارة الحالة** | [`.agents/skills/react-typescript-best-practices/SKILL.md`](.agents/skills/react-typescript-best-practices/SKILL.md)<br>[`.agents/skills/vercel-react-best-practices/SKILL.md`](.agents/skills/vercel-react-best-practices/SKILL.md) | `zustand-store-ts`, `react-component-performance`, `react-patterns` |
+| **تصميم الواجهات والثيم الأحادي (Mobbin UI)** | [`.agents/skills/ui-ux-design-system/SKILL.md`](.agents/skills/ui-ux-design-system/SKILL.md) | `modern-web-guidance`, `ui-a11y`, `ui-review`, `frontend-design` |
+| **مكونات React 19 وTypeScript وإدارة الحالة** | [`.agents/skills/react-typescript-best-practices/SKILL.md`](.agents/skills/react-typescript-best-practices/SKILL.md)<br>[`.agents/skills/vercel-react-best-practices/SKILL.md`](.agents/skills/vercel-react-best-practices/SKILL.md) | `modern-web-guidance`, `zustand-store-ts`, `react-component-performance`, `react-patterns` |
 | **قواعد البيانات، العزل `RLS`، والمصادقة الهجينة** | [`.agents/skills/supabase-integration/SKILL.md`](.agents/skills/supabase-integration/SKILL.md)<br>[`.agents/skills/supabase/SKILL.md`](.agents/skills/supabase/SKILL.md)<br>[`.agents/skills/supabase-postgres-best-practices/SKILL.md`](.agents/skills/supabase-postgres-best-practices/SKILL.md) | `database-admin`, `nextjs-supabase-auth` |
 | **المحاسبة، ZATCA، حماية الأجور WPS، مساند، وإيواء** | [`.agents/skills/saudi-erp-compliance/SKILL.md`](.agents/skills/saudi-erp-compliance/SKILL.md) | `xlsx-official`, `data-storytelling` |
 | **إدارة العملاء `CRM`، التسويق، الإعلانات الممولة، واستوديو المحتوى** | [`.agents/skills/managing-saudi-crm-marketing/SKILL.md`](.agents/skills/managing-saudi-crm-marketing/SKILL.md) | `ad-campaign-analyzer`, `ad-creative`, `odoo-sales-crm-expert`, `analytics-tracking` |
@@ -44,3 +44,14 @@
   ```bash
   node scripts/run_automated_tests.js && node scripts/audit_system.cjs
   ```
+- **فحص الأنماط القياسية الحديثة وتوافق المتصفحات (`Modern Web Guidance`)**:
+  ```bash
+  npx -y modern-web-guidance@latest legacy-scan src --json
+  ```
+
+---
+
+## 3. سياسة توافق المتصفحات ومعايير الويب (`Browser Support Policy`)
+
+- **Browser Support:** اعتماد معيار **Baseline Widely Available** عبر جميع المتصفحات الرئيسية بما فيها **Apple Safari (`macOS` و`iOS/iPadOS 16.4+`)** إلى جانب `Chrome` و`Edge` و`Firefox`.
+- عند استخدام أي خاصية حديثة (`Baseline Newly Available` أو غير مدعومة بالكامل في `Safari/WebKit` بعد)، **يلزم** الإبقاء على البديل الآمن (`Fallback` مثل `@supports not (...)` أو خصائص `-webkit-` المساندة) وفق إرشادات `modern-web-guidance` دون كسر تجربة مستخدمي أجهزة Apple.

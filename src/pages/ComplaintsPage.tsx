@@ -40,68 +40,9 @@ export interface InterCompanyDispute {
   details: string;
 }
 
-const MOCK_COMPLAINTS: ComplaintTicket[] = [
-  {
-    id: 'c-101',
-    ticket_no: 'TK-2026-0041',
-    client_name: 'بندر صالح الهويريني',
-    client_phone: '+966555774494',
-    category: 'رفض عمل',
-    contract_ref: 'RC-2026-0014',
-    priority: 'عاجل طارئ',
-    status: 'مرفوعة للمشرف',
-    sla_hours_left: 2,
-    assigned_agent: 'فهد العتيبي (مشرف التشغيل)',
-    branch: 'فرع الرياض',
-    created_at: '2026-07-31 09:30',
-    description: 'العاملة ترغب بالامتناع عن العمل وتطالب بالتحويل للإيواء أو الترحيل.'
-  },
-  {
-    id: 'c-102',
-    ticket_no: 'TK-2026-0040',
-    client_name: 'سارة أحمد محمد',
-    client_phone: '+966558025628',
-    category: 'تأخير وصول',
-    contract_ref: 'REC-2026-0089',
-    priority: 'مهم',
-    status: 'قيد المعالجة',
-    sla_hours_left: 8,
-    assigned_agent: 'عبدالفتح (مسؤول الوكلاء)',
-    branch: 'مكتب بلاتينيوم الفلبيني',
-    created_at: '2026-07-30 14:15',
-    description: 'تأخر إصدار تأشيرة المغادرة من السفارة بالفلبين لمدة 5 أيام عن الموعد.'
-  },
-  {
-    id: 'c-103',
-    ticket_no: 'TK-2026-0039',
-    client_name: 'شركة دار الرواد للمقاولات',
-    client_phone: '+966114889200',
-    category: 'استرجاع وتسوية مالية',
-    contract_ref: 'RC-2026-0010',
-    priority: 'عادي',
-    status: 'جديدة',
-    sla_hours_left: 24,
-    assigned_agent: 'إبراهيم الشمري (المحاسب)',
-    branch: 'الإدارة المالية',
-    created_at: '2026-07-31 11:00',
-    description: 'طلب استرجاع المبلغ المتبقي من تأمين السكن لعقد تأجير منتهي.'
-  }
-];
+const MOCK_COMPLAINTS: ComplaintTicket[] = [];
 
-const MOCK_INTER_DISPUTES: InterCompanyDispute[] = [
-  {
-    id: 'disp-1',
-    dispute_no: 'EXEC-2026-001',
-    sender_entity: 'شركة توباز (Topaz Group)',
-    target_entity: '🇵🇭 مكتب بلاتينيوم الفلبيني (PLATINUM)',
-    subject: 'تأخير إرسالية 12 سيرة ذاتية وتأشيرة موثقة بالربط',
-    amount_claimed: 45000,
-    executive_status: 'مرفوع للإدارة العليا',
-    priority: 'عالي جداً VIP',
-    date: '2026-07-30',
-    details: 'عدم الالتزام بجدول وصول العمالة حسب العقد الإطاري المبرم مع مكتب بلاتينيوم مانيلا.'
-  }
-];
+const MOCK_INTER_DISPUTES: InterCompanyDispute[] = [];
 
 export const ComplaintsPage: React.FC = () => {
   const { activeCompanyId } = useCompany();
@@ -111,11 +52,15 @@ export const ComplaintsPage: React.FC = () => {
 
   const complaints: ComplaintTicket[] = rawComplaints.length > 0 ? (rawComplaints as any[]) : MOCK_COMPLAINTS;
   const [interDisputes, setInterDisputes] = useState<InterCompanyDispute[]>(MOCK_INTER_DISPUTES);
-  const [refundClaims, setRefundClaims] = useState([
-    { id: 'CLM-2026-081', client: 'بندر صالح الهويريني', ref: 'RC-2026-0014', reason: 'استرجاع متبقي عقد بعد رفض العمل', amount: 8400, iban: 'SA4480000123608010119283', status: 'معتمد بانتظار التحويل' },
-    { id: 'CLM-2026-082', client: 'سارة أحمد محمد', ref: 'REC-2026-0089', reason: 'تعويض تأخير وصول أكثر من المدة النظامية', amount: 1500, iban: 'SA1220000001283920194821', status: 'تم التحويل والإيداع' },
-    { id: 'CLM-2026-083', client: 'شركة دار الرواد', ref: 'RC-2026-0010', reason: 'استرجاع مبلغ تأمين سكن عقد منتهي', amount: 3000, iban: 'SA9050000004810294819203', status: 'معتمد بانتظار التحويل' },
-  ]);
+  const [refundClaims, setRefundClaims] = useState<Array<{
+    id: string;
+    client: string;
+    ref: string;
+    reason: string;
+    amount: number;
+    iban: string;
+    status: string;
+  }>>([]);
   const [csatSurveys, setCsatSurveys] = useState<CrmCsatSurvey[]>(DEFAULT_CSAT_SURVEYS);
   const [csatForm, setCsatForm] = useState({
     client_name: '',

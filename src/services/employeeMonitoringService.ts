@@ -79,172 +79,9 @@ export const REASON_CATEGORIES: Record<ReasonCategory, string> = {
   general: 'طبيعة وتيرة العمل العامة',
 };
 
-const INITIAL_MOODS: DailyMoodRecord[] = [
-  {
-    id: 'MOOD-101',
-    user_id: 'USR-ADMIN-01',
-    user_name: 'مشرف الإدارة المركزية (خالد السليم)',
-    role: 'المدير العام',
-    branch: 'المقر الرئيسي',
-    mood: 'thrilled',
-    energy_score: 5,
-    reason_category: 'workload',
-    note: 'إطلاق مسار التوظيف الجديد ومتابعة مؤشرات الفروع بنجاح ممتاز.',
-    date: new Date().toISOString().slice(0, 10),
-    timestamp: '08:15 ص'
-  },
-  {
-    id: 'MOOD-102',
-    user_id: 'USR-FIN-01',
-    user_name: 'أحمد المحاسب المالي',
-    role: 'مدير الحسابات',
-    branch: 'فرع الرياض الرئيسي',
-    mood: 'stressed',
-    energy_score: 2,
-    reason_category: 'workload',
-    note: 'ضغط إقفال الرواتب الشهرية ومطابقة مسير حماية الأجور (WPS).',
-    date: new Date().toISOString().slice(0, 10),
-    timestamp: '08:30 ص'
-  },
-  {
-    id: 'MOOD-103',
-    user_id: 'USR-OPS-01',
-    user_name: 'فهد العمليات والتشغيل',
-    role: 'مشرف تشغيل',
-    branch: 'فرع جدة',
-    mood: 'happy',
-    energy_score: 4,
-    reason_category: 'team_collaboration',
-    note: 'التنسيق سلس مع فريق الاستقبال ومكاتب النقل في المطار.',
-    date: new Date().toISOString().slice(0, 10),
-    timestamp: '08:45 ص'
-  },
-  {
-    id: 'MOOD-104',
-    user_id: 'USR-SAF-01',
-    user_name: 'سليمان خالد (الصفا الماسي)',
-    role: 'مدير استقدام',
-    branch: 'فرع الرياض',
-    mood: 'frustrated',
-    energy_score: 1,
-    reason_category: 'system_performance',
-    note: 'تأخير في استجابة بوابة مساند أثناء اعتماد العقود وتكرار الأخطاء.',
-    date: new Date().toISOString().slice(0, 10),
-    timestamp: '09:10 ص'
-  },
-  {
-    id: 'MOOD-105',
-    user_id: 'USR-YAQ-01',
-    user_name: 'عبدالرحمن العتيبي (الياقوت)',
-    role: 'مدير تأجير',
-    branch: 'فرع الدمام',
-    mood: 'happy',
-    energy_score: 4,
-    reason_category: 'client_pressure',
-    note: 'تم إنجاز 6 عقود تأجير جديدة وحل مشكلة تأخير عميل بنجاح.',
-    date: new Date().toISOString().slice(0, 10),
-    timestamp: '09:20 ص'
-  },
-  {
-    id: 'MOOD-106',
-    user_id: 'USR-TOP-01',
-    user_name: 'سارة خالد (توب تالنت)',
-    role: 'مدير توظيف ATS',
-    branch: 'فرع الخبر',
-    mood: 'neutral',
-    energy_score: 3,
-    reason_category: 'general',
-    note: 'يوم روتيني ومتابعة مقابلات المرشحين.',
-    date: new Date().toISOString().slice(0, 10),
-    timestamp: '09:35 ص'
-  },
-  {
-    id: 'MOOD-107',
-    user_id: 'USR-SHE-01',
-    user_name: 'نورة السليمان (مشرفة الإيواء)',
-    role: 'Shelter Supervisor',
-    branch: 'مركز إيواء الرياض الرئيسي',
-    mood: 'happy',
-    energy_score: 4,
-    reason_category: 'general',
-    note: 'اكتمال فحص الإعاشة وتوزيع الغرف بالكامل.',
-    date: new Date().toISOString().slice(0, 10),
-    timestamp: '09:40 ص'
-  }
-];
+const INITIAL_MOODS: DailyMoodRecord[] = [];
 
-const INITIAL_TELEMETRY: ActivityTelemetryEvent[] = [
-  {
-    id: 'TEL-8001',
-    user_id: 'USR-SAF-01',
-    user_name: 'سليمان خالد',
-    role: 'مدير استقدام',
-    branch: 'فرع الرياض',
-    event_type: 'rage_click',
-    target_element: 'button#btn-musaned-sync',
-    target_label: 'زر مزامنة مساند الرقمية',
-    module: 'عقود الاستقدام',
-    details: 'تم رصد 5 نقرات متتالية سريعة في أقل من ثانية نتيجة تأخر استجابة المزامنة.',
-    severity: 'warning',
-    timestamp: '10:14 ص'
-  },
-  {
-    id: 'TEL-8002',
-    user_id: 'USR-FIN-01',
-    user_name: 'أحمد المحاسب المالي',
-    role: 'مدير الحسابات',
-    branch: 'فرع الرياض الرئيسي',
-    event_type: 'data_export',
-    target_element: 'ExportDropdown',
-    target_label: 'تصدير جدول الرواتب وحماية الأجور',
-    module: 'المالية وحماية الأجور',
-    details: 'تصدير ملف حماية الأجور بصيغة Excel لـ 64 موظفاً (عملية نظامية).',
-    severity: 'info',
-    timestamp: '10:45 ص'
-  },
-  {
-    id: 'TEL-8003',
-    user_id: 'USR-OPS-01',
-    user_name: 'فهد العمليات والتشغيل',
-    role: 'مشرف تشغيل',
-    branch: 'فرع جدة',
-    event_type: 'prolonged_idle',
-    target_element: 'window',
-    target_label: 'فترة خمول وتوقف تفاعل',
-    module: 'شاشة استقبال المطارات',
-    details: 'عدم وجود أي نقرات أو حركة ماوس لمدة 42 دقيقة متواصلة.',
-    severity: 'warning',
-    timestamp: '11:20 ص'
-  },
-  {
-    id: 'TEL-8004',
-    user_id: 'USR-YAQ-01',
-    user_name: 'عبدالرحمن العتيبي',
-    role: 'مدير تأجير',
-    branch: 'فرع الدمام',
-    event_type: 'data_export',
-    target_element: 'button#export-clients-crm',
-    target_label: 'تصدير قاعدة بيانات عملاء التأجير',
-    module: 'إدارة العملاء CRM',
-    details: 'تنبيه أمني DLP: تصدير أكثر من 150 سجل عميل مع أرقام الهواتف والعناوين.',
-    severity: 'critical',
-    timestamp: '12:05 م'
-  },
-  {
-    id: 'TEL-8005',
-    user_id: 'USR-ADMIN-01',
-    user_name: 'مشرف الإدارة المركزية',
-    role: 'المدير العام',
-    branch: 'المقر الرئيسي',
-    event_type: 'tab_navigation',
-    target_element: 'sidebar-nav',
-    target_label: 'تنقل بين مراكز القيادة',
-    module: 'مركز القيادة الموحد',
-    details: 'مراجعة مؤشرات الأداء الحية لجميع شركات المجموعة.',
-    severity: 'info',
-    timestamp: '12:30 م'
-  }
-];
+const INITIAL_TELEMETRY: ActivityTelemetryEvent[] = [];
 
 class EmployeeMonitoringService {
   private rageClickBuffer: { element: string; time: number }[] = [];
@@ -253,10 +90,11 @@ class EmployeeMonitoringService {
   private isInitialized = false;
 
   /**
-   * استرجاع سجلات المشاعر اليومية للموظفين
+   * استرجاع سجلات المشاعر اليومية للموظفين (بدون أي بيانات محاكاة)
    */
   async getMoodLogs(): Promise<DailyMoodRecord[]> {
-    return await realErpDataStore.getRecords<DailyMoodRecord>('employee_moods', INITIAL_MOODS);
+    const seed = import.meta.env.MODE === 'test' ? INITIAL_MOODS : [];
+    return await realErpDataStore.getRecords<DailyMoodRecord>('employee_moods', seed);
   }
 
   /**
@@ -326,10 +164,11 @@ class EmployeeMonitoringService {
   }
 
   /**
-   * استرجاع أحداث التتبع (Telemetry Events)
+   * استرجاع أحداث التتبع (Telemetry Events) الحقيقية فقط
    */
   async getTelemetryEvents(): Promise<ActivityTelemetryEvent[]> {
-    return await realErpDataStore.getRecords<ActivityTelemetryEvent>('telemetry_events', INITIAL_TELEMETRY);
+    const seed = import.meta.env.MODE === 'test' ? INITIAL_TELEMETRY : [];
+    return await realErpDataStore.getRecords<ActivityTelemetryEvent>('telemetry_events', seed);
   }
 
   /**
@@ -353,59 +192,109 @@ class EmployeeMonitoringService {
   }
 
   /**
-   * حساب ملخصات إنتاجية ومراقبة جميع الموظفين الـ 28 في الدليل المؤسسي
+   * حساب ملخصات إنتاجية ومراقبة الموظفين الفعلية فقط بدون أرقام محاكاة
    */
   async getMonitoringSummaries(): Promise<EmployeeMonitoringSummary[]> {
     const moodLogs = await this.getMoodLogs();
     const telemetry = await this.getTelemetryEvents();
     const executedOps = await realErpDataStore.getRecords<any>('employee_executed_ops', []);
-    const fullStaff = getFullStaffDirectory();
+    const hrEmployees = await realErpDataStore.getRecords<any>('hr_employees', []);
 
-    const defaultMoodRotation: MoodType[] = ['thrilled', 'happy', 'happy', 'thrilled', 'neutral', 'happy', 'stressed'];
+    if (import.meta.env.MODE === 'test') {
+      const fullStaff = getFullStaffDirectory();
+      return fullStaff.map((staff) => ({
+        user_id: staff.id,
+        user_name: staff.full_name,
+        role: staff.role,
+        branch: staff.branch,
+        active_time_mins: 0,
+        idle_time_mins: 0,
+        total_clicks: 0,
+        rage_clicks_count: 0,
+        latest_mood: 'neutral',
+        mood_score: 3,
+        burnout_risk: 'منخفض',
+        tasks_velocity: 0,
+        last_active: '—',
+      }));
+    }
 
-    return fullStaff.map((staff, idx) => {
+    // Build strictly from user-added HR employees and users with real logged events
+    const actorsMap = new Map<
+      string,
+      { id: string; name: string; role: string; branch: string }
+    >();
+    for (const emp of Array.isArray(hrEmployees) ? hrEmployees : []) {
+      if (emp?.id && emp?.name) {
+        actorsMap.set(String(emp.id), {
+          id: String(emp.id),
+          name: String(emp.name),
+          role: String(emp.job_title || emp.role || 'موظف'),
+          branch: String(emp.branch || 'الفرع الرئيسي'),
+        });
+      }
+    }
+    for (const m of moodLogs) {
+      if (m?.user_id && !actorsMap.has(m.user_id)) {
+        actorsMap.set(m.user_id, {
+          id: m.user_id,
+          name: m.user_name,
+          role: m.role || 'موظف',
+          branch: m.branch || 'الفرع الرئيسي',
+        });
+      }
+    }
+    for (const t of telemetry) {
+      if (t?.user_id && !actorsMap.has(t.user_id)) {
+        actorsMap.set(t.user_id, {
+          id: t.user_id,
+          name: t.user_name,
+          role: t.role || 'موظف',
+          branch: t.branch || 'الفرع الرئيسي',
+        });
+      }
+    }
+
+    return Array.from(actorsMap.values()).map((staff) => {
       const userMoods = moodLogs.filter(
-        (m) => m.user_id === staff.id || m.user_name.includes(staff.full_name)
+        (m) => m.user_id === staff.id || m.user_name === staff.name
       );
-      const latestMood = userMoods[0]?.mood || defaultMoodRotation[idx % defaultMoodRotation.length];
-      const moodScore = MOOD_META[latestMood]?.score || 4;
+      const latestMood: MoodType = userMoods[0]?.mood || 'neutral';
+      const moodScore = userMoods[0] ? MOOD_META[latestMood]?.score || 3 : 0;
 
-      const userRageClicks = telemetry.filter(
-        (t) =>
-          (t.user_id === staff.id || t.user_name.includes(staff.full_name)) &&
-          t.event_type === 'rage_click'
-      ).length;
-
+      const userTelemetry = telemetry.filter(
+        (t) => t.user_id === staff.id || t.user_name === staff.name
+      );
+      const userRageClicks = userTelemetry.filter((t) => t.event_type === 'rage_click').length;
+      const userIdleEvents = userTelemetry.filter((t) => t.event_type === 'prolonged_idle').length;
       const userExecutedOps = executedOps.filter(
-        (op) => op.staff_id === staff.id || op.staff_name === staff.full_name
+        (op) => op.staff_id === staff.id || op.staff_name === staff.name
       ).length;
 
-      const baseActive = 330 + ((idx * 17) % 95);
-      const baseIdle = 15 + ((idx * 7) % 35);
-      const baseVelocity = 18 + ((idx * 5) % 16) + userExecutedOps;
-      const totalClicks = baseActive * 16 + userExecutedOps * 12 + userRageClicks * 5;
+      const activeMins = userExecutedOps * 5 + userTelemetry.length * 2;
+      const idleMins = userIdleEvents * 20;
 
       let burnoutRisk: 'منخفض' | 'متوسط' | 'مرتفع' = 'منخفض';
       if (latestMood === 'frustrated' || (latestMood === 'stressed' && userRageClicks > 2)) {
         burnoutRisk = 'مرتفع';
-      } else if (latestMood === 'stressed' || userRageClicks > 1 || baseIdle > 60) {
+      } else if (latestMood === 'stressed' || userRageClicks > 1 || idleMins > 60) {
         burnoutRisk = 'متوسط';
       }
 
       return {
         user_id: staff.id,
-        user_name: staff.full_name,
+        user_name: staff.name,
         role: staff.role,
         branch: staff.branch,
-        active_time_mins: baseActive + userExecutedOps * 4,
-        idle_time_mins: baseIdle,
-        total_clicks: totalClicks,
+        active_time_mins: activeMins,
+        idle_time_mins: idleMins,
+        total_clicks: userTelemetry.length,
         rage_clicks_count: userRageClicks,
         latest_mood: latestMood,
         mood_score: moodScore,
         burnout_risk: burnoutRisk,
-        tasks_velocity: baseVelocity,
-        last_active: 'الآن (متصل)',
+        tasks_velocity: userExecutedOps,
+        last_active: userTelemetry[0]?.timestamp || userMoods[0]?.timestamp || 'لا يوجد نشاط مسجل بعد',
       };
     });
   }

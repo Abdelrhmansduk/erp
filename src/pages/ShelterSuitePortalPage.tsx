@@ -64,45 +64,7 @@ export interface ShelterMedicalCheck {
   nurse_doctor: string;
 }
 
-const DEFAULT_MEDICAL_CHECKS: ShelterMedicalCheck[] = [
-  {
-    id: 'MED-01',
-    inmate_name: 'سارة أديسي (Sara Ethiopian)',
-    passport: 'EP9827341',
-    date: '2026-08-30',
-    check_type: 'فحص وصول أولي',
-    temperature: '36.8°C',
-    blood_pressure: '118/76',
-    result: 'سليم ولائق صحياً',
-    notes: 'تم فحص العلامات الحيوية وفحص الحمل والأمراض السارية - النتيجة سليمة.',
-    nurse_doctor: 'د. منيرة العتيبي'
-  },
-  {
-    id: 'MED-02',
-    inmate_name: 'ماري جين سانتوس (Mary Jane Santos)',
-    passport: 'PH8849201',
-    date: '2026-08-31',
-    check_type: 'متابعة دورية',
-    temperature: '37.0°C',
-    blood_pressure: '120/80',
-    result: 'سليم ولائق صحياً',
-    notes: 'متابعة صحية روتينية، لا توجد شكاوى صحية.',
-    nurse_doctor: 'د. منيرة العتيبي'
-  },
-  {
-    id: 'MED-03',
-    inmate_name: 'فلورنس ناباتانزي (Florence Nabatanzi)',
-    passport: 'UG1102938',
-    date: '2026-08-28',
-    check_type: 'عزل صحي',
-    temperature: '38.2°C',
-    blood_pressure: '125/82',
-    result: 'عزل صحي مؤقت',
-    isolation_wing: 'جناح ج - غرفة العزل 301',
-    notes: 'ارتفاع في درجة الحرارة وإجهاد سفر، تم تسكينها بغرفة العزل المؤقت وصرف مخفضات حرارة.',
-    nurse_doctor: 'د. منيرة العتيبي'
-  }
-];
+const DEFAULT_MEDICAL_CHECKS: ShelterMedicalCheck[] = [];
 
 const DEFAULT_ROOMS: ShelterRoom[] = [
   {
@@ -110,8 +72,8 @@ const DEFAULT_ROOMS: ShelterRoom[] = [
     room: 'جناح أ - غرفة 101 (الفلبين)',
     beds: '6 أسرة',
     totalBeds: 6,
-    occupied: 4,
-    status: 'متاح سريران',
+    occupied: 0,
+    status: 'شاغر بالكامل',
     type: 'نزيلات الفلبين',
     clean: 'تم التعقيم اليوم 08:00 ص',
   },
@@ -120,8 +82,8 @@ const DEFAULT_ROOMS: ShelterRoom[] = [
     room: 'جناح ب - غرفة 102 (إندونيسيا)',
     beds: '6 أسرة',
     totalBeds: 6,
-    occupied: 3,
-    status: 'متاح 3 أسرة',
+    occupied: 0,
+    status: 'شاغر بالكامل',
     type: 'نزيلات إندونيسيا',
     clean: 'تم التعقيم اليوم 08:30 ص',
   },
@@ -130,37 +92,14 @@ const DEFAULT_ROOMS: ShelterRoom[] = [
     room: 'جناح ج - غرفة 201 (أوغندا وكينيا)',
     beds: '8 أسرة',
     totalBeds: 8,
-    occupied: 5,
-    status: 'متاح 3 أسرة',
+    occupied: 0,
+    status: 'شاغر بالكامل',
     type: 'نزيلات أفريقيا',
     clean: 'تم التعقيم اليوم 09:00 ص',
   },
 ];
 
-const DEFAULT_CATERING_MEALS: ShelterCateringMeal[] = [
-  {
-    id: 'CAT-01',
-    date: '2026-11-05',
-    place: 'الرياض - المقر الرئيسي',
-    meal: 'وجبة إفطار',
-    count: 18,
-    vendor: 'مخابز وحلويات الريان',
-    cost: 270,
-    sup: 'أميرة الشمري',
-    status: 'تم الاستلام والتوزيع',
-  },
-  {
-    id: 'CAT-02',
-    date: '2026-11-05',
-    place: 'الرياض - المقر الرئيسي',
-    meal: 'وجبة غداء',
-    count: 18,
-    vendor: 'مطابخ ومطاعم السليم للإعاشة',
-    cost: 450,
-    sup: 'أميرة الشمري',
-    status: 'تم الاستلام والتوزيع',
-  },
-];
+const DEFAULT_CATERING_MEALS: ShelterCateringMeal[] = [];
 
 export const ShelterSuitePortalPage: React.FC = () => {
   const { activeCompanyId, activeCompany } = useCompany();

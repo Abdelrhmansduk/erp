@@ -26,31 +26,7 @@ export const ImpersonationProvider: React.FC<{ children: React.ReactNode }> = ({
     isImpersonating: false,
   });
 
-  const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([
-    {
-      id: 'AUD-9001',
-      timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
-      actorId: 'ADM-001',
-      actorName: 'سليمان خالد السليم (Super Admin)',
-      actionType: 'محاكاة موظف',
-      companyId: 'masi',
-      branchName: 'فرع المنسكية',
-      ipAddress: '192.168.1.104',
-      details: 'دخول بصلاحيات موظف الاستقبال م. فهد العتيبي لمعاينة نموذج تعبئة طلب المساند.',
-      impersonatedEmployeeId: 'EMP-1042',
-    },
-    {
-      id: 'AUD-9000',
-      timestamp: new Date(Date.now() - 3600000 * 6).toISOString(),
-      actorId: 'ADM-001',
-      actorName: 'سليمان خالد السليم (Super Admin)',
-      actionType: 'تبديل شركة',
-      companyId: 'topaz',
-      branchName: 'الفرع الرئيسي',
-      ipAddress: '192.168.1.104',
-      details: 'الانتقال إلى مساحة شركة توباز للاستقدام لمراجعة ميزانية الربع الثالث.',
-    },
-  ]);
+  const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
 
   const startImpersonation = (
     employeeId: string,

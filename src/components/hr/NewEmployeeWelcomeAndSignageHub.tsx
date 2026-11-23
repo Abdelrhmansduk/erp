@@ -29,8 +29,6 @@ import {
 import { realErpDataStore } from '../../services/realErpDataStore';
 import { useAppStore } from '../../stores/appStore';
 import {
-  DEFAULT_COMPANY_DISPLAY_SCREENS,
-  DEFAULT_WELCOME_BROADCASTS,
   buildMailtoWelcomeHref,
   buildScreenWebPlayerUrl,
   buildWelcomeEmailQrPayload,
@@ -145,13 +143,9 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
     }
   }, [initialSubTab]);
 
-  // Data State
-  const [screens, setScreens] = useState<DigitalSignageScreenRecord[]>(
-    DEFAULT_COMPANY_DISPLAY_SCREENS
-  );
-  const [broadcasts, setBroadcasts] = useState<WelcomeBroadcastRecord[]>(
-    DEFAULT_WELCOME_BROADCASTS
-  );
+  // Data State (strictly user-added records, zero simulated screens/broadcasts)
+  const [screens, setScreens] = useState<DigitalSignageScreenRecord[]>([]);
+  const [broadcasts, setBroadcasts] = useState<WelcomeBroadcastRecord[]>([]);
   const [journeys, setJourneys] = useState<OnboardingJourneyRecord[]>([]);
   const [retroList, setRetroList] = useState<RetroactiveAdjustmentRow[]>([]);
   const [cutoffDay, setCutoffDay] = useState<number>(25);
@@ -223,27 +217,19 @@ export const NewEmployeeWelcomeAndSignageHub: React.FC<NewEmployeeWelcomeAndSign
       await Promise.all([
         realErpDataStore.getRecords<DigitalSignageScreenRecord>(
           'hr_digital_signage_screens',
-          DEFAULT_COMPANY_DISPLAY_SCREENS
+          []
         ),
         realErpDataStore.getRecords<WelcomeBroadcastRecord>(
           'hr_welcome_broadcasts',
-          DEFAULT_WELCOME_BROADCASTS
+          []
         ),
         realErpDataStore.getRecords<OnboardingJourneyRecord>('hr_onboarding_journeys', []),
         realErpDataStore.getRecords<PayrollCutoffConfigRow>('hr_payroll_cutoff_configs', []),
         realErpDataStore.getRecords<RetroactiveAdjustmentRow>('hr_retroactive_adjustments', []),
       ]);
 
-    setScreens(
-      Array.isArray(storedScreens) && storedScreens.length > 0
-        ? storedScreens
-        : DEFAULT_COMPANY_DISPLAY_SCREENS
-    );
-    setBroadcasts(
-      Array.isArray(storedBroadcasts) && storedBroadcasts.length > 0
-        ? storedBroadcasts
-        : DEFAULT_WELCOME_BROADCASTS
-    );
+    setScreens(Array.isArray(storedScreens) ? storedScreens : []);
+    setBroadcasts(Array.isArray(storedBroadcasts) ? storedBroadcasts : []);
     setJourneys(Array.isArray(storedJourneys) ? storedJourneys : []);
     setRetroList(Array.isArray(storedRetros) ? storedRetros : []);
 

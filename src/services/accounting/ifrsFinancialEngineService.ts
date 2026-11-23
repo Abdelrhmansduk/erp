@@ -2082,7 +2082,7 @@ export const ifrsFinancialEngineService = {
     if (Array.isArray(stored) && stored.length > 0) {
       return stored;
     }
-    const seeded = buildDefault211TrialBalance(true);
+    const seeded = buildDefault211TrialBalance(false);
     this.saveTrialBalance(companyId, seeded);
     return seeded;
   },
@@ -2155,9 +2155,9 @@ export const ifrsFinancialEngineService = {
       companyName: defaultCompanyName,
       reportingDate: '2026-12-31',
       currency: 'ريال سعودي (⃁)',
-      currentPortionLongTermLoansCurrent: 60000,
+      currentPortionLongTermLoansCurrent: 0,
       currentPortionLeaseLiabilitiesCurrent: 0,
-      currentPortionLongTermLoansComparative: 50000,
+      currentPortionLongTermLoansComparative: 0,
       currentPortionLeaseLiabilitiesComparative: 0,
       roundingTolerance: 1,
     };

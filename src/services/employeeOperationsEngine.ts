@@ -587,18 +587,11 @@ export const employeeOperationsEngine = {
   },
 
   /**
-   * Ensure all 28 employees have initial executed operations & audit logs seeded
+   * Returns real executed operations only (demo auto-seeding disabled for clean production mode)
    */
   async ensureSeededForAllEmployees(): Promise<ExecutedEmployeeOperation[]> {
     try {
-      const existing = await this.getExecutedOperations();
-      if (existing.length >= CORPORATE_STAFF_DIRECTORY.length && localStorage.getItem(SEED_FLAG_KEY) === 'true') {
-        return existing;
-      }
-
-      const results = await this.executeOperationsForAllEmployees();
-      localStorage.setItem(SEED_FLAG_KEY, 'true');
-      return results;
+      return await this.getExecutedOperations();
     } catch {
       return [];
     }

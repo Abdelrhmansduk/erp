@@ -251,30 +251,7 @@ export const DEFAULT_COMPANY_DISPLAY_SCREENS: DigitalSignageScreenRecord[] = [
   },
 ];
 
-export const DEFAULT_WELCOME_BROADCASTS: WelcomeBroadcastRecord[] = [
-  {
-    id: 'WBC-DEFAULT-01',
-    company_id: 'SAF',
-    company_name_ar: 'مجموعة خالد السليم القابضة',
-    employee_id: 'emp-101',
-    employee_code: 'EMP-2026-001',
-    employee_name: 'عبدالفتح — إدارة الوكلاء والتشغيل',
-    job_title: 'مسؤول أول علاقات الوكلاء الدوليين',
-    department: 'التشغيل والاستقدام',
-    branch: 'المقر الرئيسي - الرياض',
-    hire_date: '2026-11-01',
-    buddy_name: 'فهد العتيبي',
-    headline_ar: 'أهلاً بك في عائلة مجموعة خالد السليم القابضة',
-    welcome_quote_ar:
-      'يسعدنا انضمامك إلينا في مسيرة التميز المؤسسي، ونتطلع لبصمتك الفاعلة مع فريق العمل ونتمنى لك مسيرة مهنية حافلة بالنجاح.',
-    corporate_email: 'HR@kas.sa',
-    target_screen_ids: ['ALL'],
-    slide_duration_seconds: 12,
-    is_active: true,
-    broadcasted_by: 'إدارة الموارد البشرية (HR@kas.sa)',
-    created_at: '2026-11-14T08:30:00Z',
-  },
-];
+export const DEFAULT_WELCOME_BROADCASTS: WelcomeBroadcastRecord[] = [];
 
 export interface TriggerOnboardingConsequencesInput {
   companyId: string;
@@ -577,9 +554,11 @@ export async function broadcastWelcomeToScreens(
 ): Promise<WelcomeBroadcastRecord[]> {
   const existing = await realErpDataStore.getRecords<WelcomeBroadcastRecord>(
     'hr_welcome_broadcasts',
-    DEFAULT_WELCOME_BROADCASTS
+    []
   );
-  const withoutDuplicate = existing.filter((x) => x.id !== broadcast.id);
+  const withoutDuplicate = existing.filter(
+    (x) => x.id !== broadcast.id && x.id !== 'WBC-DEFAULT-01' && x.id !== 'WBC-DEFAULT-02'
+  );
   const updated = [broadcast, ...withoutDuplicate];
   await realErpDataStore.saveRecords('hr_welcome_broadcasts', updated);
 

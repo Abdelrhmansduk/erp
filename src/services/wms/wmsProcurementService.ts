@@ -34,6 +34,7 @@ function getStorageKey(companyId: WmsCompanyId): string {
 }
 
 function createInitialVendors(companyId: WmsCompanyId): WmsVendor[] {
+  if (companyId !== 'KAS') return [];
   return [
     {
       id: `VND-${companyId}-001`,

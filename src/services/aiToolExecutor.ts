@@ -2032,7 +2032,7 @@ async function executeGetExternalAgencyScorecard(
     );
   }
 
-  const ranked = [...scorecards].sort((a, b) => b.dynamicScore - a.dynamicScore);
+  const ranked = scorecards.toSorted((a, b) => b.dynamicScore - a.dynamicScore);
   const lines = ranked.slice(0, 6).map(
     (s, i) =>
       `${i + 1}. ${s.agency.name_ar} (${s.agency.country}) — التزام ${s.dynamicScore}% | نشط: ${s.activeCount} | الإجمالي: ${s.totalContracts} | عمولة: $${s.agency.default_commission_usd} (⃁ ${Math.round(s.agency.default_commission_usd * 3.75).toLocaleString()})`

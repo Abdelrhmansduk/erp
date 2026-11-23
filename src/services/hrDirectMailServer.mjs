@@ -135,10 +135,10 @@ export function saveLocalGatewayConfig(config) {
     fs.writeFileSync(getGatewayConfigPath(), JSON.stringify(next, null, 2), 'utf8');
   } catch (err) {
     const e = new Error(
-      'تعذر حفظ ملف إعدادات البريد المحلي في بيئة التشغيل الحالية؛ يُرجى ضبط متغيرات البيئة (HR_SMTP_* أو AZURE_*) في إعدادات الخادم.'
+      'تعذر حفظ ملف إعدادات البريد المحلي في بيئة التشغيل الحالية؛ يُرجى ضبط متغيرات البيئة (HR_SMTP_* أو AZURE_*) في إعدادات الخادم.',
+      { cause: err }
     );
     e.code = 'GATEWAY_STORAGE_READONLY';
-    e.cause = err;
     throw e;
   }
 

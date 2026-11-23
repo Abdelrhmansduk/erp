@@ -6,6 +6,15 @@
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover, user-scalable=yes" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      try {
+        var _rawApp = localStorage.getItem('ALSULAIM_APPEARANCE_SETTINGS_V1');
+        var _mode = _rawApp ? JSON.parse(_rawApp).themeMode : 'light';
+        document.querySelector('meta[name="color-scheme"]').content =
+          _mode === 'system' ? 'light dark' : _mode === 'dark' ? 'dark' : 'light';
+      } catch (_) {}
+    </script>
     <meta name="theme-color" content="#ffffff" />
     <meta name="description" content="المنظومة المؤسسية الموحدة لمجموعة خالد السليم القابضة (ERP Cloud v4.2) — الاستقدام، المنافسات الحكومية، التشغيل والصيانة، الموارد البشرية، الإدارة المالية والمحاسبة، الفوترة الإلكترونية ZATCA، والمساعد الذكي فارس ونُورة." />
     <meta name="apple-mobile-web-app-capable" content="yes" />

@@ -11,14 +11,7 @@ export interface BudgetItem {
   period: string;
 }
 
-export const DEFAULT_BUDGET_ITEMS: BudgetItem[] = [
-  { id: 'b-1', category: 'رواتب وأجور الكوادر', department: 'الموارد البشرية', allocatedBudget: 1500000, spentAmount: 1100000, committedAmount: 150000, period: '2026' },
-  { id: 'b-2', category: 'تجهيزات ومشتريات مناقصات كاس', department: 'التوريدات والمناقصات', allocatedBudget: 800000, spentAmount: 620000, committedAmount: 95000, period: '2026' },
-  { id: 'b-3', category: 'مصروفات تشغيل ومراكز إيواء', department: 'العمليات والتشغيل', allocatedBudget: 350000, spentAmount: 290000, committedAmount: 35000, period: '2026' },
-  { id: 'b-4', category: 'تقنية المعلومات والاتصالات', department: 'تقنية المعلومات', allocatedBudget: 200000, spentAmount: 130000, committedAmount: 20000, period: '2026' },
-  { id: 'b-5', category: 'تسويق وإعلانات واستقطاب', department: 'التسويق والمبيعات', allocatedBudget: 180000, spentAmount: 165000, committedAmount: 25000, period: '2026' },
-  { id: 'b-6', category: 'استشارات قانونية ورسوم حكومية', department: 'الشؤون القانونية', allocatedBudget: 120000, spentAmount: 75000, committedAmount: 10000, period: '2026' },
-];
+export const DEFAULT_BUDGET_ITEMS: BudgetItem[] = [];
 
 export const BudgetVsActualWidget: React.FC<{ items?: BudgetItem[] }> = ({ items = DEFAULT_BUDGET_ITEMS }) => {
   const totalAllocated = items.reduce((sum, item) => sum + item.allocatedBudget, 0);
@@ -26,6 +19,7 @@ export const BudgetVsActualWidget: React.FC<{ items?: BudgetItem[] }> = ({ items
   const totalCommitted = items.reduce((sum, item) => sum + item.committedAmount, 0);
   const totalRemaining = totalAllocated - (totalSpent + totalCommitted);
   const overallUsagePct = totalAllocated > 0 ? Number((((totalSpent + totalCommitted) / totalAllocated) * 100).toFixed(1)) : 0;
+  const spentPct = totalAllocated > 0 ? ((totalSpent / totalAllocated) * 100).toFixed(1) : '0.0';
 
   return (
     <div className="space-y-6">
@@ -46,7 +40,7 @@ export const BudgetVsActualWidget: React.FC<{ items?: BudgetItem[] }> = ({ items
             <TrendingDown className="w-4 h-4 text-[#141414]" />
           </div>
           <div className="text-xl font-bold font-mono text-[#141414]">{totalSpent.toLocaleString()} ⃁</div>
-          <div className="text-[10px] text-[#707070] mt-1">{((totalSpent / totalAllocated) * 100).toFixed(1)}% من الميزانية</div>
+          <div className="text-[10px] text-[#707070] mt-1">{spentPct}% من الميزانية</div>
         </div>
 
         <div className="p-4 rounded-2xl bg-white  border border-[#e0e0e0]">
@@ -93,9 +87,15 @@ export const BudgetVsActualWidget: React.FC<{ items?: BudgetItem[] }> = ({ items
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e0e0e0]">
-              {items.map((item) => {
+              {items.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-6 text-center text-[#707070]">
+                    لا توجد بنود ميزانية مسجلة حالياً
+                  </td>
+                </tr>
+              ) : items.map((item) => {
                 const totalUsed = item.spentAmount + item.committedAmount;
-                const percent = Math.min(100, Math.round((totalUsed / item.allocatedBudget) * 100));
+                const percent = item.allocatedBudget > 0 ? Math.min(100, Math.round((totalUsed / item.allocatedBudget) * 100)) : 0;
                 const remaining = item.allocatedBudget - totalUsed;
                 const isWarning = percent >= 85 && percent < 100;
                 const isOver = percent >= 100;

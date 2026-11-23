@@ -2110,7 +2110,7 @@ export function getHousingOutlook(input: HousingOutlookInput): OutlookScenario[]
   }
 
   const currentByType = new Map<string, OutlookDocument>();
-  for (const d of [...documents].sort(
+  for (const d of documents.toSorted(
     (a, b) => +new Date(b.created_at || b.verified_at || 0) - +new Date(a.created_at || a.verified_at || 0)
   )) {
     const kind = ['جواز', 'جواز سفر'].includes(d.document_type) ? 'passport' : d.document_type;
@@ -2335,7 +2335,7 @@ export function deriveDemoNeeds(payload: any): DemoAssessment {
   const issuedExit = exitReported && exitProof;
   const validDocument = passport || travelDoc;
   const travel = (payload?.travelReservations || []) as Record<string, any>[];
-  const latestTravel = [...travel].sort((a, b) =>
+  const latestTravel = travel.toSorted((a, b) =>
     String(b.created_at || '').localeCompare(String(a.created_at || ''))
   )[0];
   const activeAbsconding = facts.absconding_status === 'active' || worker.absconding_status === 'active';

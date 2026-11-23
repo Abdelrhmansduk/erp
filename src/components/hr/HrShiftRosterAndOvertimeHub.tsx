@@ -80,41 +80,7 @@ interface HrShiftRosterAndOvertimeHubProps {
   onOpenEmployee360?: (employeeId: string) => void;
 }
 
-const DEFAULT_COMPANY_CIRCULARS: CompanyCircularRecord[] = [
-  {
-    id: 'CIRC-2026-01',
-    company_id: 'SAF',
-    title: 'تنظيم ساعات الدوام المرن والالتزام ببصمة السياج الجغرافي (المادة 98)',
-    category: 'دوام ومناوبات',
-    summary:
-      'اعتماد نافذة الحضور المرن من 07:30 حتى 09:30 صباحاً للكوادر الإدارية مع إتمام 8 ساعات عمل فعلية يومياً (6 ساعات في شهر رمضان المبارك).',
-    published_at: '2026-11-01',
-    mandatory_ack: true,
-    acknowledged_by_ids: ['1', '2'],
-  },
-  {
-    id: 'CIRC-2026-02',
-    company_id: 'SAF',
-    title: 'ضوابط تكليف العمل الإضافي المسبق واحتساب أجر الساعة الإضافية (المادة 107)',
-    category: 'لائحة تنظيم العمل',
-    summary:
-      'يشترط اعتماد المدير المباشر المسبق لساعات التكليف الإضافي ليتم احتسابها آلياً بواقع 150% في الأيام العادية و200% في الأعياد والعطل الرسمية.',
-    published_at: '2026-11-05',
-    mandatory_ack: true,
-    acknowledged_by_ids: ['1'],
-  },
-  {
-    id: 'CIRC-2026-03',
-    company_id: 'SAF',
-    title: 'سياسة حماية البيانات الشخصية لمنسوبي وعملاء المجموعة (نظام PDPL)',
-    category: 'أمن المعلومات وPDPL',
-    summary:
-      'حظر تداول بيانات الهويات الوطنية وأرقام الآيبان وعقود قوى خارج القنوات المشفرة المعتمدة في النظام.',
-    published_at: '2026-11-10',
-    mandatory_ack: true,
-    acknowledged_by_ids: ['1', '2', '3'],
-  },
-];
+const DEFAULT_COMPANY_CIRCULARS: CompanyCircularRecord[] = [];
 
 export const HrShiftRosterAndOvertimeHub: React.FC<HrShiftRosterAndOvertimeHubProps> = ({
   employees,
@@ -141,7 +107,7 @@ export const HrShiftRosterAndOvertimeHub: React.FC<HrShiftRosterAndOvertimeHubPr
   const [otRegHours, setOtRegHours] = useState<number>(4);
   const [otHolHours, setOtHolHours] = useState<number>(0);
   const [otLateMins, setOtLateMins] = useState<number>(0);
-  const [otReason, setOtReason] = useState<string>('إقفال تشغيلي ومطابقة عقود نهاية الأسبوع');
+  const [otReason, setOtReason] = useState<string>('');
 
   // Roster & Swap Form
   const [rosterEmpId, setRosterEmpId] = useState<string>(employees[0]?.id || '');
@@ -152,7 +118,7 @@ export const HrShiftRosterAndOvertimeHub: React.FC<HrShiftRosterAndOvertimeHubPr
   const [swapReqEmpId, setSwapReqEmpId] = useState<string>(employees[0]?.id || '');
   const [swapTargetEmpId, setSwapTargetEmpId] = useState<string>(employees[1]?.id || employees[0]?.id || '');
   const [swapDate, setSwapDate] = useState<string>(new Date().toISOString().slice(0, 10));
-  const [swapReason, setSwapReason] = useState<string>('تغطية مناوبة مسائية بالتراضي بين الزملاء');
+  const [swapReason, setSwapReason] = useState<string>('');
 
   // Circular Form
   const [circTitle, setCircTitle] = useState<string>('');
@@ -178,7 +144,7 @@ export const HrShiftRosterAndOvertimeHub: React.FC<HrShiftRosterAndOvertimeHubPr
     );
     setRosters(Array.isArray(rsts) ? rsts : []);
     setSwaps(Array.isArray(swps) ? swps : []);
-    setCirculars(Array.isArray(circs) && circs.length > 0 ? circs : DEFAULT_COMPANY_CIRCULARS);
+    setCirculars(Array.isArray(circs) ? circs : []);
 
     const depMap: Record<string, number> = {};
     for (const d of Array.isArray(deps) ? deps : []) {

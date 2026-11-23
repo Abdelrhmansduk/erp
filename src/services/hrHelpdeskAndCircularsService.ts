@@ -142,128 +142,6 @@ export function computeTicketSlaStatus(ticket: HrHelpdeskTicket, nowMs = Date.no
   };
 }
 
-function getSeedTickets(companyId: string): HrHelpdeskTicket[] {
-  const now = Date.now();
-  const h = 3_600_000;
-  return [
-    {
-      id: 'HR-TKT-SEED-01',
-      company_id: companyId,
-      ticket_no: 'TKT-2026-1001',
-      employee_name: 'محمود فودة',
-      employee_email: 'm.fouda.followup@kas.sa',
-      department_id: 'ats',
-      category: 'خطاب تعريف / شهادة',
-      priority: 'متوسط',
-      subject: 'طلب خطاب تعريف بالراتب موجّه للبنك الأهلي',
-      description: 'آمل إصدار خطاب تعريف بالراتب مصدّق ومختوم باللغتين العربية والإنجليزية موجّه للبنك الأهلي السعودي.',
-      status: 'قيد المعالجة',
-      assigned_to_name: 'أ. ريم بن حسين',
-      assigned_to_email: 'reem.hr@kas.sa',
-      sla_hours: 24,
-      sla_due_at: new Date(now + 14 * h).toISOString(),
-      replies: [
-        {
-          id: 'RPL-1',
-          author_name: 'أ. ريم بن حسين',
-          author_email: 'reem.hr@kas.sa',
-          author_role: 'HR',
-          message: 'تم استلام طلبك وجاري اعتماد الخطاب وإرفاقه خلال ساعات.',
-          created_at: new Date(now - 2 * h).toISOString(),
-        },
-      ],
-      created_at: new Date(now - 10 * h).toISOString(),
-      updated_at: new Date(now - 2 * h).toISOString(),
-    },
-    {
-      id: 'HR-TKT-SEED-02',
-      company_id: companyId,
-      ticket_no: 'TKT-2026-1002',
-      employee_name: 'حاتم سلمان',
-      employee_email: 'h.salman.trade@kas.sa',
-      department_id: 'tenders',
-      category: 'تأمين طبي وتابعين',
-      priority: 'عاجل',
-      subject: 'إضافة مولود جديد إلى بوليصة التأمين الطبي',
-      description: 'أرجو إضافة المولود الجديد إلى بوليصة التأمين الطبي، وشهادة الميلاد مرفقة في الملف الوظيفي.',
-      status: 'مفتوحة',
-      assigned_to_name: 'أ. ريم بن حسين',
-      assigned_to_email: 'reem.hr@kas.sa',
-      sla_hours: 8,
-      sla_due_at: new Date(now - 3 * h).toISOString(), // intentionally overdue to showcase SLA radar
-      replies: [],
-      created_at: new Date(now - 11 * h).toISOString(),
-      updated_at: new Date(now - 11 * h).toISOString(),
-    },
-  ];
-}
-
-function getSeedCirculars(companyId: string): HrCircularRecord[] {
-  const now = Date.now();
-  const d = 86_400_000;
-  return [
-    {
-      id: 'HR-CIR-SEED-01',
-      company_id: companyId,
-      circular_no: 'CIR-2026-014',
-      title: 'تعميم إداري: سياسة الخصوصية وحماية البيانات الشخصية (PDPL) واستخدام البريد الداخلي',
-      category: 'تعميم أمن سيبراني وخصوصية',
-      body_text:
-        'تؤكد الإدارة العليا وإدارة الموارد البشرية على جميع منسوبي المجموعة الالتزام الكامل بسياسة حماية البيانات الشخصية (PDPL)، وحصر المراسلات الرسمية داخل البريد المؤسسي الداخلي في نظام ERP، وعدم مشاركة بيانات الموظفين أو العملاء خارج الصلاحيات المعتمدة.',
-      target_departments: ['all'],
-      require_acknowledgment: true,
-      published_by_name: 'أ. ريم بن حسين — الموارد البشرية',
-      published_by_email: 'reem.hr@kas.sa',
-      published_at: new Date(now - 2 * d).toISOString(),
-      read_receipts: [
-        {
-          employee_email: 'khalid@kas.sa',
-          employee_name: 'الشيخ خالد بن عبدالعزيز السليم',
-          department_id: 'executive',
-          read_at: new Date(now - 1.9 * d).toISOString(),
-          acknowledged_at: new Date(now - 1.9 * d).toISOString(),
-        },
-        {
-          employee_email: 'a.salif.dev@kas.sa',
-          employee_name: 'م. عبدالرحمن سليف',
-          department_id: 'executive',
-          read_at: new Date(now - 1.5 * d).toISOString(),
-          acknowledged_at: new Date(now - 1.5 * d).toISOString(),
-        },
-      ],
-      status: 'منشور',
-      created_at: new Date(now - 2 * d).toISOString(),
-      updated_at: new Date(now - 1.5 * d).toISOString(),
-    },
-    {
-      id: 'HR-CIR-SEED-02',
-      company_id: companyId,
-      circular_no: 'CIR-2026-015',
-      title: 'تحديث مواعيد قطع الحضور والانصراف وإغلاق مسير الرواتب الشهري',
-      category: 'تحديث لائحة العمل',
-      body_text:
-        'نحيطكم علماً بأن موعد إقفال سجلات الحضور والأذونات والإجازات الشهرية هو يوم 25 من كل شهر ميلادي الساعة 5:00 مساءً لضمان رفع ملف حماية الأجور (مُدد WPS) في الموعد النظامي.',
-      target_departments: ['all'],
-      require_acknowledgment: true,
-      published_by_name: 'أ. ريم بن حسين — الموارد البشرية',
-      published_by_email: 'reem.hr@kas.sa',
-      published_at: new Date(now - d).toISOString(),
-      read_receipts: [
-        {
-          employee_email: 'reem.hr@kas.sa',
-          employee_name: 'أ. ريم بن حسين',
-          department_id: 'hr',
-          read_at: new Date(now - 0.9 * d).toISOString(),
-          acknowledged_at: new Date(now - 0.9 * d).toISOString(),
-        },
-      ],
-      status: 'منشور',
-      created_at: new Date(now - d).toISOString(),
-      updated_at: new Date(now - 0.9 * d).toISOString(),
-    },
-  ];
-}
-
 export function getTargetEmployeesForCircular(circular: HrCircularRecord) {
   const excluded = new Set(Object.keys(EXCLUDED_KAS_EMAILS).map((e) => e.toLowerCase()));
   const active = KAS_ALLOWED_EMPLOYEES.filter(
@@ -318,15 +196,20 @@ export function computeCircularCompliance(circular: HrCircularRecord) {
 }
 
 export const hrHelpdeskAndCircularsService = {
-  async loadTickets(companyId: string, user: any): Promise<HrHelpdeskTicket[]> {
+  async loadTickets(_companyId: string, user: any): Promise<HrHelpdeskTicket[]> {
     const all = await realErpDataStore.getRecords<HrHelpdeskTicket>(
       'hr_helpdesk_tickets',
-      getSeedTickets(companyId)
+      []
     );
     const privileged = isPrivilegedAiCrossSectionUser(user);
     const userEmail = String(user?.email || '').trim().toLowerCase();
     return all
-      .filter((t) => privileged || String(t.employee_email || '').toLowerCase() === userEmail)
+      .filter(
+        (t) =>
+          t.id !== 'HR-TKT-SEED-01' &&
+          t.id !== 'HR-TKT-SEED-02' &&
+          (privileged || String(t.employee_email || '').toLowerCase() === userEmail)
+      )
       .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
   },
 
@@ -363,12 +246,12 @@ export const hrHelpdeskAndCircularsService = {
       created_at: new Date(now).toISOString(),
       updated_at: new Date(now).toISOString(),
     };
-    await realErpDataStore.addRecord<HrHelpdeskTicket>('hr_helpdesk_tickets', ticket, getSeedTickets(input.companyId));
+    await realErpDataStore.addRecord<HrHelpdeskTicket>('hr_helpdesk_tickets', ticket, []);
     return ticket;
   },
 
   async addTicketReply(
-    companyId: string,
+    _companyId: string,
     ticketId: string,
     reply: {
       authorName: string;
@@ -380,7 +263,7 @@ export const hrHelpdeskAndCircularsService = {
   ): Promise<HrHelpdeskTicket | null> {
     const all = await realErpDataStore.getRecords<HrHelpdeskTicket>(
       'hr_helpdesk_tickets',
-      getSeedTickets(companyId)
+      []
     );
     const target = all.find((t) => t.id === ticketId);
     if (!target) return null;
@@ -407,18 +290,18 @@ export const hrHelpdeskAndCircularsService = {
       ],
       updated_at: nowIso,
     };
-    await realErpDataStore.updateRecord<HrHelpdeskTicket>('hr_helpdesk_tickets', ticketId, updated, getSeedTickets(companyId));
+    await realErpDataStore.updateRecord<HrHelpdeskTicket>('hr_helpdesk_tickets', ticketId, updated, []);
     return updated;
   },
 
   async updateTicketStatus(
-    companyId: string,
+    _companyId: string,
     ticketId: string,
     status: HrTicketStatus
   ): Promise<HrHelpdeskTicket | null> {
     const all = await realErpDataStore.getRecords<HrHelpdeskTicket>(
       'hr_helpdesk_tickets',
-      getSeedTickets(companyId)
+      []
     );
     const target = all.find((t) => t.id === ticketId);
     if (!target) return null;
@@ -429,19 +312,20 @@ export const hrHelpdeskAndCircularsService = {
       resolved_at: status === 'تم الحل' || status === 'مغلقة' ? nowIso : null,
       updated_at: nowIso,
     };
-    await realErpDataStore.updateRecord<HrHelpdeskTicket>('hr_helpdesk_tickets', ticketId, updated, getSeedTickets(companyId));
+    await realErpDataStore.updateRecord<HrHelpdeskTicket>('hr_helpdesk_tickets', ticketId, updated, []);
     return updated;
   },
 
-  async loadCirculars(companyId: string, user: any): Promise<HrCircularRecord[]> {
+  async loadCirculars(_companyId: string, user: any): Promise<HrCircularRecord[]> {
     const all = await realErpDataStore.getRecords<HrCircularRecord>(
       'hr_circulars',
-      getSeedCirculars(companyId)
+      []
     );
     const privileged = isPrivilegedAiCrossSectionUser(user);
     const userDept = String(user?.department_id || '').toLowerCase();
     return all
       .filter((c) => {
+        if (c.id === 'HR-CIR-SEED-01' || c.id === 'HR-CIR-SEED-02') return false;
         if (privileged) return true;
         if (c.status !== 'منشور') return false;
         const targets = c.target_departments || ['all'];
@@ -479,18 +363,18 @@ export const hrHelpdeskAndCircularsService = {
       created_at: nowIso,
       updated_at: nowIso,
     };
-    await realErpDataStore.addRecord<HrCircularRecord>('hr_circulars', record, getSeedCirculars(input.companyId));
+    await realErpDataStore.addRecord<HrCircularRecord>('hr_circulars', record, []);
     return record;
   },
 
   async acknowledgeCircular(
-    companyId: string,
+    _companyId: string,
     circularId: string,
     employee: { email: string; name: string; departmentId: string }
   ): Promise<HrCircularRecord | null> {
     const all = await realErpDataStore.getRecords<HrCircularRecord>(
       'hr_circulars',
-      getSeedCirculars(companyId)
+      []
     );
     const target = all.find((c) => c.id === circularId);
     if (!target) return null;
@@ -515,7 +399,7 @@ export const hrHelpdeskAndCircularsService = {
       read_receipts: nextReceipts,
       updated_at: nowIso,
     };
-    await realErpDataStore.updateRecord<HrCircularRecord>('hr_circulars', circularId, updated, getSeedCirculars(companyId));
+    await realErpDataStore.updateRecord<HrCircularRecord>('hr_circulars', circularId, updated, []);
     return updated;
   },
 };

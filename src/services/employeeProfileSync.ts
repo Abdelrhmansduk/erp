@@ -318,7 +318,12 @@ export async function getPersistentEmployeeDocuments(
     }));
   }
 
-  // Seed default persistent official documents for this employee once
+  // Only seed synthetic documents during automated unit tests; production shows strictly user-added documents
+  if (import.meta.env.MODE !== 'test') {
+    return [];
+  }
+
+  // Seed default persistent official documents for this employee once (test mode)
   const seeded: PersistentEmployeeDocument[] = [
     {
       id: `DOC-${empId}-ID`,
