@@ -7,7 +7,7 @@ import {
   CheckCircle2, Flame, Calculator, Store, Package
 } from 'lucide-react';
 
-export type KasDepartmentId = 
+export type KasSidebarSectionId = 
   | 'command-center'
   | 'monafasat'
   | 'boq-editor'
@@ -21,15 +21,15 @@ export type KasDepartmentId =
   | 'audit-security';
 
 interface KasNavigationSidebarProps {
-  activeDept: KasDepartmentId;
-  onSelectDept: (dept: KasDepartmentId) => void;
+  activeDept: KasSidebarSectionId;
+  onSelectDept: (dept: KasSidebarSectionId) => void;
   onReturnToErp?: () => void;
   selectedBranch: string;
   onSelectBranch: (branch: string) => void;
 }
 
 export const KAS_DEPARTMENTS: {
-  id: KasDepartmentId;
+  id: KasSidebarSectionId;
   title: string;
   titleEn: string;
   badge?: string;

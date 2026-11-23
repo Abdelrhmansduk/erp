@@ -34,53 +34,7 @@ export interface KasCommercialDeal {
   created_at: string;
 }
 
-const DEFAULT_COMMERCIAL_DEALS: KasCommercialDeal[] = [
-  {
-    id: 'KCM-1001',
-    reference_no: 'IMAL-2026-041',
-    division: 'الأميال',
-    client_name: 'شركة الإمداد اللوجستي السريع',
-    client_phone: '0504419283',
-    item_description: 'عقد تشغيل باقة الأميال السنوية لأسطول التوزيع (15 مركبة)',
-    quantity: 15,
-    unit_price: 4200,
-    vat_amount: 9450,
-    total_with_vat: 72450,
-    sales_rep: 'ماجد عبدالرحمن الصالح',
-    status: 'مؤكد ومفوتر',
-    created_at: '2026-08-14',
-  },
-  {
-    id: 'KCM-1002',
-    reference_no: 'IMAL-2026-042',
-    division: 'الأميال',
-    client_name: 'مؤسسة نجد للنقل المبرد',
-    client_phone: '0558812309',
-    item_description: 'باقة أميال تشغيلية ربع سنوية شاملة الصيانة الدورية',
-    quantity: 8,
-    unit_price: 3100,
-    vat_amount: 3720,
-    total_with_vat: 28520,
-    sales_rep: 'جمال محمد حافظ',
-    status: 'قيد التسليم',
-    created_at: '2026-08-16',
-  },
-  {
-    id: 'KCM-1003',
-    reference_no: 'SHW-2026-109',
-    division: 'المعرض',
-    client_name: 'مجموعة الفيصلية للضيافة والفنادق',
-    client_phone: '0541190024',
-    item_description: 'توريد تجهيزات صالات العرض والضيافة المباشرة من المعرض الرئيسي',
-    quantity: 12,
-    unit_price: 2850,
-    vat_amount: 5130,
-    total_with_vat: 39330,
-    sales_rep: 'باسل خالد محمد اللبودى',
-    status: 'مؤكد ومفوتر',
-    created_at: '2026-08-17',
-  },
-];
+const DEFAULT_COMMERCIAL_DEALS: KasCommercialDeal[] = [];
 
 export const KasCommercialDivisionsPage: React.FC = () => {
   const { user } = useAuthContext();

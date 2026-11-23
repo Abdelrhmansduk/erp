@@ -9,7 +9,7 @@ import {
   FileCheck, Shield, ChevronDown, CheckCheck, Send, BarChart3,
   Percent, FileText, ArrowUpRight, Package
 } from 'lucide-react';
-import { KasNavigationSidebar, KasDepartmentId, KAS_BRANCHES } from '../components/kas/KasNavigationSidebar';
+import { KasNavigationSidebar, KasSidebarSectionId, KAS_BRANCHES } from '../components/kas/KasNavigationSidebar';
 import { ExportDropdown } from '../components/common/ExportDropdown';
 import { BusinessIllustration } from '../components/common/BusinessIllustration';
 import { CorporateAvatar } from '../components/common/CorporateAvatar';
@@ -36,7 +36,7 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
   const canAccessKasWms = authService.isTabAuthorizedForUser(user, 'kas-warehouse');
 
   // Active Department
-  const [activeDept, setActiveDept] = useState<KasDepartmentId>('command-center');
+  const [activeDept, setActiveDept] = useState<KasSidebarSectionId>('command-center');
   const [selectedBranch, setSelectedBranch] = useState<string>(KAS_BRANCHES[0].name);
 
   // Search & Filter state
@@ -270,13 +270,13 @@ export const KasSuitePortalPage: React.FC<KasSuitePortalPageProps> = ({ onReturn
     }
   };
 
-  const kasSubTabs: Array<{ id: KasDepartmentId; label: string; icon: React.ReactNode; badge?: string }> = [
+  const kasSubTabs: Array<{ id: KasSidebarSectionId; label: string; icon: React.ReactNode; badge?: string }> = [
     { id: 'command-center', label: 'المركز التنفيذي للمنافسات', icon: <BarChart3 className="w-3.5 h-3.5" /> },
     { id: 'monafasat', label: 'منافسات منصة اعتماد', icon: <Layers className="w-3.5 h-3.5" />, badge: '2,651' },
     { id: 'boq-editor', label: 'محرر جداول الكميات BOQ', icon: <Calculator className="w-3.5 h-3.5" /> },
     { id: 'kas-exact-sheets', label: 'قسم الجداول المطابقة للأصل بالملي (شهر 11 — النسخ 1..4)', icon: <FileSpreadsheet className="w-3.5 h-3.5" />, badge: 'طبق الأصل' },
     ...(canAccessKasWms
-      ? [{ id: 'warehouse-wms' as KasDepartmentId, label: 'إدارة المستودعات والمخزون الذكي (WMS)', icon: <Package className="w-3.5 h-3.5" />, badge: 'WMS Pro' }]
+      ? [{ id: 'warehouse-wms' as KasSidebarSectionId, label: 'إدارة المستودعات والمخزون الذكي (WMS)', icon: <Package className="w-3.5 h-3.5" />, badge: 'WMS Pro' }]
       : []),
     { id: 'suppliers', label: 'سجل الموردين والمقاولين', icon: <Store className="w-3.5 h-3.5" />, badge: String(suppliers.length) },
     { id: 'purchase-orders', label: 'أوامر التوريد والصرف PO', icon: <Truck className="w-3.5 h-3.5" />, badge: String(purchaseOrders.length) },

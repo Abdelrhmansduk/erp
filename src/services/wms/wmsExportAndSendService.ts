@@ -228,7 +228,7 @@ function appendRtlSheet(wb: XLSX.WorkBook, sheetName: string, rows: Array<Record
   const safeRows = rows.length ? rows : [{ 'تنبيه': 'لا توجد سجلات في هذه الورقة حالياً' }];
   const ws = XLSX.utils.json_to_sheet(safeRows);
   ws['!cols'] = autoFitSheetCols(safeRows);
-  (ws as any)['!views'] = [{ rightToLeft: true }];
+  (ws as XLSX.WorkSheet & { '!views'?: Array<{ rightToLeft?: boolean }> })['!views'] = [{ rightToLeft: true }];
   XLSX.utils.book_append_sheet(wb, ws, sheetName.slice(0, 31));
 }
 
@@ -238,7 +238,7 @@ export function buildMultiSheetWmsExcelFile(scope: WmsExportScope = 'all_sheets'
   fileName: string;
 } {
   const wb = XLSX.utils.book_new();
-  (wb as any).Workbook = { Views: [{ RTL: true }] };
+  (wb as XLSX.WorkBook & { Workbook?: { Views?: Array<{ RTL?: boolean }> } }).Workbook = { Views: [{ RTL: true }] };
 
   if (scope === 'all_sheets') {
     appendRtlSheet(wb, '1-الأصناف والأرصدة', buildWmsScopeDataset('catalog').rows);

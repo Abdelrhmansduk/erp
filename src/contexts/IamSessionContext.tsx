@@ -400,7 +400,7 @@ export const IamSessionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     resource: string,
     result: 'SUCCESS' | 'FORBIDDEN' | 'FAILED',
     recordId?: string,
-    details?: any
+    details?: unknown
   ): Promise<void> => {
     await iamPolicyEngine.logAudit({
       actorId: currentUser?.id,

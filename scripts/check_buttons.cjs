@@ -14,8 +14,8 @@ files.forEach(file => {
   const filePath = path.join(pagesDir, file);
   const content = fs.readFileSync(filePath, 'utf8');
 
-  // Match <button ... > tags
-  const buttonTags = content.match(/<button[\s\S]*?>/g) || [];
+  // Match <button ... > tags while skipping '>' inside JSX {...} expressions or quoted attributes
+  const buttonTags = content.match(/<button\b(?:[^>"'{]|"[^"]*"|'[^']*'|\{(?:[^{}]|\{[^{}]*\})*\})*>/g) || [];
   totalButtons += buttonTags.length;
 
   buttonTags.forEach(btn => {

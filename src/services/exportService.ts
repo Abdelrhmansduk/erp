@@ -32,6 +32,8 @@ import {
   sanitizeHtmlMarkup,
 } from '../utils/securitySanitizers';
 
+export type ExportCell = string | number | boolean | null | undefined;
+
 export interface SectionExportConfig {
   sectionTitle: string;
   headers: string[];
@@ -3236,7 +3238,7 @@ export interface ReportKpis {
   columnTotals: (number | null)[];
 }
 
-function parseExportCellNumber(v: any): number | null {
+function parseExportCellNumber(v: unknown): number | null {
   if (typeof v === 'number' && !isNaN(v)) {
     return v;
   }
@@ -3252,7 +3254,7 @@ function parseExportCellNumber(v: any): number | null {
   return null;
 }
 
-export function calculateReportKpis(headers: string[], mappedRows: any[][]): ReportKpis {
+export function calculateReportKpis(headers: string[], mappedRows: ExportCell[][]): ReportKpis {
   let totalAmount = 0;
   let totalVat = 0;
   let hasFinancials = false;
@@ -5083,7 +5085,7 @@ function triggerBlobDownload(blob: Blob, filename: string): void {
   }
 }
 
-export function sanitizeCSVField(val: any): string {
+export function sanitizeCSVField(val: unknown): string {
   const str = String(val ?? '');
   if (/^(?:[=+@\t\r-]|[\s]+[=+@-])/.test(str)) {
     return `'${str}`;
@@ -6021,7 +6023,7 @@ export function exportToXML(
   const isoDate = now.toISOString().slice(0, 10);
   const isoTime = now.toTimeString().slice(0, 8);
 
-  const escapeXml = (unsafe: any) => {
+  const escapeXml = (unsafe: unknown) => {
     if (unsafe === null || unsafe === undefined) return '';
     return String(unsafe)
       .replace(/&/g, '&amp;')
@@ -6214,7 +6216,7 @@ export function exportToMarkdown(
   md += `\n---\n\n`;
 
   const cleanHeader = (h: string) => h.replace(/\|/g, '-').trim();
-  const cleanCell = (v: any) => String(v ?? '-').replace(/\|/g, '-').replace(/[\r\n]+/g, ' ').trim();
+  const cleanCell = (v: unknown) => String(v ?? '-').replace(/\|/g, '-').replace(/[\r\n]+/g, ' ').trim();
 
   md += `| # | ${config.headers.map(cleanHeader).join(' | ')} |\n`;
   md += `| :---: | ${config.headers.map(() => ':---').join(' | ')} |\n`;

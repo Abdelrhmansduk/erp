@@ -3427,6 +3427,7 @@ export const AttendancesPage: React.FC = () => {
                 <label className="block font-bold mb-1">رمز محطة الفرع المعتمد (PIN) *</label>
                 <input
                   type="password"
+                  autoComplete="current-password"
                   required
                   maxLength={6}
                   value={kioskPinInput}

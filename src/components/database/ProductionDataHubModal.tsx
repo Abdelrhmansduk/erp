@@ -304,28 +304,21 @@ export const ProductionDataHubModal: React.FC<ProductionDataHubModalProps> = ({ 
                 </div>
               </div>
 
-              {/* Mode Selection Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Real Production Card */}
-                <div 
+              {/* Mode Selector (Locked to Real Production Only — Zero Demo Data) */}
+              <div className="grid grid-cols-1 gap-4">
+                <div
                   onClick={() => handleModeChange('production_real')}
-                  className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${
-                    currentMode === 'production_real' 
-                      ? 'border-[#e0e0e0] bg-[#f3f3f3] ' 
-                      : 'border-[#e0e0e0] bg-white hover:border-[#adadad]'
-                  }`}
+                  className="p-5 rounded-2xl border-2 border-[#141414] bg-white cursor-pointer transition-all"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <ShieldCheck className="w-5 h-5 text-[#141414]" />
-                      <span className="text-sm font-bold text-[#141414]">نمط الإنتاج المؤسسي الفعلي (موصى به)</span>
+                      <span className="text-sm font-bold text-[#141414]">نمط الإنتاج المؤسسي الفعلي (مفعل حصرياً)</span>
                     </div>
-                    {currentMode === 'production_real' && (
-                      <span className="pill-tag-mint" style={{ fontSize: '10px' }}>النمط النشط حالياً</span>
-                    )}
+                    <span className="pill-tag-mint" style={{ fontSize: '10px' }}>بيانات حقيقية فقط • بدون بيانات تجريبية</span>
                   </div>
                   <p className="text-xs text-[#707070] leading-relaxed mb-3">
-                    يعتمد كلياً على سجلاتكم وقواعد بياناتكم الفعلية المدخلة أو المستوردة بصورة تشغيلية معتمدة.
+                    يعتمد كلياً على سجلاتكم وقواعد بياناتكم الفعلية المدخلة أو المستوردة بصورة تشغيلية معتمدة دون أي سجلات تجريبية أو افتراضية.
                   </p>
                   <ul className="text-[11px] text-[#707070] space-y-1">
                     <li className="flex items-center gap-1.5">
@@ -335,35 +328,6 @@ export const ProductionDataHubModal: React.FC<ProductionDataHubModalProps> = ({ 
                     <li className="flex items-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5 text-[#141414]" />
                       <span>ربط تلقائي بالقيود المحاسبية والفواتير المفسوحة</span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Demo Preview Card */}
-                <div 
-                  onClick={() => handleModeChange('demo_preview')}
-                  className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${
-                    currentMode === 'demo_preview' 
-                      ? 'border-[#e0e0e0] bg-[#f3f3f3] ' 
-                      : 'border-[#e0e0e0] bg-white hover:border-[#adadad]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Cpu className="w-5 h-5 text-[#141414]" />
-                      <span className="text-sm font-bold text-[#141414]">نمط المعاينة الاستعراضي (Demo)</span>
-                    </div>
-                    {currentMode === 'demo_preview' && (
-                      <span className="pill-tag-shade" style={{ fontSize: '10px' }}>النمط النشط حالياً</span>
-                    )}
-                  </div>
-                  <p className="text-xs text-[#707070] leading-relaxed mb-3">
-                    يستخدم نماذج بيانات إرشادية لتوضيح الهيكل العام للوحة والتقارير عند التهيئة الأولى.
-                  </p>
-                  <ul className="text-[11px] text-[#707070] space-y-1">
-                    <li className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#141414] inline-block" />
-                      <span>بيانات استرشادية للعرض السريع</span>
                     </li>
                   </ul>
                 </div>
@@ -519,6 +483,7 @@ export const ProductionDataHubModal: React.FC<ProductionDataHubModalProps> = ({ 
                     </label>
                     <input
                       type="password"
+                      autoComplete="new-password"
                       placeholder="VITE_SUPABASE_ANON_KEY"
                       value={customKey}
                       onChange={(e) => setCustomKey(e.target.value)}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-// @ts-ignore - shared pure ESM gateway module
+// @ts-expect-error - shared pure ESM gateway module
 import { validatePublicWebsiteUrl, analyzeHtmlForSeo, buildCollectorScriptJs } from '../../../scripts/lib/marketingSitesGateway.mjs';
 import {
   generateSiteKey,

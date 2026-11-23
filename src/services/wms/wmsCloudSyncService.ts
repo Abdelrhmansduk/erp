@@ -4,16 +4,22 @@
  */
 import { supabase, isSupabaseConfigured, isDummySupabase } from '../supabaseClient';
 import {
+  WmsAbcClass,
   WmsAuditLog,
   WmsBinLotQuant,
   WmsCategory,
   WmsCompanyId,
+  WmsConditionStatus,
   WmsCostLayer,
+  WmsCostingMode,
+  WmsCycleCountLine,
   WmsCycleCountSession,
   WmsInTransitTransfer,
+  WmsIssuePurpose,
   WmsItem,
   WmsKitBom,
   WmsLandedCostRecord,
+  WmsMediaAttachment,
   WmsPurchaseOrder,
   WmsQcInspection,
   WmsRtvDebitNote,
@@ -23,10 +29,32 @@ import {
   WmsStockQuant,
   WmsStockVoucher,
   WmsSupplierInvoiceMatch,
+  WmsTrackingMode,
+  WmsValuationMethod,
   WmsVendor,
+  WmsVoucherLine,
+  WmsVoucherStatus,
+  WmsVoucherType,
   WmsWarehouse,
+  WmsWarehouseType,
   WmsApprovalRequest,
 } from '../../types/wms';
+
+type SqlRow = Record<string, unknown>;
+
+const asStr = (v: unknown, fallback = ''): string =>
+  typeof v === 'string' ? v : v === null || v === undefined ? fallback : String(v);
+
+const asOptStr = (v: unknown): string | undefined =>
+  typeof v === 'string' && v.length > 0 ? v : undefined;
+
+const asNum = (v: unknown, fallback = 0): number => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+};
+
+const errMsg = (err: unknown, fallback: string): string =>
+  err instanceof Error ? err.message : fallback;
 
 const PENDING_SYNC_QUEUE_KEY = 'KAS_WMS_CLOUD_PENDING_QUEUE_V1';
 
@@ -267,7 +295,7 @@ export function buildWmsCloudRows(companyId: WmsCompanyId, snapshot: WmsCloudSna
         skippedLines += 1;
         return;
       }
-      let id = (l as any).id || `VL-${v.id}-${idx + 1}`;
+      let id = l.id || `VL-${v.id}-${idx + 1}`;
       if (lineIds.has(id)) id = `${id}-${idx + 1}`;
       lineIds.add(id);
       lines.push({
@@ -380,9 +408,12 @@ export const wmsCloudSyncService = {
     try {
       // PostgREST caps every response (default 1000 rows) — page through large tables
       // so hydration never silently truncates the ledger.
-      const selectAll = async (table: string, orderCol = 'id'): Promise<{ data: any[]; error: any }> => {
+      const selectAll = async (
+        table: string,
+        orderCol = 'id'
+      ): Promise<{ data: SqlRow[]; error: { message?: string } | null }> => {
         const PAGE = 1000;
-        const all: any[] = [];
+        const all: SqlRow[] = [];
         for (let from = 0; from < 100000; from += PAGE) {
           const { data, error } = await supabase
             .from(table)
@@ -391,8 +422,9 @@ export const wmsCloudSyncService = {
             .order(orderCol, { ascending: true })
             .range(from, from + PAGE - 1);
           if (error) return { data: all, error };
-          all.push(...(data || []));
-          if (!data || data.length < PAGE) break;
+          const rows = (data as SqlRow[] | null) || [];
+          all.push(...rows);
+          if (rows.length < PAGE) break;
         }
         return { data: all, error: null };
       };
@@ -428,304 +460,306 @@ export const wmsCloudSyncService = {
         return null;
       }
       // Newest vouchers first (UI expectation)
-      vchRes.data.sort((a: any, b: any) =>
-        String(b.voucher_date || '').localeCompare(String(a.voucher_date || '')) ||
-        String(b.created_at || '').localeCompare(String(a.created_at || ''))
+      vchRes.data.sort((a: SqlRow, b: SqlRow) =>
+        asStr(b.voucher_date).localeCompare(asStr(a.voucher_date)) ||
+        asStr(b.created_at).localeCompare(asStr(a.created_at))
       );
 
-      const linesByVoucher = new Map<string, any[]>();
+      const linesByVoucher = new Map<string, WmsVoucherLine[]>();
       for (const l of lineRes.data || []) {
-        const list = linesByVoucher.get(l.voucher_id) || [];
+        const vchId = asStr(l.voucher_id);
+        const list = linesByVoucher.get(vchId) || [];
         list.push({
-          id: l.id,
-          itemId: l.item_id,
-          sku: l.sku,
-          itemName: l.item_name,
-          enteredQty: Number(l.entered_qty || 0),
-          enteredUom: l.entered_uom,
-          uomFactor: Number(l.uom_factor || 1),
-          baseQty: Number(l.base_qty || 0),
-          unitCost: Number(l.unit_cost || 0),
-          totalCost: Number(l.total_cost || 0),
-          serialNumbers: Array.isArray(l.serial_numbers) ? l.serial_numbers : [],
-          lotNumber: l.lot_number || undefined,
-          expiryDate: l.expiry_date || undefined,
-          conditionStatus: l.condition_status || 'سليم',
-          custodyId: l.custody_id || undefined,
-          notes: l.notes || undefined,
+          id: asStr(l.id),
+          itemId: asStr(l.item_id),
+          sku: asStr(l.sku),
+          itemName: asStr(l.item_name),
+          enteredQty: asNum(l.entered_qty),
+          enteredUom: asStr(l.entered_uom),
+          uomFactor: asNum(l.uom_factor, 1),
+          baseQty: asNum(l.base_qty),
+          unitCost: asNum(l.unit_cost),
+          totalCost: asNum(l.total_cost),
+          serialNumbers: Array.isArray(l.serial_numbers) ? (l.serial_numbers as string[]) : [],
+          lotNumber: asOptStr(l.lot_number),
+          expiryDate: asOptStr(l.expiry_date),
+          conditionStatus: (asOptStr(l.condition_status) as WmsConditionStatus | undefined) || 'سليم',
+          custodyId: asOptStr(l.custody_id),
+          notes: asOptStr(l.notes),
         });
-        linesByVoucher.set(l.voucher_id, list);
+        linesByVoucher.set(vchId, list);
       }
 
       lastSyncedAt = new Date().toISOString();
       lastSyncError = null;
+      const setRow = (setRes.data as SqlRow | null) || null;
 
       return {
-        warehouses: (whRes.data || []).map((w: any) => ({
-          id: w.id,
-          company_id: w.company_id,
-          code: w.code,
-          nameAr: w.name_ar,
-          nameEn: w.name_en || w.name_ar,
-          warehouseType: w.warehouse_type,
-          branch: w.branch || '',
-          managerName: w.manager_name || '',
-          operatorName: w.operator_name || '',
+        warehouses: ((whRes.data as SqlRow[] | null) || []).map((w) => ({
+          id: asStr(w.id),
+          company_id: asStr(w.company_id) as WmsCompanyId,
+          code: asStr(w.code),
+          nameAr: asStr(w.name_ar),
+          nameEn: asOptStr(w.name_en) || asStr(w.name_ar),
+          warehouseType: asStr(w.warehouse_type, 'MAIN') as WmsWarehouseType,
+          branch: asStr(w.branch),
+          managerName: asStr(w.manager_name),
+          operatorName: asStr(w.operator_name),
           zones: [],
           isActive: w.is_active !== false,
         })),
-        categories: (catRes.data || []).map((c: any) => ({
-          id: c.id,
-          company_id: c.company_id,
-          code: c.code,
-          nameAr: c.name_ar,
-          nameEn: c.name_en || c.name_ar,
-          defaultTrackingMode: c.default_tracking_mode || 'NONE',
+        categories: ((catRes.data as SqlRow[] | null) || []).map((c) => ({
+          id: asStr(c.id),
+          company_id: asStr(c.company_id) as WmsCompanyId,
+          code: asStr(c.code),
+          nameAr: asStr(c.name_ar),
+          nameEn: asOptStr(c.name_en) || asStr(c.name_ar),
+          defaultTrackingMode: (asOptStr(c.default_tracking_mode) as WmsTrackingMode | undefined) || 'NONE',
           defaultCustodyEligible: Boolean(c.default_custody_eligible),
           defaultFastConsumable: Boolean(c.default_fast_consumable),
-          glInventoryAccount: c.gl_inventory_account || '114101',
-          glExpenseAccount: c.gl_expense_account || '510101',
+          glInventoryAccount: asOptStr(c.gl_inventory_account) || '114101',
+          glExpenseAccount: asOptStr(c.gl_expense_account) || '510101',
         })),
-        items: (itemRes.data || []).map((it: any) => ({
-          id: it.id,
-          company_id: it.company_id,
-          sku: it.sku,
-          barcode: it.barcode || it.sku,
-          nameAr: it.name_ar,
-          nameEn: it.name_en || undefined,
-          categoryId: it.category_id,
-          baseUom: it.base_uom,
-          uomConversions: [{ uomName: it.base_uom, factorToBase: 1 }],
-          trackingMode: it.tracking_mode || 'NONE',
-          valuationMethod: it.valuation_method || 'AVCO',
-          avgUnitCost: Number(it.avg_unit_cost || 0),
-          lastPurchaseCost: Number(it.last_purchase_cost || 0),
-          minQty: Number(it.min_qty || 0),
-          reorderPoint: Number(it.reorder_point || 0),
-          maxQty: Number(it.max_qty || 100),
-          defaultWarehouseId: it.default_warehouse_id || 'WH-MAIN',
-          defaultLocationCode: it.default_location_code || 'Z1-R1-B1',
+        items: (itemRes.data || []).map((it) => ({
+          id: asStr(it.id),
+          company_id: asStr(it.company_id) as WmsCompanyId,
+          sku: asStr(it.sku),
+          barcode: asOptStr(it.barcode) || asStr(it.sku),
+          nameAr: asStr(it.name_ar),
+          nameEn: asOptStr(it.name_en),
+          categoryId: asStr(it.category_id),
+          baseUom: asStr(it.base_uom),
+          uomConversions: [{ uomName: asStr(it.base_uom), factorToBase: 1 }],
+          trackingMode: (asOptStr(it.tracking_mode) as WmsTrackingMode | undefined) || 'NONE',
+          valuationMethod: (asOptStr(it.valuation_method) as WmsValuationMethod | undefined) || 'AVCO',
+          avgUnitCost: asNum(it.avg_unit_cost),
+          lastPurchaseCost: asNum(it.last_purchase_cost),
+          minQty: asNum(it.min_qty),
+          reorderPoint: asNum(it.reorder_point),
+          maxQty: asNum(it.max_qty, 100),
+          defaultWarehouseId: asOptStr(it.default_warehouse_id) || 'WH-MAIN',
+          defaultLocationCode: asOptStr(it.default_location_code) || 'Z1-R1-B1',
           isCustodyEligible: Boolean(it.is_custody_eligible),
           isFastConsumable: Boolean(it.is_fast_consumable),
           isSampleItem: Boolean(it.is_sample_item),
-          abcClass: it.abc_class || 'B',
-          status: it.status || 'نشط',
-          notes: it.notes || undefined,
-          attachments: Array.isArray(it.attachments) ? it.attachments : undefined,
-          createdAt: it.created_at || new Date().toISOString(),
+          abcClass: (asOptStr(it.abc_class) as WmsAbcClass | undefined) || 'B',
+          status: (asOptStr(it.status) as WmsItem['status'] | undefined) || 'نشط',
+          notes: asOptStr(it.notes),
+          attachments: Array.isArray(it.attachments) ? (it.attachments as WmsMediaAttachment[]) : undefined,
+          createdAt: asOptStr(it.created_at) || new Date().toISOString(),
         })),
-        quants: (qRes.data || []).map((q: any) => ({
-          id: q.id,
-          company_id: q.company_id,
-          itemId: q.item_id,
-          warehouseId: q.warehouse_id,
-          locationCode: q.location_code || 'Z1-R1-B1',
-          onHandQty: Number(q.on_hand_qty || 0),
-          reservedQty: Number(q.reserved_qty || 0),
-          updatedAt: q.updated_at || new Date().toISOString(),
+        quants: (qRes.data || []).map((q) => ({
+          id: asStr(q.id),
+          company_id: asStr(q.company_id) as WmsCompanyId,
+          itemId: asStr(q.item_id),
+          warehouseId: asStr(q.warehouse_id),
+          locationCode: asOptStr(q.location_code) || 'Z1-R1-B1',
+          onHandQty: asNum(q.on_hand_qty),
+          reservedQty: asNum(q.reserved_qty),
+          updatedAt: asOptStr(q.updated_at) || new Date().toISOString(),
         })),
-        vouchers: (vchRes.data || []).map((v: any) => ({
-          id: v.id,
-          company_id: v.company_id,
-          voucherNo: v.voucher_no,
-          voucherType: v.voucher_type,
-          status: v.status,
-          voucherDate: v.voucher_date,
-          warehouseId: v.warehouse_id,
-          targetWarehouseId: v.target_warehouse_id || undefined,
-          issuePurpose: v.issue_purpose || undefined,
-          beneficiaryEntity: v.beneficiary_entity || undefined,
-          costCenterCode: v.cost_center_code || undefined,
-          roomOrSite: v.room_or_site || undefined,
-          recipientEmployeeId: v.recipient_employee_id || undefined,
-          recipientName: v.recipient_name || undefined,
-          supplierName: v.supplier_name || undefined,
-          poOrTrackingNo: v.po_or_tracking_no || undefined,
-          tenderRef: v.tender_ref || undefined,
-          referenceVoucherNo: v.reference_voucher_no || undefined,
-          lines: linesByVoucher.get(v.id) || [],
-          totalQtyBase: Number(v.total_qty_base || 0),
-          totalValue: Number(v.total_value || 0),
-          journalEntryId: v.journal_entry_id || undefined,
+        vouchers: (vchRes.data || []).map((v) => ({
+          id: asStr(v.id),
+          company_id: asStr(v.company_id) as WmsCompanyId,
+          voucherNo: asStr(v.voucher_no),
+          voucherType: asStr(v.voucher_type) as WmsVoucherType,
+          status: asStr(v.status) as WmsVoucherStatus,
+          voucherDate: asStr(v.voucher_date),
+          warehouseId: asStr(v.warehouse_id),
+          targetWarehouseId: asOptStr(v.target_warehouse_id),
+          issuePurpose: asOptStr(v.issue_purpose) as WmsIssuePurpose | undefined,
+          beneficiaryEntity: asOptStr(v.beneficiary_entity),
+          costCenterCode: asOptStr(v.cost_center_code),
+          roomOrSite: asOptStr(v.room_or_site),
+          recipientEmployeeId: asOptStr(v.recipient_employee_id),
+          recipientName: asOptStr(v.recipient_name),
+          supplierName: asOptStr(v.supplier_name),
+          poOrTrackingNo: asOptStr(v.po_or_tracking_no),
+          tenderRef: asOptStr(v.tender_ref),
+          referenceVoucherNo: asOptStr(v.reference_voucher_no),
+          lines: linesByVoucher.get(asStr(v.id)) || [],
+          totalQtyBase: asNum(v.total_qty_base),
+          totalValue: asNum(v.total_value),
+          journalEntryId: asOptStr(v.journal_entry_id),
           handoverSigned: Boolean(v.handover_signed),
-          handoverSignedAt: v.handover_signed_at || undefined,
-          handoverSignatureDataUrl: v.handover_signature_data_url || undefined,
-          handoverSignerName: v.handover_signer_name || undefined,
-          createdByEmail: v.created_by_email || '',
-          createdByName: v.created_by_name || '',
-          postedByEmail: v.posted_by_email || undefined,
-          postedByName: v.posted_by_name || undefined,
-          postedAt: v.posted_at || undefined,
-          reversedByName: v.reversed_by_name || undefined,
-          reversedAt: v.reversed_at || undefined,
-          notes: v.notes || undefined,
-          attachments: Array.isArray(v.attachments) ? v.attachments : undefined,
-          createdAt: v.created_at || new Date().toISOString(),
+          handoverSignedAt: asOptStr(v.handover_signed_at),
+          handoverSignatureDataUrl: asOptStr(v.handover_signature_data_url),
+          handoverSignerName: asOptStr(v.handover_signer_name),
+          createdByEmail: asStr(v.created_by_email),
+          createdByName: asStr(v.created_by_name),
+          postedByEmail: asOptStr(v.posted_by_email),
+          postedByName: asOptStr(v.posted_by_name),
+          postedAt: asOptStr(v.posted_at),
+          reversedByName: asOptStr(v.reversed_by_name),
+          reversedAt: asOptStr(v.reversed_at),
+          notes: asOptStr(v.notes),
+          attachments: Array.isArray(v.attachments) ? (v.attachments as WmsMediaAttachment[]) : undefined,
+          createdAt: asOptStr(v.created_at) || new Date().toISOString(),
         })),
-        serialLots: (snRes.data || []).map((s: any) => ({
-          id: s.id,
-          company_id: s.company_id,
-          itemId: s.item_id,
-          sku: s.sku,
-          itemName: s.item_name,
-          serialNumber: s.serial_number || undefined,
-          lotNumber: s.lot_number || undefined,
-          expiryDate: s.expiry_date || undefined,
-          warehouseId: s.warehouse_id,
-          status: s.status,
-          assignedToName: s.assigned_to_name || undefined,
-          assignedToEntity: s.assigned_to_entity || undefined,
-          custodyId: s.custody_id || undefined,
-          receivedDate: s.received_date,
-          issuedDate: s.issued_date || undefined,
-          notes: s.notes || undefined,
+        serialLots: ((snRes.data as SqlRow[] | null) || []).map((s) => ({
+          id: asStr(s.id),
+          company_id: asStr(s.company_id) as WmsCompanyId,
+          itemId: asStr(s.item_id),
+          sku: asStr(s.sku),
+          itemName: asStr(s.item_name),
+          serialNumber: asOptStr(s.serial_number),
+          lotNumber: asOptStr(s.lot_number),
+          expiryDate: asOptStr(s.expiry_date),
+          warehouseId: asStr(s.warehouse_id),
+          status: asStr(s.status) as WmsSerialLotRecord['status'],
+          assignedToName: asOptStr(s.assigned_to_name),
+          assignedToEntity: asOptStr(s.assigned_to_entity),
+          custodyId: asOptStr(s.custody_id),
+          receivedDate: asStr(s.received_date),
+          issuedDate: asOptStr(s.issued_date),
+          notes: asOptStr(s.notes),
         })),
-        cycleCounts: (ccRes.data || []).map((c: any) => ({
-          id: c.id,
-          company_id: c.company_id,
-          countNo: c.count_no,
-          warehouseId: c.warehouse_id,
-          countDate: c.count_date,
+        cycleCounts: ((ccRes.data as SqlRow[] | null) || []).map((c) => ({
+          id: asStr(c.id),
+          company_id: asStr(c.company_id) as WmsCompanyId,
+          countNo: asStr(c.count_no),
+          warehouseId: asStr(c.warehouse_id),
+          countDate: asStr(c.count_date),
           blindMode: Boolean(c.blind_mode),
-          status: c.status,
-          countedBy: c.counted_by || '',
-          approvedBy: c.approved_by || undefined,
-          lines: Array.isArray(c.lines) ? c.lines : [],
-          notes: c.notes || undefined,
+          status: asStr(c.status) as WmsCycleCountSession['status'],
+          countedBy: asStr(c.counted_by),
+          approvedBy: asOptStr(c.approved_by),
+          lines: Array.isArray(c.lines) ? (c.lines as WmsCycleCountLine[]) : [],
+          notes: asOptStr(c.notes),
         })),
-        auditLogs: (audRes.data || []).map((a: any) => ({
-          id: a.id,
-          company_id: a.company_id,
-          action: a.action,
-          entityType: a.entity_type,
-          entityId: a.entity_id,
-          entityLabel: a.entity_label || a.entity_id,
-          actorEmail: a.actor_email || '',
-          actorName: a.actor_name || '',
-          details: a.details || '',
-          timestamp: a.created_at,
+        auditLogs: ((audRes.data as SqlRow[] | null) || []).map((a) => ({
+          id: asStr(a.id),
+          company_id: asStr(a.company_id) as WmsCompanyId,
+          action: asStr(a.action) as WmsAuditLog['action'],
+          entityType: asStr(a.entity_type),
+          entityId: asStr(a.entity_id),
+          entityLabel: asOptStr(a.entity_label) || asStr(a.entity_id),
+          actorEmail: asStr(a.actor_email),
+          actorName: asStr(a.actor_name),
+          details: asStr(a.details),
+          timestamp: asStr(a.created_at),
         })),
-        settings: setRes.data
+        settings: setRow
           ? {
-              company_id: setRes.data.company_id,
-              costingMode: setRes.data.costing_mode,
-              valuationMethod: setRes.data.valuation_method,
-              autoPostGlWhenCostPresent: Boolean(setRes.data.auto_post_gl_when_cost_present),
-              allowNegativeStock: Boolean(setRes.data.allow_negative_stock),
-              autoCustodyPrompt: Boolean(setRes.data.auto_custody_prompt),
-              strictImmutablePostedVouchers: Boolean(setRes.data.strict_immutable_posted_vouchers),
-              enforceFefo: setRes.data.enforce_fefo !== false,
-              blockExpiredLots: setRes.data.block_expired_lots !== false,
-              requireQcOnGrn: Boolean(setRes.data.require_qc_on_grn),
-              enableInTransitTransfers: Boolean(setRes.data.enable_in_transit_transfers),
-              approvalThresholdSar: Number(setRes.data.approval_threshold_sar || 10000),
-              cycleCountVarianceApprovalPct: Number(setRes.data.cycle_count_variance_approval_pct || 5),
-              enforceMakerChecker: Boolean(setRes.data.enforce_maker_checker),
-              updatedBy: setRes.data.updated_by || 'Supabase Cloud',
-              updatedAt: setRes.data.updated_at || new Date().toISOString(),
+              company_id: asStr(setRow.company_id) as WmsCompanyId,
+              costingMode: asStr(setRow.costing_mode, 'optional') as WmsCostingMode,
+              valuationMethod: asStr(setRow.valuation_method, 'AVCO') as WmsValuationMethod,
+              autoPostGlWhenCostPresent: Boolean(setRow.auto_post_gl_when_cost_present),
+              allowNegativeStock: Boolean(setRow.allow_negative_stock),
+              autoCustodyPrompt: Boolean(setRow.auto_custody_prompt),
+              strictImmutablePostedVouchers: Boolean(setRow.strict_immutable_posted_vouchers),
+              enforceFefo: setRow.enforce_fefo !== false,
+              blockExpiredLots: setRow.block_expired_lots !== false,
+              requireQcOnGrn: Boolean(setRow.require_qc_on_grn),
+              enableInTransitTransfers: Boolean(setRow.enable_in_transit_transfers),
+              approvalThresholdSar: asNum(setRow.approval_threshold_sar, 10000),
+              cycleCountVarianceApprovalPct: asNum(setRow.cycle_count_variance_approval_pct, 5),
+              enforceMakerChecker: Boolean(setRow.enforce_maker_checker),
+              updatedBy: asOptStr(setRow.updated_by) || 'Supabase Cloud',
+              updatedAt: asOptStr(setRow.updated_at) || new Date().toISOString(),
             }
           : undefined,
-        binLotQuants: (binRes.data || []).map((b: any) => ({
-          id: b.id,
-          company_id: b.company_id,
-          itemId: b.item_id,
-          warehouseId: b.warehouse_id,
-          locationCode: b.location_code,
-          lotNumber: b.lot_number || '',
-          expiryDate: b.expiry_date || undefined,
-          qcStatus: b.qc_status || 'APPROVED',
-          onHandQty: Number(b.on_hand_qty || 0),
-          reservedQty: Number(b.reserved_qty || 0),
-          inTransitQty: Number(b.in_transit_qty || 0),
-          updatedAt: b.updated_at || new Date().toISOString(),
+        binLotQuants: ((binRes.data as SqlRow[] | null) || []).map((b) => ({
+          id: asStr(b.id),
+          company_id: asStr(b.company_id) as WmsCompanyId,
+          itemId: asStr(b.item_id),
+          warehouseId: asStr(b.warehouse_id),
+          locationCode: asStr(b.location_code),
+          lotNumber: asStr(b.lot_number),
+          expiryDate: asOptStr(b.expiry_date),
+          qcStatus: (asOptStr(b.qc_status) as WmsBinLotQuant['qcStatus'] | undefined) || 'APPROVED',
+          onHandQty: asNum(b.on_hand_qty),
+          reservedQty: asNum(b.reserved_qty),
+          inTransitQty: asNum(b.in_transit_qty),
+          updatedAt: asOptStr(b.updated_at) || new Date().toISOString(),
         })),
-        costLayers: (layRes.data || []).map((l: any) => ({
-          id: l.id,
-          company_id: l.company_id,
-          itemId: l.item_id,
-          warehouseId: l.warehouse_id,
-          voucherId: l.voucher_id,
-          voucherNo: l.voucher_no,
-          receivedDate: l.received_date,
-          originalQty: Number(l.original_qty || 0),
-          remainingQty: Number(l.remaining_qty || 0),
-          unitCost: Number(l.unit_cost || 0),
-          landedCostPerUnit: Number(l.landed_cost_per_unit || 0),
-          createdAt: l.created_at || new Date().toISOString(),
+        costLayers: ((layRes.data as SqlRow[] | null) || []).map((l) => ({
+          id: asStr(l.id),
+          company_id: asStr(l.company_id) as WmsCompanyId,
+          itemId: asStr(l.item_id),
+          warehouseId: asStr(l.warehouse_id),
+          voucherId: asStr(l.voucher_id),
+          voucherNo: asStr(l.voucher_no),
+          receivedDate: asStr(l.received_date),
+          originalQty: asNum(l.original_qty),
+          remainingQty: asNum(l.remaining_qty),
+          unitCost: asNum(l.unit_cost),
+          landedCostPerUnit: asNum(l.landed_cost_per_unit),
+          createdAt: asOptStr(l.created_at) || new Date().toISOString(),
         })),
-        qcInspections: (qcRes.data || []).map((q: any) => ({
-          id: q.id,
-          company_id: q.company_id,
-          inspectionNo: q.inspection_no,
-          grnVoucherId: q.grn_voucher_id,
-          grnVoucherNo: q.grn_voucher_no,
-          itemId: q.item_id,
-          sku: q.sku,
-          itemName: q.item_name,
-          targetWarehouseId: q.target_warehouse_id,
-          lotNumber: q.lot_number || undefined,
-          expiryDate: q.expiry_date || undefined,
-          receivedQty: Number(q.received_qty || 0),
-          approvedQty: Number(q.approved_qty || 0),
-          rejectedQty: Number(q.rejected_qty || 0),
-          status: q.status,
-          inspectedBy: q.inspected_by || undefined,
-          inspectedAt: q.inspected_at || undefined,
-          notes: q.notes || undefined,
-          createdAt: q.created_at || new Date().toISOString(),
+        qcInspections: ((qcRes.data as SqlRow[] | null) || []).map((q) => ({
+          id: asStr(q.id),
+          company_id: asStr(q.company_id) as WmsCompanyId,
+          inspectionNo: asStr(q.inspection_no),
+          grnVoucherId: asStr(q.grn_voucher_id),
+          grnVoucherNo: asStr(q.grn_voucher_no),
+          itemId: asStr(q.item_id),
+          sku: asStr(q.sku),
+          itemName: asStr(q.item_name),
+          targetWarehouseId: asStr(q.target_warehouse_id),
+          lotNumber: asOptStr(q.lot_number),
+          expiryDate: asOptStr(q.expiry_date),
+          receivedQty: asNum(q.received_qty),
+          approvedQty: asNum(q.approved_qty),
+          rejectedQty: asNum(q.rejected_qty),
+          status: asStr(q.status) as WmsQcInspection['status'],
+          inspectedBy: asOptStr(q.inspected_by),
+          inspectedAt: asOptStr(q.inspected_at),
+          notes: asOptStr(q.notes),
+          createdAt: asOptStr(q.created_at) || new Date().toISOString(),
         })),
-        inTransitTransfers: (trRes.data || []).map((t: any) => ({
-          id: t.id,
-          company_id: t.company_id,
-          transferNo: t.transfer_no,
-          voucherId: t.voucher_id,
-          voucherNo: t.voucher_no,
-          sourceWarehouseId: t.source_warehouse_id,
-          targetWarehouseId: t.target_warehouse_id,
-          itemId: t.item_id,
-          sku: t.sku,
-          itemName: t.item_name,
-          dispatchedQty: Number(t.dispatched_qty || 0),
-          receivedQty: Number(t.received_qty || 0),
-          varianceQty: Number(t.variance_qty || 0),
-          status: t.status,
-          dispatchedBy: t.dispatched_by || '',
-          dispatchedAt: t.dispatched_at,
-          receivedBy: t.received_by || undefined,
-          receivedAt: t.received_at || undefined,
-          notes: t.notes || undefined,
+        inTransitTransfers: ((trRes.data as SqlRow[] | null) || []).map((t) => ({
+          id: asStr(t.id),
+          company_id: asStr(t.company_id) as WmsCompanyId,
+          transferNo: asStr(t.transfer_no),
+          voucherId: asStr(t.voucher_id),
+          voucherNo: asStr(t.voucher_no),
+          sourceWarehouseId: asStr(t.source_warehouse_id),
+          targetWarehouseId: asStr(t.target_warehouse_id),
+          itemId: asStr(t.item_id),
+          sku: asStr(t.sku),
+          itemName: asStr(t.item_name),
+          dispatchedQty: asNum(t.dispatched_qty),
+          receivedQty: asNum(t.received_qty),
+          varianceQty: asNum(t.variance_qty),
+          status: asStr(t.status) as WmsInTransitTransfer['status'],
+          dispatchedBy: asStr(t.dispatched_by),
+          dispatchedAt: asStr(t.dispatched_at),
+          receivedBy: asOptStr(t.received_by),
+          receivedAt: asOptStr(t.received_at),
+          notes: asOptStr(t.notes),
         })),
-        approvalRequests: (appRes.data || []).map((a: any) => ({
-          id: a.id,
-          company_id: a.company_id,
-          requestNo: a.request_no,
-          requestType: a.request_type,
-          entityId: a.entity_id,
-          entityLabel: a.entity_label,
-          amountSar: Number(a.amount_sar || 0),
-          variancePct: a.variance_pct !== null ? Number(a.variance_pct) : undefined,
-          requestedByEmail: a.requested_by_email,
-          requestedByName: a.requested_by_name,
-          status: a.status,
-          checkerEmail: a.checker_email || undefined,
-          checkerName: a.checker_name || undefined,
-          decidedAt: a.decided_at || undefined,
-          reason: a.reason || undefined,
-          createdAt: a.created_at || new Date().toISOString(),
+        approvalRequests: ((appRes.data as SqlRow[] | null) || []).map((a) => ({
+          id: asStr(a.id),
+          company_id: asStr(a.company_id) as WmsCompanyId,
+          requestNo: asStr(a.request_no),
+          requestType: asStr(a.request_type) as WmsApprovalRequest['requestType'],
+          entityId: asStr(a.entity_id),
+          entityLabel: asStr(a.entity_label),
+          amountSar: asNum(a.amount_sar),
+          variancePct: a.variance_pct !== null && a.variance_pct !== undefined ? asNum(a.variance_pct) : undefined,
+          requestedByEmail: asStr(a.requested_by_email),
+          requestedByName: asStr(a.requested_by_name),
+          status: asStr(a.status) as WmsApprovalRequest['status'],
+          checkerEmail: asOptStr(a.checker_email),
+          checkerName: asOptStr(a.checker_name),
+          decidedAt: asOptStr(a.decided_at),
+          reason: asOptStr(a.reason),
+          createdAt: asOptStr(a.created_at) || new Date().toISOString(),
         })),
-        kittingBoms: (kitRes.data || []).map((k: any) => ({
-          id: k.id,
-          company_id: k.company_id,
-          kitCode: k.kit_code,
-          kitNameAr: k.kit_name_ar,
-          defaultWarehouseId: k.default_warehouse_id || 'WH-MAIN',
-          components: Array.isArray(k.components) ? k.components : [],
-          createdBy: k.created_by || '',
-          createdAt: k.created_at || new Date().toISOString(),
+        kittingBoms: ((kitRes.data as SqlRow[] | null) || []).map((k) => ({
+          id: asStr(k.id),
+          company_id: asStr(k.company_id) as WmsCompanyId,
+          kitCode: asStr(k.kit_code),
+          kitNameAr: asStr(k.kit_name_ar),
+          defaultWarehouseId: asOptStr(k.default_warehouse_id) || 'WH-MAIN',
+          components: Array.isArray(k.components) ? (k.components as WmsKitBom['components']) : [],
+          createdBy: asStr(k.created_by),
+          createdAt: asOptStr(k.created_at) || new Date().toISOString(),
         })),
       };
-    } catch (err: any) {
-      lastSyncError = err?.message || 'Cloud hydration error';
+    } catch (err: unknown) {
+      lastSyncError = errMsg(err, 'Cloud hydration error');
       return null;
     }
   },
@@ -787,13 +821,13 @@ export const wmsCloudSyncService = {
       lastSyncedAt = new Date().toISOString();
       lastSyncError = null;
       return { ok: true, queued: false };
-    } catch (err: any) {
+    } catch (err: unknown) {
       enqueuePendingOp({
         companyId,
         kind: 'VOUCHER_ATOMIC',
         payload: { voucher: headerPayload, lines: voucher.lines },
       });
-      lastSyncError = err?.message || 'Offline sync queued';
+      lastSyncError = errMsg(err, 'Offline sync queued');
       return { ok: false, queued: true, error: lastSyncError || undefined };
     }
   },
@@ -832,8 +866,8 @@ export const wmsCloudSyncService = {
       lastSyncedAt = new Date().toISOString();
       lastSyncError = null;
       return { ok: true, counts: rows.counts };
-    } catch (err: any) {
-      lastSyncError = err?.message || 'Cloud sync warning';
+    } catch (err: unknown) {
+      lastSyncError = errMsg(err, 'Cloud sync warning');
       return { ok: false, error: lastSyncError || undefined, counts: rows.counts };
     }
   },
@@ -963,7 +997,7 @@ export const wmsCloudSyncService = {
       const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
       const storagePath = `${companyId}/${entityId}/${Date.now()}_${safeName}`;
       let body: File | Blob | Uint8Array;
-      let resolvedDataUrl = fallbackDataUrl;
+      const resolvedDataUrl = fallbackDataUrl;
 
       if (typeof fileOrDataUrl === 'string') {
         body = dataUrlToUint8Array(fileOrDataUrl);
@@ -1007,7 +1041,7 @@ export const wmsCloudSyncService = {
 
     for (const op of queue) {
       if (op.kind === 'VOUCHER_ATOMIC') {
-        const p = op.payload as { voucher: any; lines: any[] };
+        const p = op.payload as { voucher: Record<string, unknown>; lines: WmsVoucherLine[] };
         const { error } = await supabase.rpc('wms_post_voucher_atomic', {
           p_company_id: op.companyId,
           p_voucher: p.voucher,

@@ -17,7 +17,8 @@ import { authService, CORPORATE_DEPARTMENTS, type DepartmentId } from './authSer
 import { startGenAiSpan } from './appInsightsService';
 import { decryptStoragePayload } from '../utils/securitySanitizers';
 
-export type AssistantPersona = 'faris' | 'noura';
+import type { AssistantPersona } from '../types';
+export type { AssistantPersona };
 
 export interface CompanyScopeContext {
   id: string;

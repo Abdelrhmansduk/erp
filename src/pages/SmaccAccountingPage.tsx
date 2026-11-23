@@ -64,7 +64,7 @@ export interface SmaccAccountNode {
   children?: SmaccAccountNode[];
 }
 
-export interface JournalRecord {
+export interface SmaccJournalRecord {
   id: string;
   company_id: string;
   ref_no: string;
@@ -101,7 +101,7 @@ export interface VoucherRecord {
   created_at: string;
 }
 
-const DEFAULT_MOCK_JOURNALS: JournalRecord[] = [];
+const DEFAULT_MOCK_JOURNALS: SmaccJournalRecord[] = [];
 
 const DEFAULT_MOCK_VOUCHERS: VoucherRecord[] = [];
 
@@ -176,7 +176,7 @@ export const SmaccAccountingPage: React.FC = () => {
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
   const [showBatchExtractor, setShowBatchExtractor] = useState(false);
   const [voucherType, setVoucherType] = useState<'قبض' | 'صرف'>('قبض');
-  const [selectedJournalForPreview, setSelectedJournalForPreview] = useState<JournalRecord | null>(null);
+  const [selectedJournalForPreview, setSelectedJournalForPreview] = useState<SmaccJournalRecord | null>(null);
   const [selectedVoucherForPreview, setSelectedVoucherForPreview] = useState<VoucherRecord | null>(null);
 
   // Accounts state from chartOfAccountsService
@@ -184,7 +184,7 @@ export const SmaccAccountingPage: React.FC = () => {
   const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({ '1': true, '2': true, '3': true, '4': true, '5': true, '11': true });
 
   // Persistence for Journals and Vouchers (Strictly Isolated Per Company)
-  const [journals, setJournals] = useState<JournalRecord[]>([]);
+  const [journals, setJournals] = useState<SmaccJournalRecord[]>([]);
   const [vouchers, setVouchers] = useState<VoucherRecord[]>([]);
 
   // Load Accounts & Persisted Data (Isolated by activeCompanyId)
@@ -193,7 +193,7 @@ export const SmaccAccountingPage: React.FC = () => {
     setRawAccounts(accs);
 
     try {
-      const storedJournals = await realErpDataStore.getRecords<JournalRecord>('company_journal_entries');
+      const storedJournals = await realErpDataStore.getRecords<SmaccJournalRecord>('company_journal_entries');
       const allJournals = [...(storedJournals || []), ...DEFAULT_MOCK_JOURNALS];
       const filteredJv = activeCompanyId === 'all'
         ? allJournals
@@ -457,7 +457,7 @@ export const SmaccAccountingPage: React.FC = () => {
       return;
     }
 
-    const newJv: JournalRecord = {
+    const newJv: SmaccJournalRecord = {
       id: `jv-${Date.now()}`,
       company_id: activeCompanyId,
       ref_no: journalHeader.refNo,
@@ -552,7 +552,7 @@ export const SmaccAccountingPage: React.FC = () => {
     };
 
     // Auto-generate balanced double-entry journal for this voucher
-    const autoJv: JournalRecord = {
+    const autoJv: SmaccJournalRecord = {
       id: `jv-auto-${Date.now()}`,
       company_id: activeCompanyId,
       ref_no: `JV-VOU-${newVou.voucher_no}`,

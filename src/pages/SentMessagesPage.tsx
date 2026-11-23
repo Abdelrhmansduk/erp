@@ -1084,6 +1084,7 @@ export const SentMessagesPage: React.FC = () => {
                     <label className="block text-[11px] font-bold text-[#141414] mb-1">كلمة مرور التطبيق</label>
                     <input
                       type="password"
+                      autoComplete="new-password"
                       value={smtpPass}
                       onChange={(e) => setSmtpPass(e.target.value)}
                       placeholder={gatewayStatus?.hasSmtpPassword ? '•••••••• (محفوظة)' : 'App Password'}
@@ -1125,6 +1126,7 @@ export const SentMessagesPage: React.FC = () => {
                     <label className="block text-[11px] font-bold text-[#141414] mb-1">Client Secret</label>
                     <input
                       type="password"
+                      autoComplete="new-password"
                       value={graphClientSecret}
                       onChange={(e) => setGraphClientSecret(e.target.value)}
                       placeholder={gatewayStatus?.hasGraphCredentials ? '•••••••• (محفوظ)' : 'Client Secret'}
@@ -1141,6 +1143,7 @@ export const SentMessagesPage: React.FC = () => {
                   <label className="block text-[11px] font-bold text-[#141414] mb-1">Resend API Key</label>
                   <input
                     type="password"
+                    autoComplete="new-password"
                     value={resendApiKey}
                     onChange={(e) => setResendApiKey(e.target.value)}
                     placeholder={gatewayStatus?.hasResendKey ? '•••••••• (محفوظ)' : 're_...'}

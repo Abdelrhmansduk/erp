@@ -58,7 +58,8 @@ export interface RecordAccessContext {
   department_id?: string;
   created_by?: string;
   assigned_to?: string;
-  [key: string]: any;
+  user_id?: string;
+  [key: string]: unknown;
 }
 
 export interface IamUser {
@@ -124,7 +125,7 @@ export interface IamDepartment {
   parentId?: string;
   code: string;
   name: string;
-  departmentType: 'HR' | 'Finance' | 'Operations' | 'Procurement' | 'IT' | 'Management' | 'Legal' | string;
+  departmentType: 'HR' | 'Finance' | 'Operations' | 'Procurement' | 'IT' | 'Management' | 'Legal' | (string & {});
   managerId?: string;
   status: 'نشط' | 'موقوف';
 }
@@ -173,7 +174,7 @@ export interface IamRolePermission {
   id: string;
   roleId: string;
   permissionId: string;
-  constraintsJson?: Record<string, any>;
+  constraintsJson?: Record<string, unknown>;
 }
 
 export interface IamDelegation {
@@ -278,8 +279,8 @@ export interface IamAuditLog {
   severity: 'معلومات' | 'تحذير' | 'خطر أمني';
   ipAddress?: string;
   userAgent?: string;
-  oldValues?: any;
-  newValues?: any;
+  oldValues?: unknown;
+  newValues?: unknown;
   createdAt: string;
 }
 
@@ -310,7 +311,7 @@ export interface IamSessionContext {
   canAccessBranch: (branchId: string) => boolean;
   canAccessDepartment: (deptId: string) => boolean;
   filterRecords: <T extends RecordAccessContext>(records: T[]) => T[];
-  logAuditAction: (action: string, resource: string, result: 'SUCCESS' | 'FORBIDDEN' | 'FAILED', recordId?: string, details?: any) => Promise<void>;
+  logAuditAction: (action: string, resource: string, result: 'SUCCESS' | 'FORBIDDEN' | 'FAILED', recordId?: string, details?: unknown) => Promise<void>;
 }
 
 export const DEFAULT_IAM_COMPANIES: IamCompany[] = [

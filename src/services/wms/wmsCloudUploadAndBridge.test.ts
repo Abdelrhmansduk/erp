@@ -7,7 +7,7 @@ import {
   computeKasPasswordDigest,
   computeKasPbkdf2Digest,
 } from '../../config/kasEmployeePasswordHashes';
-// @ts-ignore - pure ESM server helper shared by Cloudflare Edge & Vite dev middleware
+// @ts-expect-error - pure ESM server helper shared by Cloudflare Edge & Vite dev middleware
 import { kasSessionBridge, extractKasEmployeeHashes } from '../../../scripts/lib/kasSessionBridge.mjs';
 
 describe('WMS cloud upload — row builder respects every constraint', () => {

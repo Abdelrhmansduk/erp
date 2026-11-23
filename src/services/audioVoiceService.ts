@@ -10,7 +10,8 @@
  * 6. Resilient Web Speech API fallback (only when server TTS is unreachable, never on intentional stop/abort).
  */
 
-export type AssistantPersona = 'faris' | 'noura';
+import type { AssistantPersona } from '../types';
+export type { AssistantPersona };
 
 // Audio assets map for instant, zero-latency playback
 const AUDIO_ASSETS: Record<string, string> = {

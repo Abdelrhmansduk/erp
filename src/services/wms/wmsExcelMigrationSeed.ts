@@ -631,7 +631,7 @@ export function extractBeneficiaryAndRecipient(rawName: string): {
 
 export function canonicalizeItemName(raw: string): string {
   // Strip beneficiary parentheticals first while keeping product specs
-  let s = raw
+  const s = raw
     .replace(/\(\s*(إلي صالة الأجتماعات|سكن الجماعي|مكتب يا قوت|مكتب ياقوت|مكتب توباز|سكن العاملات[^)]*|كريم|علي الكهربائي عمال عزم|مكتب إدارة\s*العاملات|مكنب إدارة العاملات|مكتب HR|البركس غرفة مؤمن السواق|مكتب الدعاية والاعلان|السكن الجماعي بالمكاتب|مكتب التجارة|مكتب دار الوراد|مكنب دار الرواد|مكتب الدعاية|الدعاية|بلال|المكتب الجديد|أغراض المكتب الجديد|بوفيه اسامه|محمد جمال)\s*\)/g, '')
     .replace(/(مكتب ياقوت|لسكن الجماعي الاستقدام|لحمامات السكن|لسكن العاملات|لمنزل أ \/ خالد|سكن الجماعي|مكتب\s*$)/g, '')
     .replace(/\s+/g, ' ')

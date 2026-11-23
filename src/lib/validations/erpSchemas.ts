@@ -2,11 +2,47 @@
  * Enterprise Validation Schemas for ALSALIM Group ERP
  * Compliant with Saudi Regulations (ZATCA, Musaned, WPS, Labor Law)
  */
+import { z } from 'zod';
 
 export interface ValidationResult<T> {
   success: boolean;
   data?: T;
   errors?: Record<string, string>;
+}
+
+// ─── Canonical Zod v4 Runtime Boundary Schemas ───────────────────────────────
+export const CompanyCodeSchema = z.enum(['SAF', 'YAQ', 'TOP', 'DAR', 'KAS']);
+
+export const AppNotificationSchema = z.object({
+  id: z.string().min(1),
+  title: z.string(),
+  message: z.string(),
+  type: z.enum(['info', 'success', 'warning', 'error']),
+  priority: z.enum(['critical', 'actionable', 'micro']).optional(),
+  category: z.enum(['zatca', 'etimad', 'musaned', 'shelter', 'hr', 'finance', 'system']).optional(),
+  companyId: z.string().optional(),
+  timestamp: z.string(),
+  read: z.boolean(),
+  link: z.string().optional(),
+  actionLabel: z.string().optional(),
+});
+
+export const AppNotificationListSchema = z.array(AppNotificationSchema);
+
+export function safeValidateWithSchema<T>(
+  schema: z.ZodType<T>,
+  payload: unknown
+): ValidationResult<T> {
+  const result = schema.safeParse(payload);
+  if (result.success) {
+    return { success: true, data: result.data };
+  }
+  const errors: Record<string, string> = {};
+  for (const issue of result.error.issues) {
+    const key = issue.path.length > 0 ? issue.path.join('.') : '_root';
+    errors[key] = issue.message;
+  }
+  return { success: false, errors };
 }
 
 // Saudi National ID / Iqama Validator (10 digits starting with 1 or 2)

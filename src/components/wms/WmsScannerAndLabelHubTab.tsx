@@ -147,7 +147,7 @@ export const WmsScannerAndLabelHubTab: React.FC<{
       }
       lastKeyTime = now;
 
-      if (e.key === 'Enter' && buffer.length >= 4) {
+      if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229 && buffer.length >= 4) {
         e.preventDefault();
         const captured = buffer;
         buffer = '';

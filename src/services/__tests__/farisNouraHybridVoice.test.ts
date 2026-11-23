@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-// @ts-ignore - pure ESM Cloudflare Worker module (no type declarations)
+// @ts-expect-error - pure ESM Cloudflare Worker module (no type declarations)
 import worker, { isAllowedAiOrigin, sanitizeAiMessages } from '../../../cloudflare/edge-worker.mjs';
-// @ts-ignore - pure ESM Node helper (no type declarations)
+// @ts-expect-error - pure ESM Node helper (no type declarations)
 import * as cfNode from '../cloudflareAiVoiceServer.mjs';
 import { evaluateAiPrivacyGuard, isPrivilegedAiCrossSectionUser } from '../localAiService';
 import { ALWAYS_ALLOWED_HREFS } from '../moduleVisibility';

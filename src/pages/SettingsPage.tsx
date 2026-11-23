@@ -1802,8 +1802,8 @@ export const SettingsPage: React.FC = () => {
                       <h4 className="font-bold text-sm text-[#141414] m-0">نمط تشغيل المنظومة والبيانات (Data Mode)</h4>
                       <p className="text-xs text-[#707070] m-0">
                         الوضع الحالي:{' '}
-                        <strong className={dataMode === 'production_real' ? 'text-[#141414] font-bold' : 'text-[#141414] font-bold'}>
-                          {dataMode === 'production_real' ? 'وضع العمل بالبيانات الحقيقية (Production Real)' : 'وضع المعاينة والتجربة (Demo Preview)'}
+                        <strong className="text-[#141414] font-bold">
+                          وضع العمل بالبيانات الحقيقية فقط (Production Real — بدون بيانات تجريبية)
                         </strong>
                       </p>
                     </div>
@@ -1812,18 +1812,10 @@ export const SettingsPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleToggleDataMode('production_real')}
-                      className={`button-primary-pill ${dataMode === 'production_real' ? 'bg-[#141414] text-white' : 'button-outline-on-light'}`}
+                      className="button-primary-pill bg-[#141414] text-white"
                       style={{ padding: '6px 14px', fontSize: '11.5px', minHeight: '32px' }}
                     >
-                      تفعيل وضع الإنتاج الحقيقي
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleToggleDataMode('demo_preview')}
-                      className={`button-primary-pill ${dataMode === 'demo_preview' ? 'bg-[#141414] text-white' : 'button-outline-on-light'}`}
-                      style={{ padding: '6px 14px', fontSize: '11.5px', minHeight: '32px' }}
-                    >
-                      وضع المعاينة التجريبي
+                      وضع الإنتاج الحقيقي مفعل حصرياً
                     </button>
                   </div>
                 </div>

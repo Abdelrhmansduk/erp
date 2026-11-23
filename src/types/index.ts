@@ -1,6 +1,9 @@
 /* TypeScript Types for Enterprise ERP - Khalid Al-Sulaim Group */
 
-export type CompanyId = 'all' | 'SAF' | 'YAQ' | 'TOP' | 'DAR' | 'KAS' | 'masi' | 'yaqoot' | 'topaz' | 'ruwad' | 'kas' | 'shelter';
+export type CompanyCode = 'SAF' | 'YAQ' | 'TOP' | 'DAR' | 'KAS';
+export type GroupCompanyCode = CompanyCode | 'GRP';
+export type CompanyId = 'all' | CompanyCode | 'masi' | 'yaqoot' | 'topaz' | 'ruwad' | 'kas' | 'shelter';
+export type AssistantPersona = 'faris' | 'noura';
 
 export interface CompanyBranding {
   primaryColor: string;
@@ -14,7 +17,7 @@ export interface CompanyBranding {
 
 export interface CompanyEntity {
   id: CompanyId;
-  code: 'SAF' | 'YAQ' | 'TOP' | 'DAR' | 'KAS' | 'GRP';
+  code: GroupCompanyCode;
   name: string;
   nameEn: string;
   logo: string;
@@ -39,7 +42,7 @@ export interface NavItem {
   href?: string;
   badge?: string | number;
   badgeType?: 'primary' | 'success' | 'warning' | 'danger' | 'purple' | 'info';
-  exclusiveToCompany?: CompanyId | 'KAS' | 'SAF' | 'YAQ' | 'TOP';
+  exclusiveToCompany?: CompanyId;
   children?: NavItem[];
 }
 
@@ -229,7 +232,9 @@ export interface ExternalOffice {
   email: string;
   licenseNumber: string;
   activeCandidatesCount: number;
+  /** @deprecated Legacy field name kept for compatibility; prefer `arrivedCount` when available. */
   arrivedCountCount: number;
+  arrivedCount?: number;
   rating: number; // 1 - 5
   authorizedCompanies: CompanyId[];
 }

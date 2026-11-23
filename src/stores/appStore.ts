@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { CompanyId } from '../types';
+import { AppNotificationListSchema } from '../lib/validations/erpSchemas';
 
 export interface AppNotification {
   id: string;
@@ -48,9 +49,10 @@ function loadSavedNotifications(): AppNotification[] {
     if (typeof localStorage === 'undefined') return DEFAULT_NOTIFICATIONS;
     const raw = localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
     if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+      const parsed: unknown = JSON.parse(raw);
+      const validated = AppNotificationListSchema.safeParse(parsed);
+      if (validated.success && validated.data.length > 0) {
+        return validated.data;
       }
     }
   } catch {

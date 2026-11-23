@@ -153,12 +153,12 @@ export interface WorkerFirstSponsor {
   relationshipStartDate?: string;
   returnDate: string; // تاريخ إعادة العاملة
   returnReason: string; // سبب الإعادة
-  warrantyStatus: 'داخل الضمان (90 يوم)' | 'خارج الضمان' | 'نزاع مالي' | string;
+  warrantyStatus: 'داخل الضمان (90 يوم)' | 'خارج الضمان' | 'نزاع مالي' | (string & {});
   hasClaim: boolean; // هل توجد مطالبة / شكوى
   financialClaimAmount?: number;
-  settlementStatus?: 'معلق' | 'تمت التسوية' | 'نزاع' | string;
+  settlementStatus?: 'معلق' | 'تمت التسوية' | 'نزاع' | (string & {});
   claimDetails?: string;
-  previousRelationshipStatus: 'منتهية ودية' | 'نزاع عمالي لدى مساند' | 'مستحقات معلقة' | string;
+  previousRelationshipStatus: 'منتهية ودية' | 'نزاع عمالي لدى مساند' | 'مستحقات معلقة' | (string & {});
   notes?: string;
 }
 

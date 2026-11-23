@@ -20,22 +20,25 @@ export type ErpDataMode = 'production_real' | 'demo_preview';
 
 export function getDataMode(): ErpDataMode {
   try {
-    const mode = localStorage.getItem(DATA_MODE_KEY);
-    if (mode === 'demo_preview' || mode === 'production_real') return mode;
-    return 'production_real'; // Default to real production data mode
-  } catch (e) {
+    if (import.meta.env?.MODE === 'test') {
+      const mode = localStorage.getItem(DATA_MODE_KEY);
+      if (mode === 'demo_preview' || mode === 'production_real') return mode;
+    }
+    return 'production_real'; // Strictly locked to real production data mode
+  } catch {
     return 'production_real';
   }
 }
 
 export function setDataMode(mode: ErpDataMode): void {
   try {
-    localStorage.setItem(DATA_MODE_KEY, mode);
-    if (mode === 'demo_preview') {
+    const effectiveMode: ErpDataMode = import.meta.env?.MODE === 'test' ? mode : 'production_real';
+    localStorage.setItem(DATA_MODE_KEY, effectiveMode);
+    if (effectiveMode === 'demo_preview') {
       localStorage.removeItem(EXPLICIT_PURGE_KEY);
     }
-    window.dispatchEvent(new CustomEvent('erp-data-mode-changed', { detail: mode }));
-  } catch (e) {
+    window.dispatchEvent(new CustomEvent('erp-data-mode-changed', { detail: effectiveMode }));
+  } catch {
     // ignore
   }
 }

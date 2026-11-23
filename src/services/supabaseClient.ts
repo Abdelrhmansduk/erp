@@ -1,5 +1,8 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { resolveSupabaseEdgeUrl } from './cloudflareEdgeService';
+import type { Database, DatabaseTableName, Tables, TablesInsert, TablesUpdate } from '../types/database.types';
+
+export type { Database, DatabaseTableName, Tables, TablesInsert, TablesUpdate };
 
 /**
  * Supabase client — single connection point for the ERP.
@@ -121,6 +124,12 @@ export const supabase: SupabaseClient = createClient(CLIENT_URL, CLIENT_KEY, {
   global: { fetch: resilientSupabaseFetch },
 });
 
+/** Schema-typed Supabase client bound to the 289-table `Database` definition (`database.types.ts`). */
+export const typedSupabase = supabase as unknown as SupabaseClient<Database>;
+
+/** Type-safe query builder helper for compile-time verified ERP tables. */
+export const fromErpTable = <T extends DatabaseTableName>(table: T) => typedSupabase.from(table);
+
 export interface StandaloneSupabaseStatus {
   url: string;
   studioUrl: string;
@@ -139,7 +148,8 @@ export const getStandaloneSupabaseStatus = async (): Promise<StandaloneSupabaseS
     // Auth health endpoint does not depend on table privileges (anon has no table access after P0.6).
     const res = await fetch(`${CONFIG.url}/auth/v1/health`, { headers: { apikey: CONFIG.anonKey } });
     return { url: CONFIG.url, studioUrl, isLocal, connected: res.ok, error: res.ok ? null : `HTTP ${res.status}` };
-  } catch (err: any) {
-    return { url: CONFIG.url, studioUrl, isLocal, connected: false, error: err?.message || 'Network error' };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Network error';
+    return { url: CONFIG.url, studioUrl, isLocal, connected: false, error: message };
   }
 };

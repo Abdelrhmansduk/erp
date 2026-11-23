@@ -42,7 +42,7 @@ import {
   WmsVoucherType,
   WmsWarehouse,
 } from '../../types/wms';
-import { buildInitialWmsDataset, WMS_CATEGORIES, WMS_WAREHOUSES } from './wmsExcelMigrationSeed';
+import { buildInitialWmsDataset, WMS_CATEGORIES } from './wmsExcelMigrationSeed';
 import { journalEngine, OperationalTransactionType } from '../accounting/journalEngine';
 import { realErpDataStore } from '../realErpDataStore';
 import { wmsCloudSyncService } from './wmsCloudSyncService';
@@ -625,7 +625,11 @@ function nextVoucherNumber(state: WmsStateSnapshot, type: WmsVoucherType): strin
     if (Number.isFinite(seq) && seq > maxSeq) maxSeq = seq;
   }
   for (const entry of state.recycleBin || []) {
-    const no = String((entry as any)?.payload?.voucherNo || (entry as any)?.label || '');
+    const payloadObj =
+      entry?.payload && typeof entry.payload === 'object'
+        ? (entry.payload as { voucherNo?: unknown })
+        : undefined;
+    const no = String(payloadObj?.voucherNo || entry?.label || '');
     if (!no.startsWith(prefix)) continue;
     const seq = parseInt(no.slice(prefix.length), 10);
     if (Number.isFinite(seq) && seq > maxSeq) maxSeq = seq;
@@ -801,13 +805,14 @@ export const wmsEngineService = {
       return remoteList.map((r) => {
         const l = byId.get(r.id);
         if (!l) return r;
-        const merged: any = { ...l };
+        const merged: Record<string, unknown> = { ...(l as Record<string, unknown>) };
         for (const [k, v] of Object.entries(r)) {
           if (v !== undefined && v !== null) merged[k] = v;
         }
         for (const k of keep) {
-          const lv = (l as any)[k];
-          if (Array.isArray(lv) ? lv.length > 0 : lv !== undefined && lv !== null) merged[k] = lv;
+          const key = String(k);
+          const lv = (l as Record<string, unknown>)[key];
+          if (Array.isArray(lv) ? lv.length > 0 : lv !== undefined && lv !== null) merged[key] = lv;
         }
         return merged as T;
       });
@@ -815,7 +820,7 @@ export const wmsEngineService = {
 
     const mWarehouses = mergeById(local.warehouses, remote.warehouses, ['zones']);
     const mItems = mergeById(local.items, remote.items, ['uomConversions', 'attachments', 'itemType']);
-    const mVouchers = mergeById(local.vouchers, remote.vouchers, ['attachments' as any, 'handoverSignatureDataUrl' as any]);
+    const mVouchers = mergeById(local.vouchers, remote.vouchers, ['attachments', 'handoverSignatureDataUrl']);
 
     const merged: WmsStateSnapshot = hydrateExtendedDefaults(
       {

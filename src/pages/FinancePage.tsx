@@ -27,7 +27,7 @@ import {
   CheckCircle2, ArrowUpRight, ArrowDownLeft, Edit3, Trash2
 } from 'lucide-react';
 
-export interface JournalEntry {
+export interface FinanceJournalRow {
   id: string;
   ref_no: string;
   date: string;
@@ -48,7 +48,7 @@ export interface Voucher {
   status: 'معتمد' | 'بانتظار الاعتماد';
 }
 
-const MOCK_JOURNALS: JournalEntry[] = [];
+const MOCK_JOURNALS: FinanceJournalRow[] = [];
 
 const MOCK_VOUCHERS: Voucher[] = [];
 
@@ -68,7 +68,7 @@ const RECRUITMENT_TRIAL_BALANCE_DATA = [
   { code: '5102', name: 'رواتب وأجور الكوادر الإدارية', type: 'مصروفات', ifrsCode: 'R-04', ifrsSubCode: 'R-04-01', ifrsItemName: 'مصروفات عمومية وإدارية', ifrsSubItemName: 'رواتب وأجور الإدارة والموظفين الإداريين', ifrsSection: 'قائمة الدخل', ifrsRef: 'IAS 1.99', cashFlowType: 'تشغيلي', opening_debit: 0, opening_credit: 0, period_debit: 0, period_credit: 0, balance: 0 },
 ];
 
-const KAS_TRADE_MOCK_JOURNALS: JournalEntry[] = [];
+const KAS_TRADE_MOCK_JOURNALS: FinanceJournalRow[] = [];
 
 const KAS_TRADE_MOCK_VOUCHERS: Voucher[] = [];
 
@@ -220,15 +220,15 @@ export const FinancePage: React.FC = () => {
 
   // Printable Vouchers & Journals
   const [selectedVoucherForPrint, setSelectedVoucherForPrint] = useState<Voucher | null>(null);
-  const [selectedJournalForPrint, setSelectedJournalForPrint] = useState<JournalEntry | null>(null);
+  const [selectedJournalForPrint, setSelectedJournalForPrint] = useState<FinanceJournalRow | null>(null);
 
-  const [journals, setJournals] = useState<JournalEntry[]>([]);
+  const [journals, setJournals] = useState<FinanceJournalRow[]>([]);
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
 
   useEffect(() => {
     const loadFinanceRecords = () => {
       Promise.all([
-        realErpDataStore.getRecords<JournalEntry>(
+        realErpDataStore.getRecords<FinanceJournalRow>(
           financeJournalsStorageKey,
           isKasTrade ? KAS_TRADE_MOCK_JOURNALS : MOCK_JOURNALS,
           isKasTrade ? 'KAS' : undefined
@@ -239,7 +239,7 @@ export const FinancePage: React.FC = () => {
           isKasTrade ? 'KAS' : undefined
         ),
       ]).then(([j, v]) => {
-        const liveEngineJournals: JournalEntry[] = journalEngine
+        const liveEngineJournals: FinanceJournalRow[] = journalEngine
           .getJournalsByCompany(activeCompany.id)
           .map((ej) => ({
             id: ej.id,
@@ -505,7 +505,7 @@ export const FinancePage: React.FC = () => {
     if (!journalForm.description || !journalForm.amount) return;
 
     const amt = parseFloat(journalForm.amount) || 0;
-    const newJ: JournalEntry = {
+    const newJ: FinanceJournalRow = {
       id: `j-${Date.now()}`,
       ref_no: `قيد #${283 + journals.length}`,
       date: new Date().toISOString().slice(0, 10),
@@ -557,7 +557,7 @@ export const FinancePage: React.FC = () => {
       branch: newJ.branch,
     });
 
-    const updated = await realErpDataStore.addRecord<JournalEntry>(
+    const updated = await realErpDataStore.addRecord<FinanceJournalRow>(
       financeJournalsStorageKey,
       newJ,
       journals
@@ -3193,7 +3193,7 @@ export const FinancePage: React.FC = () => {
               </div>
               <button
                 onClick={async () => {
-                  const newJ: JournalEntry = {
+                  const newJ: FinanceJournalRow = {
                     id: `j-rec-${Date.now()}`,
                     ref_no: `قيد تسوية #${283 + journals.length}`,
                     date: new Date().toISOString().slice(0, 10),
@@ -3202,7 +3202,7 @@ export const FinancePage: React.FC = () => {
                     status: 'معتمد',
                     branch: 'الإدارة المالية',
                   };
-                  const updatedJ = await realErpDataStore.addRecord<JournalEntry>('finance_journals', newJ, journals);
+                  const updatedJ = await realErpDataStore.addRecord<FinanceJournalRow>('finance_journals', newJ, journals);
                   setJournals(updatedJ);
                   addNotification({
                     title: 'اعتماد التسوية البنكية وترحيل القيد',

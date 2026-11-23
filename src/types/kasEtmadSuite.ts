@@ -37,6 +37,14 @@ export interface KasEtmadStaff {
   phone?: string;
 }
 
+export interface KasEtmadLineItem {
+  description: string;
+  qty: number;
+  rate: number;
+  taxPct: number;
+  total: number;
+}
+
 export interface KasEtmadInvoice {
   id: string;
   invoiceNumber: string;
@@ -49,7 +57,7 @@ export interface KasEtmadInvoice {
   tags?: string[];
   status: 'غير مدفوع' | 'مدفوع' | 'مدفوع جزئيًا' | 'متأخر' | 'مسودة' | 'ملغي';
   paidAmount: number;
-  items: { description: string; qty: number; rate: number; taxPct: number; total: number }[];
+  items: KasEtmadLineItem[];
 }
 
 export interface KasEtmadEstimate {
@@ -63,7 +71,7 @@ export interface KasEtmadEstimate {
   project?: string;
   reference?: string;
   status: 'مسودة' | 'مرسل' | 'مقبول' | 'مرفوض' | 'منتهي الصلاحية';
-  items: { description: string; qty: number; rate: number; taxPct: number; total: number }[];
+  items: KasEtmadLineItem[];
 }
 
 export interface KasEtmadProposal {
@@ -78,7 +86,7 @@ export interface KasEtmadProposal {
   tags?: string[];
   createdAt: string;
   status: 'مسودة' | 'مرسل' | 'مفتوح' | 'مُعدّل' | 'مقبول' | 'مرفوض';
-  items: { description: string; qty: number; rate: number; taxPct: number; total: number }[];
+  items: KasEtmadLineItem[];
 }
 
 export interface KasEtmadPayment {
@@ -103,7 +111,7 @@ export interface KasEtmadCreditNote {
   remainingAmount: number;
   totalAmount: number;
   invoiceRef?: string;
-  items?: { description: string; qty: number; rate: number; taxPct: number; total: number }[];
+  items?: KasEtmadLineItem[];
 }
 
 export interface KasEtmadItem {

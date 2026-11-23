@@ -9,7 +9,7 @@ import {
   ImportTemplate,
   ParsedFileData,
   ColumnMap,
-  ValidationResult,
+  ImportValidationResult,
   ImportResult,
   parseImportFile,
   autoMapColumns,
@@ -32,7 +32,7 @@ export const DataImportWizardPage: React.FC = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<ImportTemplate | null>(null);
   const [parsedData, setParsedData] = useState<ParsedFileData | null>(null);
   const [columnMaps, setColumnMaps] = useState<ColumnMap[]>([]);
-  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+  const [validationResult, setImportValidationResult] = useState<ImportValidationResult | null>(null);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -106,7 +106,7 @@ export const DataImportWizardPage: React.FC = () => {
     setSelectedTemplate(tmpl);
     setParsedData(null);
     setColumnMaps([]);
-    setValidationResult(null);
+    setImportValidationResult(null);
     setImportResult(null);
     setUploadError(null);
     setStep('upload');
@@ -142,7 +142,7 @@ export const DataImportWizardPage: React.FC = () => {
   const handleValidate = () => {
     if (!parsedData || !selectedTemplate) return;
     const result = validateImportData(parsedData.rows, columnMaps, selectedTemplate);
-    setValidationResult(result);
+    setImportValidationResult(result);
     setStep('review');
   };
 
@@ -166,7 +166,7 @@ export const DataImportWizardPage: React.FC = () => {
     setSelectedTemplate(null);
     setParsedData(null);
     setColumnMaps([]);
-    setValidationResult(null);
+    setImportValidationResult(null);
     setImportResult(null);
     setUploadError(null);
   };

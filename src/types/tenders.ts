@@ -22,14 +22,14 @@ export type TenderCategory =
   | 'تشغيل وصيانة ونظافة'
   | 'تقنية معلومات واتصالات'
   | 'دعاية وإعلان وتنظيم معارض'
-  | string;
+  | (string & {});
 
 export type TenderStatus = 
   | 'مسودة قيد الدراسة'
   | 'مقدمة ومسعرة'
   | 'ترسية واعتماد'
   | 'مكتملة ومفوترة'
-  | string;
+  | (string & {});
 
 export interface TenderRecord {
   id: string;
@@ -92,6 +92,6 @@ export interface SupplierRecord {
   totalDeals: number;
   totalValue: number;
   lastDealDate?: string;
-  status: 'معتمد' | 'تحت التقييم' | 'موقوف' | string;
+  status: 'معتمد' | 'تحت التقييم' | 'موقوف' | (string & {});
   notes?: string;
 }

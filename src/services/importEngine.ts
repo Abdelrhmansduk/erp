@@ -70,7 +70,7 @@ export interface ParsedFileData {
   fileType: string;
 }
 
-export interface ValidationResult {
+export interface ImportValidationResult {
   valid: Record<string, any>[];
   warnings: ImportWarning[];
   errors: ImportError[];
@@ -961,7 +961,7 @@ export function validateImportData(
   columnMaps: ColumnMap[],
   template: ImportTemplate,
   companyId: string = 'SAF'
-): ValidationResult {
+): ImportValidationResult {
   const valid: Record<string, any>[] = [];
   const errors: ImportError[] = [];
   const warnings: ImportWarning[] = [];

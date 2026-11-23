@@ -17,7 +17,8 @@ import {
   stopAllAudio,
   isAudioSpeaking,
   getLastSpeechTimestamp,
-  subscribeAudioState
+  subscribeAudioState,
+  type AssistantPersona
 } from '../../services/audioVoiceService';
 import { 
   generateLocalAiResponse, 
@@ -52,7 +53,7 @@ interface ChatMessage {
   toolStatus?: 'pending' | 'executed' | 'cancelled';
 }
 
-export type AssistantPersona = 'faris' | 'noura';
+export type { AssistantPersona };
 export type CopilotWindowTab = 'chat' | 'tools' | 'metrics';
 
 /**

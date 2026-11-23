@@ -372,7 +372,8 @@ export const wmsScannerAndBarcodeService = {
   playBeep(kind: 'ok' | 'warn' | 'error' = 'ok'): void {
     try {
       if (typeof window === 'undefined') return;
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const webkitWin = window as Window & { webkitAudioContext?: typeof AudioContext };
+      const AudioCtx = window.AudioContext || webkitWin.webkitAudioContext;
       if (!AudioCtx) return;
       const ctx = new AudioCtx();
       const osc = ctx.createOscillator();

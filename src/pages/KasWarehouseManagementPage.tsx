@@ -505,7 +505,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
 
     if (sortField === 'default') return list;
     const dir = sortDir === 'asc' ? 1 : -1;
-    return [...list].sort((a, b) => {
+    return list.toSorted((a, b) => {
       if (sortField === 'sku') return a.sku.localeCompare(b.sku) * dir;
       if (sortField === 'nameAr') return a.nameAr.localeCompare(b.nameAr, 'ar') * dir;
       if (sortField === 'category') {
@@ -1882,7 +1882,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
                                   value={editingCatalogCell!.val1}
                                   onChange={(e) => setEditingCatalogCell((s) => s && { ...s, val1: e.target.value })}
                                   onKeyDown={(e) => {
-                                    if (e.key === 'Enter') commitCatalogCellEdit();
+                                    if (e.key === 'Enter' && !e.nativeEvent.isComposing && e.keyCode !== 229) commitCatalogCellEdit();
                                     if (e.key === 'Escape') setEditingCatalogCell(null);
                                   }}
                                   className="w-28 rounded-[8px] bg-[#ffffff] border border-[#141414] px-2 py-1 text-[11px] font-mono font-bold"
@@ -1893,7 +1893,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
                                     value={editingCatalogCell!.val2 || ''}
                                     onChange={(e) => setEditingCatalogCell((s) => s && { ...s, val2: e.target.value })}
                                     onKeyDown={(e) => {
-                                      if (e.key === 'Enter') commitCatalogCellEdit();
+                                      if (e.key === 'Enter' && !e.nativeEvent.isComposing && e.keyCode !== 229) commitCatalogCellEdit();
                                       if (e.key === 'Escape') setEditingCatalogCell(null);
                                     }}
                                     className="w-24 rounded-[8px] bg-[#ffffff] border border-[#e0e0e0] px-1.5 py-0.5 text-[10px] font-mono"
@@ -1933,7 +1933,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
                                   onChange={(e) => setEditingCatalogCell((s) => s && { ...s, val1: e.target.value })}
                                   onBlur={commitCatalogCellEdit}
                                   onKeyDown={(e) => {
-                                    if (e.key === 'Enter') commitCatalogCellEdit();
+                                    if (e.key === 'Enter' && !e.nativeEvent.isComposing && e.keyCode !== 229) commitCatalogCellEdit();
                                     if (e.key === 'Escape') setEditingCatalogCell(null);
                                   }}
                                   className="w-full min-w-[160px] rounded-[8px] bg-[#ffffff] border border-[#141414] px-2.5 py-1 text-xs font-bold text-[#141414]"
@@ -2022,7 +2022,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
                                   onChange={(e) => setEditingCatalogCell((s) => s && { ...s, val1: e.target.value })}
                                   onBlur={commitCatalogCellEdit}
                                   onKeyDown={(e) => {
-                                    if (e.key === 'Enter') commitCatalogCellEdit();
+                                    if (e.key === 'Enter' && !e.nativeEvent.isComposing && e.keyCode !== 229) commitCatalogCellEdit();
                                     if (e.key === 'Escape') setEditingCatalogCell(null);
                                   }}
                                   className="w-32 rounded-[8px] bg-[#ffffff] border border-[#141414] px-2 py-1 text-[11px] font-semibold"
@@ -2068,7 +2068,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
                                     value={editingCatalogCell!.val2 || ''}
                                     onChange={(e) => setEditingCatalogCell((s) => s && { ...s, val2: e.target.value })}
                                     onKeyDown={(e) => {
-                                      if (e.key === 'Enter') commitCatalogCellEdit();
+                                      if (e.key === 'Enter' && !e.nativeEvent.isComposing && e.keyCode !== 229) commitCatalogCellEdit();
                                       if (e.key === 'Escape') setEditingCatalogCell(null);
                                     }}
                                     className="w-24 rounded-[8px] bg-[#ffffff] border border-[#e0e0e0] px-1.5 py-0.5 text-[10px] font-mono text-[#141414]"
@@ -2110,7 +2110,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
                                   onChange={(e) => setEditingCatalogCell((s) => s && { ...s, val1: e.target.value })}
                                   onBlur={commitCatalogCellEdit}
                                   onKeyDown={(e) => {
-                                    if (e.key === 'Enter') commitCatalogCellEdit();
+                                    if (e.key === 'Enter' && !e.nativeEvent.isComposing && e.keyCode !== 229) commitCatalogCellEdit();
                                     if (e.key === 'Escape') setEditingCatalogCell(null);
                                   }}
                                   className="w-20 rounded-[8px] bg-[#ffffff] border border-[#141414] px-2 py-1 text-xs font-bold"
@@ -2151,7 +2151,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
                                   onChange={(e) => setEditingCatalogCell((s) => s && { ...s, val1: e.target.value })}
                                   onBlur={commitCatalogCellEdit}
                                   onKeyDown={(e) => {
-                                    if (e.key === 'Enter') commitCatalogCellEdit();
+                                    if (e.key === 'Enter' && !e.nativeEvent.isComposing && e.keyCode !== 229) commitCatalogCellEdit();
                                     if (e.key === 'Escape') setEditingCatalogCell(null);
                                   }}
                                   className="w-20 rounded-[8px] bg-[#ffffff] border border-[#141414] px-2 py-1 text-xs font-mono font-bold"
@@ -2192,7 +2192,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
                                   onChange={(e) => setEditingCatalogCell((s) => s && { ...s, val1: e.target.value })}
                                   onBlur={commitCatalogCellEdit}
                                   onKeyDown={(e) => {
-                                    if (e.key === 'Enter') commitCatalogCellEdit();
+                                    if (e.key === 'Enter' && !e.nativeEvent.isComposing && e.keyCode !== 229) commitCatalogCellEdit();
                                     if (e.key === 'Escape') setEditingCatalogCell(null);
                                   }}
                                   className="w-20 rounded-[8px] bg-[#ffffff] border border-[#141414] px-2 py-1 text-xs font-mono"
@@ -2561,7 +2561,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
                                 onChange={(e) => setEditingVoucherCell((s) => s && { ...s, val1: e.target.value })}
                                 onBlur={commitVoucherCellEdit}
                                 onKeyDown={(e) => {
-                                  if (e.key === 'Enter') commitVoucherCellEdit();
+                                  if (e.key === 'Enter' && !e.nativeEvent.isComposing && e.keyCode !== 229) commitVoucherCellEdit();
                                   if (e.key === 'Escape') setEditingVoucherCell(null);
                                 }}
                                 className="rounded-[8px] bg-[#ffffff] border border-[#141414] px-2 py-1 text-[11px] font-mono"
@@ -2601,7 +2601,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
                                     value={editingVoucherCell!.val1}
                                     onChange={(e) => setEditingVoucherCell((s) => s && { ...s, val1: e.target.value })}
                                     onKeyDown={(e) => {
-                                      if (e.key === 'Enter') commitVoucherCellEdit();
+                                      if (e.key === 'Enter' && !e.nativeEvent.isComposing && e.keyCode !== 229) commitVoucherCellEdit();
                                       if (e.key === 'Escape') setEditingVoucherCell(null);
                                     }}
                                     className="w-16 rounded-[8px] bg-[#ffffff] border border-[#141414] px-1.5 py-0.5 text-xs font-mono font-bold"
@@ -2611,7 +2611,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
                                     value={editingVoucherCell!.val2 || ''}
                                     onChange={(e) => setEditingVoucherCell((s) => s && { ...s, val2: e.target.value })}
                                     onKeyDown={(e) => {
-                                      if (e.key === 'Enter') commitVoucherCellEdit();
+                                      if (e.key === 'Enter' && !e.nativeEvent.isComposing && e.keyCode !== 229) commitVoucherCellEdit();
                                       if (e.key === 'Escape') setEditingVoucherCell(null);
                                     }}
                                     className="w-16 rounded-[8px] bg-[#ffffff] border border-[#e0e0e0] px-1.5 py-0.5 text-[11px]"
@@ -2663,7 +2663,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
                                 value={editingVoucherCell!.val1}
                                 onChange={(e) => setEditingVoucherCell((s) => s && { ...s, val1: e.target.value })}
                                 onKeyDown={(e) => {
-                                  if (e.key === 'Enter') commitVoucherCellEdit();
+                                  if (e.key === 'Enter' && !e.nativeEvent.isComposing && e.keyCode !== 229) commitVoucherCellEdit();
                                   if (e.key === 'Escape') setEditingVoucherCell(null);
                                 }}
                                 placeholder="الجهة / المورد..."
@@ -2675,7 +2675,7 @@ export const KasWarehouseManagementPage: React.FC = () => {
                                   value={editingVoucherCell!.val2 || ''}
                                   onChange={(e) => setEditingVoucherCell((s) => s && { ...s, val2: e.target.value })}
                                   onKeyDown={(e) => {
-                                    if (e.key === 'Enter') commitVoucherCellEdit();
+                                    if (e.key === 'Enter' && !e.nativeEvent.isComposing && e.keyCode !== 229) commitVoucherCellEdit();
                                     if (e.key === 'Escape') setEditingVoucherCell(null);
                                   }}
                                   placeholder="المستلم..."

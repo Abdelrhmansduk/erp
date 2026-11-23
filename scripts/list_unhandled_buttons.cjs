@@ -8,7 +8,7 @@ files.forEach(file => {
   const filePath = path.join(pagesDir, file);
   const content = fs.readFileSync(filePath, 'utf8');
 
-  const buttonMatches = [...content.matchAll(/<button([\s\S]*?)>/g)];
+  const buttonMatches = [...content.matchAll(/<button\b((?:[^>"'{]|"[^"]*"|'[^']*'|\{(?:[^{}]|\{[^{}]*\})*\})*)>/g)];
   buttonMatches.forEach(m => {
     const attrs = m[1];
     if (!attrs.includes('onClick') && !attrs.includes('type="submit"') && !attrs.includes("type='submit'")) {

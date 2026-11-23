@@ -1337,7 +1337,7 @@ export function parseExcelOrMixedDate(raw: unknown): { iso?: string; wasSerial: 
   }
 
   // Match YYYY/MM/DD or YYYY-MM-DD (Gregorian >= 1990)
-  const ymd = str.match(/(20\d{2}|19\d{2})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+  const ymd = str.match(/(20\d{2}|19\d{2})[/-](\d{1,2})[/-](\d{1,2})/);
   if (ymd) {
     const yr = ymd[1];
     const mo = ymd[2].padStart(2, '0');
@@ -1346,7 +1346,7 @@ export function parseExcelOrMixedDate(raw: unknown): { iso?: string; wasSerial: 
   }
 
   // Match DD/MM/YYYY
-  const dmy = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](20\d{2}|19\d{2})/);
+  const dmy = str.match(/^(\d{1,2})[/-](\d{1,2})[/-](20\d{2}|19\d{2})/);
   if (dmy) {
     const dy = dmy[1].padStart(2, '0');
     const mo = dmy[2].padStart(2, '0');
@@ -1379,8 +1379,8 @@ export function extractBackoutFromWorkerName(rawWorkerName: string): {
   const parsedDate = parseExcelOrMixedDate(raw).iso;
   const cleaned = raw
     .replace(/باك\s*اوت|باك\s*أوت|back\s*out|backout|هروب|تغيب|رفض\s*السفر|اعتذار/gi, ' ')
-    .replace(/(20\d{2}|19\d{2})[\/\-]\d{1,2}[\/\-]\d{1,2}\/?/g, ' ')
-    .replace(/[\/\-]+/g, ' ')
+    .replace(/(20\d{2}|19\d{2})[/-]\d{1,2}[/-]\d{1,2}\/?/g, ' ')
+    .replace(/[/-]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
