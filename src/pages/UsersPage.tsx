@@ -190,7 +190,7 @@ export const UsersPage: React.FC = () => {
   const handleOpenBiometricModal = async (user: UserAdmin) => {
     setUserForBiometrics(user);
     const [creds, hw] = await Promise.all([
-      getStoredBiometricCredentials(user.username),
+      getStoredBiometricCredentials(user.email || user.username),
       checkWebAuthnSupport()
     ]);
     setUserCredentials(creds);
@@ -208,6 +208,7 @@ export const UsersPage: React.FC = () => {
       {
         id: userForBiometrics.id,
         username: userForBiometrics.username,
+        email: userForBiometrics.email,
         fullName: userForBiometrics.name,
         systemScope: 'جميع المنظومات'
       },
@@ -217,7 +218,7 @@ export const UsersPage: React.FC = () => {
     setIsEnrollingBio(false);
 
     if (result.success && result.credential) {
-      const updatedCreds = await getStoredBiometricCredentials(userForBiometrics.username);
+      const updatedCreds = await getStoredBiometricCredentials(userForBiometrics.email || userForBiometrics.username);
       setUserCredentials(updatedCreds);
 
       // Update user status in system_users

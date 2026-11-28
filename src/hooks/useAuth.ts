@@ -24,6 +24,27 @@ export interface AuthContext {
     targetCompanyId?: string,
     password?: string
   ) => Promise<{ success: boolean; error?: string; user?: UserProfile }>;
+  signInWithBiometric: (
+    identifier: string,
+    targetCompanyId?: string
+  ) => Promise<{
+    success: boolean;
+    error?: string;
+    notEnrolled?: boolean;
+    canceled?: boolean;
+    user?: UserProfile;
+  }>;
+  enrollBiometricWithPassword: (
+    identifier: string,
+    password: string,
+    biometricType?: 'Touch ID (بصمة إصبع)' | 'Face ID (بصمة وجه)' | 'بصمة مزدوجة',
+    targetCompanyId?: string
+  ) => Promise<{
+    success: boolean;
+    error?: string;
+    canceled?: boolean;
+    user?: UserProfile;
+  }>;
   verifyMfa: (code: string, factorId?: string) => Promise<{ success: boolean; error?: string }>;
   enrollMfa: () => Promise<{ data: TotpEnrollment | null; error: string | null }>;
   refreshMfa: () => Promise<MfaRequirement>;
@@ -164,6 +185,55 @@ export const useAuth = (): AuthContext => {
     []
   );
 
+  const signInWithBiometric = useCallback(
+    async (identifier: string, targetCompanyId?: string) => {
+      setError(null);
+      const res = await authService.signInWithBiometric(identifier, targetCompanyId);
+      if (res.error || !res.data) {
+        const errMsg = res.error?.message || 'تعذر التحقق من البصمة الرقمية';
+        setError(errMsg);
+        return {
+          success: false,
+          error: errMsg,
+          notEnrolled: res.notEnrolled,
+          canceled: res.canceled,
+        };
+      }
+      setUser(res.data);
+      setSession({ user: { id: res.data.id, email: res.data.email, profile: res.data } });
+      setMfaRequirement('none');
+      return { success: true, user: res.data };
+    },
+    []
+  );
+
+  const enrollBiometricWithPassword = useCallback(
+    async (
+      identifier: string,
+      password: string,
+      biometricType: 'Touch ID (بصمة إصبع)' | 'Face ID (بصمة وجه)' | 'بصمة مزدوجة' = 'Touch ID (بصمة إصبع)',
+      targetCompanyId?: string
+    ) => {
+      setError(null);
+      const res = await authService.enrollAuthorizedBiometricWithPassword(
+        identifier,
+        password,
+        biometricType,
+        targetCompanyId
+      );
+      if (res.error || !res.data) {
+        const errMsg = res.error?.message || 'تعذر ربط البصمة الرقمية بالحساب';
+        setError(errMsg);
+        return { success: false, error: errMsg, canceled: res.canceled };
+      }
+      setUser(res.data);
+      setSession({ user: { id: res.data.id, email: res.data.email, profile: res.data } });
+      setMfaRequirement('none');
+      return { success: true, user: res.data };
+    },
+    []
+  );
+
   const signOut = useCallback(async () => {
     await authService.signOut();
     setUser(null);
@@ -181,6 +251,8 @@ export const useAuth = (): AuthContext => {
     signIn,
     signInWithGoogle,
     signInWithEmail,
+    signInWithBiometric,
+    enrollBiometricWithPassword,
     verifyMfa,
     enrollMfa,
     refreshMfa,

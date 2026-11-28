@@ -116,7 +116,7 @@ export const SettingsPage: React.FC = () => {
   const [settingsTestResult, setSettingsTestResult] = useState<{ credId: string; success: boolean; message: string } | null>(null);
 
   const currentAuthUser = authService.getCurrentUser();
-  const bioUsernameKey = currentAuthUser?.username || 'khalid';
+  const bioUsernameKey = currentAuthUser?.email || currentAuthUser?.username || 'khalid@kas.sa';
 
   useEffect(() => {
     checkWebAuthnSupport().then(setHwSupport);
@@ -130,8 +130,10 @@ export const SettingsPage: React.FC = () => {
     const result = await registerUserBiometric(
       {
         id: currentAuthUser?.id || 'KAS-EMP-001',
-        username: bioUsernameKey,
+        username: currentAuthUser?.username || bioUsernameKey.split('@')[0],
+        email: currentAuthUser?.email || bioUsernameKey,
         fullName: currentAuthUser?.full_name || 'خالد عبدالعزيز السليم',
+        companyId: currentAuthUser?.company_id === 'all' ? 'SAF' : (currentAuthUser?.company_id || 'SAF'),
         systemScope: currentAuthUser?.company_id === 'all' ? 'جميع المنظومات' : (currentAuthUser?.company_id || 'SAF')
       },
       type
@@ -177,7 +179,7 @@ export const SettingsPage: React.FC = () => {
           ? `تم التحقق بنجاح من مستشعر العتاد (${result.authenticatorType || 'Hardware'})!`
           : 'تم التحقق من البصمة بنجاح!'
       });
-      const updated = await getStoredBiometricCredentials('admin');
+      const updated = await getStoredBiometricCredentials(bioUsernameKey);
       setDeviceBiometrics(updated);
     } else {
       setSettingsTestResult({
@@ -190,8 +192,8 @@ export const SettingsPage: React.FC = () => {
 
   const handleDeleteSettingsBiometric = async (cred: RegisteredBiometricCredential) => {
     if (!confirm(`هل أنت متأكد من حذف البصمة المسجلة (${cred.biometricType})؟`)) return;
-    await removeStoredBiometricCredential(cred.id, cred.username);
-    const updated = await getStoredBiometricCredentials('admin');
+    await removeStoredBiometricCredential(cred.id, cred.email || cred.username);
+    const updated = await getStoredBiometricCredentials(bioUsernameKey);
     setDeviceBiometrics(updated);
     addNotification({
       title: 'حذف البصمة',

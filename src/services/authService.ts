@@ -9,6 +9,11 @@ import {
 } from './firebaseClient';
 import { DEMO_AUTH_ENABLED, DEMO_QUICK_LOGIN_SECRET } from '../config/authMode';
 import {
+  registerUserBiometric,
+  verifyAuthorizedUserBiometricLogin,
+  type RegisteredBiometricCredential,
+} from './webAuthnBiometricService';
+import {
   KAS_ALLOWED_EMPLOYEES,
   EXCLUDED_KAS_EMAILS,
   findAllowedKasEmployee,
@@ -540,7 +545,12 @@ export interface UserProfile {
   allowed_tabs_override?: string[];
   extra_allowed_departments?: DepartmentId[];
   linked_google_email?: string;
-  authenticated_via?: 'strong_password' | 'approved_google' | 'supabase' | 'external_agency_key';
+  authenticated_via?:
+    | 'strong_password'
+    | 'approved_google'
+    | 'supabase'
+    | 'webauthn_biometric'
+    | 'external_agency_key';
   account_type?: 'corporate_staff' | 'external_agency';
   agency_id?: string;
   agency_name?: string;
@@ -1821,7 +1831,11 @@ export const authService = {
     _targetCompanyId?: string,
     customFullName?: string,
     customAvatarUrl?: string,
-    authenticatedVia: 'strong_password' | 'approved_google' | 'supabase' = 'strong_password'
+    authenticatedVia:
+      | 'strong_password'
+      | 'approved_google'
+      | 'supabase'
+      | 'webauthn_biometric' = 'strong_password'
   ): {
     data: UserProfile;
     error: null;
@@ -1923,6 +1937,231 @@ export const authService = {
     window.dispatchEvent(new CustomEvent('alsulaim-auth-updated', { detail: { profile: autoProfile } }));
 
     return { data: autoProfile, error: null, mfa: 'none' };
+  },
+
+  /**
+   * Real Hardware Biometric Sign-In (W3C WebAuthn / FIDO2 Platform Authenticator).
+   * Strictly verifies that:
+   *  1. The identifier belongs to an authorized, non-excluded `@kas.sa` employee.
+   *  2. An active biometric passkey is already enrolled for THIS exact employee on this device.
+   *  3. The OS biometric sensor (`UV=1`) produces a valid ECDSA P-256 / RS256 cryptographic signature
+   *     matching the employee's stored SPKI public key, `userHandle`, `rpIdHash`, `origin`, and `challenge`.
+   */
+  async signInWithBiometric(
+    identifier: string,
+    _targetCompanyId?: string
+  ): Promise<{
+    data: UserProfile | null;
+    error: { message: string } | null;
+    notEnrolled?: boolean;
+    canceled?: boolean;
+    credentialId?: string;
+  }> {
+    const cleanId = (identifier || '').trim();
+    if (!cleanId) {
+      return {
+        data: null,
+        error: { message: 'يرجى إدخال البريد الوظيفي (@kas.sa) للموظف المخوّل قبل مسح البصمة الرقمية.' },
+      };
+    }
+
+    const allowCheck = validateAllowedCorporateEmail(cleanId);
+    if (!allowCheck.allowed) {
+      return {
+        data: null,
+        error: {
+          message:
+            allowCheck.reason ||
+            'رفض أمني: هذا الحساب غير مدرج ضمن قائمة موظفي مجموعة خالد السليم المخوّلين بالدخول (@kas.sa).',
+        },
+      };
+    }
+
+    const email = this.resolveEmail(cleanId);
+    const throttle = checkThrottle(email);
+    if (throttle.blocked) {
+      return {
+        data: null,
+        error: {
+          message: `تم إيقاف المحاولة مؤقتاً بسبب محاولات فاشلة متعددة. حاول بعد ${throttle.remainingSeconds} ثانية.`,
+        },
+      };
+    }
+
+    const bioRes = await verifyAuthorizedUserBiometricLogin(email);
+    if (!bioRes.success) {
+      if (bioRes.tamperedOrMismatch) {
+        recordFailedAttempt(email);
+      }
+      return {
+        data: null,
+        error: {
+          message:
+            bioRes.errorMessage ||
+            'رفض أمني: فشلت مطابقة البصمة الرقمية مع بصمة الموظف المخوّل لهذا الحساب.',
+        },
+        notEnrolled: bioRes.notEnrolled,
+        canceled: bioRes.canceled,
+      };
+    }
+
+    if (bioRes.verifiedEmail && bioRes.verifiedEmail.toLowerCase() !== email.toLowerCase()) {
+      recordFailedAttempt(email);
+      return {
+        data: null,
+        error: {
+          message: 'رفض أمني حاسم: هوية البصمة الممسوحة لا تطابق حساب الموظف المخوّل المطلوب الدخول إليه.',
+        },
+      };
+    }
+
+    clearFailedAttempts(email);
+    markBrowserSessionAuthenticated();
+
+    const routed = this.signInWithDirectoryOrAutoRoute(
+      cleanId,
+      email,
+      _targetCompanyId,
+      bioRes.verifiedFullName,
+      undefined,
+      'webauthn_biometric'
+    );
+
+    if (routed.data && _targetCompanyId) {
+      const compAccess = this.validateCompanyAccess(routed.data, _targetCompanyId);
+      if (!compAccess.allowed) {
+        return {
+          data: null,
+          error: { message: compAccess.reason || 'رفض أمني: لا يملك هذا الحساب صلاحية الدخول لهذه الشركة.' },
+        };
+      }
+    }
+
+    return {
+      data: routed.data,
+      error: routed.error,
+      credentialId: bioRes.credentialId,
+    };
+  },
+
+  /**
+   * Enrolls and cryptographically binds a real hardware biometric credential (`Touch ID` / `Face ID` / `Windows Hello`)
+   * strictly AFTER verifying the authorized `@kas.sa` employee's Strong Password.
+   */
+  async enrollAuthorizedBiometricWithPassword(
+    identifier: string,
+    password: string,
+    biometricType: 'Touch ID (بصمة إصبع)' | 'Face ID (بصمة وجه)' | 'بصمة مزدوجة' = 'Touch ID (بصمة إصبع)',
+    _targetCompanyId?: string
+  ): Promise<{
+    data: UserProfile | null;
+    credential?: RegisteredBiometricCredential;
+    error: { message: string } | null;
+    canceled?: boolean;
+  }> {
+    const cleanId = (identifier || '').trim();
+    const cleanPass = (password || '').trim();
+    if (!cleanId || !cleanPass) {
+      return {
+        data: null,
+        error: {
+          message: 'يتطلب تسجيل وربط البصمة الحقيقية إدخال البريد الوظيفي (@kas.sa) وكلمة المرور القوية المعتمدة أولاً.',
+        },
+      };
+    }
+
+    const allowCheck = validateAllowedCorporateEmail(cleanId);
+    if (!allowCheck.allowed) {
+      return {
+        data: null,
+        error: {
+          message:
+            allowCheck.reason ||
+            'رفض أمني: لا يُسمح بتسجيل البصمة إلا للموظفين المعتمدين في مجموعة خالد السليم (@kas.sa).',
+        },
+      };
+    }
+
+    const email = this.resolveEmail(cleanId);
+    const throttle = checkThrottle(email);
+    if (throttle.blocked) {
+      return {
+        data: null,
+        error: {
+          message: `تم إيقاف المحاولة مؤقتاً بسبب محاولات فاشلة متعددة. حاول بعد ${throttle.remainingSeconds} ثانية.`,
+        },
+      };
+    }
+
+    let passwordVerified = verifyKasEmployeePassword(email, cleanPass);
+    if (!passwordVerified && !DEMO_AUTH_ENABLED && isSupabaseConfigured) {
+      const supaCheck = await this.signInWithSupabasePassword(email, cleanPass);
+      if (supaCheck.data && !supaCheck.error) {
+        passwordVerified = true;
+      }
+    }
+
+    if (!passwordVerified) {
+      recordFailedAttempt(email);
+      return {
+        data: null,
+        error: {
+          message:
+            'رفض أمني: كلمة المرور غير صحيحة — لا يمكن تسجيل أو ربط بصمة رقمية إلا بعد إثبات هوية صاحب الحساب المخوّل.',
+        },
+      };
+    }
+
+    const kasEmp = findAllowedKasEmployee(email);
+    const directoryMatch = getFullStaffDirectory().find(
+      (s) => s.email.toLowerCase() === email.toLowerCase()
+    );
+    const resolved = resolveDepartmentAndCompany(email, undefined, _targetCompanyId);
+    const compKey = resolved.companyId === 'all' ? 'ALL' : resolved.companyId.toUpperCase();
+    const compMeta = COMPANY_AUTH_METADATA[compKey] || COMPANY_AUTH_METADATA.SAF;
+
+    const enrollRes = await registerUserBiometric(
+      {
+        id: directoryMatch?.id || `USR-${compKey}-${email.split('@')[0].toUpperCase()}`,
+        username: email.split('@')[0],
+        email,
+        fullName: kasEmp?.nameAr || directoryMatch?.full_name || email,
+        companyId: resolved.companyId,
+        systemScope: compMeta.nameAr,
+      },
+      biometricType
+    );
+
+    if (!enrollRes.success || !enrollRes.credential) {
+      return {
+        data: null,
+        error: {
+          message:
+            enrollRes.errorMessage ||
+            'تعذر إتمام تسجيل البصمة العتادية عبر مستشعر الجهاز.',
+        },
+        canceled: enrollRes.canceled,
+      };
+    }
+
+    clearFailedAttempts(email);
+    markBrowserSessionAuthenticated();
+    void ensureSupabaseSession(email, cleanPass);
+
+    const routed = this.signInWithDirectoryOrAutoRoute(
+      cleanId,
+      email,
+      _targetCompanyId,
+      kasEmp?.nameAr || directoryMatch?.full_name,
+      undefined,
+      'webauthn_biometric'
+    );
+
+    return {
+      data: routed.data,
+      credential: enrollRes.credential,
+      error: routed.error,
+    };
   },
 
   /** Direct Email Sign-In (validates against @kas.sa Corporate Whitelist, Exclusions & Strong Password). */

@@ -33,6 +33,10 @@ import {
   type LoginTwoFactorChallenge,
 } from '../services/googleTwoFactorService';
 import { DEMO_AUTH_ENABLED } from '../config/authMode';
+import {
+  checkWebAuthnSupport,
+  hasActiveBiometricForUser,
+} from '../services/webAuthnBiometricService';
 import { resolvePortalContextFromHostname } from '../config/kasErpDomainConfig';
 import {
   VERIFIED_FIREBASE_GOOGLE_ACCOUNTS,
@@ -369,6 +373,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     signIn,
     signInWithGoogle,
     signInWithEmail,
+    signInWithBiometric,
+    enrollBiometricWithPassword,
     user: authUser,
     isAuthenticated,
     loading: authLoading,
@@ -399,6 +405,29 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   );
   const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [hwBioSupport, setHwBioSupport] = useState<{
+    supported: boolean;
+    hasHardware: boolean;
+    detectedDevice: string;
+  }>({
+    supported: false,
+    hasHardware: false,
+    detectedDevice: 'جاري فحص المستشعر العتادي...',
+  });
+  const [enrolledBioState, setEnrolledBioState] = useState<{
+    enrolled: boolean;
+    count: number;
+    deviceName?: string;
+  }>({
+    enrolled: false,
+    count: 0,
+  });
+  const [bioEnrollPassword, setBioEnrollPassword] = useState<string>('');
+  const [showBioEnrollPassword, setShowBioEnrollPassword] = useState<boolean>(false);
+  const [bioSensorType, setBioSensorType] = useState<
+    'Touch ID (بصمة إصبع)' | 'Face ID (بصمة وجه)' | 'بصمة مزدوجة'
+  >('Touch ID (بصمة إصبع)');
+  const bioEnrollPassRef = useRef<HTMLInputElement>(null);
   const [approvedGoogleBindings, setApprovedGoogleBindings] = useState<ApprovedGoogleAccountBinding[]>(
     () => getApprovedGoogleBindings()
   );
@@ -447,6 +476,51 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     setCompanyFilter(getInitialCompanyFilterForPortalCode(loginPortalCode));
     setIdentifier(getDefaultEmailForPortalCode(loginPortalCode));
   }, [loginPortalCode]);
+
+  useEffect(() => {
+    let mounted = true;
+    void checkWebAuthnSupport().then((support) => {
+      if (mounted) setHwBioSupport(support);
+    });
+    try {
+      const requestedBioIdentifier = sessionStorage.getItem('ALSULAIM_OPEN_BIOMETRIC_TAB');
+      if (requestedBioIdentifier !== null) {
+        sessionStorage.removeItem('ALSULAIM_OPEN_BIOMETRIC_TAB');
+        setLoginMethodTab('biometric');
+        if (requestedBioIdentifier.trim()) {
+          setIdentifier(requestedBioIdentifier.trim());
+        }
+      }
+    } catch {
+      // sessionStorage unavailable
+    }
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const rawId = identifier.trim();
+    if (!rawId) {
+      setEnrolledBioState({ enrolled: false, count: 0 });
+      return () => {
+        active = false;
+      };
+    }
+    const resolvedEmail = authService.resolveEmail(rawId);
+    void hasActiveBiometricForUser(resolvedEmail).then((res) => {
+      if (!active) return;
+      setEnrolledBioState({
+        enrolled: res.enrolled,
+        count: res.count,
+        deviceName: res.credentials[0]?.deviceName,
+      });
+    });
+    return () => {
+      active = false;
+    };
+  }, [identifier, loginMethodTab]);
 
   useEffect(() => {
     if (!showDirectoryModal) return;
@@ -731,26 +805,215 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     setTimeout(() => passwordInputRef.current?.focus(), 60);
   };
 
+  const routeVerifiedCorporateUser = (corporateEmail: string, defaultTabOverride?: string, defaultTitleOverride?: string) => {
+    const kasEmp = findAllowedKasEmployee(corporateEmail);
+    const routeInfo = resolveDepartmentAndCompany(corporateEmail);
+    const landingTab =
+      kasEmp?.defaultTab ||
+      defaultTabOverride ||
+      detectedRouting.account?.default_tab ||
+      routeInfo.departmentDef.defaultTab;
+    const landingTitle =
+      kasEmp?.defaultTabTitle ||
+      defaultTitleOverride ||
+      detectedRouting.account?.default_tab_title ||
+      routeInfo.departmentDef.defaultTabTitle;
+
+    if (routeInfo.companyId === 'all') {
+      setActiveCompanyId('SAF');
+      useAppStore.getState().setActiveCompanyId('all' as any);
+    } else {
+      const compUpper = routeInfo.companyId.toUpperCase();
+      setActiveCompanyId(compUpper as any);
+      useAppStore.getState().setActiveCompanyId(compUpper as any);
+    }
+
+    if (onLoginSuccess) {
+      onLoginSuccess(landingTab, landingTitle);
+    } else {
+      setFlowState('workspace');
+    }
+  };
+
   const handleBiometricLogin = async () => {
     setErrorMsg(null);
-    const resolvedId = authService.resolveEmail(identifier || '');
-    const linked =
-      getLinkedGoogleAccountForKasEmail(resolvedId) ||
-      findBindingByGoogleEmail(identifier || '');
-    if (linked) {
-      setSuccessMsg(`جاري التحقق من الهوية المعتمدة وربط جلسة Google (${linked.googleEmail})...`);
-      await handleGoogleAccountSelect({
-        email: linked.googleEmail,
-        name: linked.employeeNameAr,
-        picture: linked.googlePhotoUrl,
-      });
+    setSuccessMsg(null);
+    setLoginMethodTab('biometric');
+
+    const cleanId = identifier.trim();
+    if (!cleanId) {
+      setErrorMsg('يرجى إدخال البريد الوظيفي (@kas.sa) للشخص المخوّل لمطابقة بصمته الرقمية.');
       return;
     }
+
+    const allowCheck = validateAllowedCorporateEmail(cleanId);
+    if (!allowCheck.allowed) {
+      setErrorMsg(
+        allowCheck.reason ||
+          'رفض أمني: البصمة الرقمية مقتصرة حصرياً على حسابات الموظفين المخوّلين في مجموعة خالد السليم (@kas.sa).'
+      );
+      return;
+    }
+
+    const resolvedEmail = authService.resolveEmail(cleanId);
+    setLoading(true);
+    try {
+      const bioStatus = await hasActiveBiometricForUser(resolvedEmail);
+      setEnrolledBioState({
+        enrolled: bioStatus.enrolled,
+        count: bioStatus.count,
+        deviceName: bioStatus.credentials[0]?.deviceName,
+      });
+
+      if (!bioStatus.enrolled) {
+        setErrorMsg(
+          `لا توجد بصمة عتادية مسجلة لحساب (${resolvedEmail}) على هذا الجهاز بعد. أدخل كلمة المرور القوية أدناه لإثبات هويتك وربط بصمتك الحقيقية بحسابك.`
+        );
+        setTimeout(() => bioEnrollPassRef.current?.focus(), 60);
+        return;
+      }
+
+      setSuccessMsg(
+        `يرجى مسح البصمة الحيوية الآن عبر مستشعر الجهاز لمطابقتها تشفيرياً مع بصمة صاحب الحساب (${resolvedEmail})...`
+      );
+      const res = await signInWithBiometric(resolvedEmail);
+      if (!res.success || !res.user) {
+        setSuccessMsg(null);
+        setErrorMsg(
+          res.error ||
+            'رفض أمني: فشلت مطابقة البصمة الممسوحة مع المفتاح المشفر لصاحب الحساب المخوّل.'
+        );
+        if (res.notEnrolled) {
+          setEnrolledBioState({ enrolled: false, count: 0 });
+        }
+        return;
+      }
+
+      setSuccessMsg(
+        `تمت المطابقة التشفيرية لبصمة ${res.user.full_name} بنجاح (FIDO2 UV=1) — جاري فتح مساحة العمل...`
+      );
+      routeVerifiedCorporateUser(
+        res.user.email || resolvedEmail,
+        res.user.default_tab,
+        res.user.default_tab_title
+      );
+    } catch (err: unknown) {
+      setSuccessMsg(null);
+      setErrorMsg(
+        err instanceof Error ? err.message : 'تعذر إتمام التحقق من البصمة الرقمية على هذا الجهاز.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAuthorizeAndEnrollBiometric = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
     setSuccessMsg(null);
-    setErrorMsg(
-      'يتطلب الدخول السريع تسجيل الدخول للمرة الأولى بكلمة المرور القوية المعتمدة ثم اعتماد حساب Google الشخصي من داخل اللوحة.'
-    );
-    passwordInputRef.current?.focus();
+
+    const cleanId = identifier.trim();
+    const cleanBioPass = bioEnrollPassword.trim();
+    if (!cleanId) {
+      setErrorMsg('يرجى إدخال البريد الوظيفي (@kas.sa) للموظف المخوّل أولاً.');
+      return;
+    }
+    if (!cleanBioPass) {
+      setErrorMsg('يرجى إدخال كلمة المرور القوية المعتمدة لإثبات هوية صاحب الحساب قبل تسجيل البصمة.');
+      bioEnrollPassRef.current?.focus();
+      return;
+    }
+
+    const allowCheck = validateAllowedCorporateEmail(cleanId);
+    if (!allowCheck.allowed) {
+      setErrorMsg(
+        allowCheck.reason ||
+          'رفض أمني: لا يُسمح بتسجيل البصمة إلا للموظفين المخوّلين في مجموعة خالد السليم (@kas.sa).'
+      );
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (isTurnstileEnabled()) {
+        const tsCheck = await verifyTurnstileTokenAtEdge(turnstileToken);
+        if (!tsCheck.ok) {
+          setErrorMsg(tsCheck.errorAr || 'يرجى إكمال التحقق الأمني (Cloudflare Turnstile) أولاً.');
+          setTurnstileResetTick((t) => t + 1);
+          return;
+        }
+      }
+
+      const resolvedEmail = authService.resolveEmail(cleanId);
+      setSuccessMsg(
+        `تم استلام طلب التوثيق لحساب (${resolvedEmail}) — يرجى مسح بصمتك الحقيقية الآن عند ظهور نافذة نظام التشغيل...`
+      );
+
+      const enrollRes = await enrollBiometricWithPassword(
+        resolvedEmail,
+        cleanBioPass,
+        bioSensorType
+      );
+
+      if (!enrollRes.success || !enrollRes.user) {
+        setSuccessMsg(null);
+        setErrorMsg(
+          enrollRes.error ||
+            'تعذر تسجيل البصمة الرقمية — تحقق من كلمة المرور ومستشعر البصمة العتادي.'
+        );
+        return;
+      }
+
+      setBioEnrollPassword('');
+      setEnrolledBioState({
+        enrolled: true,
+        count: enrolledBioState.count + 1,
+        deviceName: hwBioSupport.detectedDevice,
+      });
+      setSuccessMsg(
+        `تم ربط البصمة العتادية الحقيقية بحساب (${enrollRes.user.full_name}) بنجاح — جاري الدخول للمنظومة...`
+      );
+
+      // If 2FA is strictly required on login for this employee, verify second factor before entering workspace
+      const twoFactorChallenge = getLoginChallengeForUser(resolvedEmail);
+      if (twoFactorChallenge.required) {
+        const initialMethod: 'google_online' | 'totp' | 'backup_code' =
+          twoFactorChallenge.preferredMethod === 'google_online' &&
+          twoFactorChallenge.googleOnlineEnabled
+            ? 'google_online'
+            : twoFactorChallenge.totpEnabled
+              ? 'totp'
+              : twoFactorChallenge.googleOnlineEnabled
+                ? 'google_online'
+                : 'backup_code';
+        setPendingTwoFactor({
+          identifier: resolvedEmail,
+          password: cleanBioPass,
+          kasEmail: resolvedEmail,
+          challenge: twoFactorChallenge,
+        });
+        setTwoFactorMethod(initialMethod);
+        setTwoFactorCode('');
+        setTwoFactorGoogleEmail(twoFactorChallenge.googleEmail || '');
+        setSuccessMsg(
+          'تم ربط بصمتك الحقيقية بنجاح — يرجى إتمام المصادقة الثنائية المفعلة على حسابك للمتابعة.'
+        );
+        return;
+      }
+
+      routeVerifiedCorporateUser(
+        enrollRes.user.email || resolvedEmail,
+        enrollRes.user.default_tab,
+        enrollRes.user.default_tab_title
+      );
+    } catch (err: unknown) {
+      setSuccessMsg(null);
+      setErrorMsg(
+        err instanceof Error ? err.message : 'حدث خطأ أثناء تسجيل وربط البصمة الرقمية.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogleButtonClick = () => {
@@ -1361,13 +1624,32 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
                 <div className="grid grid-cols-2 gap-2">
                   <button
+                    id="biometric-signin-trigger-btn"
                     type="button"
                     disabled={loading}
-                    onClick={handleBiometricLogin}
-                    className="w-full h-10 rounded-2xl bg-[#ffffff] hover:bg-[#ffffff] border border-[#e0e0e0] text-[#141414] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    onClick={() => {
+                      void handleBiometricLogin();
+                    }}
+                    className={`w-full h-10 rounded-2xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                      loginMethodTab === 'biometric'
+                        ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                        : 'bg-[#ffffff] hover:bg-[#f3f3f3] border-[#e0e0e0] text-[#141414]'
+                    }`}
                   >
-                    <Fingerprint className="w-4 h-4 text-[#0066ff]" />
+                    <Fingerprint
+                      className={`w-4 h-4 ${
+                        loginMethodTab === 'biometric' ? 'text-[#ffffff]' : 'text-[#0066ff]'
+                      }`}
+                    />
                     <span>البصمة الرقمية</span>
+                    {enrolledBioState.enrolled && (
+                      <span
+                        className={`w-2 h-2 rounded-full ${
+                          loginMethodTab === 'biometric' ? 'bg-[#ffffff]' : 'bg-[#0066ff]'
+                        }`}
+                        title="بصمة مفعّلة لهذا الحساب على هذا الجهاز"
+                      />
+                    )}
                   </button>
 
                   <button
@@ -1381,9 +1663,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                         setErrorMsg(null);
                       }
                     }}
-                    className="w-full h-10 rounded-2xl bg-[#ffffff] hover:bg-[#ffffff] border border-[#e0e0e0] text-[#141414] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    className={`w-full h-10 rounded-2xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                      loginMethodTab === 'magic_link'
+                        ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                        : 'bg-[#ffffff] hover:bg-[#f3f3f3] border-[#e0e0e0] text-[#141414]'
+                    }`}
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-[#141414]" />
+                    <Sparkles
+                      className={`w-3.5 h-3.5 ${
+                        loginMethodTab === 'magic_link' ? 'text-[#ffffff]' : 'text-[#141414]'
+                      }`}
+                    />
                     <span>الرابط السحري</span>
                   </button>
                 </div>
@@ -1761,7 +2051,217 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     <span>إرسال الرابط السحري والدخول</span>
                     <ArrowLeft className="w-4 h-4" />
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginMethodTab('password');
+                      setErrorMsg(null);
+                    }}
+                    className="w-full h-10 rounded-2xl border border-[#e0e0e0] bg-[#ffffff] hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    العودة للدخول بكلمة المرور
+                  </button>
                 </form>
+              ) : loginMethodTab === 'biometric' ? (
+                <div className="space-y-4" data-slot="biometric-auth-panel">
+                  {/* Hardware Sensor & Employee Ownership Banner */}
+                  <div className="p-3.5 rounded-2xl bg-[#f3f3f3] border border-[#e0e0e0] space-y-2 text-right">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-[#141414] text-[#ffffff] flex items-center justify-center shrink-0">
+                          <Fingerprint className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-extrabold text-[#141414]">
+                            المصادقة الحيوية الحقيقية (FIDO2 / WebAuthn)
+                          </div>
+                          <div className="text-[11px] text-[#707070]">
+                            مطابقة تشفيرية صارمة لبصمة الموظف المخوّل فقط (UV=1 + ECDSA P-256)
+                          </div>
+                        </div>
+                      </div>
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold border shrink-0 ${
+                          enrolledBioState.enrolled
+                            ? 'bg-[#141414] text-[#ffffff] border-[#141414]'
+                            : 'bg-[#ffffff] text-[#707070] border-[#e0e0e0]'
+                        }`}
+                      >
+                        {enrolledBioState.enrolled
+                          ? `بصمة مسجلة (${enrolledBioState.count})`
+                          : 'بانتظار ربط البصمة'}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-[#707070] flex items-center justify-between gap-2 pt-1 border-t border-[#e0e0e0]">
+                      <span>المستشعر المكتشف:</span>
+                      <span className="font-bold text-[#141414] truncate max-w-[230px]" dir="ltr">
+                        {hwBioSupport.hasHardware
+                          ? hwBioSupport.detectedDevice
+                          : 'مستشعر النظام غير مفعّل بعد'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Corporate Email Input */}
+                  <div>
+                    <label
+                      htmlFor="biometric-identifier-input"
+                      className="block text-right text-xs font-bold text-[#141414] mb-1.5"
+                    >
+                      البريد الوظيفي للشخص المخوّل (@kas.sa)
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="biometric-identifier-input"
+                        type="text"
+                        dir="ltr"
+                        autoComplete="username webauthn"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
+                        placeholder="employee@kas.sa"
+                        className="w-full h-12 pl-4 pr-10 rounded-2xl bg-[#f3f3f3] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#707070] text-sm font-medium text-left transition-all focus:outline-none"
+                        required
+                      />
+                      <Mail className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  {enrolledBioState.enrolled ? (
+                    <div className="space-y-3">
+                      <button
+                        id="biometric-verify-now-btn"
+                        type="button"
+                        disabled={loading || !hwBioSupport.hasHardware}
+                        onClick={() => {
+                          void handleBiometricLogin();
+                        }}
+                        className="w-full h-12 rounded-2xl bg-[#141414] hover:bg-[#262626] disabled:opacity-50 text-[#ffffff] font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+                      >
+                        {loading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>جاري مطابقة البصمة المشفرة...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Fingerprint className="w-4 h-4" />
+                            <span>امسح بصمة صاحب الحساب المخوّل للدخول</span>
+                          </>
+                        )}
+                      </button>
+
+                      {enrolledBioState.deviceName && (
+                        <p className="text-[11px] text-[#707070] text-center m-0">
+                          مربوطة بشريحة الأمان:{' '}
+                          <span className="font-bold text-[#141414]">{enrolledBioState.deviceName}</span>
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <form
+                      onSubmit={(e) => {
+                        void handleAuthorizeAndEnrollBiometric(e);
+                      }}
+                      className="space-y-3.5"
+                    >
+                      <div className="grid grid-cols-3 gap-1.5 bg-[#f3f3f3] p-1 rounded-xl border border-[#e0e0e0]">
+                        {(
+                          [
+                            { id: 'Touch ID (بصمة إصبع)', label: 'بصمة الإصبع' },
+                            { id: 'Face ID (بصمة وجه)', label: 'بصمة الوجه' },
+                            { id: 'بصمة مزدوجة', label: 'Windows Hello' },
+                          ] as const
+                        ).map((opt) => (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => setBioSensorType(opt.id)}
+                            className={`py-2 px-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                              bioSensorType === opt.id
+                                ? 'bg-[#141414] text-[#ffffff]'
+                                : 'text-[#707070] hover:text-[#141414]'
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="biometric-enroll-password-input"
+                          className="block text-right text-xs font-bold text-[#141414] mb-1.5"
+                        >
+                          كلمة المرور المؤسسية (لإثبات الهوية قبل ربط البصمة)
+                        </label>
+                        <div className="relative">
+                          <input
+                            id="biometric-enroll-password-input"
+                            ref={bioEnrollPassRef}
+                            type={showBioEnrollPassword ? 'text' : 'password'}
+                            dir="ltr"
+                            autoComplete="current-password"
+                            value={bioEnrollPassword}
+                            onChange={(e) => setBioEnrollPassword(e.target.value)}
+                            placeholder="••••••••••••"
+                            className="w-full h-12 pl-10 pr-10 rounded-2xl bg-[#f3f3f3] focus:bg-[#ffffff] border border-transparent focus:border-[#141414] text-[#141414] placeholder:text-[#707070] text-sm font-medium text-left transition-all focus:outline-none"
+                            required
+                          />
+                          <Lock className="w-4 h-4 text-[#707070] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <button
+                            type="button"
+                            onClick={() => setShowBioEnrollPassword(!showBioEnrollPassword)}
+                            aria-label="إظهار أو إخفاء كلمة مرور توثيق البصمة"
+                            className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center text-[#707070] hover:text-[#141414] transition-colors cursor-pointer"
+                          >
+                            {showBioEnrollPassword ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      <CloudflareTurnstileWidget
+                        onTokenChange={setTurnstileToken}
+                        resetSignal={turnstileResetTick}
+                      />
+
+                      <button
+                        id="biometric-enroll-submit-btn"
+                        type="submit"
+                        disabled={loading || !hwBioSupport.hasHardware}
+                        className="w-full h-12 rounded-2xl bg-[#141414] hover:bg-[#262626] disabled:opacity-50 text-[#ffffff] font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+                      >
+                        {loading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>جاري التحقق وتسجيل البصمة الحقيقية...</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShieldCheck className="w-4 h-4" />
+                            <span>توثيق الهوية وتسجيل بصمة الشخص المخوّل</span>
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginMethodTab('password');
+                      setErrorMsg(null);
+                      setSuccessMsg(null);
+                    }}
+                    className="w-full h-10 rounded-2xl border border-[#e0e0e0] bg-[#ffffff] hover:bg-[#f3f3f3] text-[#707070] hover:text-[#141414] text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    العودة للدخول بكلمة المرور
+                  </button>
+                </div>
               ) : (
                 <form
                   onSubmit={(e) => {

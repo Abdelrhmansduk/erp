@@ -9,13 +9,17 @@ import { useCompany } from '../contexts/CompanyContext';
 import { useAuthContext } from '../contexts/AuthContext';
 import { useAppStore } from '../stores/appStore';
 import {
+  authService,
   CORPORATE_DEPARTMENTS,
   COMPANY_AUTH_METADATA,
   DepartmentId,
+  findAllowedKasEmployee,
   getFullStaffDirectory,
   registerCustomStaffAccount,
   resolveDepartmentAndCompany,
+  validateAllowedCorporateEmail,
 } from '../services/authService';
+import { hasActiveBiometricForUser } from '../services/webAuthnBiometricService';
 import {
   VERIFIED_FIREBASE_GOOGLE_ACCOUNTS,
   getCachedGoogleProfile,
@@ -48,13 +52,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
   useModalEscape();
   const { currentLanguage } = useLanguage();
   const { setActiveCompanyId } = useCompany();
-  const { signIn, signInWithGoogle, user: authUser } = useAuthContext();
+  const { signIn, signInWithGoogle, signInWithBiometric, user: authUser } = useAuthContext();
   const { setFlowState, setActiveTab } = useAppStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
   // Interactive Login State inside Hero Split
   const [identifier, setIdentifier] = useState('a.salif.dev@kas.sa');
-  const [password, setPassword] = useState(DEMO_QUICK_LOGIN_SECRET);
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -316,14 +320,95 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
       setErrorMsg('يرجى إدخال البريد الإلكتروني أو الرقم الوظيفي');
       return;
     }
-    const pass = password || DEMO_QUICK_LOGIN_SECRET;
-    await executeQuickLogin(identifier, pass);
+    if (!password.trim()) {
+      setErrorMsg('يرجى إدخال كلمة المرور القوية المعتمدة لحسابك المؤسسي (@kas.sa).');
+      return;
+    }
+    await executeQuickLogin(identifier.trim(), password.trim());
   };
 
   const handleBiometricLogin = async () => {
     setErrorMsg(null);
-    setSuccessMsg('جاري التحقق من البصمة الرقمية وفتح الجلسة...');
-    await executeQuickLogin(identifier || 'khalid@kas.sa', DEMO_QUICK_LOGIN_SECRET);
+    setSuccessMsg(null);
+    const cleanId = identifier.trim();
+
+    if (!cleanId) {
+      try {
+        sessionStorage.setItem('ALSULAIM_OPEN_BIOMETRIC_TAB', '');
+      } catch {
+        // ignore storage restrictions
+      }
+      setFlowState('login');
+      return;
+    }
+
+    const allowCheck = validateAllowedCorporateEmail(cleanId);
+    if (!allowCheck.allowed) {
+      setErrorMsg(
+        allowCheck.reason ||
+          'رفض أمني: الدخول بالبصمة الرقمية متاح حصرياً لحسابات الموظفين المخوّلين (@kas.sa).'
+      );
+      return;
+    }
+
+    const resolvedEmail = authService.resolveEmail(cleanId);
+    setLoading(true);
+    try {
+      const bioStatus = await hasActiveBiometricForUser(resolvedEmail);
+      if (!bioStatus.enrolled) {
+        try {
+          sessionStorage.setItem('ALSULAIM_OPEN_BIOMETRIC_TAB', resolvedEmail);
+        } catch {
+          // ignore storage restrictions
+        }
+        setFlowState('login');
+        return;
+      }
+
+      setSuccessMsg(
+        `يرجى مسح البصمة الحيوية الآن عبر مستشعر الجهاز لمطابقتها مع حساب (${resolvedEmail})...`
+      );
+      const res = await signInWithBiometric(resolvedEmail);
+      if (!res.success || !res.user) {
+        setSuccessMsg(null);
+        setErrorMsg(
+          res.error ||
+            'رفض أمني: البصمة الممسوحة لا تطابق المفتاح المشفر لصاحب الحساب المخوّل.'
+        );
+        return;
+      }
+
+      const kasEmp = findAllowedKasEmployee(resolvedEmail);
+      const routeInfo = resolveDepartmentAndCompany(resolvedEmail);
+      const landingTab =
+        kasEmp?.defaultTab || res.user.default_tab || routeInfo.departmentDef.defaultTab;
+      const landingTitle =
+        kasEmp?.defaultTabTitle ||
+        res.user.default_tab_title ||
+        routeInfo.departmentDef.defaultTabTitle;
+
+      if (routeInfo.companyId === 'all') {
+        setActiveCompanyId('SAF');
+        useAppStore.getState().setActiveCompanyId('all' as any);
+      } else {
+        const compUpper = routeInfo.companyId.toUpperCase() as CompanyId;
+        setActiveCompanyId(compUpper);
+        useAppStore.getState().setActiveCompanyId(compUpper as any);
+      }
+
+      setActiveTab(landingTab, landingTitle);
+      setSuccessMsg(
+        `تمت مطابقة البصمة الحقيقية لـ ${res.user.full_name} بنجاح — جاري فتح مساحة العمل...`
+      );
+      setFlowState('workspace');
+    } catch (err: unknown) {
+      setSuccessMsg(null);
+      setErrorMsg(
+        err instanceof Error ? err.message : 'تعذر التحقق من البصمة الرقمية على هذا الجهاز.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSelect = (id: CompanyId | string, portalCode?: string) => {
@@ -721,12 +806,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
 
                   <button
                     type="button"
-                    onClick={() =>
-                      void executeQuickLogin(
-                        identifier.trim() || 'a.salif.dev@kas.sa',
-                        password || DEMO_QUICK_LOGIN_SECRET
-                      )
-                    }
+                    onClick={() => {
+                      if (identifier.trim() && password.trim()) {
+                        void executeQuickLogin(identifier.trim(), password.trim());
+                      } else {
+                        setFlowState('login');
+                      }
+                    }}
                     disabled={loading}
                     className="w-full py-2.5 px-4 rounded-full bg-white hover:bg-[#ffffff] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
@@ -737,7 +823,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
-                      onClick={handleBiometricLogin}
+                      onClick={() => {
+                        void handleBiometricLogin();
+                      }}
                       disabled={loading}
                       className="w-full py-2.5 px-3 rounded-full bg-white hover:bg-[#ffffff] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                     >
@@ -747,12 +835,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectCompany }) => 
 
                     <button
                       type="button"
-                      onClick={() =>
-                        void executeQuickLogin(
-                          identifier.trim() || 'khalid@kas.sa',
-                          DEMO_QUICK_LOGIN_SECRET
-                        )
-                      }
+                      onClick={() => {
+                        if (!identifier.trim()) {
+                          setFlowState('login');
+                          return;
+                        }
+                        setErrorMsg(null);
+                        setLoading(true);
+                        void authService.sendMagicLink(identifier.trim()).then(({ error }) => {
+                          setLoading(false);
+                          if (error) {
+                            setSuccessMsg(null);
+                            setErrorMsg(error);
+                          } else {
+                            setSuccessMsg(
+                              `تم إرسال رابط الدخول الموثق إلى (${identifier.trim()}). يرجى فتح بريدك لإتمام الدخول.`
+                            );
+                          }
+                        });
+                      }}
                       disabled={loading}
                       className="w-full py-2.5 px-3 rounded-full bg-white hover:bg-[#ffffff] text-[#141414] border border-[#e0e0e0] text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                     >
